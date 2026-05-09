@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
-import { Zap, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
+import { supabase } from '../lib/supabase'
+import { Zap, Eye, EyeOff, ArrowRight, Loader2, Mail, CheckCircle } from 'lucide-react'
 
 export default function AuthPage() {
   const [mode, setMode] = useState('signin')
@@ -11,8 +12,33 @@ export default function AuthPage() {
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [confirmed, setConfirmed] = useState(false)
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
   const { signIn, signUp } = useAuth()
   const navigate = useNavigate()
+
+  // Handle email confirmation redirect — Supabase appends #access_token or ?type=signup to the URL
+  useEffect(() => {
+    const hash = window.location.hash
+    const params = new URLSearchParams(window.location.search)
+    const isConfirmation = hash.includes('access_token') || params.get('type') === 'signup'
+
+    if (isConfirmation) {
+      // Let Supabase process the token from the URL
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          // Confirmed and signed in — go straight to dashboard
+          navigate('/dashboard')
+        } else {
+          // Token processed but no session — show confirmed message
+          setConfirmed(true)
+          setMode('signin')
+          // Clean up the URL
+          window.history.replaceState({}, document.title, '/auth')
+        }
+      })
+    }
+  }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -25,9 +51,11 @@ export default function AuthPage() {
         navigate('/dashboard')
       } else {
         if (!fullName.trim()) throw new Error('Full name is required')
-        const { error } = await signUp(email, password, fullName)
+        const { data, error } = await signUp(email, password, fullName)
         if (error) throw error
-        navigate('/dashboard')
+        // Supabase requires email confirmation by default
+        setAwaitingConfirmation(true)
+        setError('')
       }
     } catch (err) {
       setError(err.message)
@@ -35,6 +63,66 @@ export default function AuthPage() {
       setLoading(false)
     }
   }
+
+  // ── Awaiting email confirmation screen ──────────────────────────────────────
+  if (awaitingConfirmation) return (
+    <div style={{ minHeight: '100vh', background: '#080C14', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: "'DM Sans', sans-serif" }}>
+      <div style={{ textAlign: 'center', maxWidth: '380px' }}>
+        <div style={{
+          width: '72px', height: '72px', borderRadius: '20px', margin: '0 auto 24px',
+          background: 'rgba(30,200,120,0.1)', border: '1px solid rgba(30,200,120,0.25)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <Mail size={32} color="#1EC878" />
+        </div>
+        <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', marginBottom: '12px' }}>Check your email</h2>
+        <p style={{ color: '#4A6070', fontSize: '15px', lineHeight: '1.7', marginBottom: '8px' }}>
+          We sent a confirmation link to
+        </p>
+        <p style={{ color: '#fff', fontWeight: '700', fontSize: '15px', marginBottom: '24px' }}>{email}</p>
+        <p style={{ color: '#4A6070', fontSize: '14px', lineHeight: '1.7', marginBottom: '28px' }}>
+          Click the link in the email to confirm your account. Once confirmed, you'll be signed in automatically.
+        </p>
+        <button onClick={() => { setAwaitingConfirmation(false); setMode('signin') }} style={{
+          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: '10px', padding: '11px 24px', color: '#fff', fontSize: '14px',
+          fontWeight: '600', fontFamily: "'DM Sans', sans-serif", cursor: 'pointer'
+        }}>
+          Back to Sign In
+        </button>
+      </div>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');`}</style>
+    </div>
+  )
+
+  // ── Email confirmed screen ───────────────────────────────────────────────────
+  if (confirmed) return (
+    <div style={{ minHeight: '100vh', background: '#080C14', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: "'DM Sans', sans-serif" }}>
+      <div style={{ textAlign: 'center', maxWidth: '380px' }}>
+        <div style={{
+          width: '72px', height: '72px', borderRadius: '20px', margin: '0 auto 24px',
+          background: 'rgba(30,200,120,0.1)', border: '1px solid rgba(30,200,120,0.25)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <CheckCircle size={32} color="#1EC878" />
+        </div>
+        <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', marginBottom: '12px' }}>Email confirmed</h2>
+        <p style={{ color: '#4A6070', fontSize: '15px', lineHeight: '1.7', marginBottom: '28px' }}>
+          Your account is verified. Sign in below to get started.
+        </p>
+        <button onClick={() => setConfirmed(false)} style={{
+          background: 'linear-gradient(135deg, #1EC878, #0FA85A)',
+          border: 'none', borderRadius: '10px', padding: '13px 32px',
+          color: '#fff', fontSize: '15px', fontWeight: '700',
+          fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
+          boxShadow: '0 4px 16px rgba(30,200,120,0.3)'
+        }}>
+          Sign In →
+        </button>
+      </div>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');`}</style>
+    </div>
+  )
 
   return (
     <div style={{

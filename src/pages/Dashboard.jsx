@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [showNewGig, setShowNewGig] = useState(false)
   const [creating, setCreating] = useState(false)
   const [newOrgName, setNewOrgName] = useState('')
+  const [orgError, setOrgError] = useState('')
   const [gigForm, setGigForm] = useState({ name: '', venue: '', start_date: '', end_date: '', description: '', status: 'confirmed' })
 
   useEffect(() => { if (user) fetchOrgs() }, [user])
@@ -58,17 +59,27 @@ export default function Dashboard() {
   async function createOrg() {
     if (!newOrgName.trim()) return
     setCreating(true)
-    const { data: org, error } = await supabase
-      .from('organisations')
-      .insert({ name: newOrgName.trim(), created_by: user.id })
-      .select().single()
-    if (!error) {
-      await supabase.from('org_members').insert({ org_id: org.id, user_id: user.id, role: 'admin' })
+    try {
+      const { data: org, error: orgError } = await supabase
+        .from('organisations')
+        .insert({ name: newOrgName.trim(), created_by: user.id })
+        .select().single()
+      if (orgError) throw orgError
+
+      const { error: memberError } = await supabase
+        .from('org_members')
+        .insert({ org_id: org.id, user_id: user.id, role: 'admin' })
+      if (memberError) throw memberError
+
       setShowNewOrg(false)
       setNewOrgName('')
+      setOrgError('')
       fetchOrgs()
+    } catch (err) {
+      setOrgError(err.message)
+    } finally {
+      setCreating(false)
     }
-    setCreating(false)
   }
 
   async function createGig() {
@@ -256,13 +267,22 @@ export default function Dashboard() {
 
       {/* New Org Modal */}
       {showNewOrg && (
-        <Modal title="New Organisation" onClose={() => setShowNewOrg(false)}>
+        <Modal title="New Organisation" onClose={() => { setShowNewOrg(false); setOrgError('') }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <FieldLabel label="Organisation Name">
               <input value={newOrgName} onChange={e => setNewOrgName(e.target.value)}
                 placeholder="e.g. SoundWorks Lisboa" style={modalInput}
                 onKeyDown={e => e.key === 'Enter' && createOrg()} autoFocus />
             </FieldLabel>
+            {orgError && (
+              <div style={{
+                padding: '10px 14px', borderRadius: '8px',
+                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
+                color: '#F87171', fontSize: '13px', lineHeight: '1.5'
+              }}>
+                {orgError}
+              </div>
+            )}
             <button onClick={createOrg} disabled={creating || !newOrgName.trim()} style={btnModal}>
               {creating ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={16} />}
               Create Organisation
