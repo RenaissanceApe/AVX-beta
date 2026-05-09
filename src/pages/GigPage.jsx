@@ -101,21 +101,32 @@ export default function GigPage() {
 
   // Private bucket — generate a signed URL valid for 60 minutes
   async function openAsset(asset) {
-    // file_url may be a full URL or just a storage path
-    // Extract the path portion after the bucket name
     let path = asset.file_url
+    // Strip full URL down to just the path if needed
     const marker = '/gig-assets/'
     if (path.includes(marker)) {
       path = path.split(marker)[1]
     }
+    // Also handle query strings that may have been appended
+    path = path.split('?')[0]
+
     const { data, error } = await supabase.storage
       .from('gig-assets')
       .createSignedUrl(path, 3600)
+
     if (error) {
       alert('Could not open file: ' + error.message)
       return
     }
-    window.open(data.signedUrl, '_blank')
+
+    // Use anchor click — bypasses popup blockers that block window.open in async callbacks
+    const a = document.createElement('a')
+    a.href = data.signedUrl
+    a.target = '_blank'
+    a.rel = 'noopener noreferrer'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   async function handleUpload() {
