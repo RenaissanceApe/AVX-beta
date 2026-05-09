@@ -45,9 +45,12 @@ export default function GigPage() {
 
   const [showUpload, setShowUpload] = useState(false)
   const [showInvite, setShowInvite] = useState(false)
+  const [showEditGig, setShowEditGig] = useState(false)
   const [uploading, setUploading]   = useState(false)
   const [uploadForm, setUploadForm] = useState({ type: 'patch_list', name: '', file: null })
   const [inviteForm, setInviteForm] = useState({ email: '', role: 'crew', function_title: '', call_time: '' })
+  const [editForm, setEditForm]     = useState({})
+  const [savingGig, setSavingGig]   = useState(false)
   const [inviting, setInviting]     = useState(false)
   const [postText, setPostText]     = useState('')
   const [postImportant, setPostImportant] = useState(false)
@@ -86,6 +89,35 @@ export default function GigPage() {
     setLoading(false)
   }
 
+  async function saveGig() {
+    setSavingGig(true)
+    const { error } = await supabase.from('gigs').update(editForm).eq('id', id)
+    if (!error) {
+      setGig(g => ({ ...g, ...editForm }))
+      setShowEditGig(false)
+    }
+    setSavingGig(false)
+  }
+
+  // Private bucket — generate a signed URL valid for 60 minutes
+  async function openAsset(asset) {
+    // file_url may be a full URL or just a storage path
+    // Extract the path portion after the bucket name
+    let path = asset.file_url
+    const marker = '/gig-assets/'
+    if (path.includes(marker)) {
+      path = path.split(marker)[1]
+    }
+    const { data, error } = await supabase.storage
+      .from('gig-assets')
+      .createSignedUrl(path, 3600)
+    if (error) {
+      alert('Could not open file: ' + error.message)
+      return
+    }
+    window.open(data.signedUrl, '_blank')
+  }
+
   async function handleUpload() {
     if (!uploadForm.file || !uploadForm.name.trim()) return
     setUploading(true)
@@ -97,7 +129,8 @@ export default function GigPage() {
         .upload(path, uploadForm.file, { contentType: uploadForm.file.type })
       if (storageError) throw storageError
 
-      const { data: { publicUrl } } = supabase.storage.from('gig-assets').getPublicUrl(path)
+      // Store the path, not the public URL — we generate signed URLs on open
+      const fileUrl = path
 
       // Version: find if there's an existing asset of same type to supersede
       const existing = assets.find(a => a.type === uploadForm.type)
@@ -107,7 +140,7 @@ export default function GigPage() {
         gig_id: id,
         type: uploadForm.type,
         name: uploadForm.name.trim(),
-        file_url: publicUrl,
+        file_url: fileUrl,
         file_size: uploadForm.file.size,
         version,
         created_by: user.id,
@@ -293,21 +326,34 @@ export default function GigPage() {
               </div>
             </div>
             {myMembership && (
-              <div style={{
-                padding: '6px 12px', borderRadius: '8px',
-                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
-                fontSize: '12px', color: '#4A6070', textAlign: 'center', whiteSpace: 'nowrap'
-              }}>
-                <div style={{ fontWeight: '700', color: '#fff', fontSize: '13px' }}>
-                  {myMembership.function_title || (myMembership.role === 'pm' ? 'Production Manager' : 'Crew')}
-                </div>
-                {myMembership.call_time && (
-                  <div style={{ color: '#1EC878', fontSize: '12px', fontWeight: '600', marginTop: '2px' }}>
-                    Call: {myMembership.call_time}
-                  </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                {isPM && (
+                  <button onClick={() => { setEditForm({ name: gig.name, venue: gig.venue || '', start_date: gig.start_date || '', end_date: gig.end_date || '', description: gig.description || '', status: gig.status }); setShowEditGig(true) }} style={{
+                    display: 'flex', alignItems: 'center', gap: '5px',
+                    padding: '5px 11px', borderRadius: '8px',
+                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#4A6070', fontSize: '12px', fontWeight: '600',
+                    fontFamily: "'DM Sans', sans-serif", cursor: 'pointer'
+                  }}>
+                    ✏️ Edit Gig
+                  </button>
                 )}
-                <div style={{ marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '10px' }}>
-                  {myMembership.role}
+                <div style={{
+                  padding: '6px 12px', borderRadius: '8px',
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                  fontSize: '12px', color: '#4A6070', textAlign: 'center', whiteSpace: 'nowrap'
+                }}>
+                  <div style={{ fontWeight: '700', color: '#fff', fontSize: '13px' }}>
+                    {myMembership.function_title || (myMembership.role === 'pm' ? 'Production Manager' : 'Crew')}
+                  </div>
+                  {myMembership.call_time && (
+                    <div style={{ color: '#1EC878', fontSize: '12px', fontWeight: '600', marginTop: '2px' }}>
+                      Call: {myMembership.call_time}
+                    </div>
+                  )}
+                  <div style={{ marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '10px' }}>
+                    {myMembership.role}
+                  </div>
                 </div>
               </div>
             )}
@@ -379,12 +425,12 @@ export default function GigPage() {
                     const cfg = getAssetIcon(a.type)
                     const Icon = cfg.icon
                     return (
-                      <a key={a.id} href={a.file_url} target="_blank" rel="noopener noreferrer" style={{
+                      <div key={a.id} onClick={() => openAsset(a)} style={{
                         display: 'flex', alignItems: 'center', gap: '10px',
                         padding: '8px 10px', borderRadius: '9px',
                         background: 'rgba(255,255,255,0.03)',
                         border: '1px solid rgba(255,255,255,0.06)',
-                        textDecoration: 'none', transition: 'all 0.15s'
+                        textDecoration: 'none', transition: 'all 0.15s', cursor: 'pointer'
                       }}
                       onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(30,200,120,0.2)'}
                       onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'}
@@ -400,7 +446,7 @@ export default function GigPage() {
                           <div style={{ fontSize: '11px', color: '#4A6070' }}>v{a.version} · {cfg.label}</div>
                         </div>
                         <Download size={13} color="#2A3A48" />
-                      </a>
+                      </div>
                     )
                   })}
                   {assets.length > 4 && (
@@ -531,11 +577,11 @@ export default function GigPage() {
                           </span>
                         </div>
                       </div>
-                      <a href={a.file_url} target="_blank" rel="noopener noreferrer" style={{
+                      <button onClick={() => openAsset(a)} style={{
                         display: 'flex', alignItems: 'center', gap: '6px',
                         padding: '8px 14px', borderRadius: '8px',
                         background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)',
-                        color: '#fff', fontSize: '13px', fontWeight: '600', textDecoration: 'none',
+                        color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
                         transition: 'all 0.15s', flexShrink: 0,
                         fontFamily: "'DM Sans', sans-serif"
                       }}
@@ -543,7 +589,7 @@ export default function GigPage() {
                       onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
                       >
                         <Download size={13} /> Open
-                      </a>
+                      </button>
                     </div>
                   )
                 })}
@@ -821,6 +867,54 @@ export default function GigPage() {
             <button onClick={handleInvite} disabled={inviting || !inviteForm.email.trim()} style={btnModal}>
               {inviting ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={16} />}
               Send Invite
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── EDIT GIG MODAL ────────────────────────────────────────────────── */}
+      {showEditGig && (
+        <Modal title="Edit Gig" onClose={() => setShowEditGig(false)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <FieldLabel label="Gig Name *" />
+              <input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="Gig name" style={modalInput} autoFocus />
+            </div>
+            <div>
+              <FieldLabel label="Venue" />
+              <input value={editForm.venue} onChange={e => setEditForm(f => ({ ...f, venue: e.target.value }))}
+                placeholder="Venue name and city" style={modalInput} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <FieldLabel label="Start Date" />
+                <input type="date" value={editForm.start_date} onChange={e => setEditForm(f => ({ ...f, start_date: e.target.value }))} style={modalInput} />
+              </div>
+              <div>
+                <FieldLabel label="End Date" />
+                <input type="date" value={editForm.end_date} onChange={e => setEditForm(f => ({ ...f, end_date: e.target.value }))} style={modalInput} />
+              </div>
+            </div>
+            <div>
+              <FieldLabel label="Status" />
+              <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))} style={{ ...modalInput, cursor: 'pointer' }}>
+                <option value="draft">Draft</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+            <div>
+              <FieldLabel label="Description" />
+              <textarea value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
+                placeholder="Brief overview of the production..." rows={3}
+                style={{ ...modalInput, resize: 'vertical', lineHeight: '1.5' }} />
+            </div>
+            <button onClick={saveGig} disabled={savingGig || !editForm.name?.trim()} style={btnModal}>
+              {savingGig ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={16} />}
+              Save Changes
             </button>
           </div>
         </Modal>
