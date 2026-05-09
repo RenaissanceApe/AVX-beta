@@ -102,43 +102,53 @@ export default function GigPage() {
   const [openingAsset, setOpeningAsset] = useState(null)
   const [assetError, setAssetError]     = useState('')
 
-  // Private bucket — generate a signed URL valid for 60 minutes
   async function openAsset(asset) {
     setOpeningAsset(asset.id)
     setAssetError('')
     try {
-      let path = asset.file_url
-      // Strip full URL down to just the storage path
+      let path = asset.file_url ?? ''
+
+      // If it's a full URL, extract just the path after the bucket name
       const marker = '/gig-assets/'
       if (path.includes(marker)) {
         path = path.split(marker)[1]
       }
+      // Strip query strings
       path = path.split('?')[0]
 
-      console.log('Opening asset path:', path)
+      // Show the path we're using so we can verify it
+      setAssetError(`Trying path: ${path}`)
 
-      const { data, error } = await supabase.storage
+      const result = await supabase.storage
         .from('gig-assets')
         .createSignedUrl(path, 3600)
 
-      if (error) {
-        console.error('Signed URL error:', error)
-        setAssetError(`${asset.name}: ${error.message}`)
+      // Show the full raw result on screen
+      const resultStr = JSON.stringify(result, null, 2)
+
+      if (result.error) {
+        setAssetError(`Error: ${result.error.message} | Path: ${path} | Full: ${resultStr}`)
         return
       }
 
-      console.log('Signed URL:', data.signedUrl)
+      if (!result.data?.signedUrl) {
+        setAssetError(`No URL returned. Full result: ${resultStr}`)
+        return
+      }
+
+      setAssetError(`Success — opening...`)
 
       const a = document.createElement('a')
-      a.href = data.signedUrl
+      a.href = result.data.signedUrl
       a.target = '_blank'
       a.rel = 'noopener noreferrer'
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
+
+      setTimeout(() => setAssetError(''), 3000)
     } catch (err) {
-      console.error('openAsset exception:', err)
-      setAssetError(`Unexpected error: ${err.message}`)
+      setAssetError(`Exception: ${err.message}`)
     } finally {
       setOpeningAsset(null)
     }
