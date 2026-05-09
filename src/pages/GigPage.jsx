@@ -136,7 +136,7 @@ export default function GigPage() {
         return
       }
 
-      setAssetError(`Success — opening...`)
+      setAssetError('')
 
       const a = document.createElement('a')
       a.href = result.data.signedUrl
@@ -146,7 +146,10 @@ export default function GigPage() {
       a.click()
       document.body.removeChild(a)
 
-      setTimeout(() => setAssetError(''), 3000)
+      // Fallback for iOS Safari which blocks async anchor clicks
+      setTimeout(() => {
+        window.location.href = result.data.signedUrl
+      }, 100)
     } catch (err) {
       setAssetError(`Exception: ${err.message}`)
     } finally {
