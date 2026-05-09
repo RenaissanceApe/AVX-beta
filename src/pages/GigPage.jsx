@@ -99,34 +99,49 @@ export default function GigPage() {
     setSavingGig(false)
   }
 
+  const [openingAsset, setOpeningAsset] = useState(null)
+  const [assetError, setAssetError]     = useState('')
+
   // Private bucket — generate a signed URL valid for 60 minutes
   async function openAsset(asset) {
-    let path = asset.file_url
-    // Strip full URL down to just the path if needed
-    const marker = '/gig-assets/'
-    if (path.includes(marker)) {
-      path = path.split(marker)[1]
+    setOpeningAsset(asset.id)
+    setAssetError('')
+    try {
+      let path = asset.file_url
+      // Strip full URL down to just the storage path
+      const marker = '/gig-assets/'
+      if (path.includes(marker)) {
+        path = path.split(marker)[1]
+      }
+      path = path.split('?')[0]
+
+      console.log('Opening asset path:', path)
+
+      const { data, error } = await supabase.storage
+        .from('gig-assets')
+        .createSignedUrl(path, 3600)
+
+      if (error) {
+        console.error('Signed URL error:', error)
+        setAssetError(`${asset.name}: ${error.message}`)
+        return
+      }
+
+      console.log('Signed URL:', data.signedUrl)
+
+      const a = document.createElement('a')
+      a.href = data.signedUrl
+      a.target = '_blank'
+      a.rel = 'noopener noreferrer'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    } catch (err) {
+      console.error('openAsset exception:', err)
+      setAssetError(`Unexpected error: ${err.message}`)
+    } finally {
+      setOpeningAsset(null)
     }
-    // Also handle query strings that may have been appended
-    path = path.split('?')[0]
-
-    const { data, error } = await supabase.storage
-      .from('gig-assets')
-      .createSignedUrl(path, 3600)
-
-    if (error) {
-      alert('Could not open file: ' + error.message)
-      return
-    }
-
-    // Use anchor click — bypasses popup blockers that block window.open in async callbacks
-    const a = document.createElement('a')
-    a.href = data.signedUrl
-    a.target = '_blank'
-    a.rel = 'noopener noreferrer'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
   }
 
   async function handleUpload() {
@@ -538,6 +553,16 @@ export default function GigPage() {
             </div>
 
             {/* Group by type */}
+            {assetError && (
+              <div style={{
+                padding: '12px 16px', borderRadius: '10px', marginBottom: '12px',
+                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
+                color: '#F87171', fontSize: '13px', lineHeight: '1.5'
+              }}>
+                ⚠️ {assetError}
+              </div>
+            )}
+
             {assets.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '80px 20px' }}>
                 <div style={{
@@ -588,18 +613,21 @@ export default function GigPage() {
                           </span>
                         </div>
                       </div>
-                      <button onClick={() => openAsset(a)} style={{
+                      <button onClick={() => openAsset(a)} disabled={openingAsset === a.id} style={{
                         display: 'flex', alignItems: 'center', gap: '6px',
                         padding: '8px 14px', borderRadius: '8px',
-                        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)',
-                        color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+                        background: openingAsset === a.id ? 'rgba(30,200,120,0.1)' : 'rgba(255,255,255,0.06)',
+                        border: '1px solid rgba(255,255,255,0.09)',
+                        color: openingAsset === a.id ? '#1EC878' : '#fff',
+                        fontSize: '13px', fontWeight: '600', cursor: openingAsset === a.id ? 'wait' : 'pointer',
                         transition: 'all 0.15s', flexShrink: 0,
                         fontFamily: "'DM Sans', sans-serif"
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(30,200,120,0.1)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-                      >
-                        <Download size={13} /> Open
+                      }}>
+                        {openingAsset === a.id
+                          ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+                          : <Download size={13} />
+                        }
+                        {openingAsset === a.id ? 'Opening...' : 'Open'}
                       </button>
                     </div>
                   )
