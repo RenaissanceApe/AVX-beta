@@ -14,6 +14,7 @@ export default function AuthPage() {
   const [error, setError] = useState('')
   const [confirmed, setConfirmed] = useState(false)
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
   const { signIn, signUp } = useAuth()
   const navigate = useNavigate()
 
@@ -45,7 +46,13 @@ export default function AuthPage() {
     setError('')
     setLoading(true)
     try {
-      if (mode === 'signin') {
+      if (mode === 'reset') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`
+        })
+        if (error) throw error
+        setResetSent(true)
+      } else if (mode === 'signin') {
         const { error } = await signIn(email, password)
         if (error) throw error
         navigate('/dashboard')
@@ -180,7 +187,7 @@ export default function AuthPage() {
             borderRadius: '10px', padding: '4px', marginBottom: '28px'
           }}>
             {['signin', 'signup'].map(m => (
-              <button key={m} onClick={() => { setMode(m); setError('') }} style={{
+              <button key={m} onClick={() => { setMode(m); setError(''); setResetSent(false) }} style={{
                 flex: 1, padding: '8px', borderRadius: '7px', border: 'none', cursor: 'pointer',
                 fontSize: '13px', fontWeight: '600', fontFamily: "'DM Sans', sans-serif",
                 transition: 'all 0.2s',
@@ -220,7 +227,7 @@ export default function AuthPage() {
                 required
               />
             </div>
-            <div>
+            {mode !== 'reset' && <div>
               <label style={{ display: 'block', fontSize: '12px', color: '#4A6070', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Password
               </label>
@@ -241,7 +248,20 @@ export default function AuthPage() {
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-            </div>
+              {mode === 'signin' && (
+                <button type="button" onClick={() => { setMode('reset'); setError('') }} style={linkButton}>
+                  Forgot password?
+                </button>
+              )}
+            </div>}
+
+            {mode === 'reset' && (
+              <p style={{ color: '#4A6070', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
+                {resetSent
+                  ? `If an account exists for ${email}, a password reset link is on its way.`
+                  : "Enter your email and we'll send you a link to set a new password."}
+              </p>
+            )}
 
             {error && (
               <div style={{
@@ -264,9 +284,14 @@ export default function AuthPage() {
               boxShadow: loading ? 'none' : '0 4px 20px rgba(30,200,120,0.3)',
             }}>
               {loading ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : null}
-              {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : 'Create Account'}
+              {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : mode === 'reset' ? 'Send Reset Link' : 'Create Account'}
               {!loading && <ArrowRight size={16} />}
             </button>
+            {mode === 'reset' && (
+              <button type="button" onClick={() => { setMode('signin'); setError(''); setResetSent(false) }} style={{ ...linkButton, alignSelf: 'center' }}>
+                Back to Sign In
+              </button>
+            )}
           </form>
         </div>
 
@@ -291,4 +316,10 @@ const inputStyle = {
   fontSize: '14px', fontFamily: "'DM Sans', sans-serif",
   outline: 'none', boxSizing: 'border-box',
   transition: 'border-color 0.2s',
+}
+
+const linkButton = {
+  background: 'none', border: 'none', padding: 0, marginTop: '8px',
+  color: '#1EC878', fontSize: '13px', fontWeight: '600',
+  fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
 }

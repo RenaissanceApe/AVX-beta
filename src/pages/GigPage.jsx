@@ -39,6 +39,7 @@ export default function GigPage() {
   const [members, setMembers]       = useState([])
   const [assets, setAssets]         = useState([])
   const [posts, setPosts]           = useState([])
+  const [invites, setInvites]       = useState([])
   const [profiles, setProfiles]     = useState({})
   const [tab, setTab]               = useState('Overview')
   const [loading, setLoading]       = useState(true)
@@ -64,16 +65,19 @@ export default function GigPage() {
 
   async function loadAll() {
     setLoading(true)
-    const [gigRes, membersRes, assetsRes, postsRes] = await Promise.all([
+    const [gigRes, membersRes, assetsRes, postsRes, invitesRes] = await Promise.all([
       supabase.from('gigs').select('*').eq('id', id).single(),
       supabase.from('gig_members').select('*').eq('gig_id', id),
       supabase.from('assets').select('*').eq('gig_id', id).is('superseded_by', null).order('created_at', { ascending: false }),
       supabase.from('feed_posts').select('*').eq('gig_id', id).order('created_at', { ascending: true }),
+      // Only returns rows for PMs / org admins (RLS)
+      supabase.from('gig_invites').select('*').eq('gig_id', id).order('created_at', { ascending: true }),
     ])
     setGig(gigRes.data)
     setMembers(membersRes.data || [])
     setAssets(assetsRes.data || [])
     setPosts(postsRes.data || [])
+    setInvites(invitesRes.data || [])
 
     // Fetch profiles for all unique user IDs
     const uids = [...new Set([
@@ -91,9 +95,13 @@ export default function GigPage() {
 
   async function saveGig() {
     setSavingGig(true)
-    const { error } = await supabase.from('gigs').update(editForm).eq('id', id)
-    if (!error) {
-      setGig(g => ({ ...g, ...editForm }))
+    // Empty date inputs must be sent as null, not ''
+    const changes = { ...editForm, start_date: editForm.start_date || null, end_date: editForm.end_date || null }
+    const { error } = await supabase.from('gigs').update(changes).eq('id', id)
+    if (error) {
+      alert('Could not save gig: ' + error.message)
+    } else {
+      setGig(g => ({ ...g, ...changes }))
       setShowEditGig(false)
     }
     setSavingGig(false)
@@ -116,42 +124,22 @@ export default function GigPage() {
       // Strip query strings
       path = path.split('?')[0]
 
-      // Show the path we're using so we can verify it
-      setAssetError(`Trying path: ${path}`)
-
       const result = await supabase.storage
         .from('gig-assets')
         .createSignedUrl(path, 3600)
 
-      // Show the full raw result on screen
-      const resultStr = JSON.stringify(result, null, 2)
-
-      if (result.error) {
-        setAssetError(`Error: ${result.error.message} | Path: ${path} | Full: ${resultStr}`)
+      if (result.error || !result.data?.signedUrl) {
+        setAssetError(`Could not open "${asset.name}". ${result.error?.message || 'Please try again.'}`)
         return
       }
 
-      if (!result.data?.signedUrl) {
-        setAssetError(`No URL returned. Full result: ${resultStr}`)
-        return
-      }
-
-      setAssetError('')
-
-      const a = document.createElement('a')
-      a.href = result.data.signedUrl
-      a.target = '_blank'
-      a.rel = 'noopener noreferrer'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-
-      // Fallback for iOS Safari which blocks async anchor clicks
-      setTimeout(() => {
-        window.location.href = result.data.signedUrl
-      }, 100)
+      // Opening a new tab after an await is treated as a popup; if the browser
+      // blocks it (iOS Safari does), open the file in the current tab instead.
+      const win = window.open(result.data.signedUrl, '_blank')
+      if (win) win.opener = null
+      else window.location.href = result.data.signedUrl
     } catch (err) {
-      setAssetError(`Exception: ${err.message}`)
+      setAssetError(`Could not open "${asset.name}". ${err.message}`)
     } finally {
       setOpeningAsset(null)
     }
@@ -161,8 +149,11 @@ export default function GigPage() {
     if (!uploadForm.file || !uploadForm.name.trim()) return
     setUploading(true)
     try {
-      const ext = uploadForm.file.name.split('.').pop()
-      const path = `${id}/${Date.now()}-${uploadForm.name.replace(/\s+/g, '-')}.${ext}`
+      const ext = uploadForm.file.name.includes('.') ? uploadForm.file.name.split('.').pop().toLowerCase() : 'bin'
+      // Storage keys only allow a safe character set — strip accents and symbols
+      const slug = uploadForm.name.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'file'
+      const path = `${id}/${Date.now()}-${slug}.${ext}`
       const { error: storageError } = await supabase.storage
         .from('gig-assets')
         .upload(path, uploadForm.file, { contentType: uploadForm.file.type })
@@ -205,18 +196,22 @@ export default function GigPage() {
     if (!inviteForm.email.trim()) return
     setInviting(true)
     try {
-      // Look up user by email
-      const { data: userData } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', (await supabase.auth.admin?.getUserByEmail?.(inviteForm.email))?.data?.user?.id)
-        .maybeSingle()
+      const email = inviteForm.email.trim()
+      const { data: result, error } = await supabase.rpc('invite_to_gig', {
+        p_gig: id,
+        p_email: email,
+        p_role: inviteForm.role,
+        p_function_title: inviteForm.function_title || null,
+        p_call_time: inviteForm.call_time || null,
+      })
+      if (error) throw error
 
-      // For now: if user doesn't exist, store email invite (simplified for beta)
-      // In production this would send an email
-      alert(`Invite sent to ${inviteForm.email}. They'll receive an email to join this gig. (Email sending requires backend setup — for beta, share the app URL manually.)`)
+      alert(result === 'added'
+        ? `${email} has been added to this gig.`
+        : `${email} doesn't have an AVX account yet. Send them this link to sign up with that email — they'll be added to the gig automatically:\n\n${window.location.origin}/auth`)
       setShowInvite(false)
       setInviteForm({ email: '', role: 'crew', function_title: '', call_time: '' })
+      loadAll()
     } catch (err) {
       alert('Error: ' + err.message)
     } finally {
@@ -701,6 +696,34 @@ export default function GigPage() {
                 ))}
               </div>
             )}
+
+            {invites.length > 0 && (
+              <div style={{ marginTop: '24px' }}>
+                <h3 style={{ fontSize: '12px', fontWeight: '700', color: '#4A6070', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px 0' }}>
+                  Pending — waiting for sign-up
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {invites.map(inv => (
+                    <div key={inv.id} style={{
+                      border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', padding: '12px 16px',
+                      display: 'flex', alignItems: 'center', gap: '12px'
+                    }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: '600', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inv.email}</div>
+                        <div style={{ fontSize: '12px', color: '#4A6070' }}>{inv.function_title || '—'}{inv.call_time ? ` · Call: ${inv.call_time}` : ''}</div>
+                      </div>
+                      <RoleBadge role={inv.role} />
+                      <button onClick={async () => {
+                        const { error } = await supabase.from('gig_invites').delete().eq('id', inv.id)
+                        if (error) alert(error.message); else setInvites(list => list.filter(i => i.id !== inv.id))
+                      }} title="Cancel invite" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070', padding: '4px', display: 'flex' }}>
+                        <X size={15} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -914,11 +937,11 @@ export default function GigPage() {
               background: 'rgba(30,200,120,0.07)', border: '1px solid rgba(30,200,120,0.15)',
               fontSize: '12px', color: '#4A6070', lineHeight: '1.6'
             }}>
-              💡 They'll receive an email with a magic link to join this gig directly — no password needed.
+              💡 If they already have an AVX account they're added straight away. If not, share the app link with them — once they sign up with this email they'll see the gig automatically.
             </div>
             <button onClick={handleInvite} disabled={inviting || !inviteForm.email.trim()} style={btnModal}>
               {inviting ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={16} />}
-              Send Invite
+              Add to Gig
             </button>
           </div>
         </Modal>

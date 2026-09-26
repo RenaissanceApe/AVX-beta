@@ -18,25 +18,26 @@ Built on React + Supabase. Takes ~15 minutes to have running live.
 
 ## Step 2 — Run the database schema
 
-1. In your Supabase dashboard, go to **SQL Editor → New query**
-2. Open `src/lib/supabase.js` in this project
-3. Copy the entire SQL block inside the `/* ... */` comment
-4. Paste it into the SQL editor and click **Run**
+In your Supabase dashboard, go to **SQL Editor → New query** and run these two files, in order:
+
+1. `supabase/migrations/20260926000000_initial_schema.sql` — tables
+2. `supabase/migrations/20260926000001_pilot_hardening.sql` — access rules, triggers, crew invites and the private `gig-assets` storage bucket with its policies
+
+The second file creates the storage bucket and its policies too, so there is no manual Storage step.
 
 ---
 
-## Step 3 — Create the file storage bucket
+## Step 3 — Configure Auth URLs (required)
 
-1. In Supabase dashboard, go to **Storage**
-2. Click **New bucket**
-3. Name it exactly: `gig-assets`
-4. Keep it **private** (not public)
-5. Click **Create bucket**
+In Supabase → **Authentication → URL Configuration**:
+- **Site URL**: your live URL, e.g. `https://avx-beta.vercel.app`
+- **Redirect URLs**: add `https://avx-beta.vercel.app/**` (and `http://localhost:5173/**` for local dev)
 
-Then set the storage policy — in **Storage → Policies**, add a policy for `gig-assets`:
-- Operation: ALL
-- Target roles: authenticated
-- Policy: `(auth.uid() IS NOT NULL)`
+Without this, confirmation and password-reset emails link to `localhost` and don't work.
+
+Recommended while you're in Auth settings:
+- **Emails → SMTP Settings**: connect a real sender (Resend, Postmark, Brevo). Supabase's built-in email is rate-limited to a few messages per hour and is meant for testing only.
+- **Providers → Email → Password security**: enable leaked-password protection and a minimum length of 8.
 
 ---
 
@@ -50,7 +51,7 @@ In Supabase dashboard → **Settings → API**:
 
 ## Step 5 — Configure the app
 
-Create a `.env` file in the root of this project:
+Copy `.env.example` to `.env` in the root of this project and fill in:
 
 ```
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
@@ -92,17 +93,17 @@ Alternatives: Netlify, Cloudflare Pages — all work identically.
 - ✅ Create gigs with name, venue, dates, status, description
 - ✅ Upload assets (patch lists, plots, schedules, riders, documents, images)
 - ✅ Automatic asset versioning — uploading a new patch list supersedes the old one
-- ✅ Crew assignment with function title and call time
+- ✅ Crew assignment with function title and call time (add by email; pending invites claimed on sign-up)
+- ✅ Password reset
 - ✅ Gig feed — post updates, mark as important
 - ✅ Overview dashboard per gig
 
 ## What's not in this beta (coming in MVP proper)
 
-- Magic link / passwordless join for crew
+- Invite emails (adding crew works: existing users are added at once, new people are added automatically when they sign up with the invited email — you share the link yourself)
 - Push notifications
 - Offline mode
 - Rentman integration
-- Email invites (invite flow shows the UX but needs a backend email service like Resend)
 
 ---
 
