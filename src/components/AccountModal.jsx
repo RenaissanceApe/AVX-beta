@@ -12,6 +12,7 @@ export default function AccountModal({ onClose }) {
   const { user, profile, updateProfile, signOut } = useAuth()
   const { notify } = useToast()
   const [fullName, setFullName] = useState(profile?.full_name || '')
+  const [phone, setPhone] = useState(profile?.phone || '')
   const [savingName, setSavingName] = useState(false)
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -25,13 +26,13 @@ export default function AccountModal({ onClose }) {
     e.preventDefault()
     if (!fullName.trim()) return
     setSavingName(true)
-    const { error } = await updateProfile({ full_name: fullName.trim() })
+    const { error } = await updateProfile({ full_name: fullName.trim(), phone: phone.trim() || null })
     setSavingName(false)
     if (error) {
-      logger.error('account', error, { step: 'updateName' })
+      logger.error('account', error, { step: 'updateProfile' })
       notify(userMessage(error), 'error')
     } else {
-      notify('Name updated.', 'success')
+      notify('Profile updated.', 'success')
     }
   }
 
@@ -136,13 +137,19 @@ export default function AccountModal({ onClose }) {
 
         <form onSubmit={saveName} style={section}>
           <label style={label} htmlFor="account-name">Full name</label>
+          <input id="account-name" value={fullName} onChange={e => setFullName(e.target.value)}
+            autoComplete="name" maxLength={120} style={{ ...input, marginBottom: '12px' }} />
+          <label style={label} htmlFor="account-phone">Phone (shown on call sheets)</label>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <input id="account-name" value={fullName} onChange={e => setFullName(e.target.value)}
-              autoComplete="name" maxLength={120} style={input} />
-            <button type="submit" disabled={savingName || !fullName.trim() || fullName.trim() === profile?.full_name} style={smallBtn}>
+            <input id="account-phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)}
+              autoComplete="tel" maxLength={40} placeholder="+351 912 345 678" style={input} />
+            <button type="submit"
+              disabled={savingName || !fullName.trim() || (fullName.trim() === profile?.full_name && phone.trim() === (profile?.phone || ''))}
+              style={smallBtn}>
               {savingName ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={14} />} Save
             </button>
           </div>
+          <p style={{ color: '#4A6070', fontSize: '12px', marginTop: '6px' }}>Visible to people on your gigs and in your organisations.</p>
         </form>
 
         <form onSubmit={savePassword} style={section}>

@@ -34,7 +34,9 @@ npm run dev            # http://localhost:5173
 src/
   App.jsx                routes, error boundary, providers
   config.js              app constants + optional VITE_CONTACT_EMAIL / VITE_SENTRY_DSN
-  components/            ErrorBoundary, AccountModal, OrgMembersModal
+  components/            ErrorBoundary, AccountModal, OrgMembersModal, GigCalendar
+    ui.jsx               shared Modal + style tokens (use for new components)
+    gig/                 ScheduleTab, ActivityTab, AssetVersionsModal
   lib/
     supabase.js          Supabase client (reads VITE_ env vars)
     AuthContext.jsx      session, profile, password-recovery state
@@ -42,9 +44,10 @@ src/
     logger.js            the only place that writes to the console
     monitoring.js        optional Sentry (loaded only when a DSN is set)
     invites.js           calls the send-invite Edge Function
-    files.js, gigs.js    pure helpers (unit tested)
+    files.js, gigs.js,   pure helpers (unit tested)
+    schedule.js, versions.js, activity.js, calendar.js
     storage.js           bulk file removal
-  pages/                 Auth, ResetPassword, Welcome, Dashboard, Gig, Legal (privacy/terms)
+  pages/                 Auth, ResetPassword, Welcome, Dashboard, Gig, CallSheet, Legal (privacy/terms)
 supabase/
   migrations/            database schema + access rules, applied in filename order
   functions/send-invite  Edge Function: add by email + send invitation

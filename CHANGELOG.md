@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.0 — Phase 2a: day-to-day production tools
+
+### Added
+- Gig schedule tab and printable call sheet (schedule + crew calls + phones)
+- Activity log per gig, written by database triggers
+- Live updates for the feed and for changes made by other people
+- File version history with PDF/image preview and per-version download
+- Dashboard calendar view
+- Installable PWA (manifest, icons, iOS home-screen support)
+- Optional phone number in Account
+
+### Changed
+- Gig tabs scroll horizontally on small screens
+- New shared UI module (`src/components/ui.jsx`) for new components
+
 ## 0.3.0 — Phase 1: ready for pilot companies
 
 ### Added

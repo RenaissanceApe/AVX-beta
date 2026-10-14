@@ -21,7 +21,7 @@ function Privacy() {
 
       <h2>What we collect</h2>
       <ul>
-        <li><strong>Account:</strong> your email address, name and password (stored only as a secure hash by our authentication provider).</li>
+        <li><strong>Account:</strong> your email address, name, optional phone number and password (stored only as a secure hash by our authentication provider).</li>
         <li><strong>Work data you or your team add:</strong> organisations, gigs, your role and call times, files you upload, and updates you post.</li>
         <li><strong>Technical data:</strong> sign-in times and, in our providers' security logs, IP address and browser type.</li>
       </ul>
@@ -44,7 +44,7 @@ function Privacy() {
       <p>We don't sell your data or share it with anyone else, except where the law requires it.</p>
 
       <h2>Who can see your data in {APP_NAME}</h2>
-      <p>Members of an organisation can see its gigs, files and updates, and each other's names and email addresses. People added to a gig can see that gig, its crew list (names, roles and call times), files and updates.</p>
+      <p>Members of an organisation can see its gigs, files and updates, and each other's names and email addresses. People added to a gig can see that gig, its schedule, its crew list (names, roles, call times and phone numbers if given), files, updates and a log of changes.</p>
 
       <h2>How long we keep it</h2>
       <p>For as long as your account exists. When you delete your account we delete your profile and memberships immediately; updates and files you added to a shared gig stay with that gig, no longer linked to you. Encrypted backups are kept for up to 30 days.</p>

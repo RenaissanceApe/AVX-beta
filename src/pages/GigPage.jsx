@@ -5,13 +5,17 @@ import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { sendInvite, inviteMessage } from '../lib/invites'
+import { shortTime } from '../lib/schedule'
+import ScheduleTab from '../components/gig/ScheduleTab'
+import ActivityTab from '../components/gig/ActivityTab'
+import AssetVersionsModal from '../components/gig/AssetVersionsModal'
 import { MAX_UPLOAD_BYTES, storagePath, findAssetToSupersede, formatBytes } from '../lib/files'
 import {
   Zap, ArrowLeft, MapPin, Calendar, Upload, FileText,
   Image, Clock, Users, MessageSquare, Plus, X, Loader2,
   Download, ChevronDown, AlertCircle, Send, UserPlus,
   File, Music, Layout, ClipboardList, RefreshCw, CheckCircle,
-  MoreHorizontal, Star, Trash2
+  MoreHorizontal, Star, Trash2, Eye, Phone
 } from 'lucide-react'
 import { format, parseISO, formatDistanceToNow } from 'date-fns'
 
@@ -32,7 +36,7 @@ const STATUS_CONFIG = {
   archived:  { label: 'Archived',  color: '#374151', bg: 'rgba(55,65,81,0.1)'   },
 }
 
-const TABS = ['Overview', 'Assets', 'Crew', 'Feed']
+const TABS = ['Overview', 'Schedule', 'Assets', 'Crew', 'Feed', 'Activity']
 
 export default function GigPage() {
   const { id } = useParams()
@@ -46,6 +50,9 @@ export default function GigPage() {
   const [posts, setPosts]           = useState([])
   const [invites, setInvites]       = useState([])
   const [orgRole, setOrgRole]       = useState(null)
+  const [schedule, setSchedule]     = useState([])
+  const [activity, setActivity]     = useState([])
+  const [versionsAsset, setVersionsAsset] = useState(null)
   const [profiles, setProfiles]     = useState({})
   const [tab, setTab]               = useState('Overview')
   const [loading, setLoading]       = useState(true)
@@ -66,20 +73,36 @@ export default function GigPage() {
   const fileInputRef                = useRef()
   const feedEndRef                  = useRef()
 
-  useEffect(() => { loadAll() }, [id])
+  useEffect(() => { loadAll() }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Live updates: new feed posts appear immediately; any other change on the gig
+  // (uploads, crew, schedule, status) arrives as an activity entry and triggers a quiet reload.
+  useEffect(() => {
+    let timer
+    const reload = () => { clearTimeout(timer); timer = setTimeout(() => loadAll({ silent: true }), 400) }
+    const channel = supabase.channel(`gig-${id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'feed_posts', filter: `gig_id=eq.${id}` }, reload)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'gig_activity', filter: `gig_id=eq.${id}` }, reload)
+      .subscribe(status => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') logger.warn('realtime', `Channel ${status}`, { gigId: id })
+      })
+    return () => { clearTimeout(timer); supabase.removeChannel(channel) }
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { feedEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [posts])
 
-  async function loadAll() {
-    setLoading(true)
-    const [gigRes, membersRes, assetsRes, postsRes, invitesRes] = await Promise.all([
+  async function loadAll({ silent = false } = {}) {
+    if (!silent) setLoading(true)
+    const [gigRes, membersRes, assetsRes, postsRes, invitesRes, scheduleRes, activityRes] = await Promise.all([
       supabase.from('gigs').select('*').eq('id', id).single(),
       supabase.from('gig_members').select('*').eq('gig_id', id),
       supabase.from('assets').select('*').eq('gig_id', id).is('superseded_by', null).order('created_at', { ascending: false }),
       supabase.from('feed_posts').select('*').eq('gig_id', id).order('created_at', { ascending: true }),
       // Only returns rows for PMs / org admins (RLS)
       supabase.from('gig_invites').select('*').eq('gig_id', id).order('created_at', { ascending: true }),
+      supabase.from('gig_schedule').select('*').eq('gig_id', id),
+      supabase.from('gig_activity').select('*').eq('gig_id', id).order('created_at', { ascending: false }).limit(100),
     ])
-    for (const [step, res] of Object.entries({ gig: gigRes, members: membersRes, assets: assetsRes, posts: postsRes })) {
+    for (const [step, res] of Object.entries({ gig: gigRes, members: membersRes, assets: assetsRes, posts: postsRes, schedule: scheduleRes, activity: activityRes })) {
       if (res.error && res.error.code !== 'PGRST116') logger.error('gig', res.error, { step, gigId: id })
     }
     setGig(gigRes.data)
@@ -87,6 +110,8 @@ export default function GigPage() {
     setAssets(assetsRes.data || [])
     setPosts(postsRes.data || [])
     setInvites(invitesRes.data || [])
+    setSchedule(scheduleRes.data || [])
+    setActivity(activityRes.data || [])
 
     // My role in the gig's organisation decides what I can edit (mirrors the database rules)
     if (gigRes.data?.org_id) {
@@ -99,9 +124,11 @@ export default function GigPage() {
     const uids = [...new Set([
       ...(membersRes.data || []).map(m => m.user_id),
       ...(postsRes.data || []).map(p => p.user_id),
-    ])]
+      ...(assetsRes.data || []).map(a => a.created_by),
+      ...(activityRes.data || []).flatMap(e => [e.actor_id, e.details?.user_id]),
+    ].filter(Boolean))]
     if (uids.length) {
-      const { data: profileData } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', uids)
+      const { data: profileData } = await supabase.from('profiles').select('id, full_name, avatar_url, phone').in('id', uids)
       const map = {}
       profileData?.forEach(p => { map[p.id] = p })
       setProfiles(map)
@@ -124,43 +151,6 @@ export default function GigPage() {
     setSavingGig(false)
   }
 
-  const [openingAsset, setOpeningAsset] = useState(null)
-  const [assetError, setAssetError]     = useState('')
-
-  async function openAsset(asset) {
-    setOpeningAsset(asset.id)
-    setAssetError('')
-    try {
-      let path = asset.file_url ?? ''
-
-      // If it's a full URL, extract just the path after the bucket name
-      const marker = '/gig-assets/'
-      if (path.includes(marker)) {
-        path = path.split(marker)[1]
-      }
-      // Strip query strings
-      path = path.split('?')[0]
-
-      const result = await supabase.storage
-        .from('gig-assets')
-        .createSignedUrl(path, 3600)
-
-      if (result.error || !result.data?.signedUrl) {
-        setAssetError(`Could not open "${asset.name}". ${result.error?.message || 'Please try again.'}`)
-        return
-      }
-
-      // Opening a new tab after an await is treated as a popup; if the browser
-      // blocks it (iOS Safari does), open the file in the current tab instead.
-      const win = window.open(result.data.signedUrl, '_blank')
-      if (win) win.opener = null
-      else window.location.href = result.data.signedUrl
-    } catch (err) {
-      setAssetError(`Could not open "${asset.name}". ${err.message}`)
-    } finally {
-      setOpeningAsset(null)
-    }
-  }
 
   async function handleUpload() {
     if (!uploadForm.file || !uploadForm.name.trim()) return
@@ -443,7 +433,7 @@ export default function GigPage() {
                   </div>
                   {myMembership.call_time && (
                     <div style={{ color: '#1EC878', fontSize: '12px', fontWeight: '600', marginTop: '2px' }}>
-                      Call: {myMembership.call_time}
+                      Call: {shortTime(myMembership.call_time)}
                     </div>
                   )}
                   <div style={{ marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '10px' }}>
@@ -455,10 +445,10 @@ export default function GigPage() {
           </div>
 
           {/* Tabs */}
-          <div style={{ display: 'flex', gap: '0' }}>
+          <div role="tablist" style={{ display: 'flex', gap: '0', overflowX: 'auto', scrollbarWidth: 'none' }}>
             {TABS.map(t => (
-              <button key={t} onClick={() => setTab(t)} style={{
-                padding: '10px 18px', border: 'none', background: 'none', cursor: 'pointer',
+              <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} style={{
+                padding: '10px 16px', whiteSpace: 'nowrap', flexShrink: 0, border: 'none', background: 'none', cursor: 'pointer',
                 fontSize: '14px', fontWeight: '600', fontFamily: "'DM Sans', sans-serif",
                 color: tab === t ? '#1EC878' : '#4A6070',
                 borderBottom: tab === t ? '2px solid #1EC878' : '2px solid transparent',
@@ -520,7 +510,7 @@ export default function GigPage() {
                     const cfg = getAssetIcon(a.type)
                     const Icon = cfg.icon
                     return (
-                      <div key={a.id} onClick={() => openAsset(a)} style={{
+                      <div key={a.id} onClick={() => setVersionsAsset(a)} style={{
                         display: 'flex', alignItems: 'center', gap: '10px',
                         padding: '8px 10px', borderRadius: '9px',
                         background: 'rgba(255,255,255,0.03)',
@@ -622,15 +612,6 @@ export default function GigPage() {
             </div>
 
             {/* Group by type */}
-            {assetError && (
-              <div style={{
-                padding: '12px 16px', borderRadius: '10px', marginBottom: '12px',
-                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
-                color: '#F87171', fontSize: '13px', lineHeight: '1.5'
-              }}>
-                ⚠️ {assetError}
-              </div>
-            )}
 
             {assets.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '80px 20px' }}>
@@ -682,21 +663,15 @@ export default function GigPage() {
                           </span>
                         </div>
                       </div>
-                      <button onClick={() => openAsset(a)} disabled={openingAsset === a.id} style={{
+                      <button onClick={() => setVersionsAsset(a)} style={{
                         display: 'flex', alignItems: 'center', gap: '6px',
                         padding: '8px 14px', borderRadius: '8px',
-                        background: openingAsset === a.id ? 'rgba(30,200,120,0.1)' : 'rgba(255,255,255,0.06)',
+                        background: 'rgba(255,255,255,0.06)',
                         border: '1px solid rgba(255,255,255,0.09)',
-                        color: openingAsset === a.id ? '#1EC878' : '#fff',
-                        fontSize: '13px', fontWeight: '600', cursor: openingAsset === a.id ? 'wait' : 'pointer',
-                        transition: 'all 0.15s', flexShrink: 0,
-                        fontFamily: "'DM Sans', sans-serif"
+                        color: '#fff', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+                        transition: 'all 0.15s', flexShrink: 0
                       }}>
-                        {openingAsset === a.id
-                          ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
-                          : <Download size={13} />
-                        }
-                        {openingAsset === a.id ? 'Opening...' : 'Open'}
+                        <Eye size={13} /> {a.version > 1 ? 'Open · history' : 'Open'}
                       </button>
                       {canUpload && (
                         <button onClick={() => deleteAsset(a)} aria-label={`Delete ${a.name}`} title="Delete" style={iconButton}>
@@ -749,10 +724,15 @@ export default function GigPage() {
                       <div style={{ fontWeight: '700', fontSize: '15px', marginBottom: '3px' }}>{displayName(m.user_id)}</div>
                       <div style={{ fontSize: '13px', color: '#4A6070' }}>
                         {m.function_title || '—'}
+                        {profiles[m.user_id]?.phone && (
+                          <a href={`tel:${profiles[m.user_id].phone.replace(/[^+\d]/g, '')}`} style={{ marginLeft: '10px', color: '#8A9BAE', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                            <Phone size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '3px' }} />{profiles[m.user_id].phone}
+                          </a>
+                        )}
                         {m.call_time && (
                           <span style={{ marginLeft: '10px', color: '#1EC878', fontWeight: '600' }}>
                             <Clock size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '3px' }} />
-                            Call: {m.call_time}
+                            Call: {shortTime(m.call_time)}
                           </span>
                         )}
                       </div>
@@ -798,6 +778,13 @@ export default function GigPage() {
             )}
           </div>
         )}
+
+        {tab === 'Schedule' && (
+          <ScheduleTab gig={gig} items={schedule} canManage={isPM}
+            onChanged={() => loadAll({ silent: true })} onOpenCallSheet={() => navigate(`/gig/${id}/callsheet`)} />
+        )}
+
+        {tab === 'Activity' && <ActivityTab entries={activity} nameOf={displayName} />}
 
         {/* ── FEED ──────────────────────────────────────────────────────────── */}
         {tab === 'Feed' && (
@@ -1032,6 +1019,10 @@ export default function GigPage() {
       )}
 
       {/* ── EDIT GIG MODAL ────────────────────────────────────────────────── */}
+      {versionsAsset && (
+        <AssetVersionsModal asset={versionsAsset} nameOf={displayName} onClose={() => setVersionsAsset(null)} />
+      )}
+
       {showEditGig && (
         <Modal title="Edit Gig" onClose={() => setShowEditGig(false)}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

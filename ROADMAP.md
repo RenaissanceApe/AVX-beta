@@ -28,18 +28,27 @@ before the next one starts (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 Still to do by you (settings, not code): custom domain + email DNS (SPF/DKIM/DMARC), turn off click tracking
 in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTACT_EMAIL`.
 
-## Phase 2 — Product depth
+## Phase 2a — Day-to-day production tools ✅ (v0.4.0)
 
-- Realtime feed and crew list (Supabase Realtime) instead of manual refresh
-- Asset version history (view and restore older versions), in-app PDF/image preview
-- Call sheet: per-gig schedule + crew calls, export to PDF / share link
-- Calendar view of gigs; crew availability
-- Notifications (email digest first, then web push), including "you were added to a gig"
-- Automated backup of uploaded files
-- Activity log per gig (who uploaded / changed what)
-- Installable PWA (manifest + icons) for on-site phone use
-- Portuguese / English UI (i18n)
-- Refactor inline styles into shared components / design tokens; end-to-end tests (Playwright) in CI
+- **Schedule** tab per gig (load-in, soundcheck, doors, show…), editable by PMs and organisation admins
+- **Call sheet** page (`/gig/:id/callsheet`): schedule by day plus crew with call times and phones. Print or save as PDF.
+- **Activity** tab: uploads, new versions, crew and schedule changes, status changes (written by database triggers)
+- **Live updates**: new feed posts and changes by others appear without refreshing (Supabase Realtime)
+- **File version history** with in-app preview for PDFs and images, and download of any version
+- **Calendar view** on the dashboard (dots + day list on phones)
+- **Installable app** (PWA manifest and icons): "Add to Home Screen" on iOS and Android
+- Optional phone number on your profile (Account), shown to people you work with
+
+## Phase 2b — Next
+
+| Item | Notes |
+|---|---|
+| Notifications | In-app bell first (built on the activity log), then email digests. Includes "you were added to a gig". |
+| Portuguese / English UI | Extract strings, language switch; default from the browser |
+| Refactor the gig page | Split `GigPage.jsx` (~1,300 lines) into tab components using `src/components/ui.jsx` |
+| End-to-end tests | Playwright against a Supabase branch/test project in CI: sign-up, invite, upload, schedule |
+| Backup of uploaded files | Scheduled copy of the storage bucket alongside the database backup |
+| Crew availability | Mark unavailable dates; warn when adding someone who's booked elsewhere |
 
 ## Phase 3 — Scale and integrations
 
