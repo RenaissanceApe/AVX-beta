@@ -4,9 +4,11 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { logger, userMessage } from '../lib/logger'
 import AccountModal from '../components/AccountModal'
+import OrgMembersModal from '../components/OrgMembersModal'
+import { GIG_FILTERS, filterGigs, countByBucket } from '../lib/gigs'
 import {
   Zap, Plus, Calendar, MapPin, Users, ChevronRight,
-  Building2, LogOut, Loader2, X, ArrowRight, CheckCircle
+  Building2, LogOut, Loader2, X, ArrowRight, CheckCircle, Search
 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 
@@ -31,6 +33,9 @@ export default function Dashboard() {
   const [showNewOrg, setShowNewOrg] = useState(false)
   const [showNewGig, setShowNewGig] = useState(false)
   const [showAccount, setShowAccount] = useState(false)
+  const [showMembers, setShowMembers] = useState(false)
+  const [gigFilter, setGigFilter] = useState('upcoming')
+  const [gigSearch, setGigSearch] = useState('')
   const [creating, setCreating] = useState(false)
   const [newOrgName, setNewOrgName] = useState('')
   const [orgError, setOrgError] = useState('')
@@ -48,7 +53,12 @@ export default function Dashboard() {
     if (membershipsError) logger.error('dashboard', membershipsError, { step: 'fetchSharedGigs' })
     const list = (data || []).filter(d => d.organisations).map(d => ({ ...d.organisations, myRole: d.role }))
     setOrgs(list)
-    if (list.length) setActiveOrg(list.find(o => o.id === selectId) || list[0])
+    if (list.length) {
+      setActiveOrg(list.find(o => o.id === (selectId || activeOrg?.id)) || list[0])
+    } else {
+      setActiveOrg(null)
+      setGigs([])
+    }
 
     // Gigs the user was added to as crew, in organisations they don't belong to
     const myOrgIds = new Set(list.map(o => o.id))
@@ -210,6 +220,16 @@ export default function Dashboard() {
               }}>
                 <Plus size={13} /> Add org
               </button>
+              {activeOrg && (
+                <button onClick={() => setShowMembers(true)} style={{
+                  padding: '6px 14px', borderRadius: '20px', marginLeft: 'auto',
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                  color: '#8A9BAE', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '6px'
+                }}>
+                  <Users size={13} /> Members
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -256,14 +276,16 @@ export default function Dashboard() {
               onAction={() => setShowNewGig(true)}
             />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {gigs.map(gig => <GigCard key={gig.id} gig={gig} onOpen={() => navigate(`/gig/${gig.id}`)} />)}
-            </div>
+            <GigList gigs={gigs} filter={gigFilter} setFilter={setGigFilter} search={gigSearch} setSearch={setGigSearch}
+              onOpen={gig => navigate(`/gig/${gig.id}`)} />
           )
         )}
       </div>
 
       {showAccount && <AccountModal onClose={() => setShowAccount(false)} />}
+      {showMembers && activeOrg && (
+        <OrgMembersModal org={activeOrg} onClose={() => setShowMembers(false)} onChanged={() => fetchOrgs()} />
+      )}
 
       {/* New Org Modal */}
       {showNewOrg && (
@@ -339,6 +361,43 @@ export default function Dashboard() {
       )}
 
       <style>{`@keyframes spin { to { transform: rotate(360deg) } } @keyframes fadeIn { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }`}</style>
+    </div>
+  )
+}
+
+function GigList({ gigs, filter, setFilter, search, setSearch, onOpen }) {
+  const counts = countByBucket(gigs)
+  const visible = filterGigs(gigs, filter, search)
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
+        <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '3px' }}>
+          {GIG_FILTERS.map(f => (
+            <button key={f.value} role="tab" aria-selected={filter === f.value} onClick={() => setFilter(f.value)} style={{
+              padding: '6px 12px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
+              background: filter === f.value ? 'rgba(30,200,120,0.15)' : 'transparent',
+              color: filter === f.value ? '#1EC878' : '#4A6070'
+            }}>
+              {f.label} <span style={{ opacity: 0.7 }}>{counts[f.value]}</span>
+            </button>
+          ))}
+        </div>
+        <label style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px',
+          background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px' }}>
+          <Search size={14} color="#4A6070" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search gigs, venues…" aria-label="Search gigs"
+            style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: '14px', minWidth: 0 }} />
+        </label>
+      </div>
+      {visible.length === 0 ? (
+        <p style={{ color: '#4A6070', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>
+          {search ? 'No gigs match your search.' : filter === 'upcoming' ? 'No upcoming gigs.' : `No ${filter} gigs.`}
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {visible.map(gig => <GigCard key={gig.id} gig={gig} onOpen={() => onOpen(gig)} />)}
+        </div>
+      )}
     </div>
   )
 }

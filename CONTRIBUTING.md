@@ -25,6 +25,9 @@ and confirm it ends with `ALL CHECKS PASSED`.
 - Every table has Row Level Security enabled. Access checks go through the helpers in the
   `private` schema (`can_access_gig`, `can_manage_gig`, …) so policies never query their own table.
 - Apply the migration to Supabase, then commit the same file.
+- Edge Functions live in `supabase/functions/<name>/index.ts`; deploy, then commit the same code.
+  They must check permissions through the database (call the RPC as the user) before using the service role,
+  and log ids and step names only. Never log emails or tokens.
 
 ## Logging hygiene
 

@@ -23,6 +23,8 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 1. `supabase/migrations/20260926000000_initial_schema.sql` — tables
 2. `supabase/migrations/20260926000001_pilot_hardening.sql` — access rules, triggers, crew invites and the private `gig-assets` storage bucket with its policies
 3. `supabase/migrations/20261014000000_data_integrity.sql` — foreign keys and length limits
+4. `supabase/migrations/20261015000000_org_members_and_accounts.sql` — organisation members and invites
+5. `supabase/migrations/20261015000001_invite_claims_and_account_deletion.sql` — invite claiming at sign-up, account deletion
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.
@@ -45,6 +47,15 @@ Recommended while you're in Auth settings:
 
 ---
 
+## Step 3b — Edge Function and emails
+
+- Deploy the invite function: `supabase functions deploy send-invite` (Supabase CLI), or paste
+  `supabase/functions/send-invite/index.ts` into Supabase → Edge Functions. Keep "Verify JWT" on.
+- Follow [docs/EMAIL.md](docs/EMAIL.md): custom SMTP, sender domain DNS, no click tracking, and the email templates.
+- Optional: [docs/BACKUPS.md](docs/BACKUPS.md) for daily encrypted backups.
+
+---
+
 ## Step 4 — Get your API credentials
 
 In Supabase dashboard → **Settings → API**:
@@ -60,7 +71,11 @@ Copy `.env.example` to `.env` in the root of this project and fill in:
 ```
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJyour-anon-key-here
+VITE_CONTACT_EMAIL=privacy@your-domain.com   # shown on /privacy and /terms
+VITE_SENTRY_DSN=                              # optional error monitoring
 ```
+
+Add the same variables in Vercel → Project → Settings → Environment Variables.
 
 ---
 

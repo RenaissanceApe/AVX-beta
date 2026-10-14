@@ -1,7 +1,7 @@
 {
   "name": "avx-beta",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,8 @@
     "check": "npm run lint && npm test && npm run build"
   },
   "dependencies": {
+    "@fontsource/dm-sans": "^5.3.0",
+    "@sentry/react": "^11.7.0",
     "@supabase/supabase-js": "^2.43.4",
     "date-fns": "^3.6.0",
     "lucide-react": "^0.383.0",

@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { X, Loader2, LogOut, CheckCircle } from 'lucide-react'
+import { X, Loader2, LogOut, CheckCircle, Download, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { removeGigFiles } from '../lib/storage'
 import { supabase } from '../lib/supabase'
 import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 
-// Account settings: display name, password change, sign out.
+// Account settings: display name, password change, data export, account deletion, sign out.
 export default function AccountModal({ onClose }) {
   const { user, profile, updateProfile, signOut } = useAuth()
   const { notify } = useToast()
@@ -15,6 +17,9 @@ export default function AccountModal({ onClose }) {
   const [confirm, setConfirm] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
   const [passwordError, setPasswordError] = useState('')
+  const [exporting, setExporting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const navigate = useNavigate()
 
   async function saveName(e) {
     e.preventDefault()
@@ -45,6 +50,78 @@ export default function AccountModal({ onClose }) {
       setPassword('')
       setConfirm('')
       notify('Password changed.', 'success')
+    }
+  }
+
+  // GDPR data access: everything AVX stores about you, as a JSON file
+  async function exportData() {
+    setExporting(true)
+    try {
+      const [profileRes, orgsRes, gigsRes, postsRes, assetsRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+        supabase.from('org_members').select('role, joined_at, organisations(id, name, created_at)').eq('user_id', user.id),
+        supabase.from('gig_members').select('role, function_title, call_time, gigs(id, name, venue, start_date, end_date, status)').eq('user_id', user.id),
+        supabase.from('feed_posts').select('id, gig_id, content, is_important, created_at').eq('user_id', user.id),
+        supabase.from('assets').select('id, gig_id, type, name, version, file_size, created_at').eq('created_by', user.id),
+      ])
+      const firstError = [profileRes, orgsRes, gigsRes, postsRes, assetsRes].find(r => r.error)?.error
+      if (firstError) throw firstError
+      const data = {
+        exported_at: new Date().toISOString(),
+        account: { id: user.id, email: user.email, created_at: user.created_at, last_sign_in_at: user.last_sign_in_at },
+        profile: profileRes.data,
+        organisations: orgsRes.data,
+        gigs: gigsRes.data,
+        feed_posts: postsRes.data,
+        uploaded_assets: assetsRes.data,
+      }
+      const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `avx-data-${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      logger.error('account', err, { step: 'export' })
+      notify('Export failed: ' + userMessage(err), 'error')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  async function deleteAccount() {
+    setDeleting(true)
+    try {
+      const { data: plan, error: planError } = await supabase.rpc('account_deletion_plan')
+      if (planError) throw planError
+      if (plan.blocking_orgs.length) {
+        const names = plan.blocking_orgs.map(o => `"${o.name}"`).join(', ')
+        notify(`You're the only admin of ${names}. Make someone else admin (Members), or remove the other members, then try again.`, 'error', { duration: 12000 })
+        return
+      }
+      const extra = plan.orgs_to_delete.length
+        ? `\n\nYou're the only member of ${plan.orgs_to_delete.map(o => `"${o.name}"`).join(', ')} — it will be deleted too, with all its gigs and files.`
+        : ''
+      const typed = window.prompt(`Permanently delete your AVX account (${user.email})?${extra}\n\nThis cannot be undone. Type DELETE to confirm:`)
+      if (typed === null) return
+      if (typed.trim().toUpperCase() !== 'DELETE') {
+        notify('Nothing was deleted.', 'info')
+        return
+      }
+      await removeGigFiles(plan.gig_ids)
+      const { error } = await supabase.rpc('delete_my_account')
+      if (error) throw error
+      // The session is no longer valid; clear it locally
+      await supabase.auth.signOut({ scope: 'local' })
+      notify('Your account has been deleted.', 'success')
+      navigate('/auth', { replace: true })
+    } catch (err) {
+      logger.error('account', err, { step: 'delete' })
+      notify(/function .*does not exist|could not find the function/i.test(err.message || '')
+        ? 'Account deletion is not enabled yet. Please contact the AVX team.'
+        : 'Could not delete account: ' + userMessage(err), 'error')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -81,6 +158,21 @@ export default function AccountModal({ onClose }) {
             {savingPassword && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />} Update password
           </button>
         </form>
+
+        <div style={section}>
+          <span style={label}>Your data</span>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button onClick={exportData} disabled={exporting} style={smallBtn}>
+              {exporting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={14} />} Export my data
+            </button>
+            <button onClick={deleteAccount} disabled={deleting} style={{ ...smallBtn, background: 'transparent', borderColor: 'rgba(239,68,68,0.3)', color: '#F87171' }}>
+              {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} Delete account
+            </button>
+          </div>
+          <p style={{ color: '#4A6070', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }}>
+            See the <a href="/privacy" target="_blank" rel="noopener" style={{ color: '#1EC878' }}>privacy notice</a> for what we store and why.
+          </p>
+        </div>
 
         <button onClick={signOut} style={{ ...smallBtn, background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.25)', color: '#F87171', width: '100%', justifyContent: 'center' }}>
           <LogOut size={14} /> Sign out

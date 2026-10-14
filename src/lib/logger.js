@@ -6,6 +6,12 @@
 
 const isDev = import.meta.env.DEV
 
+// Set by src/lib/monitoring.js when error monitoring is enabled
+let reportError = null
+export function setErrorReporter(fn) {
+  reportError = fn
+}
+
 function format(scope, message) {
   return `[AVX:${scope}] ${message}`
 }
@@ -23,7 +29,9 @@ export const logger = {
   error(scope, error, extra) {
     const message = error?.message || String(error)
     console.error(format(scope, message), extra ?? '')
-    // Phase 1: forward to error monitoring here (see ROADMAP.md)
+    if (reportError) {
+      try { reportError(error, { scope, ...extra }) } catch { /* never let reporting break the app */ }
+    }
   },
 }
 
@@ -35,6 +43,7 @@ export function userMessage(error, fallback = 'Something went wrong. Please try 
   if (/row-level security|permission denied|not authorized/i.test(msg)) return "You don't have permission to do that."
   if (/jwt expired|invalid jwt|refresh token/i.test(msg)) return 'Your session expired. Please sign in again.'
   if (/payload too large|exceeded the maximum allowed size/i.test(msg)) return 'That file is too large (max 50 MB).'
+  if (/should be different from the old password/i.test(msg)) return "That's your current password — choose a different one."
   if (/gigs_dates_order/.test(msg)) return 'End date must be on or after the start date.'
   if (/_length"?$|_length\b/.test(msg) && /check constraint/i.test(msg)) return 'That text is too long (or empty).'
   return msg

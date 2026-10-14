@@ -6,6 +6,8 @@ import AuthPage from './pages/AuthPage'
 import Dashboard from './pages/Dashboard'
 import GigPage from './pages/GigPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
+import WelcomePage from './pages/WelcomePage'
+import LegalPage from './pages/LegalPage'
 
 function Spinner() {
   return (
@@ -41,6 +43,9 @@ function AppRoutes() {
     <Routes>
       <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/welcome" element={<WelcomePage />} />
+      <Route path="/privacy" element={<LegalPage doc="privacy" />} />
+      <Route path="/terms" element={<LegalPage doc="terms" />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/gig/:id" element={<ProtectedRoute><GigPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to={user ? '/dashboard' : '/auth'} replace />} />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { logger, userMessage } from '../lib/logger'
@@ -301,6 +301,13 @@ export default function AuthPage() {
               )}
             </div>}
 
+            {mode === 'signup' && (
+              <p style={{ color: '#4A6070', fontSize: '12px', lineHeight: '1.6', margin: 0 }}>
+                By creating an account you agree to the <Link to="/terms" style={footerLink}>beta terms</Link> and
+                {' '}<Link to="/privacy" style={footerLink}>privacy notice</Link>.
+              </p>
+            )}
+
             {mode === 'reset' && (
               <p style={{ color: '#4A6070', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
                 {resetSent
@@ -349,7 +356,9 @@ export default function AuthPage() {
         </div>
 
         <p style={{ textAlign: 'center', color: '#2A3A48', fontSize: '12px', marginTop: '24px' }}>
-          AVX Beta · Lumen and Pixel, Lda.
+          AVX Beta · Lumen and Pixel, Lda. ·{' '}
+          <Link to="/privacy" style={footerLink}>Privacy</Link> ·{' '}
+          <Link to="/terms" style={footerLink}>Terms</Link>
         </p>
       </div>
 
@@ -375,3 +384,5 @@ const linkButton = {
   color: '#1EC878', fontSize: '13px', fontWeight: '600',
   fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
 }
+
+const footerLink = { color: '#4A6070', textDecoration: 'underline' }
