@@ -106,5 +106,28 @@ begin
   end;
   reset role;
 
+  -- ── Schedule and activity log ──
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into gig_schedule (gig_id, day, start_time, title, created_by) values (gig_a, '2026-11-01', '08:00', 'Load-in', a);
+  select count(*) into n from gig_activity where gig_id = gig_a and action = 'schedule_insert';
+  if n <> 1 then raise exception 'CHECK FAILED: schedule change not logged'; end if;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from gig_schedule where gig_id = gig_a;
+  if n <> 1 then raise exception 'CHECK FAILED: crew cannot see the schedule'; end if;
+  select count(*) into n from gig_activity where gig_id = gig_a;
+  if n = 0 then raise exception 'CHECK FAILED: crew cannot see activity'; end if;
+  begin
+    insert into gig_schedule (gig_id, day, start_time, title, created_by) values (gig_a, '2026-11-01', '09:00', 'x', b);
+    raise exception 'CHECK FAILED: crew could edit the schedule';
+  exception when insufficient_privilege then null; end;
+  begin
+    insert into gig_activity (gig_id, action) values (gig_a, 'fake');
+    raise exception 'CHECK FAILED: activity log is writable';
+  exception when insufficient_privilege then null; end;
+  reset role;
+
   raise exception 'ALL CHECKS PASSED';
 end $$;

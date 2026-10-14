@@ -8,6 +8,7 @@ import GigPage from './pages/GigPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import WelcomePage from './pages/WelcomePage'
 import LegalPage from './pages/LegalPage'
+import CallSheetPage from './pages/CallSheetPage'
 
 function Spinner() {
   return (
@@ -48,6 +49,7 @@ function AppRoutes() {
       <Route path="/terms" element={<LegalPage doc="terms" />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/gig/:id" element={<ProtectedRoute><GigPage /></ProtectedRoute>} />
+      <Route path="/gig/:id/callsheet" element={<ProtectedRoute><CallSheetPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to={user ? '/dashboard' : '/auth'} replace />} />
     </Routes>
   )

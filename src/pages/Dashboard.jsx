@@ -5,10 +5,11 @@ import { useAuth } from '../lib/AuthContext'
 import { logger, userMessage } from '../lib/logger'
 import AccountModal from '../components/AccountModal'
 import OrgMembersModal from '../components/OrgMembersModal'
+import GigCalendar from '../components/GigCalendar'
 import { GIG_FILTERS, filterGigs, countByBucket } from '../lib/gigs'
 import {
   Zap, Plus, Calendar, MapPin, Users, ChevronRight,
-  Building2, LogOut, Loader2, X, ArrowRight, CheckCircle, Search
+  Building2, LogOut, Loader2, X, ArrowRight, CheckCircle, Search, List, CalendarDays
 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 
@@ -365,13 +366,31 @@ export default function Dashboard() {
   )
 }
 
+// Remembered per browser; storage can be unavailable (private mode), so never rely on it
+function readView() {
+  try { return localStorage.getItem('avx.gigView') === 'calendar' ? 'calendar' : 'list' } catch { return 'list' }
+}
+
 function GigList({ gigs, filter, setFilter, search, setSearch, onOpen }) {
+  const [view, setViewState] = useState(readView)
+  const setView = v => {
+    setViewState(v)
+    try { localStorage.setItem('avx.gigView', v) } catch { /* ignore */ }
+  }
   const counts = countByBucket(gigs)
   const visible = filterGigs(gigs, filter, search)
   return (
     <div>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
-        <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '3px' }}>
+        <div role="group" aria-label="View" style={{ display: 'flex', gap: '2px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '3px' }}>
+          {[['list', <List size={15} />, 'List'], ['calendar', <CalendarDays size={15} />, 'Calendar']].map(([v, icon, labelText]) => (
+            <button key={v} onClick={() => setView(v)} aria-pressed={view === v} aria-label={`${labelText} view`} title={`${labelText} view`} style={{
+              padding: '6px 9px', borderRadius: '7px', border: 'none', cursor: 'pointer', display: 'flex',
+              background: view === v ? 'rgba(30,200,120,0.15)' : 'transparent', color: view === v ? '#1EC878' : '#4A6070'
+            }}>{icon}</button>
+          ))}
+        </div>
+        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '3px' }}>
           {GIG_FILTERS.map(f => (
             <button key={f.value} role="tab" aria-selected={filter === f.value} onClick={() => setFilter(f.value)} style={{
               padding: '6px 12px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
@@ -381,7 +400,7 @@ function GigList({ gigs, filter, setFilter, search, setSearch, onOpen }) {
               {f.label} <span style={{ opacity: 0.7 }}>{counts[f.value]}</span>
             </button>
           ))}
-        </div>
+        </div>}
         <label style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px',
           background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px' }}>
           <Search size={14} color="#4A6070" />
@@ -389,7 +408,9 @@ function GigList({ gigs, filter, setFilter, search, setSearch, onOpen }) {
             style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: '14px', minWidth: 0 }} />
         </label>
       </div>
-      {visible.length === 0 ? (
+      {view === 'calendar' ? (
+        <GigCalendar gigs={filterGigs(gigs, 'all', search).filter(g => g.status !== 'archived')} onOpen={onOpen} />
+      ) : visible.length === 0 ? (
         <p style={{ color: '#4A6070', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>
           {search ? 'No gigs match your search.' : filter === 'upcoming' ? 'No upcoming gigs.' : `No ${filter} gigs.`}
         </p>
