@@ -7,6 +7,7 @@ describe('userMessage', () => {
     expect(userMessage({ message: 'new row violates row-level security policy for table "gigs"' })).toMatch(/permission/)
     expect(userMessage({ message: 'new row for relation "gigs" violates check constraint "gigs_dates_order"' })).toMatch(/End date/)
     expect(userMessage({ message: 'violates check constraint "feed_posts_content_length"' })).toMatch(/too long/)
+    expect(userMessage({ message: 'New password should be different from the old password.' })).toMatch(/current password/)
   })
   it('falls back for empty errors and passes other messages through', () => {
     expect(userMessage(null)).toMatch(/Something went wrong/)

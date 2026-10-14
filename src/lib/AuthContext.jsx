@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { logger } from './logger'
+import { setMonitoringUser } from './monitoring'
 
 const AuthContext = createContext({})
 
@@ -19,6 +20,7 @@ export function AuthProvider({ children }) {
       if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true)
       const nextUser = session?.user ?? null
       setUser(nextUser)
+      setMonitoringUser(nextUser?.id ?? null)
       if (!nextUser) {
         setProfile(null)
         setLoading(false)

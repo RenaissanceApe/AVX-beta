@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0 — Phase 1: ready for pilot companies
+
+### Added
+- Organisation members: invite by email, roles, remove, leave, delete organisation (last admin is protected)
+- Invitation emails for gigs and organisations, and a `/welcome` page to set name + password
+- Account: export my data, delete my account
+- Privacy notice and beta terms, linked from sign-up
+- Dashboard filters (upcoming / past / archived / all) and search
+- Optional Sentry error monitoring; daily encrypted database backups workflow
+- Branded auth email templates and email deliverability guide
+
+### Changed
+- DM Sans font is now self-hosted (no requests to Google)
+- Clearer message when choosing your current password as the new one
+
 ## 0.2.0 — Pilot foundation
 
 ### Added

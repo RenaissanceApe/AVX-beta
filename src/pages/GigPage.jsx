@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
+import { sendInvite, inviteMessage } from '../lib/invites'
 import { MAX_UPLOAD_BYTES, storagePath, findAssetToSupersede, formatBytes } from '../lib/files'
 import {
   Zap, ArrowLeft, MapPin, Calendar, Upload, FileText,
@@ -259,22 +260,12 @@ export default function GigPage() {
     setInviting(true)
     try {
       const email = inviteForm.email.trim()
-      const { data: result, error } = await supabase.rpc('invite_to_gig', {
-        p_gig: id,
-        p_email: email,
-        p_role: inviteForm.role,
-        p_function_title: inviteForm.function_title || null,
-        p_call_time: inviteForm.call_time || null,
+      const outcome = await sendInvite({
+        kind: 'gig', targetId: id, email, role: inviteForm.role,
+        functionTitle: inviteForm.function_title, callTime: inviteForm.call_time,
       })
-      if (error) throw error
-
-      if (result === 'added') {
-        notify(`${email} has been added to this gig.`, 'success')
-      } else {
-        const link = `${window.location.origin}/auth`
-        try { await navigator.clipboard.writeText(link) } catch { /* clipboard unavailable */ }
-        notify(`${email} doesn't have an AVX account yet. Send them ${link} (copied to your clipboard) — once they sign up with that email they'll see this gig automatically.`, 'info', { duration: 15000 })
-      }
+      const msg = inviteMessage(email, outcome)
+      notify(msg.text, msg.kind, { duration: msg.kind === 'info' ? 15000 : undefined })
       setShowInvite(false)
       setInviteForm({ email: '', role: 'crew', function_title: '', call_time: '' })
       loadAll()
@@ -1030,7 +1021,7 @@ export default function GigPage() {
               background: 'rgba(30,200,120,0.07)', border: '1px solid rgba(30,200,120,0.15)',
               fontSize: '12px', color: '#4A6070', lineHeight: '1.6'
             }}>
-              💡 If they already have an AVX account they're added straight away. If not, share the app link with them — once they sign up with this email they'll see the gig automatically.
+              💡 If they already have an AVX account they're added straight away. If not, they'll get an invitation email and join the gig as soon as they accept.
             </div>
             <button onClick={handleInvite} disabled={inviting || !inviteForm.email.trim()} style={btnModal}>
               {inviting ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={16} />}

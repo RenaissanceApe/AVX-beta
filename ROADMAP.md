@@ -13,18 +13,20 @@ before the next one starts (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 - Security headers (CSP, frame, referrer), noindex for the beta, accessibility fixes (zoom, labels, focus)
 - Lint + unit tests + CI on every PR; Supabase keep-alive so the free project doesn't pause
 
-## Phase 1 — Must-haves before inviting external companies
+## Phase 1 — Must-haves before inviting external companies ✅ (v0.3.0)
 
-| Item | Why | Effort |
-|---|---|---|
-| Privacy notice + terms page, cookie-free statement | GDPR: you're storing other companies' staff data (EU) | S |
-| Delete my account + export my data | GDPR rights to erasure and access. DB is already prepared (user references become NULL) | M — needs a Supabase Edge Function (service role) |
-| Organisation members: invite colleagues, change roles, remove | Today only the org creator is a member; a rental company has several PMs | M — `invite_to_org` RPC + UI, mirrors `invite_to_gig` |
-| Invite emails | Today the PM shares the link manually | M — Edge Function + Resend (same SMTP account as Auth) |
-| Error monitoring (Sentry free tier) | Know about crashes before pilots tell you | S — hook already in `src/lib/logger.js` |
-| Backups | Free plan has no downloadable backups | S — scheduled GitHub Action `pg_dump` to a private location |
-| Custom domain (e.g. `avx.lumenandpixel.com`) | Trust, and email deliverability (SPF/DKIM) | S — DNS only |
-| Archive / filter gigs (upcoming / past / archived) | Dashboard gets long quickly | S |
+- Privacy notice and beta terms (`/privacy`, `/terms`), linked from sign-up. **Get them reviewed before a public launch.**
+- Export my data (JSON) and delete my account (with the files of organisations only you belong to)
+- Organisation members: invite colleagues by email, change roles (admin / member / viewer), remove, leave,
+  delete organisation; every organisation keeps at least one admin
+- Invitation emails for gigs and organisations (`send-invite` Edge Function → Supabase invite email → `/welcome`)
+- Optional error monitoring (Sentry, enabled by `VITE_SENTRY_DSN`; privacy-scrubbed)
+- Daily encrypted database backups (GitHub Actions, needs two secrets: see `docs/BACKUPS.md`)
+- Dashboard: upcoming / past / archived filters and search
+- Self-hosted font (no Google Fonts requests), branded auth email templates and a deliverability guide (`docs/EMAIL.md`)
+
+Still to do by you (settings, not code): custom domain + email DNS (SPF/DKIM/DMARC), turn off click tracking
+in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTACT_EMAIL`.
 
 ## Phase 2 — Product depth
 
@@ -32,7 +34,8 @@ before the next one starts (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 - Asset version history (view and restore older versions), in-app PDF/image preview
 - Call sheet: per-gig schedule + crew calls, export to PDF / share link
 - Calendar view of gigs; crew availability
-- Notifications (email digest first, then web push)
+- Notifications (email digest first, then web push), including "you were added to a gig"
+- Automated backup of uploaded files
 - Activity log per gig (who uploaded / changed what)
 - Installable PWA (manifest + icons) for on-site phone use
 - Portuguese / English UI (i18n)
@@ -48,6 +51,6 @@ before the next one starts (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Known limitations (beta)
 
-- No invite emails yet — share `https://avx-beta.vercel.app/auth` with new crew yourself.
-- Only the person who created an organisation is a member of it.
-- Supabase free plan: no backups, pauses after 7 days idle (the keep-alive workflow prevents this).
+- Backups cover the database, not uploaded files.
+- Existing users added to a gig aren't emailed (they see it on their dashboard). Notifications are Phase 2.
+- Supabase free plan: pauses after 7 days idle (the keep-alive workflow prevents this); no leaked-password check.

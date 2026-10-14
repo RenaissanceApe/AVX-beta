@@ -80,5 +80,31 @@ begin
   if n <> 1 then raise exception 'CHECK FAILED: pending invite not claimed on sign-up'; end if;
   reset role;
 
+  -- ── Organisation members ──
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  r := invite_to_org(org_a, 'rls-x@avx.invalid', 'member');
+  if r <> 'added' then raise exception 'CHECK FAILED: existing user not added to org (%)', r; end if;
+  select count(*) into n from org_member_list(org_a);
+  if n <> 2 then raise exception 'CHECK FAILED: org member list has % rows', n; end if;
+  begin
+    update org_members set role = 'member' where org_id = org_a and user_id = a;
+    raise exception 'CHECK FAILED: last admin could be demoted';
+  exception when raise_exception then
+    if sqlerrm like 'CHECK FAILED%' then raise; end if;
+  end;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', x, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from gigs where id = gig_a;
+  if n <> 1 then raise exception 'CHECK FAILED: new org member cannot see org gigs'; end if;
+  begin
+    r := invite_to_org(org_a, 'someone@avx.invalid');
+    raise exception 'CHECK FAILED: non-admin could invite to org';
+  exception when raise_exception then
+    if sqlerrm like 'CHECK FAILED%' then raise; end if;
+  end;
+  reset role;
+
   raise exception 'ALL CHECKS PASSED';
 end $$;
