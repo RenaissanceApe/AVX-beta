@@ -39,27 +39,32 @@ in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTA
 - **Installable app** (PWA manifest and icons): "Add to Home Screen" on iOS and Android
 - Optional phone number on your profile (Account), shown to people you work with
 
-## Phase 2b — Next
+## Phase 2b — Team experience ✅ (v0.5.0)
+
+- **Notifications** (bell, live): added to a gig or organisation, new file or version, important updates,
+  schedule changes (grouped), call-time changes, gig status or dates/venue changes
+- **Português / English**: everything translated, including the legal pages; switch on the sign-in page or in Account
+  (saved to your profile); dates are formatted in the chosen language
+- **Crew availability**: mark dates you can't work (private); managers see clash warnings when inviting and on the
+  crew list. Other companies' gigs appear only as "busy".
+- **Gig page refactor**: `GigPage.jsx` went from about 1,250 lines to about 150; each tab is a component in `src/components/gig/`
+- **Browser tests** (Playwright) in CI for public pages, routing, language switch and installability
+- **Backups of uploaded files** (optional `SUPABASE_SERVICE_ROLE_KEY` secret)
+- Fix: re-inviting someone already on a gig now updates their call time and role
+
+## Phase 3 — Next
 
 | Item | Notes |
 |---|---|
-| Notifications | In-app bell first (built on the activity log), then email digests. Includes "you were added to a gig". |
-| Portuguese / English UI | Extract strings, language switch; default from the browser |
-| Refactor the gig page | Split `GigPage.jsx` (~1,300 lines) into tab components using `src/components/ui.jsx` |
-| End-to-end tests | Playwright against a Supabase branch/test project in CI: sign-up, invite, upload, schedule |
-| Backup of uploaded files | Scheduled copy of the storage bucket alongside the database backup |
-| Crew availability | Mark unavailable dates; warn when adding someone who's booked elsewhere |
-
-## Phase 3 — Scale and integrations
-
-- Offline mode for venues with no signal (cached gig + documents)
-- Magic-link / passwordless login for crew
-- Rentman integration (import gigs and crew)
-- Leaked-password protection and MFA (needs Supabase Pro)
-- Usage analytics for the pilot (privacy-friendly)
+| Email notifications | Daily digest of unread notifications, in each person's language (needs an email API key, e.g. Resend) |
+| Signed-in browser tests | A separate Supabase test project plus test users in CI: sign-up, invite, upload, schedule, notifications |
+| Offline mode | Cache the gig, schedule, call sheet and recent files for venues with no signal (service worker) |
+| Magic-link sign-in for crew | Passwordless option alongside email + password |
+| Rentman integration | Import gigs and crew from Rentman |
+| MFA + leaked-password protection | Needs Supabase Pro |
+| Usage analytics for the pilot | Privacy-friendly, cookie-free |
 
 ## Known limitations (beta)
 
-- Backups cover the database, not uploaded files.
-- Existing users added to a gig aren't emailed (they see it on their dashboard). Notifications are Phase 2.
+- Notifications are in-app only; email digests are Phase 3.
 - Supabase free plan: pauses after 7 days idle (the keep-alive workflow prevents this); no leaked-password check.

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { logger, userMessage } from '../lib/logger'
+import { useI18n, LANGUAGES } from '../i18n'
 import { Zap, Eye, EyeOff, ArrowRight, Loader2, Mail, CheckCircle } from 'lucide-react'
 
 export default function AuthPage() {
@@ -19,6 +20,7 @@ export default function AuthPage() {
   const [needsConfirmation, setNeedsConfirmation] = useState(false)
   const [resendState, setResendState] = useState('idle') // idle | sending | sent
   const { signIn, signUp } = useAuth()
+  const { t, lang, setLang } = useI18n()
   const navigate = useNavigate()
 
   // Handle email-link redirects. Supabase appends #access_token on success, or
@@ -33,7 +35,7 @@ export default function AuthPage() {
     if (linkError) {
       logger.warn('auth', 'Email link error', { code: hashParams.get('error_code') || params.get('error_code') })
       setError(/expired|invalid/i.test(linkError)
-        ? 'That email link has expired or was already used. Sign in, or request a new link below.'
+        ? t('auth.linkExpired')
         : linkError.replace(/\+/g, ' '))
       window.history.replaceState({}, document.title, '/auth')
     } else if (isConfirmation) {
@@ -85,17 +87,17 @@ export default function AuthPage() {
         if (error) {
           if (/email not confirmed/i.test(error.message)) {
             setNeedsConfirmation(true)
-            throw new Error('Please confirm your email address first — check your inbox for the link.')
+            throw new Error(t('auth.confirmFirst'))
           }
           if (/invalid login credentials/i.test(error.message)) {
-            throw new Error('Wrong email or password. Forgot it? Use "Forgot password?" below.')
+            throw new Error(t('auth.wrongPassword'))
           }
           throw error
         }
         navigate('/dashboard')
       } else {
-        if (!fullName.trim()) throw new Error('Full name is required')
-        if (password.length < MIN_PASSWORD_LENGTH) throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`)
+        if (!fullName.trim()) throw new Error(t('auth.nameRequired'))
+        if (password.length < MIN_PASSWORD_LENGTH) throw new Error(t('auth.passwordMin', { min: MIN_PASSWORD_LENGTH }))
         const { error } = await signUp(email, password, fullName.trim())
         if (error) throw error
         // Supabase requires email confirmation by default
@@ -120,18 +122,18 @@ export default function AuthPage() {
         }}>
           <Mail size={32} color="#1EC878" />
         </div>
-        <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', marginBottom: '12px' }}>Check your email</h2>
+        <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', marginBottom: '12px' }}>{t('auth.checkEmail')}</h2>
         <p style={{ color: '#4A6070', fontSize: '15px', lineHeight: '1.7', marginBottom: '8px' }}>
-          We sent a confirmation link to
+          {t('auth.sentLinkTo')}
         </p>
         <p style={{ color: '#fff', fontWeight: '700', fontSize: '15px', marginBottom: '24px' }}>{email}</p>
         <p style={{ color: '#4A6070', fontSize: '14px', lineHeight: '1.7', marginBottom: '28px' }}>
-          Click the link in the email to confirm your account. Once confirmed, you'll be signed in automatically.
+          {t('auth.clickLink')}
         </p>
         <p style={{ color: '#4A6070', fontSize: '13px', marginBottom: '20px' }}>
-          Nothing arrived? Check your spam folder, or{' '}
+          {t('auth.nothingArrived')}{' '}
           <button onClick={resendConfirmation} disabled={resendState !== 'idle'} style={{ ...linkButton, marginTop: 0 }}>
-            {resendState === 'sent' ? 'email sent again' : resendState === 'sending' ? 'sending…' : 'resend the email'}
+            {resendState === 'sent' ? t('auth.sentAgain') : resendState === 'sending' ? t('auth.sending') : t('auth.resendLower')}
           </button>.
         </p>
         <button onClick={() => { setAwaitingConfirmation(false); setMode('signin') }} style={{
@@ -139,7 +141,7 @@ export default function AuthPage() {
           borderRadius: '10px', padding: '11px 24px', color: '#fff', fontSize: '14px',
           fontWeight: '600', fontFamily: "'DM Sans', sans-serif", cursor: 'pointer'
         }}>
-          Back to Sign In
+          {t('auth.backToSignIn')}
         </button>
       </div>
     </div>
@@ -156,9 +158,9 @@ export default function AuthPage() {
         }}>
           <CheckCircle size={32} color="#1EC878" />
         </div>
-        <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', marginBottom: '12px' }}>Email confirmed</h2>
+        <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', marginBottom: '12px' }}>{t('auth.emailConfirmed')}</h2>
         <p style={{ color: '#4A6070', fontSize: '15px', lineHeight: '1.7', marginBottom: '28px' }}>
-          Your account is verified. Sign in below to get started.
+          {t('auth.verified')}
         </p>
         <button onClick={() => setConfirmed(false)} style={{
           background: 'linear-gradient(135deg, #1EC878, #0FA85A)',
@@ -167,7 +169,7 @@ export default function AuthPage() {
           fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
           boxShadow: '0 4px 16px rgba(30,200,120,0.3)'
         }}>
-          Sign In →
+          {t('auth.signIn')} →
         </button>
       </div>
     </div>
@@ -212,7 +214,7 @@ export default function AuthPage() {
             </div>
             <span style={{ fontSize: '28px', fontWeight: '800', color: '#fff', letterSpacing: '-0.5px' }}>AVX</span>
           </div>
-          <p style={{ color: '#4A6070', fontSize: '14px', margin: 0 }}>AV Production Copilot</p>
+          <p style={{ color: '#4A6070', fontSize: '14px', margin: 0 }}>{t('app.tagline')}</p>
         </div>
 
         {/* Card */}
@@ -237,7 +239,7 @@ export default function AuthPage() {
                 color: mode === m ? '#1EC878' : '#4A6070',
                 border: mode === m ? '1px solid rgba(30,200,120,0.25)' : '1px solid transparent',
               }}>
-                {m === 'signin' ? 'Sign In' : 'Create Account'}
+                {m === 'signin' ? t('auth.signIn') : t('auth.createAccount')}
               </button>
             ))}
           </div>
@@ -246,7 +248,7 @@ export default function AuthPage() {
             {mode === 'signup' && (
               <div>
                 <label style={{ display: 'block', fontSize: '12px', color: '#4A6070', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Full Name
+                  {t('auth.fullName')}
                 </label>
                 <input
                   type="text" value={fullName}
@@ -260,7 +262,7 @@ export default function AuthPage() {
             )}
             <div>
               <label style={{ display: 'block', fontSize: '12px', color: '#4A6070', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Email
+                {t('common.email')}
               </label>
               <input
                 type="email" value={email}
@@ -273,20 +275,20 @@ export default function AuthPage() {
             </div>
             {mode !== 'reset' && <div>
               <label style={{ display: 'block', fontSize: '12px', color: '#4A6070', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Password
+                {t('auth.password')}
               </label>
               <div style={{ position: 'relative' }}>
                 <input
                   type={showPass ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder={mode === 'signup' ? `At least ${MIN_PASSWORD_LENGTH} characters` : '••••••••'}
+                  placeholder={mode === 'signup' ? t('auth.passwordMin', { min: MIN_PASSWORD_LENGTH }) : '••••••••'}
                   autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                   minLength={mode === 'signup' ? MIN_PASSWORD_LENGTH : undefined}
                   style={{ ...inputStyle, paddingRight: '44px' }}
                   required
                 />
-                <button type="button" onClick={() => setShowPass(!showPass)} aria-label={showPass ? 'Hide password' : 'Show password'} style={{
+                <button type="button" onClick={() => setShowPass(!showPass)} aria-label={showPass ? t('auth.hidePassword') : t('auth.showPassword')} style={{
                   position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
                   background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070', padding: '4px',
                   display: 'flex', alignItems: 'center'
@@ -296,23 +298,23 @@ export default function AuthPage() {
               </div>
               {mode === 'signin' && (
                 <button type="button" onClick={() => { setMode('reset'); setError('') }} style={linkButton}>
-                  Forgot password?
+                  {t('auth.forgot')}
                 </button>
               )}
             </div>}
 
             {mode === 'signup' && (
               <p style={{ color: '#4A6070', fontSize: '12px', lineHeight: '1.6', margin: 0 }}>
-                By creating an account you agree to the <Link to="/terms" style={footerLink}>beta terms</Link> and
-                {' '}<Link to="/privacy" style={footerLink}>privacy notice</Link>.
+                {t('auth.agreePrefix')} <Link to="/terms" style={footerLink}>{t('auth.agreeTerms')}</Link> {t('auth.agreeAnd')}
+                {' '}<Link to="/privacy" style={footerLink}>{t('auth.agreePrivacy')}</Link>.
               </p>
             )}
 
             {mode === 'reset' && (
               <p style={{ color: '#4A6070', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
                 {resetSent
-                  ? `If an account exists for ${email}, a password reset link is on its way.`
-                  : "Enter your email and we'll send you a link to set a new password."}
+                  ? t('auth.resetSent', { email })
+                  : t('auth.resetIntro')}
               </p>
             )}
 
@@ -326,7 +328,7 @@ export default function AuthPage() {
                 {needsConfirmation && (
                   <div>
                     <button type="button" onClick={resendConfirmation} disabled={resendState !== 'idle'} style={linkButton}>
-                      {resendState === 'sent' ? 'Confirmation email sent' : resendState === 'sending' ? 'Sending…' : 'Resend confirmation email'}
+                      {resendState === 'sent' ? t('auth.confirmationSent') : resendState === 'sending' ? t('auth.sending') : t('auth.resend')}
                     </button>
                   </div>
                 )}
@@ -344,12 +346,12 @@ export default function AuthPage() {
               boxShadow: loading ? 'none' : '0 4px 20px rgba(30,200,120,0.3)',
             }}>
               {loading ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : null}
-              {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : mode === 'reset' ? 'Send Reset Link' : 'Create Account'}
+              {loading ? t('common.pleaseWait') : mode === 'signin' ? t('auth.signIn') : mode === 'reset' ? t('auth.sendReset') : t('auth.createAccount')}
               {!loading && <ArrowRight size={16} />}
             </button>
             {mode === 'reset' && (
               <button type="button" onClick={() => { setMode('signin'); setError(''); setResetSent(false) }} style={{ ...linkButton, alignSelf: 'center' }}>
-                Back to Sign In
+                {t('auth.backToSignIn')}
               </button>
             )}
           </form>
@@ -357,9 +359,17 @@ export default function AuthPage() {
 
         <p style={{ textAlign: 'center', color: '#2A3A48', fontSize: '12px', marginTop: '24px' }}>
           AVX Beta · Lumen and Pixel, Lda. ·{' '}
-          <Link to="/privacy" style={footerLink}>Privacy</Link> ·{' '}
-          <Link to="/terms" style={footerLink}>Terms</Link>
+          <Link to="/privacy" style={footerLink}>{t('legal.privacyShort')}</Link> ·{' '}
+          <Link to="/terms" style={footerLink}>{t('legal.termsShort')}</Link>
         </p>
+        <div role="group" aria-label={t('account.language')} style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '10px' }}>
+          {LANGUAGES.map(l => (
+            <button key={l.value} type="button" onClick={() => setLang(l.value)} aria-pressed={lang === l.value} style={{
+              background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', padding: '2px 4px',
+              color: lang === l.value ? '#1EC878' : '#4A6070', fontWeight: lang === l.value ? 700 : 500,
+            }}>{l.label}</button>
+          ))}
+        </div>
       </div>
 
       <style>{`

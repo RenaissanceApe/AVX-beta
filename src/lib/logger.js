@@ -4,6 +4,8 @@
 // - debug/info: development only
 // - warn/error: always, without user data (pass ids, not emails or file contents)
 
+import { t } from '../i18n'
+
 const isDev = import.meta.env.DEV
 
 // Set by src/lib/monitoring.js when error monitoring is enabled
@@ -36,15 +38,19 @@ export const logger = {
 }
 
 // Turns Supabase / network errors into something safe and readable for users.
-export function userMessage(error, fallback = 'Something went wrong. Please try again.') {
+export function userMessage(error, fallback) {
   const msg = error?.message || ''
-  if (!msg) return fallback
-  if (/failed to fetch|networkerror|load failed/i.test(msg)) return 'Network problem — check your connection and try again.'
-  if (/row-level security|permission denied|not authorized/i.test(msg)) return "You don't have permission to do that."
-  if (/jwt expired|invalid jwt|refresh token/i.test(msg)) return 'Your session expired. Please sign in again.'
-  if (/payload too large|exceeded the maximum allowed size/i.test(msg)) return 'That file is too large (max 50 MB).'
-  if (/should be different from the old password/i.test(msg)) return "That's your current password — choose a different one."
-  if (/gigs_dates_order/.test(msg)) return 'End date must be on or after the start date.'
-  if (/_length"?$|_length\b/.test(msg) && /check constraint/i.test(msg)) return 'That text is too long (or empty).'
+  if (!msg) return fallback || t('error.generic')
+  if (/failed to fetch|networkerror|load failed/i.test(msg)) return t('error.network')
+  if (/row-level security|permission denied|not authorized/i.test(msg)) return t('error.permission')
+  if (/jwt expired|invalid jwt|refresh token/i.test(msg)) return t('error.session')
+  if (/payload too large|exceeded the maximum allowed size/i.test(msg)) return t('error.tooLarge')
+  if (/should be different from the old password/i.test(msg)) return t('error.samePassword')
+  if (/gigs_dates_order/.test(msg)) return t('error.dates')
+  if (/_length"?$|_length\b/.test(msg) && /check constraint/i.test(msg)) return t('error.textLength')
+  if (/An organisation needs at least one admin/i.test(msg)) return t('error.lastAdmin')
+  if (/Only the gig PM or an organisation admin/i.test(msg)) return t('error.permission')
+  if (/Only organisation admins/i.test(msg)) return t('error.permission')
+  if (/Invalid email address/i.test(msg)) return t('error.email')
   return msg
 }

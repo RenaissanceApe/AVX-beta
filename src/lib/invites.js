@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { logger } from './logger'
+import { t } from '../i18n'
 
 // Adds a person to a gig or organisation by email via the send-invite Edge Function,
 // which also emails people who don't have an account yet.
@@ -29,11 +30,8 @@ export async function sendInvite({ kind, targetId, email, role, functionTitle, c
 }
 
 export function inviteMessage(email, { result, emailed }) {
-  if (result === 'added') return { kind: 'success', text: `${email} has been added.` }
-  if (result === 'already_member') return { kind: 'info', text: `${email} is already a member.` }
-  if (emailed) return { kind: 'success', text: `Invitation emailed to ${email}. They'll be added as soon as they accept.` }
-  return {
-    kind: 'info',
-    text: `${email} doesn't have an account yet and the invitation email couldn't be sent. Share ${window.location.origin}/auth with them — once they sign up with this email they'll be added automatically.`,
-  }
+  if (result === 'added') return { kind: 'success', text: t('invite.added', { email }) }
+  if (result === 'already_member') return { kind: 'info', text: t('invite.already', { email }) }
+  if (emailed) return { kind: 'success', text: t('invite.emailed', { email }) }
+  return { kind: 'info', text: t('invite.notEmailed', { email, link: `${window.location.origin}/auth` }) }
 }

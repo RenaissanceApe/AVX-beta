@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Zap } from 'lucide-react'
 import { APP_NAME, COMPANY_NAME, COMPANY_COUNTRY, CONTACT_EMAIL, LEGAL_LAST_UPDATED, SENTRY_DSN } from '../config'
+import { useI18n } from '../i18n'
+import { PrivacyPt, TermsPt } from './LegalPagePt'
 
 // Privacy notice and beta terms. Plain-language drafts for the pilot — have them
 // reviewed before opening AVX beyond invited pilot companies (see ROADMAP.md).
@@ -86,6 +88,8 @@ function Terms() {
 }
 
 export default function LegalPage({ doc }) {
+  const { lang, t } = useI18n()
+  const pt = lang === 'pt'
   return (
     <div style={{ minHeight: '100vh', background: '#080C14', color: '#C8D3DE', padding: '24px 16px 60px' }}>
       <style>{`
@@ -98,17 +102,17 @@ export default function LegalPage({ doc }) {
       <div className="legal" style={{ maxWidth: '680px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
           <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#8A9BAE', textDecoration: 'none', fontSize: '14px' }}>
-            <ArrowLeft size={14} /> Back to {APP_NAME}
+            <ArrowLeft size={14} /> {t('common.back')}
           </Link>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#fff', fontWeight: 800 }}>
             <Zap size={16} color="#1EC878" fill="#1EC878" /> {APP_NAME}
           </span>
         </div>
-        {doc === 'terms' ? <Terms /> : <Privacy />}
+        {doc === 'terms' ? (pt ? <TermsPt /> : <Terms />) : (pt ? <PrivacyPt /> : <Privacy />)}
         <p style={{ marginTop: '40px', fontSize: '13px', color: '#4A6070' }}>
           {doc === 'terms'
-            ? <Link to="/privacy" style={{ color: '#1EC878' }}>Privacy notice</Link>
-            : <Link to="/terms" style={{ color: '#1EC878' }}>Beta terms of use</Link>}
+            ? <Link to="/privacy" style={{ color: '#1EC878' }}>{t('legal.privacyShort')}</Link>
+            : <Link to="/terms" style={{ color: '#1EC878' }}>{t('legal.termsShort')}</Link>}
         </p>
       </div>
     </div>

@@ -15,12 +15,17 @@
 npm run check   # lint + unit tests + build
 ```
 
+If you changed screens or routes, also run `npm run build && npm run test:e2e` (CI runs it on every PR).
+
 If you changed the database, also run `supabase/tests/rls_smoke.sql` in the Supabase SQL editor
-and confirm it ends with `ALL CHECKS PASSED`.
+and confirm it ends with `ALL CHECKS PASSED`. Supabase's security advisor lists our API functions
+(`invite_to_gig`, `crew_conflicts`, …) as "SECURITY DEFINER callable by signed-in users". That is
+intended: each one checks permissions itself. Anything else it reports needs fixing.
 
 ## Database changes
 
 - Every change is a new file in `supabase/migrations/` named `YYYYMMDDHHMMSS_description.sql`.
+  Prefer `create or replace` / `if not exists` over `drop`, so migrations can be applied without manual confirmation.
   Never edit a migration that has already been applied — add a new one.
 - Every table has Row Level Security enabled. Access checks go through the helpers in the
   `private` schema (`can_access_gig`, `can_manage_gig`, …) so policies never query their own table.
@@ -28,6 +33,13 @@ and confirm it ends with `ALL CHECKS PASSED`.
 - Edge Functions live in `supabase/functions/<name>/index.ts`; deploy, then commit the same code.
   They must check permissions through the database (call the RPC as the user) before using the service role,
   and log ids and step names only. Never log emails or tokens.
+
+## Text and languages
+
+- Never hard-code user-facing text. Add a key to **both** `src/i18n/en.js` and `src/i18n/pt.js` and use
+  `t('key', { vars })` (`useI18n()` in components so they re-render on language change).
+- Plurals: add `key.one` / `key.other` and pass `{ count }`. Dates: `fmt(date, pattern)` and `ago(date)`.
+- `npm test` fails if the two dictionaries differ or if code uses a key that doesn't exist.
 
 ## Logging hygiene
 

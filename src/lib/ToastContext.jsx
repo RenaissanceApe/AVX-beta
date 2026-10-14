@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react'
+import { t } from '../i18n'
 
 // Lightweight in-app notifications, replacing window.alert().
 const ToastContext = createContext({ notify: () => {} })
@@ -14,7 +15,7 @@ export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])
   const nextId = useRef(1)
 
-  const dismiss = useCallback(id => setToasts(list => list.filter(t => t.id !== id)), [])
+  const dismiss = useCallback(id => setToasts(list => list.filter(item => item.id !== id)), [])
 
   const notify = useCallback((message, kind = 'info', { duration } = {}) => {
     const id = nextId.current++
@@ -31,19 +32,19 @@ export function ToastProvider({ children }) {
         display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 1000,
         width: 'min(440px, calc(100vw - 32px))', pointerEvents: 'none'
       }}>
-        {toasts.map(t => {
-          const cfg = KIND[t.kind] || KIND.info
+        {toasts.map(toast => {
+          const cfg = KIND[toast.kind] || KIND.info
           const Icon = cfg.icon
           return (
-            <div key={t.id} role={t.kind === 'error' ? 'alert' : 'status'} style={{
+            <div key={toast.id} role={toast.kind === 'error' ? 'alert' : 'status'} style={{
               pointerEvents: 'auto', display: 'flex', alignItems: 'flex-start', gap: '10px',
               background: '#0F1520', border: `1px solid ${cfg.border}`, borderRadius: '12px',
               padding: '12px 14px', color: '#fff', fontSize: '14px', lineHeight: '1.5',
               boxShadow: '0 8px 24px rgba(0,0,0,0.4)', whiteSpace: 'pre-line', wordBreak: 'break-word'
             }}>
               <Icon size={18} color={cfg.color} style={{ flexShrink: 0, marginTop: '1px' }} />
-              <div style={{ flex: 1 }}>{t.message}</div>
-              <button onClick={() => dismiss(t.id)} aria-label="Dismiss" style={{
+              <div style={{ flex: 1 }}>{toast.message}</div>
+              <button onClick={() => dismiss(toast.id)} aria-label={t('common.dismiss')} style={{
                 background: 'none', border: 'none', color: '#4A6070', cursor: 'pointer', padding: 0, display: 'flex'
               }}>
                 <X size={15} />

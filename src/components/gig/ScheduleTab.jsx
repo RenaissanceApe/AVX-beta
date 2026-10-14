@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, Loader2, MapPin, Printer, CalendarClock } from 'lucide-react'
-import { format, parseISO } from 'date-fns'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { groupByDay, shortTime } from '../../lib/schedule'
+import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, card, label, colors } from '../ui'
 
 const EMPTY = { day: '', start_time: '', end_time: '', title: '', location: '', notes: '' }
@@ -14,6 +14,7 @@ const EMPTY = { day: '', start_time: '', end_time: '', title: '', location: '', 
 export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCallSheet }) {
   const { user } = useAuth()
   const { notify } = useToast()
+  const { t, fmt } = useI18n()
   const [editing, setEditing] = useState(null) // null | 'new' | item
   const [form, setForm] = useState(EMPTY)
   const [saving, setSaving] = useState(false)
@@ -44,14 +45,14 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
     setSaving(false)
     if (error) {
       logger.error('schedule', error, { step: editing === 'new' ? 'insert' : 'update', gigId: gig.id })
-      return notify(/end_time/.test(error.message) ? 'End time must be after the start time.' : userMessage(error), 'error')
+      return notify(/end_time/.test(error.message) ? t('schedule.endAfterStart') : userMessage(error), 'error')
     }
     setEditing(null)
     onChanged()
   }
 
   async function remove(item) {
-    if (!window.confirm(`Remove “${item.title}” from the schedule?`)) return
+    if (!window.confirm(t('schedule.confirmRemove', { title: item.title }))) return
     const { error } = await supabase.from('gig_schedule').delete().eq('id', item.id)
     if (error) {
       logger.error('schedule', error, { step: 'delete', gigId: gig.id })
@@ -66,23 +67,23 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '20px' }}>
         <div>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>Schedule</h2>
-          <p style={{ color: colors.muted, fontSize: '13px' }}>The running order everyone on the gig sees, and the basis of the call sheet.</p>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>{t('gig.tab.schedule')}</h2>
+          <p style={{ color: colors.muted, fontSize: '13px' }}>{t('schedule.subtitle')}</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={onOpenCallSheet} style={btn}><Printer size={14} /> Call sheet</button>
-          {canManage && <button onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} /> Add item</button>}
+          <button onClick={onOpenCallSheet} style={btn}><Printer size={14} /> {t('schedule.callSheet')}</button>
+          {canManage && <button onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} /> {t('schedule.add')}</button>}
         </div>
       </div>
 
       {groups.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: colors.muted }}>
           <CalendarClock size={28} color={colors.accent} style={{ marginBottom: '12px' }} />
-          <p style={{ fontSize: '14px' }}>{canManage ? 'Add load-in, soundcheck, doors, show and load-out times.' : 'No schedule yet.'}</p>
+          <p style={{ fontSize: '14px' }}>{canManage ? t('schedule.emptyManager') : t('schedule.empty')}</p>
         </div>
       ) : groups.map(g => (
         <section key={g.day} style={{ marginBottom: '22px' }}>
-          <h3 style={{ ...label, marginBottom: '10px' }}>{format(parseISO(g.day), 'EEEE, d MMMM yyyy')}</h3>
+          <h3 style={{ ...label, marginBottom: '10px' }}>{fmt(g.day, 'EEEE, d MMMM yyyy')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {g.items.map(item => (
               <div key={item.id} style={{ ...card, display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
@@ -96,8 +97,8 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
                 </div>
                 {canManage && (
                   <div style={{ display: 'flex' }}>
-                    <button onClick={() => setEditing(item)} aria-label={`Edit ${item.title}`} title="Edit" style={iconBtn}><Pencil size={14} /></button>
-                    <button onClick={() => remove(item)} aria-label={`Remove ${item.title}`} title="Remove" style={iconBtn}><Trash2 size={14} /></button>
+                    <button onClick={() => setEditing(item)} aria-label={t('schedule.editNamed', { title: item.title })} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>
+                    <button onClick={() => remove(item)} aria-label={t('schedule.removeNamed', { title: item.title })} title={t('crew.remove')} style={iconBtn}><Trash2 size={14} /></button>
                   </div>
                 )}
               </div>
@@ -107,39 +108,39 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
       ))}
 
       {editing && (
-        <Modal title={editing === 'new' ? 'Add schedule item' : 'Edit schedule item'} onClose={() => setEditing(null)}>
+        <Modal title={editing === 'new' ? t('schedule.addTitle') : t('schedule.editTitle')} onClose={() => setEditing(null)}>
           <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div>
-              <label style={label} htmlFor="sch-title">What *</label>
+              <label style={label} htmlFor="sch-title">{t('schedule.what')} *</label>
               <input id="sch-title" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                placeholder="e.g. Load-in, Soundcheck, Doors, Show" maxLength={200} style={input} autoFocus required />
+                placeholder={t('schedule.whatPlaceholder')} maxLength={200} style={input} autoFocus required />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1fr', gap: '8px' }}>
               <div>
-                <label style={label} htmlFor="sch-day">Day *</label>
+                <label style={label} htmlFor="sch-day">{t('schedule.day')} *</label>
                 <input id="sch-day" type="date" value={form.day} onChange={e => setForm(f => ({ ...f, day: e.target.value }))} style={input} required />
               </div>
               <div>
-                <label style={label} htmlFor="sch-start">Start *</label>
+                <label style={label} htmlFor="sch-start">{t('schedule.start')} *</label>
                 <input id="sch-start" type="time" value={form.start_time} onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} style={input} required />
               </div>
               <div>
-                <label style={label} htmlFor="sch-end">End</label>
+                <label style={label} htmlFor="sch-end">{t('schedule.end')}</label>
                 <input id="sch-end" type="time" value={form.end_time} onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))} style={input} />
               </div>
             </div>
             <div>
-              <label style={label} htmlFor="sch-loc">Where</label>
+              <label style={label} htmlFor="sch-loc">{t('schedule.where')}</label>
               <input id="sch-loc" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
-                placeholder="e.g. Loading dock B, Main stage" maxLength={200} style={input} />
+                placeholder={t('schedule.wherePlaceholder')} maxLength={200} style={input} />
             </div>
             <div>
-              <label style={label} htmlFor="sch-notes">Notes</label>
+              <label style={label} htmlFor="sch-notes">{t('schedule.notes')}</label>
               <textarea id="sch-notes" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                 rows={3} maxLength={1000} style={{ ...input, resize: 'vertical', lineHeight: 1.5 }} />
             </div>
             <button type="submit" disabled={saving} style={{ ...btnPrimary, justifyContent: 'center' }}>
-              {saving && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />} Save
+              {saving && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />} {t('common.save')}
             </button>
           </form>
         </Modal>

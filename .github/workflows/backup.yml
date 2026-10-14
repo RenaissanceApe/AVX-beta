@@ -4,9 +4,10 @@ name: Database backup
 # The repository is public, so the dump is encrypted before it is stored as a workflow
 # artifact. Restore instructions: docs/BACKUPS.md
 #
-# Needs two repository secrets (Settings → Secrets and variables → Actions):
-#   SUPABASE_DB_URL     Session pooler connection string (Supabase → Connect → Session pooler)
-#   BACKUP_PASSPHRASE   Long random passphrase — store it in your password manager too
+# Repository secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL            Session pooler connection string (Supabase → Connect → Session pooler)
+#   BACKUP_PASSPHRASE          Long random passphrase — store it in your password manager too
+#   SUPABASE_SERVICE_ROLE_KEY  Optional: also back up uploaded files (Supabase → Settings → API keys)
 on:
   schedule:
     - cron: '23 3 * * *'
@@ -22,6 +23,7 @@ jobs:
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - name: Check configuration
         id: config
@@ -55,11 +57,30 @@ jobs:
           echo "BACKUP_FILE=$name.dump.gpg" >> "$GITHUB_ENV"
           ls -lh "$name.dump.gpg"
 
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.enabled == 'true' && env.SUPABASE_SERVICE_ROLE_KEY != ''
+
+      - name: Download and encrypt uploaded files
+        if: steps.config.outputs.enabled == 'true' && env.SUPABASE_SERVICE_ROLE_KEY != ''
+        run: |
+          set -euo pipefail
+          set -a; . ./.env; set +a
+          SUPABASE_URL="$VITE_SUPABASE_URL" node scripts/backup-storage.mjs files
+          name="avx-files-$(date -u +%Y-%m-%dT%H%M)"
+          tar -czf "$name.tar.gz" -C files .
+          gpg --batch --yes --symmetric --cipher-algo AES256 --passphrase "$BACKUP_PASSPHRASE" \
+            --output "$name.tar.gz.gpg" "$name.tar.gz"
+          rm -rf files "$name.tar.gz"
+          echo "FILES_BACKUP=$name.tar.gz.gpg" >> "$GITHUB_ENV"
+          ls -lh "$name.tar.gz.gpg"
+
       - name: Store encrypted backup
         if: steps.config.outputs.enabled == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.BACKUP_FILE }}
-          path: ${{ env.BACKUP_FILE }}
+          path: |
+            ${{ env.BACKUP_FILE }}
+            ${{ env.FILES_BACKUP }}
           retention-days: 30
           if-no-files-found: error

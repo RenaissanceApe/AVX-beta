@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { logger } from './logger'
 import { setMonitoringUser } from './monitoring'
+import { useI18n } from '../i18n'
 
 const AuthContext = createContext({})
 
@@ -13,6 +14,12 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   // True after the user arrives from a password-reset email
   const [passwordRecovery, setPasswordRecovery] = useState(false)
+  const { lang, setLang } = useI18n()
+
+  // A language saved on the profile (Account → Language) wins over the browser default
+  useEffect(() => {
+    if (profile?.language && profile.language !== lang) setLang(profile.language)
+  }, [profile?.language]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // onAuthStateChange fires INITIAL_SESSION on load, so no separate getSession() call.

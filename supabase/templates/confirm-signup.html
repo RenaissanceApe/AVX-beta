@@ -1,16 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt">
 <body style="margin:0;padding:0;background:#f4f6f8;font-family:Helvetica,Arial,sans-serif;color:#1a2430;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;padding:32px 12px;">
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:12px;padding:32px;">
         <tr><td style="font-size:22px;font-weight:800;color:#0FA85A;padding-bottom:20px;">AVX</td></tr>
-        <tr><td style="font-size:18px;font-weight:700;padding-bottom:12px;">Confirm your email</td></tr>
-        <tr><td style="font-size:15px;line-height:1.6;padding-bottom:24px;">Thanks for signing up to AVX. Confirm your email address ({{ .Email }}) to activate your account.</td></tr>
+        <tr><td style="font-size:18px;font-weight:700;padding-bottom:12px;">Confirme o seu email</td></tr>
+        <tr><td style="font-size:15px;line-height:1.6;padding-bottom:24px;">Obrigado por se registar no AVX. Confirme o seu endereço de email ({{ .Email }}) para ativar a conta.</td></tr>
         <tr><td style="padding-bottom:24px;">
-          <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#0FA85A;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:12px 22px;border-radius:8px;">Confirm email</a>
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#0FA85A;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:12px 22px;border-radius:8px;">Confirmar email · Confirm email</a>
         </td></tr>
-        <tr><td style="font-size:13px;line-height:1.6;color:#5b6b7a;">If you didn't create an AVX account, you can ignore this email.</td></tr>
+        <tr><td style="font-size:13px;line-height:1.6;color:#5b6b7a;padding-bottom:20px;">Se não criou uma conta AVX, pode ignorar este email.</td></tr>
+        <tr><td style="border-top:1px solid #e3e8ee;padding-top:18px;font-size:14px;line-height:1.6;color:#3a4a5a;" lang="en">
+          <strong>Confirm your email</strong><br>Thanks for signing up to AVX. Confirm your email address ({{ .Email }}) to activate your account.<br><span style="font-size:13px;color:#5b6b7a;">If you didn't create an AVX account, you can ignore this email.</span>
+        </td></tr>
       </table>
       <p style="font-size:12px;color:#8a99a8;margin-top:16px;">AVX Beta · Lumen and Pixel, Lda.</p>
     </td></tr>

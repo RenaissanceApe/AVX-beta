@@ -5,12 +5,8 @@ export function localToday(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export const GIG_FILTERS = [
-  { value: 'upcoming', label: 'Upcoming' },
-  { value: 'past',     label: 'Past' },
-  { value: 'archived', label: 'Archived' },
-  { value: 'all',      label: 'All' },
-]
+// Labels come from i18n: gigFilter.<value>
+export const GIG_FILTERS = [{ value: 'upcoming' }, { value: 'past' }, { value: 'archived' }, { value: 'all' }]
 
 // A gig is "past" once its last day (end date, else start date) is before today.
 // Gigs without dates count as upcoming so they stay visible.

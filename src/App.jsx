@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { ToastProvider } from './lib/ToastContext'
+import { I18nProvider, t } from './i18n'
 import ErrorBoundary from './components/ErrorBoundary'
 import AuthPage from './pages/AuthPage'
 import Dashboard from './pages/Dashboard'
@@ -16,7 +17,7 @@ function Spinner() {
       minHeight: '100vh', background: '#080C14',
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
-      <div role="status" aria-label="Loading" style={{
+      <div role="status" aria-label={t('common.loading')} style={{
         width: '32px', height: '32px', border: '3px solid rgba(30,200,120,0.2)',
         borderTopColor: '#1EC878', borderRadius: '50%',
         animation: 'spin 0.8s linear infinite'
@@ -57,14 +58,16 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <ToastProvider>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </ToastProvider>
-      </BrowserRouter>
-    </ErrorBoundary>
+    <I18nProvider>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <ToastProvider>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </ToastProvider>
+        </BrowserRouter>
+      </ErrorBoundary>
+    </I18nProvider>
   )
 }
