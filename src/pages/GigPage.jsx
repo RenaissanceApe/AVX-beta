@@ -2,12 +2,15 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
+import { useToast } from '../lib/ToastContext'
+import { logger, userMessage } from '../lib/logger'
+import { MAX_UPLOAD_BYTES, storagePath, findAssetToSupersede, formatBytes } from '../lib/files'
 import {
   Zap, ArrowLeft, MapPin, Calendar, Upload, FileText,
   Image, Clock, Users, MessageSquare, Plus, X, Loader2,
   Download, ChevronDown, AlertCircle, Send, UserPlus,
   File, Music, Layout, ClipboardList, RefreshCw, CheckCircle,
-  MoreHorizontal, Star
+  MoreHorizontal, Star, Trash2
 } from 'lucide-react'
 import { format, parseISO, formatDistanceToNow } from 'date-fns'
 
@@ -32,13 +35,16 @@ const TABS = ['Overview', 'Assets', 'Crew', 'Feed']
 
 export default function GigPage() {
   const { id } = useParams()
-  const { user, profile } = useAuth()
+  const { user } = useAuth()
+  const { notify } = useToast()
   const navigate = useNavigate()
 
   const [gig, setGig]               = useState(null)
   const [members, setMembers]       = useState([])
   const [assets, setAssets]         = useState([])
   const [posts, setPosts]           = useState([])
+  const [invites, setInvites]       = useState([])
+  const [orgRole, setOrgRole]       = useState(null)
   const [profiles, setProfiles]     = useState({})
   const [tab, setTab]               = useState('Overview')
   const [loading, setLoading]       = useState(true)
@@ -64,16 +70,29 @@ export default function GigPage() {
 
   async function loadAll() {
     setLoading(true)
-    const [gigRes, membersRes, assetsRes, postsRes] = await Promise.all([
+    const [gigRes, membersRes, assetsRes, postsRes, invitesRes] = await Promise.all([
       supabase.from('gigs').select('*').eq('id', id).single(),
       supabase.from('gig_members').select('*').eq('gig_id', id),
       supabase.from('assets').select('*').eq('gig_id', id).is('superseded_by', null).order('created_at', { ascending: false }),
       supabase.from('feed_posts').select('*').eq('gig_id', id).order('created_at', { ascending: true }),
+      // Only returns rows for PMs / org admins (RLS)
+      supabase.from('gig_invites').select('*').eq('gig_id', id).order('created_at', { ascending: true }),
     ])
+    for (const [step, res] of Object.entries({ gig: gigRes, members: membersRes, assets: assetsRes, posts: postsRes })) {
+      if (res.error && res.error.code !== 'PGRST116') logger.error('gig', res.error, { step, gigId: id })
+    }
     setGig(gigRes.data)
     setMembers(membersRes.data || [])
     setAssets(assetsRes.data || [])
     setPosts(postsRes.data || [])
+    setInvites(invitesRes.data || [])
+
+    // My role in the gig's organisation decides what I can edit (mirrors the database rules)
+    if (gigRes.data?.org_id) {
+      const { data: om } = await supabase.from('org_members').select('role')
+        .eq('org_id', gigRes.data.org_id).eq('user_id', user.id).maybeSingle()
+      setOrgRole(om?.role ?? null)
+    }
 
     // Fetch profiles for all unique user IDs
     const uids = [...new Set([
@@ -91,9 +110,14 @@ export default function GigPage() {
 
   async function saveGig() {
     setSavingGig(true)
-    const { error } = await supabase.from('gigs').update(editForm).eq('id', id)
-    if (!error) {
-      setGig(g => ({ ...g, ...editForm }))
+    // Empty date inputs must be sent as null, not ''
+    const changes = { ...editForm, start_date: editForm.start_date || null, end_date: editForm.end_date || null }
+    const { error } = await supabase.from('gigs').update(changes).eq('id', id)
+    if (error) {
+      logger.error('gig', error, { step: 'saveGig', gigId: id })
+      notify('Could not save gig: ' + userMessage(error), 'error')
+    } else {
+      setGig(g => ({ ...g, ...changes }))
       setShowEditGig(false)
     }
     setSavingGig(false)
@@ -116,42 +140,22 @@ export default function GigPage() {
       // Strip query strings
       path = path.split('?')[0]
 
-      // Show the path we're using so we can verify it
-      setAssetError(`Trying path: ${path}`)
-
       const result = await supabase.storage
         .from('gig-assets')
         .createSignedUrl(path, 3600)
 
-      // Show the full raw result on screen
-      const resultStr = JSON.stringify(result, null, 2)
-
-      if (result.error) {
-        setAssetError(`Error: ${result.error.message} | Path: ${path} | Full: ${resultStr}`)
+      if (result.error || !result.data?.signedUrl) {
+        setAssetError(`Could not open "${asset.name}". ${result.error?.message || 'Please try again.'}`)
         return
       }
 
-      if (!result.data?.signedUrl) {
-        setAssetError(`No URL returned. Full result: ${resultStr}`)
-        return
-      }
-
-      setAssetError('')
-
-      const a = document.createElement('a')
-      a.href = result.data.signedUrl
-      a.target = '_blank'
-      a.rel = 'noopener noreferrer'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-
-      // Fallback for iOS Safari which blocks async anchor clicks
-      setTimeout(() => {
-        window.location.href = result.data.signedUrl
-      }, 100)
+      // Opening a new tab after an await is treated as a popup; if the browser
+      // blocks it (iOS Safari does), open the file in the current tab instead.
+      const win = window.open(result.data.signedUrl, '_blank')
+      if (win) win.opener = null
+      else window.location.href = result.data.signedUrl
     } catch (err) {
-      setAssetError(`Exception: ${err.message}`)
+      setAssetError(`Could not open "${asset.name}". ${err.message}`)
     } finally {
       setOpeningAsset(null)
     }
@@ -159,10 +163,14 @@ export default function GigPage() {
 
   async function handleUpload() {
     if (!uploadForm.file || !uploadForm.name.trim()) return
+    if (uploadForm.file.size > MAX_UPLOAD_BYTES) {
+      notify(`That file is ${formatBytes(uploadForm.file.size)} — the limit is ${formatBytes(MAX_UPLOAD_BYTES)}.`, 'error')
+      return
+    }
     setUploading(true)
+    let path = null
     try {
-      const ext = uploadForm.file.name.split('.').pop()
-      const path = `${id}/${Date.now()}-${uploadForm.name.replace(/\s+/g, '-')}.${ext}`
+      path = storagePath(id, uploadForm.name, uploadForm.file.name)
       const { error: storageError } = await supabase.storage
         .from('gig-assets')
         .upload(path, uploadForm.file, { contentType: uploadForm.file.type })
@@ -171,8 +179,8 @@ export default function GigPage() {
       // Store the path, not the public URL — we generate signed URLs on open
       const fileUrl = path
 
-      // Version: find if there's an existing asset of same type to supersede
-      const existing = assets.find(a => a.type === uploadForm.type)
+      // Same type + same name = a new version of that document
+      const existing = findAssetToSupersede(assets, uploadForm.type, uploadForm.name)
       const version = existing ? (existing.version || 1) + 1 : 1
 
       const { data: newAsset, error: dbError } = await supabase.from('assets').insert({
@@ -184,41 +192,95 @@ export default function GigPage() {
         version,
         created_by: user.id,
       }).select().single()
-      if (dbError) throw dbError
-
-      // Supersede old asset
-      if (existing) {
-        await supabase.from('assets').update({ superseded_by: newAsset.id }).eq('id', existing.id)
+      if (dbError) {
+        // Don't leave an orphaned file in storage
+        await supabase.storage.from('gig-assets').remove([path])
+        throw dbError
       }
 
+      if (existing) {
+        const { error: supersedeError } = await supabase.from('assets').update({ superseded_by: newAsset.id }).eq('id', existing.id)
+        if (supersedeError) logger.error('assets', supersedeError, { step: 'supersede', assetId: existing.id })
+      }
+
+      notify(existing ? `Uploaded version ${version} of "${newAsset.name}".` : `Uploaded "${newAsset.name}".`, 'success')
       setShowUpload(false)
       setUploadForm({ type: 'patch_list', name: '', file: null })
       loadAll()
     } catch (err) {
-      alert('Upload failed: ' + err.message)
+      logger.error('assets', err, { step: 'upload', gigId: id })
+      notify('Upload failed: ' + userMessage(err), 'error')
     } finally {
       setUploading(false)
     }
+  }
+
+  async function deleteAsset(asset) {
+    if (!window.confirm(`Delete "${asset.name}" (version ${asset.version})? If there is an earlier version it becomes current again.`)) return
+    const { error } = await supabase.from('assets').delete().eq('id', asset.id)
+    if (error) {
+      logger.error('assets', error, { step: 'delete', assetId: asset.id })
+      return notify('Could not delete: ' + userMessage(error), 'error')
+    }
+    if (asset.file_url) {
+      const { error: storageError } = await supabase.storage.from('gig-assets').remove([asset.file_url])
+      if (storageError) logger.warn('assets', 'File left in storage after delete', { assetId: asset.id })
+    }
+    notify(`Deleted "${asset.name}".`, 'success')
+    loadAll()
+  }
+
+  async function removeMember(member) {
+    const self = member.user_id === user.id
+    const who = self ? 'yourself' : displayName(member.user_id)
+    if (!window.confirm(`Remove ${who} from this gig?`)) return
+    const { error } = await supabase.from('gig_members').delete().eq('gig_id', id).eq('user_id', member.user_id)
+    if (error) {
+      logger.error('crew', error, { step: 'remove', gigId: id })
+      return notify('Could not remove: ' + userMessage(error), 'error')
+    }
+    if (self) return navigate('/dashboard')
+    notify(`Removed ${who}.`, 'success')
+    loadAll()
+  }
+
+  async function deletePost(post) {
+    if (!window.confirm('Delete this update?')) return
+    const { error } = await supabase.from('feed_posts').delete().eq('id', post.id)
+    if (error) {
+      logger.error('feed', error, { step: 'delete', postId: post.id })
+      return notify('Could not delete: ' + userMessage(error), 'error')
+    }
+    setPosts(list => list.filter(p => p.id !== post.id))
   }
 
   async function handleInvite() {
     if (!inviteForm.email.trim()) return
     setInviting(true)
     try {
-      // Look up user by email
-      const { data: userData } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', (await supabase.auth.admin?.getUserByEmail?.(inviteForm.email))?.data?.user?.id)
-        .maybeSingle()
+      const email = inviteForm.email.trim()
+      const { data: result, error } = await supabase.rpc('invite_to_gig', {
+        p_gig: id,
+        p_email: email,
+        p_role: inviteForm.role,
+        p_function_title: inviteForm.function_title || null,
+        p_call_time: inviteForm.call_time || null,
+      })
+      if (error) throw error
 
-      // For now: if user doesn't exist, store email invite (simplified for beta)
-      // In production this would send an email
-      alert(`Invite sent to ${inviteForm.email}. They'll receive an email to join this gig. (Email sending requires backend setup — for beta, share the app URL manually.)`)
+      if (result === 'added') {
+        notify(`${email} has been added to this gig.`, 'success')
+      } else {
+        const link = `${window.location.origin}/auth`
+        try { await navigator.clipboard.writeText(link) } catch { /* clipboard unavailable */ }
+        notify(`${email} doesn't have an AVX account yet. Send them ${link} (copied to your clipboard) — once they sign up with that email they'll see this gig automatically.`, 'info', { duration: 15000 })
+      }
       setShowInvite(false)
       setInviteForm({ email: '', role: 'crew', function_title: '', call_time: '' })
+      loadAll()
     } catch (err) {
-      alert('Error: ' + err.message)
+      logger.error('crew', err, { step: 'invite', gigId: id })
+      notify(userMessage(err), 'error')
     } finally {
       setInviting(false)
     }
@@ -232,7 +294,10 @@ export default function GigPage() {
       content: postText.trim(),
       is_important: postImportant,
     })
-    if (!error) {
+    if (error) {
+      logger.error('feed', error, { step: 'post', gigId: id })
+      notify('Could not post: ' + userMessage(error), 'error')
+    } else {
       setPostText('')
       setPostImportant(false)
       // Refresh posts and profiles
@@ -248,18 +313,13 @@ export default function GigPage() {
   }
 
   const myMembership = members.find(m => m.user_id === user?.id)
-  const isPM = myMembership?.role === 'pm' || gig?.created_by === user?.id
+  // Mirrors private.can_manage_gig / can_contribute_gig in the database
+  const isPM = myMembership?.role === 'pm' || gig?.created_by === user?.id || orgRole === 'admin'
+  const canUpload = isPM || !!orgRole
 
   const getAssetIcon = (type) => {
     const cfg = ASSET_TYPES.find(t => t.value === type) || ASSET_TYPES[4]
     return cfg
-  }
-
-  const formatBytes = (bytes) => {
-    if (!bytes) return ''
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
   const displayName = (uid) => profiles[uid]?.full_name || 'Unknown'
@@ -276,8 +336,14 @@ export default function GigPage() {
   )
 
   if (!gig) return (
-    <div style={{ minHeight: '100vh', background: '#080C14', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>
-      Gig not found.
+    <div style={{ minHeight: '100vh', background: '#080C14', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', padding: '24px', textAlign: 'center' }}>
+      <div style={{ maxWidth: '360px' }}>
+        <h1 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '10px' }}>Gig not available</h1>
+        <p style={{ color: '#4A6070', fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>
+          It may have been deleted, or you haven't been added to it. Ask the gig's production manager to add you.
+        </p>
+        <button onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> Back to dashboard</button>
+      </div>
     </div>
   )
 
@@ -286,7 +352,6 @@ export default function GigPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#080C14', fontFamily: "'DM Sans', sans-serif", color: '#fff' }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; }
         input, textarea, select { font-family: 'DM Sans', sans-serif; color: #fff; }
         input::placeholder, textarea::placeholder { color: #2A3A48; }
@@ -325,7 +390,7 @@ export default function GigPage() {
             <span style={{ fontWeight: '800', fontSize: '16px', letterSpacing: '-0.3px' }}>AVX</span>
           </div>
         </div>
-        <button onClick={loadAll} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070', display: 'flex', alignItems: 'center', padding: '6px' }}>
+        <button onClick={loadAll} aria-label="Refresh" title="Refresh" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070', display: 'flex', alignItems: 'center', padding: '6px' }}>
           <RefreshCw size={15} />
         </button>
       </nav>
@@ -454,7 +519,7 @@ export default function GigPage() {
             <div style={card}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <SectionTitle icon={<FileText size={14} />} title="Assets" />
-                {isPM && <SmallBtn onClick={() => { setTab('Assets'); setTimeout(() => setShowUpload(true), 100) }} icon={<Plus size={12} />} label="Upload" />}
+                {canUpload && <SmallBtn onClick={() => { setTab('Assets'); setTimeout(() => setShowUpload(true), 100) }} icon={<Plus size={12} />} label="Upload" />}
               </div>
               {assets.length === 0 ? (
                 <EmptyMini text="No assets yet" />
@@ -558,7 +623,7 @@ export default function GigPage() {
                   Patch lists, plots, schedules and all production documents for this gig.
                 </p>
               </div>
-              {isPM && (
+              {canUpload && (
                 <button onClick={() => setShowUpload(true)} style={btnPrimary}>
                   <Upload size={14} /> Upload Asset
                 </button>
@@ -589,7 +654,7 @@ export default function GigPage() {
                 <p style={{ color: '#4A6070', fontSize: '13px', marginBottom: '20px', maxWidth: '300px', margin: '0 auto 20px' }}>
                   Upload your patch lists, plots, schedules, and riders here.
                 </p>
-                {isPM && (
+                {canUpload && (
                   <button onClick={() => setShowUpload(true)} style={btnPrimary}>
                     <Upload size={14} /> Upload First Asset
                   </button>
@@ -642,6 +707,11 @@ export default function GigPage() {
                         }
                         {openingAsset === a.id ? 'Opening...' : 'Open'}
                       </button>
+                      {canUpload && (
+                        <button onClick={() => deleteAsset(a)} aria-label={`Delete ${a.name}`} title="Delete" style={iconButton}>
+                          <Trash2 size={15} />
+                        </button>
+                      )}
                     </div>
                   )
                 })}
@@ -697,8 +767,42 @@ export default function GigPage() {
                       </div>
                     </div>
                     <RoleBadge role={m.role} large />
+                    {(isPM || m.user_id === user.id) && (
+                      <button onClick={() => removeMember(m)} aria-label={m.user_id === user.id ? 'Leave gig' : `Remove ${displayName(m.user_id)}`}
+                        title={m.user_id === user.id ? 'Leave gig' : 'Remove from gig'} style={iconButton}>
+                        <X size={15} />
+                      </button>
+                    )}
                   </div>
                 ))}
+              </div>
+            )}
+
+            {invites.length > 0 && (
+              <div style={{ marginTop: '24px' }}>
+                <h3 style={{ fontSize: '12px', fontWeight: '700', color: '#4A6070', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px 0' }}>
+                  Pending — waiting for sign-up
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {invites.map(inv => (
+                    <div key={inv.id} style={{
+                      border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', padding: '12px 16px',
+                      display: 'flex', alignItems: 'center', gap: '12px'
+                    }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: '600', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inv.email}</div>
+                        <div style={{ fontSize: '12px', color: '#4A6070' }}>{inv.function_title || '—'}{inv.call_time ? ` · Call: ${inv.call_time}` : ''}</div>
+                      </div>
+                      <RoleBadge role={inv.role} />
+                      <button onClick={async () => {
+                        const { error } = await supabase.from('gig_invites').delete().eq('id', inv.id)
+                        if (error) notify(userMessage(error), 'error'); else setInvites(list => list.filter(i => i.id !== inv.id))
+                      }} title="Cancel invite" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070', padding: '4px', display: 'flex' }}>
+                        <X size={15} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -719,7 +823,8 @@ export default function GigPage() {
                 </div>
               )}
               {posts.map(post => (
-                <FeedPost key={post.id} post={post} displayName={displayName} initials={initials} large />
+                <FeedPost key={post.id} post={post} displayName={displayName} initials={initials} large
+                  onDelete={(post.user_id === user.id || isPM) ? () => deletePost(post) : null} />
               ))}
               <div ref={feedEndRef} />
             </div>
@@ -786,7 +891,7 @@ export default function GigPage() {
                   const sel = uploadForm.type === t.value
                   return (
                     <button key={t.value} onClick={() => setUploadForm(f => ({ ...f, type: t.value }))} style={{
-                      padding: '10px 8px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+                      padding: '10px 8px', borderRadius: '10px', cursor: 'pointer',
                       background: sel ? `${t.color}18` : 'rgba(255,255,255,0.04)',
                       border: sel ? `1px solid ${t.color}50` : '1px solid rgba(255,255,255,0.07)',
                       color: sel ? t.color : '#4A6070',
@@ -807,10 +912,21 @@ export default function GigPage() {
               <input
                 value={uploadForm.name}
                 onChange={e => setUploadForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="e.g. Main Stage LX Patch v3"
+                placeholder="e.g. Main Stage LX Patch"
+                maxLength={200}
                 style={modalInput}
                 autoFocus
               />
+              {(() => {
+                const existing = findAssetToSupersede(assets, uploadForm.type, uploadForm.name)
+                return (
+                  <p style={{ fontSize: '12px', color: existing ? '#1EC878' : '#4A6070', marginTop: '6px', lineHeight: 1.5 }}>
+                    {existing
+                      ? `This will become version ${(existing.version || 1) + 1} of "${existing.name}".`
+                      : 'Tip: upload with the same type and name to replace a document with a new version.'}
+                  </p>
+                )
+              })()}
             </div>
 
             {/* Drop zone */}
@@ -914,11 +1030,11 @@ export default function GigPage() {
               background: 'rgba(30,200,120,0.07)', border: '1px solid rgba(30,200,120,0.15)',
               fontSize: '12px', color: '#4A6070', lineHeight: '1.6'
             }}>
-              💡 They'll receive an email with a magic link to join this gig directly — no password needed.
+              💡 If they already have an AVX account they're added straight away. If not, share the app link with them — once they sign up with this email they'll see the gig automatically.
             </div>
             <button onClick={handleInvite} disabled={inviting || !inviteForm.email.trim()} style={btnModal}>
               {inviting ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={16} />}
-              Send Invite
+              Add to Gig
             </button>
           </div>
         </Modal>
@@ -1006,7 +1122,7 @@ function RoleBadge({ role, large = false }) {
   )
 }
 
-function FeedPost({ post, displayName, initials, large = false }) {
+function FeedPost({ post, displayName, initials, large = false, onDelete = null }) {
   return (
     <div style={{
       padding: large ? '14px 16px' : '10px 12px',
@@ -1028,8 +1144,13 @@ function FeedPost({ post, displayName, initials, large = false }) {
         <span style={{ fontSize: '11px', color: '#2A3A48', marginLeft: 'auto' }}>
           {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
         </span>
+        {onDelete && (
+          <button onClick={onDelete} aria-label="Delete update" title="Delete" style={{ ...iconButton, padding: '2px' }}>
+            <Trash2 size={13} />
+          </button>
+        )}
       </div>
-      <p style={{ margin: 0, fontSize: large ? '14px' : '13px', color: '#8A9BAE', lineHeight: '1.6', paddingLeft: '32px' }}>
+      <p style={{ margin: 0, fontSize: large ? '14px' : '13px', color: '#8A9BAE', lineHeight: '1.6', paddingLeft: '32px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
         {post.content}
       </p>
     </div>
@@ -1098,13 +1219,6 @@ function FieldLabel({ label }) {
   )
 }
 
-function formatBytes(bytes) {
-  if (!bytes) return ''
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
-
 const card = {
   background: 'rgba(255,255,255,0.03)',
   border: '1px solid rgba(255,255,255,0.07)',
@@ -1139,4 +1253,9 @@ const linkBtn = {
   color: '#1EC878', fontSize: '12px', fontWeight: '600',
   fontFamily: "'DM Sans', sans-serif", padding: '4px 0',
   display: 'block', width: '100%', textAlign: 'left'
+}
+
+const iconButton = {
+  background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070',
+  padding: '6px', display: 'flex', alignItems: 'center', flexShrink: 0, borderRadius: '6px'
 }

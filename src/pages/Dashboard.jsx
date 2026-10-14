@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
+import { logger, userMessage } from '../lib/logger'
+import AccountModal from '../components/AccountModal'
 import {
   Zap, Plus, Calendar, MapPin, Users, ChevronRight,
   Building2, LogOut, Loader2, X, ArrowRight, CheckCircle
@@ -22,9 +24,13 @@ export default function Dashboard() {
   const [orgs, setOrgs] = useState([])
   const [activeOrg, setActiveOrg] = useState(null)
   const [gigs, setGigs] = useState([])
+  const [sharedGigs, setSharedGigs] = useState([])
+  const [loadingOrgs, setLoadingOrgs] = useState(true)
+  const [gigError, setGigError] = useState('')
   const [loadingGigs, setLoadingGigs] = useState(false)
   const [showNewOrg, setShowNewOrg] = useState(false)
   const [showNewGig, setShowNewGig] = useState(false)
+  const [showAccount, setShowAccount] = useState(false)
   const [creating, setCreating] = useState(false)
   const [newOrgName, setNewOrgName] = useState('')
   const [orgError, setOrgError] = useState('')
@@ -33,25 +39,34 @@ export default function Dashboard() {
   useEffect(() => { if (user) fetchOrgs() }, [user])
   useEffect(() => { if (activeOrg) fetchGigs(activeOrg.id) }, [activeOrg])
 
-  async function fetchOrgs() {
-    const { data } = await supabase
-      .from('org_members')
-      .select('role, organisations(*)')
-      .eq('user_id', user.id)
-    if (data?.length) {
-      const list = data.map(d => ({ ...d.organisations, myRole: d.role }))
-      setOrgs(list)
-      setActiveOrg(list[0])
-    }
+  async function fetchOrgs(selectId) {
+    const [{ data, error }, { data: memberships, error: membershipsError }] = await Promise.all([
+      supabase.from('org_members').select('role, organisations(*)').eq('user_id', user.id),
+      supabase.from('gig_members').select('gigs(*)').eq('user_id', user.id),
+    ])
+    if (error) logger.error('dashboard', error, { step: 'fetchOrgs' })
+    if (membershipsError) logger.error('dashboard', membershipsError, { step: 'fetchSharedGigs' })
+    const list = (data || []).filter(d => d.organisations).map(d => ({ ...d.organisations, myRole: d.role }))
+    setOrgs(list)
+    if (list.length) setActiveOrg(list.find(o => o.id === selectId) || list[0])
+
+    // Gigs the user was added to as crew, in organisations they don't belong to
+    const myOrgIds = new Set(list.map(o => o.id))
+    setSharedGigs((memberships || [])
+      .map(m => m.gigs)
+      .filter(g => g && !myOrgIds.has(g.org_id))
+      .sort((a, b) => (a.start_date || '').localeCompare(b.start_date || '')))
+    setLoadingOrgs(false)
   }
 
   async function fetchGigs(orgId) {
     setLoadingGigs(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('gigs')
       .select('*')
       .eq('org_id', orgId)
-      .order('start_date', { ascending: true })
+      .order('start_date', { ascending: true, nullsFirst: false })
+    if (error) logger.error('dashboard', error, { step: 'fetchGigs' })
     setGigs(data || [])
     setLoadingGigs(false)
   }
@@ -60,23 +75,20 @@ export default function Dashboard() {
     if (!newOrgName.trim()) return
     setCreating(true)
     try {
+      // The creator is made admin by a database trigger
       const { data: org, error: orgError } = await supabase
         .from('organisations')
         .insert({ name: newOrgName.trim(), created_by: user.id })
         .select().single()
       if (orgError) throw orgError
 
-      const { error: memberError } = await supabase
-        .from('org_members')
-        .insert({ org_id: org.id, user_id: user.id, role: 'admin' })
-      if (memberError) throw memberError
-
       setShowNewOrg(false)
       setNewOrgName('')
       setOrgError('')
-      fetchOrgs()
+      fetchOrgs(org.id)
     } catch (err) {
-      setOrgError(err.message)
+      logger.error('dashboard', err, { step: 'createOrg' })
+      setOrgError(userMessage(err))
     } finally {
       setCreating(false)
     }
@@ -85,12 +97,22 @@ export default function Dashboard() {
   async function createGig() {
     if (!gigForm.name.trim()) return
     setCreating(true)
-    const { data: gig, error } = await supabase
-      .from('gigs')
-      .insert({ ...gigForm, org_id: activeOrg.id, created_by: user.id })
-      .select().single()
-    if (!error) {
-      await supabase.from('gig_members').insert({ gig_id: gig.id, user_id: user.id, role: 'pm', function_title: 'Production Manager' })
+    setGigError('')
+    // Empty date inputs must be sent as null, not ''
+    const payload = {
+      ...gigForm,
+      name: gigForm.name.trim(),
+      start_date: gigForm.start_date || null,
+      end_date: gigForm.end_date || null,
+      org_id: activeOrg.id,
+      created_by: user.id,
+    }
+    // The creator is added as the gig's PM by a database trigger
+    const { error } = await supabase.from('gigs').insert(payload)
+    if (error) {
+      logger.error('dashboard', error, { step: 'createGig' })
+      setGigError(userMessage(error))
+    } else {
       setShowNewGig(false)
       setGigForm({ name: '', venue: '', start_date: '', end_date: '', description: '', status: 'confirmed' })
       fetchGigs(activeOrg.id)
@@ -103,7 +125,7 @@ export default function Dashboard() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#080C14', fontFamily: "'DM Sans', sans-serif", color: '#fff' }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap'); * { box-sizing: border-box; } input, textarea, select { font-family: 'DM Sans', sans-serif; }`}</style>
+      <style>{`* { box-sizing: border-box; } input, textarea, select { font-family: 'DM Sans', sans-serif; }`}</style>
 
       {/* Top nav */}
       <nav style={{
@@ -125,13 +147,13 @@ export default function Dashboard() {
           <span style={{ fontWeight: '800', fontSize: '18px', letterSpacing: '-0.3px' }}>AVX</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '32px', height: '32px', borderRadius: '50%',
+          <button onClick={() => setShowAccount(true)} aria-label="Account settings" title="Account settings" style={{
+            width: '32px', height: '32px', borderRadius: '50%', border: 'none', cursor: 'pointer',
             background: 'linear-gradient(135deg, #1EC878, #0FA85A)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '12px', fontWeight: '700', color: '#fff'
-          }}>{initials}</div>
-          <button onClick={signOut} style={{
+          }}>{initials}</button>
+          <button onClick={signOut} aria-label="Sign out" title="Sign out" style={{
             background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070',
             display: 'flex', alignItems: 'center', padding: '4px'
           }}>
@@ -170,7 +192,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', gap: '8px', marginTop: '20px', flexWrap: 'wrap' }}>
               {orgs.map(org => (
                 <button key={org.id} onClick={() => setActiveOrg(org)} style={{
-                  padding: '6px 14px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                  padding: '6px 14px', borderRadius: '20px', cursor: 'pointer',
                   fontSize: '13px', fontWeight: '600', fontFamily: "'DM Sans', sans-serif",
                   background: activeOrg?.id === org.id ? 'rgba(30,200,120,0.15)' : 'rgba(255,255,255,0.04)',
                   color: activeOrg?.id === org.id ? '#1EC878' : '#4A6070',
@@ -192,8 +214,24 @@ export default function Dashboard() {
           )}
         </div>
 
+        {loadingOrgs && (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
+            <Loader2 size={24} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
+          </div>
+        )}
+
+        {/* Gigs shared with this user as crew */}
+        {sharedGigs.length > 0 && (
+          <div style={{ marginBottom: '32px' }}>
+            <h2 style={sectionTitle}>Shared with you</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {sharedGigs.map(gig => <GigCard key={gig.id} gig={gig} onOpen={() => navigate(`/gig/${gig.id}`)} />)}
+            </div>
+          </div>
+        )}
+
         {/* No org state */}
-        {orgs.length === 0 && (
+        {!loadingOrgs && orgs.length === 0 && sharedGigs.length === 0 && (
           <EmptyState
             icon={<Building2 size={32} color="#1EC878" />}
             title="Create your organisation"
@@ -219,51 +257,13 @@ export default function Dashboard() {
             />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {gigs.map(gig => {
-                const st = STATUS_CONFIG[gig.status] || STATUS_CONFIG.draft
-                return (
-                  <div key={gig.id} onClick={() => navigate(`/gig/${gig.id}`)}
-                    style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid rgba(255,255,255,0.07)',
-                      borderRadius: '14px', padding: '18px 20px',
-                      cursor: 'pointer', transition: 'all 0.2s',
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px'
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(30,200,120,0.25)'; e.currentTarget.style.background = 'rgba(30,200,120,0.04)' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
-                  >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
-                        <span style={{ fontWeight: '700', fontSize: '16px' }}>{gig.name}</span>
-                        <span style={{
-                          fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '20px',
-                          color: st.color, background: st.bg, textTransform: 'uppercase', letterSpacing: '0.05em'
-                        }}>{st.label}</span>
-                      </div>
-                      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                        {gig.venue && (
-                          <span style={{ fontSize: '13px', color: '#4A6070', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <MapPin size={12} /> {gig.venue}
-                          </span>
-                        )}
-                        {gig.start_date && (
-                          <span style={{ fontSize: '13px', color: '#4A6070', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Calendar size={12} />
-                            {format(parseISO(gig.start_date), 'dd MMM yyyy')}
-                            {gig.end_date && gig.end_date !== gig.start_date && ` → ${format(parseISO(gig.end_date), 'dd MMM')}`}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <ChevronRight size={18} color="#2A3A48" />
-                  </div>
-                )
-              })}
+              {gigs.map(gig => <GigCard key={gig.id} gig={gig} onOpen={() => navigate(`/gig/${gig.id}`)} />)}
             </div>
           )
         )}
       </div>
+
+      {showAccount && <AccountModal onClose={() => setShowAccount(false)} />}
 
       {/* New Org Modal */}
       {showNewOrg && (
@@ -321,6 +321,15 @@ export default function Dashboard() {
                 placeholder="Brief overview of the production..." rows={3}
                 style={{ ...modalInput, resize: 'vertical', lineHeight: '1.5' }} />
             </FieldLabel>
+            {gigError && (
+              <div style={{
+                padding: '10px 14px', borderRadius: '8px',
+                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
+                color: '#F87171', fontSize: '13px', lineHeight: '1.5'
+              }}>
+                {gigError}
+              </div>
+            )}
             <button onClick={createGig} disabled={creating || !gigForm.name.trim()} style={btnModal}>
               {creating ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={16} />}
               Create Gig
@@ -330,6 +339,48 @@ export default function Dashboard() {
       )}
 
       <style>{`@keyframes spin { to { transform: rotate(360deg) } } @keyframes fadeIn { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }`}</style>
+    </div>
+  )
+}
+
+function GigCard({ gig, onOpen }) {
+  const st = STATUS_CONFIG[gig.status] || STATUS_CONFIG.draft
+  return (
+    <div onClick={onOpen}
+      style={{
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: '14px', padding: '18px 20px',
+        cursor: 'pointer', transition: 'all 0.2s',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px'
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(30,200,120,0.25)'; e.currentTarget.style.background = 'rgba(30,200,120,0.04)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
+          <span style={{ fontWeight: '700', fontSize: '16px' }}>{gig.name}</span>
+          <span style={{
+            fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '20px',
+            color: st.color, background: st.bg, textTransform: 'uppercase', letterSpacing: '0.05em'
+          }}>{st.label}</span>
+        </div>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          {gig.venue && (
+            <span style={{ fontSize: '13px', color: '#4A6070', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <MapPin size={12} /> {gig.venue}
+            </span>
+          )}
+          {gig.start_date && (
+            <span style={{ fontSize: '13px', color: '#4A6070', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Calendar size={12} />
+              {format(parseISO(gig.start_date), 'dd MMM yyyy')}
+              {gig.end_date && gig.end_date !== gig.start_date && ` → ${format(parseISO(gig.end_date), 'dd MMM')}`}
+            </span>
+          )}
+        </div>
+      </div>
+      <ChevronRight size={18} color="#2A3A48" />
     </div>
   )
 }
@@ -405,4 +456,9 @@ const modalInput = {
   border: '1px solid rgba(255,255,255,0.09)',
   borderRadius: '9px', color: '#fff',
   fontSize: '14px', outline: 'none',
+}
+
+const sectionTitle = {
+  fontSize: '12px', fontWeight: '700', color: '#4A6070',
+  textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px 0'
 }

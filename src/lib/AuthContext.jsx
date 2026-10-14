@@ -1,39 +1,51 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase } from './supabase'
+import { logger } from './logger'
 
 const AuthContext = createContext({})
+
+export const MIN_PASSWORD_LENGTH = 8
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  // True after the user arrives from a password-reset email
+  const [passwordRecovery, setPasswordRecovery] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
-      else setLoading(false)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
-      else { setProfile(null); setLoading(false) }
+    // onAuthStateChange fires INITIAL_SESSION on load, so no separate getSession() call.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true)
+      const nextUser = session?.user ?? null
+      setUser(nextUser)
+      if (!nextUser) {
+        setProfile(null)
+        setLoading(false)
+        return
+      }
+      if (event === 'TOKEN_REFRESHED') return
+      // Supabase calls made directly inside this callback can deadlock; defer them.
+      setTimeout(() => fetchProfile(nextUser.id), 0)
     })
     return () => subscription.unsubscribe()
   }, [])
 
   async function fetchProfile(userId) {
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+    if (error) logger.error('auth', error, { step: 'fetchProfile' })
     setProfile(data)
     setLoading(false)
   }
 
   async function signUp(email, password, fullName) {
-    const { data, error } = await supabase.auth.signUp({
+    return supabase.auth.signUp({
       email, password,
-      options: { data: { full_name: fullName } }
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: `${window.location.origin}/auth`,
+      }
     })
-    return { data, error }
   }
 
   async function signIn(email, password) {
@@ -41,11 +53,21 @@ export function AuthProvider({ children }) {
   }
 
   async function signOut() {
-    return supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut()
+    if (error) logger.error('auth', error, { step: 'signOut' })
+  }
+
+  async function updateProfile(changes) {
+    const { data, error } = await supabase.from('profiles').update(changes).eq('id', user.id).select().single()
+    if (!error) setProfile(data)
+    return { data, error }
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{
+      user, profile, loading, signUp, signIn, signOut, updateProfile,
+      passwordRecovery, clearPasswordRecovery: () => setPasswordRecovery(false),
+    }}>
       {children}
     </AuthContext.Provider>
   )

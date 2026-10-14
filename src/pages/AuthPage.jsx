@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../lib/AuthContext'
+import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
+import { logger, userMessage } from '../lib/logger'
 import { Zap, Eye, EyeOff, ArrowRight, Loader2, Mail, CheckCircle } from 'lucide-react'
 
 export default function AuthPage() {
@@ -14,16 +15,28 @@ export default function AuthPage() {
   const [error, setError] = useState('')
   const [confirmed, setConfirmed] = useState(false)
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+  const [needsConfirmation, setNeedsConfirmation] = useState(false)
+  const [resendState, setResendState] = useState('idle') // idle | sending | sent
   const { signIn, signUp } = useAuth()
   const navigate = useNavigate()
 
-  // Handle email confirmation redirect — Supabase appends #access_token or ?type=signup to the URL
+  // Handle email-link redirects. Supabase appends #access_token on success, or
+  // #error=...&error_description=... when a link is expired or already used.
   useEffect(() => {
     const hash = window.location.hash
     const params = new URLSearchParams(window.location.search)
+    const hashParams = new URLSearchParams(hash.replace(/^#/, ''))
+    const linkError = hashParams.get('error_description') || params.get('error_description')
     const isConfirmation = hash.includes('access_token') || params.get('type') === 'signup'
 
-    if (isConfirmation) {
+    if (linkError) {
+      logger.warn('auth', 'Email link error', { code: hashParams.get('error_code') || params.get('error_code') })
+      setError(/expired|invalid/i.test(linkError)
+        ? 'That email link has expired or was already used. Sign in, or request a new link below.'
+        : linkError.replace(/\+/g, ' '))
+      window.history.replaceState({}, document.title, '/auth')
+    } else if (isConfirmation) {
       // Let Supabase process the token from the URL
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
@@ -40,25 +53,57 @@ export default function AuthPage() {
     }
   }, [])
 
+  async function resendConfirmation() {
+    setResendState('sending')
+    const { error } = await supabase.auth.resend({
+      type: 'signup', email,
+      options: { emailRedirectTo: `${window.location.origin}/auth` },
+    })
+    if (error) {
+      logger.error('auth', error, { step: 'resendConfirmation' })
+      setError(userMessage(error))
+      setResendState('idle')
+    } else {
+      setResendState('sent')
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    setNeedsConfirmation(false)
     setLoading(true)
     try {
-      if (mode === 'signin') {
-        const { error } = await signIn(email, password)
+      if (mode === 'reset') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`
+        })
         if (error) throw error
+        setResetSent(true)
+      } else if (mode === 'signin') {
+        const { error } = await signIn(email, password)
+        if (error) {
+          if (/email not confirmed/i.test(error.message)) {
+            setNeedsConfirmation(true)
+            throw new Error('Please confirm your email address first — check your inbox for the link.')
+          }
+          if (/invalid login credentials/i.test(error.message)) {
+            throw new Error('Wrong email or password. Forgot it? Use "Forgot password?" below.')
+          }
+          throw error
+        }
         navigate('/dashboard')
       } else {
         if (!fullName.trim()) throw new Error('Full name is required')
-        const { data, error } = await signUp(email, password, fullName)
+        if (password.length < MIN_PASSWORD_LENGTH) throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`)
+        const { error } = await signUp(email, password, fullName.trim())
         if (error) throw error
         // Supabase requires email confirmation by default
         setAwaitingConfirmation(true)
         setError('')
       }
     } catch (err) {
-      setError(err.message)
+      setError(userMessage(err))
     } finally {
       setLoading(false)
     }
@@ -83,6 +128,12 @@ export default function AuthPage() {
         <p style={{ color: '#4A6070', fontSize: '14px', lineHeight: '1.7', marginBottom: '28px' }}>
           Click the link in the email to confirm your account. Once confirmed, you'll be signed in automatically.
         </p>
+        <p style={{ color: '#4A6070', fontSize: '13px', marginBottom: '20px' }}>
+          Nothing arrived? Check your spam folder, or{' '}
+          <button onClick={resendConfirmation} disabled={resendState !== 'idle'} style={{ ...linkButton, marginTop: 0 }}>
+            {resendState === 'sent' ? 'email sent again' : resendState === 'sending' ? 'sending…' : 'resend the email'}
+          </button>.
+        </p>
         <button onClick={() => { setAwaitingConfirmation(false); setMode('signin') }} style={{
           background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
           borderRadius: '10px', padding: '11px 24px', color: '#fff', fontSize: '14px',
@@ -91,7 +142,6 @@ export default function AuthPage() {
           Back to Sign In
         </button>
       </div>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');`}</style>
     </div>
   )
 
@@ -120,7 +170,6 @@ export default function AuthPage() {
           Sign In →
         </button>
       </div>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');`}</style>
     </div>
   )
 
@@ -180,8 +229,8 @@ export default function AuthPage() {
             borderRadius: '10px', padding: '4px', marginBottom: '28px'
           }}>
             {['signin', 'signup'].map(m => (
-              <button key={m} onClick={() => { setMode(m); setError('') }} style={{
-                flex: 1, padding: '8px', borderRadius: '7px', border: 'none', cursor: 'pointer',
+              <button key={m} onClick={() => { setMode(m); setError(''); setResetSent(false) }} style={{
+                flex: 1, padding: '8px', borderRadius: '7px', cursor: 'pointer',
                 fontSize: '13px', fontWeight: '600', fontFamily: "'DM Sans', sans-serif",
                 transition: 'all 0.2s',
                 background: mode === m ? 'rgba(30,200,120,0.15)' : 'transparent',
@@ -203,6 +252,7 @@ export default function AuthPage() {
                   type="text" value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   placeholder="João Silva"
+                  autoComplete="name"
                   style={inputStyle}
                   required
                 />
@@ -216,11 +266,12 @@ export default function AuthPage() {
                 type="email" value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@company.com"
+                autoComplete="email"
                 style={inputStyle}
                 required
               />
             </div>
-            <div>
+            {mode !== 'reset' && <div>
               <label style={{ display: 'block', fontSize: '12px', color: '#4A6070', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Password
               </label>
@@ -229,11 +280,13 @@ export default function AuthPage() {
                   type={showPass ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder={mode === 'signup' ? `At least ${MIN_PASSWORD_LENGTH} characters` : '••••••••'}
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                  minLength={mode === 'signup' ? MIN_PASSWORD_LENGTH : undefined}
                   style={{ ...inputStyle, paddingRight: '44px' }}
                   required
                 />
-                <button type="button" onClick={() => setShowPass(!showPass)} style={{
+                <button type="button" onClick={() => setShowPass(!showPass)} aria-label={showPass ? 'Hide password' : 'Show password'} style={{
                   position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
                   background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070', padding: '4px',
                   display: 'flex', alignItems: 'center'
@@ -241,7 +294,20 @@ export default function AuthPage() {
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-            </div>
+              {mode === 'signin' && (
+                <button type="button" onClick={() => { setMode('reset'); setError('') }} style={linkButton}>
+                  Forgot password?
+                </button>
+              )}
+            </div>}
+
+            {mode === 'reset' && (
+              <p style={{ color: '#4A6070', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
+                {resetSent
+                  ? `If an account exists for ${email}, a password reset link is on its way.`
+                  : "Enter your email and we'll send you a link to set a new password."}
+              </p>
+            )}
 
             {error && (
               <div style={{
@@ -250,6 +316,13 @@ export default function AuthPage() {
                 color: '#F87171', fontSize: '13px'
               }}>
                 {error}
+                {needsConfirmation && (
+                  <div>
+                    <button type="button" onClick={resendConfirmation} disabled={resendState !== 'idle'} style={linkButton}>
+                      {resendState === 'sent' ? 'Confirmation email sent' : resendState === 'sending' ? 'Sending…' : 'Resend confirmation email'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -264,9 +337,14 @@ export default function AuthPage() {
               boxShadow: loading ? 'none' : '0 4px 20px rgba(30,200,120,0.3)',
             }}>
               {loading ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : null}
-              {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : 'Create Account'}
+              {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : mode === 'reset' ? 'Send Reset Link' : 'Create Account'}
               {!loading && <ArrowRight size={16} />}
             </button>
+            {mode === 'reset' && (
+              <button type="button" onClick={() => { setMode('signin'); setError(''); setResetSent(false) }} style={{ ...linkButton, alignSelf: 'center' }}>
+                Back to Sign In
+              </button>
+            )}
           </form>
         </div>
 
@@ -276,7 +354,6 @@ export default function AuthPage() {
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
         @keyframes spin { to { transform: rotate(360deg) } }
       `}</style>
     </div>
@@ -291,4 +368,10 @@ const inputStyle = {
   fontSize: '14px', fontFamily: "'DM Sans', sans-serif",
   outline: 'none', boxSizing: 'border-box',
   transition: 'border-color 0.2s',
+}
+
+const linkButton = {
+  background: 'none', border: 'none', padding: 0, marginTop: '8px',
+  color: '#1EC878', fontSize: '13px', fontWeight: '600',
+  fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
 }
