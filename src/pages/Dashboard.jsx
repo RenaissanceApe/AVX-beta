@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
+import { logger, userMessage } from '../lib/logger'
+import AccountModal from '../components/AccountModal'
 import {
   Zap, Plus, Calendar, MapPin, Users, ChevronRight,
   Building2, LogOut, Loader2, X, ArrowRight, CheckCircle
@@ -28,6 +30,7 @@ export default function Dashboard() {
   const [loadingGigs, setLoadingGigs] = useState(false)
   const [showNewOrg, setShowNewOrg] = useState(false)
   const [showNewGig, setShowNewGig] = useState(false)
+  const [showAccount, setShowAccount] = useState(false)
   const [creating, setCreating] = useState(false)
   const [newOrgName, setNewOrgName] = useState('')
   const [orgError, setOrgError] = useState('')
@@ -37,10 +40,12 @@ export default function Dashboard() {
   useEffect(() => { if (activeOrg) fetchGigs(activeOrg.id) }, [activeOrg])
 
   async function fetchOrgs(selectId) {
-    const [{ data }, { data: memberships }] = await Promise.all([
+    const [{ data, error }, { data: memberships, error: membershipsError }] = await Promise.all([
       supabase.from('org_members').select('role, organisations(*)').eq('user_id', user.id),
       supabase.from('gig_members').select('gigs(*)').eq('user_id', user.id),
     ])
+    if (error) logger.error('dashboard', error, { step: 'fetchOrgs' })
+    if (membershipsError) logger.error('dashboard', membershipsError, { step: 'fetchSharedGigs' })
     const list = (data || []).filter(d => d.organisations).map(d => ({ ...d.organisations, myRole: d.role }))
     setOrgs(list)
     if (list.length) setActiveOrg(list.find(o => o.id === selectId) || list[0])
@@ -56,11 +61,12 @@ export default function Dashboard() {
 
   async function fetchGigs(orgId) {
     setLoadingGigs(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('gigs')
       .select('*')
       .eq('org_id', orgId)
-      .order('start_date', { ascending: true })
+      .order('start_date', { ascending: true, nullsFirst: false })
+    if (error) logger.error('dashboard', error, { step: 'fetchGigs' })
     setGigs(data || [])
     setLoadingGigs(false)
   }
@@ -81,7 +87,8 @@ export default function Dashboard() {
       setOrgError('')
       fetchOrgs(org.id)
     } catch (err) {
-      setOrgError(err.message)
+      logger.error('dashboard', err, { step: 'createOrg' })
+      setOrgError(userMessage(err))
     } finally {
       setCreating(false)
     }
@@ -103,7 +110,8 @@ export default function Dashboard() {
     // The creator is added as the gig's PM by a database trigger
     const { error } = await supabase.from('gigs').insert(payload)
     if (error) {
-      setGigError(error.message)
+      logger.error('dashboard', error, { step: 'createGig' })
+      setGigError(userMessage(error))
     } else {
       setShowNewGig(false)
       setGigForm({ name: '', venue: '', start_date: '', end_date: '', description: '', status: 'confirmed' })
@@ -117,7 +125,7 @@ export default function Dashboard() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#080C14', fontFamily: "'DM Sans', sans-serif", color: '#fff' }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap'); * { box-sizing: border-box; } input, textarea, select { font-family: 'DM Sans', sans-serif; }`}</style>
+      <style>{`* { box-sizing: border-box; } input, textarea, select { font-family: 'DM Sans', sans-serif; }`}</style>
 
       {/* Top nav */}
       <nav style={{
@@ -139,13 +147,13 @@ export default function Dashboard() {
           <span style={{ fontWeight: '800', fontSize: '18px', letterSpacing: '-0.3px' }}>AVX</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '32px', height: '32px', borderRadius: '50%',
+          <button onClick={() => setShowAccount(true)} aria-label="Account settings" title="Account settings" style={{
+            width: '32px', height: '32px', borderRadius: '50%', border: 'none', cursor: 'pointer',
             background: 'linear-gradient(135deg, #1EC878, #0FA85A)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '12px', fontWeight: '700', color: '#fff'
-          }}>{initials}</div>
-          <button onClick={signOut} style={{
+          }}>{initials}</button>
+          <button onClick={signOut} aria-label="Sign out" title="Sign out" style={{
             background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070',
             display: 'flex', alignItems: 'center', padding: '4px'
           }}>
@@ -184,7 +192,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', gap: '8px', marginTop: '20px', flexWrap: 'wrap' }}>
               {orgs.map(org => (
                 <button key={org.id} onClick={() => setActiveOrg(org)} style={{
-                  padding: '6px 14px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                  padding: '6px 14px', borderRadius: '20px', cursor: 'pointer',
                   fontSize: '13px', fontWeight: '600', fontFamily: "'DM Sans', sans-serif",
                   background: activeOrg?.id === org.id ? 'rgba(30,200,120,0.15)' : 'rgba(255,255,255,0.04)',
                   color: activeOrg?.id === org.id ? '#1EC878' : '#4A6070',
@@ -254,6 +262,8 @@ export default function Dashboard() {
           )
         )}
       </div>
+
+      {showAccount && <AccountModal onClose={() => setShowAccount(false)} />}
 
       {/* New Org Modal */}
       {showNewOrg && (

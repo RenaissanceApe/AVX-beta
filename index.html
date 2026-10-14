@@ -2,16 +2,31 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#080C14" />
+    <meta name="description" content="AVX — the AV production copilot. Gigs, crew, documents and updates in one place." />
+    <!-- Private beta: keep out of search engines -->
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" />
     <title>AVX — AV Production Copilot</title>
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html, body, #root { height: 100%; }
-      body { background: #080C14; color: #fff; -webkit-font-smoothing: antialiased; }
+      body { background: #080C14; color: #fff; font-family: 'DM Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+      input, textarea, select, button { font-family: inherit; }
+      /* Inputs at 16px+ stop iOS Safari from zooming in on focus */
+      @media (max-width: 640px) { input, textarea, select { font-size: 16px !important; } }
+      :focus-visible { outline: 2px solid #1EC878; outline-offset: 2px; }
+      @keyframes spin { to { transform: rotate(360deg) } }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: translateY(0) } }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
     </style>
   </head>
   <body>
+    <noscript>AVX needs JavaScript enabled.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

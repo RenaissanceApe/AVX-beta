@@ -22,8 +22,12 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 
 1. `supabase/migrations/20260926000000_initial_schema.sql` — tables
 2. `supabase/migrations/20260926000001_pilot_hardening.sql` — access rules, triggers, crew invites and the private `gig-assets` storage bucket with its policies
+3. `supabase/migrations/20261014000000_data_integrity.sql` — foreign keys and length limits
 
+(Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.
+
+To check the access rules, run `supabase/tests/rls_smoke.sql`; it should end with `ALL CHECKS PASSED`.
 
 ---
 
@@ -37,7 +41,7 @@ Without this, confirmation and password-reset emails link to `localhost` and don
 
 Recommended while you're in Auth settings:
 - **Emails → SMTP Settings**: connect a real sender (Resend, Postmark, Brevo). Supabase's built-in email is rate-limited to a few messages per hour and is meant for testing only.
-- **Providers → Email → Password security**: enable leaked-password protection and a minimum length of 8.
+- **Providers → Email → Password security**: set the minimum length to 8 (matches the app). Leaked-password protection needs a paid plan.
 
 ---
 
@@ -86,24 +90,9 @@ Alternatives: Netlify, Cloudflare Pages — all work identically.
 
 ---
 
-## What works in this beta
+## What works, and what's next
 
-- ✅ Sign up / sign in (email + password)
-- ✅ Create organisations (your rental company)
-- ✅ Create gigs with name, venue, dates, status, description
-- ✅ Upload assets (patch lists, plots, schedules, riders, documents, images)
-- ✅ Automatic asset versioning — uploading a new patch list supersedes the old one
-- ✅ Crew assignment with function title and call time (add by email; pending invites claimed on sign-up)
-- ✅ Password reset
-- ✅ Gig feed — post updates, mark as important
-- ✅ Overview dashboard per gig
-
-## What's not in this beta (coming in MVP proper)
-
-- Invite emails (adding crew works: existing users are added at once, new people are added automatically when they sign up with the invited email — you share the link yourself)
-- Push notifications
-- Offline mode
-- Rentman integration
+See [ROADMAP.md](ROADMAP.md) for what's in the beta, known limitations and the phased plan.
 
 ---
 
