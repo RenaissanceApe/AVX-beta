@@ -26,17 +26,20 @@ npm run dev            # http://localhost:5173
 | `npm run lint` | ESLint (bans `console.*` outside the logger and `alert()`) |
 | `npm test` | Unit tests (Vitest) |
 | `npm run build` | Production build into `dist/` |
-| `npm run check` | Lint + tests + build — run before opening a PR |
+| `npm run test:e2e` | Browser tests (Playwright) against the built app — run `npm run build` first |
+| `npm run check` | Lint + unit tests + build — run before opening a PR |
 
 ## Project layout
 
 ```
 src/
   App.jsx                routes, error boundary, providers
+  i18n/                  t(), language detection, en.js + pt.js dictionaries
   config.js              app constants + optional VITE_CONTACT_EMAIL / VITE_SENTRY_DSN
-  components/            ErrorBoundary, AccountModal, OrgMembersModal, GigCalendar
+  components/            ErrorBoundary, AccountModal, OrgMembersModal, GigCalendar,
+                         NotificationBell, AvailabilitySection
     ui.jsx               shared Modal + style tokens (use for new components)
-    gig/                 ScheduleTab, ActivityTab, AssetVersionsModal
+    gig/                 GigHeader + one component per tab, modals, shared parts
   lib/
     supabase.js          Supabase client (reads VITE_ env vars)
     AuthContext.jsx      session, profile, password-recovery state
@@ -45,7 +48,7 @@ src/
     monitoring.js        optional Sentry (loaded only when a DSN is set)
     invites.js           calls the send-invite Edge Function
     files.js, gigs.js,   pure helpers (unit tested)
-    schedule.js, versions.js, activity.js, calendar.js
+    schedule.js, versions.js, activity.js, calendar.js, notifications.js
     storage.js           bulk file removal
   pages/                 Auth, ResetPassword, Welcome, Dashboard, Gig, CallSheet, Legal (privacy/terms)
 supabase/
@@ -53,7 +56,9 @@ supabase/
   functions/send-invite  Edge Function: add by email + send invitation
   templates/             branded auth email templates (paste into Supabase)
   tests/rls_smoke.sql    access-rule test (always rolls back)
-.github/workflows/       CI, Supabase keep-alive, encrypted database backup
+e2e/                     Playwright browser tests
+scripts/                 backup-storage.mjs (used by the backup workflow)
+.github/workflows/       CI (lint, unit, build, e2e), Supabase keep-alive, encrypted backups
 docs/                    EMAIL.md, BACKUPS.md
 ```
 

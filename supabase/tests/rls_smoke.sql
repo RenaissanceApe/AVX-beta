@@ -129,5 +129,27 @@ begin
   exception when insufficient_privilege then null; end;
   reset role;
 
+  -- ── Notifications and availability ──
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from notifications where user_id = b and kind = 'added_to_gig';
+  if n <> 1 then raise exception 'CHECK FAILED: crew not notified when added (%)', n; end if;
+  select count(*) into n from notifications where user_id <> b;
+  if n <> 0 then raise exception 'CHECK FAILED: can read other people''s notifications'; end if;
+  begin
+    insert into notifications (user_id, kind) values (b, 'fake');
+    raise exception 'CHECK FAILED: notifications are writable';
+  exception when insufficient_privilege then null; end;
+  insert into crew_unavailability (user_id, start_date, end_date, note) values (b, '2026-11-01', '2026-11-01', 'private');
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  select count(*) into n from crew_unavailability;
+  if n <> 0 then raise exception 'CHECK FAILED: can read someone else''s unavailable dates'; end if;
+  update gigs set start_date = '2026-11-01' where id = gig_a;
+  select count(*) into n from gig_crew_conflicts(gig_a) where user_id = b and kind = 'unavailable' and label is null;
+  if n <> 1 then raise exception 'CHECK FAILED: availability clash not reported (%)', n; end if;
+  reset role;
+
   raise exception 'ALL CHECKS PASSED';
 end $$;

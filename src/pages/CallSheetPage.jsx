@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Printer, Loader2 } from 'lucide-react'
-import { format, parseISO } from 'date-fns'
+import { useI18n } from '../i18n'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { groupByDay, shortTime, sortCrewForCallSheet } from '../lib/schedule'
@@ -13,6 +13,7 @@ export default function CallSheetPage() {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [error, setError] = useState(false)
+  const { t, fmt } = useI18n()
 
   useEffect(() => {
     async function load() {
@@ -41,7 +42,7 @@ export default function CallSheetPage() {
 
   if (error) return (
     <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>
-      Call sheet not available. <button onClick={() => navigate('/dashboard')} style={toolbarBtn}>Back</button>
+      {t('callsheet.notAvailable')} <button onClick={() => navigate('/dashboard')} style={toolbarBtn}>{t('common.back')}</button>
     </div>
   )
   if (!data) return (
@@ -51,11 +52,11 @@ export default function CallSheetPage() {
   )
 
   const { gig, schedule, members, profiles } = data
-  const nameOf = uid => profiles[uid]?.full_name || 'Unknown'
+  const nameOf = uid => profiles[uid]?.full_name || t('common.unknown')
   const crew = sortCrewForCallSheet(members, nameOf)
   const dates = gig.start_date
-    ? format(parseISO(gig.start_date), 'd MMM yyyy') + (gig.end_date && gig.end_date !== gig.start_date ? ` – ${format(parseISO(gig.end_date), 'd MMM yyyy')}` : '')
-    : 'Dates TBC'
+    ? fmt(gig.start_date, 'd MMM yyyy') + (gig.end_date && gig.end_date !== gig.start_date ? ` – ${fmt(gig.end_date, 'd MMM yyyy')}` : '')
+    : t('callsheet.datesTbc')
 
   return (
     <div className="callsheet-page">
@@ -79,31 +80,31 @@ export default function CallSheetPage() {
         }
       `}</style>
       <div className="toolbar">
-        <button onClick={() => navigate(`/gig/${id}`)} style={toolbarBtn}><ArrowLeft size={14} /> Back to gig</button>
+        <button onClick={() => navigate(`/gig/${id}`)} style={toolbarBtn}><ArrowLeft size={14} /> {t('callsheet.backToGig')}</button>
         <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0FA85A', color: '#fff', border: 'none' }}>
-          <Printer size={14} /> Print / Save as PDF
+          <Printer size={14} /> {t('callsheet.print')}
         </button>
       </div>
 
       <article className="sheet">
         <header style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
           <div>
-            <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.1em' }}>Call sheet</div>
+            <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.1em' }}>{t('schedule.callSheet')}</div>
             <h1>{gig.name}</h1>
-            <div>{gig.venue || 'Venue TBC'} · {dates}</div>
+            <div>{gig.venue || t('callsheet.venueTbc')} · {dates}</div>
           </div>
           <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
             {gig.organisations?.name && <div><strong style={{ color: '#111' }}>{gig.organisations.name}</strong></div>}
-            <div>Printed {format(new Date(), 'd MMM yyyy, HH:mm')}</div>
+            <div>{t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}</div>
           </div>
         </header>
 
         {gig.description && <p style={{ marginTop: '12px', whiteSpace: 'pre-wrap' }}>{gig.description}</p>}
 
-        <h2>Schedule</h2>
-        {schedule.length === 0 ? <p className="muted">No schedule yet.</p> : groupByDay(schedule).map(g => (
+        <h2>{t('gig.tab.schedule')}</h2>
+        {schedule.length === 0 ? <p className="muted">{t('schedule.empty')}</p> : groupByDay(schedule).map(g => (
           <div key={g.day} style={{ marginBottom: '10px' }}>
-            <div style={{ fontWeight: 700, margin: '6px 0' }}>{format(parseISO(g.day), 'EEEE, d MMMM')}</div>
+            <div style={{ fontWeight: 700, margin: '6px 0' }}>{fmt(g.day, 'EEEE, d MMMM')}</div>
             <table>
               <tbody>
                 {g.items.map(item => (
@@ -121,16 +122,16 @@ export default function CallSheetPage() {
           </div>
         ))}
 
-        <h2>Crew</h2>
-        {crew.length === 0 ? <p className="muted">No crew assigned.</p> : (
+        <h2>{t('gig.tab.crew')}</h2>
+        {crew.length === 0 ? <p className="muted">{t('overview.noCrew')}</p> : (
           <table>
-            <thead><tr><th>Call</th><th>Name</th><th>Role</th><th>Phone</th></tr></thead>
+            <thead><tr><th>{t('callsheet.call')}</th><th>{t('callsheet.name')}</th><th>{t('callsheet.role')}</th><th>{t('callsheet.phone')}</th></tr></thead>
             <tbody>
               {crew.map(m => (
                 <tr key={m.user_id}>
                   <td className="time">{shortTime(m.call_time) || '—'}</td>
                   <td>{nameOf(m.user_id)}</td>
-                  <td>{m.function_title || (m.role === 'pm' ? 'Production Manager' : '—')}</td>
+                  <td>{m.function_title || t(`gigRoleLong.${m.role}`)}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{profiles[m.user_id]?.phone || <span className="muted">—</span>}</td>
                 </tr>
               ))}

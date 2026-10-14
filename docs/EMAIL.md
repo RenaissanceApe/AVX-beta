@@ -43,11 +43,12 @@ Paste each file into Supabase → Authentication → **Emails → Templates**:
 
 | Supabase template | File | Suggested subject |
 |---|---|---|
-| Confirm signup | `supabase/templates/confirm-signup.html` | Confirm your AVX account |
-| Reset password | `supabase/templates/reset-password.html` | Reset your AVX password |
-| Invite user | `supabase/templates/invite-user.html` | You've been invited to AVX |
+| Confirm signup | `supabase/templates/confirm-signup.html` | Confirme o seu email · Confirm your AVX account |
+| Reset password | `supabase/templates/reset-password.html` | Recuperar palavra-passe · Reset your AVX password |
+| Invite user | `supabase/templates/invite-user.html` | Convite para o AVX · You've been invited to AVX |
 
-They use Supabase's `{{ .ConfirmationURL }}` and `{{ .Email }}` variables. Keep those as they are.
+The templates are bilingual (Portuguese first, then English), because Supabase sends one template
+to everyone. They use Supabase's `{{ .ConfirmationURL }}` and `{{ .Email }}` variables. Keep those as they are.
 
 ## Invitation emails
 

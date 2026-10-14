@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { format } from 'date-fns'
 import { monthMatrix, gigsOnDay, toDateStr } from '../lib/calendar'
 import { colors, iconBtn, btn } from './ui'
+import { useI18n, fmt } from '../i18n'
 
 const STATUS_COLOR = {
   draft: '#4A6070', confirmed: '#3B82F6', active: '#1EC878', completed: '#8B5CF6', archived: '#374151',
 }
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+// Monday-first weekday labels in the current language (2026-06-01 is a Monday)
+const weekdays = () => Array.from({ length: 7 }, (_, i) => fmt(`2026-06-0${i + 1}`, 'EEE'))
 
 // Month view of gigs. Multi-day gigs appear on every day they run.
 export default function GigCalendar({ gigs, onOpen }) {
+  const { t } = useI18n()
   const today = toDateStr(new Date())
   const [selected, setSelected] = useState(null)
   const [cursor, setCursor] = useState(() => {
@@ -39,17 +41,17 @@ export default function GigCalendar({ gigs, onOpen }) {
         }
       `}</style>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-        <button onClick={() => shift(-1)} aria-label="Previous month" style={iconBtn}><ChevronLeft size={18} /></button>
+        <button onClick={() => shift(-1)} aria-label={t('calendar.prev')} style={iconBtn}><ChevronLeft size={18} /></button>
         <h3 style={{ fontSize: '16px', fontWeight: 700, minWidth: '150px', textAlign: 'center' }}>
-          {format(new Date(cursor.year, cursor.month, 1), 'MMMM yyyy')}
+          {fmt(new Date(cursor.year, cursor.month, 1), 'MMMM yyyy')}
         </h3>
-        <button onClick={() => shift(1)} aria-label="Next month" style={iconBtn}><ChevronRight size={18} /></button>
+        <button onClick={() => shift(1)} aria-label={t('calendar.next')} style={iconBtn}><ChevronRight size={18} /></button>
         <button onClick={() => { const d = new Date(); setCursor({ year: d.getFullYear(), month: d.getMonth() }) }}
-          style={{ ...btn, padding: '6px 10px', marginLeft: 'auto' }}>Today</button>
+          style={{ ...btn, padding: '6px 10px', marginLeft: 'auto' }}>{t('common.today')}</button>
       </div>
 
-      <div role="grid" aria-label="Gig calendar" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '4px' }}>
-        {WEEKDAYS.map(d => (
+      <div role="grid" aria-label={t('dash.viewCalendar')} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '4px' }}>
+        {weekdays().map(d => (
           <div key={d} role="columnheader" style={{ fontSize: '11px', fontWeight: 700, color: colors.muted, textTransform: 'uppercase', textAlign: 'center', padding: '4px 0' }}>{d}</div>
         ))}
         {weeks.flat().map(day => {
@@ -80,7 +82,7 @@ export default function GigCalendar({ gigs, onOpen }) {
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   }}>{g.name}</button>
                 ))}
-                {dayGigs.length > 3 && <span style={{ fontSize: '10px', color: colors.muted }}>+{dayGigs.length - 3} more</span>}
+                {dayGigs.length > 3 && <span style={{ fontSize: '10px', color: colors.muted }}>{t('calendar.more', { count: dayGigs.length - 3 })}</span>}
               </div>
             </div>
           )
@@ -89,10 +91,10 @@ export default function GigCalendar({ gigs, onOpen }) {
       {selected && (
         <div style={{ marginTop: '12px' }}>
           <h4 style={{ fontSize: '13px', fontWeight: 700, color: colors.muted, marginBottom: '6px' }}>
-            {format(new Date(`${selected}T00:00:00`), 'EEEE, d MMMM')}
+            {fmt(selected, 'EEEE, d MMMM')}
           </h4>
           {selectedGigs.length === 0 ? (
-            <p style={{ fontSize: '13px', color: colors.muted }}>No gigs this day.</p>
+            <p style={{ fontSize: '13px', color: colors.muted }}>{t('calendar.noGigsDay')}</p>
           ) : selectedGigs.map(g => (
             <button key={g.id} onClick={() => onOpen(g)} style={{
               display: 'flex', alignItems: 'center', gap: '8px', width: '100%', textAlign: 'left', cursor: 'pointer',
@@ -107,7 +109,7 @@ export default function GigCalendar({ gigs, onOpen }) {
       )}
       {undated > 0 && (
         <p style={{ fontSize: '12px', color: colors.muted, marginTop: '10px' }}>
-          {undated} gig{undated === 1 ? '' : 's'} without dates {undated === 1 ? "isn't" : "aren't"} shown — see the list view.
+          {t('calendar.undated', { count: undated })}
         </p>
       )}
     </div>

@@ -6,17 +6,16 @@ import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { sendInvite, inviteMessage } from '../lib/invites'
 import { removeGigFiles } from '../lib/storage'
+import { useI18n } from '../i18n'
 
-const ROLES = [
-  { value: 'admin',  label: 'Admin',  hint: 'Manages members and every gig' },
-  { value: 'member', label: 'Member', hint: 'Sees all gigs, creates gigs, uploads files' },
-  { value: 'viewer', label: 'Viewer', hint: 'Sees all gigs (read-only intent)' },
-]
+// Labels: orgRole.<value>
+const ROLES = [{ value: 'admin' }, { value: 'member' }, { value: 'viewer' }]
 
 // Organisation members: list, invite by email, change roles, remove, leave, delete organisation.
 export default function OrgMembersModal({ org, onClose, onChanged }) {
   const { user } = useAuth()
   const { notify } = useToast()
+  const { t } = useI18n()
   const [members, setMembers] = useState([])
   const [invites, setInvites] = useState([])
   const [loading, setLoading] = useState(true)
@@ -78,8 +77,8 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
   async function removeMember(member) {
     const self = member.user_id === user.id
     const question = self
-      ? `Leave ${org.name}? You'll lose access to its gigs unless you were added to them directly.`
-      : `Remove ${member.full_name || member.email} from ${org.name}?`
+      ? t('org.confirmLeave', { org: org.name })
+      : t('org.confirmRemove', { name: member.full_name || member.email, org: org.name })
     if (!window.confirm(question)) return
     setBusy(member.user_id)
     const { error } = await supabase.from('org_members').delete().eq('org_id', org.id).eq('user_id', member.user_id)
@@ -89,7 +88,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
       return notify(userMessage(error), 'error')
     }
     if (self) {
-      notify(`You left ${org.name}.`, 'success')
+      notify(t('org.left', { org: org.name }), 'success')
       onChanged()
       return onClose()
     }
@@ -103,9 +102,9 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
   }
 
   async function deleteOrganisation() {
-    const typed = window.prompt(`This permanently deletes "${org.name}", all its gigs, files and updates.\n\nType the organisation name to confirm:`)
+    const typed = window.prompt(t('org.deletePrompt', { org: org.name }))
     if (typed === null) return
-    if (typed.trim() !== org.name.trim()) return notify('The name did not match — nothing was deleted.', 'info')
+    if (typed.trim() !== org.name.trim()) return notify(t('org.nameMismatch'), 'info')
     setBusy('org')
     const { data: gigs, error: gigsError } = await supabase.from('gigs').select('id').eq('org_id', org.id)
     if (gigsError) {
@@ -119,7 +118,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
       logger.error('org', error, { step: 'deleteOrg', orgId: org.id })
       return notify(userMessage(error), 'error')
     }
-    notify(`Deleted ${org.name}.`, 'success')
+    notify(t('org.deleted', { org: org.name }), 'success')
     onChanged()
     onClose()
   }
@@ -128,22 +127,22 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
     <div style={overlay} onClick={e => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-labelledby="members-title" style={panel}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-          <h2 id="members-title" style={{ fontSize: '18px', fontWeight: 700 }}>{org.name} — members</h2>
-          <button onClick={onClose} aria-label="Close" style={iconBtn}><X size={18} /></button>
+          <h2 id="members-title" style={{ fontSize: '18px', fontWeight: 700 }}>{t('org.membersTitle', { org: org.name })}</h2>
+          <button onClick={onClose} aria-label={t('common.close')} style={iconBtn}><X size={18} /></button>
         </div>
         <p style={{ color: '#4A6070', fontSize: '13px', marginBottom: '18px' }}>
-          Members see every gig in this organisation. Crew added to a single gig don't need to be members.
+          {t('org.intro')}
         </p>
 
         {isAdmin && (
           <form onSubmit={invite} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px' }}>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="colleague@company.com"
-              aria-label="Email address" style={{ ...input, flex: '1 1 200px' }} />
-            <select value={role} onChange={e => setRole(e.target.value)} aria-label="Role" style={{ ...input, flex: '0 0 auto', width: 'auto', cursor: 'pointer' }}>
-              {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+              aria-label={t('common.email')} style={{ ...input, flex: '1 1 200px' }} />
+            <select value={role} onChange={e => setRole(e.target.value)} aria-label={t('org.role')} style={{ ...input, flex: '0 0 auto', width: 'auto', cursor: 'pointer' }}>
+              {ROLES.map(r => <option key={r.value} value={r.value}>{t(`orgRole.${r.value}`)}</option>)}
             </select>
             <button type="submit" disabled={sending || !email.trim()} style={smallBtn}>
-              {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} Invite
+              {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('common.invite')}
             </button>
           </form>
         )}
@@ -159,20 +158,20 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
               return (
                 <div key={m.user_id} style={row}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px' }}>{m.full_name || '—'}{self && <span style={{ color: '#4A6070' }}> (you)</span>}</div>
+                    <div style={{ fontWeight: 600, fontSize: '14px' }}>{m.full_name || '—'}{self && <span style={{ color: '#4A6070' }}> ({t('common.you')})</span>}</div>
                     <div style={{ fontSize: '12px', color: '#4A6070', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email}</div>
                   </div>
                   {isAdmin ? (
                     <select value={m.role} disabled={busy === m.user_id} onChange={e => changeRole(m, e.target.value)}
-                      aria-label={`Role for ${m.full_name || m.email}`} style={{ ...input, width: 'auto', padding: '6px 8px', fontSize: '13px', cursor: 'pointer' }}>
-                      {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                      aria-label={t('org.roleFor', { name: m.full_name || m.email })} style={{ ...input, width: 'auto', padding: '6px 8px', fontSize: '13px', cursor: 'pointer' }}>
+                      {ROLES.map(r => <option key={r.value} value={r.value}>{t(`orgRole.${r.value}`)}</option>)}
                     </select>
                   ) : (
-                    <span style={{ fontSize: '12px', color: '#4A6070', textTransform: 'capitalize' }}>{m.role}</span>
+                    <span style={{ fontSize: '12px', color: '#4A6070', }}>{t(`orgRole.${m.role}`)}</span>
                   )}
                   {(isAdmin || self) && (
                     <button onClick={() => removeMember(m)} disabled={busy === m.user_id} style={iconBtn}
-                      aria-label={self ? 'Leave organisation' : `Remove ${m.full_name || m.email}`} title={self ? 'Leave' : 'Remove'}>
+                      aria-label={self ? t('org.leave') : t('crew.removeNamed', { name: m.full_name || m.email })} title={self ? t('org.leave') : t('crew.remove')}>
                       {self ? <LogOut size={15} /> : <X size={15} />}
                     </button>
                   )}
@@ -183,9 +182,9 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
               <div key={inv.id} style={{ ...row, borderStyle: 'dashed' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inv.email}</div>
-                  <div style={{ fontSize: '12px', color: '#4A6070' }}>Invited · {inv.role}</div>
+                  <div style={{ fontSize: '12px', color: '#4A6070' }}>{t('org.invited', { role: t(`orgRole.${inv.role}`) })}</div>
                 </div>
-                <button onClick={() => cancelInvite(inv)} aria-label={`Cancel invite for ${inv.email}`} title="Cancel invite" style={iconBtn}>
+                <button onClick={() => cancelInvite(inv)} aria-label={t('crew.cancelInviteFor', { email: inv.email })} title={t('crew.cancelInvite')} style={iconBtn}>
                   <X size={15} />
                 </button>
               </div>
@@ -196,7 +195,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
         {isAdmin && (
           <div style={{ marginTop: '22px', paddingTop: '18px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
             <button onClick={deleteOrganisation} disabled={busy === 'org'} style={{ ...smallBtn, background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.25)', color: '#F87171' }}>
-              {busy === 'org' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} Delete organisation
+              {busy === 'org' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} {t('org.delete')}
             </button>
           </div>
         )}

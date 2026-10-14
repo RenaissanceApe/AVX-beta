@@ -11,19 +11,21 @@ import {
   Zap, Plus, Calendar, MapPin, Users, ChevronRight,
   Building2, LogOut, Loader2, X, ArrowRight, CheckCircle, Search, List, CalendarDays
 } from 'lucide-react'
-import { format, parseISO } from 'date-fns'
+import { useI18n, t, fmt } from '../i18n'
+import NotificationBell from '../components/NotificationBell'
 
 const STATUS_CONFIG = {
-  draft:     { label: 'Draft',     color: '#4A6070', bg: 'rgba(74,96,112,0.15)' },
-  confirmed: { label: 'Confirmed', color: '#3B82F6', bg: 'rgba(59,130,246,0.15)' },
-  active:    { label: 'Active',    color: '#1EC878', bg: 'rgba(30,200,120,0.15)' },
-  completed: { label: 'Done',      color: '#8B5CF6', bg: 'rgba(139,92,246,0.15)' },
-  archived:  { label: 'Archived',  color: '#374151', bg: 'rgba(55,65,81,0.1)' },
+  draft:     { color: '#4A6070', bg: 'rgba(74,96,112,0.15)' },
+  confirmed: { color: '#3B82F6', bg: 'rgba(59,130,246,0.15)' },
+  active:    { color: '#1EC878', bg: 'rgba(30,200,120,0.15)' },
+  completed: { color: '#8B5CF6', bg: 'rgba(139,92,246,0.15)' },
+  archived:  { color: '#374151', bg: 'rgba(55,65,81,0.1)' },
 }
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
+  useI18n() // re-render on language change
   const [orgs, setOrgs] = useState([])
   const [activeOrg, setActiveOrg] = useState(null)
   const [gigs, setGigs] = useState([])
@@ -131,7 +133,7 @@ export default function Dashboard() {
     setCreating(false)
   }
 
-  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'User'
+  const displayName = profile?.full_name || user?.email?.split('@')[0] || t('common.you')
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 
   return (
@@ -158,13 +160,14 @@ export default function Dashboard() {
           <span style={{ fontWeight: '800', fontSize: '18px', letterSpacing: '-0.3px' }}>AVX</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button onClick={() => setShowAccount(true)} aria-label="Account settings" title="Account settings" style={{
+          <NotificationBell />
+          <button onClick={() => setShowAccount(true)} aria-label={t('account.title')} title={t('account.title')} style={{
             width: '32px', height: '32px', borderRadius: '50%', border: 'none', cursor: 'pointer',
             background: 'linear-gradient(135deg, #1EC878, #0FA85A)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '12px', fontWeight: '700', color: '#fff'
           }}>{initials}</button>
-          <button onClick={signOut} aria-label="Sign out" title="Sign out" style={{
+          <button onClick={signOut} aria-label={t('account.signOut')} title={t('account.signOut')} style={{
             background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070',
             display: 'flex', alignItems: 'center', padding: '4px'
           }}>
@@ -179,20 +182,20 @@ export default function Dashboard() {
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <p style={{ color: '#4A6070', fontSize: '13px', margin: '0 0 4px 0' }}>Welcome back, {displayName.split(' ')[0]}</p>
+              <p style={{ color: '#4A6070', fontSize: '13px', margin: '0 0 4px 0' }}>{t('dash.welcome', { name: displayName.split(' ')[0] })}</p>
               <h1 style={{ fontSize: '26px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>
-                {activeOrg ? activeOrg.name : 'Your Gigs'}
+                {activeOrg ? activeOrg.name : t('dash.yourGigs')}
               </h1>
             </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {!activeOrg && (
                 <button onClick={() => setShowNewOrg(true)} style={btnPrimary}>
-                  <Building2 size={15} /> New Organisation
+                  <Building2 size={15} /> {t('dash.newOrg')}
                 </button>
               )}
               {activeOrg && (
                 <button onClick={() => setShowNewGig(true)} style={btnPrimary}>
-                  <Plus size={15} /> New Gig
+                  <Plus size={15} /> {t('dash.newGig')}
                 </button>
               )}
             </div>
@@ -219,7 +222,7 @@ export default function Dashboard() {
                 color: '#2A3A48', fontSize: '13px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
                 display: 'flex', alignItems: 'center', gap: '4px'
               }}>
-                <Plus size={13} /> Add org
+                <Plus size={13} /> {t('dash.addOrg')}
               </button>
               {activeOrg && (
                 <button onClick={() => setShowMembers(true)} style={{
@@ -228,7 +231,7 @@ export default function Dashboard() {
                   color: '#8A9BAE', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: '6px'
                 }}>
-                  <Users size={13} /> Members
+                  <Users size={13} /> {t('dash.members')}
                 </button>
               )}
             </div>
@@ -244,7 +247,7 @@ export default function Dashboard() {
         {/* Gigs shared with this user as crew */}
         {sharedGigs.length > 0 && (
           <div style={{ marginBottom: '32px' }}>
-            <h2 style={sectionTitle}>Shared with you</h2>
+            <h2 style={sectionTitle}>{t('dash.shared')}</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {sharedGigs.map(gig => <GigCard key={gig.id} gig={gig} onOpen={() => navigate(`/gig/${gig.id}`)} />)}
             </div>
@@ -255,9 +258,9 @@ export default function Dashboard() {
         {!loadingOrgs && orgs.length === 0 && sharedGigs.length === 0 && (
           <EmptyState
             icon={<Building2 size={32} color="#1EC878" />}
-            title="Create your organisation"
-            body="Set up your rental company or production team to start creating gigs."
-            action="Create Organisation"
+            title={t('dash.emptyOrgTitle')}
+            body={t('dash.emptyOrgBody')}
+            action={t('dash.createOrg')}
             onAction={() => setShowNewOrg(true)}
           />
         )}
@@ -271,9 +274,9 @@ export default function Dashboard() {
           ) : gigs.length === 0 ? (
             <EmptyState
               icon={<Calendar size={32} color="#1EC878" />}
-              title="No gigs yet"
-              body="Create your first gig to start coordinating your crew and centralising your production documents."
-              action="Create First Gig"
+              title={t('dash.emptyGigsTitle')}
+              body={t('dash.emptyGigsBody')}
+              action={t('dash.createFirstGig')}
               onAction={() => setShowNewGig(true)}
             />
           ) : (
@@ -290,11 +293,11 @@ export default function Dashboard() {
 
       {/* New Org Modal */}
       {showNewOrg && (
-        <Modal title="New Organisation" onClose={() => { setShowNewOrg(false); setOrgError('') }}>
+        <Modal title={t('dash.newOrg')} onClose={() => { setShowNewOrg(false); setOrgError('') }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <FieldLabel label="Organisation Name">
+            <FieldLabel label={t('dash.orgName')}>
               <input value={newOrgName} onChange={e => setNewOrgName(e.target.value)}
-                placeholder="e.g. SoundWorks Lisboa" style={modalInput}
+                placeholder={t('dash.orgNamePlaceholder')} style={modalInput}
                 onKeyDown={e => e.key === 'Enter' && createOrg()} autoFocus />
             </FieldLabel>
             {orgError && (
@@ -308,7 +311,7 @@ export default function Dashboard() {
             )}
             <button onClick={createOrg} disabled={creating || !newOrgName.trim()} style={btnModal}>
               {creating ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={16} />}
-              Create Organisation
+              {t('dash.createOrg')}
             </button>
           </div>
         </Modal>
@@ -316,32 +319,32 @@ export default function Dashboard() {
 
       {/* New Gig Modal */}
       {showNewGig && (
-        <Modal title="New Gig" onClose={() => setShowNewGig(false)}>
+        <Modal title={t('dash.newGig')} onClose={() => setShowNewGig(false)}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <FieldLabel label="Gig Name *">
+            <FieldLabel label={`${t('gigForm.name')} *`}>
               <input value={gigForm.name} onChange={e => setGigForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="e.g. Festival NOS Alive 2026 — Main Stage" style={modalInput} autoFocus />
+                placeholder={t('gigForm.namePlaceholder')} style={modalInput} autoFocus />
             </FieldLabel>
-            <FieldLabel label="Venue">
+            <FieldLabel label={t('gigForm.venue')}>
               <input value={gigForm.venue} onChange={e => setGigForm(f => ({ ...f, venue: e.target.value }))}
-                placeholder="Passeio Marítimo de Algés, Lisboa" style={modalInput} />
+                placeholder={t('gigForm.venuePlaceholder')} style={modalInput} />
             </FieldLabel>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <FieldLabel label="Start Date">
+              <FieldLabel label={t('gigForm.start')}>
                 <input type="date" value={gigForm.start_date} onChange={e => setGigForm(f => ({ ...f, start_date: e.target.value }))} style={modalInput} />
               </FieldLabel>
-              <FieldLabel label="End Date">
+              <FieldLabel label={t('gigForm.end')}>
                 <input type="date" value={gigForm.end_date} onChange={e => setGigForm(f => ({ ...f, end_date: e.target.value }))} style={modalInput} />
               </FieldLabel>
             </div>
-            <FieldLabel label="Status">
+            <FieldLabel label={t('gigForm.status')}>
               <select value={gigForm.status} onChange={e => setGigForm(f => ({ ...f, status: e.target.value }))} style={{ ...modalInput, cursor: 'pointer' }}>
-                {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                {Object.keys(STATUS_CONFIG).map(k => <option key={k} value={k}>{t(`status.${k}`)}</option>)}
               </select>
             </FieldLabel>
-            <FieldLabel label="Description">
+            <FieldLabel label={t('gigForm.description')}>
               <textarea value={gigForm.description} onChange={e => setGigForm(f => ({ ...f, description: e.target.value }))}
-                placeholder="Brief overview of the production..." rows={3}
+                placeholder={t('gigForm.descriptionPlaceholder')} rows={3}
                 style={{ ...modalInput, resize: 'vertical', lineHeight: '1.5' }} />
             </FieldLabel>
             {gigError && (
@@ -355,7 +358,7 @@ export default function Dashboard() {
             )}
             <button onClick={createGig} disabled={creating || !gigForm.name.trim()} style={btnModal}>
               {creating ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={16} />}
-              Create Gig
+              {t('dash.createGig')}
             </button>
           </div>
         </Modal>
@@ -383,8 +386,8 @@ function GigList({ gigs, filter, setFilter, search, setSearch, onOpen }) {
     <div>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
         <div role="group" aria-label="View" style={{ display: 'flex', gap: '2px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '3px' }}>
-          {[['list', <List size={15} />, 'List'], ['calendar', <CalendarDays size={15} />, 'Calendar']].map(([v, icon, labelText]) => (
-            <button key={v} onClick={() => setView(v)} aria-pressed={view === v} aria-label={`${labelText} view`} title={`${labelText} view`} style={{
+          {[['list', <List size={15} />, t('dash.viewList')], ['calendar', <CalendarDays size={15} />, t('dash.viewCalendar')]].map(([v, icon, labelText]) => (
+            <button key={v} onClick={() => setView(v)} aria-pressed={view === v} aria-label={labelText} title={labelText} style={{
               padding: '6px 9px', borderRadius: '7px', border: 'none', cursor: 'pointer', display: 'flex',
               background: view === v ? 'rgba(30,200,120,0.15)' : 'transparent', color: view === v ? '#1EC878' : '#4A6070'
             }}>{icon}</button>
@@ -397,14 +400,14 @@ function GigList({ gigs, filter, setFilter, search, setSearch, onOpen }) {
               background: filter === f.value ? 'rgba(30,200,120,0.15)' : 'transparent',
               color: filter === f.value ? '#1EC878' : '#4A6070'
             }}>
-              {f.label} <span style={{ opacity: 0.7 }}>{counts[f.value]}</span>
+              {t(`gigFilter.${f.value}`)} <span style={{ opacity: 0.7 }}>{counts[f.value]}</span>
             </button>
           ))}
         </div>}
         <label style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px',
           background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px' }}>
           <Search size={14} color="#4A6070" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search gigs, venues…" aria-label="Search gigs"
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('dash.searchPlaceholder')} aria-label={t('dash.searchPlaceholder')}
             style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: '14px', minWidth: 0 }} />
         </label>
       </div>
@@ -412,7 +415,7 @@ function GigList({ gigs, filter, setFilter, search, setSearch, onOpen }) {
         <GigCalendar gigs={filterGigs(gigs, 'all', search).filter(g => g.status !== 'archived')} onOpen={onOpen} />
       ) : visible.length === 0 ? (
         <p style={{ color: '#4A6070', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>
-          {search ? 'No gigs match your search.' : filter === 'upcoming' ? 'No upcoming gigs.' : `No ${filter} gigs.`}
+          {search ? t('dash.noMatch') : t(`dash.noGigs.${filter}`)}
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -443,7 +446,7 @@ function GigCard({ gig, onOpen }) {
           <span style={{
             fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '20px',
             color: st.color, background: st.bg, textTransform: 'uppercase', letterSpacing: '0.05em'
-          }}>{st.label}</span>
+          }}>{t(`status.${gig.status}`)}</span>
         </div>
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
           {gig.venue && (
@@ -454,8 +457,8 @@ function GigCard({ gig, onOpen }) {
           {gig.start_date && (
             <span style={{ fontSize: '13px', color: '#4A6070', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Calendar size={12} />
-              {format(parseISO(gig.start_date), 'dd MMM yyyy')}
-              {gig.end_date && gig.end_date !== gig.start_date && ` → ${format(parseISO(gig.end_date), 'dd MMM')}`}
+              {fmt(gig.start_date, 'dd MMM yyyy')}
+              {gig.end_date && gig.end_date !== gig.start_date && ` → ${fmt(gig.end_date, 'dd MMM')}`}
             </span>
           )}
         </div>

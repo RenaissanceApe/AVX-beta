@@ -26,6 +26,8 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 4. `supabase/migrations/20261015000000_org_members_and_accounts.sql` — organisation members and invites
 5. `supabase/migrations/20261015000001_invite_claims_and_account_deletion.sql` — invite claiming at sign-up, account deletion
 6. `supabase/migrations/20261016000000_schedule_activity_realtime.sql` — schedule, activity log, phone numbers, realtime
+7. `supabase/migrations/20261017000000_notifications_language.sql` — notifications, saved language, invite fix
+8. `supabase/migrations/20261017000001_crew_availability.sql` — unavailable dates and clash checks
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.

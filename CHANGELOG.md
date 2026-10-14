@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.0 — Phase 2b: team experience
+
+### Added
+- In-app notifications with a live bell (gig/org invites, new files and versions, important posts, schedule,
+  call-time, status and date changes)
+- Portuguese / English interface, including legal pages; language saved to your profile
+- Crew availability (private unavailable dates) with clash warnings for managers
+- "Coming up" schedule card on the gig overview
+- Playwright browser tests in CI; optional backup of uploaded files
+
+### Changed
+- Gig page split into tab components (`src/components/gig/`) using the shared UI module
+
+### Fixed
+- Re-inviting someone already on a gig silently did nothing; it now updates their call time and role
+- Feed post headers wrap properly on narrow screens
+
 ## 0.4.0 — Phase 2a: day-to-day production tools
 
 ### Added

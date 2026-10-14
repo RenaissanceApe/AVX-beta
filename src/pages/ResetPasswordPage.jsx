@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { logger, userMessage } from '../lib/logger'
 import { useToast } from '../lib/ToastContext'
+import { useI18n } from '../i18n'
 import { Zap, Loader2, ArrowRight } from 'lucide-react'
 
 // Landing page for the password reset email. supabase-js exchanges the token in the
@@ -11,6 +12,7 @@ import { Zap, Loader2, ArrowRight } from 'lucide-react'
 export default function ResetPasswordPage() {
   const { user, loading: authLoading, clearPasswordRecovery } = useAuth()
   const { notify } = useToast()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -20,8 +22,8 @@ export default function ResetPasswordPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-    if (password.length < MIN_PASSWORD_LENGTH) return setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`)
-    if (password !== confirm) return setError('Passwords do not match')
+    if (password.length < MIN_PASSWORD_LENGTH) return setError(t('auth.passwordMin', { min: MIN_PASSWORD_LENGTH }))
+    if (password !== confirm) return setError(t('auth.passwordsDiffer'))
     setSaving(true)
     const { error } = await supabase.auth.updateUser({ password })
     setSaving(false)
@@ -30,7 +32,7 @@ export default function ResetPasswordPage() {
       return setError(userMessage(error))
     }
     clearPasswordRecovery()
-    notify('Password updated.', 'success')
+    notify(t('auth.passwordUpdated'), 'success')
     navigate('/dashboard', { replace: true })
   }
 
@@ -51,7 +53,7 @@ export default function ResetPasswordPage() {
         </div>
 
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '32px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#fff', margin: '0 0 20px 0' }}>Set a new password</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#fff', margin: '0 0 20px 0' }}>{t('auth.setNewPassword')}</h2>
 
           {authLoading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
@@ -60,16 +62,16 @@ export default function ResetPasswordPage() {
           ) : !user ? (
             <>
               <p style={{ color: '#4A6070', fontSize: '14px', lineHeight: '1.6', marginBottom: '20px' }}>
-                This reset link is invalid or has expired. Request a new one from the sign-in page.
+                {t('auth.resetLinkInvalid')}
               </p>
-              <button onClick={() => navigate('/auth')} style={btn}>Back to Sign In</button>
+              <button onClick={() => navigate('/auth')} style={btn}>{t('auth.backToSignIn')}</button>
             </>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-                placeholder={`New password (min. ${MIN_PASSWORD_LENGTH} characters)`} autoComplete="new-password" style={input} autoFocus required />
+                placeholder={t('auth.newPasswordPlaceholder', { min: MIN_PASSWORD_LENGTH })} autoComplete="new-password" style={input} autoFocus required />
               <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
-                placeholder="Confirm new password" autoComplete="new-password" style={input} required />
+                placeholder={t('auth.confirmPassword')} autoComplete="new-password" style={input} required />
               {error && (
                 <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#F87171', fontSize: '13px' }}>
                   {error}
@@ -77,7 +79,7 @@ export default function ResetPasswordPage() {
               )}
               <button type="submit" disabled={saving} style={btn}>
                 {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={16} />}
-                Save Password
+                {t('auth.savePassword')}
               </button>
             </form>
           )}
