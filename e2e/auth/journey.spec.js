@@ -77,6 +77,36 @@ test('a new user sets up an organisation, a gig and a schedule', async ({ page }
   await expect(page.getByText('Load-in')).toBeVisible()
 })
 
+test('the organisation builds a quote, saves it as a template and prints it', async ({ page }) => {
+  await english(page)
+  await signIn(page, pm)
+  await page.getByRole('button', { name: 'Quotes' }).click()
+  await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}\/quotes$/)
+  await page.getByRole('button', { name: 'New quote' }).first().click()
+  const dialog = page.getByRole('dialog', { name: 'New quote' })
+  await dialog.getByPlaceholder(/Annual conference/).fill(`E2E Quote ${run}`)
+  await dialog.getByRole('button', { name: 'Create quote' }).click()
+  await expect(page).toHaveURL(/\/quote\/[0-9a-f-]{36}$/, { timeout: 15_000 })
+
+  // One rental line: 2 × €100 = €200 excl. VAT, €246 with 23% VAT
+  await page.getByRole('button', { name: 'Rental' }).first().click()
+  const line = page.locator('.q-line-wrap').last()
+  await line.getByPlaceholder(/Line array system/).fill('PA system')
+  await line.getByRole('spinbutton', { name: 'Qty' }).fill('2')
+  await line.getByRole('spinbutton', { name: 'Unit price' }).fill('100')
+  await expect(page.locator('footer')).toContainText('€200.00')
+  await expect(page.getByRole('status').filter({ hasText: /^\s*Saved\s*$/ })).toBeVisible({ timeout: 10_000 })
+
+  await page.getByRole('button', { name: 'Save as template' }).click()
+  await page.getByRole('dialog', { name: 'Save as template' }).getByRole('button', { name: 'Save template' }).click()
+  await expect(page.getByText(/Template ".*" saved/)).toBeVisible()
+
+  await page.getByRole('button', { name: /Preview/ }).click()
+  await expect(page).toHaveURL(/\/print$/)
+  await expect(page.getByRole('heading', { name: `E2E Quote ${run}` })).toBeVisible()
+  await expect(page.locator('.totals')).toContainText('€246.00')
+})
+
 test('a gig opened before stays readable offline', async ({ page, context }) => {
   await english(page)
   await signIn(page, pm)

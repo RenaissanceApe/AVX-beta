@@ -1,0 +1,261 @@
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, Plus, Loader2, FileText, LayoutTemplate, Building2, Trash2, Search } from 'lucide-react'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../lib/AuthContext'
+import { useToast } from '../lib/ToastContext'
+import { logger, userMessage } from '../lib/logger'
+import { useI18n } from '../i18n'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
+import { QUOTE_STATUSES, quoteNumber, formatMoney, cloneBody, emptyPhase, localISODate, addDays, quoteTotals } from '../lib/quotes'
+import CompanyDetailsModal from '../components/quotes/CompanyDetailsModal'
+import { QuoteStatusBadge } from '../components/quotes/parts'
+
+// Quotes of one organisation, plus its quote templates and company details.
+// Only admins and members get here (the database enforces the same rule).
+export default function QuotesPage() {
+  const { orgId } = useParams()
+  const { user } = useAuth()
+  const { notify } = useToast()
+  const { t, fmt, lang } = useI18n()
+  const navigate = useNavigate()
+  const [org, setOrg] = useState(null)
+  const [role, setRole] = useState(null)
+  const [quotes, setQuotes] = useState([])
+  const [templates, setTemplates] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [view, setView] = useState('quotes')
+  const [status, setStatus] = useState('all')
+  const [search, setSearch] = useState('')
+  const [showNew, setShowNew] = useState(false)
+  const [showCompany, setShowCompany] = useState(false)
+
+  async function load() {
+    const [orgRes, roleRes, quotesRes, templatesRes] = await Promise.all([
+      supabase.from('organisations').select('*').eq('id', orgId).maybeSingle(),
+      supabase.from('org_members').select('role').eq('org_id', orgId).eq('user_id', user.id).maybeSingle(),
+      supabase.from('quotes').select('id, number, title, status, client_name, client_company, issue_date, valid_until, total_net, currency, gig_id, updated_at')
+        .eq('org_id', orgId).order('number', { ascending: false }),
+      supabase.from('quote_templates').select('id, name, description, body, created_by, updated_at').eq('org_id', orgId).order('name'),
+    ])
+    for (const [step, res] of Object.entries({ orgRes, quotesRes, templatesRes })) {
+      if (res.error) logger.error('quotes', res.error, { step })
+    }
+    setOrg(orgRes.data)
+    setRole(roleRes.data?.role ?? null)
+    setQuotes(quotesRes.data || [])
+    setTemplates(templatesRes.data || [])
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [orgId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const visible = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return quotes.filter(x => (status === 'all' || x.status === status)
+      && (!q || [x.title, x.client_name, x.client_company, quoteNumber(x)].some(v => (v || '').toLowerCase().includes(q))))
+  }, [quotes, status, search])
+
+  async function deleteTemplate(tpl) {
+    if (!window.confirm(t('quotes.confirmDeleteTemplate', { name: tpl.name }))) return
+    const { error } = await supabase.from('quote_templates').delete().eq('id', tpl.id)
+    if (error) return notify(userMessage(error), 'error')
+    setTemplates(list => list.filter(x => x.id !== tpl.id))
+  }
+
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Loader2 size={26} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+    </div>
+  )
+  if (!org || !['admin', 'member'].includes(role)) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center' }}>
+      <div style={{ maxWidth: '360px' }}>
+        <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>{t('quotes.noAccess')}</p>
+        <button onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
+      </div>
+    </div>
+  )
+
+  return (
+    <div style={{ minHeight: '100vh', color: '#fff' }}>
+      <header style={{ borderBottom: `1px solid ${colors.border}`, background: 'rgba(8,12,20,0.9)', position: 'sticky', top: 0, zIndex: 40 }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <button onClick={() => navigate('/dashboard')} aria-label={t('common.backToDashboard')} style={iconBtn}><ArrowLeft size={18} /></button>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '12px', color: colors.muted }}>{org.name}</div>
+            <h1 style={{ fontSize: '20px', fontWeight: 800 }}>{t('quotes.title')}</h1>
+          </div>
+          <button onClick={() => setShowCompany(true)} style={btn}><Building2 size={14} /> {t('quotes.company')}</button>
+          <button onClick={() => setShowNew(true)} style={btnPrimary}><Plus size={15} /> {t('quotes.new')}</button>
+        </div>
+      </header>
+
+      <main style={{ maxWidth: '960px', margin: '0 auto', padding: '20px 16px 60px' }}>
+        <div role="tablist" style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: `1px solid ${colors.border}` }}>
+          {[['quotes', <FileText key="i" size={14} />, quotes.length], ['templates', <LayoutTemplate key="i" size={14} />, templates.length]].map(([key, icon, count]) => (
+            <button key={key} role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
+              padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600,
+              color: view === key ? colors.accent : colors.muted, borderBottom: view === key ? `2px solid ${colors.accent}` : '2px solid transparent',
+              display: 'flex', alignItems: 'center', gap: '6px',
+            }}>
+              {icon} {t(`quotes.tab.${key}`)} <span style={{ fontSize: '11px', opacity: 0.7 }}>{count}</span>
+            </button>
+          ))}
+        </div>
+
+        {view === 'quotes' && (
+          <>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
+              <div style={{ position: 'relative', flex: '1 1 220px' }}>
+                <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('quotes.search')} aria-label={t('quotes.search')}
+                  style={{ ...input, paddingLeft: '32px' }} />
+              </div>
+              <select value={status} onChange={e => setStatus(e.target.value)} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', cursor: 'pointer' }}>
+                <option value="all">{t('quotes.allStatuses')}</option>
+                {QUOTE_STATUSES.map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
+              </select>
+            </div>
+
+            {quotes.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <FileText size={30} color={colors.accent} />
+                <h2 style={{ fontWeight: 700, margin: '12px 0 8px', fontSize: '17px' }}>{t('quotes.emptyTitle')}</h2>
+                <p style={{ color: colors.muted, fontSize: '13px', marginBottom: '20px', lineHeight: 1.6 }}>{t('quotes.emptyBody')}</p>
+                <button onClick={() => setShowNew(true)} style={btnPrimary}><Plus size={15} /> {t('quotes.new')}</button>
+              </div>
+            ) : visible.length === 0 ? (
+              <p style={{ color: colors.muted, fontSize: '14px', textAlign: 'center', padding: '40px' }}>{t('quotes.noMatch')}</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {visible.map(q => (
+                  <button key={q.id} onClick={() => navigate(`/quote/${q.id}`)} style={{
+                    ...card, textAlign: 'left', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
+                  }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: '13px', color: colors.soft }}>{quoteNumber(q)}</span>
+                    <span style={{ flex: '1 1 200px', minWidth: 0 }}>
+                      <span style={{ display: 'block', fontWeight: 700, fontSize: '15px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.title}</span>
+                      <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
+                        {[q.client_company || q.client_name, q.issue_date && fmt(q.issue_date, 'd MMM yyyy')].filter(Boolean).join(' · ') || '—'}
+                      </span>
+                    </span>
+                    <QuoteStatusBadge status={q.status} />
+                    <span style={{ fontWeight: 700, fontSize: '15px', minWidth: '100px', textAlign: 'right' }}>{formatMoney(q.total_net, q.currency, lang)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {view === 'templates' && (
+          templates.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <LayoutTemplate size={30} color={colors.accent} />
+              <h2 style={{ fontWeight: 700, margin: '12px 0 8px', fontSize: '17px' }}>{t('quotes.noTemplatesTitle')}</h2>
+              <p style={{ color: colors.muted, fontSize: '13px', lineHeight: 1.6, maxWidth: '420px', margin: '0 auto' }}>{t('quotes.noTemplatesBody')}</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {templates.map(tpl => (
+                <div key={tpl.id} style={{ ...card, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <LayoutTemplate size={16} color={colors.accent} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700 }}>{tpl.name}</div>
+                    <div style={{ fontSize: '12px', color: colors.muted }}>
+                      {[tpl.description, t('quotes.phaseCount', { count: tpl.body?.phases?.length || 0 })].filter(Boolean).join(' · ')}
+                    </div>
+                  </div>
+                  {(role === 'admin' || tpl.created_by === user.id) && (
+                    <button onClick={() => deleteTemplate(tpl)} aria-label={t('quotes.deleteTemplateNamed', { name: tpl.name })} title={t('common.delete')} style={iconBtn}>
+                      <Trash2 size={15} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )
+        )}
+      </main>
+
+      {showNew && <NewQuoteModal org={org} templates={templates} onClose={() => setShowNew(false)} onCreated={id => navigate(`/quote/${id}`)} />}
+      {showCompany && <CompanyDetailsModal org={org} canEdit={role === 'admin'} onClose={() => setShowCompany(false)} onSaved={next => setOrg(next)} />}
+    </div>
+  )
+}
+
+function NewQuoteModal({ org, templates, onClose, onCreated }) {
+  const { t, lang } = useI18n()
+  const { notify } = useToast()
+  const [form, setForm] = useState({ title: '', client_company: '', client_name: '', template: '', language: lang })
+  const [saving, setSaving] = useState(false)
+
+  async function create(e) {
+    e.preventDefault()
+    if (!form.title.trim()) return
+    setSaving(true)
+    const tpl = templates.find(x => x.id === form.template)
+    const body = tpl ? cloneBody(tpl.body) : { phases: [emptyPhase(t('quotes.defaultPhase'))] }
+    const today = localISODate()
+    const { data, error } = await supabase.from('quotes').insert({
+      org_id: org.id,
+      title: form.title.trim(),
+      client_company: form.client_company.trim() || null,
+      client_name: form.client_name.trim() || null,
+      language: form.language,
+      issue_date: today,
+      valid_until: addDays(today, org.quote_validity_days || 30),
+      vat_rate: org.default_vat_rate ?? 23,
+      terms: org.quote_terms || null,
+      body,
+      total_net: quoteTotals({ body, vat_rate: org.default_vat_rate ?? 23, discount_pct: 0 }).net,
+    }).select('id').single()
+    setSaving(false)
+    if (error) {
+      logger.error('quotes', error, { step: 'create' })
+      return notify(userMessage(error), 'error')
+    }
+    onCreated(data.id)
+  }
+
+  return (
+    <Modal title={t('quotes.new')} onClose={onClose}>
+      <form onSubmit={create} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div>
+          <label style={label} htmlFor="nq-title">{t('quotes.quoteTitle')} *</label>
+          <input id="nq-title" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+            placeholder={t('quotes.quoteTitlePlaceholder')} maxLength={200} style={input} autoFocus required />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div>
+            <label style={label} htmlFor="nq-company">{t('quotes.clientCompany')}</label>
+            <input id="nq-company" value={form.client_company} onChange={e => setForm(f => ({ ...f, client_company: e.target.value }))} maxLength={200} style={input} />
+          </div>
+          <div>
+            <label style={label} htmlFor="nq-contact">{t('quotes.clientName')}</label>
+            <input id="nq-contact" value={form.client_name} onChange={e => setForm(f => ({ ...f, client_name: e.target.value }))} maxLength={200} style={input} />
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+          <div>
+            <label style={label} htmlFor="nq-template">{t('quotes.startFrom')}</label>
+            <select id="nq-template" value={form.template} onChange={e => setForm(f => ({ ...f, template: e.target.value }))} style={{ ...input, cursor: 'pointer' }}>
+              <option value="">{t('quotes.blankQuote')}</option>
+              {templates.map(tpl => <option key={tpl.id} value={tpl.id}>{tpl.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={label} htmlFor="nq-lang">{t('quotes.language')}</label>
+            <select id="nq-lang" value={form.language} onChange={e => setForm(f => ({ ...f, language: e.target.value }))} style={{ ...input, cursor: 'pointer' }}>
+              <option value="pt">Português</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" disabled={saving || !form.title.trim()} style={{ ...btnPrimary, justifyContent: 'center', padding: '12px' }}>
+          {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={16} />} {t('quotes.create')}
+        </button>
+      </form>
+    </Modal>
+  )
+}

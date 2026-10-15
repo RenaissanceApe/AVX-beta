@@ -33,7 +33,13 @@ export function setCurrentLanguage(lang) {
 export const getLanguage = () => current
 
 export function t(key, vars) {
-  const dict = DICTS[current] || en
+  return translate(current, key, vars)
+}
+
+// Translate into a specific language regardless of the UI language
+// (e.g. a quote printed in the client's language).
+export function translate(lang, key, vars) {
+  const dict = DICTS[lang] || en
   let template
   if (vars && typeof vars.count === 'number') {
     const form = vars.count === 1 ? 'one' : 'other'
@@ -47,6 +53,7 @@ export function t(key, vars) {
 
 export const dateLocale = () => DATE_LOCALES[current] || enGB
 export const fmt = (date, pattern) => dfFormat(typeof date === 'string' && date.length === 10 ? new Date(`${date}T00:00:00`) : new Date(date), pattern, { locale: dateLocale() })
+export const fmtIn = (lang, date, pattern) => dfFormat(typeof date === 'string' && date.length === 10 ? new Date(`${date}T00:00:00`) : new Date(date), pattern, { locale: DATE_LOCALES[lang] || enGB })
 export const ago = date => formatDistanceToNow(new Date(date), { addSuffix: true, locale: dateLocale() })
 
 const I18nContext = createContext({ lang: 'en', setLang: () => {} })

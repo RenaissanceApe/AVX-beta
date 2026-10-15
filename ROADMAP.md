@@ -66,8 +66,21 @@ in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTA
 
 **Later, not now:** Rentman integration (import gigs and crew).
 
+## Phase 4 — Quotes
+
+| Item | Notes |
+|---|---|
+| ✅ Quote builder | Phases as tabs (own dates, discount, optional), sections, priced lines; autosave with conflict protection (0.7.0) |
+| ✅ Templates | Whole quotes or single phases as reusable blocks (0.7.0) |
+| ✅ Client-ready print/PDF | Company details, PT or EN per quote, optional "no prices per line" layout (0.7.0) |
+| Quote versions | Keep v1/v2/v3 of a quote with a short note, like Rentman's quote versions |
+| Price list | Reusable items with a default price (e.g. "Technician — day") to pick from instead of typing |
+| Accepted quote → gig crew/schedule | Pre-fill crew functions and schedule from crew lines and phase dates |
+| Email the quote | Send the PDF link to the client from AVX (Brevo), with an accept button |
+
 ## Known limitations (beta)
 
 - The email summary goes out once a day, not instantly.
+- Quotes have one VAT rate per quote, no inventory/availability checks, and need a connection (not part of offline mode).
 - Offline mode is read-only: uploads, posts and edits need a connection.
 - Supabase free plan: pauses after 7 days idle (the keep-alive workflow prevents this); no leaked-password check.

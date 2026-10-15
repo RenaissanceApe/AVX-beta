@@ -1,0 +1,203 @@
+import { useState } from 'react'
+import { ChevronUp, ChevronDown, Copy, Trash2, Plus, AlignLeft, ChevronLeft, ChevronRight, LayoutTemplate } from 'lucide-react'
+import { useI18n } from '../../i18n'
+import { iconBtn, input, label, colors } from '../ui'
+import {
+  LINE_KINDS, UNITS, emptyLine, emptySection, lineTotal, sectionTotal, phaseTotals, formatMoney, move, newId,
+} from '../../lib/quotes'
+
+// One phase of a quote (like a Rentman subproject): its own dates and discount, and
+// sections (like equipment / function groups) holding the priced lines.
+export default function PhaseEditor({ phase, index, count, currency, onChange, onMove, onDuplicate, onRemove, onSaveTemplate }) {
+  const { t, lang } = useI18n()
+  const totals = phaseTotals(phase)
+  const set = changes => onChange({ ...phase, ...changes })
+  const setSections = sections => set({ sections })
+  const updateSection = (i, next) => setSections(phase.sections.map((s, j) => (j === i ? next : s)))
+
+  return (
+    <div style={{ animation: 'fadeIn 0.2s ease' }}>
+      <div className="q-phase-head">
+        <div style={{ flex: '2 1 220px' }}>
+          <label style={label} htmlFor="ph-name">{t('quote.phaseName')}</label>
+          <input id="ph-name" value={phase.name} onChange={e => set({ name: e.target.value })} placeholder={t('quote.phaseNamePlaceholder')} maxLength={120} style={input} />
+        </div>
+        <div style={{ flex: '1 1 130px' }}>
+          <label style={label} htmlFor="ph-start">{t('quote.from')}</label>
+          <input id="ph-start" type="date" value={phase.start_date || ''} onChange={e => set({ start_date: e.target.value || null })} style={input} />
+        </div>
+        <div style={{ flex: '1 1 130px' }}>
+          <label style={label} htmlFor="ph-end">{t('quote.to')}</label>
+          <input id="ph-end" type="date" value={phase.end_date || ''} min={phase.start_date || undefined} onChange={e => set({ end_date: e.target.value || null })} style={input} />
+        </div>
+        <div style={{ flex: '0 1 100px' }}>
+          <label style={label} htmlFor="ph-disc">{t('quote.discountPct')}</label>
+          <input id="ph-disc" type="number" min="0" max="100" step="0.5" value={phase.discount_pct} onChange={e => set({ discount_pct: e.target.value })} style={input} />
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', margin: '10px 0 18px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13px', color: colors.soft, cursor: 'pointer', marginRight: 'auto' }}>
+          <input type="checkbox" checked={phase.optional} onChange={e => set({ optional: e.target.checked })} style={{ accentColor: colors.accent }} />
+          {t('quote.optionalPhase')}
+        </label>
+        <button onClick={() => onMove(-1)} disabled={index === 0} aria-label={t('quote.movePhaseLeft')} title={t('quote.movePhaseLeft')} style={iconBtn}><ChevronLeft size={16} /></button>
+        <button onClick={() => onMove(1)} disabled={index === count - 1} aria-label={t('quote.movePhaseRight')} title={t('quote.movePhaseRight')} style={iconBtn}><ChevronRight size={16} /></button>
+        <button onClick={onDuplicate} aria-label={t('quote.duplicatePhase')} title={t('quote.duplicatePhase')} style={iconBtn}><Copy size={15} /></button>
+        <button onClick={onSaveTemplate} aria-label={t('quote.savePhaseTemplate')} title={t('quote.savePhaseTemplate')} style={iconBtn}><LayoutTemplate size={15} /></button>
+        <button onClick={onRemove} aria-label={t('quote.removePhase')} title={t('quote.removePhase')} style={{ ...iconBtn, color: colors.danger }}><Trash2 size={15} /></button>
+      </div>
+
+      {phase.sections.map((section, i) => (
+        <SectionEditor key={section.id} section={section} currency={currency}
+          first={i === 0} last={i === phase.sections.length - 1}
+          onChange={next => updateSection(i, next)}
+          onMove={delta => setSections(move(phase.sections, i, delta))}
+          onRemove={() => {
+            if (section.lines.length && !window.confirm(t('quote.confirmRemoveSection', { name: section.name || t('quote.untitledSection') }))) return
+            setSections(phase.sections.filter((_, j) => j !== i))
+          }} />
+      ))}
+
+      <button onClick={() => setSections([...phase.sections, emptySection()])} className="q-add-section">
+        <Plus size={14} /> {t('quote.addSection')}
+      </button>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '18px', flexWrap: 'wrap', fontSize: '13px', color: colors.soft, marginTop: '14px' }}>
+        <span>{t('quote.phaseSubtotal')}: <strong style={{ color: '#fff' }}>{formatMoney(totals.gross, currency, lang)}</strong></span>
+        {totals.discount > 0 && <span>{t('quote.discount')}: <strong style={{ color: '#fff' }}>−{formatMoney(totals.discount, currency, lang)}</strong></span>}
+        <span>{t('quote.phaseTotal')}: <strong style={{ color: colors.accent }}>{formatMoney(totals.net, currency, lang)}</strong></span>
+      </div>
+    </div>
+  )
+}
+
+function SectionEditor({ section, currency, first, last, onChange, onMove, onRemove }) {
+  const { t, lang } = useI18n()
+  const setLines = lines => onChange({ ...section, lines })
+  const updateLine = (i, next) => setLines(section.lines.map((l, j) => (j === i ? next : l)))
+
+  return (
+    <section className="q-section">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+        <input value={section.name} onChange={e => onChange({ ...section, name: e.target.value })} aria-label={t('quote.sectionName')}
+          placeholder={t('quote.sectionNamePlaceholder')} maxLength={120}
+          style={{ ...input, fontWeight: 700, background: 'transparent', border: '1px solid transparent', padding: '6px 8px', flex: 1 }} />
+        <span style={{ fontSize: '13px', fontWeight: 700, color: colors.soft, whiteSpace: 'nowrap' }}>{formatMoney(sectionTotal(section), currency, lang)}</span>
+        <button onClick={() => onMove(-1)} disabled={first} aria-label={t('quote.moveUp')} title={t('quote.moveUp')} style={iconBtn}><ChevronUp size={15} /></button>
+        <button onClick={() => onMove(1)} disabled={last} aria-label={t('quote.moveDown')} title={t('quote.moveDown')} style={iconBtn}><ChevronDown size={15} /></button>
+        <button onClick={onRemove} aria-label={t('quote.removeSection')} title={t('quote.removeSection')} style={iconBtn}><Trash2 size={14} /></button>
+      </div>
+
+      {section.lines.length > 0 && (
+        <div className="q-line q-line-head" aria-hidden="true">
+          <span className="q-kind">{t('quote.col.kind')}</span>
+          <span className="q-desc">{t('quote.col.description')}</span>
+          <span className="q-qty">{t('quote.col.qty')}</span>
+          <span className="q-unit">{t('quote.col.unit')}</span>
+          <span className="q-factor">{t('quote.col.factor')}</span>
+          <span className="q-price">{t('quote.col.price')}</span>
+          <span className="q-disc">{t('quote.col.discount')}</span>
+          <span className="q-total">{t('quote.col.total')}</span>
+          <span className="q-actions" />
+        </div>
+      )}
+      {section.lines.map((line, i) => (
+        <LineEditor key={line.id} line={line} currency={currency} first={i === 0} last={i === section.lines.length - 1}
+          onChange={next => updateLine(i, next)}
+          onMove={delta => setLines(move(section.lines, i, delta))}
+          onDuplicate={() => setLines([...section.lines.slice(0, i + 1), { ...line, id: newId() }, ...section.lines.slice(i + 1)])}
+          onRemove={() => setLines(section.lines.filter((_, j) => j !== i))} />
+      ))}
+
+      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+        {LINE_KINDS.map(kind => (
+          <button key={kind} onClick={() => setLines([...section.lines, emptyLine(kind)])} className="q-add-line">
+            <Plus size={12} /> {t(`lineKind.${kind}`)}
+          </button>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function LineEditor({ line, currency, first, last, onChange, onMove, onDuplicate, onRemove }) {
+  const { t, lang } = useI18n()
+  const [showDetails, setShowDetails] = useState(!!line.details)
+  const set = changes => onChange({ ...line, ...changes })
+  const isComment = line.kind === 'comment'
+
+  return (
+    <div className="q-line-wrap">
+      <div className={`q-line${isComment ? ' q-comment' : ''}`}>
+        <select className="q-kind" value={line.kind} onChange={e => set({ kind: e.target.value })} aria-label={t('quote.col.kind')} style={{ ...input, padding: '7px 6px', cursor: 'pointer' }}>
+          {LINE_KINDS.map(k => <option key={k} value={k}>{t(`lineKind.${k}`)}</option>)}
+        </select>
+        <input className="q-desc" value={line.description} onChange={e => set({ description: e.target.value })} aria-label={t('quote.col.description')}
+          placeholder={isComment ? t('quote.commentPlaceholder') : t('quote.descriptionPlaceholder')} maxLength={300} style={{ ...input, padding: '7px 9px' }} />
+        {!isComment && (
+          <>
+            <input className="q-qty" type="number" step="any" min="0" value={line.qty} onChange={e => set({ qty: e.target.value })} aria-label={t('quote.col.qty')} style={numInput} />
+            <select className="q-unit" value={line.unit} onChange={e => set({ unit: e.target.value })} aria-label={t('quote.col.unit')} style={{ ...input, padding: '7px 4px', cursor: 'pointer' }}>
+              {UNITS.map(u => <option key={u} value={u}>{t(`unit.${u}`, { count: Number(line.qty) })}</option>)}
+            </select>
+            <input className="q-factor" type="number" step="any" min="0" value={line.factor} onChange={e => set({ factor: e.target.value })} aria-label={t('quote.col.factor')} title={t('quote.factorHint')} style={numInput} />
+            <input className="q-price" type="number" step="0.01" min="0" value={line.unit_price} onChange={e => set({ unit_price: e.target.value })} aria-label={t('quote.col.price')} style={numInput} />
+            <input className="q-disc" type="number" step="0.5" min="0" max="100" value={line.discount_pct} onChange={e => set({ discount_pct: e.target.value })} aria-label={t('quote.col.discount')} style={numInput} />
+            <span className="q-total" style={{ fontWeight: 700, fontSize: '13px', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatMoney(lineTotal(line), currency, lang)}</span>
+          </>
+        )}
+        <span className="q-actions" style={{ display: 'flex' }}>
+          <button onClick={() => setShowDetails(s => !s)} aria-label={t('quote.lineDetails')} title={t('quote.lineDetails')} aria-pressed={showDetails} style={{ ...iconBtn, color: line.details ? colors.accent : colors.muted }}><AlignLeft size={14} /></button>
+          <LineMenu first={first} last={last} onMove={onMove} onDuplicate={onDuplicate} onRemove={onRemove} />
+        </span>
+      </div>
+      {showDetails && (
+        <textarea value={line.details} onChange={e => set({ details: e.target.value })} aria-label={t('quote.lineDetails')}
+          placeholder={t('quote.detailsPlaceholder')} rows={2} maxLength={1000}
+          style={{ ...input, marginTop: '4px', fontSize: '13px', resize: 'vertical', lineHeight: 1.5 }} />
+      )}
+    </div>
+  )
+}
+
+function LineMenu({ first, last, onMove, onDuplicate, onRemove }) {
+  const { t } = useI18n()
+  return (
+    <>
+      <button onClick={() => onMove(-1)} disabled={first} aria-label={t('quote.moveUp')} title={t('quote.moveUp')} style={iconBtn} className="q-hide-narrow"><ChevronUp size={14} /></button>
+      <button onClick={() => onMove(1)} disabled={last} aria-label={t('quote.moveDown')} title={t('quote.moveDown')} style={iconBtn} className="q-hide-narrow"><ChevronDown size={14} /></button>
+      <button onClick={onDuplicate} aria-label={t('quote.duplicateLine')} title={t('quote.duplicateLine')} style={iconBtn}><Copy size={13} /></button>
+      <button onClick={onRemove} aria-label={t('quote.removeLine')} title={t('quote.removeLine')} style={iconBtn}><Trash2 size={13} /></button>
+    </>
+  )
+}
+
+const numInput = { ...input, padding: '7px 6px', textAlign: 'right' }
+
+// Layout for the line grid: one row on wide screens, two rows on phones.
+export const QUOTE_EDITOR_CSS = `
+  .q-header { position: sticky; top: 0; }
+  @media (max-width: 760px) { .q-header { position: static; } }
+  .q-phase-head { display: flex; gap: 10px; flex-wrap: wrap; }
+  .q-section { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+  .q-line { display: grid; grid-template-columns: 112px minmax(140px,1fr) 64px 82px 58px 92px 58px 96px auto; gap: 6px; align-items: center; }
+  .q-line.q-comment { grid-template-columns: 112px 1fr auto; }
+  .q-line-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #4A6070; padding: 0 2px 4px; }
+  .q-line-head .q-total, .q-line-head .q-qty, .q-line-head .q-factor, .q-line-head .q-price, .q-line-head .q-disc { text-align: right; }
+  .q-line-wrap { padding: 4px 0; border-top: 1px solid rgba(255,255,255,0.04); }
+  .q-add-line, .q-add-section { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
+    background: transparent; color: #8A9BAE; border: 1px dashed rgba(255,255,255,0.14); }
+  .q-add-section { padding: 9px 14px; font-size: 13px; width: 100%; justify-content: center; }
+  .q-add-line:hover, .q-add-section:hover { color: #1EC878; border-color: rgba(30,200,120,0.4); }
+  @media (max-width: 760px) {
+    .q-line-head { display: none; }
+    .q-line { grid-template-columns: 1.25fr 1fr 1fr 1fr; grid-template-areas: "kind desc desc desc" "qty unit factor price" "disc total total actions"; }
+    .q-line.q-comment { grid-template-columns: 1.25fr 1fr 1fr 1fr; grid-template-areas: "kind desc desc desc" ". . . actions"; }
+    .q-kind { grid-area: kind; } .q-desc { grid-area: desc; } .q-qty { grid-area: qty; } .q-unit { grid-area: unit; }
+    .q-factor { grid-area: factor; } .q-price { grid-area: price; } .q-disc { grid-area: disc; } .q-total { grid-area: total; }
+    .q-actions { grid-area: actions; justify-content: flex-end; }
+    .q-hide-narrow { display: none !important; }
+    .q-line-wrap { padding: 8px 0; }
+  }
+`

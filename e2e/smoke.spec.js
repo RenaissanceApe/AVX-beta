@@ -15,7 +15,7 @@ test('signed-out visitors land on the sign-in page', async ({ page }) => {
 })
 
 test('protected and unknown routes redirect to sign-in', async ({ page }) => {
-  for (const path of ['/dashboard', '/gig/00000000-0000-0000-0000-000000000000', '/no-such-page']) {
+  for (const path of ['/dashboard', '/gig/00000000-0000-0000-0000-000000000000', '/quote/00000000-0000-0000-0000-000000000000', '/org/00000000-0000-0000-0000-000000000000/quotes', '/no-such-page']) {
     await page.goto(path)
     await expect(page).toHaveURL(/\/auth$/)
   }

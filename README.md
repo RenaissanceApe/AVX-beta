@@ -8,7 +8,7 @@ Built with React + Vite, Supabase (database, auth, file storage) and hosted on V
 - **What's next:** [ROADMAP.md](ROADMAP.md)
 - **How we work on the repo:** [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Release notes:** [CHANGELOG.md](CHANGELOG.md)
-- **Email setup / spam:** [docs/EMAIL.md](docs/EMAIL.md) · **Backups:** [docs/BACKUPS.md](docs/BACKUPS.md) · **Testing:** [docs/TESTING.md](docs/TESTING.md)
+- **Email setup / spam:** [docs/EMAIL.md](docs/EMAIL.md) · **Backups:** [docs/BACKUPS.md](docs/BACKUPS.md) · **Testing:** [docs/TESTING.md](docs/TESTING.md) · **Quotes:** [docs/QUOTES.md](docs/QUOTES.md)
 
 ## Quick start
 
@@ -59,7 +59,7 @@ supabase/
 e2e/                     Playwright browser tests (e2e/auth/: signed-in, test project only)
 scripts/                 backup-storage.mjs (used by the backup workflow)
 .github/workflows/       CI (lint, unit, build, e2e), keep-alive, encrypted backups, daily email summary
-docs/                    EMAIL.md, BACKUPS.md, TESTING.md
+docs/                    EMAIL.md, BACKUPS.md, TESTING.md, QUOTES.md
 ```
 
 ## How access works
@@ -68,8 +68,9 @@ Everything is enforced in the database with Row Level Security, not in the UI:
 
 | Who | Can |
 |---|---|
-| Organisation admin | Everything in the organisation: members, roles, gigs, deleting it |
-| Organisation member | See all the organisation's gigs, create gigs, upload files |
+| Organisation admin | Everything in the organisation: members, roles, gigs, quotes, company details, deleting it |
+| Organisation member | See all the organisation's gigs, create gigs, upload files, build quotes and templates |
+| Organisation viewer | See the organisation's gigs (no quotes or prices) |
 | Gig PM | Edit the gig, add/remove crew, upload/delete files |
 | Gig crew / viewer | See the gig, its files and feed; post updates |
 | Anyone else | Nothing |

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { ToastProvider } from './lib/ToastContext'
@@ -10,6 +11,11 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import WelcomePage from './pages/WelcomePage'
 import LegalPage from './pages/LegalPage'
 import CallSheetPage from './pages/CallSheetPage'
+
+// Quotes are only for organisation admins/members, so they load on demand
+const QuotesPage = lazy(() => import('./pages/QuotesPage'))
+const QuoteEditorPage = lazy(() => import('./pages/QuoteEditorPage'))
+const QuotePrintPage = lazy(() => import('./pages/QuotePrintPage'))
 
 function Spinner() {
   return (
@@ -51,6 +57,9 @@ function AppRoutes() {
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/gig/:id" element={<ProtectedRoute><GigPage /></ProtectedRoute>} />
       <Route path="/gig/:id/callsheet" element={<ProtectedRoute><CallSheetPage /></ProtectedRoute>} />
+      <Route path="/org/:orgId/quotes" element={<ProtectedRoute><Suspense fallback={<Spinner />}><QuotesPage /></Suspense></ProtectedRoute>} />
+      <Route path="/quote/:id" element={<ProtectedRoute><Suspense fallback={<Spinner />}><QuoteEditorPage /></Suspense></ProtectedRoute>} />
+      <Route path="/quote/:id/print" element={<ProtectedRoute><Suspense fallback={<Spinner />}><QuotePrintPage /></Suspense></ProtectedRoute>} />
       <Route path="*" element={<Navigate to={user ? '/dashboard' : '/auth'} replace />} />
     </Routes>
   )
