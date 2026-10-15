@@ -53,7 +53,7 @@ export default function AuthPage() {
         }
       })
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function resendConfirmation() {
     setResendState('sending')
@@ -108,9 +108,10 @@ export default function AuthPage() {
       } else {
         if (!fullName.trim()) throw new Error(t('auth.nameRequired'))
         if (password.length < MIN_PASSWORD_LENGTH) throw new Error(t('auth.passwordMin', { min: MIN_PASSWORD_LENGTH }))
-        const { error } = await signUp(email, password, fullName.trim())
+        const { data, error } = await signUp(email, password, fullName.trim())
         if (error) throw error
-        // Supabase requires email confirmation by default
+        // Projects without email confirmation (e.g. the test project) sign in straight away
+        if (data?.session) return navigate('/dashboard')
         setAwaitingConfirmation(true)
         setError('')
       }

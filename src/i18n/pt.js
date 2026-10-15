@@ -120,6 +120,8 @@ export default {
   'account.updatePassword': 'Atualizar palavra-passe',
   'account.passwordChanged': 'Palavra-passe alterada.',
   'account.language': 'Idioma',
+  'account.emailDigest': 'Resumo por email',
+  'account.emailDigestHint': 'Uma vez por dia, um email com as notificações que ainda não leu na aplicação. Nada é enviado se estiver tudo em dia.',
   'account.yourData': 'Os seus dados',
   'account.export': 'Exportar os meus dados',
   'account.exportFailed': 'A exportação falhou: {reason}',

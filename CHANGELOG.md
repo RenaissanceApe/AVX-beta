@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0 — Phase 3: out in the field
+
+### Added
+- Offline mode: the app opens without signal; dashboard, gig pages and call sheets show the last saved
+  copy with a banner; files can be kept offline one by one or all at once. Saved data is cleared on sign-out.
+- Magic-link sign-in ("Email me a sign-in link"), with a bilingual email template
+- Daily email summary of unread notifications (Brevo), in each person's language, with an Account opt-out
+- Signed-in browser tests against a separate Supabase test project (`e2e-auth` CI job, off until enabled)
+
+### Changed
+- Projects without email confirmation sign the new user straight in after sign-up
+- Keep-alive also pings the test project when configured
+
 ## 0.5.0 — Phase 2b: team experience
 
 ### Added

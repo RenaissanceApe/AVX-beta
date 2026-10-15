@@ -121,6 +121,8 @@ export default {
   'account.updatePassword': 'Update password',
   'account.passwordChanged': 'Password changed.',
   'account.language': 'Language',
+  'account.emailDigest': 'Email summary',
+  'account.emailDigestHint': "Once a day, an email listing notifications you haven't read in the app. Nothing is sent when you're up to date.",
   'account.yourData': 'Your data',
   'account.export': 'Export my data',
   'account.exportFailed': 'Export failed: {reason}',

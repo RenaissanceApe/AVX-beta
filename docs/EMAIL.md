@@ -2,7 +2,8 @@
 
 AVX sends four kinds of email through Supabase Auth, using the SMTP provider configured in
 Supabase → Authentication → Emails → SMTP Settings: sign-up confirmation, password reset,
-invitations and (later) notifications.
+magic sign-in links and invitations. A daily **notification summary** goes out through Brevo's API
+(see the last section).
 
 ## "It landed in spam"
 
@@ -58,3 +59,41 @@ the `send-invite` Edge Function (`supabase/functions/send-invite`). It checks pe
 database, then asks Supabase Auth to send the *Invite user* email. The link opens `/welcome`,
 where the person picks a name and password. Supabase's default limit is a few auth emails per hour
 on the built-in sender; with your own SMTP you can raise it under Authentication → Rate Limits.
+
+## Daily notification summary (Brevo)
+
+People who don't open AVX every day still need to hear about a new call time or an important post.
+Once a day, the `send-digest` Edge Function (`supabase/functions/send-digest`) emails each person
+**one** summary of the notifications they haven't read in the app:
+
+- only unread notifications from the last 7 days that are at least 30 minutes old
+- each notification is emailed at most once (`notifications.emailed_at`)
+- nothing is sent to people who are up to date, or who turned it off in **Account → Email summary**
+- written in the person's language (Account → Language), with a link straight to the gig
+
+It is already deployed. It does nothing until you give it a Brevo key. **To switch it on:**
+
+1. **Brevo API key.** Brevo → top-right menu → *SMTP & API* → **API Keys** → *Generate a new API key*
+   (name it `avx-digest`). Copy it. This is a different thing from the SMTP key Supabase Auth uses.
+2. **Verified sender.** Brevo → *Senders, Domains & Dedicated IPs* → make sure the sender you'll use
+   (e.g. `no-reply@lumenandpixel.com`) is listed and its domain shows **Authenticated** (DKIM + DMARC).
+   If you already did this for the Supabase SMTP sender, it's the same one.
+3. **Turn off tracking** for transactional email (see "not secure" above), or the links get rewritten.
+4. **Function secrets.** Supabase → Edge Functions → **Secrets** → add:
+   | Name | Value |
+   |---|---|
+   | `BREVO_API_KEY` | the key from step 1 |
+   | `DIGEST_FROM` | the verified sender address, e.g. `no-reply@lumenandpixel.com` |
+   | `DIGEST_SECRET` | a long random string, e.g. from `openssl rand -hex 32` or a password manager |
+5. **GitHub secret.** GitHub → repo → Settings → Secrets and variables → Actions → *New repository
+   secret* → `DIGEST_SECRET` with **the same** random string.
+6. **Try it.** GitHub → Actions → *Email digest* → *Run workflow* with **dry run** ticked. The log shows
+   `{"users":…,"sent":…}` without sending anything. Run it again without dry run to send for real.
+
+After that it runs every morning at about 08:20 Lisbon time (07:23 UTC). Brevo's free plan allows
+300 emails a day, which is one summary each for up to 300 people.
+
+**If something looks wrong:** Supabase → Edge Functions → `send-digest` → Logs shows one line per run
+with counts only (`sent`, `optedOut`, `failed`); a `brevo` line with `status: 401` means a wrong API key,
+`400` usually means the sender isn't verified. Brevo → *Transactional* → **Logs** shows each email's
+delivery status.

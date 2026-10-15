@@ -8,7 +8,7 @@ Built with React + Vite, Supabase (database, auth, file storage) and hosted on V
 - **What's next:** [ROADMAP.md](ROADMAP.md)
 - **How we work on the repo:** [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Release notes:** [CHANGELOG.md](CHANGELOG.md)
-- **Email setup / spam:** [docs/EMAIL.md](docs/EMAIL.md) · **Backups:** [docs/BACKUPS.md](docs/BACKUPS.md)
+- **Email setup / spam:** [docs/EMAIL.md](docs/EMAIL.md) · **Backups:** [docs/BACKUPS.md](docs/BACKUPS.md) · **Testing:** [docs/TESTING.md](docs/TESTING.md)
 
 ## Quick start
 
@@ -26,7 +26,7 @@ npm run dev            # http://localhost:5173
 | `npm run lint` | ESLint (bans `console.*` outside the logger and `alert()`) |
 | `npm test` | Unit tests (Vitest) |
 | `npm run build` | Production build into `dist/` |
-| `npm run test:e2e` | Browser tests (Playwright) against the built app — run `npm run build` first |
+| `npm run test:e2e` | Browser tests (Playwright) against the built app — run `npm run build` first. Signed-in tests: see docs/TESTING.md |
 | `npm run check` | Lint + unit tests + build — run before opening a PR |
 
 ## Project layout
@@ -56,10 +56,10 @@ supabase/
   functions/send-invite  Edge Function: add by email + send invitation
   templates/             branded auth email templates (paste into Supabase)
   tests/rls_smoke.sql    access-rule test (always rolls back)
-e2e/                     Playwright browser tests
+e2e/                     Playwright browser tests (e2e/auth/: signed-in, test project only)
 scripts/                 backup-storage.mjs (used by the backup workflow)
-.github/workflows/       CI (lint, unit, build, e2e), Supabase keep-alive, encrypted backups
-docs/                    EMAIL.md, BACKUPS.md
+.github/workflows/       CI (lint, unit, build, e2e), keep-alive, encrypted backups, daily email summary
+docs/                    EMAIL.md, BACKUPS.md, TESTING.md
 ```
 
 ## How access works

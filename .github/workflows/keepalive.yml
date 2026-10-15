@@ -1,7 +1,7 @@
 name: Supabase keep-alive
 
 # Free Supabase projects pause after 7 days without API activity.
-# A tiny read twice a week keeps the pilot database awake.
+# A tiny read twice a week keeps the pilot database (and the test project, if set up) awake.
 on:
   schedule:
     - cron: '17 6 * * 1,4'
@@ -20,4 +20,13 @@ jobs:
             "$VITE_SUPABASE_URL/rest/v1/organisations?select=id&limit=1" \
             -H "apikey: $VITE_SUPABASE_ANON_KEY")
           echo "Supabase responded with HTTP $status"
+          test "$status" = "200"
+      - name: Ping the test project (if configured)
+        if: vars.TEST_SUPABASE_URL != ''
+        env:
+          URL: ${{ vars.TEST_SUPABASE_URL }}
+          KEY: ${{ vars.TEST_SUPABASE_ANON_KEY }}
+        run: |
+          status=$(curl -s -o /dev/null -w '%{http_code}' "$URL/rest/v1/organisations?select=id&limit=1" -H "apikey: $KEY")
+          echo "Test project responded with HTTP $status"
           test "$status" = "200"

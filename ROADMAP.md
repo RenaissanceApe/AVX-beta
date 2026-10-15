@@ -56,15 +56,18 @@ in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTA
 
 | Item | Notes |
 |---|---|
-| Email notifications | Daily digest of unread notifications, in each person's language (needs an email API key, e.g. Resend) |
-| Signed-in browser tests | A separate Supabase test project plus test users in CI: sign-up, invite, upload, schedule, notifications |
-| Offline mode | Cache the gig, schedule, call sheet and recent files for venues with no signal (service worker) |
-| Magic-link sign-in for crew | Passwordless option alongside email + password |
-| Rentman integration | Import gigs and crew from Rentman |
+| ✅ Email notifications | Daily summary of unread notifications through Brevo, in each person's language; opt-out in Account (0.6.0; switch on per docs/EMAIL.md) |
+| ✅ Signed-in browser tests | "AVX test" Supabase project + `e2e-auth` CI job: sign-up, org, gig, schedule, offline, notifications, account deletion (0.6.0; switch on per docs/TESTING.md) |
+| ✅ Offline mode | App shell cached by a service worker; dashboard, gig and call sheet show their last saved copy; files can be kept offline (0.6.0) |
+| ✅ Magic-link sign-in | Passwordless option alongside email + password (0.6.0) |
 | MFA + leaked-password protection | Needs Supabase Pro |
 | Usage analytics for the pilot | Privacy-friendly, cookie-free |
+| Signed-in tests for uploads and invites by email | Extend `e2e/auth/` once the basics are stable |
+
+**Later, not now:** Rentman integration (import gigs and crew).
 
 ## Known limitations (beta)
 
-- Notifications are in-app only; email digests are Phase 3.
+- The email summary goes out once a day, not instantly.
+- Offline mode is read-only: uploads, posts and edits need a connection.
 - Supabase free plan: pauses after 7 days idle (the keep-alive workflow prevents this); no leaked-password check.
