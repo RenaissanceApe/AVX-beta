@@ -53,6 +53,6 @@ Authentication → Users.
 
 ### Database access rules
 
-`supabase/tests/rls_smoke.sql` checks the access rules directly in SQL. Paste it into the
-**test project's** SQL editor; it runs inside a transaction that is rolled back and ends with
-`ALL CHECKS PASSED`.
+`supabase/tests/rls_smoke.sql` and `supabase/tests/quotes_rls.sql` check the access rules directly in
+SQL. Paste each into the **test project's** SQL editor; each runs inside a transaction that is rolled
+back and ends with `ALL CHECKS PASSED` / `ALL QUOTE CHECKS PASSED`.

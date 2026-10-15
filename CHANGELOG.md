@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.7.0 — Phase 4: quotes
+
+### Added
+- Quotes for organisation admins and members: phases as tabs (own dates, discount, optional),
+  sections and priced lines (rental, sale, crew, transport, other, comment), live totals by phase,
+  by type, with discount and VAT
+- Templates: save a whole quote or one phase, start a quote from a template or add one as a block
+- Printable quote / PDF in Portuguese or English with company details and terms; optional
+  "no prices per line" layout
+- Company details and quote defaults per organisation (admins)
+- Create a gig from a quote, or link a quote to an existing gig
+- Access-rule test for quotes (`supabase/tests/quotes_rls.sql`), unit tests for the quote maths,
+  signed-in browser test for building and printing a quote
+
 ## 0.6.0 — Phase 3: out in the field
 
 ### Added

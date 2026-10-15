@@ -9,7 +9,7 @@ import GigCalendar from '../components/GigCalendar'
 import { GIG_FILTERS, filterGigs, countByBucket } from '../lib/gigs'
 import {
   Zap, Plus, Calendar, MapPin, Users, ChevronRight,
-  Building2, LogOut, Loader2, X, ArrowRight, CheckCircle, Search, List, CalendarDays
+  Building2, LogOut, Loader2, X, ArrowRight, CheckCircle, Search, List, CalendarDays, FileText
 } from 'lucide-react'
 import { useI18n, t, fmt } from '../i18n'
 import NotificationBell from '../components/NotificationBell'
@@ -255,9 +255,19 @@ export default function Dashboard() {
               }}>
                 <Plus size={13} /> {t('dash.addOrg')}
               </button>
+              {activeOrg && ['admin', 'member'].includes(activeOrg.myRole) && (
+                <button onClick={() => navigate(`/org/${activeOrg.id}/quotes`)} style={{
+                  padding: '6px 14px', borderRadius: '20px', marginLeft: 'auto',
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                  color: '#8A9BAE', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '6px'
+                }}>
+                  <FileText size={13} /> {t('dash.quotes')}
+                </button>
+              )}
               {activeOrg && (
                 <button onClick={() => setShowMembers(true)} style={{
-                  padding: '6px 14px', borderRadius: '20px', marginLeft: 'auto',
+                  padding: '6px 14px', borderRadius: '20px', marginLeft: ['admin', 'member'].includes(activeOrg.myRole) ? 0 : 'auto',
                   background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
                   color: '#8A9BAE', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: '6px'
