@@ -16,3 +16,11 @@ export async function removeGigFiles(gigIds) {
     if (removeError) logger.error('storage', removeError, { step: 'remove', gigId, count: paths.length })
   }
 }
+
+// Short-lived link to a stored file (optionally forcing a download filename)
+export async function signedUrl(path, downloadName, expiresIn = 600) {
+  const { data, error } = await supabase.storage.from('gig-assets')
+    .createSignedUrl(path, expiresIn, downloadName ? { download: downloadName } : undefined)
+  if (error || !data?.signedUrl) throw error || new Error('No link returned')
+  return data.signedUrl
+}

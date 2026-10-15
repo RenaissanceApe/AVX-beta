@@ -63,6 +63,14 @@ export default function AccountModal({ onClose }) {
     if (error) logger.error('account', error, { step: 'language' })
   }
 
+  async function changeDigest(on) {
+    const { error } = await updateProfile({ email_digest: on })
+    if (error) {
+      logger.error('account', error, { step: 'emailDigest' })
+      notify(userMessage(error), 'error')
+    }
+  }
+
   // GDPR data access: everything AVX stores about you, as a JSON file
   async function exportData() {
     setExporting(true)
@@ -184,6 +192,17 @@ export default function AccountModal({ onClose }) {
           <select id="account-language" value={lang} onChange={e => changeLanguage(e.target.value)} style={{ ...input, cursor: 'pointer' }}>
             {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
           </select>
+        </div>
+
+        <div style={section}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+            <input type="checkbox" checked={profile?.email_digest !== false} onChange={e => changeDigest(e.target.checked)}
+              style={{ marginTop: '3px', accentColor: '#1EC878' }} />
+            <span>
+              <span style={{ fontWeight: 600 }}>{t('account.emailDigest')}</span>
+              <span style={{ display: 'block', color: '#4A6070', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.emailDigestHint')}</span>
+            </span>
+          </label>
         </div>
 
         <div style={section}>

@@ -28,6 +28,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 6. `supabase/migrations/20261016000000_schedule_activity_realtime.sql` — schedule, activity log, phone numbers, realtime
 7. `supabase/migrations/20261017000000_notifications_language.sql` — notifications, saved language, invite fix
 8. `supabase/migrations/20261017000001_crew_availability.sql` — unavailable dates and clash checks
+9. `supabase/migrations/20261018000000_email_digest.sql` — email summary settings
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.
@@ -54,6 +55,8 @@ Recommended while you're in Auth settings:
 
 - Deploy the invite function: `supabase functions deploy send-invite` (Supabase CLI), or paste
   `supabase/functions/send-invite/index.ts` into Supabase → Edge Functions. Keep "Verify JWT" on.
+- Optional daily email summary: deploy `supabase/functions/send-digest` with "Verify JWT" **off**
+  (it checks its own secret), then follow the Brevo steps in [docs/EMAIL.md](docs/EMAIL.md).
 - Follow [docs/EMAIL.md](docs/EMAIL.md): custom SMTP, sender domain DNS, no click tracking, and the email templates.
 - Optional: [docs/BACKUPS.md](docs/BACKUPS.md) for daily encrypted backups.
 

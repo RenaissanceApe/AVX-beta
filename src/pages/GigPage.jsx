@@ -16,6 +16,8 @@ import ActivityTab from '../components/gig/ActivityTab'
 import AssetVersionsModal from '../components/gig/AssetVersionsModal'
 import EditGigModal from '../components/gig/EditGigModal'
 import NotificationBell from '../components/NotificationBell'
+import OfflineBanner from '../components/OfflineBanner'
+import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 
 // Gig page container: loads the gig's data, keeps it live, works out permissions,
 // and hands everything to the tab components in src/components/gig/.
@@ -36,9 +38,16 @@ export default function GigPage() {
   const [showInvite, setShowInvite] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [versionsAsset, setVersionsAsset] = useState(null)
+  const [savedAt, setSavedAt] = useState(null) // set when showing the offline copy
 
   // Switching gigs (e.g. from a notification) must not show the previous gig while loading
   useEffect(() => { setData(null); setVersionsAsset(null); loadAll() }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Back online: replace the saved copy with fresh data
+  useEffect(() => {
+    const onOnline = () => loadAll({ silent: true })
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
   // Links such as /gig/:id?tab=schedule (from notifications) select a tab
   useEffect(() => { if (GIG_TABS.includes(requestedTab)) setTab(requestedTab) }, [requestedTab, id])
 
@@ -69,6 +78,21 @@ export default function GigPage() {
       supabase.from('gig_activity').select('*').eq('gig_id', id).order('created_at', { ascending: false }).limit(100),
     ])
     const results = { gig: gigRes, members: membersRes, assets: assetsRes, posts: postsRes, schedule: scheduleRes, activity: activityRes }
+
+    // No connection: show the copy saved the last time this gig loaded
+    if (gigRes.error && isNetworkError(gigRes.error)) {
+      const snap = loadSnapshot(`gig.${id}`)
+      if (snap) {
+        setData(snap.data.data)
+        setProfiles(snap.data.profiles)
+        setOrgRole(snap.data.orgRole)
+        setSavedAt(snap.savedAt)
+      } else if (!silent) {
+        setData(d => d ?? { offlineMissing: true })
+      }
+      setLoading(false)
+      return
+    }
     for (const [step, res] of Object.entries(results)) {
       if (res.error) logger.error('gig', res.error, { step, gigId: id })
     }
@@ -83,10 +107,12 @@ export default function GigPage() {
     }
 
     // My role in the gig's organisation decides what I can edit (mirrors the database rules)
+    let role = null
     if (next.gig?.org_id) {
       const { data: om } = await supabase.from('org_members').select('role')
         .eq('org_id', next.gig.org_id).eq('user_id', user.id).maybeSingle()
-      setOrgRole(om?.role ?? null)
+      role = om?.role ?? null
+      setOrgRole(role)
     }
 
     const uids = [...new Set([
@@ -95,18 +121,34 @@ export default function GigPage() {
       ...next.assets.map(a => a.created_by),
       ...next.activity.flatMap(e => [e.actor_id, e.details?.user_id]),
     ].filter(Boolean))]
+    let profileMap = {}
     if (uids.length) {
       const { data: profileData, error } = await supabase.from('profiles').select('id, full_name, phone').in('id', uids)
       if (error) logger.error('gig', error, { step: 'profiles', gigId: id })
-      setProfiles(Object.fromEntries((profileData || []).map(p => [p.id, p])))
+      profileMap = Object.fromEntries((profileData || []).map(p => [p.id, p]))
+      setProfiles(profileMap)
     }
     setData(next)
+    setSavedAt(null)
     setLoading(false)
+    if (next.gig) saveSnapshot(`gig.${id}`, { data: next, profiles: profileMap, orgRole: role })
   }
 
   if (loading && !data) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <Loader2 size={28} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+    </div>
+  )
+
+  if (data?.offlineMissing) return (
+    <div style={{ minHeight: '100vh' }}>
+      <OfflineBanner />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center' }}>
+        <div style={{ maxWidth: '360px' }}>
+          <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>{t('offline.notSaved')}</p>
+          <button onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
+        </div>
+      </div>
     </div>
   )
 
@@ -131,6 +173,7 @@ export default function GigPage() {
 
   return (
     <div style={{ minHeight: '100vh', color: '#fff' }}>
+      <OfflineBanner savedAt={savedAt} />
       <GigHeader gig={gig} crewCount={members.length} myMembership={myMembership} canEdit={isPM}
         tab={tab} setTab={setTab} counts={{ assets: assets.length, crew: members.length, feed: posts.length, schedule: schedule.length }}
         onBack={() => navigate('/dashboard')} onRefresh={() => loadAll()} onEdit={() => setShowEdit(true)}
@@ -148,7 +191,7 @@ export default function GigPage() {
             onChanged={reload} onOpenCallSheet={() => navigate(`/gig/${id}/callsheet`)} />
         )}
         {tab === 'assets' && (
-          <AssetsTab gigId={id} assets={assets} canUpload={canUpload} onOpen={setVersionsAsset} onChanged={reload}
+          <AssetsTab gigId={id} assets={assets} canUpload={canUpload} offline={!!savedAt} onOpen={setVersionsAsset} onChanged={reload}
             showUpload={showUpload} setShowUpload={setShowUpload} />
         )}
         {tab === 'crew' && (

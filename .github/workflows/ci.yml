@@ -43,3 +43,39 @@ jobs:
           name: playwright-traces
           path: test-results/
           retention-days: 7
+
+  # Signed-in journeys against the Supabase TEST project. Off until the repository
+  # variable E2E_AUTH_ENABLED is 'true' and TEST_SUPABASE_URL / TEST_SUPABASE_ANON_KEY
+  # are set (Settings → Secrets and variables → Actions → Variables). See docs/TESTING.md.
+  e2e-auth:
+    if: vars.E2E_AUTH_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: e2e-auth
+      cancel-in-progress: false
+    env:
+      E2E_AUTH: '1'
+      VITE_SUPABASE_URL: ${{ vars.TEST_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.TEST_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Refuse to run against production
+        run: |
+          case "$VITE_SUPABASE_URL" in
+            ""|*otmulrlslecgyezpcqxy*) echo "TEST_SUPABASE_URL must point at the test project"; exit 1 ;;
+          esac
+      - run: npm run build
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces-auth
+          path: test-results/
+          retention-days: 7

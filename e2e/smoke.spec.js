@@ -31,6 +31,15 @@ test('forgot-password and create-account modes', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'beta terms' })).toBeVisible()
 })
 
+test('sign-in link mode asks only for an email', async ({ page }) => {
+  await page.goto('/auth')
+  await page.getByRole('button', { name: 'Email me a sign-in link' }).click()
+  await expect(page.getByRole('button', { name: /Send sign-in link/ })).toBeVisible()
+  await expect(page.getByPlaceholder('••••••••')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Back to Sign In' }).click()
+  await expect(page.getByPlaceholder('••••••••')).toBeVisible()
+})
+
 test('switching to Portuguese translates the page and is remembered', async ({ page }) => {
   await page.goto('/auth')
   await page.getByRole('button', { name: 'Português' }).click()

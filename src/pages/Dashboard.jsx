@@ -13,6 +13,8 @@ import {
 } from 'lucide-react'
 import { useI18n, t, fmt } from '../i18n'
 import NotificationBell from '../components/NotificationBell'
+import OfflineBanner from '../components/OfflineBanner'
+import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 
 const STATUS_CONFIG = {
   draft:     { color: '#4A6070', bg: 'rgba(74,96,112,0.15)' },
@@ -39,12 +41,19 @@ export default function Dashboard() {
   const [showMembers, setShowMembers] = useState(false)
   const [gigFilter, setGigFilter] = useState('upcoming')
   const [gigSearch, setGigSearch] = useState('')
+  const [savedAt, setSavedAt] = useState(null) // set when showing the offline copy
   const [creating, setCreating] = useState(false)
   const [newOrgName, setNewOrgName] = useState('')
   const [orgError, setOrgError] = useState('')
   const [gigForm, setGigForm] = useState({ name: '', venue: '', start_date: '', end_date: '', description: '', status: 'confirmed' })
 
-  useEffect(() => { if (user) fetchOrgs() }, [user])
+  useEffect(() => { if (user) fetchOrgs() }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Back online: refresh the saved copy
+  useEffect(() => {
+    const onOnline = () => { if (user) fetchOrgs() }
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (activeOrg) fetchGigs(activeOrg.id) }, [activeOrg])
 
   async function fetchOrgs(selectId) {
@@ -52,6 +61,18 @@ export default function Dashboard() {
       supabase.from('org_members').select('role, organisations(*)').eq('user_id', user.id),
       supabase.from('gig_members').select('gigs(*)').eq('user_id', user.id),
     ])
+    if (error && isNetworkError(error)) {
+      // No connection: show the dashboard as it was last loaded on this device
+      const snap = loadSnapshot('dashboard')
+      if (snap) {
+        setOrgs(snap.data.orgs)
+        setSharedGigs(snap.data.sharedGigs)
+        setActiveOrg(snap.data.orgs.find(o => o.id === (selectId || activeOrg?.id)) || snap.data.orgs[0] || null)
+        setSavedAt(snap.savedAt)
+      }
+      setLoadingOrgs(false)
+      return
+    }
     if (error) logger.error('dashboard', error, { step: 'fetchOrgs' })
     if (membershipsError) logger.error('dashboard', membershipsError, { step: 'fetchSharedGigs' })
     const list = (data || []).filter(d => d.organisations).map(d => ({ ...d.organisations, myRole: d.role }))
@@ -65,11 +86,14 @@ export default function Dashboard() {
 
     // Gigs the user was added to as crew, in organisations they don't belong to
     const myOrgIds = new Set(list.map(o => o.id))
-    setSharedGigs((memberships || [])
+    const shared = (memberships || [])
       .map(m => m.gigs)
       .filter(g => g && !myOrgIds.has(g.org_id))
-      .sort((a, b) => (a.start_date || '').localeCompare(b.start_date || '')))
+      .sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''))
+    setSharedGigs(shared)
+    setSavedAt(null)
     setLoadingOrgs(false)
+    if (!error) saveSnapshot('dashboard', { orgs: list, sharedGigs: shared })
   }
 
   async function fetchGigs(orgId) {
@@ -79,8 +103,14 @@ export default function Dashboard() {
       .select('*')
       .eq('org_id', orgId)
       .order('start_date', { ascending: true, nullsFirst: false })
+    if (error && isNetworkError(error)) {
+      setGigs(loadSnapshot(`dashboard.gigs.${orgId}`)?.data || [])
+      setLoadingGigs(false)
+      return
+    }
     if (error) logger.error('dashboard', error, { step: 'fetchGigs' })
     setGigs(data || [])
+    if (!error) saveSnapshot(`dashboard.gigs.${orgId}`, data || [])
     setLoadingGigs(false)
   }
 
@@ -139,6 +169,7 @@ export default function Dashboard() {
   return (
     <div style={{ minHeight: '100vh', background: '#080C14', fontFamily: "'DM Sans', sans-serif", color: '#fff' }}>
       <style>{`* { box-sizing: border-box; } input, textarea, select { font-family: 'DM Sans', sans-serif; }`}</style>
+      <OfflineBanner savedAt={savedAt} />
 
       {/* Top nav */}
       <nav style={{

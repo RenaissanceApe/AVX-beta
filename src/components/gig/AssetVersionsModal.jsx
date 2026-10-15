@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Loader2, Eye, Download, ExternalLink } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
@@ -8,12 +8,8 @@ import { versionChain, previewKind } from '../../lib/versions'
 import { useI18n } from '../../i18n'
 import { Modal, btn, card, colors } from '../ui'
 
-async function signedUrl(path, downloadName) {
-  const { data, error } = await supabase.storage.from('gig-assets')
-    .createSignedUrl(path, 600, downloadName ? { download: downloadName } : undefined)
-  if (error || !data?.signedUrl) throw error || new Error('No link returned')
-  return data.signedUrl
-}
+import { signedUrl } from '../../lib/storage'
+import { offlineFileUrl } from '../../lib/offline'
 
 // Version history for one document, with an in-app preview for PDFs and images.
 export default function AssetVersionsModal({ asset, nameOf, onClose }) {
@@ -23,6 +19,21 @@ export default function AssetVersionsModal({ asset, nameOf, onClose }) {
   const [loading, setLoading] = useState(true)
   const [preview, setPreview] = useState(null) // { kind, url, version }
   const [busy, setBusy] = useState(null)
+  const objectUrls = useRef([])
+
+  // Free memory used by offline copies when the dialog closes
+  useEffect(() => () => objectUrls.current.forEach(u => URL.revokeObjectURL(u)), [])
+
+  // Prefer the copy saved on this device (works offline and is instant), else a signed link
+  async function fileUrl(v, downloadName) {
+    const local = await offlineFileUrl(v.id)
+    if (local) {
+      objectUrls.current.push(local)
+      return { url: local, local: true }
+    }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new Error(t('offline.fileUnavailable'))
+    return { url: await signedUrl(v.file_url, downloadName), local: false }
+  }
 
   useEffect(() => {
     supabase.from('assets').select('*').eq('gig_id', asset.gig_id).eq('type', asset.type)
@@ -43,7 +54,8 @@ export default function AssetVersionsModal({ asset, nameOf, onClose }) {
     if (!kind) return
     setBusy(v.id)
     try {
-      setPreview({ kind, url: await signedUrl(v.file_url), version: v.version })
+      const { url } = await fileUrl(v)
+      setPreview({ kind, url, version: v.version })
     } catch (err) {
       logger.error('assets', err, { step: 'preview', assetId: v.id })
       notify(t('versions.previewFailed', { reason: userMessage(err) }), 'error')
@@ -56,8 +68,16 @@ export default function AssetVersionsModal({ asset, nameOf, onClose }) {
     setBusy(v.id)
     try {
       const ext = v.file_url.split('.').pop()
-      const url = await signedUrl(v.file_url, `${v.name} v${v.version}.${ext}`)
-      window.location.href = url
+      const filename = `${v.name} v${v.version}.${ext}`
+      const { url, local } = await fileUrl(v, filename)
+      if (local) {
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        a.click()
+      } else {
+        window.location.href = url
+      }
     } catch (err) {
       logger.error('assets', err, { step: 'download', assetId: v.id })
       notify(t('versions.downloadFailed', { reason: userMessage(err) }), 'error')
