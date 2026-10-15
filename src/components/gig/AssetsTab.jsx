@@ -1,19 +1,61 @@
-import { useRef, useState } from 'react'
-import { Upload, Eye, Trash2, Loader2, CheckCircle } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Upload, Eye, Trash2, Loader2, CheckCircle, DownloadCloud, CloudOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { MAX_UPLOAD_BYTES, storagePath, findAssetToSupersede, formatBytes } from '../../lib/files'
 import { useI18n } from '../../i18n'
-import { Modal, btnPrimary, iconBtn, input, label, colors } from '../ui'
+import { signedUrl } from '../../lib/storage'
+import { saveFileOffline, removeFileOffline, offlineFileIds } from '../../lib/offline'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
 import { ASSET_TYPES, assetType, TabHeader } from './parts'
 
 const EMPTY_FORM = { type: 'patch_list', name: '', file: null }
 
-export default function AssetsTab({ gigId, assets, canUpload, onOpen, onChanged, showUpload, setShowUpload }) {
+export default function AssetsTab({ gigId, assets, canUpload, offline = false, onOpen, onChanged, showUpload, setShowUpload }) {
   const { t, ago } = useI18n()
   const { notify } = useToast()
+  const [savedIds, setSavedIds] = useState(new Set())
+  const [savingId, setSavingId] = useState(null)
+  const [bulk, setBulk] = useState(null) // { done, total } while saving all
+
+  useEffect(() => { offlineFileIds().then(setSavedIds) }, [assets])
+
+  async function toggleOffline(asset) {
+    setSavingId(asset.id)
+    try {
+      if (savedIds.has(asset.id)) {
+        await removeFileOffline(asset.id)
+      } else {
+        await saveFileOffline(asset, await signedUrl(asset.file_url))
+      }
+      setSavedIds(await offlineFileIds())
+    } catch (err) {
+      logger.error('offline', err, { step: 'saveFile', assetId: asset.id })
+      notify(t('offline.saveFailed', { reason: userMessage(err) }), 'error')
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  async function saveAll() {
+    const todo = assets.filter(a => a.file_url && !savedIds.has(a.id))
+    setBulk({ done: 0, total: todo.length })
+    let saved = 0
+    for (const a of todo) {
+      try {
+        await saveFileOffline(a, await signedUrl(a.file_url))
+        saved++
+      } catch (err) {
+        logger.error('offline', err, { step: 'saveAll', assetId: a.id })
+      }
+      setBulk({ done: saved, total: todo.length })
+    }
+    setSavedIds(await offlineFileIds())
+    setBulk(null)
+    notify(t('offline.savedAll', { count: saved }), saved === todo.length ? 'success' : 'error')
+  }
 
   async function deleteAsset(asset) {
     if (!window.confirm(t('assets.confirmDelete', { name: asset.name, version: asset.version }))) return
@@ -33,7 +75,17 @@ export default function AssetsTab({ gigId, assets, canUpload, onOpen, onChanged,
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
       <TabHeader title={t('gig.tab.assets')} subtitle={t('assets.subtitle')}
-        action={canUpload && <button onClick={() => setShowUpload(true)} style={btnPrimary}><Upload size={14} /> {t('assets.upload')}</button>} />
+        action={
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {!offline && assets.length > 0 && assets.some(a => !savedIds.has(a.id)) && (
+              <button onClick={saveAll} disabled={!!bulk} style={btn}>
+                {bulk ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <DownloadCloud size={14} />}
+                {bulk ? t('offline.savingAll', bulk) : t('offline.saveAll')}
+              </button>
+            )}
+            {canUpload && !offline && <button onClick={() => setShowUpload(true)} style={btnPrimary}><Upload size={14} /> {t('assets.upload')}</button>}
+          </div>
+        } />
 
       {assets.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '70px 20px' }}>
@@ -77,7 +129,16 @@ export default function AssetsTab({ gigId, assets, canUpload, onOpen, onChanged,
                 }}>
                   <Eye size={13} /> {a.version > 1 ? t('assets.openHistory') : t('common.open')}
                 </button>
-                {canUpload && (
+                {!offline && (
+                  <button onClick={() => toggleOffline(a)} disabled={savingId === a.id} style={{ ...iconBtn, color: savedIds.has(a.id) ? colors.accent : colors.muted }}
+                    aria-pressed={savedIds.has(a.id)} title={savedIds.has(a.id) ? t('offline.remove') : t('offline.keep')}
+                    aria-label={savedIds.has(a.id) ? t('offline.remove') : t('offline.keep')}>
+                    {savingId === a.id ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
+                      : savedIds.has(a.id) ? <CloudOff size={15} /> : <DownloadCloud size={15} />}
+                  </button>
+                )}
+                {offline && savedIds.has(a.id) && <span title={t('offline.kept')} style={{ color: colors.accent, display: 'flex' }}><CheckCircle size={15} /></span>}
+                {canUpload && !offline && (
                   <button onClick={() => deleteAsset(a)} aria-label={t('assets.deleteNamed', { name: a.name })} title={t('common.delete')} style={iconBtn}>
                     <Trash2 size={15} />
                   </button>

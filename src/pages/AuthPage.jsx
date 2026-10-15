@@ -82,6 +82,16 @@ export default function AuthPage() {
         })
         if (error) throw error
         setResetSent(true)
+      } else if (mode === 'magic') {
+        // Existing accounts only. The reply is the same whether or not the email exists,
+        // so the form can't be used to find out who has an account.
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/dashboard` },
+        })
+        if (error && !/signups? not allowed|user not found/i.test(error.message)) throw error
+        if (error) logger.info('auth', 'Magic link requested for unknown email')
+        setResetSent(true)
       } else if (mode === 'signin') {
         const { error } = await signIn(email, password)
         if (error) {
@@ -273,7 +283,7 @@ export default function AuthPage() {
                 required
               />
             </div>
-            {mode !== 'reset' && <div>
+            {mode !== 'reset' && mode !== 'magic' && <div>
               <label style={{ display: 'block', fontSize: '12px', color: '#4A6070', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {t('auth.password')}
               </label>
@@ -297,9 +307,14 @@ export default function AuthPage() {
                 </button>
               </div>
               {mode === 'signin' && (
-                <button type="button" onClick={() => { setMode('reset'); setError('') }} style={linkButton}>
-                  {t('auth.forgot')}
-                </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+                  <button type="button" onClick={() => { setMode('reset'); setError(''); setResetSent(false) }} style={linkButton}>
+                    {t('auth.forgot')}
+                  </button>
+                  <button type="button" onClick={() => { setMode('magic'); setError(''); setResetSent(false) }} style={linkButton}>
+                    {t('auth.magicLink')}
+                  </button>
+                </div>
               )}
             </div>}
 
@@ -310,11 +325,11 @@ export default function AuthPage() {
               </p>
             )}
 
-            {mode === 'reset' && (
-              <p style={{ color: '#4A6070', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
-                {resetSent
-                  ? t('auth.resetSent', { email })
-                  : t('auth.resetIntro')}
+            {(mode === 'reset' || mode === 'magic') && (
+              <p role="status" style={{ color: resetSent ? '#1EC878' : '#4A6070', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
+                {mode === 'reset'
+                  ? (resetSent ? t('auth.resetSent', { email }) : t('auth.resetIntro'))
+                  : (resetSent ? t('auth.magicSent', { email }) : t('auth.magicIntro'))}
               </p>
             )}
 
@@ -346,10 +361,10 @@ export default function AuthPage() {
               boxShadow: loading ? 'none' : '0 4px 20px rgba(30,200,120,0.3)',
             }}>
               {loading ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : null}
-              {loading ? t('common.pleaseWait') : mode === 'signin' ? t('auth.signIn') : mode === 'reset' ? t('auth.sendReset') : t('auth.createAccount')}
+              {loading ? t('common.pleaseWait') : mode === 'signin' ? t('auth.signIn') : mode === 'reset' ? t('auth.sendReset') : mode === 'magic' ? t('auth.sendMagic') : t('auth.createAccount')}
               {!loading && <ArrowRight size={16} />}
             </button>
-            {mode === 'reset' && (
+            {(mode === 'reset' || mode === 'magic') && (
               <button type="button" onClick={() => { setMode('signin'); setError(''); setResetSent(false) }} style={{ ...linkButton, alignSelf: 'center' }}>
                 {t('auth.backToSignIn')}
               </button>

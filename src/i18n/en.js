@@ -380,4 +380,23 @@ export default {
   'availability.conflictBooked': 'Busy {range} (another gig)',
   'availability.conflictBookedNamed': 'Busy {range} ({gig})',
   'availability.inviteWarning': 'Possible clash on these dates:',
+
+  'auth.magicLink': 'Email me a sign-in link',
+  'auth.magicIntro': "Enter the email of your AVX account and we'll send you a link that signs you in — no password needed.",
+  'auth.magicSent': 'If {email} has an AVX account, a sign-in link is on its way. It works once and expires in 1 hour.',
+  'auth.sendMagic': 'Send sign-in link',
+
+  'offline.banner': "You're offline — showing saved data. Changes need a connection.",
+  'offline.savedCopy': "Couldn't reach AVX — showing the saved copy.",
+  'offline.savedAt': 'saved {when}',
+  'offline.notSaved': "This isn't saved on this device yet. Open it once while online to keep a copy.",
+  'offline.keep': 'Keep offline',
+  'offline.kept': 'Saved on this device',
+  'offline.remove': 'Remove offline copy',
+  'offline.saveAll': 'Save all files offline',
+  'offline.savingAll': 'Saving {done}/{total}…',
+  'offline.savedAll.one': '{count} file saved on this device.',
+  'offline.savedAll.other': '{count} files saved on this device.',
+  'offline.saveFailed': 'Could not save for offline: {reason}',
+  'offline.fileUnavailable': "This file isn't saved on this device, so it can't be opened offline.",
 }

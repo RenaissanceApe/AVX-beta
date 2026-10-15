@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { logger } from './logger'
 import { setMonitoringUser } from './monitoring'
+import { setOfflineUser, clearOfflineData } from './offline'
 import { useI18n } from '../i18n'
 
 const AuthContext = createContext({})
@@ -28,6 +29,9 @@ export function AuthProvider({ children }) {
       const nextUser = session?.user ?? null
       setUser(nextUser)
       setMonitoringUser(nextUser?.id ?? null)
+      setOfflineUser(nextUser?.id ?? null)
+      // Signed out (by the user or because the session ended): remove offline copies from this device
+      if (event === 'SIGNED_OUT') clearOfflineData()
       if (!nextUser) {
         setProfile(null)
         setLoading(false)
@@ -62,6 +66,7 @@ export function AuthProvider({ children }) {
   }
 
   async function signOut() {
+    await clearOfflineData()
     const { error } = await supabase.auth.signOut()
     if (error) logger.error('auth', error, { step: 'signOut' })
   }

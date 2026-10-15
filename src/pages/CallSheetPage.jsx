@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Printer, Loader2 } from 'lucide-react'
 import { useI18n } from '../i18n'
+import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
+import OfflineBanner from '../components/OfflineBanner'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { groupByDay, shortTime, sortCrewForCallSheet } from '../lib/schedule'
@@ -22,6 +24,12 @@ export default function CallSheetPage() {
         supabase.from('gig_schedule').select('*').eq('gig_id', id),
         supabase.from('gig_members').select('*').eq('gig_id', id),
       ])
+      // No connection: use the call sheet as it was last loaded on this device
+      if (gigRes.error && isNetworkError(gigRes.error)) {
+        const snap = loadSnapshot(`callsheet.${id}`)
+        if (snap) return setData({ ...snap.data, savedAt: snap.savedAt })
+        return setError(true)
+      }
       if (gigRes.error || !gigRes.data) {
         if (gigRes.error) logger.error('callsheet', gigRes.error, { gigId: id })
         return setError(true)
@@ -30,12 +38,14 @@ export default function CallSheetPage() {
       const { data: profiles } = uids.length
         ? await supabase.from('profiles').select('id, full_name, phone').in('id', uids)
         : { data: [] }
-      setData({
+      const sheet = {
         gig: gigRes.data,
         schedule: scheduleRes.data || [],
         members: membersRes.data || [],
         profiles: Object.fromEntries((profiles || []).map(p => [p.id, p])),
-      })
+      }
+      setData(sheet)
+      saveSnapshot(`callsheet.${id}`, sheet)
     }
     load()
   }, [id])
@@ -74,11 +84,12 @@ export default function CallSheetPage() {
         @media print {
           @page { margin: 12mm; }
           body, .callsheet-page { background: #fff !important; padding: 0; }
-          .toolbar { display: none; }
+          .toolbar, .toolbar-offline { display: none; }
           .sheet { border-radius: 0; padding: 0; max-width: none; }
           tr { break-inside: avoid; }
         }
       `}</style>
+      <div className="toolbar-offline"><OfflineBanner savedAt={data.savedAt} /></div>
       <div className="toolbar">
         <button onClick={() => navigate(`/gig/${id}`)} style={toolbarBtn}><ArrowLeft size={14} /> {t('callsheet.backToGig')}</button>
         <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0FA85A', color: '#fff', border: 'none' }}>

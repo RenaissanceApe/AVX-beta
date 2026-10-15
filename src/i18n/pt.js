@@ -379,4 +379,23 @@ export default {
   'availability.conflictBooked': 'Ocupado {range} (outro evento)',
   'availability.conflictBookedNamed': 'Ocupado {range} ({gig})',
   'availability.inviteWarning': 'Possível conflito nestas datas:',
+
+  'auth.magicLink': 'Enviar link de acesso por email',
+  'auth.magicIntro': 'Indique o email da sua conta AVX e enviamos um link que inicia a sessão — sem palavra-passe.',
+  'auth.magicSent': 'Se {email} tiver conta AVX, o link de acesso está a caminho. Só funciona uma vez e expira numa hora.',
+  'auth.sendMagic': 'Enviar link de acesso',
+
+  'offline.banner': 'Está offline — a mostrar dados guardados. As alterações precisam de ligação.',
+  'offline.savedCopy': 'Não foi possível contactar o AVX — a mostrar a cópia guardada.',
+  'offline.savedAt': 'guardado {when}',
+  'offline.notSaved': 'Isto ainda não está guardado neste dispositivo. Abra uma vez com ligação para guardar uma cópia.',
+  'offline.keep': 'Guardar offline',
+  'offline.kept': 'Guardado neste dispositivo',
+  'offline.remove': 'Remover cópia offline',
+  'offline.saveAll': 'Guardar todos os ficheiros offline',
+  'offline.savingAll': 'A guardar {done}/{total}…',
+  'offline.savedAll.one': '{count} ficheiro guardado neste dispositivo.',
+  'offline.savedAll.other': '{count} ficheiros guardados neste dispositivo.',
+  'offline.saveFailed': 'Não foi possível guardar offline: {reason}',
+  'offline.fileUnavailable': 'Este ficheiro não está guardado neste dispositivo, por isso não abre offline.',
 }

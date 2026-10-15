@@ -10,5 +10,10 @@ import '@fontsource/dm-sans/800.css'
 
 initMonitoring()
 
+// Service worker (production builds only): lets the app open without a connection
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true }))
+}
+
 const root = document.getElementById('root')
 createRoot(root).render(<StrictMode><App /></StrictMode>)
