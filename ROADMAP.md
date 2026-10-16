@@ -74,7 +74,9 @@ in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTA
 | ✅ Templates | Whole quotes or single phases as reusable blocks (0.7.0) |
 | ✅ Client-ready print/PDF | Company details, PT or EN per quote, optional "no prices per line" layout (0.7.0) |
 | Quote versions | Keep v1/v2/v3 of a quote with a short note, like Rentman's quote versions |
-| Price list | Reusable items with a default price (e.g. "Technician — day") to pick from instead of typing |
+| ✅ Price list | Reusable items with a default price, paste-import from a spreadsheet, pick into any section (0.8.0) |
+| ✅ Branded quotes | Header image on every page, accent colour, own numbering, agenda, totals by type, numbered conditions (0.8.0) |
+| ✅ Safe deletion | Gigs and organisations, behind a two-step confirmation; people affected are notified (0.8.0) |
 | Accepted quote → gig crew/schedule | Pre-fill crew functions and schedule from crew lines and phase dates |
 | Email the quote | Send the PDF link to the client from AVX (Brevo), with an accept button |
 
