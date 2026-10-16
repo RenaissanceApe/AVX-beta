@@ -94,3 +94,54 @@ describe('dates', () => {
     expect(localISODate(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05')
   })
 })
+
+describe('print helpers', () => {
+  it('numbers with or without a prefix', async () => {
+    const { quoteNumber } = await import('./quotes')
+    expect(quoteNumber({ number: 143 }, '')).toBe('143')
+    expect(quoteNumber({ number: 7 }, 'LP-')).toBe('LP-0007')
+  })
+  it('groups totals into equipment, crew, transport and other', async () => {
+    const { groupTotals } = await import('./quotes')
+    expect(groupTotals({ rental: 100, sale: 20.5, crew: 50, transport: 0, other: 3 }))
+      .toEqual([{ key: 'equipment', amount: 120.5 }, { key: 'crew', amount: 50 }, { key: 'transport', amount: 0 }, { key: 'other', amount: 3 }])
+  })
+  it('splits numbered terms into headings and paragraphs', async () => {
+    const { termsBlocks } = await import('./quotes')
+    expect(termsBlocks('1. Definições\nTexto um.\n\nMais texto.\n2. Validade\nVálida 15 dias.')).toEqual([
+      { type: 'h', text: '1. Definições' }, { type: 'p', text: 'Texto um.' }, { type: 'p', text: 'Mais texto.' },
+      { type: 'h', text: '2. Validade' }, { type: 'p', text: 'Válida 15 dias.' },
+    ])
+    expect(termsBlocks('Plain terms only.')).toEqual([{ type: 'p', text: 'Plain terms only.' }])
+  })
+  it('keeps valid phase times and drops junk', () => {
+    const b = normalizeBody({ phases: [{ start_time: '09:00', end_time: '25:00' }] })
+    expect(b.phases[0]).toMatchObject({ start_time: '09:00', end_time: null })
+  })
+})
+
+describe('price list import', () => {
+  it('reads prices in Portuguese and English formats', async () => {
+    const { parsePrice } = await import('./quotes')
+    expect(parsePrice('1 234,50 €')).toBe(1234.5)
+    expect(parsePrice('1,234.50')).toBe(1234.5)
+    expect(parsePrice('60€')).toBe(60)
+    expect(parsePrice('0,45')).toBe(0.45)
+    expect(Number.isNaN(parsePrice(''))).toBe(true)
+  })
+  it('parses lines with optional category, type and unit, and reports bad lines', async () => {
+    const { parsePriceImport } = await import('./quotes')
+    const { items, errors } = parsePriceImport('Coluna Top NEXT LA210x; 60€; Som\nTécnico de Som\t200\tEquipa\tequipa\tdia\n# comment\n\nsem preço;\nCarrinha; 0,45; ; transporte; km')
+    expect(items).toEqual([
+      { name: 'Coluna Top NEXT LA210x', unit_price: 60, category: 'Som', kind: 'rental', unit: 'unit' },
+      { name: 'Técnico de Som', unit_price: 200, category: 'Equipa', kind: 'crew', unit: 'day' },
+      { name: 'Carrinha', unit_price: 0.45, category: null, kind: 'transport', unit: 'km' },
+    ])
+    expect(errors).toEqual([5])
+  })
+  it('turns a price item into a quote line', async () => {
+    const { lineFromPriceItem } = await import('./quotes')
+    expect(lineFromPriceItem({ name: 'Sub', kind: 'rental', unit: 'unit', unit_price: '80.00', details: null }))
+      .toMatchObject({ kind: 'rental', description: 'Sub', unit_price: 80, qty: 1, factor: 1, details: '' })
+  })
+})

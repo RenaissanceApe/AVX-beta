@@ -21,6 +21,7 @@ import {
 const EDITABLE = [
   'title', 'status', 'language', 'currency', 'client_name', 'client_company', 'client_email', 'client_address', 'client_tax_id',
   'issue_date', 'valid_until', 'intro', 'terms', 'vat_rate', 'discount_pct', 'show_line_prices', 'gig_id',
+  'payment_terms', 'manager_name',
 ]
 const SAVE_DELAY = 1000
 
@@ -36,6 +37,8 @@ export default function QuoteEditorPage() {
   const [role, setRole] = useState(null)
   const [gigs, setGigs] = useState([])
   const [templates, setTemplates] = useState([])
+  const [prefix, setPrefix] = useState('Q')
+  const [priceItems, setPriceItems] = useState([])
   const [notFound, setNotFound] = useState(false)
   const [tab, setTab] = useState('details')
   const [saveState, setSaveState] = useState('saved') // saved | dirty | saving | error | conflict
@@ -58,10 +61,12 @@ export default function QuoteEditorPage() {
         if (error) logger.error('quote', error, { step: 'load', quoteId: id })
         return setNotFound(true)
       }
-      const [roleRes, gigsRes, tplRes] = await Promise.all([
+      const [roleRes, gigsRes, tplRes, orgRes, pricesRes] = await Promise.all([
         supabase.from('org_members').select('role').eq('org_id', q.org_id).eq('user_id', user.id).maybeSingle(),
         supabase.from('gigs').select('id, name, start_date').eq('org_id', q.org_id).order('start_date', { ascending: false, nullsFirst: false }),
         supabase.from('quote_templates').select('id, name, description, body').eq('org_id', q.org_id).order('name'),
+        supabase.from('organisations').select('quote_number_prefix').eq('id', q.org_id).maybeSingle(),
+        supabase.from('price_items').select('*').eq('org_id', q.org_id).order('name'),
       ])
       if (cancelled) return
       const b = normalizeBody(q.body)
@@ -72,6 +77,8 @@ export default function QuoteEditorPage() {
       setRole(roleRes.data?.role ?? null)
       setGigs(gigsRes.data || [])
       setTemplates(tplRes.data || [])
+      setPrefix(orgRes.data?.quote_number_prefix ?? 'Q')
+      setPriceItems(pricesRes.data || [])
       setTab(b.phases[0] ? `phase:${b.phases[0].id}` : 'details')
     }
     load()
@@ -215,7 +222,7 @@ export default function QuoteEditorPage() {
   }
 
   async function deleteQuote() {
-    if (!window.confirm(t('quote.confirmDelete', { number: quoteNumber(quote), title: quote.title }))) return
+    if (!window.confirm(t('quote.confirmDelete', { number: quoteNumber(quote, prefix), title: quote.title }))) return
     clearTimeout(timer.current)
     blocked.current = true
     const { data, error } = await supabase.from('quotes').delete().eq('id', id).select('id')
@@ -256,7 +263,7 @@ export default function QuoteEditorPage() {
         <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '12px 16px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <button onClick={() => flushThen(() => navigate(`/org/${quote.org_id}/quotes`))} aria-label={t('quote.backToQuotes')} title={t('quote.backToQuotes')} style={iconBtn}><ArrowLeft size={18} /></button>
-            <span style={{ fontFamily: 'monospace', color: colors.soft, fontSize: '13px' }}>{quoteNumber(quote)}</span>
+            <span style={{ fontFamily: 'monospace', color: colors.soft, fontSize: '13px' }}>{quoteNumber(quote, prefix)}</span>
             <input value={quote.title} onChange={e => updateQuote({ title: e.target.value })} aria-label={t('quotes.quoteTitle')} maxLength={200}
               style={{ ...input, flex: '1 1 220px', fontSize: '18px', fontWeight: 800, background: 'transparent', border: '1px solid transparent', padding: '6px 8px' }} />
             <select value={quote.status} onChange={e => updateQuote({ status: e.target.value })} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', padding: '7px 10px', cursor: 'pointer' }}>
@@ -301,7 +308,7 @@ export default function QuoteEditorPage() {
         {tab === 'details' && <QuoteDetails quote={quote} gigs={gigs} onChange={updateQuote} />}
         {tab === 'summary' && <QuoteSummary quote={quote} body={body} totals={totals} onOpenPhase={i => setTab(`phase:${body.phases[i].id}`)} />}
         {phase && (
-          <PhaseEditor key={phase.id} phase={phase} index={phaseIndex} count={body.phases.length} currency={quote.currency}
+          <PhaseEditor key={phase.id} phase={phase} index={phaseIndex} count={body.phases.length} currency={quote.currency} priceItems={priceItems}
             onChange={updatePhase}
             onMove={delta => updateBody({ phases: move(body.phases, phaseIndex, delta) })}
             onDuplicate={duplicatePhase}

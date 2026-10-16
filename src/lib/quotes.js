@@ -24,8 +24,11 @@ export const emptyLine = (kind = 'rental') => ({
 })
 export const emptySection = (name = '') => ({ id: newId(), name, lines: [] })
 export const emptyPhase = (name = '') => ({
-  id: newId(), name, start_date: null, end_date: null, discount_pct: 0, optional: false, sections: [emptySection()],
+  id: newId(), name, start_date: null, end_date: null, start_time: null, end_time: null, discount_pct: 0, optional: false, sections: [emptySection()],
 })
+
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/
+const cleanTime = v => (typeof v === 'string' && TIME.test(v.slice(0, 5)) ? v.slice(0, 5) : null)
 
 // Fill in anything missing so older or hand-edited bodies never crash the editor.
 export function normalizeBody(body) {
@@ -36,6 +39,8 @@ export function normalizeBody(body) {
       name: p.name ?? '',
       start_date: p.start_date || null,
       end_date: p.end_date || null,
+      start_time: cleanTime(p.start_time),
+      end_time: cleanTime(p.end_time),
       discount_pct: clampPct(p.discount_pct),
       optional: !!p.optional,
       sections: (Array.isArray(p.sections) ? p.sections : []).map(s => ({
@@ -101,6 +106,8 @@ export function cloneBody(body, { keepDates = false } = {}) {
       id: newId(),
       start_date: keepDates ? p.start_date : null,
       end_date: keepDates ? p.end_date : null,
+      start_time: keepDates ? p.start_time : null,
+      end_time: keepDates ? p.end_time : null,
       sections: p.sections.map(s => ({ ...s, id: newId(), lines: s.lines.map(l => ({ ...l, id: newId() })) })),
     })),
   }
@@ -108,8 +115,9 @@ export function cloneBody(body, { keepDates = false } = {}) {
 
 // Earliest start and latest end over all phases (for "create gig from quote").
 export function quoteDateRange(body) {
-  const starts = normalizeBody(body).phases.map(p => p.start_date).filter(Boolean).sort()
-  const ends = normalizeBody(body).phases.map(p => p.end_date || p.start_date).filter(Boolean).sort()
+  const phases = normalizeBody(body).phases
+  const starts = phases.map(p => p.start_date).filter(Boolean).sort()
+  const ends = phases.map(p => p.end_date || p.start_date).filter(Boolean).sort()
   return { start: starts[0] || null, end: ends[ends.length - 1] || null }
 }
 
@@ -124,7 +132,29 @@ export function addDays(isoDate, days) {
   return localISODate(d)
 }
 
-export const quoteNumber = q => `Q${String(q.number ?? 0).padStart(4, '0')}`
+// "Q0012" by default; with an empty prefix just the number ("143"), for organisations
+// carrying on an existing numbering.
+export const quoteNumber = (q, prefix = 'Q') => (prefix ? `${prefix}${String(q.number ?? 0).padStart(4, '0')}` : String(q.number ?? 0))
+
+// Totals grouped the way client quotes usually present them
+export const PRINT_GROUPS = [
+  { key: 'equipment', kinds: ['rental', 'sale'] },
+  { key: 'crew', kinds: ['crew'] },
+  { key: 'transport', kinds: ['transport'] },
+  { key: 'other', kinds: ['other'] },
+]
+export function groupTotals(byKind) {
+  return PRINT_GROUPS.map(g => ({ key: g.key, amount: round2(g.kinds.reduce((sum, k) => sum + (byKind[k] || 0), 0)) }))
+}
+
+// Terms text → blocks: lines like "3. Availability" become headings, blank lines split paragraphs
+export function termsBlocks(text) {
+  return (text || '').split(/\n\s*\n|\n(?=\d{1,2}\.\s+\S)/).map(b => b.trim()).filter(Boolean).flatMap(block => {
+    const m = block.match(/^(\d{1,2}\.\s+[^\n]+)\n?([\s\S]*)$/)
+    if (!m) return [{ type: 'p', text: block }]
+    return [{ type: 'h', text: m[1].trim() }, ...(m[2].trim() ? [{ type: 'p', text: m[2].trim() }] : [])]
+  })
+}
 
 const LOCALES = { pt: 'pt-PT', en: 'en-GB' }
 export function formatMoney(amount, currency = 'EUR', lang = 'pt') {
@@ -147,3 +177,48 @@ export function move(list, index, delta) {
   next.splice(to, 0, item)
   return next
 }
+
+// Price list import: one item per line, "name; price; category; type; unit" (tabs from a
+// spreadsheet work too). Only name and price are required. Prices accept "1 234,50" or "1234.50".
+const KIND_WORDS = {
+  rental: 'rental', aluguer: 'rental', sale: 'sale', venda: 'sale', crew: 'crew', equipa: 'crew',
+  transport: 'transport', transporte: 'transport', other: 'other', outros: 'other', outro: 'other',
+}
+const UNIT_WORDS = {
+  unit: 'unit', un: 'unit', 'un.': 'unit', pc: 'unit', pcs: 'unit', day: 'day', days: 'day', dia: 'day', dias: 'day',
+  hour: 'hour', hours: 'hour', h: 'hour', hr: 'hour', hrs: 'hour', km: 'km', set: 'set', sets: 'set', 'conj.': 'set',
+  conj: 'set', lump: 'lump', global: 'lump',
+}
+export function parsePrice(text) {
+  const s = String(text ?? '').replace(/[€$£\s]/g, '').replace(/[^\d,.-]/g, '')
+  if (!s) return NaN
+  // The last separator is the decimal one; others are thousands separators
+  const last = Math.max(s.lastIndexOf(','), s.lastIndexOf('.'))
+  const normalized = last === -1 ? s : s.slice(0, last).replace(/[.,]/g, '') + '.' + s.slice(last + 1)
+  return parseFloat(normalized)
+}
+export function parsePriceImport(text, defaultKind = 'rental') {
+  const items = []
+  const errors = []
+  String(text || '').split(/\r?\n/).forEach((raw, i) => {
+    const line = raw.trim()
+    if (!line || line.startsWith('#')) return
+    const parts = line.split(/\t|;/).map(p => p.trim())
+    const [name, price, category, kind, unit] = parts
+    const unitPrice = parsePrice(price)
+    if (!name || !Number.isFinite(unitPrice) || unitPrice < 0) return errors.push(i + 1)
+    items.push({
+      name: name.slice(0, 200),
+      unit_price: round2(unitPrice),
+      category: category ? category.slice(0, 80) : null,
+      kind: KIND_WORDS[(kind || '').toLowerCase()] || defaultKind,
+      unit: UNIT_WORDS[(unit || '').toLowerCase()] || 'unit',
+    })
+  })
+  return { items, errors }
+}
+
+// A price list item as a quote line
+export const lineFromPriceItem = item => ({
+  ...emptyLine(item.kind), description: item.name, details: item.details || '', unit: item.unit, unit_price: Number(item.unit_price) || 0,
+})

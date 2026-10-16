@@ -49,6 +49,8 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     status: '{gig} is now {status}',
     details: '{actor} changed the dates or venue of {gig}',
     generic: 'Update on {gig}',
+    gigDeleted: '{actor} deleted the gig {gig}',
+    orgDeleted: '{actor} deleted the organisation {org}',
     'role.pm': 'Production Manager', 'role.crew': 'Crew', 'role.viewer': 'Viewer',
     'orgRole.admin': 'Admin', 'orgRole.member': 'Member', 'orgRole.viewer': 'Viewer',
     'status.draft': 'Draft', 'status.confirmed': 'Confirmed', 'status.active': 'Active',
@@ -72,6 +74,8 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     status: '{gig} está agora {status}',
     details: '{actor} alterou as datas ou o local de {gig}',
     generic: 'Atualização em {gig}',
+    gigDeleted: '{actor} eliminou o evento {gig}',
+    orgDeleted: '{actor} eliminou a organização {org}',
     'role.pm': 'Production Manager', 'role.crew': 'Equipa', 'role.viewer': 'Leitor',
     'orgRole.admin': 'Administrador', 'orgRole.member': 'Membro', 'orgRole.viewer': 'Leitor',
     'status.draft': 'Rascunho', 'status.confirmed': 'Confirmado', 'status.active': 'Em curso',
@@ -103,6 +107,8 @@ function describe(n: Notification, lang: Lang, actorName: string | undefined) {
     case 'schedule_changed': return fill(s.schedule, { actor, gig })
     case 'gig_status': return fill(s.status, { gig, status: s[`status.${d.status}`] ?? d.status })
     case 'gig_details': return fill(s.details, { actor, gig })
+    case 'gig_deleted': return fill(s.gigDeleted, { actor, gig })
+    case 'org_deleted': return fill(s.orgDeleted, { actor, org: d.org_name })
     default: return fill(s.generic, { gig })
   }
 }

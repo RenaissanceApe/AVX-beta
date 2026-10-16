@@ -32,6 +32,8 @@ export default function QuoteDetails({ quote, gigs, onChange }) {
       <fieldset style={box}>
         <legend style={legend}>{t('quote.conditions')}</legend>
         <div style={grid}>
+          {field('manager_name', 'quote.managerName', { max: 120 })}
+          {field('payment_terms', 'quote.paymentTerms', { max: 500, wide: true })}
           {field('issue_date', 'quote.issueDate', { type: 'date' })}
           {field('valid_until', 'quote.validUntil', { type: 'date' })}
           <div>

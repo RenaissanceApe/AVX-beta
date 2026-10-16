@@ -5,7 +5,6 @@ import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { sendInvite, inviteMessage } from '../lib/invites'
-import { removeGigFiles } from '../lib/storage'
 import { useI18n } from '../i18n'
 
 // Labels: orgRole.<value>
@@ -101,28 +100,6 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
     setInvites(list => list.filter(i => i.id !== inv.id))
   }
 
-  async function deleteOrganisation() {
-    const typed = window.prompt(t('org.deletePrompt', { org: org.name }))
-    if (typed === null) return
-    if (typed.trim() !== org.name.trim()) return notify(t('org.nameMismatch'), 'info')
-    setBusy('org')
-    const { data: gigs, error: gigsError } = await supabase.from('gigs').select('id').eq('org_id', org.id)
-    if (gigsError) {
-      setBusy(null)
-      return notify(userMessage(gigsError), 'error')
-    }
-    await removeGigFiles((gigs || []).map(g => g.id))
-    const { error } = await supabase.from('organisations').delete().eq('id', org.id)
-    setBusy(null)
-    if (error) {
-      logger.error('org', error, { step: 'deleteOrg', orgId: org.id })
-      return notify(userMessage(error), 'error')
-    }
-    notify(t('org.deleted', { org: org.name }), 'success')
-    onChanged()
-    onClose()
-  }
-
   return (
     <div style={overlay} onClick={e => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-labelledby="members-title" style={panel}>
@@ -192,13 +169,6 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
           </div>
         )}
 
-        {isAdmin && (
-          <div style={{ marginTop: '22px', paddingTop: '18px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <button onClick={deleteOrganisation} disabled={busy === 'org'} style={{ ...smallBtn, background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.25)', color: '#F87171' }}>
-              {busy === 'org' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} {t('org.delete')}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )

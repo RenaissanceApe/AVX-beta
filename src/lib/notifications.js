@@ -16,6 +16,8 @@ export function describeNotification(n, nameOf) {
     case 'schedule_changed':  return t('notif.schedule', { actor, gig })
     case 'gig_status':        return t('notif.status', { gig, status: t(`status.${d.status}`) })
     case 'gig_details':       return t('notif.details', { actor, gig })
+    case 'gig_deleted':       return t('notif.gigDeleted', { actor, gig })
+    case 'org_deleted':       return t('notif.orgDeleted', { actor, org: d.org_name })
     default:                  return t('notif.generic', { gig })
   }
 }
