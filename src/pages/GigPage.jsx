@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { logger } from '../lib/logger'
 import { useI18n } from '../i18n'
+import { useToast } from '../lib/ToastContext'
 import { btnPrimary, colors } from '../components/ui'
 import GigHeader, { GIG_TABS } from '../components/gig/GigHeader'
 import OverviewTab from '../components/gig/OverviewTab'
@@ -25,6 +26,7 @@ export default function GigPage() {
   const { id } = useParams()
   const { user } = useAuth()
   const { t } = useI18n()
+  const { notify } = useToast()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const requestedTab = searchParams.get('tab')
@@ -204,8 +206,9 @@ export default function GigPage() {
 
       {versionsAsset && <AssetVersionsModal asset={versionsAsset} nameOf={nameOf} onClose={() => setVersionsAsset(null)} />}
       {showEdit && (
-        <EditGigModal gig={gig} onClose={() => setShowEdit(false)}
-          onSaved={changes => setData(d => ({ ...d, gig: { ...d.gig, ...changes } }))} />
+        <EditGigModal gig={gig} canDelete={orgRole === 'admin' || gig.created_by === user.id} onClose={() => setShowEdit(false)}
+          onSaved={changes => setData(d => ({ ...d, gig: { ...d.gig, ...changes } }))}
+          onDeleted={() => { notify(t('danger.gigDeleted', { name: gig.name }), 'success'); navigate('/dashboard', { replace: true }) }} />
       )}
     </div>
   )

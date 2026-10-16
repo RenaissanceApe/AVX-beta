@@ -6,8 +6,26 @@ import { logger, userMessage } from '../../lib/logger'
 import { useI18n } from '../../i18n'
 import { Modal, btnPrimary, input, label } from '../ui'
 import { GIG_STATUSES } from './parts'
+import { DangerZone, DangerConfirmModal } from '../DangerConfirm'
+import { removeGigFiles } from '../../lib/storage'
 
-export default function EditGigModal({ gig, onClose, onSaved }) {
+// What deleting a gig destroys, as readable lines for the confirmation dialog
+async function gigDeletionImpact(gigId, t) {
+  const count = table => supabase.from(table).select('*', { count: 'exact', head: true }).eq('gig_id', gigId).then(r => r.count || 0)
+  const [files, posts, crew, schedule, quotes] = await Promise.all([
+    count('assets'), count('feed_posts'), count('gig_members'), count('gig_schedule'), count('quotes'),
+  ])
+  return [
+    t('danger.gigFiles', { count: files }),
+    t('danger.gigPosts', { count: posts }),
+    t('danger.gigSchedule', { count: schedule }),
+    t('danger.gigCrew', { count: crew }),
+    t('danger.gigHistory'),
+    ...(quotes ? [t('danger.gigQuotes', { count: quotes })] : []),
+  ]
+}
+
+export default function EditGigModal({ gig, canDelete = false, onClose, onSaved, onDeleted }) {
   const { t } = useI18n()
   const { notify } = useToast()
   const [form, setForm] = useState({
@@ -15,6 +33,7 @@ export default function EditGigModal({ gig, onClose, onSaved }) {
     description: gig.description || '', status: gig.status,
   })
   const [saving, setSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
 
   async function save(e) {
@@ -32,6 +51,22 @@ export default function EditGigModal({ gig, onClose, onSaved }) {
     onSaved(changes)
     onClose()
   }
+
+  async function deleteGig() {
+    await removeGigFiles([gig.id])
+    const { data, error } = await supabase.from('gigs').delete().eq('id', gig.id).select('id')
+    if (error) {
+      logger.error('gig', error, { step: 'deleteGig', gigId: gig.id })
+      throw error
+    }
+    if (!data?.length) throw new Error(t('error.permission'))
+    onDeleted()
+  }
+
+  if (confirmDelete) return (
+    <DangerConfirmModal title={t('danger.deleteGigTitle', { name: gig.name })} name={gig.name}
+      loadImpact={() => gigDeletionImpact(gig.id, t)} onConfirm={deleteGig} onClose={() => setConfirmDelete(false)} />
+  )
 
   return (
     <Modal title={t('gig.edit')} onClose={onClose}>
@@ -69,6 +104,9 @@ export default function EditGigModal({ gig, onClose, onSaved }) {
           {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={16} />} {t('common.saveChanges')}
         </button>
       </form>
+      {canDelete && (
+        <DangerZone description={t('danger.gigZoneText')} actionLabel={t('danger.deleteGig')} onAction={() => setConfirmDelete(true)} />
+      )}
     </Modal>
   )
 }

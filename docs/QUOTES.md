@@ -44,6 +44,26 @@ English, chosen per quote, independent of your own app language). Use the browse
 Company details on the quote (legal name, NIF, address, contacts), default VAT, validity and default
 terms are set once by an admin under **Quotes → Company details**.
 
+## Look of the printed quote
+
+Set once by an admin under **Quotes → Company details**:
+- **Header image**: a wide strip (about 8:1) printed full-width at the top of every page. PNG, JPG or
+  SVG up to 320 KB. Without one, quotes get a coloured bar with the company name.
+- **Accent colour**: the short bars above section headings.
+- **Number prefix / next number**: "Q" gives Q0001, Q0002…; an empty prefix gives plain numbers.
+  "Next number" carries on an existing numbering (e.g. 143 after your last Affinity quote).
+- **Default terms**: lines like `3. Availability` print as headings, blank lines start new paragraphs.
+
+Per quote (Details tab): project manager, payment method, and the client. Phases with dates (and
+optional times) are printed as the **Agenda**; phases without lines appear only there.
+
+## Price list
+
+**Quotes → Price list** holds items you quote often with their usual price (excl. VAT), type, unit
+and category. **Import list** takes one item per line, `name; price; category; type; unit`, so you can
+paste columns from a spreadsheet. In a quote, **From price list** under any section adds the ticked
+items as lines; you can still change quantity, factor, price and discount per quote.
+
 ## Statuses and gigs
 
 Draft → Sent → Accepted / Declined is set by hand. **Create gig** turns the quote into a gig (dates from

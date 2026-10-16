@@ -30,6 +30,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 8. `supabase/migrations/20261017000001_crew_availability.sql` — unavailable dates and clash checks
 9. `supabase/migrations/20261018000000_email_digest.sql` — email summary settings
 10. `supabase/migrations/20261019000000_quotes.sql` — quotes, quote templates, company details
+11. `supabase/migrations/20261020000000_branding_pricelist_deletion.sql` — quote branding, price list, numbering, deletion notices
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.

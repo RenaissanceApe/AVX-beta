@@ -68,10 +68,10 @@ Everything is enforced in the database with Row Level Security, not in the UI:
 
 | Who | Can |
 |---|---|
-| Organisation admin | Everything in the organisation: members, roles, gigs, quotes, company details, deleting it |
+| Organisation admin | Everything in the organisation: members, roles, gigs, quotes, company details and branding, deleting gigs or the organisation |
 | Organisation member | See all the organisation's gigs, create gigs, upload files, build quotes and templates |
 | Organisation viewer | See the organisation's gigs (no quotes or prices) |
-| Gig PM | Edit the gig, add/remove crew, upload/delete files |
+| Gig PM | Edit the gig, add/remove crew, upload/delete files (the gig's creator can also delete it) |
 | Gig crew / viewer | See the gig, its files and feed; post updates |
 | Anyone else | Nothing |
 

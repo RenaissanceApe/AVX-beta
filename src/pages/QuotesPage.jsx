@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Plus, Loader2, FileText, LayoutTemplate, Building2, Trash2, Search } from 'lucide-react'
+import { ArrowLeft, Plus, Loader2, FileText, LayoutTemplate, Building2, Trash2, Search, Tags } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -9,6 +9,7 @@ import { useI18n } from '../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
 import { QUOTE_STATUSES, quoteNumber, formatMoney, cloneBody, emptyPhase, localISODate, addDays, quoteTotals } from '../lib/quotes'
 import CompanyDetailsModal from '../components/quotes/CompanyDetailsModal'
+import { PriceListTab } from '../components/quotes/PriceList'
 import { QuoteStatusBadge } from '../components/quotes/parts'
 
 // Quotes of one organisation, plus its quote templates and company details.
@@ -23,6 +24,7 @@ export default function QuotesPage() {
   const [role, setRole] = useState(null)
   const [quotes, setQuotes] = useState([])
   const [templates, setTemplates] = useState([])
+  const [priceItems, setPriceItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState('quotes')
   const [status, setStatus] = useState('all')
@@ -31,12 +33,13 @@ export default function QuotesPage() {
   const [showCompany, setShowCompany] = useState(false)
 
   async function load() {
-    const [orgRes, roleRes, quotesRes, templatesRes] = await Promise.all([
+    const [orgRes, roleRes, quotesRes, templatesRes, pricesRes] = await Promise.all([
       supabase.from('organisations').select('*').eq('id', orgId).maybeSingle(),
       supabase.from('org_members').select('role').eq('org_id', orgId).eq('user_id', user.id).maybeSingle(),
       supabase.from('quotes').select('id, number, title, status, client_name, client_company, issue_date, valid_until, total_net, currency, gig_id, updated_at')
         .eq('org_id', orgId).order('number', { ascending: false }),
       supabase.from('quote_templates').select('id, name, description, body, created_by, updated_at').eq('org_id', orgId).order('name'),
+      supabase.from('price_items').select('*').eq('org_id', orgId).order('name'),
     ])
     for (const [step, res] of Object.entries({ orgRes, quotesRes, templatesRes })) {
       if (res.error) logger.error('quotes', res.error, { step })
@@ -45,6 +48,7 @@ export default function QuotesPage() {
     setRole(roleRes.data?.role ?? null)
     setQuotes(quotesRes.data || [])
     setTemplates(templatesRes.data || [])
+    setPriceItems(pricesRes.data || [])
     setLoading(false)
   }
   useEffect(() => { load() }, [orgId]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -52,8 +56,8 @@ export default function QuotesPage() {
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase()
     return quotes.filter(x => (status === 'all' || x.status === status)
-      && (!q || [x.title, x.client_name, x.client_company, quoteNumber(x)].some(v => (v || '').toLowerCase().includes(q))))
-  }, [quotes, status, search])
+      && (!q || [x.title, x.client_name, x.client_company, quoteNumber(x, org?.quote_number_prefix ?? 'Q')].some(v => (v || '').toLowerCase().includes(q))))
+  }, [quotes, status, search, org])
 
   async function deleteTemplate(tpl) {
     if (!window.confirm(t('quotes.confirmDeleteTemplate', { name: tpl.name }))) return
@@ -92,7 +96,7 @@ export default function QuotesPage() {
 
       <main style={{ maxWidth: '960px', margin: '0 auto', padding: '20px 16px 60px' }}>
         <div role="tablist" style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: `1px solid ${colors.border}` }}>
-          {[['quotes', <FileText key="i" size={14} />, quotes.length], ['templates', <LayoutTemplate key="i" size={14} />, templates.length]].map(([key, icon, count]) => (
+          {[['quotes', <FileText key="i" size={14} />, quotes.length], ['templates', <LayoutTemplate key="i" size={14} />, templates.length], ['prices', <Tags key="i" size={14} />, priceItems.length]].map(([key, icon, count]) => (
             <button key={key} role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
               padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600,
               color: view === key ? colors.accent : colors.muted, borderBottom: view === key ? `2px solid ${colors.accent}` : '2px solid transparent',
@@ -132,7 +136,7 @@ export default function QuotesPage() {
                   <button key={q.id} onClick={() => navigate(`/quote/${q.id}`)} style={{
                     ...card, textAlign: 'left', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
                   }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: '13px', color: colors.soft }}>{quoteNumber(q)}</span>
+                    <span style={{ fontFamily: 'monospace', fontSize: '13px', color: colors.soft }}>{quoteNumber(q, org.quote_number_prefix ?? 'Q')}</span>
                     <span style={{ flex: '1 1 200px', minWidth: 0 }}>
                       <span style={{ display: 'block', fontWeight: 700, fontSize: '15px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.title}</span>
                       <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
@@ -147,6 +151,8 @@ export default function QuotesPage() {
             )}
           </>
         )}
+
+        {view === 'prices' && <PriceListTab orgId={orgId} userId={user.id} items={priceItems} setItems={setPriceItems} />}
 
         {view === 'templates' && (
           templates.length === 0 ? (
@@ -186,6 +192,7 @@ export default function QuotesPage() {
 
 function NewQuoteModal({ org, templates, onClose, onCreated }) {
   const { t, lang } = useI18n()
+  const { profile } = useAuth()
   const { notify } = useToast()
   const [form, setForm] = useState({ title: '', client_company: '', client_name: '', template: '', language: lang })
   const [saving, setSaving] = useState(false)
@@ -203,6 +210,7 @@ function NewQuoteModal({ org, templates, onClose, onCreated }) {
       client_company: form.client_company.trim() || null,
       client_name: form.client_name.trim() || null,
       language: form.language,
+      manager_name: profile?.full_name || null,
       issue_date: today,
       valid_until: addDays(today, org.quote_validity_days || 30),
       vat_rate: org.default_vat_rate ?? 23,

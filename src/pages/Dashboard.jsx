@@ -5,11 +5,12 @@ import { useAuth } from '../lib/AuthContext'
 import { logger, userMessage } from '../lib/logger'
 import AccountModal from '../components/AccountModal'
 import OrgMembersModal from '../components/OrgMembersModal'
+import OrgSettingsModal from '../components/OrgSettingsModal'
 import GigCalendar from '../components/GigCalendar'
 import { GIG_FILTERS, filterGigs, countByBucket } from '../lib/gigs'
 import {
   Zap, Plus, Calendar, MapPin, Users, ChevronRight,
-  Building2, LogOut, Loader2, X, ArrowRight, CheckCircle, Search, List, CalendarDays, FileText
+  Building2, LogOut, Loader2, X, ArrowRight, CheckCircle, Search, List, CalendarDays, FileText, Settings
 } from 'lucide-react'
 import { useI18n, t, fmt } from '../i18n'
 import NotificationBell from '../components/NotificationBell'
@@ -39,6 +40,7 @@ export default function Dashboard() {
   const [showNewGig, setShowNewGig] = useState(false)
   const [showAccount, setShowAccount] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [gigFilter, setGigFilter] = useState('upcoming')
   const [gigSearch, setGigSearch] = useState('')
   const [savedAt, setSavedAt] = useState(null) // set when showing the offline copy
@@ -255,25 +257,22 @@ export default function Dashboard() {
               }}>
                 <Plus size={13} /> {t('dash.addOrg')}
               </button>
-              {activeOrg && ['admin', 'member'].includes(activeOrg.myRole) && (
-                <button onClick={() => navigate(`/org/${activeOrg.id}/quotes`)} style={{
-                  padding: '6px 14px', borderRadius: '20px', marginLeft: 'auto',
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                  color: '#8A9BAE', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: '6px'
-                }}>
-                  <FileText size={13} /> {t('dash.quotes')}
-                </button>
-              )}
               {activeOrg && (
-                <button onClick={() => setShowMembers(true)} style={{
-                  padding: '6px 14px', borderRadius: '20px', marginLeft: ['admin', 'member'].includes(activeOrg.myRole) ? 0 : 'auto',
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                  color: '#8A9BAE', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: '6px'
-                }}>
-                  <Users size={13} /> {t('dash.members')}
-                </button>
+                <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto', flexWrap: 'wrap' }}>
+                  {['admin', 'member'].includes(activeOrg.myRole) && (
+                    <button onClick={() => navigate(`/org/${activeOrg.id}/quotes`)} style={orgActionBtn}>
+                      <FileText size={13} /> {t('dash.quotes')}
+                    </button>
+                  )}
+                  <button onClick={() => setShowMembers(true)} style={orgActionBtn}>
+                    <Users size={13} /> {t('dash.members')}
+                  </button>
+                  {activeOrg.myRole === 'admin' && (
+                    <button onClick={() => setShowSettings(true)} aria-label={t('orgSettings.open')} title={t('orgSettings.open')} style={orgActionBtn}>
+                      <Settings size={13} />
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -330,6 +329,10 @@ export default function Dashboard() {
       {showAccount && <AccountModal onClose={() => setShowAccount(false)} />}
       {showMembers && activeOrg && (
         <OrgMembersModal org={activeOrg} onClose={() => setShowMembers(false)} onChanged={() => fetchOrgs()} />
+      )}
+      {showSettings && activeOrg && (
+        <OrgSettingsModal org={activeOrg} onClose={() => setShowSettings(false)} onChanged={() => fetchOrgs(activeOrg.id)}
+          onDeleted={() => { setShowSettings(false); setActiveOrg(null); setGigs([]); fetchOrgs() }} />
       )}
 
       {/* New Org Modal */}
@@ -585,4 +588,11 @@ const modalInput = {
 const sectionTitle = {
   fontSize: '12px', fontWeight: '700', color: '#4A6070',
   textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px 0'
+}
+
+const orgActionBtn = {
+  padding: '6px 14px', borderRadius: '20px',
+  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+  color: '#8A9BAE', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+  display: 'flex', alignItems: 'center', gap: '6px'
 }

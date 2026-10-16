@@ -1,14 +1,15 @@
 import { useState } from 'react'
-import { ChevronUp, ChevronDown, Copy, Trash2, Plus, AlignLeft, ChevronLeft, ChevronRight, LayoutTemplate } from 'lucide-react'
+import { ChevronUp, ChevronDown, Copy, Trash2, Plus, AlignLeft, ChevronLeft, ChevronRight, LayoutTemplate, ListPlus } from 'lucide-react'
+import { PricePickerModal } from './PriceList'
 import { useI18n } from '../../i18n'
 import { iconBtn, input, label, colors } from '../ui'
 import {
-  LINE_KINDS, UNITS, emptyLine, emptySection, lineTotal, sectionTotal, phaseTotals, formatMoney, move, newId,
+  LINE_KINDS, UNITS, emptyLine, emptySection, lineTotal, sectionTotal, phaseTotals, formatMoney, move, newId, lineFromPriceItem,
 } from '../../lib/quotes'
 
 // One phase of a quote (like a Rentman subproject): its own dates and discount, and
 // sections (like equipment / function groups) holding the priced lines.
-export default function PhaseEditor({ phase, index, count, currency, onChange, onMove, onDuplicate, onRemove, onSaveTemplate }) {
+export default function PhaseEditor({ phase, index, count, currency, priceItems = [], onChange, onMove, onDuplicate, onRemove, onSaveTemplate }) {
   const { t, lang } = useI18n()
   const totals = phaseTotals(phase)
   const set = changes => onChange({ ...phase, ...changes })
@@ -22,13 +23,19 @@ export default function PhaseEditor({ phase, index, count, currency, onChange, o
           <label style={label} htmlFor="ph-name">{t('quote.phaseName')}</label>
           <input id="ph-name" value={phase.name} onChange={e => set({ name: e.target.value })} placeholder={t('quote.phaseNamePlaceholder')} maxLength={120} style={input} />
         </div>
-        <div style={{ flex: '1 1 130px' }}>
+        <div style={{ flex: '1 1 200px' }}>
           <label style={label} htmlFor="ph-start">{t('quote.from')}</label>
-          <input id="ph-start" type="date" value={phase.start_date || ''} onChange={e => set({ start_date: e.target.value || null })} style={input} />
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <input id="ph-start" type="date" value={phase.start_date || ''} onChange={e => set({ start_date: e.target.value || null })} style={{ ...input, flex: 3 }} />
+            <input type="time" value={phase.start_time || ''} onChange={e => set({ start_time: e.target.value || null })} aria-label={t('quote.startTime')} title={t('quote.timeOptional')} style={{ ...input, flex: 2, padding: '10px 6px' }} />
+          </div>
         </div>
-        <div style={{ flex: '1 1 130px' }}>
+        <div style={{ flex: '1 1 200px' }}>
           <label style={label} htmlFor="ph-end">{t('quote.to')}</label>
-          <input id="ph-end" type="date" value={phase.end_date || ''} min={phase.start_date || undefined} onChange={e => set({ end_date: e.target.value || null })} style={input} />
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <input id="ph-end" type="date" value={phase.end_date || ''} min={phase.start_date || undefined} onChange={e => set({ end_date: e.target.value || null })} style={{ ...input, flex: 3 }} />
+            <input type="time" value={phase.end_time || ''} onChange={e => set({ end_time: e.target.value || null })} aria-label={t('quote.endTime')} title={t('quote.timeOptional')} style={{ ...input, flex: 2, padding: '10px 6px' }} />
+          </div>
         </div>
         <div style={{ flex: '0 1 100px' }}>
           <label style={label} htmlFor="ph-disc">{t('quote.discountPct')}</label>
@@ -49,7 +56,7 @@ export default function PhaseEditor({ phase, index, count, currency, onChange, o
       </div>
 
       {phase.sections.map((section, i) => (
-        <SectionEditor key={section.id} section={section} currency={currency}
+        <SectionEditor key={section.id} section={section} currency={currency} priceItems={priceItems}
           first={i === 0} last={i === phase.sections.length - 1}
           onChange={next => updateSection(i, next)}
           onMove={delta => setSections(move(phase.sections, i, delta))}
@@ -72,8 +79,9 @@ export default function PhaseEditor({ phase, index, count, currency, onChange, o
   )
 }
 
-function SectionEditor({ section, currency, first, last, onChange, onMove, onRemove }) {
+function SectionEditor({ section, currency, priceItems, first, last, onChange, onMove, onRemove }) {
   const { t, lang } = useI18n()
+  const [picking, setPicking] = useState(false)
   const setLines = lines => onChange({ ...section, lines })
   const updateLine = (i, next) => setLines(section.lines.map((l, j) => (j === i ? next : l)))
 
@@ -116,7 +124,14 @@ function SectionEditor({ section, currency, first, last, onChange, onMove, onRem
             <Plus size={12} /> {t(`lineKind.${kind}`)}
           </button>
         ))}
+        <button onClick={() => setPicking(true)} className="q-add-line" style={{ color: colors.accent, borderColor: 'rgba(30,200,120,0.35)' }}>
+          <ListPlus size={12} /> {t('prices.fromList')}
+        </button>
       </div>
+      {picking && (
+        <PricePickerModal items={priceItems} onClose={() => setPicking(false)}
+          onPick={picked => { setLines([...section.lines, ...picked.map(lineFromPriceItem)]); setPicking(false) }} />
+      )}
     </section>
   )
 }

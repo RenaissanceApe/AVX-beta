@@ -18,3 +18,11 @@ describe('notifications', () => {
     expect(notificationLink({ org_id: 'o1', kind: 'added_to_org' })).toBe('/dashboard')
   })
 })
+
+describe('deletion notices', () => {
+  it('describes deleted gigs and organisations and links to the dashboard', () => {
+    expect(describeNotification({ kind: 'gig_deleted', actor_id: 'u1', details: { gig_name: 'NOS' } }, nameOf)).toBe('Ana deleted the gig NOS')
+    expect(describeNotification({ kind: 'org_deleted', actor_id: 'u1', details: { org_name: 'SoundWorks' } }, nameOf)).toBe('Ana deleted the organisation SoundWorks')
+    expect(notificationLink({ kind: 'gig_deleted', gig_id: null })).toBe('/dashboard')
+  })
+})

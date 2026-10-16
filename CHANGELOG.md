@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.8.0 — Phase 4b: branded quotes, price list, safe deletion
+
+### Added
+- Delete a gig (Edit gig → Danger zone) or an organisation (dashboard → ⚙ settings → Danger zone),
+  admins/creators only, behind a two-step confirmation: a list of everything that will be destroyed
+  with counts and an "I understand" tick, then typing the name, with the button locked for 5 seconds.
+  Crew and members get a notification (and the daily email) when it happens.
+- Organisation settings (rename) for admins; deletion moved out of the Members window
+- Quote branding: header image repeated on every printed page, accent colour, number prefix and
+  "next number" to continue an existing numbering
+- Quote fields for project manager and payment method; optional start/end times per phase, printed
+  as an agenda
+- Printed quote redesigned (Inter + Space Mono): client, title, project details, agenda, sections with
+  section totals, totals by type, final discount, VAT, numbered conditions, contact footer
+- Price list per organisation: add/edit items, paste-import from a spreadsheet, and "From price list"
+  in every quote section
+
 ## 0.7.0 — Phase 4: quotes
 
 ### Added
