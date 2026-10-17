@@ -259,7 +259,7 @@ export default function QuoteEditorPage() {
   return (
     <div style={{ minHeight: '100vh', color: '#fff', paddingBottom: '90px' }}>
       <style>{QUOTE_EDITOR_CSS}</style>
-      <header className="q-header" style={{ borderBottom: `1px solid ${colors.border}`, background: 'rgba(8,12,20,0.94)', zIndex: 40 }}>
+      <header className="q-header" style={{ borderBottom: `1px solid ${colors.border}`, background: colors.bg, zIndex: 40 }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '12px 16px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <button onClick={() => flushThen(() => navigate(`/org/${quote.org_id}/quotes`))} aria-label={t('quote.backToQuotes')} title={t('quote.backToQuotes')} style={iconBtn}><ArrowLeft size={18} /></button>
