@@ -145,21 +145,37 @@ function LineEditor({ line, currency, first, last, onChange, onMove, onDuplicate
   return (
     <div className="q-line-wrap">
       <div className={`q-line${isComment ? ' q-comment' : ''}`}>
-        <select className="q-kind" value={line.kind} onChange={e => set({ kind: e.target.value })} aria-label={t('quote.col.kind')} style={{ ...input, padding: '7px 6px', cursor: 'pointer' }}>
-          {LINE_KINDS.map(k => <option key={k} value={k}>{t(`lineKind.${k}`)}</option>)}
-        </select>
-        <input className="q-desc" value={line.description} onChange={e => set({ description: e.target.value })} aria-label={t('quote.col.description')}
-          placeholder={isComment ? t('quote.commentPlaceholder') : t('quote.descriptionPlaceholder')} maxLength={300} style={{ ...input, padding: '7px 9px' }} />
+        <Cell className="q-kind" label={t('quote.col.kind')}>
+          <select value={line.kind} onChange={e => set({ kind: e.target.value })} aria-label={t('quote.col.kind')} style={{ ...input, padding: '7px 6px', cursor: 'pointer' }}>
+            {LINE_KINDS.map(k => <option key={k} value={k}>{t(`lineKind.${k}`)}</option>)}
+          </select>
+        </Cell>
+        <Cell className="q-desc" label={t('quote.col.description')}>
+          <input value={line.description} onChange={e => set({ description: e.target.value })} aria-label={t('quote.col.description')}
+            placeholder={isComment ? t('quote.commentPlaceholder') : t('quote.descriptionPlaceholder')} maxLength={300} style={{ ...input, padding: '7px 9px' }} />
+        </Cell>
         {!isComment && (
           <>
-            <input className="q-qty" type="number" step="any" min="0" value={line.qty} onChange={e => set({ qty: e.target.value })} aria-label={t('quote.col.qty')} style={numInput} />
-            <select className="q-unit" value={line.unit} onChange={e => set({ unit: e.target.value })} aria-label={t('quote.col.unit')} style={{ ...input, padding: '7px 4px', cursor: 'pointer' }}>
-              {UNITS.map(u => <option key={u} value={u}>{t(`unit.${u}`, { count: Number(line.qty) })}</option>)}
-            </select>
-            <input className="q-factor" type="number" step="any" min="0" value={line.factor} onChange={e => set({ factor: e.target.value })} aria-label={t('quote.col.factor')} title={t('quote.factorHint')} style={numInput} />
-            <input className="q-price" type="number" step="0.01" min="0" value={line.unit_price} onChange={e => set({ unit_price: e.target.value })} aria-label={t('quote.col.price')} style={numInput} />
-            <input className="q-disc" type="number" step="0.5" min="0" max="100" value={line.discount_pct} onChange={e => set({ discount_pct: e.target.value })} aria-label={t('quote.col.discount')} style={numInput} />
-            <span className="q-total" style={{ fontWeight: 700, fontSize: '13px', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatMoney(lineTotal(line), currency, lang)}</span>
+            <Cell className="q-qty" label={t('quote.col.qty')}>
+              <input type="number" step="any" min="0" value={line.qty} onChange={e => set({ qty: e.target.value })} aria-label={t('quote.col.qty')} style={numInput} />
+            </Cell>
+            <Cell className="q-unit" label={t('quote.col.unit')}>
+              <select value={line.unit} onChange={e => set({ unit: e.target.value })} aria-label={t('quote.col.unit')} style={{ ...input, padding: '7px 4px', cursor: 'pointer' }}>
+                {UNITS.map(u => <option key={u} value={u}>{t(`unit.${u}`, { count: Number(line.qty) })}</option>)}
+              </select>
+            </Cell>
+            <Cell className="q-factor" label={t('quote.col.factor')}>
+              <input type="number" step="any" min="0" value={line.factor} onChange={e => set({ factor: e.target.value })} aria-label={t('quote.col.factor')} title={t('quote.factorHint')} style={numInput} />
+            </Cell>
+            <Cell className="q-price" label={t('quote.col.price')}>
+              <input type="number" step="0.01" min="0" value={line.unit_price} onChange={e => set({ unit_price: e.target.value })} aria-label={t('quote.col.price')} style={numInput} />
+            </Cell>
+            <Cell className="q-disc" label={t('quote.col.discount')}>
+              <input type="number" step="0.5" min="0" max="100" value={line.discount_pct} onChange={e => set({ discount_pct: e.target.value })} aria-label={t('quote.col.discount')} style={numInput} />
+            </Cell>
+            <Cell className="q-total" label={t('quote.col.total')}>
+              <span style={{ display: 'block', fontWeight: 700, fontSize: '13px', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatMoney(lineTotal(line), currency, lang)}</span>
+            </Cell>
           </>
         )}
         <span className="q-actions" style={{ display: 'flex' }}>
@@ -172,6 +188,17 @@ function LineEditor({ line, currency, first, last, onChange, onMove, onDuplicate
           placeholder={t('quote.detailsPlaceholder')} rows={2} maxLength={1000}
           style={{ ...input, marginTop: '4px', fontSize: '13px', resize: 'vertical', lineHeight: 1.5 }} />
       )}
+    </div>
+  )
+}
+
+// One field of a line. On narrow screens the column headings are hidden, so each
+// field shows its own small label instead.
+function Cell({ className, label, children }) {
+  return (
+    <div className={`q-cell ${className}`}>
+      <span className="q-cell-label" aria-hidden="true">{label}</span>
+      {children}
     </div>
   )
 }
@@ -193,7 +220,10 @@ const numInput = { ...input, padding: '7px 6px', textAlign: 'right' }
 // Layout for the line grid: one row on wide screens, two rows on phones.
 export const QUOTE_EDITOR_CSS = `
   .q-header { position: sticky; top: 0; }
-  @media (max-width: 760px) { .q-header { position: static; } }
+  /* Phones (portrait) and short landscape screens: don't pin the tall header over the fields */
+  @media (max-width: 760px), (max-height: 560px) { .q-header { position: static; } }
+  .q-cell { min-width: 0; }
+  .q-cell-label { display: none; }
   .q-phase-head { display: flex; gap: 10px; flex-wrap: wrap; }
   .q-section { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
   .q-line { display: grid; grid-template-columns: 112px minmax(140px,1fr) 64px 82px 58px 92px 58px 96px auto; gap: 6px; align-items: center; }
@@ -205,6 +235,12 @@ export const QUOTE_EDITOR_CSS = `
     background: transparent; color: #8A9BAE; border: 1px dashed rgba(255,255,255,0.14); }
   .q-add-section { padding: 9px 14px; font-size: 13px; width: 100%; justify-content: center; }
   .q-add-line:hover, .q-add-section:hover { color: #1EC878; border-color: rgba(30,200,120,0.4); }
+  /* Tablets and phones in landscape: tighter columns, no up/down buttons (lines still move on desktop) */
+  @media (min-width: 761px) and (max-width: 1060px) {
+    .q-line { grid-template-columns: 100px minmax(100px,1fr) 50px 70px 48px 74px 48px 82px auto; gap: 4px; }
+    .q-line.q-comment { grid-template-columns: 100px 1fr auto; }
+    .q-hide-narrow { display: none !important; }
+  }
   @media (max-width: 760px) {
     .q-line-head { display: none; }
     .q-line { grid-template-columns: 1.25fr 1fr 1fr 1fr; grid-template-areas: "kind desc desc desc" "qty unit factor price" "disc total total actions"; }
@@ -213,6 +249,9 @@ export const QUOTE_EDITOR_CSS = `
     .q-factor { grid-area: factor; } .q-price { grid-area: price; } .q-disc { grid-area: disc; } .q-total { grid-area: total; }
     .q-actions { grid-area: actions; justify-content: flex-end; }
     .q-hide-narrow { display: none !important; }
-    .q-line-wrap { padding: 8px 0; }
+    .q-line-wrap { padding: 10px 0; }
+    .q-line { row-gap: 8px; align-items: end; }
+    .q-cell-label { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #4A6070; margin: 0 0 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .q-total .q-cell-label { text-align: right; }
   }
 `
