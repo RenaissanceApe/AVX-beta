@@ -114,7 +114,7 @@ Full plan in [docs/INVENTORY.md](docs/INVENTORY.md). Each phase ships on its own
 |---|---|
 | ✅ I1 · Catalogue and stock (0.13.0) | Price list becomes the catalogue; bulk and serial-numbered stock, locations, an append-only ledger, counts, import, QR labels and scanning |
 | ✅ I2 · Availability (0.14.0) | Equipment tab on gigs, availability with prep/return days, quote availability check, quote → gig equipment, item timeline |
-| I3 · Warehouse | Packing lists, scan out/in with the camera, unit status, missing reports |
+| ✅ I3 · Warehouse (0.15.0) | Packing lists, scan out/in with the camera, units out on gigs, damaged → repair, mark missing units lost |
 | I4 · Kits | Cases, sets, accessories, alternatives |
 | I5 · Maintenance | Repairs from site, inspections with reminders |
 | I6 · Subrental and cross-hire | Suppliers, costs, availability between AVX companies |

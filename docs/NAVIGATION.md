@@ -35,6 +35,8 @@ The button next to the logo picks the workspace:
 | `/org/:id/inventory` (`?tab=locations`, `?tab=movements`) | Inventory: catalogue, locations, stock ledger |
 | `/org/:id/inventory/:itemId` (`?unit=<id>`) | One item: stock, units, bookings, history |
 | `/gig/:id?tab=equipment` | A gig's equipment and its availability |
+| `/gig/:id/packing` | Printable packing list |
+| `/gig/:id/scan` | Scan equipment out to the gig and back in |
 | `/org/:id/inventory/labels` (`?items=…&units=…`) | Printable QR labels |
 | `/scan/:code` | What a label's QR code opens: finds the item or unit and goes there |
 

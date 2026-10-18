@@ -133,3 +133,30 @@ export function dailyAvailability(owned, bookings, startDate, days) {
   }
   return out
 }
+
+// ── Warehouse (I3) ───────────────────────────────────────────────────────────
+const CODE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/
+
+// What a scan read: our labels hold a /scan/<code> address; other barcodes hold the code
+export function codeFromScan(text) {
+  const raw = String(text || '').trim()
+  const fromUrl = /\/scan\/([^/?#\s]+)/.exec(raw)
+  let code = raw
+  if (fromUrl) { try { code = decodeURIComponent(fromUrl[1]) } catch { code = fromUrl[1] } }
+  return CODE.test(code) ? code : null
+}
+
+// A gig's dispatch summary rows → how far packing (out) and returning (back) have got
+export function dispatchProgress(rows) {
+  const lines = (rows || []).filter(r => r.planned > 0)
+  const sum = key => lines.reduce((s, r) => s + (r[key] || 0), 0)
+  const planned = sum('planned')
+  const out = lines.reduce((s, r) => s + Math.min(r.out_qty || 0, r.planned), 0)
+  const back = (rows || []).reduce((s, r) => s + Math.min(r.back_qty || 0, r.out_qty || 0), 0)
+  const outTotal = (rows || []).reduce((s, r) => s + (r.out_qty || 0), 0)
+  return {
+    planned, out, outTotal, back,
+    toPack: lines.filter(r => (r.out_qty || 0) < r.planned).length,
+    notBack: (rows || []).filter(r => (r.back_qty || 0) < (r.out_qty || 0)).length,
+  }
+}

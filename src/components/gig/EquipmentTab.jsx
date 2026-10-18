@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Loader2, Search, Weight, Zap } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Loader2, Search, Weight, Zap, ScanLine, ClipboardList } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -8,7 +9,7 @@ import { equipmentWindow, shortBy } from '../../lib/inventory'
 import { rangeText } from '../../lib/clashes'
 import { toLocalInput } from './Booking'
 import { t } from '../../i18n'
-import { Modal, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 import { TabHeader } from './parts'
 
 const AMBER = '#F59E0B'
@@ -21,14 +22,17 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   const { notify } = useToast()
   const [lines, setLines] = useState(null)
   const [status, setStatus] = useState({}) // line_id -> gig_equipment_status row
+  const [moved, setMoved] = useState({}) // item_id -> { out_qty, back_qty } from scanning
   const [picking, setPicking] = useState(false)
   const [editing, setEditing] = useState(null)
 
   async function load() {
-    const [linesRes, statusRes] = await Promise.all([
+    const [linesRes, statusRes, movedRes] = await Promise.all([
       supabase.from('gig_equipment').select('*').eq('gig_id', gig.id).order('category', { nullsFirst: false }).order('item_name'),
       canEdit ? supabase.rpc('gig_equipment_status', { p_gig: gig.id }) : Promise.resolve({ data: [] }),
+      supabase.rpc('gig_dispatch_summary', { p_gig: gig.id }),
     ])
+    setMoved(Object.fromEntries((movedRes.data || []).map(r => [r.item_id, r])))
     if (linesRes.error) logger.error('equipment', linesRes.error, { step: 'lines', gigId: gig.id })
     if (statusRes.error) logger.error('equipment', statusRes.error, { step: 'status', gigId: gig.id })
     setLines(linesRes.data || [])
@@ -62,6 +66,12 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
       <TabHeader title={t('gig.tab.equipment')} subtitle={t('equip.count', { count: lines.length })}
         action={canAdd && <button onClick={() => setPicking(true)} style={btnPrimary}><Plus size={14} /> {t('equip.add')}</button>} />
 
+      {rows.length > 0 && (
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <Link to={`/gig/${gig.id}/packing`} style={{ ...ghostLink }}><ClipboardList size={14} /> {t('dispatch.packingList')}</Link>
+          {canEdit && <Link to={`/gig/${gig.id}/scan`} style={{ ...ghostLink }}><ScanLine size={14} /> {t('dispatch.open')}</Link>}
+        </div>
+      )}
       {canEdit && rows.length > 0 && (
         <div style={{ display: 'flex', gap: '8px 16px', flexWrap: 'wrap', fontSize: '13px', color: colors.soft, marginBottom: '12px' }}>
           {weight > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Weight size={13} /> {t('equip.weight', { kg: Math.round(weight) })}</span>}
@@ -92,7 +102,9 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
                   <span style={{ flex: '1 1 200px', minWidth: 0 }}>
                     <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{r.item_name}</span>
                     <span style={{ fontSize: '12px', color: colors.muted }}>
-                      {[r.planned_from && t('equip.ownDates', { range: rangeText(r.planned_from, r.planned_until) }), r.notes].filter(Boolean).join(' · ')}
+                      {[r.planned_from && t('equip.ownDates', { range: rangeText(r.planned_from, r.planned_until) }), r.notes,
+                        (moved[r.item_id]?.out_qty || moved[r.item_id]?.back_qty) && t('equip.outBack', { out: moved[r.item_id].out_qty, back: moved[r.item_id].back_qty }),
+                      ].filter(Boolean).join(' · ')}
                     </span>
                   </span>
                   {status[r.id] && (
@@ -122,6 +134,8 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
     </div>
   )
 }
+
+const ghostLink = { ...btn, textDecoration: 'none', background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }
 
 // Pick catalogue items with what's free for the gig's dates; ticked items are added
 // (or their quantity updated if already on the gig)

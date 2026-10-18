@@ -60,7 +60,7 @@ per person per gig; managers can withdraw it. Nothing is booked by asking.
 
 1. Planning equipment on a gig (`gig_equipment`) writes a reservation with
    `resource_type = 'equipment'`, the item id and a `quantity`, `source_type = 'gig_equipment'`.
-   Assigning specific serial-numbered units (`'unit'`) comes with scanning in I3.
+   Specific serial-numbered units are not reserved ahead; scanning (I3) records which ones went.
 2. Availability = what can go out minus the **busiest moment** of overlapping, non-cancelled
    reservations (`private.equipment_peak`); the GiST index (`resource_type, resource_id, period`)
    keeps it fast.
