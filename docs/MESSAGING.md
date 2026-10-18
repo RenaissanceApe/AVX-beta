@@ -1,6 +1,6 @@
 # Messaging: plan
 
-Status: **planned**, after the inventory phases ([INVENTORY.md](INVENTORY.md)). A project of
+Status: **M1 built (0.21.0)**; M2–M6 planned. A project of
 its own, built in stages M1–M6. The aim: one messaging system that works wherever people need
 to talk about something in AVX (a gig, a person's availability, a file, a quote, a piece of
 equipment), instead of WhatsApp groups that lose the context.
@@ -106,9 +106,28 @@ Attachments count against file storage, like gig files.
 | **M5** | Push notifications, reply by email, offline outbox |
 | **M6** | Moderation, retention, export, rate limits |
 
-## Questions to settle before M1
+## Decisions (settled before M1)
 
-- Should the gig **feed** become the gig channel, or stay as the "official updates" board next to it?
-- Can crew start direct conversations with anyone they've worked with, or only within shared gigs?
-- Read receipts: on, off, or per organisation?
-- External threads: clients only, or suppliers too from day one?
+- **Gig feed stays** as the "official updates" board; the gig channel is a separate **Chat** tab.
+- **Direct conversations**: anyone can message people they share a gig or an organisation with
+  (the same people as the "your network" picker, 5c). Strangers can't be messaged.
+- **Read receipts: off.** You see your own unread counts; nobody sees whether you've read a
+  message. Announcements with acknowledgement (M3) cover "did they read it".
+- **External threads (M4): clients and suppliers** from day one, through secure links.
+
+## What M1 built (0.21.0)
+
+- Migration `20261101000000_messaging.sql`, tests `supabase/tests/messaging.sql`.
+- Tables `conversations` (direct or gig; one channel per gig, one direct conversation per pair),
+  `conversation_members` (direct only; gig channels follow the gig's members), `conversation_state`
+  (your last read time and mute) and `messages` (text or system, up to 4000 characters, optional reply).
+- Who sees what: a direct conversation, its two people; a gig channel, everyone who can see the gig.
+  Crew and PMs post in a gig channel, viewers only read. Messages can't be edited or deleted yet (M2).
+- System messages in the channel when a gig's status, dates or venue change.
+- Notifications (kind `message`): direct messages, and replies to you in a gig channel. One unread
+  notification per conversation, counting up; reading the conversation clears it. Muting stops them.
+  Ordinary channel messages only show as unread counts, so a busy channel doesn't flood the bell.
+- Functions `start_direct`, `gig_conversation`, `my_conversations`, `read_conversation`.
+- UI: `/messages` (list and conversation, one at a time on phones), the gig Chat tab, a messages
+  button with an unread count in the top bar, "Message" buttons on crew rows and organisation members.
+

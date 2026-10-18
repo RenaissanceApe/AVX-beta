@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.21.0 — Messaging M1: direct and gig conversations
+
+### Added
+- **Messages** (top bar): your direct conversations and gig channels, newest first, with unread
+  counts; open one to read and reply. Side by side on wide screens, one at a time on phones
+- **Chat tab on every gig**: everyone on the gig talks in one place; status, date and venue
+  changes show up in it. Viewers can read but not post. The Feed stays for official updates
+- Replies to a message, links made clickable, earlier messages loaded on demand, live delivery
+- **Message** buttons next to crew on a gig and organisation members. You can message people you
+  share a gig or organisation with
+- Mute a conversation; no read receipts
+- Notifications for direct messages and replies to you, grouped per conversation, also in the
+  email summary (which now also covers damage reports, inspections and hire requests)
+- Your sent messages are included in the account data export
+- Privacy notice (EN/PT): who sees messages, no read receipts
+
 ## 0.20.0 — Your network
 
 ### Added

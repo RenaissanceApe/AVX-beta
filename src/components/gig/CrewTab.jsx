@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { UserPlus, X, Clock, Phone, Loader2, Send, AlertTriangle, Plus, Briefcase, Trash2, CalendarClock, UserCheck } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { UserPlus, X, Clock, Phone, Loader2, Send, AlertTriangle, Plus, Briefcase, Trash2, CalendarClock, UserCheck, MessageCircle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
@@ -150,6 +151,11 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
                   </div>
                 </div>
                 <RoleBadge role={m.role} large />
+                {!self && (
+                  <Link to={`/messages?to=${m.user_id}`} style={iconBtn} aria-label={t('chat.messageNamed', { name })} title={t('chat.message')}>
+                    <MessageCircle size={15} />
+                  </Link>
+                )}
                 {(isPM || self) && (
                   <button onClick={() => removeMember(m)} style={iconBtn}
                     aria-label={self ? t('crew.leave') : t('crew.removeNamed', { name })}

@@ -84,14 +84,15 @@ export default function AccountModal({ onClose }) {
   async function exportData() {
     setExporting(true)
     try {
-      const [profileRes, orgsRes, gigsRes, postsRes, assetsRes] = await Promise.all([
+      const [profileRes, orgsRes, gigsRes, postsRes, assetsRes, messagesRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
         supabase.from('org_members').select('role, joined_at, organisations(id, name, created_at)').eq('user_id', user.id),
         supabase.from('gig_members').select('role, function_title, call_time, gigs(id, name, venue, start_date, end_date, status)').eq('user_id', user.id),
         supabase.from('feed_posts').select('id, gig_id, content, is_important, created_at').eq('user_id', user.id),
         supabase.from('assets').select('id, gig_id, type, name, version, file_size, created_at').eq('created_by', user.id),
+        supabase.from('messages').select('id, conversation_id, body, reply_to, created_at').eq('author_id', user.id).order('created_at'),
       ])
-      const firstError = [profileRes, orgsRes, gigsRes, postsRes, assetsRes].find(r => r.error)?.error
+      const firstError = [profileRes, orgsRes, gigsRes, postsRes, assetsRes, messagesRes].find(r => r.error)?.error
       if (firstError) throw firstError
       const data = {
         exported_at: new Date().toISOString(),
@@ -101,6 +102,7 @@ export default function AccountModal({ onClose }) {
         gigs: gigsRes.data,
         feed_posts: postsRes.data,
         uploaded_assets: assetsRes.data,
+        messages_sent: messagesRes.data,
       }
       const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
       const a = document.createElement('a')

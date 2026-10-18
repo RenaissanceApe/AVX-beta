@@ -28,6 +28,7 @@ const ScanPage = lazy(() => import('./pages/ScanPage'))
 const DispatchPage = lazy(() => import('./pages/DispatchPage'))
 const PackingListPage = lazy(() => import('./pages/PackingListPage'))
 // Public: the page a client opens from a quote link (no account)
+const MessagesPage = lazy(() => import('./pages/MessagesPage'))
 const QuotePublicPage = lazy(() => import('./pages/QuotePublicPage'))
 
 function Spinner() {
@@ -85,6 +86,8 @@ function AppRoutes() {
       <Route path="/q/:token" element={<Suspense fallback={<Spinner />}><QuotePublicPage /></Suspense>} />
       <Route path="/dashboard" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
       <Route path="/me" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/messages" element={<ProtectedRoute><Suspense fallback={<Spinner />}><MessagesPage /></Suspense></ProtectedRoute>} />
+      <Route path="/messages/:id" element={<ProtectedRoute><Suspense fallback={<Spinner />}><MessagesPage /></Suspense></ProtectedRoute>} />
       <Route path="/orgs" element={<ProtectedRoute><OrgsPage /></ProtectedRoute>} />
       <Route path="/org/:orgId" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/gig/:id" element={<ProtectedRoute><GigPage /></ProtectedRoute>} />

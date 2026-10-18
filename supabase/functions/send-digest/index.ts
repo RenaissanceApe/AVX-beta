@@ -14,7 +14,7 @@
 // - only people whose profile has email_digest = true
 // - each notification is emailed at most once (notifications.emailed_at)
 // - nothing from organisations the person muted (org_mutes), except direct questions
-//   to them (availability requests)
+//   to them (availability requests, messages)
 // Logs carry counts only, never addresses or content.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
@@ -33,7 +33,7 @@ type Notification = {
 
 const MAX_LINES = 20
 // Kinds that are a direct question to the person: sent even when the organisation is muted
-const DIRECT_KINDS = new Set(['availability_request'])
+const DIRECT_KINDS = new Set(['availability_request', 'message'])
 
 const STRINGS: Record<Lang, Record<string, string>> = {
   en: {
@@ -63,6 +63,16 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     availabilityNo: '{actor} is not available for {gig}',
     bookingChanged: '{actor} set your booking on {gig} to {range}',
     bookingCleared: '{actor} booked you for the whole of {gig} again',
+    damage: '{actor} reported damage to {item} on {gig}: “{excerpt}”',
+    inspectionDueOne: '{count} inspection due soon in {org}',
+    inspectionDueMany: '{count} inspections due soon in {org}',
+    hireRequest: '{org} asked to hire from you ({range})',
+    hireConfirmed: '{supplier} confirmed your hire request',
+    hireDeclined: '{supplier} declined your hire request',
+    messageDirectOne: '{actor}: “{excerpt}”',
+    messageDirectMany: '{count} messages from {actor}, latest: “{excerpt}”',
+    messageReplyOne: '{actor} replied to you in {gig}: “{excerpt}”',
+    messageReplyMany: '{actor} replied to you in {gig} ({count}): “{excerpt}”',
     'role.pm': 'Production Manager', 'role.crew': 'Crew', 'role.viewer': 'Viewer',
     'orgRole.admin': 'Admin', 'orgRole.member': 'Member', 'orgRole.viewer': 'Viewer',
     'status.draft': 'Draft', 'status.confirmed': 'Confirmed', 'status.active': 'Active',
@@ -95,6 +105,16 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     availabilityNo: '{actor} não está disponível para {gig}',
     bookingChanged: '{actor} definiu a sua marcação em {gig} para {range}',
     bookingCleared: '{actor} voltou a marcá-lo para todos os dias de {gig}',
+    damage: '{actor} reportou um dano em {item} no evento {gig}: “{excerpt}”',
+    inspectionDueOne: '{count} inspeção a vencer em {org}',
+    inspectionDueMany: '{count} inspeções a vencer em {org}',
+    hireRequest: '{org} pediu para lhe alugar equipamento ({range})',
+    hireConfirmed: '{supplier} confirmou o seu pedido de aluguer',
+    hireDeclined: '{supplier} recusou o seu pedido de aluguer',
+    messageDirectOne: '{actor}: “{excerpt}”',
+    messageDirectMany: '{count} mensagens de {actor}, a última: “{excerpt}”',
+    messageReplyOne: '{actor} respondeu-lhe em {gig}: “{excerpt}”',
+    messageReplyMany: '{actor} respondeu-lhe em {gig} ({count}): “{excerpt}”',
     'role.pm': 'Production Manager', 'role.crew': 'Equipa', 'role.viewer': 'Leitor',
     'orgRole.admin': 'Administrador', 'orgRole.member': 'Membro', 'orgRole.viewer': 'Leitor',
     'status.draft': 'Rascunho', 'status.confirmed': 'Confirmado', 'status.active': 'Em curso',
@@ -153,12 +173,26 @@ function describe(n: Notification, lang: Lang, actorName: string | undefined) {
     case 'booking_changed': return d.booked_from && d.booked_until
       ? fill(s.bookingChanged, { actor, gig, range: rangeText(d.booked_from, d.booked_until, lang) })
       : fill(s.bookingCleared, { actor, gig })
+    case 'damage_reported':
+      return fill(s.damage, { actor, item: [d.item_name, d.unit_code].filter(Boolean).join(' · '), gig: gig || '—', excerpt: d.excerpt ?? '' })
+    case 'inspection_due':
+      return fill(Number(d.count) === 1 ? s.inspectionDueOne : s.inspectionDueMany, { count: d.count ?? 0, org: d.org_name ?? '' })
+    case 'hire_request': return fill(s.hireRequest, { org: d.from_org ?? '', range: rangeText(d.starts_at, d.ends_at, lang) })
+    case 'hire_answered': return fill(d.answer === 'confirmed' ? s.hireConfirmed : s.hireDeclined, { supplier: d.supplier ?? '' })
+    case 'message': {
+      const many = Number(d.count ?? 1) > 1
+      const vars = { actor, gig, count: d.count ?? 1, excerpt: d.excerpt ?? '' }
+      return d.gig_name ? fill(many ? s.messageReplyMany : s.messageReplyOne, vars) : fill(many ? s.messageDirectMany : s.messageDirectOne, vars)
+    }
     default: return fill(s.generic, { gig })
   }
 }
 
 function linkFor(n: Notification, appUrl: string) {
+  if (n.kind === 'message' && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}`
   if (n.details?.quote_id) return `${appUrl}/quote/${n.details.quote_id}`
+  if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=maintenance`
+  if ((n.kind === 'hire_request' || n.kind === 'hire_answered') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=subrentals`
   if (n.kind === 'availability_request') return `${appUrl}/me#requests`
   if (n.gig_id && (n.kind === 'availability_reply' || n.kind === 'booking_changed')) return `${appUrl}/gig/${n.gig_id}?tab=crew`
   if (!n.gig_id) return `${appUrl}/dashboard`
