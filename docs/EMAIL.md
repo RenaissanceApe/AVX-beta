@@ -60,6 +60,14 @@ database, then asks Supabase Auth to send the *Invite user* email. The link open
 where the person picks a name and password. Supabase's default limit is a few auth emails per hour
 on the built-in sender; with your own SMTP you can raise it under Authentication → Rate Limits.
 
+## Quotes sent to clients (Brevo)
+
+**Send to client** in a quote calls the `send-quote` Edge Function, which emails the client a link to
+the online quote from your Brevo sender, with your organisation's name as the sender name and your
+company email (Quotes → Company details) as the reply-to address. It uses the same `BREVO_API_KEY`
+and `DIGEST_FROM` secrets as the daily summary below, so once those are set, quotes are emailed too.
+Without them, AVX still creates the link and asks you to copy and send it yourself.
+
 ## Daily notification summary (Brevo)
 
 People who don't open AVX every day still need to hear about a new call time or an important post.

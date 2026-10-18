@@ -16,6 +16,8 @@ import CallSheetPage from './pages/CallSheetPage'
 const QuotesPage = lazy(() => import('./pages/QuotesPage'))
 const QuoteEditorPage = lazy(() => import('./pages/QuoteEditorPage'))
 const QuotePrintPage = lazy(() => import('./pages/QuotePrintPage'))
+// Public: the page a client opens from a quote link (no account)
+const QuotePublicPage = lazy(() => import('./pages/QuotePublicPage'))
 
 function Spinner() {
   return (
@@ -54,6 +56,7 @@ function AppRoutes() {
       <Route path="/welcome" element={<WelcomePage />} />
       <Route path="/privacy" element={<LegalPage doc="privacy" />} />
       <Route path="/terms" element={<LegalPage doc="terms" />} />
+      <Route path="/q/:token" element={<Suspense fallback={<Spinner />}><QuotePublicPage /></Suspense>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/gig/:id" element={<ProtectedRoute><GigPage /></ProtectedRoute>} />
       <Route path="/gig/:id/callsheet" element={<ProtectedRoute><CallSheetPage /></ProtectedRoute>} />

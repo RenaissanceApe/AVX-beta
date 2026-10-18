@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft, Loader2, Printer, Copy, LayoutTemplate, Trash2, Plus, CalendarPlus, ExternalLink, CheckCircle, AlertTriangle, CloudOff, Download,
+  History, Send, ListChecks,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
@@ -13,8 +14,10 @@ import PhaseEditor, { QUOTE_EDITOR_CSS } from '../components/quotes/PhaseEditor'
 import QuoteDetails from '../components/quotes/QuoteDetails'
 import QuoteSummary from '../components/quotes/QuoteSummary'
 import { QuoteStatusBadge } from '../components/quotes/parts'
+import { VersionsModal, SendQuoteModal } from '../components/quotes/QuoteSharing'
+import GigPlanModal from '../components/quotes/GigPlanModal'
 import {
-  QUOTE_STATUSES, normalizeBody, quoteTotals, emptyPhase, cloneBody, quoteNumber, formatMoney, move, quoteDateRange, localISODate,
+  QUOTE_STATUSES, normalizeBody, quoteTotals, emptyPhase, cloneBody, quoteNumber, formatMoney, move, quoteDateRange, localISODate, snapshotFields,
 } from '../lib/quotes'
 
 // Fields of the quotes table the editor may change (the database sets the rest)
@@ -156,6 +159,11 @@ export default function QuoteEditorPage() {
     if (saveState === 'dirty' || saveState === 'saving') await save()
     fn()
   }
+  // For versions and sending: save pending edits, then hand over the quote as it is now
+  async function prepare() {
+    if (timer.current || saving.current) await save()
+    return { quote: latest.current.quote, body: latest.current.body }
+  }
 
   const totals = useMemo(() => (quote ? quoteTotals({ ...quote, body }) : null), [quote, body])
 
@@ -249,6 +257,15 @@ export default function QuoteEditorPage() {
     setGigs(list => [data, ...list])
     updateQuote({ gig_id: data.id })
     notify(t('quote.gigCreated', { name: data.name }), 'success')
+    setModal({ kind: 'plan', gig: data })
+  }
+
+  function restoreVersion(snapshot) {
+    const fields = snapshotFields(snapshot)
+    updateQuote(fields)
+    const b = normalizeBody(snapshot.body)
+    updateBody(b)
+    setTab(b.phases[0] ? `phase:${b.phases[0].id}` : 'details')
   }
 
   const tabs = [
@@ -273,10 +290,15 @@ export default function QuoteEditorPage() {
           </div>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', padding: '8px 0 10px' }}>
             <button onClick={() => flushThen(() => navigate(`/quote/${id}/print`))} style={btn}><Printer size={14} /> {t('quote.preview')}</button>
+            <button onClick={() => setModal({ kind: 'send' })} style={btn}><Send size={14} /> {t('send.button')}</button>
+            <button onClick={() => setModal({ kind: 'versions' })} style={btnGhost}><History size={14} /> {t('quoteVersions.button')}</button>
             <button onClick={duplicateQuote} style={btnGhost}><Copy size={14} /> {t('quote.duplicate')}</button>
             <button onClick={() => setModal({ kind: 'saveTemplate', body, name: quote.title })} style={btnGhost}><LayoutTemplate size={14} /> {t('quote.saveAsTemplate')}</button>
             {linkedGig
-              ? <button onClick={() => flushThen(() => navigate(`/gig/${linkedGig.id}`))} style={btnGhost}><ExternalLink size={14} /> {t('quote.openGig')}</button>
+              ? <>
+                  <button onClick={() => flushThen(() => navigate(`/gig/${linkedGig.id}`))} style={btnGhost}><ExternalLink size={14} /> {t('quote.openGig')}</button>
+                  <button onClick={() => setModal({ kind: 'plan', gig: linkedGig })} style={btnGhost}><ListChecks size={14} /> {t('plan.button')}</button>
+                </>
               : <button onClick={createGig} style={btnGhost}><CalendarPlus size={14} /> {t('quote.createGig')}</button>}
             {canDelete && <button onClick={deleteQuote} style={{ ...btnGhost, color: colors.danger, marginLeft: 'auto' }}><Trash2 size={14} /> {t('common.delete')}</button>}
           </div>
@@ -334,6 +356,18 @@ export default function QuoteEditorPage() {
       {modal?.kind === 'saveTemplate' && (
         <SaveTemplateModal orgId={quote.org_id} userId={user.id} body={modal.body} defaultName={modal.name}
           onClose={() => setModal(null)} onSaved={tpl => { setTemplates(list => [...list, tpl].sort((a, b) => a.name.localeCompare(b.name))); setModal(null) }} />
+      )}
+      {modal?.kind === 'versions' && (
+        <VersionsModal quoteId={id} prepare={prepare} currency={quote.currency} onRestore={restoreVersion} onClose={() => setModal(null)} />
+      )}
+      {modal?.kind === 'send' && (
+        <SendQuoteModal quoteId={id} prepare={prepare} defaultEmail={quote.client_email}
+          onSent={() => { if (latest.current.quote.status === 'draft') updateQuote({ status: 'sent' }) }}
+          onClose={() => setModal(null)} />
+      )}
+      {modal?.kind === 'plan' && (
+        <GigPlanModal quoteId={id} body={body} gig={modal.gig} userId={user.id} onClose={() => setModal(null)}
+          onDone={() => { setModal(null); flushThen(() => navigate(`/gig/${modal.gig.id}`)) }} />
       )}
       {modal?.kind === 'insertTemplate' && (
         <Modal title={t('quote.insertTemplate')} onClose={() => setModal(null)}>

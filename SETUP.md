@@ -31,6 +31,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 9. `supabase/migrations/20261018000000_email_digest.sql` — email summary settings
 10. `supabase/migrations/20261019000000_quotes.sql` — quotes, quote templates, company details
 11. `supabase/migrations/20261020000000_branding_pricelist_deletion.sql` — quote branding, price list, numbering, deletion notices
+12. `supabase/migrations/20261021000000_quote_versions_shares_positions.sql` — quote versions, client links, gig positions
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.
@@ -59,6 +60,9 @@ Recommended while you're in Auth settings:
   `supabase/functions/send-invite/index.ts` into Supabase → Edge Functions. Keep "Verify JWT" on.
 - Optional daily email summary: deploy `supabase/functions/send-digest` with "Verify JWT" **off**
   (it checks its own secret), then follow the Brevo steps in [docs/EMAIL.md](docs/EMAIL.md).
+- Sending quotes to clients: deploy `supabase/functions/send-quote` (Verify JWT **on**) and
+  `supabase/functions/quote-public` (Verify JWT **off**: clients have no account; the link's token is
+  the key). Emailing the link uses the same `BREVO_API_KEY` / `DIGEST_FROM` secrets as the summary.
 - Follow [docs/EMAIL.md](docs/EMAIL.md): custom SMTP, sender domain DNS, no click tracking, and the email templates.
 - Optional: [docs/BACKUPS.md](docs/BACKUPS.md) for daily encrypted backups.
 

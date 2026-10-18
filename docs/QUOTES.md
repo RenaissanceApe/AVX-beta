@@ -35,7 +35,30 @@ at the same time, you get a "changed elsewhere" notice instead of silently overw
 
 Templates never store dates or client details.
 
-## Sending it
+## Versions
+
+**Versions** (top of the quote) lists numbered copies of the quote, each with a note and its total.
+**Save version** freezes the quote as it is now (e.g. "Before cutting the LED wall"). The eye opens a
+version as the client would see it (printable); **Restore** puts it back into the editor, after saving
+the current state as a new version, so a restore can always be undone. Every quote you send to a
+client is saved as a version automatically.
+
+## Sending it to the client
+
+**Send to client** saves a version and creates a private link to an online copy of that version
+(e.g. `https://avx-beta.vercel.app/q/Xk3v…`). With the client's email ticked, AVX emails the link
+(see docs/EMAIL.md); otherwise copy the link and send it yourself. A draft quote becomes *Sent*.
+
+- The client opens it without an account, in the quote's language, and can print it or save a PDF.
+- **Accept** / **Decline** asks for their name and an optional message (e.g. an order number). The
+  answer is final: the quote's status changes, and whoever sent it, whoever wrote the quote and the
+  organisation's admins get a notification.
+- Links last 30 days. Sending again replaces the previous link; the ⊘ button turns a link off.
+- For security only a fingerprint of the link is stored, so the link is shown once, right after
+  sending. If it gets lost, send again.
+- The window lists every send: to whom, which version, when it was opened and the client's answer.
+
+## Printing it yourself
 
 **Preview & print** opens the quote as the client will see it, in the quote's language (Portuguese or
 English, chosen per quote, independent of your own app language). Use the browser's print dialog →
@@ -66,8 +89,20 @@ items as lines; you can still change quantity, factor, price and discount per qu
 
 ## Statuses and gigs
 
-Draft → Sent → Accepted / Declined is set by hand. **Create gig** turns the quote into a gig (dates from
-the earliest to the latest phase) and links them; or link an existing gig in the Details tab.
+Draft → Sent → Accepted / Declined is set by sending and by the client's answer, and can still be set
+by hand. **Create gig** turns the quote into a gig (dates from the earliest to the latest phase) and
+links them; or link an existing gig in the Details tab.
+
+**Fill gig from quote** (once a gig is linked; it also opens right after *Create gig*) lists what the
+quote adds to the gig, to untick or adjust first:
+- **Schedule**: one item per day of each dated phase, at the phase's start time (09:00 if none) and
+  until its end time on the last day. Items already on the gig are left unticked.
+- **Crew positions**: one per crew line description, merged across phases, with the number of people
+  (the line's quantity, or 1 for lines priced per hour, km or lump sum). Optional phases are left out.
+
+Positions appear under **Positions to fill** in the gig's Crew tab, with how many are filled (crew
+and pending invites whose function matches) and a button to invite someone for that role. Only the
+gig's production managers, its creator and organisation admins can change them.
 
 ## What was taken from Rentman, and what wasn't
 
@@ -84,7 +119,7 @@ function groups, equipment groups, functions, costs, quotes), not from Rentman's
 | Quote document (number, version, date, expiry, VAT, "no individual prices" layout) | Numbered quote, validity date, VAT, *Show prices per line* |
 
 Deliberately left out for now: inventory and availability, rate cards with time-based price rules,
-per-category discounts, multiple VAT classes per line, and quote versions. Possible next steps are in
+per-category discounts and multiple VAT classes per line. Possible next steps are in
 ROADMAP.md.
 
 ## Technical notes
@@ -94,5 +129,8 @@ ROADMAP.md.
   covered by `src/lib/quotes.test.js`.
 - Quote numbers are per organisation and assigned by the database (`Q0001`, `Q0002`, …).
 - `total_net` is stored on each save so the list can show totals without loading every quote.
-- Access rules are tested by `supabase/tests/quotes_rls.sql` (run it in the test project's SQL editor;
-  it rolls itself back and ends with `ALL QUOTE CHECKS PASSED`).
+- Access rules are tested by `supabase/tests/quotes_rls.sql` and `supabase/tests/phase4c_rls.sql` (run
+  them in the test project's SQL editor; they roll themselves back and end with `ALL … CHECKS PASSED`).
+- Versions, client links and positions: `quote_versions`, `quote_shares` and `gig_positions`
+  (migration `20261021000000_quote_versions_shares_positions.sql`). Links are created only by the
+  `send-quote` Edge Function and answered only through `quote-public`; members can only turn a link off.

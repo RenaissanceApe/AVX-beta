@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.9.0 — Phase 4c: quote versions, sending to clients, quote → gig
+
+### Added
+- Quote versions: save the quote as a numbered version with a note, view or print any version, and
+  restore one (the current state is saved as a version first, so nothing is lost)
+- Send to client: creates a private link to an online copy of the quote (valid 30 days) and emails it
+  through Brevo when an address is given; otherwise copy the link yourself. Sending again replaces the
+  previous link; links can be turned off. Each send is saved as a version.
+- Public quote page (`/q/…`, no account needed) in the quote's language, printable, with Accept /
+  Decline (name and optional message). The answer sets the quote's status and notifies the sender, the
+  quote's author and the organisation's admins (in the app and in the daily email).
+- Fill a gig from its quote: schedule items from the phase dates (one per day) and crew positions from
+  the crew lines, shown first so you can untick or adjust them
+- "Positions to fill" in the gig's Crew tab: roles with how many people are needed, how many are
+  filled (crew and invites with that function), and a quick invite for the role
+
+### Changed
+- The printed quote fits phone screens (smaller type, wrapping, scrolls sideways when needed)
+
 ## 0.8.0 — Phase 4b: branded quotes, price list, safe deletion
 
 ### Added

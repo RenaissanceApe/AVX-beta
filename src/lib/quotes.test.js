@@ -145,3 +145,57 @@ describe('price list import', () => {
       .toMatchObject({ kind: 'rental', description: 'Sub', unit_price: 80, qty: 1, factor: 1, details: '' })
   })
 })
+
+describe('versions and gig plan', () => {
+  it('snapshots only client-facing fields and restores them', async () => {
+    const { quoteSnapshot, snapshotFields } = await import('./quotes')
+    const snap = quoteSnapshot({ title: 'Gala', status: 'sent', gig_id: 'g', number: 7, vat_rate: 23, body: { phases: [phase([line()])] } })
+    expect(snap).toMatchObject({ title: 'Gala', number: 7, vat_rate: 23 })
+    expect(snap).not.toHaveProperty('status')
+    expect(snap).not.toHaveProperty('gig_id')
+    expect(snap.body.phases).toHaveLength(1)
+    const back = snapshotFields(snap)
+    expect(back).toMatchObject({ title: 'Gala', vat_rate: 23 })
+    expect(back).not.toHaveProperty('number')
+    expect(back).not.toHaveProperty('body')
+  })
+
+  it('turns dated phases into one schedule item per day', async () => {
+    const { quoteToGigPlan } = await import('./quotes')
+    const { schedule } = quoteToGigPlan({ phases: [
+      phase([], { id: 'a', name: 'Load-in', start_date: '2026-11-03', start_time: '08:00', end_time: '20:00' }),
+      phase([], { id: 'b', name: 'Show', start_date: '2026-11-04', end_date: '2026-11-06', start_time: '14:00', end_time: '23:30' }),
+      phase([], { id: 'c', name: 'Undated' }),
+      phase([], { id: 'd', name: 'Option', optional: true, start_date: '2026-11-07' }),
+    ] })
+    expect(schedule.map(s => [s.day, s.start_time, s.end_time, s.phase, s.dayIndex, s.dayCount])).toEqual([
+      ['2026-11-03', '08:00', '20:00', 'Load-in', 1, 1],
+      ['2026-11-04', '14:00', null, 'Show', 1, 3],
+      ['2026-11-05', '09:00', null, 'Show', 2, 3],
+      ['2026-11-06', '09:00', '23:30', 'Show', 3, 3],
+    ])
+  })
+
+  it('crosses midnight without an end time and caps long phases', async () => {
+    const { quoteToGigPlan } = await import('./quotes')
+    const { schedule } = quoteToGigPlan({ phases: [
+      phase([], { start_date: '2026-11-03', start_time: '22:00', end_time: '02:00' }),
+      phase([], { id: 'long', start_date: '2026-01-01', end_date: '2026-12-31' }),
+    ] })
+    expect(schedule[0]).toMatchObject({ start_time: '22:00', end_time: null })
+    expect(schedule.filter(s => s.dayCount === 31)).toHaveLength(31)
+  })
+
+  it('merges crew lines into positions', async () => {
+    const { quoteToGigPlan } = await import('./quotes')
+    const { positions } = quoteToGigPlan({ phases: [
+      phase([line({ kind: 'crew', description: 'Sound technician', qty: 2, unit: 'unit' }), line({ kind: 'rental', description: 'Speaker' })], { name: 'Day 1' }),
+      phase([line({ kind: 'crew', description: 'sound technician ', qty: 3, unit: 'unit' }), line({ kind: 'crew', description: 'Rigger', qty: 10, unit: 'hour' }), line({ kind: 'crew', description: '' })], { id: 'p2', name: 'Day 2' }),
+      phase([line({ kind: 'crew', description: 'Spare', qty: 1 })], { id: 'p3', optional: true }),
+    ] })
+    expect(positions).toEqual([
+      { title: 'Sound technician', quantity: 3, phases: ['Day 1', 'Day 2'] },
+      { title: 'Rigger', quantity: 1, phases: ['Day 2'] },
+    ])
+  })
+})

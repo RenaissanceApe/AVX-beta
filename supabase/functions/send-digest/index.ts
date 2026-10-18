@@ -51,6 +51,8 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     generic: 'Update on {gig}',
     gigDeleted: '{actor} deleted the gig {gig}',
     orgDeleted: '{actor} deleted the organisation {org}',
+    quoteAccepted: '{client} accepted quote {number} · {title}',
+    quoteDeclined: '{client} declined quote {number} · {title}',
     'role.pm': 'Production Manager', 'role.crew': 'Crew', 'role.viewer': 'Viewer',
     'orgRole.admin': 'Admin', 'orgRole.member': 'Member', 'orgRole.viewer': 'Viewer',
     'status.draft': 'Draft', 'status.confirmed': 'Confirmed', 'status.active': 'Active',
@@ -76,6 +78,8 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     generic: 'Atualização em {gig}',
     gigDeleted: '{actor} eliminou o evento {gig}',
     orgDeleted: '{actor} eliminou a organização {org}',
+    quoteAccepted: '{client} aceitou o orçamento {number} · {title}',
+    quoteDeclined: '{client} recusou o orçamento {number} · {title}',
     'role.pm': 'Production Manager', 'role.crew': 'Equipa', 'role.viewer': 'Leitor',
     'orgRole.admin': 'Administrador', 'orgRole.member': 'Membro', 'orgRole.viewer': 'Leitor',
     'status.draft': 'Rascunho', 'status.confirmed': 'Confirmado', 'status.active': 'Em curso',
@@ -109,11 +113,14 @@ function describe(n: Notification, lang: Lang, actorName: string | undefined) {
     case 'gig_details': return fill(s.details, { actor, gig })
     case 'gig_deleted': return fill(s.gigDeleted, { actor, gig })
     case 'org_deleted': return fill(s.orgDeleted, { actor, org: d.org_name })
+    case 'quote_accepted': return fill(s.quoteAccepted, { client: d.client_name, number: d.number, title: d.quote_title })
+    case 'quote_declined': return fill(s.quoteDeclined, { client: d.client_name, number: d.number, title: d.quote_title })
     default: return fill(s.generic, { gig })
   }
 }
 
 function linkFor(n: Notification, appUrl: string) {
+  if (n.details?.quote_id) return `${appUrl}/quote/${n.details.quote_id}`
   if (!n.gig_id) return `${appUrl}/dashboard`
   return n.kind === 'schedule_changed' ? `${appUrl}/gig/${n.gig_id}?tab=schedule` : `${appUrl}/gig/${n.gig_id}`
 }

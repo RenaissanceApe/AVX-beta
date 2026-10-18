@@ -69,10 +69,11 @@ Everything is enforced in the database with Row Level Security, not in the UI:
 | Who | Can |
 |---|---|
 | Organisation admin | Everything in the organisation: members, roles, gigs, quotes, company details and branding, deleting gigs or the organisation |
-| Organisation member | See all the organisation's gigs, create gigs, upload files, build quotes and templates |
+| Organisation member | See all the organisation's gigs, create gigs, upload files, build, version and send quotes |
 | Organisation viewer | See the organisation's gigs (no quotes or prices) |
-| Gig PM | Edit the gig, add/remove crew, upload/delete files (the gig's creator can also delete it) |
+| Gig PM | Edit the gig, its schedule and positions to fill, add/remove crew, upload/delete files (the gig's creator can also delete it) |
 | Gig crew / viewer | See the gig, its files and feed; post updates |
+| A client with a quote link | See that one quote and accept or decline it, while the link is valid |
 | Anyone else | Nothing |
 
 Files live in a private bucket under `<gig-id>/…` and are opened with short-lived signed URLs.
