@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.21.1 — Fixes and plans
+
+### Fixed
+- Account → Unavailable dates: on iPhones the two date fields overlapped. They now share the
+  row and have visible "From" / "To" labels. Date and time fields everywhere can no longer
+  overflow their column or collapse when empty on iOS
+
+### Docs
+- `docs/PENDING.md`: everything waiting on a decision, setting or test since the inventory build
+- `docs/HELP.md`: plan for a glossary, field hints, guides and other inclusive features (H1–H6)
+- `docs/SWITCHING.md`: plan for importing from Rentman and other tools (S1–S5)
+
 ## 0.21.0 — Messaging M1: direct and gig conversations
 
 ### Added

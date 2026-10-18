@@ -145,6 +145,21 @@ acknowledgement, crew calls, client and supplier threads, push, moderation (stag
 | M5 · Reach | Push notifications, reply by email, offline outbox |
 | M6 · Safety | Moderation, retention, export, rate limits |
 
+## Help and inclusion (planned)
+
+Glossary, ⓘ hints on ambiguous fields, how-to guides with screenshots per role, text size,
+comfortable and high-contrast modes, simple mode for crew, a field kit for scanning, and a rule
+that every new feature ships its hints and guide. Stages H1–H6 in [docs/HELP.md](docs/HELP.md).
+
+## Switching to AVX (planned)
+
+Import wizard (CSV/Excel, column matching with saved presets, preview, dry run, undo), contacts
+directory, crew and upcoming jobs, a Rentman preset built from real exports, and an organisation
+export. File import only, no live integration. Stages S1–S5 in [docs/SWITCHING.md](docs/SWITCHING.md).
+
+**Suggested order from here:** H1 (small, and it sets the rule for everything after) → S1 →
+messaging M2 → H2 → S2–S3 → the rest. To confirm (see [docs/PENDING.md](docs/PENDING.md), D12).
+
 ## Phase 7 — Crew network and job board (after messaging)
 
 Opt-in freelancer profiles (functions, region, languages, certificates) and open positions posted

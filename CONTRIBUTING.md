@@ -41,6 +41,13 @@ intended: each one checks permissions itself. Anything else it reports needs fix
 - Plurals: add `key.one` / `key.other` and pass `{ count }`. Dates: `fmt(date, pattern)` and `ago(date)`.
 - `npm test` fails if the two dictionaries differ or if code uses a key that doesn't exist.
 
+## Help and accessibility
+
+From help stage H1 on ([docs/HELP.md](docs/HELP.md)), a feature isn't done until it ships, in both
+languages: glossary entries for new terms, ⓘ hints on ambiguous fields, an updated guide with
+refreshed screenshots, and a keyboard and screen-reader pass. Never use colour or hover as the
+only signal, and keep text plain.
+
 ## Logging hygiene
 
 - Don't use `console.*` directly (lint enforces this). Use `logger` from `src/lib/logger.js`:

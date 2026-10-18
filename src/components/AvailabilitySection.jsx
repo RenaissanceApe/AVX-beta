@@ -61,11 +61,15 @@ export default function AvailabilitySection() {
           <button onClick={() => remove(i.id)} aria-label={t('availability.remove', { range: range(i) })} style={{ ...iconBtn, marginLeft: 'auto' }}><X size={14} /></button>
         </div>
       ))}
-      <form onSubmit={add} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '10px' }}>
-        <input type="date" value={form.start_date} min={localToday()} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
-          aria-label={t('availability.from')} style={input} required />
-        <input type="date" value={form.end_date} min={form.start_date || localToday()} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
-          aria-label={t('availability.to')} style={input} />
+      <form onSubmit={add} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '8px', marginTop: '10px' }}>
+        <label style={{ minWidth: 0, fontSize: '12px', color: colors.soft }}>{t('availability.from')}
+          <input type="date" value={form.start_date} min={localToday()} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
+            style={{ ...input, marginTop: '4px' }} required />
+        </label>
+        <label style={{ minWidth: 0, fontSize: '12px', color: colors.soft }}>{t('availability.to')}
+          <input type="date" value={form.end_date} min={form.start_date || localToday()} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
+            style={{ ...input, marginTop: '4px' }} />
+        </label>
         <input value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} maxLength={200}
           placeholder={t('availability.notePlaceholder')} aria-label={t('availability.note')} style={{ ...input, gridColumn: '1 / -1' }} />
         <button type="submit" disabled={saving || !form.start_date} style={{ ...btn, gridColumn: '1 / -1', justifyContent: 'center' }}>
