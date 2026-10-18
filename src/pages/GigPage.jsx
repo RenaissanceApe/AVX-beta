@@ -14,6 +14,7 @@ import AssetsTab from '../components/gig/AssetsTab'
 import CrewTab from '../components/gig/CrewTab'
 import EquipmentTab from '../components/gig/EquipmentTab'
 import FeedTab from '../components/gig/FeedTab'
+import ChatTab from '../components/gig/ChatTab'
 import ActivityTab from '../components/gig/ActivityTab'
 import AssetVersionsModal from '../components/gig/AssetVersionsModal'
 import EditGigModal from '../components/gig/EditGigModal'
@@ -228,6 +229,7 @@ export default function GigPage() {
           <EquipmentTab gig={gig} org={orgs.find(o => o.id === gig.org_id) || {}}
             canEdit={isPM || orgRole === 'admin' || orgRole === 'member'} canAdd={orgRole === 'admin' || orgRole === 'member'} />
         )}
+        {tab === 'chat' && <ChatTab gigId={id} canPost={isPM || ['pm', 'crew'].includes(myMembership?.role)} />}
         {tab === 'feed' && <FeedTab gigId={id} posts={posts} userId={user.id} isPM={isPM} nameOf={nameOf} onChanged={reload} />}
         {tab === 'activity' && <ActivityTab entries={activity} nameOf={nameOf} />}
       </main>

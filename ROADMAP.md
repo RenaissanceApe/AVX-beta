@@ -130,11 +130,20 @@ Nobody can browse everyone on AVX. Each person chooses in Account who can find t
 crew** (freelancers, including freelance PMs). The privacy notice describes it. Migration
 `20261031000000_network.sql`, tests `supabase/tests/network.sql`.
 
-## Phase 6 — Messaging (after inventory)
+## Phase 6 — Messaging
 
 Full plan in [docs/MESSAGING.md](docs/MESSAGING.md): direct, group, gig, department and organisation
 conversations attached to what they're about, then attachments and mentions, announcements with
 acknowledgement, crew calls, client and supplier threads, push, moderation (stages M1–M6).
+
+| Stage | Scope |
+|---|---|
+| ✅ M1 · Direct and gig conversations (0.21.0) | Messages page, a Chat tab on every gig (status, date and venue changes posted in it), replies, unread counts, mute, live delivery, bell + email summary, "Message" buttons on crew and organisation members |
+| M2 · Richer messages | Attachments, object cards, mentions, reactions, edit/delete |
+| M3 · Organisation channels | Organisation and department channels, pinned, announcements with acknowledgement, search |
+| M4 · Integrations | Availability requests, crew calls, call sheet, client and supplier threads |
+| M5 · Reach | Push notifications, reply by email, offline outbox |
+| M6 · Safety | Moderation, retention, export, rate limits |
 
 ## Phase 7 — Crew network and job board (after messaging)
 

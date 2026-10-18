@@ -28,6 +28,16 @@ describe('notifications', () => {
     expect(describeNotification({ kind: 'hire_answered', details: { supplier: 'Hire Co', answer: 'confirmed' } }, nameOf))
       .toBe('Hire Co confirmed your hire request')
   })
+  it('describes messages and opens the conversation', () => {
+    expect(describeNotification({ kind: 'message', actor_id: 'u1', details: { count: 1, excerpt: 'Free on the 14th?' } }, nameOf))
+      .toBe('Ana: “Free on the 14th?”')
+    expect(describeNotification({ kind: 'message', actor_id: 'u1', details: { count: 3, excerpt: 'Ping' } }, nameOf))
+      .toBe('3 messages from Ana, latest: “Ping”')
+    expect(describeNotification({ kind: 'message', actor_id: 'u1', details: { count: 1, excerpt: 'Yes', gig_name: 'NOS' } }, nameOf))
+      .toBe('Ana replied to you in NOS: “Yes”')
+    expect(notificationLink({ kind: 'message', gig_id: 'g1', details: { conversation_id: 'c1' } })).toBe('/messages/c1')
+    expect(countsAsUnread({ kind: 'message', org_id: 'o1' }, new Set(['o1']))).toBe(true)
+  })
 })
 
 describe('deletion notices', () => {

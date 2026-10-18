@@ -4,7 +4,7 @@ import { useI18n } from '../../i18n'
 import { colors } from '../ui'
 import { StatusBadge } from './parts'
 
-export const GIG_TABS = ['overview', 'schedule', 'assets', 'crew', 'equipment', 'feed', 'activity']
+export const GIG_TABS = ['overview', 'schedule', 'assets', 'crew', 'equipment', 'chat', 'feed', 'activity']
 
 export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, setTab, counts, onBack, onRefresh, onEdit, company, orgRole }) {
   const { t, fmt } = useI18n()

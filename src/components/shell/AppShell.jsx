@@ -9,6 +9,7 @@ import { useWorkspace } from '../../lib/WorkspaceContext'
 import { navSections, splitItems, phoneTabs, isActive, homePath, MY_WORK } from '../../lib/nav'
 import { useI18n } from '../../i18n'
 import NotificationBell from '../NotificationBell'
+import MessagesButton from '../messages/MessagesButton'
 import AccountModal from '../AccountModal'
 import { colors } from '../ui'
 
@@ -52,6 +53,7 @@ export default function AppShell({ children }) {
           {sections.map(s => <SectionMenu key={s.key} section={s} />)}
         </nav>
         <div className="shell-right">
+          <MessagesButton />
           <NotificationBell />
           <button onClick={() => setAccountOpen(true)} className="shell-avatar" aria-label={t('account.title')} title={t('account.title')}>{initials}</button>
         </div>

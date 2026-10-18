@@ -32,6 +32,9 @@ The button next to the logo picks the workspace:
 | `/orgs` (`?new=1`) | Organisations: yours with your role in each, companies you work for as crew, create one |
 | `/dashboard` | Opens the current workspace (used by sign-in and old links) |
 | `/me?panel=account` | Account (also from the avatar) |
+| `/messages`, `/messages/:id` | Messages: direct conversations and gig channels (also from the top bar's message button, which shows the unread count) |
+| `/messages?to=<user>` | Start or reopen a direct conversation (the "Message" buttons on crew and members) |
+| `/gig/:id?tab=chat` | A gig's Chat |
 | `/org/:id/inventory` (`?tab=locations`, `?tab=movements`, `?tab=maintenance`, `?tab=subrentals`, `?tab=reports`) | Inventory: catalogue, locations, stock ledger, repairs and inspections, subrentals, reports |
 | `/org/:id/inventory/:itemId` (`?unit=<id>`) | One item: stock, units, bookings, history |
 | `/gig/:id?tab=equipment` | A gig's equipment and its availability |

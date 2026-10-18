@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { X, Loader2, Send, Trash2, LogOut } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { X, Loader2, Send, Trash2, LogOut, MessageCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -165,6 +166,11 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
                     </select>
                   ) : (
                     <span style={{ fontSize: '12px', color: '#4A6070', }}>{t(`orgRole.${m.role}`)}</span>
+                  )}
+                  {!self && (
+                    <Link to={`/messages?to=${m.user_id}`} style={iconBtn} aria-label={t('chat.messageNamed', { name: m.full_name || '—' })} title={t('chat.message')}>
+                      <MessageCircle size={15} />
+                    </Link>
                   )}
                   {(isAdmin || self) && (
                     <button onClick={() => removeMember(m)} disabled={busy === m.user_id} style={iconBtn}
