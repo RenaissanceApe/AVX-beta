@@ -48,6 +48,7 @@ export function navSections({ workspace, role }) {
       { key: 'movements', icon: 'history', to: `${base}/inventory?tab=movements` },
       { key: 'maintenance', icon: 'wrench', to: `${base}/inventory?tab=maintenance` },
       { key: 'subrentals', icon: 'handshake', to: `${base}/inventory?tab=subrentals`, minor: true },
+      { key: 'reports', icon: 'barChart', to: `${base}/inventory?tab=reports`, minor: true },
       { key: 'labels', icon: 'qrCode', to: `${base}/inventory/labels`, minor: true },
     ] })
   }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Plus, Upload, QrCode, Search, Loader2, Package, MapPin, History, ChevronRight, AlertTriangle, Pencil, Archive, ArchiveRestore, Warehouse, Truck, Building2, Box, Wrench, Handshake } from 'lucide-react'
+import { Plus, Upload, QrCode, Search, Loader2, Package, MapPin, History, ChevronRight, AlertTriangle, Pencil, Archive, ArchiveRestore, Warehouse, Truck, Building2, Box, Wrench, Handshake, BarChart3 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -12,15 +12,16 @@ import AppShell from '../components/shell/AppShell'
 import { ItemModal, LocationModal, ImportStockModal } from '../components/inventory/InventoryModals'
 import { MaintenanceTab } from '../components/inventory/MaintenancePanels'
 import { SubrentalsTab } from '../components/inventory/SubrentalPanels'
+import ReportsTab from '../components/inventory/ReportsTab'
 import { btn, btnPrimary, iconBtn, input, card, colors } from '../components/ui'
 
-const TABS = ['catalogue', 'locations', 'movements', 'maintenance', 'subrentals']
-const TAB_ICONS = { catalogue: Package, locations: MapPin, movements: History, maintenance: Wrench, subrentals: Handshake }
+const TABS = ['catalogue', 'locations', 'movements', 'maintenance', 'subrentals', 'reports']
+const TAB_ICONS = { catalogue: Package, locations: MapPin, movements: History, maintenance: Wrench, subrentals: Handshake, reports: BarChart3 }
 export const LOCATION_ICONS = { warehouse: Warehouse, vehicle: Truck, site: Building2, other: Box }
 const ghost = { ...btn, background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }
 
 // Inventory of one organisation: the catalogue with stock, locations and the stock ledger.
-//   /org/:orgId/inventory (?tab=locations|movements|maintenance|subrentals)
+//   /org/:orgId/inventory (?tab=locations|movements|maintenance|subrentals|reports)
 export default function InventoryPage() {
   const { orgId } = useParams()
   const [params, setParams] = useSearchParams()
@@ -59,6 +60,7 @@ export default function InventoryPage() {
         {tab === 'movements' && <Movements inv={inv} orgId={orgId} />}
         {tab === 'maintenance' && <MaintenanceTab inv={inv} orgId={orgId} />}
         {tab === 'subrentals' && <SubrentalsTab inv={inv} orgId={orgId} />}
+        {tab === 'reports' && <ReportsTab inv={inv} orgId={orgId} />}
       </div>
       <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </AppShell>

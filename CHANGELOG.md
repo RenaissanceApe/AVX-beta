@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.19.0 — Inventory I7: reports
+
+### Added
+- **Inventory → Reports** for the last 90 days, 12 months or this year: use, gigs, last used,
+  revenue from accepted quotes, revenue against purchase cost, repairs and what was charged back,
+  losses at replacement value, subrental spend and book value per item, with totals
+- Items not used in the period, with their book value
+- CSV download of the report
+
 ## 0.18.0 — Inventory I6: subrental and cross-hire
 
 ### Added
