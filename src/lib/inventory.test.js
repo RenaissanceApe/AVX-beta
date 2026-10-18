@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { levelsByItem, isLowStock, countCorrection, bookValue, parseStockImport, matchItem, scanUrl } from './inventory'
+import { levelsByItem, isLowStock, countCorrection, bookValue, parseStockImport, matchItem, scanUrl, expandPlan, kitsFree, alternativesOf } from './inventory'
 
 describe('stock levels', () => {
   it('adds up per item and location', () => {
@@ -116,5 +116,44 @@ describe('warehouse', () => {
       { item_id: 'c', planned: 0, out_qty: 1, back_qty: 0 }, // taken without being planned
     ])
     expect(p).toEqual({ planned: 12, out: 8, outTotal: 10, back: 7, toPack: 1, notBack: 2 })
+  })
+})
+
+describe('kits', () => {
+  const parts = [
+    { parent_id: 'set', child_id: 'spk', kind: 'content', quantity: 2 },
+    { parent_id: 'set', child_id: 'xlr', kind: 'content', quantity: 4 },
+    { parent_id: 'big', child_id: 'set', kind: 'content', quantity: 2 },
+    { parent_id: 'spk', child_id: 'clamp', kind: 'accessory', quantity: 1 },
+    { parent_id: 'case', child_id: 'spk', kind: 'content', quantity: 2 },
+  ]
+  const items = { set: { kit_type: 'set' }, big: { kit_type: 'set' }, case: { kit_type: 'case' } }
+
+  it('brings accessories with an item, only for the increase', () => {
+    expect(expandPlan({ spk: 3 }, {}, parts, items)).toEqual({ lines: { spk: 3, clamp: 3 }, added: { clamp: 3 } })
+    expect(expandPlan({ spk: 5 }, { spk: 3, clamp: 3 }, parts, items).lines).toEqual({ spk: 5, clamp: 5 })
+    expect(expandPlan({ spk: 2 }, { spk: 3, clamp: 3 }, parts, items).lines).toEqual({ spk: 2 })
+  })
+  it('turns sets into their contents, nested sets too', () => {
+    expect(expandPlan({ set: 1 }, { xlr: 10 }, parts, items).lines).toEqual({ spk: 2, xlr: 14, clamp: 2 })
+    expect(expandPlan({ big: 1 }, {}, parts, items).lines).toEqual({ spk: 4, xlr: 8, clamp: 4 })
+  })
+  it('keeps a case as a line with its contents', () => {
+    expect(expandPlan({ case: 2 }, {}, parts, items).lines).toEqual({ case: 2, spk: 4, clamp: 4 })
+  })
+  it('adds picked and brought quantities together', () => {
+    expect(expandPlan({ set: 1, spk: 1 }, {}, parts, items).lines).toEqual({ spk: 3, xlr: 4, clamp: 3 })
+  })
+  it('stops on a loop', () => {
+    const loop = [{ parent_id: 'a', child_id: 'b', quantity: 1 }, { parent_id: 'b', child_id: 'a', quantity: 1 }]
+    expect(() => expandPlan({ a: 1 }, {}, loop, {})).not.toThrow()
+  })
+  it('counts how many sets are free', () => {
+    expect(kitsFree('set', parts, items, { spk: { available: 5 }, xlr: { available: 40 }, clamp: { available: 10 } })).toBe(2)
+    expect(kitsFree('set', parts, items, { spk: { available: -1 } })).toBe(0)
+    expect(kitsFree('set', parts, items, {})).toBe(null)
+  })
+  it('finds alternatives either way round', () => {
+    expect(alternativesOf('a', [{ item_a: 'a', item_b: 'b' }, { item_a: 'c', item_b: 'a' }, { item_a: 'c', item_b: 'd' }])).toEqual(['b', 'c'])
   })
 })

@@ -160,3 +160,55 @@ export function dispatchProgress(rows) {
     notBack: (rows || []).filter(r => (r.back_qty || 0) < (r.out_qty || 0)).length,
   }
 }
+
+// ── Kits (I4) ────────────────────────────────────────────────────────────────
+export const KIT_TYPES = ['set', 'case']
+const MAX_KIT_DEPTH = 8
+
+// What planning brings along. picks: item_id -> the quantity wanted; existing: item_id ->
+// quantity already on the gig; parts: item_parts rows; items: item_id -> { kit_type }.
+// Only an increase brings contents and accessories (a set is never a line itself: it
+// becomes its contents). Returns the lines to save (item_id -> new quantity) and what
+// came along (item_id -> quantity added).
+export function expandPlan(picks, existing = {}, parts = [], items = {}) {
+  const byParent = new Map()
+  for (const p of parts) (byParent.get(p.parent_id) || byParent.set(p.parent_id, []).get(p.parent_id)).push(p)
+  const added = {}
+  const walk = (id, n, depth) => {
+    if (n <= 0 || depth > MAX_KIT_DEPTH) return
+    for (const p of byParent.get(id) || []) {
+      const m = n * (p.quantity || 1)
+      if (items[p.child_id]?.kit_type !== 'set') added[p.child_id] = (added[p.child_id] || 0) + m
+      walk(p.child_id, m, depth + 1)
+    }
+  }
+  const lines = {}
+  for (const [id, raw] of Object.entries(picks)) {
+    const qty = Math.max(0, Math.round(Number(raw) || 0))
+    const isSet = items[id]?.kit_type === 'set'
+    walk(id, isSet ? qty : qty - (existing[id] || 0), 0)
+    if (!isSet && qty > 0) lines[id] = qty
+  }
+  for (const [id, n] of Object.entries(added)) lines[id] = (lines[id] ?? existing[id] ?? 0) + n
+  for (const id of Object.keys(lines)) {
+    lines[id] = Math.min(100000, lines[id])
+    if (lines[id] === existing[id]) delete lines[id]
+  }
+  return { lines, added }
+}
+
+// How many of a set (or case with its contents) could go out, from what's free per item
+// (item_id -> { available }). Null when nothing inside is known.
+export function kitsFree(itemId, parts, items, free) {
+  const { added } = expandPlan({ [itemId]: 1 }, {}, parts, { ...items, [itemId]: { kit_type: 'set' } })
+  const counts = Object.entries(added).filter(([id]) => free[id]).map(([id, need]) => Math.floor(Math.max(0, free[id].available) / need))
+  return counts.length ? Math.min(...counts) : null
+}
+
+// The other item of each alternative pair an item is in
+export const alternativesOf = (itemId, pairs) =>
+  (pairs || []).flatMap(p => (p.item_a === itemId ? [p.item_b] : p.item_b === itemId ? [p.item_a] : []))
+
+// "3 × Clamp, 2 × Cable" for what came along
+export const broughtList = (added, items) =>
+  Object.entries(added).map(([id, n]) => `${n} × ${items[id]?.name || '…'}`).join(', ')

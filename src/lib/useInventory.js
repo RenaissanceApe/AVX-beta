@@ -47,3 +47,26 @@ export function useInventory(orgId) {
     items, setItems, locations, activeLocations, locationName, stock, reload,
   }
 }
+
+// Kits of one organisation (I4): contents and accessories (item_parts), alternative pairs,
+// and each item's name and kit type. Empty for people who can't see the catalogue.
+export function useKits(orgId, enabled = true) {
+  const [kits, setKits] = useState({ parts: [], pairs: [], items: {}, loaded: false })
+  const reload = useCallback(async () => {
+    if (!orgId || !enabled) return setKits({ parts: [], pairs: [], items: {}, loaded: true })
+    const [partsRes, pairsRes, itemsRes] = await Promise.all([
+      supabase.from('item_parts').select('*').eq('org_id', orgId),
+      supabase.from('item_alternatives').select('*').eq('org_id', orgId),
+      supabase.from('price_items').select('id, name, kit_type, tracking, category, archived_at').eq('org_id', orgId).in('kind', ['rental', 'sale']),
+    ])
+    for (const [step, res] of Object.entries({ partsRes, pairsRes, itemsRes })) {
+      if (res.error) logger.error('kits', res.error, { step })
+    }
+    setKits({
+      parts: partsRes.data || [], pairs: pairsRes.data || [],
+      items: Object.fromEntries((itemsRes.data || []).map(i => [i.id, i])), loaded: true,
+    })
+  }, [orgId, enabled])
+  useEffect(() => { reload() }, [reload])
+  return { ...kits, reload }
+}
