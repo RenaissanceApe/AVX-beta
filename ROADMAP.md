@@ -82,16 +82,16 @@ in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTA
 | ✅ Send to client | Link to an online quote with Accept / Decline, emailed via Brevo; the team is notified of the answer (0.9.0) |
 | ✅ PDF attachment | The quote email carries a PDF of the same version, made in the browser; also "Download PDF" (0.10.0) |
 
-## Phase 4d — Navigation and app shell (next)
+## Phase 4d — Navigation and workspaces ✅ (v0.11.0)
 
 | Item | Notes |
 |---|---|
-| App shell | One top bar on every signed-in screen; logo → dashboard; bell and account inside it |
-| Organisation switcher | Button-style menu next to the logo; remembers the last organisation; "All my gigs" for crew who work for several companies |
-| Organisations page | Create, open and manage organisations in one place (no forced splash screen) |
-| Proper addresses | `/calendar`, `/org/:id/quotes`, `/org/:id/prices`, `/org/:id/templates`, `/org/:id/company`, `/org/:id/members` |
-| Section menus | Desktop: dark frosted card panels on hover/click; hybrid cards + list once a section grows. Phone: bottom tabs + "More" sheet |
-| Role-aware | One central menu list; viewers and crew never see quote links |
+| ✅ App shell | One top bar on every signed-in screen; logo → home of the current workspace; bell and account inside it |
+| ✅ Workspaces | Switcher next to the logo: My work (every gig you're on, any company, with your role) or an organisation (with your role there); remembers the last one |
+| ✅ Organisations page | Your organisations with your role in each, companies you work for as crew, create one |
+| ✅ Proper addresses | `/me`, `/org/:id`, `/orgs`, quotes tabs, members/settings/new gig as links (docs/NAVIGATION.md) |
+| ✅ Section menus | Desktop: dark frosted card panels on hover/click, hybrid cards + list as sections grow. Phone: bottom tabs + "More" sheet |
+| ✅ Role-aware | One central menu list (`src/lib/nav.js`); viewers never see quote links |
 
 ## Before a public launch
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
@@ -16,7 +16,8 @@ import FeedTab from '../components/gig/FeedTab'
 import ActivityTab from '../components/gig/ActivityTab'
 import AssetVersionsModal from '../components/gig/AssetVersionsModal'
 import EditGigModal from '../components/gig/EditGigModal'
-import NotificationBell from '../components/NotificationBell'
+import AppShell from '../components/shell/AppShell'
+import { useWorkspace } from '../lib/WorkspaceContext'
 import OfflineBanner from '../components/OfflineBanner'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 
@@ -41,6 +42,11 @@ export default function GigPage() {
   const [showEdit, setShowEdit] = useState(false)
   const [versionsAsset, setVersionsAsset] = useState(null)
   const [savedAt, setSavedAt] = useState(null) // set when showing the offline copy
+  const [company, setCompany] = useState(null)
+  const { orgs } = useWorkspace()
+  const location = useLocation()
+  // Back goes where you came from (My work, an organisation, a notification); fresh tabs go home
+  const goBack = () => (location.key !== 'default' ? navigate(-1) : navigate('/dashboard'))
 
   // Switching gigs (e.g. from a notification) must not show the previous gig while loading
   useEffect(() => { setData(null); setVersionsAsset(null); loadAll() }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -50,6 +56,19 @@ export default function GigPage() {
     window.addEventListener('online', onOnline)
     return () => window.removeEventListener('online', onOnline)
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
+  // The company this gig belongs to: known if you're a member, otherwise asked for by name only
+  const gigOrgId = data?.gig?.org_id
+  useEffect(() => {
+    if (!gigOrgId) return setCompany(null)
+    const mine = orgs.find(o => o.id === gigOrgId)
+    if (mine) return setCompany(mine.name)
+    let cancelled = false
+    supabase.rpc('my_gig_companies').then(({ data: rows }) => {
+      if (!cancelled) setCompany(rows?.find(r => r.org_id === gigOrgId)?.name || null)
+    })
+    return () => { cancelled = true }
+  }, [gigOrgId, orgs])
+
   // Links such as /gig/:id?tab=schedule (from notifications) select a tab
   useEffect(() => { if (GIG_TABS.includes(requestedTab)) setTab(requestedTab) }, [requestedTab, id])
 
@@ -137,13 +156,15 @@ export default function GigPage() {
   }
 
   if (loading && !data) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Loader2 size={28} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
-    </div>
+    <AppShell>
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Loader2 size={28} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+      </div>
+    </AppShell>
   )
 
   if (data?.offlineMissing) return (
-    <div style={{ minHeight: '100vh' }}>
+    <AppShell>
       <OfflineBanner />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center' }}>
         <div style={{ maxWidth: '360px' }}>
@@ -151,17 +172,19 @@ export default function GigPage() {
           <button onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
         </div>
       </div>
-    </div>
+    </AppShell>
   )
 
   if (!data?.gig) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center' }}>
-      <div style={{ maxWidth: '360px' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '10px' }}>{t('gig.notAvailableTitle')}</h1>
-        <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>{t('gig.notAvailableBody')}</p>
-        <button onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
+    <AppShell>
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center' }}>
+        <div style={{ maxWidth: '360px' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '10px' }}>{t('gig.notAvailableTitle')}</h1>
+          <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>{t('gig.notAvailableBody')}</p>
+          <button onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
+        </div>
       </div>
-    </div>
+    </AppShell>
   )
 
   const { gig, members, assets, posts, invites, schedule, activity } = data
@@ -174,12 +197,12 @@ export default function GigPage() {
   const reload = () => loadAll({ silent: true })
 
   return (
-    <div style={{ minHeight: '100vh', color: '#fff' }}>
+    <AppShell>
       <OfflineBanner savedAt={savedAt} />
       <GigHeader gig={gig} crewCount={members.length} myMembership={myMembership} canEdit={isPM}
         tab={tab} setTab={setTab} counts={{ assets: assets.length, crew: members.length, feed: posts.length, schedule: schedule.length }}
-        onBack={() => navigate('/dashboard')} onRefresh={() => loadAll()} onEdit={() => setShowEdit(true)}
-        nav={<NotificationBell />} />
+        onBack={goBack} onRefresh={() => loadAll()} onEdit={() => setShowEdit(true)}
+        company={company} orgRole={orgRole} />
 
       <main style={{ maxWidth: '900px', margin: '0 auto', padding: '24px 16px' }}>
         {tab === 'overview' && (
@@ -210,6 +233,6 @@ export default function GigPage() {
           onSaved={changes => setData(d => ({ ...d, gig: { ...d.gig, ...changes } }))}
           onDeleted={() => { notify(t('danger.gigDeleted', { name: gig.name }), 'success'); navigate('/dashboard', { replace: true }) }} />
       )}
-    </div>
+    </AppShell>
   )
 }

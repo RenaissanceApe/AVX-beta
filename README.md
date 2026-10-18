@@ -8,7 +8,7 @@ Built with React + Vite, Supabase (database, auth, file storage) and hosted on V
 - **What's next:** [ROADMAP.md](ROADMAP.md)
 - **How we work on the repo:** [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Release notes:** [CHANGELOG.md](CHANGELOG.md)
-- **Email setup / spam:** [docs/EMAIL.md](docs/EMAIL.md) · **Backups:** [docs/BACKUPS.md](docs/BACKUPS.md) · **Testing:** [docs/TESTING.md](docs/TESTING.md) · **Quotes:** [docs/QUOTES.md](docs/QUOTES.md) · **Usage counts:** [docs/USAGE.md](docs/USAGE.md) · **Two-step sign-in:** [docs/SECURITY.md](docs/SECURITY.md)
+- **Email setup / spam:** [docs/EMAIL.md](docs/EMAIL.md) · **Backups:** [docs/BACKUPS.md](docs/BACKUPS.md) · **Testing:** [docs/TESTING.md](docs/TESTING.md) · **Quotes:** [docs/QUOTES.md](docs/QUOTES.md) · **Usage counts:** [docs/USAGE.md](docs/USAGE.md) · **Two-step sign-in:** [docs/SECURITY.md](docs/SECURITY.md) · **Navigation & roles:** [docs/NAVIGATION.md](docs/NAVIGATION.md)
 
 ## Quick start
 
@@ -63,6 +63,10 @@ docs/                    EMAIL.md, BACKUPS.md, TESTING.md, QUOTES.md
 ```
 
 ## How access works
+
+A person has no global role: they have a role in each organisation and on each gig, and can be
+admin in one company and crew in another. The workspace switcher next to the logo shows which applies
+(see [docs/NAVIGATION.md](docs/NAVIGATION.md)).
 
 Everything is enforced in the database with Row Level Security, not in the UI:
 

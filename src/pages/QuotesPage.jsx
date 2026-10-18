@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, Loader2, FileText, LayoutTemplate, Building2, Trash2, Search, Tags } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
@@ -11,9 +11,13 @@ import { QUOTE_STATUSES, quoteNumber, formatMoney, cloneBody, emptyPhase, localI
 import CompanyDetailsModal from '../components/quotes/CompanyDetailsModal'
 import { PriceListTab } from '../components/quotes/PriceList'
 import { QuoteStatusBadge } from '../components/quotes/parts'
+import AppShell from '../components/shell/AppShell'
+import { useWorkspace } from '../lib/WorkspaceContext'
 
-// Quotes of one organisation, plus its quote templates and company details.
-// Only admins and members get here (the database enforces the same rule).
+// Quotes of one organisation, plus its quote templates, price list and company details.
+// Tabs and the company dialog have addresses (?tab=templates|prices, ?company=1) so the
+// menus can link straight to them. Only admins and members get here (the database
+// enforces the same rule).
 export default function QuotesPage() {
   const { orgId } = useParams()
   const { user } = useAuth()
@@ -26,11 +30,24 @@ export default function QuotesPage() {
   const [templates, setTemplates] = useState([])
   const [priceItems, setPriceItems] = useState([])
   const [loading, setLoading] = useState(true)
-  const [view, setView] = useState('quotes')
+  const [params, setParams] = useSearchParams()
+  const { setWorkspace } = useWorkspace()
+  const view = ['templates', 'prices'].includes(params.get('tab')) ? params.get('tab') : 'quotes'
+  const setView = key => {
+    const next = new URLSearchParams(params)
+    if (key === 'quotes') next.delete('tab'); else next.set('tab', key)
+    setParams(next, { replace: true })
+  }
+  const showCompany = params.get('company') === '1'
+  const setShowCompany = open => {
+    const next = new URLSearchParams(params)
+    if (open) next.set('company', '1'); else next.delete('company')
+    setParams(next)
+  }
+  useEffect(() => { setWorkspace(orgId) }, [orgId, setWorkspace])
   const [status, setStatus] = useState('all')
   const [search, setSearch] = useState('')
   const [showNew, setShowNew] = useState(false)
-  const [showCompany, setShowCompany] = useState(false)
 
   async function load() {
     const [orgRes, roleRes, quotesRes, templatesRes, pricesRes] = await Promise.all([
@@ -72,27 +89,26 @@ export default function QuotesPage() {
     </div>
   )
   if (!org || !['admin', 'member'].includes(role)) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center' }}>
-      <div style={{ maxWidth: '360px' }}>
-        <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>{t('quotes.noAccess')}</p>
-        <button onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
+    <AppShell>
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center' }}>
+        <div style={{ maxWidth: '360px' }}>
+          <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>{t('quotes.noAccess')}</p>
+          <button onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
+        </div>
       </div>
-    </div>
+    </AppShell>
   )
 
   return (
-    <div style={{ minHeight: '100vh', color: '#fff' }}>
-      <header style={{ borderBottom: `1px solid ${colors.border}`, background: 'rgba(8,12,20,0.9)', position: 'sticky', top: 0, zIndex: 40 }}>
-        <div style={{ maxWidth: '960px', margin: '0 auto', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <button onClick={() => navigate('/dashboard')} aria-label={t('common.backToDashboard')} style={iconBtn}><ArrowLeft size={18} /></button>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '12px', color: colors.muted }}>{org.name}</div>
-            <h1 style={{ fontSize: '20px', fontWeight: 800 }}>{t('quotes.title')}</h1>
-          </div>
-          <button onClick={() => setShowCompany(true)} style={btn}><Building2 size={14} /> {t('quotes.company')}</button>
-          <button onClick={() => setShowNew(true)} style={btnPrimary}><Plus size={15} /> {t('quotes.new')}</button>
+    <AppShell>
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 0', display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '12px', color: colors.muted }}>{org.name}</div>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('quotes.title')}</h1>
         </div>
-      </header>
+        <button onClick={() => setShowCompany(true)} style={btn}><Building2 size={14} /> {t('quotes.company')}</button>
+        <button onClick={() => setShowNew(true)} style={btnPrimary}><Plus size={15} /> {t('quotes.new')}</button>
+      </div>
 
       <main style={{ maxWidth: '960px', margin: '0 auto', padding: '20px 16px 60px' }}>
         <div role="tablist" style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: `1px solid ${colors.border}` }}>
@@ -186,7 +202,7 @@ export default function QuotesPage() {
 
       {showNew && <NewQuoteModal org={org} templates={templates} onClose={() => setShowNew(false)} onCreated={id => navigate(`/quote/${id}`)} />}
       {showCompany && <CompanyDetailsModal org={org} canEdit={role === 'admin'} onClose={() => setShowCompany(false)} onSaved={next => setOrg(next)} />}
-    </div>
+    </AppShell>
   )
 }
 

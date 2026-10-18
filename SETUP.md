@@ -34,6 +34,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 12. `supabase/migrations/20261021000000_quote_versions_shares_positions.sql` — quote versions, client links, gig positions
 13. `supabase/migrations/20261022000000_two_step_sign_in.sql` — two-step sign-in enforced by the database
 14. `supabase/migrations/20261022000001_usage_counts.sql` — anonymous usage counts
+15. `supabase/migrations/20261023000000_my_gig_companies.sql` — company names for My work
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.

@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.11.0 — Phase 4d: navigation and workspaces
+
+### Added
+- App shell on every signed-in screen: the logo always goes home; notifications and account in the
+  top bar; section menus (Gigs, Quotes, Organisation) open dark frosted card panels on desktop, with
+  a side list for smaller items; on phones a bottom tab bar plus a "More" sheet
+- Workspace switcher next to the logo: **My work** (every gig you're on, at any company, with the
+  company and your role on each) or one of your organisations, with your role there. Menus follow
+  the role; AVX reopens the workspace you used last
+- Organisations page (`/orgs`): your organisations with your role in each, the companies you work
+  for as crew, and creating a new one
+- Addresses for everything the menus link to (`/me`, `/org/:id`, quotes tabs, members, settings,
+  new gig, account), so links, the back button and bookmarks work
+- The gig page shows which company it belongs to and your role there
+
+### Changed
+- `/dashboard` now opens your current workspace; gigs shared with you moved into My work
+- The gig page's back button returns to where you came from
+- Viewers are no longer offered "New gig" in the menus
+
 ## 0.10.0 — Phase 3 leftovers and the quote PDF
 
 ### Added

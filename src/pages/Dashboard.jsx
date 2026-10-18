@@ -1,19 +1,19 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import {
+  Plus, Calendar, MapPin, ChevronRight, Building2, Loader2, X, ArrowRight, Search, List, CalendarDays, Briefcase,
+} from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
+import { useWorkspace } from '../lib/WorkspaceContext'
 import { logger, userMessage } from '../lib/logger'
-import AccountModal from '../components/AccountModal'
+import { MY_WORK, homePath } from '../lib/nav'
 import OrgMembersModal from '../components/OrgMembersModal'
 import OrgSettingsModal from '../components/OrgSettingsModal'
 import GigCalendar from '../components/GigCalendar'
+import AppShell, { RoleChip } from '../components/shell/AppShell'
 import { GIG_FILTERS, filterGigs, countByBucket } from '../lib/gigs'
-import {
-  Zap, Plus, Calendar, MapPin, Users, ChevronRight,
-  Building2, LogOut, Loader2, X, ArrowRight, CheckCircle, Search, List, CalendarDays, FileText, Settings
-} from 'lucide-react'
 import { useI18n, t, fmt } from '../i18n'
-import NotificationBell from '../components/NotificationBell'
 import OfflineBanner from '../components/OfflineBanner'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 
@@ -25,422 +25,233 @@ const STATUS_CONFIG = {
   archived:  { color: '#374151', bg: 'rgba(55,65,81,0.1)' },
 }
 
+// Home of a workspace:
+//   /me           My work: every gig you're on, at any company, with your role on each
+//   /org/:orgId   An organisation's gigs; ?panel=members|settings and ?new=gig open dialogs
+// Both take ?view=calendar.
 export default function Dashboard() {
-  const { user, profile, signOut } = useAuth()
+  const { orgId } = useParams()
+  const { user, profile } = useAuth()
+  const { orgs, loading: loadingOrgs, setWorkspace, refresh, roleIn } = useWorkspace()
   const navigate = useNavigate()
+  const [params, setParams] = useSearchParams()
   useI18n() // re-render on language change
-  const [orgs, setOrgs] = useState([])
-  const [activeOrg, setActiveOrg] = useState(null)
+  const mode = orgId ? 'org' : 'me'
+  const org = orgId ? orgs.find(o => o.id === orgId) : null
+  const role = orgId ? roleIn(orgId) : null
+
   const [gigs, setGigs] = useState([])
-  const [sharedGigs, setSharedGigs] = useState([])
-  const [loadingOrgs, setLoadingOrgs] = useState(true)
-  const [gigError, setGigError] = useState('')
-  const [loadingGigs, setLoadingGigs] = useState(false)
-  const [showNewOrg, setShowNewOrg] = useState(false)
-  const [showNewGig, setShowNewGig] = useState(false)
-  const [showAccount, setShowAccount] = useState(false)
-  const [showMembers, setShowMembers] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
+  const [loadingGigs, setLoadingGigs] = useState(true)
+  const [savedAt, setSavedAt] = useState(null)
   const [gigFilter, setGigFilter] = useState('upcoming')
   const [gigSearch, setGigSearch] = useState('')
-  const [savedAt, setSavedAt] = useState(null) // set when showing the offline copy
-  const [creating, setCreating] = useState(false)
-  const [newOrgName, setNewOrgName] = useState('')
-  const [orgError, setOrgError] = useState('')
-  const [gigForm, setGigForm] = useState({ name: '', venue: '', start_date: '', end_date: '', description: '', status: 'confirmed' })
+  const view = params.get('view') === 'calendar' ? 'calendar' : 'list'
+  const panel = params.get('panel')
+  const setParam = (key, value) => {
+    const next = new URLSearchParams(params)
+    if (value) next.set(key, value); else next.delete(key)
+    setParams(next, { replace: key === 'view' })
+  }
 
-  useEffect(() => { if (user) fetchOrgs() }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
-  // Back online: refresh the saved copy
+  // The address decides the workspace (so links and the back button work)
   useEffect(() => {
-    const onOnline = () => { if (user) fetchOrgs() }
-    window.addEventListener('online', onOnline)
-    return () => window.removeEventListener('online', onOnline)
-  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (activeOrg) fetchGigs(activeOrg.id) }, [activeOrg])
+    if (loadingOrgs) return
+    if (mode === 'me') setWorkspace(MY_WORK)
+    else if (org) setWorkspace(org.id)
+  }, [mode, org, loadingOrgs, setWorkspace])
 
-  async function fetchOrgs(selectId) {
-    const [{ data, error }, { data: memberships, error: membershipsError }] = await Promise.all([
-      supabase.from('org_members').select('role, organisations(*)').eq('user_id', user.id),
-      supabase.from('gig_members').select('gigs(*)').eq('user_id', user.id),
-    ])
-    if (error && isNetworkError(error)) {
-      // No connection: show the dashboard as it was last loaded on this device
-      const snap = loadSnapshot('dashboard')
-      if (snap) {
-        setOrgs(snap.data.orgs)
-        setSharedGigs(snap.data.sharedGigs)
-        setActiveOrg(snap.data.orgs.find(o => o.id === (selectId || activeOrg?.id)) || snap.data.orgs[0] || null)
-        setSavedAt(snap.savedAt)
-      }
-      setLoadingOrgs(false)
-      return
-    }
-    if (error) logger.error('dashboard', error, { step: 'fetchOrgs' })
-    if (membershipsError) logger.error('dashboard', membershipsError, { step: 'fetchSharedGigs' })
-    const list = (data || []).filter(d => d.organisations).map(d => ({ ...d.organisations, myRole: d.role }))
-    setOrgs(list)
-    if (list.length) {
-      setActiveOrg(list.find(o => o.id === (selectId || activeOrg?.id)) || list[0])
-    } else {
-      setActiveOrg(null)
-      setGigs([])
-    }
-
-    // Gigs the user was added to as crew, in organisations they don't belong to
-    const myOrgIds = new Set(list.map(o => o.id))
-    const shared = (memberships || [])
-      .map(m => m.gigs)
-      .filter(g => g && !myOrgIds.has(g.org_id))
-      .sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''))
-    setSharedGigs(shared)
-    setSavedAt(null)
-    setLoadingOrgs(false)
-    if (!error) saveSnapshot('dashboard', { orgs: list, sharedGigs: shared })
-  }
-
-  async function fetchGigs(orgId) {
+  const load = useCallback(async () => {
+    if (!user) return
     setLoadingGigs(true)
-    const { data, error } = await supabase
-      .from('gigs')
-      .select('*')
-      .eq('org_id', orgId)
-      .order('start_date', { ascending: true, nullsFirst: false })
-    if (error && isNetworkError(error)) {
-      setGigs(loadSnapshot(`dashboard.gigs.${orgId}`)?.data || [])
-      setLoadingGigs(false)
-      return
-    }
-    if (error) logger.error('dashboard', error, { step: 'fetchGigs' })
-    setGigs(data || [])
-    if (!error) saveSnapshot(`dashboard.gigs.${orgId}`, data || [])
-    setLoadingGigs(false)
-  }
-
-  async function createOrg() {
-    if (!newOrgName.trim()) return
-    setCreating(true)
-    try {
-      // The creator is made admin by a database trigger
-      const { data: org, error: orgError } = await supabase
-        .from('organisations')
-        .insert({ name: newOrgName.trim(), created_by: user.id })
-        .select().single()
-      if (orgError) throw orgError
-
-      setShowNewOrg(false)
-      setNewOrgName('')
-      setOrgError('')
-      fetchOrgs(org.id)
-    } catch (err) {
-      logger.error('dashboard', err, { step: 'createOrg' })
-      setOrgError(userMessage(err))
-    } finally {
-      setCreating(false)
-    }
-  }
-
-  async function createGig() {
-    if (!gigForm.name.trim()) return
-    setCreating(true)
-    setGigError('')
-    // Empty date inputs must be sent as null, not ''
-    const payload = {
-      ...gigForm,
-      name: gigForm.name.trim(),
-      start_date: gigForm.start_date || null,
-      end_date: gigForm.end_date || null,
-      org_id: activeOrg.id,
-      created_by: user.id,
-    }
-    // The creator is added as the gig's PM by a database trigger
-    const { error } = await supabase.from('gigs').insert(payload)
-    if (error) {
-      logger.error('dashboard', error, { step: 'createGig' })
-      setGigError(userMessage(error))
+    const key = mode === 'me' ? 'me.gigs' : `dashboard.gigs.${orgId}`
+    let rows, error
+    if (mode === 'me') {
+      const [mine, companies] = await Promise.all([
+        supabase.from('gig_members').select('role, function_title, gigs(*)').eq('user_id', user.id),
+        supabase.rpc('my_gig_companies'),
+      ])
+      error = mine.error
+      const names = Object.fromEntries((companies.data || []).map(c => [c.org_id, c.name]))
+      rows = (mine.data || []).filter(m => m.gigs).map(m => ({
+        ...m.gigs, myGigRole: m.role, myFunction: m.function_title, company: names[m.gigs.org_id] || null,
+      })).sort((a, b) => (a.start_date || '9').localeCompare(b.start_date || '9'))
     } else {
-      setShowNewGig(false)
-      setGigForm({ name: '', venue: '', start_date: '', end_date: '', description: '', status: 'confirmed' })
-      fetchGigs(activeOrg.id)
+      const res = await supabase.from('gigs').select('*').eq('org_id', orgId).order('start_date', { ascending: true, nullsFirst: false })
+      error = res.error
+      rows = res.data || []
     }
-    setCreating(false)
-  }
+    if (error && isNetworkError(error)) {
+      const snap = loadSnapshot(key)
+      setGigs(snap?.data || [])
+      setSavedAt(snap?.savedAt ?? null)
+    } else {
+      if (error) logger.error('dashboard', error, { step: 'gigs', mode })
+      setGigs(rows)
+      setSavedAt(null)
+      if (!error) saveSnapshot(key, rows)
+    }
+    setLoadingGigs(false)
+  }, [user, mode, orgId])
 
-  const displayName = profile?.full_name || user?.email?.split('@')[0] || t('common.you')
-  const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    window.addEventListener('online', load)
+    return () => window.removeEventListener('online', load)
+  }, [load])
+
+  const firstName = (profile?.full_name || user?.email?.split('@')[0] || t('common.you')).split(' ')[0]
+  const canCreateGig = role === 'admin' || role === 'member'
+  const notMember = mode === 'org' && !loadingOrgs && !org
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080C14', fontFamily: "'DM Sans', sans-serif", color: '#fff' }}>
-      <style>{`* { box-sizing: border-box; } input, textarea, select { font-family: 'DM Sans', sans-serif; }`}</style>
+    <AppShell>
       <OfflineBanner savedAt={savedAt} />
-
-      {/* Top nav */}
-      <nav style={{
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        padding: '0 24px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        height: '60px',
-        background: 'rgba(8,12,20,0.9)', backdropFilter: 'blur(12px)',
-        position: 'sticky', top: 0, zIndex: 50
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: '30px', height: '30px', background: 'linear-gradient(135deg, #1EC878, #0FA85A)',
-            borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 12px rgba(30,200,120,0.3)'
-          }}>
-            <Zap size={16} color="#fff" fill="#fff" />
-          </div>
-          <span style={{ fontWeight: '800', fontSize: '18px', letterSpacing: '-0.3px' }}>AVX</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <NotificationBell />
-          <button onClick={() => setShowAccount(true)} aria-label={t('account.title')} title={t('account.title')} style={{
-            width: '32px', height: '32px', borderRadius: '50%', border: 'none', cursor: 'pointer',
-            background: 'linear-gradient(135deg, #1EC878, #0FA85A)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '12px', fontWeight: '700', color: '#fff'
-          }}>{initials}</button>
-          <button onClick={signOut} aria-label={t('account.signOut')} title={t('account.signOut')} style={{
-            background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070',
-            display: 'flex', alignItems: 'center', padding: '4px'
-          }}>
-            <LogOut size={16} />
-          </button>
-        </div>
-      </nav>
-
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
-
-        {/* Org selector / header */}
-        <div style={{ marginBottom: '32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-            <div>
-              <p style={{ color: '#4A6070', fontSize: '13px', margin: '0 0 4px 0' }}>{t('dash.welcome', { name: displayName.split(' ')[0] })}</p>
-              <h1 style={{ fontSize: '26px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>
-                {activeOrg ? activeOrg.name : t('dash.yourGigs')}
-              </h1>
-            </div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {!activeOrg && (
-                <button onClick={() => setShowNewOrg(true)} style={btnPrimary}>
-                  <Building2 size={15} /> {t('dash.newOrg')}
-                </button>
-              )}
-              {activeOrg && (
-                <button onClick={() => setShowNewGig(true)} style={btnPrimary}>
-                  <Plus size={15} /> {t('dash.newGig')}
-                </button>
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '28px 20px' }}>
+        {notMember ? (
+          <EmptyState icon={<Building2 size={32} color="#1EC878" />} title={t('home.noAccessTitle')} body={t('home.noAccessBody')}
+            action={t('nav.myWork')} onAction={() => navigate('/me')} />
+        ) : (
+          <>
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ color: '#4A6070', fontSize: '13px', margin: '0 0 4px 0' }}>{t('dash.welcome', { name: firstName })}</p>
+                <h1 style={{ fontSize: '26px', fontWeight: 800, margin: 0, letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  {mode === 'me' ? t('nav.myWork') : org?.name || '…'}
+                  {role && <RoleChip role={role} />}
+                </h1>
+                <p style={{ color: '#4A6070', fontSize: '13px', margin: '6px 0 0' }}>
+                  {mode === 'me' ? t('home.myWorkIntro') : role ? t(`nav.roleDesc.${role}`) : ''}
+                </p>
+              </div>
+              {mode === 'org' && canCreateGig && (
+                <button onClick={() => setParam('new', 'gig')} style={btnPrimary}><Plus size={15} /> {t('dash.newGig')}</button>
               )}
             </div>
-          </div>
 
-          {/* Org tabs */}
-          {orgs.length > 0 && (
-            <div style={{ display: 'flex', gap: '8px', marginTop: '20px', flexWrap: 'wrap' }}>
-              {orgs.map(org => (
-                <button key={org.id} onClick={() => setActiveOrg(org)} style={{
-                  padding: '6px 14px', borderRadius: '20px', cursor: 'pointer',
-                  fontSize: '13px', fontWeight: '600', fontFamily: "'DM Sans', sans-serif",
-                  background: activeOrg?.id === org.id ? 'rgba(30,200,120,0.15)' : 'rgba(255,255,255,0.04)',
-                  color: activeOrg?.id === org.id ? '#1EC878' : '#4A6070',
-                  border: activeOrg?.id === org.id ? '1px solid rgba(30,200,120,0.3)' : '1px solid rgba(255,255,255,0.06)',
-                  transition: 'all 0.2s'
-                }}>
-                  {org.name}
-                </button>
-              ))}
-              <button onClick={() => setShowNewOrg(true)} style={{
-                padding: '6px 14px', borderRadius: '20px',
-                background: 'transparent', border: '1px dashed rgba(255,255,255,0.1)',
-                color: '#2A3A48', fontSize: '13px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
-                display: 'flex', alignItems: 'center', gap: '4px'
-              }}>
-                <Plus size={13} /> {t('dash.addOrg')}
-              </button>
-              {activeOrg && (
-                <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto', flexWrap: 'wrap' }}>
-                  {['admin', 'member'].includes(activeOrg.myRole) && (
-                    <button onClick={() => navigate(`/org/${activeOrg.id}/quotes`)} style={orgActionBtn}>
-                      <FileText size={13} /> {t('dash.quotes')}
-                    </button>
-                  )}
-                  <button onClick={() => setShowMembers(true)} style={orgActionBtn}>
-                    <Users size={13} /> {t('dash.members')}
-                  </button>
-                  {activeOrg.myRole === 'admin' && (
-                    <button onClick={() => setShowSettings(true)} aria-label={t('orgSettings.open')} title={t('orgSettings.open')} style={orgActionBtn}>
-                      <Settings size={13} />
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {loadingOrgs && (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
-            <Loader2 size={24} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
-          </div>
-        )}
-
-        {/* Gigs shared with this user as crew */}
-        {sharedGigs.length > 0 && (
-          <div style={{ marginBottom: '32px' }}>
-            <h2 style={sectionTitle}>{t('dash.shared')}</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {sharedGigs.map(gig => <GigCard key={gig.id} gig={gig} onOpen={() => navigate(`/gig/${gig.id}`)} />)}
-            </div>
-          </div>
-        )}
-
-        {/* No org state */}
-        {!loadingOrgs && orgs.length === 0 && sharedGigs.length === 0 && (
-          <EmptyState
-            icon={<Building2 size={32} color="#1EC878" />}
-            title={t('dash.emptyOrgTitle')}
-            body={t('dash.emptyOrgBody')}
-            action={t('dash.createOrg')}
-            onAction={() => setShowNewOrg(true)}
-          />
-        )}
-
-        {/* Gig list */}
-        {activeOrg && (
-          loadingGigs ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
-              <Loader2 size={24} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
-            </div>
-          ) : gigs.length === 0 ? (
-            <EmptyState
-              icon={<Calendar size={32} color="#1EC878" />}
-              title={t('dash.emptyGigsTitle')}
-              body={t('dash.emptyGigsBody')}
-              action={t('dash.createFirstGig')}
-              onAction={() => setShowNewGig(true)}
-            />
-          ) : (
-            <GigList gigs={gigs} filter={gigFilter} setFilter={setGigFilter} search={gigSearch} setSearch={setGigSearch}
-              onOpen={gig => navigate(`/gig/${gig.id}`)} />
-          )
+            {(loadingGigs || loadingOrgs) ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
+                <Loader2 size={24} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
+              </div>
+            ) : gigs.length === 0 ? (
+              mode === 'me' ? (
+                orgs.length === 0 ? (
+                  <EmptyState icon={<Building2 size={32} color="#1EC878" />} title={t('dash.emptyOrgTitle')} body={t('dash.emptyOrgBody')}
+                    action={t('dash.createOrg')} onAction={() => navigate('/orgs?new=1')} />
+                ) : (
+                  <EmptyState icon={<Briefcase size={32} color="#1EC878" />} title={t('home.noAssignedTitle')} body={t('home.noAssignedBody')}
+                    action={t('home.openOrg', { org: orgs[0].name })} onAction={() => { setWorkspace(orgs[0].id); navigate(homePath(orgs[0].id)) }} />
+                )
+              ) : (
+                <EmptyState icon={<Calendar size={32} color="#1EC878" />} title={t('dash.emptyGigsTitle')} body={t('dash.emptyGigsBody')}
+                  action={canCreateGig ? t('dash.createFirstGig') : null} onAction={() => setParam('new', 'gig')} />
+              )
+            ) : (
+              <GigList gigs={gigs} view={view} setView={v => setParam('view', v === 'calendar' ? 'calendar' : null)}
+                filter={gigFilter} setFilter={setGigFilter} search={gigSearch} setSearch={setGigSearch}
+                showCompany={mode === 'me'} onOpen={gig => navigate(`/gig/${gig.id}`)} />
+            )}
+          </>
         )}
       </div>
 
-      {showAccount && <AccountModal onClose={() => setShowAccount(false)} />}
-      {showMembers && activeOrg && (
-        <OrgMembersModal org={activeOrg} onClose={() => setShowMembers(false)} onChanged={() => fetchOrgs()} />
+      {mode === 'org' && org && panel === 'members' && (
+        <OrgMembersModal org={org} onClose={() => setParam('panel', null)} onChanged={refresh} />
       )}
-      {showSettings && activeOrg && (
-        <OrgSettingsModal org={activeOrg} onClose={() => setShowSettings(false)} onChanged={() => fetchOrgs(activeOrg.id)}
-          onDeleted={() => { setShowSettings(false); setActiveOrg(null); setGigs([]); fetchOrgs() }} />
+      {mode === 'org' && org && panel === 'settings' && role === 'admin' && (
+        <OrgSettingsModal org={org} onClose={() => setParam('panel', null)} onChanged={refresh}
+          onDeleted={async () => { await refresh(); setWorkspace(MY_WORK); navigate('/me', { replace: true }) }} />
       )}
-
-      {/* New Org Modal */}
-      {showNewOrg && (
-        <Modal title={t('dash.newOrg')} onClose={() => { setShowNewOrg(false); setOrgError('') }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <FieldLabel label={t('dash.orgName')}>
-              <input value={newOrgName} onChange={e => setNewOrgName(e.target.value)}
-                placeholder={t('dash.orgNamePlaceholder')} style={modalInput}
-                onKeyDown={e => e.key === 'Enter' && createOrg()} autoFocus />
-            </FieldLabel>
-            {orgError && (
-              <div style={{
-                padding: '10px 14px', borderRadius: '8px',
-                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
-                color: '#F87171', fontSize: '13px', lineHeight: '1.5'
-              }}>
-                {orgError}
-              </div>
-            )}
-            <button onClick={createOrg} disabled={creating || !newOrgName.trim()} style={btnModal}>
-              {creating ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={16} />}
-              {t('dash.createOrg')}
-            </button>
-          </div>
-        </Modal>
+      {mode === 'org' && org && params.get('new') === 'gig' && canCreateGig && (
+        <NewGigModal orgId={org.id} onClose={() => setParam('new', null)} onCreated={gig => navigate(`/gig/${gig.id}`)} />
       )}
-
-      {/* New Gig Modal */}
-      {showNewGig && (
-        <Modal title={t('dash.newGig')} onClose={() => setShowNewGig(false)}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <FieldLabel label={`${t('gigForm.name')} *`}>
-              <input value={gigForm.name} onChange={e => setGigForm(f => ({ ...f, name: e.target.value }))}
-                placeholder={t('gigForm.namePlaceholder')} style={modalInput} autoFocus />
-            </FieldLabel>
-            <FieldLabel label={t('gigForm.venue')}>
-              <input value={gigForm.venue} onChange={e => setGigForm(f => ({ ...f, venue: e.target.value }))}
-                placeholder={t('gigForm.venuePlaceholder')} style={modalInput} />
-            </FieldLabel>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <FieldLabel label={t('gigForm.start')}>
-                <input type="date" value={gigForm.start_date} onChange={e => setGigForm(f => ({ ...f, start_date: e.target.value }))} style={modalInput} />
-              </FieldLabel>
-              <FieldLabel label={t('gigForm.end')}>
-                <input type="date" value={gigForm.end_date} onChange={e => setGigForm(f => ({ ...f, end_date: e.target.value }))} style={modalInput} />
-              </FieldLabel>
-            </div>
-            <FieldLabel label={t('gigForm.status')}>
-              <select value={gigForm.status} onChange={e => setGigForm(f => ({ ...f, status: e.target.value }))} style={{ ...modalInput, cursor: 'pointer' }}>
-                {Object.keys(STATUS_CONFIG).map(k => <option key={k} value={k}>{t(`status.${k}`)}</option>)}
-              </select>
-            </FieldLabel>
-            <FieldLabel label={t('gigForm.description')}>
-              <textarea value={gigForm.description} onChange={e => setGigForm(f => ({ ...f, description: e.target.value }))}
-                placeholder={t('gigForm.descriptionPlaceholder')} rows={3}
-                style={{ ...modalInput, resize: 'vertical', lineHeight: '1.5' }} />
-            </FieldLabel>
-            {gigError && (
-              <div style={{
-                padding: '10px 14px', borderRadius: '8px',
-                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
-                color: '#F87171', fontSize: '13px', lineHeight: '1.5'
-              }}>
-                {gigError}
-              </div>
-            )}
-            <button onClick={createGig} disabled={creating || !gigForm.name.trim()} style={btnModal}>
-              {creating ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={16} />}
-              {t('dash.createGig')}
-            </button>
-          </div>
-        </Modal>
-      )}
-
       <style>{`@keyframes spin { to { transform: rotate(360deg) } } @keyframes fadeIn { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }`}</style>
-    </div>
+    </AppShell>
   )
 }
 
-// Remembered per browser; storage can be unavailable (private mode), so never rely on it
-function readView() {
-  try { return localStorage.getItem('avx.gigView') === 'calendar' ? 'calendar' : 'list' } catch { return 'list' }
+function NewGigModal({ orgId, onClose, onCreated }) {
+  const { user } = useAuth()
+  const [form, setForm] = useState({ name: '', venue: '', start_date: '', end_date: '', description: '', status: 'confirmed' })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  async function create() {
+    if (!form.name.trim()) return
+    setSaving(true)
+    setError('')
+    // Empty date inputs must be sent as null, not ''; the creator becomes the gig's PM (trigger)
+    const { data, error: err } = await supabase.from('gigs').insert({
+      ...form, name: form.name.trim(), start_date: form.start_date || null, end_date: form.end_date || null,
+      org_id: orgId, created_by: user.id,
+    }).select('id').single()
+    setSaving(false)
+    if (err) {
+      logger.error('dashboard', err, { step: 'createGig' })
+      return setError(userMessage(err))
+    }
+    onCreated(data)
+  }
+
+  return (
+    <Modal title={t('dash.newGig')} onClose={onClose}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <FieldLabel label={`${t('gigForm.name')} *`}>
+          <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            placeholder={t('gigForm.namePlaceholder')} style={modalInput} autoFocus />
+        </FieldLabel>
+        <FieldLabel label={t('gigForm.venue')}>
+          <input value={form.venue} onChange={e => setForm(f => ({ ...f, venue: e.target.value }))}
+            placeholder={t('gigForm.venuePlaceholder')} style={modalInput} />
+        </FieldLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <FieldLabel label={t('gigForm.start')}>
+            <input type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} style={modalInput} />
+          </FieldLabel>
+          <FieldLabel label={t('gigForm.end')}>
+            <input type="date" value={form.end_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))} style={modalInput} />
+          </FieldLabel>
+        </div>
+        <FieldLabel label={t('gigForm.status')}>
+          <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} style={{ ...modalInput, cursor: 'pointer' }}>
+            {Object.keys(STATUS_CONFIG).map(k => <option key={k} value={k}>{t(`status.${k}`)}</option>)}
+          </select>
+        </FieldLabel>
+        <FieldLabel label={t('gigForm.description')}>
+          <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+            placeholder={t('gigForm.descriptionPlaceholder')} rows={3} style={{ ...modalInput, resize: 'vertical', lineHeight: '1.5' }} />
+        </FieldLabel>
+        {error && (
+          <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#F87171', fontSize: '13px', lineHeight: '1.5' }}>
+            {error}
+          </div>
+        )}
+        <button onClick={create} disabled={saving || !form.name.trim()} style={btnModal}>
+          {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={16} />}
+          {t('dash.createGig')}
+        </button>
+      </div>
+    </Modal>
+  )
 }
 
-function GigList({ gigs, filter, setFilter, search, setSearch, onOpen }) {
-  const [view, setViewState] = useState(readView)
-  const setView = v => {
-    setViewState(v)
-    try { localStorage.setItem('avx.gigView', v) } catch { /* ignore */ }
-  }
+function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, onOpen, showCompany }) {
   const counts = countByBucket(gigs)
   const visible = filterGigs(gigs, filter, search)
   return (
     <div>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
         <div role="group" aria-label="View" style={{ display: 'flex', gap: '2px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '3px' }}>
-          {[['list', <List size={15} />, t('dash.viewList')], ['calendar', <CalendarDays size={15} />, t('dash.viewCalendar')]].map(([v, icon, labelText]) => (
+          {[['list', <List key="i" size={15} />, t('dash.viewList')], ['calendar', <CalendarDays key="i" size={15} />, t('dash.viewCalendar')]].map(([v, icon, labelText]) => (
             <button key={v} onClick={() => setView(v)} aria-pressed={view === v} aria-label={labelText} title={labelText} style={{
               padding: '6px 9px', borderRadius: '7px', border: 'none', cursor: 'pointer', display: 'flex',
               background: view === v ? 'rgba(30,200,120,0.15)' : 'transparent', color: view === v ? '#1EC878' : '#4A6070'
             }}>{icon}</button>
           ))}
         </div>
-        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '3px' }}>
+        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '3px', overflowX: 'auto' }}>
           {GIG_FILTERS.map(f => (
             <button key={f.value} role="tab" aria-selected={filter === f.value} onClick={() => setFilter(f.value)} style={{
-              padding: '6px 12px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
+              padding: '6px 12px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
               background: filter === f.value ? 'rgba(30,200,120,0.15)' : 'transparent',
               color: filter === f.value ? '#1EC878' : '#4A6070'
             }}>
@@ -463,22 +274,21 @@ function GigList({ gigs, filter, setFilter, search, setSearch, onOpen }) {
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {visible.map(gig => <GigCard key={gig.id} gig={gig} onOpen={() => onOpen(gig)} />)}
+          {visible.map(gig => <GigCard key={gig.id} gig={gig} showCompany={showCompany} onOpen={() => onOpen(gig)} />)}
         </div>
       )}
     </div>
   )
 }
 
-function GigCard({ gig, onOpen }) {
+function GigCard({ gig, onOpen, showCompany }) {
   const st = STATUS_CONFIG[gig.status] || STATUS_CONFIG.draft
   return (
-    <div onClick={onOpen}
+    <button onClick={onOpen} className="gig-card"
       style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.07)',
-        borderRadius: '14px', padding: '18px 20px',
-        cursor: 'pointer', transition: 'all 0.2s',
+        width: '100%', textAlign: 'left', color: '#fff', font: 'inherit',
+        background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: '14px', padding: '16px 18px', cursor: 'pointer', transition: 'all 0.2s',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px'
       }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(30,200,120,0.25)'; e.currentTarget.style.background = 'rgba(30,200,120,0.04)' }}
@@ -486,20 +296,22 @@ function GigCard({ gig, onOpen }) {
     >
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
-          <span style={{ fontWeight: '700', fontSize: '16px' }}>{gig.name}</span>
+          <span style={{ fontWeight: 700, fontSize: '16px' }}>{gig.name}</span>
           <span style={{
-            fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '20px',
+            fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '20px',
             color: st.color, background: st.bg, textTransform: 'uppercase', letterSpacing: '0.05em'
           }}>{t(`status.${gig.status}`)}</span>
         </div>
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-          {gig.venue && (
-            <span style={{ fontSize: '13px', color: '#4A6070', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <MapPin size={12} /> {gig.venue}
+        <div style={{ display: 'flex', gap: '6px 16px', flexWrap: 'wrap', fontSize: '13px', color: '#4A6070' }}>
+          {showCompany && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#8A9BAE' }}>
+              <Building2 size={12} /> {gig.company || t('home.otherCompany')}
+              <span style={{ color: '#1EC878', fontWeight: 600 }}>· {gig.myFunction || t(`gigRoleLong.${gig.myGigRole || 'crew'}`)}</span>
             </span>
           )}
+          {gig.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {gig.venue}</span>}
           {gig.start_date && (
-            <span style={{ fontSize: '13px', color: '#4A6070', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Calendar size={12} />
               {fmt(gig.start_date, 'dd MMM yyyy')}
               {gig.end_date && gig.end_date !== gig.start_date && ` → ${fmt(gig.end_date, 'dd MMM')}`}
@@ -508,22 +320,20 @@ function GigCard({ gig, onOpen }) {
         </div>
       </div>
       <ChevronRight size={18} color="#2A3A48" />
-    </div>
+    </button>
   )
 }
 
-function EmptyState({ icon, title, body, action, onAction }) {
+export function EmptyState({ icon, title, body, action, onAction }) {
   return (
-    <div style={{ textAlign: 'center', padding: '80px 24px' }}>
+    <div style={{ textAlign: 'center', padding: '70px 24px' }}>
       <div style={{
-        width: '64px', height: '64px', borderRadius: '18px',
-        background: 'rgba(30,200,120,0.1)', border: '1px solid rgba(30,200,120,0.2)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        margin: '0 auto 20px'
+        width: '64px', height: '64px', borderRadius: '18px', background: 'rgba(30,200,120,0.1)', border: '1px solid rgba(30,200,120,0.2)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'
       }}>{icon}</div>
-      <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>{title}</h3>
-      <p style={{ color: '#4A6070', fontSize: '14px', maxWidth: '360px', margin: '0 auto 24px', lineHeight: '1.6' }}>{body}</p>
-      <button onClick={onAction} style={btnPrimary}><Plus size={15} /> {action}</button>
+      <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>{title}</h3>
+      <p style={{ color: '#4A6070', fontSize: '14px', maxWidth: '380px', margin: '0 auto 24px', lineHeight: '1.6' }}>{body}</p>
+      {action && <button onClick={onAction} style={btnPrimary}><Plus size={15} /> {action}</button>}
     </div>
   )
 }
@@ -531,18 +341,16 @@ function EmptyState({ icon, title, body, action, onAction }) {
 function Modal({ title, onClose, children }) {
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+      position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px'
     }} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{
-        background: '#0F1520', border: '1px solid rgba(255,255,255,0.1)',
-        borderRadius: '18px', padding: '28px', width: '100%', maxWidth: '480px',
-        animation: 'fadeIn 0.2s ease'
+      <div role="dialog" aria-modal="true" aria-label={title} style={{
+        background: '#0F1520', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '28px', width: '100%', maxWidth: '480px',
+        animation: 'fadeIn 0.2s ease', maxHeight: 'calc(100vh - 32px)', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>{title}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070', padding: '4px', display: 'flex' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{title}</h2>
+          <button onClick={onClose} aria-label={t('common.close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070', padding: '4px', display: 'flex' }}>
             <X size={18} />
           </button>
         </div>
@@ -555,44 +363,19 @@ function Modal({ title, onClose, children }) {
 function FieldLabel({ label, children }) {
   return (
     <div>
-      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#4A6070', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</label>
+      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#4A6070', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</label>
       {children}
     </div>
   )
 }
 
 const btnPrimary = {
-  display: 'inline-flex', alignItems: 'center', gap: '7px',
-  padding: '10px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-  background: 'linear-gradient(135deg, #1EC878, #0FA85A)',
-  color: '#fff', fontWeight: '700', fontSize: '14px',
-  fontFamily: "'DM Sans', sans-serif",
-  boxShadow: '0 4px 16px rgba(30,200,120,0.25)',
-  transition: 'all 0.2s'
+  display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+  background: 'linear-gradient(135deg, #1EC878, #0FA85A)', color: '#fff', fontWeight: 700, fontSize: '14px',
+  fontFamily: "'DM Sans', sans-serif", boxShadow: '0 4px 16px rgba(30,200,120,0.25)', transition: 'all 0.2s'
 }
-
-const btnModal = {
-  ...btnPrimary,
-  width: '100%', justifyContent: 'center',
-  padding: '13px', fontSize: '15px', marginTop: '4px'
-}
-
+const btnModal = { ...btnPrimary, width: '100%', justifyContent: 'center', padding: '13px', fontSize: '15px', marginTop: '4px' }
 const modalInput = {
-  width: '100%', padding: '10px 13px',
-  background: 'rgba(0,0,0,0.4)',
-  border: '1px solid rgba(255,255,255,0.09)',
-  borderRadius: '9px', color: '#fff',
-  fontSize: '14px', outline: 'none',
-}
-
-const sectionTitle = {
-  fontSize: '12px', fontWeight: '700', color: '#4A6070',
-  textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px 0'
-}
-
-const orgActionBtn = {
-  padding: '6px 14px', borderRadius: '20px',
-  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-  color: '#8A9BAE', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-  display: 'flex', alignItems: 'center', gap: '6px'
+  width: '100%', padding: '10px 13px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.09)',
+  borderRadius: '9px', color: '#fff', fontSize: '14px', outline: 'none',
 }
