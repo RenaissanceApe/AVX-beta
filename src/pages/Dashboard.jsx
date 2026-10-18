@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
-  Plus, Calendar, MapPin, ChevronRight, Building2, Loader2, X, ArrowRight, Search, List, CalendarDays, Briefcase,
+  Plus, Calendar, MapPin, ChevronRight, Building2, Loader2, X, ArrowRight, Search, List, CalendarDays, Briefcase, AlertTriangle,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
@@ -12,9 +12,12 @@ import OrgMembersModal from '../components/OrgMembersModal'
 import OrgSettingsModal from '../components/OrgSettingsModal'
 import GigCalendar from '../components/GigCalendar'
 import AppShell, { RoleChip } from '../components/shell/AppShell'
-import { GIG_FILTERS, filterGigs, countByBucket } from '../lib/gigs'
+import { GIG_FILTERS, filterGigs, countByBucket, myWorkGigs } from '../lib/gigs'
+import { clashingGigIds } from '../lib/clashes'
+import AvailabilityRequests from '../components/AvailabilityRequests'
 import { useI18n, t, fmt } from '../i18n'
 import OfflineBanner from '../components/OfflineBanner'
+import { OwnClashWarning } from '../components/gig/Booking'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 
 const STATUS_CONFIG = {
@@ -43,6 +46,7 @@ export default function Dashboard() {
   const [gigs, setGigs] = useState([])
   const [loadingGigs, setLoadingGigs] = useState(true)
   const [savedAt, setSavedAt] = useState(null)
+  const [clashIds, setClashIds] = useState(() => new Set()) // My work: gigs that overlap another booking
   const [gigFilter, setGigFilter] = useState('upcoming')
   const [gigSearch, setGigSearch] = useState('')
   const view = params.get('view') === 'calendar' ? 'calendar' : 'list'
@@ -66,15 +70,17 @@ export default function Dashboard() {
     const key = mode === 'me' ? 'me.gigs' : `dashboard.gigs.${orgId}`
     let rows, error
     if (mode === 'me') {
-      const [mine, companies] = await Promise.all([
+      const [mine, companies, bookings] = await Promise.all([
         supabase.from('gig_members').select('role, function_title, gigs(*)').eq('user_id', user.id),
         supabase.rpc('my_gig_companies'),
+        supabase.from('reservations').select('id, gig_id, period, status')
+          .eq('resource_type', 'person').eq('resource_id', user.id).neq('status', 'cancelled'),
       ])
       error = mine.error
       const names = Object.fromEntries((companies.data || []).map(c => [c.org_id, c.name]))
-      rows = (mine.data || []).filter(m => m.gigs).map(m => ({
-        ...m.gigs, myGigRole: m.role, myFunction: m.function_title, company: names[m.gigs.org_id] || null,
-      })).sort((a, b) => (a.start_date || '9').localeCompare(b.start_date || '9'))
+      rows = myWorkGigs(mine.data, names)
+      if (bookings.error) logger.error('dashboard', bookings.error, { step: 'bookings' })
+      setClashIds(clashingGigIds(bookings.data))
     } else {
       const res = await supabase.from('gigs').select('*').eq('org_id', orgId).order('start_date', { ascending: true, nullsFirst: false })
       error = res.error
@@ -128,6 +134,8 @@ export default function Dashboard() {
               )}
             </div>
 
+            {mode === 'me' && <AvailabilityRequests />}
+
             {(loadingGigs || loadingOrgs) ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
                 <Loader2 size={24} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
@@ -148,7 +156,7 @@ export default function Dashboard() {
             ) : (
               <GigList gigs={gigs} view={view} setView={v => setParam('view', v === 'calendar' ? 'calendar' : null)}
                 filter={gigFilter} setFilter={setGigFilter} search={gigSearch} setSearch={setGigSearch}
-                showCompany={mode === 'me'} onOpen={gig => navigate(`/gig/${gig.id}`)} />
+                showCompany={mode === 'me'} clashIds={mode === 'me' ? clashIds : null} onOpen={gig => navigate(`/gig/${gig.id}`)} />
             )}
           </>
         )}
@@ -211,6 +219,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
             <input type="date" value={form.end_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))} style={modalInput} />
           </FieldLabel>
         </div>
+        <OwnClashWarning startDate={form.start_date} endDate={form.end_date} />
         <FieldLabel label={t('gigForm.status')}>
           <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} style={{ ...modalInput, cursor: 'pointer' }}>
             {Object.keys(STATUS_CONFIG).map(k => <option key={k} value={k}>{t(`status.${k}`)}</option>)}
@@ -234,7 +243,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
   )
 }
 
-function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, onOpen, showCompany }) {
+function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, onOpen, showCompany, clashIds }) {
   const counts = countByBucket(gigs)
   const visible = filterGigs(gigs, filter, search)
   return (
@@ -267,21 +276,21 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
         </label>
       </div>
       {view === 'calendar' ? (
-        <GigCalendar gigs={filterGigs(gigs, 'all', search).filter(g => g.status !== 'archived')} onOpen={onOpen} />
+        <GigCalendar gigs={filterGigs(gigs, 'all', search).filter(g => g.status !== 'archived')} clashIds={clashIds} onOpen={onOpen} />
       ) : visible.length === 0 ? (
         <p style={{ color: '#4A6070', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>
           {search ? t('dash.noMatch') : t(`dash.noGigs.${filter}`)}
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {visible.map(gig => <GigCard key={gig.id} gig={gig} showCompany={showCompany} onOpen={() => onOpen(gig)} />)}
+          {visible.map(gig => <GigCard key={gig.id} gig={gig} showCompany={showCompany} clash={!!clashIds?.has(gig.id)} onOpen={() => onOpen(gig)} />)}
         </div>
       )}
     </div>
   )
 }
 
-function GigCard({ gig, onOpen, showCompany }) {
+function GigCard({ gig, onOpen, showCompany, clash }) {
   const st = STATUS_CONFIG[gig.status] || STATUS_CONFIG.draft
   return (
     <button onClick={onOpen} className="gig-card"
@@ -301,6 +310,12 @@ function GigCard({ gig, onOpen, showCompany }) {
             fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '20px',
             color: st.color, background: st.bg, textTransform: 'uppercase', letterSpacing: '0.05em'
           }}>{t(`status.${gig.status}`)}</span>
+          {clash && (
+            <span title={t('clash.doubleBookingHint')} style={{
+              fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '20px', color: '#F59E0B', background: 'rgba(245,158,11,0.12)',
+              display: 'inline-flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase', letterSpacing: '0.05em',
+            }}><AlertTriangle size={11} /> {t('clash.doubleBooking')}</span>
+          )}
         </div>
         <div style={{ display: 'flex', gap: '6px 16px', flexWrap: 'wrap', fontSize: '13px', color: '#4A6070' }}>
           {showCompany && (

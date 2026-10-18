@@ -47,12 +47,18 @@ All menu items come from one list (`src/lib/nav.js`), filtered by workspace and 
 To add a screen: add the route, then one item to `navSections()` (and to `phoneTabs()` if it's an
 everyday place), with `nav.<key>` and `nav.<key>Desc` in both language files.
 
+## Unread and mute
+
+- The switcher shows unread updates per workspace (My work counts gigs at companies you aren't a
+  member of), and a dot on the button when another workspace has some (`my_unread_counts()`).
+- Mute an organisation on the Organisations page (bell icon): no badge and no email summary for its
+  updates. Questions addressed to you (availability requests) still come through.
+- My work marks double bookings and lists availability questions waiting for your answer
+  (see [RESERVATIONS.md](RESERVATIONS.md)).
+
 ## Ideas for later (not built)
 
-- **One agenda across companies with clashes**: My work already lists everything; next is
-  highlighting double bookings across companies (availability already knows them).
-- **Per-organisation notification settings**: e.g. mute a company you rarely work for.
 - **Guest view of a company**: crew who work often for a company could see its public profile
   (contacts, venues) without being members.
-- **Viewer rights**: viewers can currently create gigs in the database (the menus no longer offer
-  it). If that should be blocked, it's a one-line change to the gigs insert rule.
+- **Gig requests / coordinator role**: if a company needs viewers to propose gigs (they can't
+  create them since 0.12.0).

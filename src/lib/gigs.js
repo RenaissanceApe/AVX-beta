@@ -33,3 +33,22 @@ export function countByBucket(gigs, today = localToday()) {
   for (const g of gigs) counts[gigBucket(g, today)]++
   return counts
 }
+
+// My work: one row per gig, whatever roles you hold on it, with the company's name.
+// memberships: rows of gig_members with the gig joined as `gigs`.
+const ROLE_RANK = { pm: 0, crew: 1, viewer: 2 }
+export function myWorkGigs(memberships, companyNames = {}) {
+  const byGig = new Map()
+  for (const m of memberships || []) {
+    if (!m.gigs) continue
+    const seen = byGig.get(m.gigs.id)
+    if (!seen) {
+      byGig.set(m.gigs.id, { ...m.gigs, myGigRole: m.role, myFunction: m.function_title, company: companyNames[m.gigs.org_id] || null })
+      continue
+    }
+    if ((ROLE_RANK[m.role] ?? 9) < (ROLE_RANK[seen.myGigRole] ?? 9)) seen.myGigRole = m.role
+    const fns = [seen.myFunction, m.function_title].filter(Boolean)
+    seen.myFunction = [...new Set(fns)].join(' · ') || null
+  }
+  return [...byGig.values()].sort((a, b) => (a.start_date || '9').localeCompare(b.start_date || '9'))
+}

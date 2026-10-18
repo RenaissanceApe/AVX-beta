@@ -93,6 +93,44 @@ in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTA
 | ✅ Section menus | Desktop: dark frosted card panels on hover/click, hybrid cards + list as sections grow. Phone: bottom tabs + "More" sheet |
 | ✅ Role-aware | One central menu list (`src/lib/nav.js`); viewers never see quote links |
 
+## Phase 5a — People: bookings and clashes ✅ (v0.12.0)
+
+| Item | Notes |
+|---|---|
+| ✅ Reservations engine | One table for "this is taken for this time range", kept in step by the database; built for people now and equipment, vehicles and rooms later (docs/RESERVATIONS.md) |
+| ✅ Booking times | Managers set a shift per person; without one they're booked for the gig's days |
+| ✅ Double-booking warnings | ⚠ next to crew booked elsewhere, with advice to talk first; warning while inviting by email and in the gig form for your own dates; never blocks |
+| ✅ Ask availability | Question to the person, answered Available / Not available with a note from My work; both sides notified |
+| ✅ My work | "Double booking" on cards and in the calendar; one row per gig even with two roles |
+| ✅ Unread and mute | Unread count per workspace in the switcher; mute an organisation (no badge, no email summary; direct questions still arrive) |
+| ✅ Crew → member | Organisation admins add someone from the Crew tab to the organisation in one click |
+| ✅ Viewers | Can no longer create gigs (database rule) |
+
+## Phase 5b — Inventory and equipment (next)
+
+Full plan in [docs/INVENTORY.md](docs/INVENTORY.md). Each phase ships on its own:
+
+| Phase | Scope |
+|---|---|
+| I1 · Catalogue and stock | Items, bulk and serialised stock, locations, ledger, import, QR labels |
+| I2 · Availability | Gear on gigs and quotes through the reservations engine, shortage warnings |
+| I3 · Warehouse | Packing lists, scan out/in with the camera, unit status, missing reports |
+| I4 · Kits | Cases, sets, accessories, alternatives |
+| I5 · Maintenance | Repairs from site, inspections with reminders |
+| I6 · Subrental and cross-hire | Suppliers, costs, availability between AVX companies |
+| I7 · Reports | Use, return on investment, depreciation |
+
+## Phase 6 — Messaging (after inventory)
+
+Full plan in [docs/MESSAGING.md](docs/MESSAGING.md): direct, group, gig, department and organisation
+conversations attached to what they're about, then attachments and mentions, announcements with
+acknowledgement, crew calls, client and supplier threads, push, moderation (stages M1–M6).
+
+## End of the build
+
+- **Phone app decision** (wrapper around this app vs. staying with the installed web app), once
+  inventory scanning and messaging show what on-site use needs
+
 ## Before a public launch
 
 - **Full terms of use** to replace the beta terms (prepare near the end of the build phase; can stay hidden while the beta runs)
@@ -103,7 +141,8 @@ in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTA
 ## Known limitations (beta)
 
 - The email summary goes out once a day, not instantly.
-- Quotes have one VAT rate per quote, no inventory/availability checks, and need a connection (not part of offline mode).
+- Quotes have one VAT rate per quote, no inventory/availability checks yet, and need a connection (not part of offline mode).
+- Gig days are read in the organisation's time zone (Lisbon for now; there's no setting for it yet). Unavailable dates are Lisbon days.
 - Offline mode is read-only: uploads, posts and edits need a connection.
 - Supabase free plan: pauses after 7 days idle (the keep-alive workflow prevents this); no leaked-password check.
 - The quote PDF uses standard PDF fonts (Helvetica/Courier), so it looks slightly plainer than the printed page.

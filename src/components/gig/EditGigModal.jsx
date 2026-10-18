@@ -8,6 +8,7 @@ import { Modal, btnPrimary, input, label } from '../ui'
 import { GIG_STATUSES } from './parts'
 import { DangerZone, DangerConfirmModal } from '../DangerConfirm'
 import { removeGigFiles } from '../../lib/storage'
+import { OwnClashWarning } from './Booking'
 
 // What deleting a gig destroys, as readable lines for the confirmation dialog
 async function gigDeletionImpact(gigId, t) {
@@ -89,6 +90,7 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
             <input id="eg-end" type="date" value={form.end_date} onChange={set('end_date')} style={input} />
           </div>
         </div>
+        <OwnClashWarning startDate={form.start_date} endDate={form.end_date} excludeGig={gig.id} />
         <div>
           <label style={label} htmlFor="eg-status">{t('gigForm.status')}</label>
           <select id="eg-status" value={form.status} onChange={set('status')} style={{ ...input, cursor: 'pointer' }}>

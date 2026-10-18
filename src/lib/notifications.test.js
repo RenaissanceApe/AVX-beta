@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { describeNotification, notificationLink } from './notifications'
+import { describeNotification, notificationLink, countsAsUnread } from './notifications'
 
 const nameOf = id => ({ u1: 'Ana' }[id] || 'Someone')
 
@@ -48,5 +48,34 @@ describe('usage screen names', () => {
     expect(screenEvent('/dashboard')).toBe('view:dashboard')
     expect(screenEvent('/me', '?view=calendar')).toBe('view:me')
     expect(screenEvent('/orgs')).toBe('view:orgs')
+  })
+})
+
+describe('booking notifications', () => {
+  const day = (d, h = 0) => new Date(2026, 10, d, h).toISOString()
+  it('describes availability requests, replies and booking times', () => {
+    expect(describeNotification({ kind: 'availability_request', actor_id: 'u1', details: { gig_name: 'NOS', from: day(10), until: day(12) } }, nameOf))
+      .toBe('Ana asks if you’re available for NOS (10–11 Nov)')
+    expect(describeNotification({ kind: 'availability_reply', actor_id: 'u1', details: { gig_name: 'NOS', answer: 'available', note: 'from 10:00' } }, nameOf))
+      .toBe('Ana is available for NOS: “from 10:00”')
+    expect(describeNotification({ kind: 'availability_reply', actor_id: 'u1', details: { gig_name: 'NOS', answer: 'unavailable' } }, nameOf))
+      .toBe('Ana is not available for NOS')
+    expect(describeNotification({ kind: 'booking_changed', actor_id: 'u1', details: { gig_name: 'NOS', booked_from: day(10, 9), booked_until: day(10, 18) } }, nameOf))
+      .toBe('Ana set your booking on NOS to 10 Nov 09:00–18:00')
+    expect(describeNotification({ kind: 'booking_changed', actor_id: 'u1', details: { gig_name: 'NOS' } }, nameOf))
+      .toBe('Ana booked you for the whole of NOS again')
+  })
+  it('sends requests to My work and replies to the crew tab', () => {
+    expect(notificationLink({ kind: 'availability_request', gig_id: 'g1' })).toBe('/me#requests')
+    expect(notificationLink({ kind: 'availability_reply', gig_id: 'g1' })).toBe('/gig/g1?tab=crew')
+    expect(notificationLink({ kind: 'booking_changed', gig_id: 'g1' })).toBe('/gig/g1?tab=crew')
+  })
+  it('leaves muted organisations out of the unread count, except direct questions', () => {
+    const muted = new Set(['o1'])
+    expect(countsAsUnread({ kind: 'asset_uploaded', org_id: 'o1' }, muted)).toBe(false)
+    expect(countsAsUnread({ kind: 'availability_request', org_id: 'o1' }, muted)).toBe(true)
+    expect(countsAsUnread({ kind: 'asset_uploaded', org_id: 'o2' }, muted)).toBe(true)
+    expect(countsAsUnread({ kind: 'asset_uploaded', org_id: null }, muted)).toBe(true)
+    expect(countsAsUnread({ kind: 'asset_uploaded', org_id: 'o2', read_at: 'x' }, muted)).toBe(false)
   })
 })

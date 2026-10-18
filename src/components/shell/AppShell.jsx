@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Zap, ChevronDown, Check, Briefcase, List, CalendarDays, CalendarOff, Building2, Plus, FileText, Tags,
-  LayoutTemplate, Users, Settings, MoreHorizontal, X, LogOut,
+  LayoutTemplate, Users, Settings, MoreHorizontal, X, LogOut, BellOff,
 } from 'lucide-react'
 import { useAuth } from '../../lib/AuthContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
@@ -87,9 +87,17 @@ function OrgMark({ name, size = 22 }) {
   )
 }
 
+// Unread updates in a workspace, or a muted sign
+function UnreadMark({ count, muted }) {
+  const { t } = useI18n()
+  if (muted) return <span className="shell-muted" title={t('mute.muted')} aria-label={t('mute.muted')}><BellOff size={13} /></span>
+  if (!count) return null
+  return <span className="shell-unread" aria-label={t('notif.bellUnread', { count })}>{count > 99 ? '99+' : count}</span>
+}
+
 // The button next to the logo: which workspace you're in and your role there.
 function WorkspaceSwitcher() {
-  const { orgs, workspace, currentOrg, setWorkspace } = useWorkspace()
+  const { orgs, workspace, currentOrg, setWorkspace, unreadIn, unreadMyWork, mutedIds } = useWorkspace()
   const { t } = useI18n()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -109,6 +117,8 @@ function WorkspaceSwitcher() {
         {currentOrg ? <OrgMark name={currentOrg.name} /> : <span className="shell-orgmark shell-orgmark-me" aria-hidden="true"><Briefcase size={12} /></span>}
         <span className="shell-switch-name">{currentOrg?.name || t('nav.myWork')}</span>
         {currentOrg && <RoleChip role={currentOrg.myRole} />}
+        {(workspace !== MY_WORK && unreadMyWork > 0) || orgs.some(o => o.id !== workspace && unreadIn(o.id) > 0)
+          ? <span className="shell-unread-dot" title={t('nav.unreadElsewhere')} aria-label={t('nav.unreadElsewhere')} /> : null}
         <ChevronDown size={14} className="shell-chevron" />
       </button>
       {open && (
@@ -117,6 +127,7 @@ function WorkspaceSwitcher() {
           <button role="menuitemradio" aria-checked={workspace === MY_WORK} className="shell-ws" onClick={() => pick(MY_WORK)}>
             <span className="shell-orgmark shell-orgmark-me" aria-hidden="true"><Briefcase size={12} /></span>
             <span className="shell-ws-text"><strong>{t('nav.myWork')}</strong><small>{t('nav.myWorkDesc')}</small></span>
+            <UnreadMark count={unreadMyWork} />
             {workspace === MY_WORK && <Check size={15} color={colors.accent} />}
           </button>
           {orgs.map(o => (
@@ -124,6 +135,7 @@ function WorkspaceSwitcher() {
               <OrgMark name={o.name} />
               <span className="shell-ws-text"><strong>{o.name}</strong></span>
               <RoleChip role={o.myRole} />
+              <UnreadMark count={unreadIn(o.id)} muted={mutedIds?.has(o.id)} />
               {workspace === o.id && <Check size={15} color={colors.accent} />}
             </button>
           ))}
@@ -303,6 +315,10 @@ const SHELL_CSS = `
   .shell-ws-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .shell-ws-text strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .shell-ws-text small { font-size: 12px; color: ${colors.soft}; }
+  .shell-unread { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: ${colors.accent}; color: #04110a;
+    font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; flex-shrink: 0; }
+  .shell-muted { color: ${colors.muted}; display: inline-flex; flex-shrink: 0; }
+  .shell-unread-dot { width: 7px; height: 7px; border-radius: 50%; background: ${colors.accent}; flex-shrink: 0; }
   .shell-pop-sep { height: 1px; background: rgba(255,255,255,0.07); margin: 8px 4px; }
   .shell-pop-link { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 9px; color: ${colors.soft}; font-size: 13px; font-weight: 600;
     text-decoration: none; background: none; border: none; cursor: pointer; width: 100%; text-align: left; }

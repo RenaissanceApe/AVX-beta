@@ -1,5 +1,6 @@
 import { t } from '../i18n'
 import { shortTime } from './schedule'
+import { rangeText } from './clashes'
 
 // Text for one notification row (uses the current UI language).
 export function describeNotification(n, nameOf) {
@@ -20,12 +21,24 @@ export function describeNotification(n, nameOf) {
     case 'org_deleted':       return t('notif.orgDeleted', { actor, org: d.org_name })
     case 'quote_accepted':    return t('notif.quoteAccepted', { client: d.client_name, number: d.number, title: d.quote_title })
     case 'quote_declined':    return t('notif.quoteDeclined', { client: d.client_name, number: d.number, title: d.quote_title })
+    case 'availability_request': return t('notif.availabilityRequest', { actor, gig, range: d.from && d.until ? rangeText(d.from, d.until) : '—' })
+    case 'availability_reply': return t(d.answer === 'available' ? 'notif.availabilityYes' : 'notif.availabilityNo', { actor, gig }) + (d.note ? `: “${d.note}”` : '')
+    case 'booking_changed':   return d.booked_from && d.booked_until
+      ? t('notif.bookingChanged', { actor, gig, range: rangeText(d.booked_from, d.booked_until) })
+      : t('notif.bookingCleared', { actor, gig })
     default:                  return t('notif.generic', { gig })
   }
 }
 
+// Kinds that are a direct question to you: they still count when the organisation is muted
+export const DIRECT_KINDS = new Set(['availability_request'])
+export const countsAsUnread = (n, mutedOrgIds) => !n.read_at && (!n.org_id || !mutedOrgIds?.has(n.org_id) || DIRECT_KINDS.has(n.kind))
+
 export function notificationLink(n) {
   if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
+  // Requests are answered in My work (you may not be on the gig yet)
+  if (n.kind === 'availability_request') return '/me#requests'
+  if (n.gig_id && (n.kind === 'availability_reply' || n.kind === 'booking_changed')) return `/gig/${n.gig_id}?tab=crew`
   if (n.gig_id) return n.kind === 'schedule_changed' ? `/gig/${n.gig_id}?tab=schedule` : `/gig/${n.gig_id}`
   return '/dashboard'
 }
