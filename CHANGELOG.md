@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.12.0 — Phase 5a: people, bookings and clashes
+
+### Added
+- A reservations engine: one table records who (later: what equipment, vehicle or room) is taken
+  for which time range, kept in step by the database (docs/RESERVATIONS.md)
+- Booking times per crew member ("Set times" in the Crew tab); without them a person is booked for
+  the gig's whole days, so short jobs on the same day no longer clash
+- Double-booking warnings: ⚠ next to anyone booked elsewhere at the same time, with advice to talk
+  to them first; the same warning while inviting by email; a warning in the new/edit gig form when
+  the dates overlap your own bookings. Nothing is blocked. Other companies' gigs still show only as
+  "another gig"
+- Ask availability: managers send a question, the person answers Available / Not available with a
+  note from My work, and both sides are notified (in the app and the email summary)
+- My work marks gigs that overlap another booking or your unavailable dates ("Double booking" on the
+  card, amber outline in the calendar)
+- Unread updates per workspace in the switcher; mute an organisation from the Organisations page
+  (no badge and no email summary for it; questions addressed to you still arrive)
+- Organisation admins can add someone from a gig's crew to the organisation in one click
+- Plans: docs/INVENTORY.md (inventory phases I1–I7) and docs/MESSAGING.md (messaging M1–M6)
+
+### Changed
+- Viewers can no longer create gigs (enforced by the database)
+- Notifications about a gig always carry its organisation
+- My work shows a gig once even if you hold two roles on it, with both functions
+
 ## 0.11.0 — Phase 4d: navigation and workspaces
 
 ### Added

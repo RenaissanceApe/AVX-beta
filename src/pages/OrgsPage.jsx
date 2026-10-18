@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, Users, Settings, ArrowRight, Briefcase } from 'lucide-react'
+import { Plus, Users, Settings, ArrowRight, Briefcase, Bell, BellOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { homePath } from '../lib/nav'
@@ -12,7 +12,7 @@ import { btn, btnPrimary, colors } from '../components/ui'
 // Every organisation you belong to, with your role in each, plus the companies you
 // only work for as crew (their gigs live in My work). Creating organisations starts here.
 export default function OrgsPage() {
-  const { orgs, setWorkspace, refresh, loading } = useWorkspace()
+  const { orgs, setWorkspace, refresh, loading, mutedIds, setMuted, unreadIn } = useWorkspace()
   const { t } = useI18n()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
@@ -52,6 +52,7 @@ export default function OrgsPage() {
                 <strong style={{ fontSize: '16px', flex: 1, minWidth: 0, lineHeight: 1.3, overflowWrap: 'anywhere' }}>{o.name}</strong>
                 <RoleChip role={o.myRole} />
               </div>
+              {unreadIn(o.id) > 0 && <p style={{ fontSize: '12px', color: colors.accent, fontWeight: 600 }}>{t('orgs.unread', { count: unreadIn(o.id) })}</p>}
               <p style={{ color: colors.soft, fontSize: '13px', lineHeight: 1.5, minHeight: '40px' }}>{t(`nav.roleDesc.${o.myRole}`)}</p>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '12px' }}>
                 <button onClick={() => open(o.id)} style={btn}><ArrowRight size={14} /> {t('orgs.open')}</button>
@@ -59,6 +60,7 @@ export default function OrgsPage() {
                 {o.myRole === 'admin' && (
                   <button onClick={() => open(o.id, '?panel=settings')} aria-label={t('orgSettings.open')} title={t('orgSettings.open')} style={ghost}><Settings size={14} /></button>
                 )}
+                <MuteButton orgId={o.id} name={o.name} muted={mutedIds?.has(o.id)} setMuted={setMuted} />
               </div>
             </div>
           ))}
@@ -70,7 +72,10 @@ export default function OrgsPage() {
             <p style={{ color: colors.muted, fontSize: '13px', marginBottom: '12px', lineHeight: 1.6 }}>{t('orgs.guestIntro')}</p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {guestOnly.map(c => (
-                <button key={c.org_id} onClick={() => navigate('/me')} style={ghost}><Briefcase size={14} /> {c.name}</button>
+                <span key={c.org_id} style={{ display: 'inline-flex', gap: '2px' }}>
+                  <button onClick={() => navigate('/me')} style={ghost}><Briefcase size={14} /> {c.name}</button>
+                  <MuteButton orgId={c.org_id} name={c.name} muted={mutedIds?.has(c.org_id)} setMuted={setMuted} />
+                </span>
               ))}
             </div>
           </section>
@@ -86,6 +91,18 @@ export default function OrgsPage() {
           background: linear-gradient(135deg, rgba(167,139,250,0.9), rgba(99,102,241,0.9)); color: #0b0f19; flex-shrink: 0; }
       `}</style>
     </AppShell>
+  )
+}
+
+// Muting: no unread badge and no email summary for this organisation's updates
+function MuteButton({ orgId, name, muted, setMuted }) {
+  const { t } = useI18n()
+  const label = muted ? t('mute.unmuteNamed', { name }) : t('mute.muteNamed', { name })
+  return (
+    <button onClick={() => setMuted(orgId, !muted)} aria-pressed={!!muted} aria-label={label}
+      title={muted ? t('mute.mutedHint') : t('mute.muteHint')} style={{ ...ghost, color: muted ? '#F59E0B' : colors.soft }}>
+      {muted ? <BellOff size={14} /> : <Bell size={14} />}
+    </button>
   )
 }
 

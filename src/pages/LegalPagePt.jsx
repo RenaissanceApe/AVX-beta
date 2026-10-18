@@ -20,7 +20,7 @@ export function PrivacyPt() {
       <h2>Que dados recolhemos</h2>
       <ul>
         <li><strong>Conta:</strong> o seu email, nome, número de telemóvel (opcional) e palavra-passe (guardada apenas como hash seguro pelo nosso fornecedor de autenticação).</li>
-        <li><strong>Dados de trabalho que você ou a sua equipa adicionam:</strong> organizações, eventos, a sua função e hora de chamada, ficheiros que carrega e atualizações que publica.</li>
+        <li><strong>Dados de trabalho que você ou a sua equipa adicionam:</strong> organizações, eventos, a sua função, horas de chamada e de marcação, datas que indica como indisponíveis, perguntas de disponibilidade que recebe e as suas respostas, ficheiros que carrega e atualizações que publica. Outras empresas só veem que está "marcado" num período, nunca onde.</li>
         <li><strong>Dados técnicos:</strong> horas de início de sessão e, nos registos de segurança dos nossos fornecedores, o endereço IP e o tipo de navegador.</li>
         <li><strong>Contagens de utilização:</strong> quantas vezes cada ecrã ou funcionalidade é usado por dia, somando todos os utilizadores. Estas contagens não têm nome, email, identificador de conta, endereço IP nem identificador do dispositivo, por isso não podem ser associadas a si.</li>
         <li><strong>Destinatários de orçamentos:</strong> se uma empresa lhe enviar um orçamento através do {APP_NAME}, guardamos os contactos que ela indicou e, se responder, o seu nome, a sua mensagem e a data da resposta.</li>

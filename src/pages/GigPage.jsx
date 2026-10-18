@@ -220,7 +220,7 @@ export default function GigPage() {
             showUpload={showUpload} setShowUpload={setShowUpload} />
         )}
         {tab === 'crew' && (
-          <CrewTab gigId={id} gigDatesKey={`${gig.start_date}|${gig.end_date}`} members={members} invites={invites} isPM={isPM} userId={user.id} nameOf={nameOf} phoneOf={phoneOf}
+          <CrewTab gig={gig} members={members} invites={invites} isPM={isPM} orgRole={orgRole} userId={user.id} nameOf={nameOf} phoneOf={phoneOf}
             onChanged={reload} onLeft={() => navigate('/dashboard')} showInvite={showInvite} setShowInvite={setShowInvite} />
         )}
         {tab === 'feed' && <FeedTab gigId={id} posts={posts} userId={user.id} isPM={isPM} nameOf={nameOf} onChanged={reload} />}

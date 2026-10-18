@@ -5,6 +5,9 @@ import { logger } from './logger'
 import { saveSnapshot, loadSnapshot, isNetworkError } from './offline'
 import { MY_WORK, defaultWorkspace } from './nav'
 
+// Fired by the bell when notifications arrive or are read, so the counts in the switcher follow
+export const NOTIFICATIONS_CHANGED = 'avx:notifications-changed'
+
 // The workspace you're looking at: My work (every gig you're on, anywhere) or one of
 // your organisations. Your role there (admin / member / viewer) comes with it, so
 // switching organisation switches what the menus offer. Remembered per person and device.
@@ -22,6 +25,8 @@ export function WorkspaceProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [offlineSince, setOfflineSince] = useState(null)
   const [workspace, setWorkspaceState] = useState(MY_WORK)
+  const [unreadByOrg, setUnreadByOrg] = useState({}) // org_id ('' = none) -> unread count
+  const [mutedIds, setMutedIds] = useState(() => new Set())
 
   const refresh = useCallback(async () => {
     if (!user) return []
@@ -53,6 +58,31 @@ export function WorkspaceProvider({ children }) {
     refresh()
   }, [user, mfaRequired, refresh])
 
+  // Unread notifications per organisation, and the organisations you muted
+  const refreshUnread = useCallback(async () => {
+    if (!user || mfaRequired) return
+    const [counts, mutes] = await Promise.all([supabase.rpc('my_unread_counts'), supabase.from('org_mutes').select('org_id')])
+    if (!counts.error) setUnreadByOrg(Object.fromEntries((counts.data || []).map(r => [r.org_id || '', Number(r.unread)])))
+    if (!mutes.error) setMutedIds(new Set((mutes.data || []).map(r => r.org_id)))
+  }, [user, mfaRequired])
+  useEffect(() => {
+    refreshUnread()
+    window.addEventListener(NOTIFICATIONS_CHANGED, refreshUnread)
+    return () => window.removeEventListener(NOTIFICATIONS_CHANGED, refreshUnread)
+  }, [refreshUnread])
+
+  // Muting an organisation: no unread badge and no email summary for its updates
+  // (direct questions such as availability requests still come through)
+  const setMuted = useCallback(async (orgId, muted) => {
+    setMutedIds(ids => { const next = new Set(ids); if (muted) next.add(orgId); else next.delete(orgId); return next })
+    const { error } = muted
+      ? await supabase.from('org_mutes').upsert({ org_id: orgId }, { onConflict: 'user_id,org_id', ignoreDuplicates: true })
+      : await supabase.from('org_mutes').delete().eq('org_id', orgId)
+    if (error) logger.error('workspace', error, { step: 'mute' })
+    window.dispatchEvent(new Event(NOTIFICATIONS_CHANGED))
+    return !error
+  }, [])
+
   useEffect(() => {
     const onOnline = () => refresh()
     window.addEventListener('online', onOnline)
@@ -67,14 +97,20 @@ export function WorkspaceProvider({ children }) {
 
   const value = useMemo(() => {
     const currentOrg = orgs.find(o => o.id === workspace) || null
+    const memberOf = new Set(orgs.map(o => o.id))
+    const unreadIn = orgId => (mutedIds.has(orgId) ? 0 : unreadByOrg[orgId] || 0)
+    // My work: everything not tied to one of your organisations (gigs you crew for others)
+    const unreadMyWork = Object.entries(unreadByOrg)
+      .filter(([id]) => !memberOf.has(id) && !mutedIds.has(id)).reduce((sum, [, n]) => sum + n, 0)
     return {
       orgs, loading, offlineSince, refresh, setWorkspace,
+      mutedIds, setMuted, unreadIn, unreadMyWork, refreshUnread,
       workspace: currentOrg ? workspace : MY_WORK,
       currentOrg,
       role: currentOrg?.myRole ?? null,
       roleIn: orgId => orgs.find(o => o.id === orgId)?.myRole ?? null,
     }
-  }, [orgs, loading, offlineSince, refresh, setWorkspace, workspace])
+  }, [orgs, loading, offlineSince, refresh, setWorkspace, workspace, unreadByOrg, mutedIds, setMuted, refreshUnread])
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>
 }

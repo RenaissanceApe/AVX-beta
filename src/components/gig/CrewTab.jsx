@@ -1,38 +1,59 @@
 import { useEffect, useState } from 'react'
-import { UserPlus, X, Clock, Phone, Loader2, Send, AlertTriangle, Plus, Briefcase, Trash2 } from 'lucide-react'
+import { UserPlus, X, Clock, Phone, Loader2, Send, AlertTriangle, Plus, Briefcase, Trash2, CalendarClock, UserCheck } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
+import { useWorkspace } from '../../lib/WorkspaceContext'
 import { logger, userMessage } from '../../lib/logger'
+import { track } from '../../lib/usage'
 import { sendInvite, inviteMessage } from '../../lib/invites'
 import { shortTime } from '../../lib/schedule'
-import { useI18n, t } from '../../i18n'
+import { clashText, groupByUser } from '../../lib/clashes'
+import { t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
 import { Avatar, RoleBadge, TabHeader } from './parts'
+import { ClashBox, AskAvailabilityModal, ShiftModal, shiftText, AMBER } from './Booking'
 
-// One-line description of a clash, e.g. "Busy 2–3 Nov (Other gig)" / "Not available 5 Nov"
-export function conflictText(c, fmt) {
-  const range = c.start_date === c.end_date ? fmt(c.start_date, 'd MMM') : `${fmt(c.start_date, 'd MMM')}–${fmt(c.end_date, 'd MMM')}`
-  return c.kind === 'unavailable'
-    ? t('availability.conflictUnavailable', { range })
-    : c.label ? t('availability.conflictBookedNamed', { range, gig: c.label }) : t('availability.conflictBooked', { range })
+// Latest request per person: { user_id: request }
+const latestRequests = rows => {
+  const map = {}
+  for (const r of rows || []) if (!map[r.person_id] || r.created_at > map[r.person_id].created_at) map[r.person_id] = r
+  return map
 }
 
-export default function CrewTab({ gigId, gigDatesKey, members, invites, isPM, userId, nameOf, phoneOf, onChanged, onLeft, showInvite, setShowInvite }) {
-  const { fmt } = useI18n()
+export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, nameOf, phoneOf, onChanged, onLeft, showInvite, setShowInvite }) {
+  const gigId = gig.id
   const { notify } = useToast()
-  const [conflicts, setConflicts] = useState({}) // user_id -> [conflict]
+  const { orgs } = useWorkspace()
+  const [clashes, setClashes] = useState({}) // user_id -> [clash]
+  const [requests, setRequests] = useState({}) // user_id -> latest availability request
+  const [orgMemberIds, setOrgMemberIds] = useState(null) // Set, for org admins only
+  const [asking, setAsking] = useState(null) // member being asked
+  const [shiftFor, setShiftFor] = useState(null) // member whose times are being edited
   const [inviteFor, setInviteFor] = useState('') // function title to prefill when inviting for a position
+  const isOrgAdmin = orgRole === 'admin'
+  const orgName = orgs.find(o => o.id === gig.org_id)?.name || ''
+  const bookingKey = members.map(m => `${m.user_id}:${m.booked_from}:${m.booked_until}`).join('|')
 
-  // Managers see who is booked elsewhere or unavailable on this gig's dates
-  useEffect(() => {
+  // Managers see who is booked elsewhere or unavailable during their time on this gig
+  async function loadBookingState() {
     if (!isPM) return
-    supabase.rpc('gig_crew_conflicts', { p_gig: gigId }).then(({ data, error }) => {
-      if (error) return logger.error('crew', error, { step: 'conflicts', gigId })
-      const map = {}
-      for (const c of data || []) (map[c.user_id] ||= []).push(c)
-      setConflicts(map)
-    })
-  }, [gigId, isPM, members.length, gigDatesKey])
+    const [clashRes, reqRes] = await Promise.all([
+      supabase.rpc('gig_clashes', { p_gig: gigId }),
+      supabase.from('availability_requests').select('*').eq('gig_id', gigId).order('created_at', { ascending: false }).limit(200),
+    ])
+    if (clashRes.error) logger.error('crew', clashRes.error, { step: 'clashes', gigId })
+    else setClashes(groupByUser(clashRes.data))
+    if (reqRes.error) logger.error('crew', reqRes.error, { step: 'requests', gigId })
+    else setRequests(latestRequests(reqRes.data))
+  }
+  useEffect(() => { loadBookingState() }, [gigId, isPM, bookingKey, gig.start_date, gig.end_date, gig.status]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Org admins can add crew to the organisation; they need to know who's in it already
+  useEffect(() => {
+    if (!isOrgAdmin || !gig.org_id) return setOrgMemberIds(null)
+    supabase.from('org_members').select('user_id').eq('org_id', gig.org_id)
+      .then(({ data }) => setOrgMemberIds(new Set((data || []).map(r => r.user_id))))
+  }, [isOrgAdmin, gig.org_id, members.length])
 
   async function removeMember(member) {
     const self = member.user_id === userId
@@ -51,6 +72,25 @@ export default function CrewTab({ gigId, gigDatesKey, members, invites, isPM, us
     const { error } = await supabase.from('gig_invites').delete().eq('id', inv.id)
     if (error) return notify(userMessage(error), 'error')
     onChanged()
+  }
+
+  async function withdraw(request) {
+    const { error } = await supabase.from('availability_requests').update({ status: 'withdrawn' }).eq('id', request.id)
+    if (error) return notify(userMessage(error), 'error')
+    loadBookingState()
+  }
+
+  async function addToOrg(member) {
+    const name = nameOf(member.user_id)
+    if (!window.confirm(t('crew.addToOrgConfirm', { name, org: orgName }))) return
+    const { data, error } = await supabase.rpc('add_gig_member_to_org', { p_gig: gigId, p_user: member.user_id, p_role: 'member' })
+    if (error) {
+      logger.error('crew', error, { step: 'addToOrg', gigId })
+      return notify(userMessage(error), 'error')
+    }
+    track('crew:added-to-org')
+    notify(data === 'already_member' ? t('crew.alreadyInOrg', { name, org: orgName }) : t('crew.addedToOrg', { name, org: orgName }), 'success')
+    setOrgMemberIds(ids => new Set([...(ids || []), member.user_id]))
   }
 
   return (
@@ -72,14 +112,23 @@ export default function CrewTab({ gigId, gigDatesKey, members, invites, isPM, us
           {members.map(m => {
             const self = m.user_id === userId
             const phone = phoneOf(m.user_id)
+            const name = nameOf(m.user_id)
+            const mine = clashes[m.user_id] || []
+            const shift = shiftText(m)
+            const canAddToOrg = isOrgAdmin && orgMemberIds && !orgMemberIds.has(m.user_id)
             return (
-              <div key={m.user_id} style={{
-                background: 'rgba(255,255,255,0.03)', border: `1px solid ${colors.border}`, borderRadius: '14px',
-                padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', animation: 'fadeIn 0.3s ease',
+              <div key={m.user_id} className="crew-row" style={{
+                background: 'rgba(255,255,255,0.03)', border: `1px solid ${mine.length ? 'rgba(245,158,11,0.35)' : colors.border}`, borderRadius: '14px',
+                padding: '14px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '0 14px', animation: 'fadeIn 0.3s ease',
               }}>
-                <Avatar uid={m.user_id} name={nameOf(m.user_id)} size={42} />
+                <Avatar uid={m.user_id} name={name} size={42} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '3px' }}>{nameOf(m.user_id)}</div>
+                  <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {name}
+                    {mine.length > 0 && (
+                      <span role="img" aria-label={t('clash.badge')} title={t('clash.badge')} style={{ color: AMBER, display: 'flex' }}><AlertTriangle size={15} /></span>
+                    )}
+                  </div>
                   <div style={{ fontSize: '13px', color: colors.muted, display: 'flex', flexWrap: 'wrap', gap: '4px 10px' }}>
                     <span>{m.function_title || '—'}</span>
                     {phone && (
@@ -92,20 +141,42 @@ export default function CrewTab({ gigId, gigDatesKey, members, invites, isPM, us
                         <Clock size={11} style={{ verticalAlign: 'middle', marginRight: '3px' }} />{t('crew.call', { time: shortTime(m.call_time) })}
                       </span>
                     )}
+                    {shift && (
+                      <span style={{ color: colors.soft, whiteSpace: 'nowrap' }}>
+                        <CalendarClock size={11} style={{ verticalAlign: 'middle', marginRight: '3px' }} />{t('shift.booked', { range: shift })}
+                      </span>
+                    )}
                   </div>
-                  {(conflicts[m.user_id] || []).map((c, i) => (
-                    <div key={i} style={{ fontSize: '12px', color: '#F59E0B', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <AlertTriangle size={12} /> {conflictText(c, fmt)}
-                    </div>
-                  ))}
                 </div>
                 <RoleBadge role={m.role} large />
                 {(isPM || self) && (
                   <button onClick={() => removeMember(m)} style={iconBtn}
-                    aria-label={self ? t('crew.leave') : t('crew.removeNamed', { name: nameOf(m.user_id) })}
+                    aria-label={self ? t('crew.leave') : t('crew.removeNamed', { name })}
                     title={self ? t('crew.leave') : t('crew.remove')}>
                     <X size={15} />
                   </button>
+                )}
+                {(mine.length > 0 || isPM || canAddToOrg) && (
+                  <div className="crew-extra">
+                    {mine.length > 0 && (
+                      <ClashBox name={name} clashes={mine} request={requests[m.user_id]} canAsk={isPM && !self}
+                        onAsk={() => setAsking(m)} onWithdraw={() => withdraw(requests[m.user_id])} />
+                    )}
+                    {(isPM || canAddToOrg) && (
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                        {isPM && (
+                          <button onClick={() => setShiftFor(m)} style={rowBtn}>
+                            <CalendarClock size={13} /> {shift ? t('shift.edit') : t('shift.set')}
+                          </button>
+                        )}
+                        {canAddToOrg && (
+                          <button onClick={() => addToOrg(m)} style={rowBtn} title={t('crew.addToOrgHint', { org: orgName })}>
+                            <UserCheck size={13} /> {t('crew.addToOrg', { org: orgName })}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )
@@ -135,24 +206,37 @@ export default function CrewTab({ gigId, gigDatesKey, members, invites, isPM, us
         </div>
       )}
 
+      <style>{`
+        .crew-extra { flex-basis: 100%; padding-left: 56px; min-width: 0; }
+        @media (max-width: 640px) { .crew-extra { padding-left: 0; } }
+      `}</style>
       {showInvite && <InviteModal gigId={gigId} functionTitle={inviteFor} onClose={() => { setShowInvite(false); setInviteFor('') }} onInvited={onChanged} />}
+      {asking && (
+        <AskAvailabilityModal gigId={gigId} personId={asking.user_id} name={nameOf(asking.user_id)} clashes={clashes[asking.user_id] || []}
+          onClose={() => setAsking(null)} onSent={loadBookingState} />
+      )}
+      {shiftFor && (
+        <ShiftModal gig={gig} member={shiftFor} name={nameOf(shiftFor.user_id)} onClose={() => setShiftFor(null)} onSaved={onChanged} />
+      )}
     </div>
   )
 }
 
+const rowBtn = { ...btn, padding: '5px 10px', fontSize: '12px', background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }
+
 const EMPTY_INVITE = { email: '', role: 'crew', function_title: '', call_time: '' }
 
 function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
-  const { fmt } = useI18n()
   const { notify } = useToast()
   const [form, setForm] = useState({ ...EMPTY_INVITE, function_title: functionTitle || '' })
   const [sending, setSending] = useState(false)
   const [clashes, setClashes] = useState([])
+  const [asking, setAsking] = useState(false)
 
   async function checkAvailability() {
     const email = form.email.trim()
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setClashes([])
-    const { data, error } = await supabase.rpc('crew_conflicts', { p_gig: gigId, p_email: email })
+    const { data, error } = await supabase.rpc('email_clashes', { p_gig: gigId, p_email: email })
     if (error) return logger.warn('crew', 'Availability check failed', { gigId })
     setClashes(data || [])
   }
@@ -168,6 +252,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
       })
       const msg = inviteMessage(email, outcome)
       notify(msg.text, msg.kind, { duration: msg.kind === 'info' ? 15000 : undefined })
+      if (clashes.length) track('crew:invited-despite-clash')
       onInvited()
       onClose()
     } catch (err) {
@@ -178,17 +263,28 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
     }
   }
 
+  if (asking) return (
+    <AskAvailabilityModal gigId={gigId} personId={clashes[0].user_id} name={form.email.trim()} clashes={clashes}
+      onClose={() => setAsking(false)} onSent={onClose} />
+  )
+
   return (
     <Modal title={t('crew.inviteTitle')} onClose={onClose}>
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div>
           <label style={label} htmlFor="inv-email">{t('common.email')} *</label>
-          <input id="inv-email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+          <input id="inv-email" type="email" value={form.email} onChange={e => { setClashes([]); setForm(f => ({ ...f, email: e.target.value })) }}
             onBlur={checkAvailability} placeholder="technician@company.com" style={input} autoFocus required />
           {clashes.length > 0 && (
-            <div role="status" style={{ marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', fontSize: '12px', color: '#F59E0B', lineHeight: 1.6 }}>
-              <strong style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('availability.inviteWarning')}</strong>
-              {clashes.map((c, i) => <div key={i}>{conflictText(c, fmt)}</div>)}
+            <div role="status" style={{ marginTop: '8px', padding: '9px 11px', borderRadius: '9px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', fontSize: '12px', color: AMBER, lineHeight: 1.6 }}>
+              <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
+                <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: '2px' }} />
+                {clashes.some(c => c.kind === 'booked') ? t('clash.advice', { name: form.email.trim() }) : t('clash.unavailableAdvice', { name: form.email.trim() })}
+              </strong>
+              {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '18px' }}>{clashText(c)}</div>)}
+              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '6px', marginLeft: '18px', color: AMBER, borderColor: 'rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.1)' }}>
+                {t('ask.first')}
+              </button>
             </div>
           )}
         </div>

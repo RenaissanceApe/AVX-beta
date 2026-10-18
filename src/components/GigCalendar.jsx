@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react'
 import { monthMatrix, gigsOnDay, toDateStr } from '../lib/calendar'
 import { colors, iconBtn, btn } from './ui'
 import { useI18n, fmt } from '../i18n'
@@ -10,8 +10,12 @@ const STATUS_COLOR = {
 // Monday-first weekday labels in the current language (2026-06-01 is a Monday)
 const weekdays = () => Array.from({ length: 7 }, (_, i) => fmt(`2026-06-0${i + 1}`, 'EEE'))
 
-// Month view of gigs. Multi-day gigs appear on every day they run.
-export default function GigCalendar({ gigs, onOpen }) {
+const AMBER = '#F59E0B'
+
+// Month view of gigs. Multi-day gigs appear on every day they run. Gigs in clashIds
+// (double bookings in My work) get an amber outline and a warning sign.
+export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
+  const clashes = g => !!clashIds?.has(g.id)
   const { t } = useI18n()
   const today = toDateStr(new Date())
   const [selected, setSelected] = useState(null)
@@ -70,17 +74,18 @@ export default function GigCalendar({ gigs, onOpen }) {
               </div>
               <div className="cal-dots" aria-hidden>
                 {dayGigs.slice(0, 4).map(g => (
-                  <span key={g.id} style={{ width: '7px', height: '7px', borderRadius: '50%', background: STATUS_COLOR[g.status] || colors.muted }} />
+                  <span key={g.id} style={{ width: '7px', height: '7px', borderRadius: '50%', background: STATUS_COLOR[g.status] || colors.muted, boxShadow: clashes(g) ? `0 0 0 2px ${AMBER}` : 'none' }} />
                 ))}
               </div>
               <div className="cal-chips" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {dayGigs.slice(0, 3).map(g => (
-                  <button key={g.id} onClick={e => { e.stopPropagation(); onOpen(g) }} title={g.name} style={{
+                  <button key={g.id} onClick={e => { e.stopPropagation(); onOpen(g) }} title={clashes(g) ? `${g.name} · ${t('clash.doubleBooking')}` : g.name} style={{
                     display: 'block', width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
                     fontSize: '11px', fontWeight: 600, color: '#fff', padding: '2px 4px', borderRadius: '4px',
                     background: `${STATUS_COLOR[g.status] || colors.muted}55`, borderLeft: `3px solid ${STATUS_COLOR[g.status] || colors.muted}`,
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}>{g.name}</button>
+                    outline: clashes(g) ? `1px solid ${AMBER}` : 'none', outlineOffset: '-1px',
+                  }}>{clashes(g) && <AlertTriangle size={9} color={AMBER} style={{ marginRight: '3px', verticalAlign: '-1px' }} />}{g.name}</button>
                 ))}
                 {dayGigs.length > 3 && <span style={{ fontSize: '10px', color: colors.muted }}>{t('calendar.more', { count: dayGigs.length - 3 })}</span>}
               </div>
@@ -102,7 +107,8 @@ export default function GigCalendar({ gigs, onOpen }) {
               background: 'rgba(255,255,255,0.03)', border: `1px solid ${colors.border}`,
             }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: STATUS_COLOR[g.status] || colors.muted, flexShrink: 0 }} />
-              {g.name}
+              <span style={{ flex: 1, minWidth: 0 }}>{g.name}</span>
+              {clashes(g) && <span style={{ color: AMBER, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('clash.doubleBooking')}</span>}
             </button>
           ))}
         </div>

@@ -24,7 +24,7 @@ function Privacy() {
       <h2>What we collect</h2>
       <ul>
         <li><strong>Account:</strong> your email address, name, optional phone number and password (stored only as a secure hash by our authentication provider).</li>
-        <li><strong>Work data you or your team add:</strong> organisations, gigs, your role and call times, files you upload, and updates you post.</li>
+        <li><strong>Work data you or your team add:</strong> organisations, gigs, your role, call and booking times, dates you mark as unavailable, availability questions sent to you and your answers, files you upload, and updates you post. Other companies only ever see that you're "booked" at a time, not where.</li>
         <li><strong>Technical data:</strong> sign-in times and, in our providers' security logs, IP address and browser type.</li>
         <li><strong>Usage counts:</strong> how many times each screen or feature is used per day, across everyone. These counts contain no name, email, account id, IP address or device id, so they can't be linked to you.</li>
         <li><strong>Quote recipients:</strong> if a company sends you a quote through {APP_NAME}, we store the contact details they entered and, if you answer, your name, your message and when you answered.</li>

@@ -4,7 +4,8 @@ import { Bell, CheckCheck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { logger } from '../lib/logger'
-import { describeNotification, notificationLink } from '../lib/notifications'
+import { describeNotification, notificationLink, countsAsUnread } from '../lib/notifications'
+import { useWorkspace, NOTIFICATIONS_CHANGED } from '../lib/WorkspaceContext'
 import { useI18n } from '../i18n'
 import { colors, iconBtn } from './ui'
 
@@ -13,6 +14,7 @@ const LIMIT = 30
 // Bell with unread count; the list updates live via Supabase Realtime.
 export default function NotificationBell() {
   const { user } = useAuth()
+  const { mutedIds } = useWorkspace()
   const { t, ago } = useI18n()
   const navigate = useNavigate()
   const [items, setItems] = useState([])
@@ -25,6 +27,7 @@ export default function NotificationBell() {
       .eq('user_id', user.id).order('created_at', { ascending: false }).limit(LIMIT)
     if (error) return logger.error('notifications', error, { step: 'load' })
     setItems(data || [])
+    window.dispatchEvent(new Event(NOTIFICATIONS_CHANGED))
     const ids = [...new Set((data || []).map(n => n.actor_id).filter(Boolean))]
     if (ids.length) {
       const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', ids)
@@ -51,7 +54,9 @@ export default function NotificationBell() {
     return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey) }
   }, [open])
 
-  const unread = items.filter(n => !n.read_at).length
+  // Muted organisations stay in the list but don't make the bell light up
+  const unread = items.filter(n => countsAsUnread(n, mutedIds)).length
+  const unreadAny = items.some(n => !n.read_at)
   const nameOf = id => names[id] || t('common.someone')
 
   async function markRead(ids) {
@@ -60,6 +65,7 @@ export default function NotificationBell() {
     setItems(list => list.map(n => (ids.includes(n.id) ? { ...n, read_at: n.read_at || now } : n)))
     const { error } = await supabase.from('notifications').update({ read_at: now }).in('id', ids)
     if (error) logger.error('notifications', error, { step: 'markRead' })
+    window.dispatchEvent(new Event(NOTIFICATIONS_CHANGED))
   }
 
   function openItem(n) {
@@ -89,7 +95,7 @@ export default function NotificationBell() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderBottom: `1px solid ${colors.border}` }}>
             <strong style={{ fontSize: '14px' }}>{t('notif.bell')}</strong>
-            {unread > 0 && (
+            {unreadAny && (
               <button onClick={() => markRead(items.filter(n => !n.read_at).map(n => n.id))}
                 style={{ background: 'none', border: 'none', color: colors.accent, fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <CheckCheck size={14} /> {t('notif.markAllRead')}
