@@ -1,11 +1,14 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
+import { WorkspaceProvider, useWorkspace } from './lib/WorkspaceContext'
+import { homePath } from './lib/nav'
 import { ToastProvider } from './lib/ToastContext'
 import { I18nProvider, t } from './i18n'
 import ErrorBoundary from './components/ErrorBoundary'
 import AuthPage from './pages/AuthPage'
 import Dashboard from './pages/Dashboard'
+import OrgsPage from './pages/OrgsPage'
 import GigPage from './pages/GigPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import WelcomePage from './pages/WelcomePage'
@@ -34,6 +37,13 @@ function Spinner() {
       }} />
     </div>
   )
+}
+
+// /dashboard (used by sign-in, old links and notifications) opens your current workspace
+function HomeRedirect() {
+  const { workspace, loading } = useWorkspace()
+  if (loading) return <Spinner />
+  return <Navigate to={homePath(workspace)} replace />
 }
 
 function ProtectedRoute({ children }) {
@@ -67,7 +77,10 @@ function AppRoutes() {
       <Route path="/privacy" element={<LegalPage doc="privacy" />} />
       <Route path="/terms" element={<LegalPage doc="terms" />} />
       <Route path="/q/:token" element={<Suspense fallback={<Spinner />}><QuotePublicPage /></Suspense>} />
-      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
+      <Route path="/me" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/orgs" element={<ProtectedRoute><OrgsPage /></ProtectedRoute>} />
+      <Route path="/org/:orgId" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/gig/:id" element={<ProtectedRoute><GigPage /></ProtectedRoute>} />
       <Route path="/gig/:id/callsheet" element={<ProtectedRoute><CallSheetPage /></ProtectedRoute>} />
       <Route path="/org/:orgId/quotes" element={<ProtectedRoute><Suspense fallback={<Spinner />}><QuotesPage /></Suspense></ProtectedRoute>} />
@@ -85,7 +98,9 @@ export default function App() {
         <BrowserRouter>
           <ToastProvider>
             <AuthProvider>
-              <AppRoutes />
+              <WorkspaceProvider>
+                <AppRoutes />
+              </WorkspaceProvider>
             </AuthProvider>
           </ToastProvider>
         </BrowserRouter>

@@ -10,7 +10,7 @@ never the public quote page a client opens.
 
 | Event | When |
 |---|---|
-| `view:dashboard`, `view:gig`, `view:gig/schedule`, `view:gig/crew`, … | A screen (and gig tab) is opened |
+| `view:me`, `view:org`, `view:orgs`, `view:gig`, `view:gig/schedule`, `view:gig/crew`, … | A screen (and gig tab) is opened |
 | `view:org-quotes`, `view:quote`, `view:quote-print`, `view:gig-callsheet` | Quotes, the quote editor, print preview, call sheet |
 | `quote:sent-email`, `quote:sent-email-pdf`, `quote:sent-link` | A quote is sent (email, email with PDF, link only) |
 | `quote:version-saved`, `quote:version-restored`, `quote:pdf-downloaded`, `quote:gig-filled` | Quote versions, PDF download, "Fill gig from quote" |

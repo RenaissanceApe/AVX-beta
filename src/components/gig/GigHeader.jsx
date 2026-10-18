@@ -1,4 +1,4 @@
-import { ArrowLeft, MapPin, Calendar, Users, RefreshCw, Zap, Pencil } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Users, RefreshCw, Pencil, Building2 } from 'lucide-react'
 import { shortTime } from '../../lib/schedule'
 import { useI18n } from '../../i18n'
 import { colors } from '../ui'
@@ -6,38 +6,27 @@ import { StatusBadge } from './parts'
 
 export const GIG_TABS = ['overview', 'schedule', 'assets', 'crew', 'feed', 'activity']
 
-export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, setTab, counts, onBack, onRefresh, onEdit, nav }) {
+export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, setTab, counts, onBack, onRefresh, onEdit, company, orgRole }) {
   const { t, fmt } = useI18n()
   return (
     <>
-      <nav style={{
-        borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 16px', display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', height: '56px', background: 'rgba(8,12,20,0.95)', backdropFilter: 'blur(12px)',
-        position: 'sticky', top: 0, zIndex: 50,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button onClick={onBack} style={{
-            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px',
-            padding: '6px 10px', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px',
-          }}><ArrowLeft size={14} /> {t('common.back')}</button>
-          <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.08)' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '26px', height: '26px', background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`, borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={14} color="#fff" fill="#fff" />
-            </div>
-            <span style={{ fontWeight: 800, fontSize: '16px' }}>AVX</span>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          {nav}
-          <button onClick={onRefresh} aria-label={t('common.refresh')} title={t('common.refresh')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.muted, display: 'flex', padding: '6px' }}>
-            <RefreshCw size={15} />
-          </button>
-        </div>
-      </nav>
-
-      <div style={{ background: 'linear-gradient(180deg, rgba(30,200,120,0.07) 0%, transparent 100%)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '24px 16px 0' }}>
+      <div style={{ background: 'linear-gradient(180deg, rgba(30,200,120,0.07) 0%, transparent 100%)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '14px 16px 0' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          {/* Where this gig belongs and your place in it: the company, and your role there */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
+            <button onClick={onBack} style={{
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px',
+              padding: '5px 10px', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px',
+            }}><ArrowLeft size={14} /> {t('common.back')}</button>
+            {company && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: colors.soft }}>
+                <Building2 size={13} /> {company}{orgRole ? ` · ${t(`orgRole.${orgRole}`)}` : ''}
+              </span>
+            )}
+            <button onClick={onRefresh} aria-label={t('common.refresh')} title={t('common.refresh')} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: colors.muted, display: 'flex', padding: '6px' }}>
+              <RefreshCw size={15} />
+            </button>
+          </div>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: '220px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>

@@ -36,7 +36,7 @@ if (typeof document !== 'undefined') {
 // Screen names without ids: /gig/123?tab=crew → "view:gig/crew". Only the app's own
 // screens are counted (never the public quote page, whose link holds a private token),
 // and only fixed words from the address are kept.
-const SCREENS = new Set(['dashboard', 'gig', 'org', 'quote', 'calendar', 'privacy', 'terms'])
+const SCREENS = new Set(['dashboard', 'me', 'orgs', 'gig', 'org', 'quote', 'calendar', 'privacy', 'terms'])
 const WORDS = new Set(['callsheet', 'quotes', 'print', 'prices', 'templates', 'company', 'members'])
 export function screenEvent(pathname, search = '') {
   const parts = pathname.split('/').filter(Boolean)

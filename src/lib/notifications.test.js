@@ -46,5 +46,7 @@ describe('usage screen names', () => {
     expect(screenEvent('/gig/x', '?tab=<script>')).toBe('view:gig')
     expect(screenEvent('/auth')).toBe(null)
     expect(screenEvent('/dashboard')).toBe('view:dashboard')
+    expect(screenEvent('/me', '?view=calendar')).toBe('view:me')
+    expect(screenEvent('/orgs')).toBe('view:orgs')
   })
 })

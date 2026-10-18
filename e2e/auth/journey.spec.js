@@ -13,6 +13,8 @@ const tech = { name: `E2E Tech ${run}`, email: `e2e-tech-${run}@example.com` }
 const newbie = { name: `E2E Newbie ${run}`, email: `e2e-newbie-${run}@example.com` }
 const ORG = `E2E Org ${run}`
 const GIG = `E2E Gig ${run}`
+// After signing in you land in your workspace: My work, or an organisation
+const HOME = /\/(me|org\/[0-9a-f-]{36})$/
 
 test.describe.configure({ mode: 'serial' })
 
@@ -29,7 +31,7 @@ async function signUp(page, who) {
   await page.getByPlaceholder('you@company.com').fill(who.email)
   await page.getByPlaceholder('At least 8 characters').fill(PASSWORD)
   await page.locator('form').getByRole('button', { name: /Create Account/ }).click()
-  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 15_000 })
+  await expect(page).toHaveURL(HOME, { timeout: 15_000 })
 }
 
 async function signIn(page, who) {
@@ -37,7 +39,7 @@ async function signIn(page, who) {
   await page.getByPlaceholder('you@company.com').fill(who.email)
   await page.getByPlaceholder('••••••••').fill(PASSWORD)
   await page.locator('form').getByRole('button', { name: /Sign In/ }).click()
-  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 15_000 })
+  await expect(page).toHaveURL(HOME, { timeout: 15_000 })
 }
 
 async function deleteAccount(page) {
@@ -82,7 +84,10 @@ test('a new user sets up an organisation, a gig and a schedule', async ({ page }
 test('the organisation builds a quote, saves it as a template and prints it', async ({ page }) => {
   await english(page)
   await signIn(page, pm)
+  // Signing in opens the organisation (where they're admin); Quotes is a section menu
+  await expect(page.getByRole('button', { name: /Workspace: E2E Org/ })).toBeVisible()
   await page.getByRole('button', { name: 'Quotes' }).click()
+  await page.getByRole('link', { name: /^Quotes/ }).first().click()
   await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}\/quotes$/)
   await page.getByRole('button', { name: 'New quote' }).first().click()
   const dialog = page.getByRole('dialog', { name: 'New quote' })
@@ -210,6 +215,20 @@ test('someone invited by email before having an account joins the gig on sign-up
   await deleteAccount(newPage)
   await newContext.close()
   await pmContext.close()
+})
+
+test('the logo goes home and the workspace switcher lists My work and the organisation', async ({ page }) => {
+  await english(page)
+  await signIn(page, pm)
+  await page.goto(gigUrl)
+  await page.getByRole('link', { name: 'Home' }).click()
+  await expect(page).toHaveURL(HOME)
+  await page.getByRole('button', { name: /Workspace:/ }).click()
+  await page.getByRole('menuitemradio', { name: /My work/ }).click()
+  await expect(page).toHaveURL(/\/me$/)
+  // The PM created the gig, so it is one of their own gigs, labelled with the company and their role
+  await expect(page.getByText(GIG)).toBeVisible()
+  await expect(page.getByText(ORG).first()).toBeVisible()
 })
 
 test('the user can delete their account and everything they created', async ({ page }) => {
