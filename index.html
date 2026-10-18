@@ -19,6 +19,7 @@
       html, body, #root { height: 100%; }
       body { background: #080C14; color: #fff; font-family: 'DM Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
       input, textarea, select, button { font-family: inherit; }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
       /* Inputs at 16px+ stop iOS Safari from zooming in on focus */
       @media (max-width: 640px) { input, textarea, select { font-size: 16px !important; } }
       :focus-visible { outline: 2px solid #1EC878; outline-offset: 2px; }

@@ -1,6 +1,6 @@
 # Inventory and equipment: plan
 
-Status: **planned** (next after Phase 5a). Each phase ships on its own and is useful alone.
+Status: **I1 built (0.13.0)**; I2–I7 planned. Each phase ships on its own and is useful alone.
 Modelled on how rental software such as Rentman structures equipment (set/case/item types,
 accessories, alternatives, serial numbers, stock locations, repairs, subrentals, planning vs
 use periods). AVX doesn't integrate with Rentman.
@@ -31,6 +31,26 @@ use periods). AVX doesn't integrate with Rentman.
 | **I5 · Maintenance** | G: repairs from site, inspections with reminders (repairs make units unavailable through reservations) |
 | **I6 · Subrental and cross-hire** | H: suppliers, subrental costs, availability between AVX companies |
 | **I7 · Reports** | I: use, return on investment, depreciation |
+
+## I1 · Catalogue and stock (built)
+
+Inventory menu (admins and members): **Catalogue**, **Locations**, **Stock movements**, **QR labels**.
+
+| Piece | How it works |
+|---|---|
+| Catalogue | The price list's rental and sale items, plus: how stock is kept (not tracked / counted in bulk / by serial number), a code, brand, model, weight, power, size, replacement value, minimum stock and a packing note. Archiving hides an item from the catalogue, price list and new quotes; nothing is lost |
+| Locations | Warehouses, vehicles, sites. Archived, never deleted; stock can leave an archived location but not enter it |
+| Bulk stock | A ledger (`stock_movements`) that is only ever added to: bought/added, found, sold, lost, retired, moved, count corrections. "Count" compares what you counted with the books and writes the correction. Taking out more than a location holds is refused |
+| Serial units | `stock_units`: code (QR), serial, location, status (available, in repair, lost, retired), purchase date and cost, write-off period. Book value is straight-line (60 months unless set). Every change of place or status is logged automatically |
+| Stock levels | `stock_levels` view: quantity per item and location (units available or in repair), worked out from the ledger and units |
+| Import | Paste rows (name; category; code; quantity; price; location): items matched by code then name, new ones created in bulk, quantities added as purchases |
+| QR labels | A4 sheets (3 or 2 across). Each QR opens `/scan/<code>`, which finds the item or unit in your organisations and opens it, so any phone camera works as a scanner |
+
+Rules live in the database (`20261025000000_inventory_catalogue.sql`, tests in
+`supabase/tests/inventory.sql`): codes unique per organisation, serials unique per item, stock
+only for rental/sale items, the way stock is kept can't change once there is history, units
+can't move to another company's item or location, users can't write unit history or edit the
+ledger, viewers and other companies see nothing.
 
 ## How it builds on what exists
 

@@ -1,0 +1,70 @@
+import { describe, it, expect } from 'vitest'
+import { levelsByItem, isLowStock, countCorrection, bookValue, parseStockImport, matchItem, scanUrl } from './inventory'
+
+describe('stock levels', () => {
+  it('adds up per item and location', () => {
+    const map = levelsByItem([
+      { item_id: 'a', location_id: 'w', quantity: 28, in_repair: 0 },
+      { item_id: 'a', location_id: 'v', quantity: 2, in_repair: 0 },
+      { item_id: 'b', location_id: null, quantity: 3, in_repair: 1 },
+    ])
+    expect(map.a).toEqual({ total: 30, inRepair: 0, byLocation: { w: 28, v: 2 } })
+    expect(map.b).toEqual({ total: 3, inRepair: 1, byLocation: { none: 3 } })
+  })
+  it('flags low stock only for tracked items with a minimum', () => {
+    expect(isLowStock({ tracking: 'bulk', min_stock: 10 }, 9)).toBe(true)
+    expect(isLowStock({ tracking: 'bulk', min_stock: 10 }, 10)).toBe(false)
+    expect(isLowStock({ tracking: 'bulk', min_stock: null }, 0)).toBe(false)
+    expect(isLowStock({ tracking: 'none', min_stock: 5 }, 0)).toBe(false)
+    expect(isLowStock({ tracking: 'serial', min_stock: 2 }, undefined)).toBe(true)
+  })
+  it('turns a count into a correction', () => {
+    expect(countCorrection(30, 28)).toEqual({ direction: 'out', quantity: 2 })
+    expect(countCorrection(0, 12)).toEqual({ direction: 'in', quantity: 12 })
+    expect(countCorrection(5, 5)).toBeNull()
+    expect(countCorrection(undefined, 3)).toEqual({ direction: 'in', quantity: 3 })
+  })
+})
+
+describe('book value', () => {
+  const on = new Date(2026, 0, 1)
+  it('depreciates in a straight line', () => {
+    expect(bookValue({ purchase_cost: 1200, purchase_date: '2024-01-01', depreciation_months: 48 }, on)).toBe(600)
+    expect(bookValue({ purchase_cost: 1200, purchase_date: '2024-01-01' }, on)).toBe(720) // 60 months by default
+    expect(bookValue({ purchase_cost: 1200, purchase_date: '2020-01-01', depreciation_months: 12 }, on)).toBe(0)
+  })
+  it('handles missing data', () => {
+    expect(bookValue({ purchase_cost: null }, on)).toBeNull()
+    expect(bookValue({ purchase_cost: 500 }, on)).toBe(500)
+    expect(bookValue({ purchase_cost: 500, purchase_date: '2026-06-01' }, on)).toBe(500) // bought later
+  })
+})
+
+describe('import', () => {
+  it('reads pasted rows and reports bad lines', () => {
+    const { rows, errors } = parseStockImport([
+      '# name; category; code; qty; price; location',
+      'XLR 10m;Cables;XLR10;50;2,50;Warehouse',
+      'Shure SM58\tMics\t\t12',
+      'DI box',
+      ';no name',
+      'Bad qty;;;-3',
+      'Bad code;;has space;1',
+    ].join('\n'))
+    expect(rows).toEqual([
+      { name: 'XLR 10m', category: 'Cables', code: 'XLR10', quantity: 50, unit_price: 2.5, location: 'Warehouse' },
+      { name: 'Shure SM58', category: 'Mics', code: null, quantity: 12, unit_price: null, location: null },
+      { name: 'DI box', category: null, code: null, quantity: 0, unit_price: null, location: null },
+    ])
+    expect(errors).toEqual([5, 6, 7])
+  })
+  it('matches existing items by code, then by name', () => {
+    const items = [{ id: '1', name: 'XLR 10m', code: 'C-1' }, { id: '2', name: 'DI box', code: null }]
+    expect(matchItem(items, { name: 'Other', code: 'c-1' }).id).toBe('1')
+    expect(matchItem(items, { name: 'di BOX', code: null }).id).toBe('2')
+    expect(matchItem(items, { name: 'New', code: 'X' })).toBeNull()
+  })
+  it('builds the address a label opens', () => {
+    expect(scanUrl('https://avx.app/', 'U-7KQ2M9XA')).toBe('https://avx.app/scan/U-7KQ2M9XA')
+  })
+})

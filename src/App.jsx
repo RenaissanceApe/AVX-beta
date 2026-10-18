@@ -21,6 +21,10 @@ import { track, screenEvent } from './lib/usage'
 const QuotesPage = lazy(() => import('./pages/QuotesPage'))
 const QuoteEditorPage = lazy(() => import('./pages/QuoteEditorPage'))
 const QuotePrintPage = lazy(() => import('./pages/QuotePrintPage'))
+const InventoryPage = lazy(() => import('./pages/InventoryPage'))
+const InventoryItemPage = lazy(() => import('./pages/InventoryItemPage'))
+const LabelsPage = lazy(() => import('./pages/LabelsPage'))
+const ScanPage = lazy(() => import('./pages/ScanPage'))
 // Public: the page a client opens from a quote link (no account)
 const QuotePublicPage = lazy(() => import('./pages/QuotePublicPage'))
 
@@ -84,6 +88,10 @@ function AppRoutes() {
       <Route path="/gig/:id" element={<ProtectedRoute><GigPage /></ProtectedRoute>} />
       <Route path="/gig/:id/callsheet" element={<ProtectedRoute><CallSheetPage /></ProtectedRoute>} />
       <Route path="/org/:orgId/quotes" element={<ProtectedRoute><Suspense fallback={<Spinner />}><QuotesPage /></Suspense></ProtectedRoute>} />
+      <Route path="/org/:orgId/inventory" element={<ProtectedRoute><Suspense fallback={<Spinner />}><InventoryPage /></Suspense></ProtectedRoute>} />
+      <Route path="/org/:orgId/inventory/labels" element={<ProtectedRoute><Suspense fallback={<Spinner />}><LabelsPage /></Suspense></ProtectedRoute>} />
+      <Route path="/org/:orgId/inventory/:itemId" element={<ProtectedRoute><Suspense fallback={<Spinner />}><InventoryItemPage /></Suspense></ProtectedRoute>} />
+      <Route path="/scan/:code" element={<ProtectedRoute><Suspense fallback={<Spinner />}><ScanPage /></Suspense></ProtectedRoute>} />
       <Route path="/quote/:id" element={<ProtectedRoute><Suspense fallback={<Spinner />}><QuoteEditorPage /></Suspense></ProtectedRoute>} />
       <Route path="/quote/:id/print" element={<ProtectedRoute><Suspense fallback={<Spinner />}><QuotePrintPage /></Suspense></ProtectedRoute>} />
       <Route path="*" element={<Navigate to={user ? '/dashboard' : '/auth'} replace />} />

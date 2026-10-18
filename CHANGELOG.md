@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.13.0 — Inventory I1: catalogue and stock
+
+### Added
+- Inventory menu for admins and members: Catalogue, Locations, Stock movements and QR labels
+- The price list becomes the catalogue: rental and sale items can be counted in bulk or tracked by
+  serial number, with a code, brand, model, weight, power, size, replacement value, minimum stock
+  and packing note; low stock is flagged
+- Locations (warehouses, vehicles, sites), archived instead of deleted
+- Bulk stock through a ledger that can't be edited: add, move, remove (sold, lost, retired) and
+  count (records the correction). You can't take out more than a location holds
+- Serial-numbered units with QR code, status (available, in repair, lost, retired), purchase details
+  and book value; every move and status change is logged automatically
+- Paste import from a spreadsheet (creates items and adds stock)
+- Printable A4 QR label sheets; scanning a label with any phone camera opens the item or unit
+  (`/scan/<code>`)
+- docs: decisions for the "your network" picker (after inventory) and the crew network / job board
+  (after messaging) recorded in the roadmap
+
+### Changed
+- Archived catalogue items no longer appear in the price list or the quote picker
+- Disabled buttons look disabled everywhere
+
 ## 0.12.0 — Phase 5a: people, bookings and clashes
 
 ### Added
