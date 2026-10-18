@@ -23,6 +23,8 @@ export function describeNotification(n, nameOf) {
     case 'quote_declined':    return t('notif.quoteDeclined', { client: d.client_name, number: d.number, title: d.quote_title })
     case 'availability_request': return t('notif.availabilityRequest', { actor, gig, range: d.from && d.until ? rangeText(d.from, d.until) : '—' })
     case 'availability_reply': return t(d.answer === 'available' ? 'notif.availabilityYes' : 'notif.availabilityNo', { actor, gig }) + (d.note ? `: “${d.note}”` : '')
+    case 'damage_reported':   return t('notif.damage', { actor, item: [d.item_name, d.unit_code].filter(Boolean).join(' · '), gig: gig || '—', excerpt: d.excerpt || '' })
+    case 'inspection_due':    return t('notif.inspectionDue', { count: d.count || 0, org: d.org_name || '' })
     case 'booking_changed':   return d.booked_from && d.booked_until
       ? t('notif.bookingChanged', { actor, gig, range: rangeText(d.booked_from, d.booked_until) })
       : t('notif.bookingCleared', { actor, gig })
@@ -36,6 +38,7 @@ export const countsAsUnread = (n, mutedOrgIds) => !n.read_at && (!n.org_id || !m
 
 export function notificationLink(n) {
   if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
+  if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `/org/${n.org_id}/inventory?tab=maintenance`
   // Requests are answered in My work (you may not be on the gig yet)
   if (n.kind === 'availability_request') return '/me#requests'
   if (n.gig_id && (n.kind === 'availability_reply' || n.kind === 'booking_changed')) return `/gig/${n.gig_id}?tab=crew`

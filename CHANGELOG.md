@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.17.0 — Inventory I5: maintenance
+
+### Added
+- **Report damage** on a gig's Equipment tab, for everyone on the gig: the item or unit code, what's
+  wrong and a photo from the phone. The organisation's admins are notified
+- **Inventory → Maintenance**: open and recently closed repairs, and inspections due. Repairs have
+  a status, repairer (in house or outside), cost, charge to the client, expected return and outcome
+- Units under repair aren't available for gigs until repaired; written-off units are retired; bulk
+  quantities under repair count against availability
+- Returns scanned in as damaged open a repair
+- **Inspections**: set a kind and interval per item (e.g. PAT test every 12 months), record passes
+  and fails (a fail opens a repair), see what's due or overdue
+- A daily reminder notifies admins of inspections coming due
+- Item page: repairs and inspections for that item
+
 ## 0.16.0 — Inventory I4: kits
 
 ### Added

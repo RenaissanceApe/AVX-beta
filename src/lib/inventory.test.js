@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { levelsByItem, isLowStock, countCorrection, bookValue, parseStockImport, matchItem, scanUrl, expandPlan, kitsFree, alternativesOf } from './inventory'
+import { levelsByItem, isLowStock, countCorrection, bookValue, parseStockImport, matchItem, scanUrl, expandPlan, kitsFree, alternativesOf, dueState, isOpenRepair, repairPhotoPath } from './inventory'
 
 describe('stock levels', () => {
   it('adds up per item and location', () => {
@@ -155,5 +155,23 @@ describe('kits', () => {
   })
   it('finds alternatives either way round', () => {
     expect(alternativesOf('a', [{ item_a: 'a', item_b: 'b' }, { item_a: 'c', item_b: 'a' }, { item_a: 'c', item_b: 'd' }])).toEqual(['b', 'c'])
+  })
+})
+
+describe('maintenance', () => {
+  it('says when an inspection is due', () => {
+    expect(dueState('2026-10-01', '2026-10-18')).toBe('overdue')
+    expect(dueState('2026-10-18', '2026-10-18')).toBe('soon')
+    expect(dueState('2026-11-01', '2026-10-18')).toBe('soon')
+    expect(dueState('2026-11-02', '2026-10-18')).toBe('ok')
+    expect(dueState(null, '2026-10-18')).toBe('ok')
+  })
+  it('knows open repairs', () => {
+    expect(['open', 'in_repair', 'done', 'written_off'].map(status => isOpenRepair({ status }))).toEqual([true, true, false, false])
+  })
+  it('puts photos under the organisation and gig', () => {
+    expect(repairPhotoPath('o', 'g', { type: 'image/jpeg' }, 'x')).toBe('o/g/x.jpg')
+    expect(repairPhotoPath('o', null, { type: 'image/png' }, 'x')).toBe('o/stock/x.png')
+    expect(repairPhotoPath('o', 'g', { type: 'application/pdf' }, 'x')).toBe(null)
   })
 })
