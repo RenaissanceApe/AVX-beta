@@ -1,0 +1,268 @@
+import { useEffect, useMemo, useState } from 'react'
+import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Loader2, Search, Weight, Zap } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
+import { useToast } from '../../lib/ToastContext'
+import { logger, userMessage } from '../../lib/logger'
+import { track } from '../../lib/usage'
+import { equipmentWindow, shortBy } from '../../lib/inventory'
+import { rangeText } from '../../lib/clashes'
+import { toLocalInput } from './Booking'
+import { t } from '../../i18n'
+import { Modal, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { TabHeader } from './parts'
+
+const AMBER = '#F59E0B'
+const fromLocalInput = v => (v ? new Date(v).toISOString() : null)
+
+// Equipment on a gig. Everyone on the gig sees the list; the gig's managers and the
+// organisation's admins/members plan it, with what's free for the gig's dates
+// (docs/INVENTORY.md, I2). Nothing is blocked: a shortage is a warning.
+export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
+  const { notify } = useToast()
+  const [lines, setLines] = useState(null)
+  const [status, setStatus] = useState({}) // line_id -> gig_equipment_status row
+  const [picking, setPicking] = useState(false)
+  const [editing, setEditing] = useState(null)
+
+  async function load() {
+    const [linesRes, statusRes] = await Promise.all([
+      supabase.from('gig_equipment').select('*').eq('gig_id', gig.id).order('category', { nullsFirst: false }).order('item_name'),
+      canEdit ? supabase.rpc('gig_equipment_status', { p_gig: gig.id }) : Promise.resolve({ data: [] }),
+    ])
+    if (linesRes.error) logger.error('equipment', linesRes.error, { step: 'lines', gigId: gig.id })
+    if (statusRes.error) logger.error('equipment', statusRes.error, { step: 'status', gigId: gig.id })
+    setLines(linesRes.data || [])
+    setStatus(Object.fromEntries((statusRes.data || []).map(r => [r.line_id, r])))
+  }
+  useEffect(() => { load() }, [gig.id, gig.start_date, gig.end_date, gig.status, canEdit]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function setQuantity(line, value) {
+    const quantity = Math.max(1, Math.min(100000, Math.round(Number(value) || 1)))
+    if (quantity === line.quantity) return
+    const { error } = await supabase.from('gig_equipment').update({ quantity }).eq('id', line.id)
+    if (error) return notify(userMessage(error), 'error')
+    load()
+  }
+  async function remove(line) {
+    if (!window.confirm(t('equip.confirmRemove', { name: line.item_name }))) return
+    const { error } = await supabase.from('gig_equipment').delete().eq('id', line.id)
+    if (error) return notify(userMessage(error), 'error')
+    load()
+  }
+
+  if (!lines) return <Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+  const rows = lines.map(l => ({ ...l, ...(status[l.id] || {}) }))
+  const short = rows.filter(r => status[r.id] && shortBy(r) > 0)
+  const weight = rows.reduce((s, r) => s + (Number(r.weight_kg) || 0) * r.quantity, 0)
+  const power = rows.reduce((s, r) => s + (Number(r.power_w) || 0) * r.quantity, 0)
+  const groups = rows.reduce((map, r) => { const k = r.category || ''; (map[k] ||= []).push(r); return map }, {})
+
+  return (
+    <div style={{ animation: 'fadeIn 0.3s ease' }}>
+      <TabHeader title={t('gig.tab.equipment')} subtitle={t('equip.count', { count: lines.length })}
+        action={canAdd && <button onClick={() => setPicking(true)} style={btnPrimary}><Plus size={14} /> {t('equip.add')}</button>} />
+
+      {canEdit && rows.length > 0 && (
+        <div style={{ display: 'flex', gap: '8px 16px', flexWrap: 'wrap', fontSize: '13px', color: colors.soft, marginBottom: '12px' }}>
+          {weight > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Weight size={13} /> {t('equip.weight', { kg: Math.round(weight) })}</span>}
+          {power > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Zap size={13} /> {t('equip.power', { kw: (power / 1000).toFixed(1) })}</span>}
+          {!gig.start_date && <span style={{ color: AMBER }}>{t('equip.noDates')}</span>}
+        </div>
+      )}
+      {short.length > 0 && (
+        <div role="status" style={{ ...card, borderColor: 'rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.06)', marginBottom: '14px', fontSize: '13px', color: AMBER, display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+          <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: '1px' }} />
+          <span>{t('equip.shortBanner', { count: short.length })}</span>
+        </div>
+      )}
+
+      {rows.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '50px 20px' }}>
+          <Package size={28} color={colors.muted} style={{ marginBottom: '10px' }} />
+          <p style={{ color: colors.muted, fontSize: '13px', lineHeight: 1.6, maxWidth: '380px', margin: '0 auto' }}>{canAdd ? t('equip.emptyPlanner') : t('equip.empty')}</p>
+        </div>
+      ) : Object.entries(groups).sort(([a], [b]) => (a === '' ? 1 : b === '' ? -1 : a.localeCompare(b))).map(([category, list]) => (
+        <section key={category || '—'} style={{ marginBottom: '14px' }}>
+          <h3 style={{ ...label, marginBottom: '6px' }}>{category || t('prices.noCategory')}</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {list.map(r => {
+              const missing = status[r.id] ? shortBy(r) : 0
+              return (
+                <div key={r.id} style={{ ...card, padding: '9px 12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', borderColor: missing ? 'rgba(245,158,11,0.4)' : colors.border }}>
+                  <span style={{ flex: '1 1 200px', minWidth: 0 }}>
+                    <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{r.item_name}</span>
+                    <span style={{ fontSize: '12px', color: colors.muted }}>
+                      {[r.planned_from && t('equip.ownDates', { range: rangeText(r.planned_from, r.planned_until) }), r.notes].filter(Boolean).join(' · ')}
+                    </span>
+                  </span>
+                  {status[r.id] && (
+                    missing
+                      ? <span style={{ fontSize: '12px', fontWeight: 700, color: AMBER, display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('equip.short', { count: missing, free: Math.max(0, r.available) })}</span>
+                      : <span style={{ fontSize: '12px', color: colors.accent, display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={12} /> {t('equip.free', { count: r.available })}</span>
+                  )}
+                  {canEdit ? (
+                    <input type="number" min={1} max={100000} defaultValue={r.quantity} key={r.quantity} onBlur={e => setQuantity(r, e.target.value)}
+                      aria-label={t('equip.quantityFor', { name: r.item_name })} style={{ ...input, width: '72px', padding: '5px 8px' }} />
+                  ) : <strong style={{ fontSize: '15px', minWidth: '30px', textAlign: 'right' }}>× {r.quantity}</strong>}
+                  {canEdit && (
+                    <>
+                      <button onClick={() => setEditing(r)} aria-label={t('equip.editNamed', { name: r.item_name })} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>
+                      <button onClick={() => remove(r)} aria-label={t('equip.removeNamed', { name: r.item_name })} title={t('equip.remove')} style={iconBtn}><Trash2 size={14} /></button>
+                    </>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      ))}
+
+      {picking && <EquipmentPicker gig={gig} org={org} planned={lines} onClose={() => setPicking(false)} onAdded={load} />}
+      {editing && <LineModal line={editing} onClose={() => setEditing(null)} onSaved={load} />}
+    </div>
+  )
+}
+
+// Pick catalogue items with what's free for the gig's dates; ticked items are added
+// (or their quantity updated if already on the gig)
+function EquipmentPicker({ gig, org, planned, onClose, onAdded }) {
+  const { notify } = useToast()
+  const [items, setItems] = useState(null)
+  const [free, setFree] = useState({})
+  const [search, setSearch] = useState('')
+  const [picked, setPicked] = useState({}) // item_id -> quantity
+  const [saving, setSaving] = useState(false)
+  const already = useMemo(() => Object.fromEntries(planned.map(l => [l.item_id, l.quantity])), [planned])
+  const win = equipmentWindow(gig, org)
+
+  useEffect(() => {
+    Promise.all([
+      supabase.from('price_items').select('id, name, category, code, tracking').eq('org_id', gig.org_id).neq('tracking', 'none').is('archived_at', null).order('name'),
+      win ? supabase.rpc('equipment_availability', { p_org: gig.org_id, p_items: null, p_from: win.from, p_until: win.until, p_exclude_gig: gig.id }) : Promise.resolve({ data: [] }),
+    ]).then(([itemsRes, freeRes]) => {
+      if (itemsRes.error) logger.error('equipment', itemsRes.error, { step: 'catalogue' })
+      if (freeRes.error) logger.error('equipment', freeRes.error, { step: 'availability' })
+      setItems(itemsRes.data || [])
+      setFree(Object.fromEntries((freeRes.data || []).map(r => [r.item_id, r])))
+    })
+  }, [gig.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const q = search.trim().toLowerCase()
+  const visible = (items || []).filter(i => !q || [i.name, i.code, i.category].some(v => (v || '').toLowerCase().includes(q)))
+  const count = Object.keys(picked).length
+
+  async function add() {
+    setSaving(true)
+    const rows = Object.entries(picked).map(([item_id, quantity]) => ({
+      gig_id: gig.id, org_id: gig.org_id, item_id, quantity: Math.max(1, Math.round(Number(quantity) || 1)),
+    }))
+    const { error } = await supabase.from('gig_equipment').upsert(rows, { onConflict: 'gig_id,item_id' })
+    setSaving(false)
+    if (error) {
+      logger.error('equipment', error, { step: 'add', count: rows.length })
+      return notify(userMessage(error), 'error')
+    }
+    track('equipment:planned')
+    onAdded()
+    onClose()
+  }
+
+  return (
+    <Modal title={t('equip.add')} onClose={onClose} maxWidth={620}>
+      <p style={{ fontSize: '12px', color: colors.muted, marginBottom: '10px', lineHeight: 1.5 }}>
+        {win ? t('equip.pickerWindow', { range: rangeText(win.from, win.until) }) : t('equip.noDates')}
+      </p>
+      <div style={{ position: 'relative', marginBottom: '10px' }}>
+        <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('inv.search')} aria-label={t('inv.search')} autoFocus style={{ ...input, paddingLeft: '32px' }} />
+      </div>
+      {!items ? <Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /> : items.length === 0 ? (
+        <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6 }}>{t('equip.noCatalogue')}</p>
+      ) : (
+        <div style={{ maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '12px' }}>
+          {visible.map(item => {
+            const f = free[item.id]
+            const on = picked[item.id] != null
+            const qty = Number(picked[item.id] ?? already[item.id] ?? 1)
+            const over = f && on && qty > f.available
+            return (
+              <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: on ? 'rgba(30,200,120,0.08)' : 'transparent' }}>
+                <input type="checkbox" checked={on} style={{ accentColor: colors.accent }}
+                  onChange={() => setPicked(p => { const n = { ...p }; if (on) delete n[item.id]; else n[item.id] = already[item.id] || 1; return n })} />
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: '14px' }}>{item.name}</span>
+                  <span style={{ fontSize: '12px', color: colors.muted }}>
+                    {[item.category, already[item.id] && t('equip.alreadyPlanned', { count: already[item.id] })].filter(Boolean).join(' · ')}
+                  </span>
+                </span>
+                {f && <span style={{ fontSize: '12px', whiteSpace: 'nowrap', color: f.available <= 0 || over ? AMBER : colors.soft }}>{t('equip.freeOf', { count: Math.max(0, f.available), owned: f.owned })}</span>}
+                <input type="number" min={1} max={100000} value={on ? picked[item.id] : ''} placeholder={String(already[item.id] || 1)} disabled={!on}
+                  onChange={e => setPicked(p => ({ ...p, [item.id]: e.target.value }))} onClick={e => e.stopPropagation()}
+                  aria-label={t('equip.quantityFor', { name: item.name })} style={{ ...input, width: '70px', padding: '5px 8px', borderColor: over ? AMBER : undefined }} />
+              </label>
+            )
+          })}
+        </div>
+      )}
+      <button onClick={add} disabled={!count || saving} style={{ ...btnPrimary, justifyContent: 'center', width: '100%' }}>
+        {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={15} />} {t('equip.addPicked', { count })}
+      </button>
+    </Modal>
+  )
+}
+
+// One line: quantity, own dates (instead of the gig's days) and a note
+function LineModal({ line, onClose, onSaved }) {
+  const { notify } = useToast()
+  const [quantity, setQuantity] = useState(String(line.quantity))
+  const [ownDates, setOwnDates] = useState(!!line.planned_from)
+  const [from, setFrom] = useState(toLocalInput(line.planned_from || line.starts_at))
+  const [until, setUntil] = useState(toLocalInput(line.planned_until || line.ends_at))
+  const [notes, setNotes] = useState(line.notes || '')
+  const [saving, setSaving] = useState(false)
+  const n = Math.round(Number(quantity))
+  const invalid = !(n >= 1) || (ownDates && (!from || !until || new Date(until) <= new Date(from)))
+
+  async function save(e) {
+    e.preventDefault()
+    if (invalid) return
+    setSaving(true)
+    const { error } = await supabase.from('gig_equipment').update({
+      quantity: n, notes: notes.trim() || null,
+      planned_from: ownDates ? fromLocalInput(from) : null, planned_until: ownDates ? fromLocalInput(until) : null,
+    }).eq('id', line.id)
+    setSaving(false)
+    if (error) return notify(userMessage(error), 'error')
+    onSaved()
+    onClose()
+  }
+
+  return (
+    <Modal title={line.item_name} onClose={onClose}>
+      <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div>
+          <label style={label} htmlFor="eq-qty">{t('inv.quantity')}</label>
+          <input id="eq-qty" type="number" min={1} max={100000} value={quantity} onChange={e => setQuantity(e.target.value)} style={input} autoFocus />
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: colors.soft, cursor: 'pointer' }}>
+          <input type="checkbox" checked={ownDates} onChange={e => setOwnDates(e.target.checked)} style={{ accentColor: colors.accent }} /> {t('equip.useOwnDates')}
+        </label>
+        {ownDates && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '10px' }}>
+            <div><label style={label} htmlFor="eq-from">{t('equip.out')}</label><input id="eq-from" type="datetime-local" value={from} onChange={e => setFrom(e.target.value)} style={input} /></div>
+            <div><label style={label} htmlFor="eq-until">{t('equip.back')}</label><input id="eq-until" type="datetime-local" value={until} onChange={e => setUntil(e.target.value)} style={input} /></div>
+          </div>
+        )}
+        {!ownDates && <p style={{ fontSize: '12px', color: colors.muted }}>{t('equip.gigDatesHint')}</p>}
+        <div>
+          <label style={label} htmlFor="eq-notes">{t('inv.note')}</label>
+          <input id="eq-notes" value={notes} onChange={e => setNotes(e.target.value)} maxLength={500} style={input} />
+        </div>
+        <button type="submit" disabled={saving || invalid} style={{ ...btnPrimary, justifyContent: 'center' }}>
+          {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
+        </button>
+      </form>
+    </Modal>
+  )
+}
+

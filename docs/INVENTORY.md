@@ -1,6 +1,6 @@
 # Inventory and equipment: plan
 
-Status: **I1 built (0.13.0)**; I2–I7 planned. Each phase ships on its own and is useful alone.
+Status: **I1 (0.13.0) and I2 (0.14.0) built**; I3–I7 planned. Each phase ships on its own and is useful alone.
 Modelled on how rental software such as Rentman structures equipment (set/case/item types,
 accessories, alternatives, serial numbers, stock locations, repairs, subrentals, planning vs
 use periods). AVX doesn't integrate with Rentman.
@@ -51,6 +51,20 @@ Rules live in the database (`20261025000000_inventory_catalogue.sql`, tests in
 only for rental/sale items, the way stock is kept can't change once there is history, units
 can't move to another company's item or location, users can't write unit history or edit the
 ledger, viewers and other companies see nothing.
+
+## I2 · Availability (built)
+
+| Piece | How it works |
+|---|---|
+| Equipment tab on gigs | Everyone on the gig sees what's going (name, quantity, notes). The gig's managers and the organisation's admins/members plan it: add from the catalogue (with "x of y free" for the gig's dates), change quantities, give a line its own dates, remove. Shortages show as ⚠ "3 short (5 free)" with a banner; nothing is blocked. Planners also see total weight and power |
+| Reservations | Each line is a reservation of the item (`resource_type = 'equipment'`, with quantity) for the gig's days plus the organisation's **prep and return days** (Organisation settings), or for its own dates. Draft gigs hold, archived gigs free the gear, date and status changes follow automatically |
+| Availability | Stock that can go out (bulk + units available, not in repair) minus the **busiest moment** of other bookings in the period: two gigs on different days don't add up |
+| Quotes | Lines added from the price list remember their catalogue item. "Availability" in the quote editor checks them for the quote's dates (the quote's own gig doesn't count against it). Filling a gig from its quote now also adds that equipment |
+| Item timeline | The item page shows upcoming bookings and a 6-week strip of how many are free each day (amber = fully booked) |
+
+Functions: `equipment_availability(org, items, from, until, exclude_gig)`, `gig_equipment_status(gig)`,
+`item_bookings(item, from, until)` (admins/members; status also for the gig's managers). Migration
+`20261026000000_equipment_availability.sql`, tests `supabase/tests/equipment_availability.sql`.
 
 ## How it builds on what exists
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CalendarClock, Users, Loader2, Check } from 'lucide-react'
+import { CalendarClock, Users, Loader2, Check, Package } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -12,7 +12,7 @@ const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 const row = { display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderTop: `1px solid ${colors.border}` }
 
 // Fill a gig from its quote: schedule items from the phase dates, crew positions
-// from the crew lines. Everything is listed first; untick or adjust before adding.
+// from the crew lines, equipment from lines picked from the catalogue. Everything is listed first; untick or adjust before adding.
 // Items already on the gig (same day, time and title / same position) start unticked.
 export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDone }) {
   const { t, fmt } = useI18n()
@@ -20,6 +20,7 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
   const plan = useMemo(() => quoteToGigPlan(body), [body])
   const [schedule, setSchedule] = useState(null)
   const [positions, setPositions] = useState(null)
+  const [equipment, setEquipment] = useState(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -27,7 +28,8 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
     Promise.all([
       supabase.from('gig_schedule').select('day, start_time, title').eq('gig_id', gig.id),
       supabase.from('gig_positions').select('title').eq('gig_id', gig.id),
-    ]).then(([s, p]) => {
+      supabase.from('gig_equipment').select('item_id, quantity').eq('gig_id', gig.id),
+    ]).then(([s, p, e]) => {
       if (cancelled) return
       const haveItems = new Set((s.data || []).map(i => `${i.day}|${String(i.start_time).slice(0, 5)}|${i.title.toLowerCase()}`))
       const havePositions = new Set((p.data || []).map(i => i.title.toLowerCase()))
@@ -41,17 +43,21 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
         const exists = havePositions.has(pos.title.toLowerCase())
         return { ...pos, key: `p${i}`, exists, on: !exists }
       }))
+      // Equipment already on the gig starts unticked; ticking it sets the quote's quantity
+      const haveGear = Object.fromEntries((e.data || []).map(r => [r.item_id, r.quantity]))
+      setEquipment(plan.equipment.map(g => ({ ...g, key: g.item_id, current: haveGear[g.item_id] ?? null, on: haveGear[g.item_id] == null })))
     })
     return () => { cancelled = true }
   }, [gig.id, plan, t])
 
-  const loading = schedule === null || positions === null
+  const loading = schedule === null || positions === null || equipment === null
   const chosenItems = (schedule || []).filter(i => i.on)
   const chosenPositions = (positions || []).filter(p => p.on && p.title.trim())
+  const chosenGear = (equipment || []).filter(g => g.on && Number(g.quantity) >= 1)
 
   async function add() {
     setSaving(true)
-    const [s, p] = await Promise.all([
+    const [s, p, e] = await Promise.all([
       chosenItems.length
         ? supabase.from('gig_schedule').insert(chosenItems.map(i => ({
             gig_id: gig.id, day: i.day, start_time: i.start_time, end_time: i.end_time, title: i.title, created_by: userId,
@@ -63,19 +69,25 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
             notes: pos.phases.length ? pos.phases.join(', ').slice(0, 500) : null, source_quote_id: quoteId, created_by: userId,
           })))
         : { error: null },
+      chosenGear.length
+        ? supabase.from('gig_equipment').upsert(chosenGear.map(g => ({
+            gig_id: gig.id, org_id: gig.org_id, item_id: g.item_id, quantity: Math.min(100000, Math.max(1, Math.round(Number(g.quantity)))), source_quote_id: quoteId,
+          })), { onConflict: 'gig_id,item_id' })
+        : { error: null },
     ])
     setSaving(false)
-    const error = s.error || p.error
+    const error = s.error || p.error || e.error
     if (error) {
       logger.error('gigPlan', error, { quoteId, gigId: gig.id })
       return notify(error.code === '42501' ? t('plan.notManager') : userMessage(error), 'error')
     }
     track('quote:gig-filled')
-    notify(t('plan.added', { items: chosenItems.length, positions: chosenPositions.length }), 'success')
+    notify(t('plan.addedAll', { items: chosenItems.length, positions: chosenPositions.length, gear: chosenGear.length }), 'success')
     onDone()
   }
 
   const setPos = (key, changes) => setPositions(list => list.map(p => (p.key === key ? { ...p, ...changes } : p)))
+  const setGear = (key, changes) => setEquipment(list => list.map(g => (g.key === key ? { ...g, ...changes } : g)))
 
   return (
     <Modal title={t('plan.title', { gig: gig.name })} onClose={onClose} maxWidth={600}>
@@ -111,9 +123,24 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
             </div>
           )}
 
-          <button onClick={add} disabled={saving || (!chosenItems.length && !chosenPositions.length)} style={{ ...btnPrimary, width: '100%', justifyContent: 'center' }}>
+          <h3 style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><Package size={13} /> {t('plan.equipment')}</h3>
+          {equipment.length === 0 ? <p style={{ ...small, marginBottom: '14px' }}>{t('plan.noEquipment')}</p> : (
+            <div style={{ marginBottom: '16px' }}>
+              {equipment.map(g => (
+                <div key={g.key} style={row}>
+                  <input type="checkbox" checked={g.on} onChange={ev => setGear(g.key, { on: ev.target.checked })} aria-label={t('plan.include', { name: g.description })} />
+                  <span style={{ flex: 1, minWidth: 0, fontSize: '13px' }}>{g.description}</span>
+                  <input type="number" min={1} max={100000} value={g.quantity} onChange={ev => setGear(g.key, { quantity: ev.target.value })} aria-label={t('equip.quantityFor', { name: g.description })} style={{ ...input, width: '72px', padding: '7px 8px' }} />
+                  {g.current != null && <span style={small}>{t('plan.gearAlready', { count: g.current })}</span>}
+                </div>
+              ))}
+              <p style={{ ...small, marginTop: '6px' }}>{t('plan.equipmentHint')}</p>
+            </div>
+          )}
+
+          <button onClick={add} disabled={saving || (!chosenItems.length && !chosenPositions.length && !chosenGear.length)} style={{ ...btnPrimary, width: '100%', justifyContent: 'center' }}>
             {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />}
-            {t('plan.add', { items: chosenItems.length, positions: chosenPositions.length })}
+            {t('plan.addAll', { items: chosenItems.length, positions: chosenPositions.length, gear: chosenGear.length })}
           </button>
         </>
       )}

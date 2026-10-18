@@ -28,6 +28,7 @@ export const emptyPhase = (name = '') => ({
 })
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const cleanTime = v => (typeof v === 'string' && TIME.test(v.slice(0, 5)) ? v.slice(0, 5) : null)
 
 // Fill in anything missing so older or hand-edited bodies never crash the editor.
@@ -56,6 +57,8 @@ export function normalizeBody(body) {
           factor: num(l.factor, 1),
           unit_price: num(l.unit_price),
           discount_pct: clampPct(l.discount_pct),
+          // Link to a catalogue item (lines added from the price list), for availability
+          ...(typeof l.item_id === 'string' && UUID.test(l.item_id) ? { item_id: l.item_id } : {}),
         })),
       })),
     })),
@@ -193,7 +196,39 @@ export function quoteToGigPlan(body) {
       }
     }
   }
-  return { schedule, positions: [...positions.values()] }
+  return { schedule, positions: [...positions.values()], equipment: quoteEquipment(body) }
+}
+
+// Catalogue equipment a quote needs: per item, the most needed in any one (non-optional)
+// phase, since phases follow each other and the same gear moves between them
+export function quoteEquipment(body) {
+  const needs = new Map()
+  for (const p of normalizeBody(body).phases.filter(ph => !ph.optional)) {
+    const inPhase = new Map()
+    for (const s of p.sections) {
+      for (const l of s.lines) {
+        if (!l.item_id || !['rental', 'sale'].includes(l.kind)) continue
+        const qty = ['hour', 'km', 'lump'].includes(l.unit) ? 1 : Math.max(1, Math.round(num(l.qty, 1)))
+        const cur = inPhase.get(l.item_id) || { item_id: l.item_id, description: l.description.trim(), quantity: 0 }
+        cur.quantity += qty
+        inPhase.set(l.item_id, cur)
+      }
+    }
+    for (const [id, need] of inPhase) {
+      const prev = needs.get(id)
+      if (!prev || need.quantity > prev.quantity) needs.set(id, { ...need, description: prev?.description || need.description })
+    }
+  }
+  return [...needs.values()]
+}
+
+// The dates the quoted equipment is needed (non-optional phases), or null without dates
+export function quoteEquipmentDates(body) {
+  const phases = normalizeBody(body).phases.filter(p => !p.optional && p.start_date)
+  if (!phases.length) return null
+  const from = phases.map(p => p.start_date).sort()[0]
+  const until = phases.map(p => (p.end_date && p.end_date >= p.start_date ? p.end_date : p.start_date)).sort().at(-1)
+  return { from, until }
 }
 
 // Dates as YYYY-MM-DD in the device's time zone (toISOString would use UTC)
@@ -296,4 +331,5 @@ export function parsePriceImport(text, defaultKind = 'rental') {
 // A price list item as a quote line
 export const lineFromPriceItem = item => ({
   ...emptyLine(item.kind), description: item.name, details: item.details || '', unit: item.unit, unit_price: Number(item.unit_price) || 0,
+  ...(item.id ? { item_id: item.id } : {}),
 })
