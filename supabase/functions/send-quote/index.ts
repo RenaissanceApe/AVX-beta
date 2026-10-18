@@ -7,6 +7,9 @@
 // the quote's previous open links and store the new one. The link carries a random
 // token; only its SHA-256 hash is stored, so the link is shown once.
 //
+// The app may send a PDF of the same version (base64, made in the browser); it is
+// attached to the email as is and never stored.
+//
 // Function secrets: BREVO_API_KEY and DIGEST_FROM (same as the email digest) to send
 // email; without them the link is returned for the user to copy. Optional: APP_URL.
 
@@ -20,6 +23,9 @@ const ALLOWED_ORIGINS = [
 const PREVIEW_ORIGIN = /^https:\/\/avx-beta-[a-z0-9-]+\.vercel\.app$/
 const LINK_DAYS = 30
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+// Base64 of a PDF (starts with "%PDF-"), at most about 3 MB
+const PDF_BASE64 = /^JVBERi0[A-Za-z0-9+/]+={0,2}$/
+const MAX_PDF_CHARS = 4_000_000
 
 function allowedOrigin(origin: string | null): string | null {
   if (!origin) return null
@@ -100,6 +106,8 @@ Deno.serve(async (req) => {
   if (!quoteId || !versionId || (email && (!EMAIL.test(email) || email.length > 200))) {
     return json({ error: 'Invalid request' }, 400, origin)
   }
+  const pdf = typeof body.pdf === 'string' && body.pdf.length <= MAX_PDF_CHARS && PDF_BASE64.test(body.pdf) ? body.pdf : null
+  const pdfName = `${String(body.pdf_name ?? 'quote').replace(/[^\w .-]+/g, ' ').replace(/\.pdf$/i, '').trim().slice(0, 80) || 'quote'}.pdf`
 
   const url = Deno.env.get('SUPABASE_URL')!
   const userClient = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, {
@@ -177,6 +185,7 @@ Deno.serve(async (req) => {
       subject: fill(s.subject, vars),
       htmlContent: html,
       textContent: text,
+      ...(pdf ? { attachment: [{ content: pdf, name: pdfName }] } : {}),
       tags: ['quote'],
     }),
   })
@@ -185,6 +194,6 @@ Deno.serve(async (req) => {
     return json({ link, share_id: share.id, emailed: false, email_error: 'send_failed' }, 200, origin)
   }
   await admin.from('quote_shares').update({ emailed: true }).eq('id', share.id)
-  console.log(JSON.stringify({ fn: 'send-quote', step: 'emailed' }))
+  console.log(JSON.stringify({ fn: 'send-quote', step: 'emailed', pdf: !!pdf }))
   return json({ link, share_id: share.id, emailed: true }, 200, origin)
 })

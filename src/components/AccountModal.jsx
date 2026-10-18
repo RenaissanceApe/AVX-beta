@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { removeGigFiles } from '../lib/storage'
 import { useI18n, LANGUAGES } from '../i18n'
 import AvailabilitySection from './AvailabilitySection'
+import TwoStepSection from './TwoStepSection'
 import { supabase } from '../lib/supabase'
 import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -182,6 +183,10 @@ export default function AccountModal({ onClose }) {
             {savingPassword && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />} {t('account.updatePassword')}
           </button>
         </form>
+
+        <div style={section}>
+          <TwoStepSection label={label} input={input} smallBtn={smallBtn} />
+        </div>
 
         <div style={section}>
           <AvailabilitySection />

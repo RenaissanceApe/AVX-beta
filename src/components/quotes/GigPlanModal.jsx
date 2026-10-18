@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { quoteToGigPlan } from '../../lib/quotes'
+import { track } from '../../lib/usage'
 import { useI18n } from '../../i18n'
 import { Modal, btnPrimary, input, label, colors } from '../ui'
 
@@ -69,6 +70,7 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
       logger.error('gigPlan', error, { quoteId, gigId: gig.id })
       return notify(error.code === '42501' ? t('plan.notManager') : userMessage(error), 'error')
     }
+    track('quote:gig-filled')
     notify(t('plan.added', { items: chosenItems.length, positions: chosenPositions.length }), 'success')
     onDone()
   }

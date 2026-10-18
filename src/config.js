@@ -11,4 +11,4 @@ export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || ''
 // Optional error monitoring (https://sentry.io). Leave unset to disable.
 export const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN || ''
 
-export const LEGAL_LAST_UPDATED = '2026-10-16'
+export const LEGAL_LAST_UPDATED = '2026-10-18'

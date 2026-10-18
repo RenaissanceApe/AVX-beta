@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { logger } from './logger'
+import { track } from './usage'
 import { t } from '../i18n'
 
 // Adds a person to a gig or organisation by email via the send-invite Edge Function,
@@ -26,6 +27,7 @@ export async function sendInvite({ kind, targetId, email, role, functionTitle, c
     throw new Error(message)
   }
   if (data?.email_error) logger.warn('invites', 'Invite stored but email not sent', { kind })
+  track(`invite:${kind}-${data?.result || 'sent'}`)
   return data
 }
 

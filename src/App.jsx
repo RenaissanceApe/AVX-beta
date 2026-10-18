@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { ToastProvider } from './lib/ToastContext'
@@ -11,6 +11,8 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import WelcomePage from './pages/WelcomePage'
 import LegalPage from './pages/LegalPage'
 import CallSheetPage from './pages/CallSheetPage'
+import MfaChallengePage from './pages/MfaChallengePage'
+import { track, screenEvent } from './lib/usage'
 
 // Quotes are only for organisation admins/members, so they load on demand
 const QuotesPage = lazy(() => import('./pages/QuotesPage'))
@@ -40,9 +42,17 @@ function ProtectedRoute({ children }) {
 }
 
 function AppRoutes() {
-  const { user, loading, passwordRecovery } = useAuth()
+  const { user, loading, passwordRecovery, mfaRequired } = useAuth()
   const location = useLocation()
+  // Anonymous screen counts (no ids), signed-in people only
+  useEffect(() => {
+    const event = user && !mfaRequired ? screenEvent(location.pathname, location.search) : null
+    if (event) track(event)
+  }, [location.pathname, location.search, user, mfaRequired])
   if (loading) return <Spinner />
+
+  // People with an authenticator app give their code before anything else (public pages excepted)
+  if (user && mfaRequired && !/^\/(q\/|privacy|terms)/.test(location.pathname)) return <MfaChallengePage />
 
   // A password-reset link may land on any URL (e.g. the Site URL); always finish the reset first.
   if (passwordRecovery && location.pathname !== '/reset-password') {

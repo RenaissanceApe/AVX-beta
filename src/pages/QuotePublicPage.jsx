@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Loader2, Printer, Check, X } from 'lucide-react'
+import { Loader2, Printer, Check, X, FileDown } from 'lucide-react'
 import { loadSharedQuote, answerSharedQuote } from '../lib/quoteSharing'
 import { quoteNumber } from '../lib/quotes'
 import { useI18n, translate, fmtIn } from '../i18n'
 import QuoteDocument, { toolbarBtn } from '../components/quotes/QuoteDocument'
+import { downloadQuotePdf } from '../lib/quotePdf'
 
 // The page a client opens from a quote link: no account needed. Shows the version
 // that was sent, in the quote's language, with Accept / Decline.
@@ -51,6 +52,7 @@ export default function QuotePublicPage() {
   return (
     <QuoteDocument quote={data.quote} org={data.org} branding={data.branding} toolbar={<>
       <span style={{ flex: 1, fontSize: '13px', color: '#555' }}>{data.org?.name}</span>
+      <button onClick={() => downloadQuotePdf(data).catch(() => window.print())} style={toolbarBtn}><FileDown size={14} /> PDF</button>
       <button onClick={() => window.print()} style={toolbarBtn}><Printer size={14} /> {translate(L, 'publicQuote.print')}</button>
     </>}>
       <Answer token={token} lang={L} data={data} onAnswered={res => setData(d => ({ ...d, ...res }))} />

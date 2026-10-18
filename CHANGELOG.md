@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.10.0 — Phase 3 leftovers and the quote PDF
+
+### Added
+- Quote PDF: emails to clients carry a PDF of the quote (same version as the link) as an attachment;
+  "Download PDF" on the print preview and on the client's page. Made in the browser, never stored.
+- Two-step sign-in (Account → Two-step sign-in): codes from an authenticator app. Once on, the database
+  itself refuses a session that hasn't given the code (tables, files and the app's functions), so the
+  password alone isn't enough even outside the app.
+- Anonymous usage counts for the pilot: how often each screen and a few actions are used per day, with
+  no user id, IP, device or cookie; skipped when the browser sends Do Not Track / Global Privacy Control
+  (docs/USAGE.md)
+- Signed-in browser tests for uploading a file and a new version, and for inviting someone by email
+  before they have an account
+
+### Changed
+- Privacy notice names Brevo as the email provider and describes usage counts and quote recipients
+- The client's quote page offers "PDF" and "Print" separately
+
 ## 0.9.0 — Phase 4c: quote versions, sending to clients, quote → gig
 
 ### Added

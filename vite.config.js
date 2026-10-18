@@ -14,6 +14,8 @@ export default defineConfig({
       injectRegister: null, // registered in src/main.jsx
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest}'],
+        // The PDF maker (only used when sending or downloading a quote) loads on demand, not offline
+        globIgnores: ['**/jspdf*.js', '**/html2canvas*.js', '**/purify.es*.js', '**/index.es-*.js'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/assets\//],
         cleanupOutdatedCaches: true,

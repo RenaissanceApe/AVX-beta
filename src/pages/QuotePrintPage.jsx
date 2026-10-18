@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Printer, Loader2, History } from 'lucide-react'
+import { ArrowLeft, Printer, Loader2, History, FileDown } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { useI18n } from '../i18n'
 import { quoteNumber } from '../lib/quotes'
 import QuoteDocument, { toolbarBtn } from '../components/quotes/QuoteDocument'
+import { downloadQuotePdf } from '../lib/quotePdf'
 
 // Print preview of a quote: the live quote, or a saved version with ?v=<version id>.
 // Print → "Save as PDF" to send it.
@@ -64,6 +65,7 @@ export default function QuotePrintPage() {
             <History size={14} /> {t('quoteVersions.viewing', { n: version.version_no, date: fmt(version.created_at, 'd MMM yyyy HH:mm') })}{version.note ? ` · ${version.note}` : ''}
           </span>
         : <span style={{ flex: 1, fontSize: '13px', color: '#555' }}>{t('quote.printHint')}</span>}
+      <button onClick={() => downloadQuotePdf(data).catch(err => logger.error('quotePrint', err, { step: 'pdf' }))} style={toolbarBtn}><FileDown size={14} /> {t('quote.downloadPdf')}</button>
       <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#111', color: '#fff' }}><Printer size={14} /> {t('quote.print')}</button>
     </>} />
   )

@@ -4,6 +4,8 @@ import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { saveVersion, sendQuote } from '../../lib/quoteSharing'
+import { quotePdfBase64, quotePdfName } from '../../lib/quotePdf'
+import { track } from '../../lib/usage'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
@@ -40,6 +42,7 @@ export function VersionsModal({ quoteId, prepare, currency, onRestore, onClose }
       return notify(userMessage(error), 'error')
     }
     setVersions(list => [data, ...(list || [])])
+    track('quote:version-saved')
     setNote('')
     notify(t('quoteVersions.saved', { n: data.version_no }), 'success')
   }
@@ -58,6 +61,7 @@ export function VersionsModal({ quoteId, prepare, currency, onRestore, onClose }
       return notify(userMessage(error || backup.error), 'error')
     }
     onRestore(full.snapshot)
+    track('quote:version-restored')
     notify(t('quoteVersions.restored', { n: v.version_no, backup: backup.data.version_no }), 'success')
     onClose()
   }
@@ -108,6 +112,7 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
   const { notify } = useToast()
   const [email, setEmail] = useState(defaultEmail || '')
   const [byEmail, setByEmail] = useState(!!defaultEmail)
+  const [attachPdf, setAttachPdf] = useState(true)
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState(null) // { link, emailed, email_error }
   const [copied, setCopied] = useState(false)
@@ -133,9 +138,25 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
       const to = email.trim()
       const { data: version, error } = await saveVersion(quote, body, to ? t('quoteVersions.sentToNote', { email: to }) : t('quoteVersions.sentNote'))
       if (error) throw error
-      const res = await sendQuote({ quoteId, versionId: version.id, email: to, sendEmail: byEmail })
+      let pdf = null
+      if (byEmail && attachPdf) {
+        // The same version the link shows, as a PDF attachment
+        const [{ data: org }, { data: branding }] = await Promise.all([
+          supabase.from('organisations').select('name, legal_name, email, phone, quote_number_prefix').eq('id', quote.org_id).single(),
+          supabase.from('org_branding').select('header_image, brand_color').eq('org_id', quote.org_id).maybeSingle(),
+        ])
+        const shown = { ...quote, body }
+        try {
+          pdf = { content: await quotePdfBase64({ quote: shown, org: org || {}, branding: branding || {} }), name: quotePdfName(shown, org || {}) }
+        } catch (err) {
+          logger.error('quoteShares', err, { step: 'pdf', quoteId })
+          notify(t('send.pdfFailed'), 'info')
+        }
+      }
+      const res = await sendQuote({ quoteId, versionId: version.id, email: to, sendEmail: byEmail, pdf })
       setResult(res)
       onSent()
+      track(res.emailed ? (pdf ? 'quote:sent-email-pdf' : 'quote:sent-email') : 'quote:sent-link')
       if (byEmail && !res.emailed) notify(res.email_error === 'not_configured' ? t('send.emailNotConfigured') : t('send.emailFailed'), 'info', { duration: 12000 })
       else notify(res.emailed ? t('send.emailed', { email: to }) : t('send.linkReady'), 'success')
       loadShares()
@@ -187,6 +208,11 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: colors.soft, cursor: 'pointer' }}>
             <input type="checkbox" checked={byEmail} onChange={e => setByEmail(e.target.checked)} /> {t('send.byEmail')}
           </label>
+          {byEmail && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: colors.soft, cursor: 'pointer', marginTop: '-4px' }}>
+              <input type="checkbox" checked={attachPdf} onChange={e => setAttachPdf(e.target.checked)} /> {t('send.attachPdf')}
+            </label>
+          )}
           {!emailOk && <p role="alert" style={{ ...small, color: colors.danger }}>{t('send.badEmail')}</p>}
           <button type="submit" disabled={sending || !emailOk} style={{ ...btnPrimary, justifyContent: 'center' }}>
             {sending ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : byEmail ? <Send size={15} /> : <Link2 size={15} />}
