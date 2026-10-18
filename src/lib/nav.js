@@ -42,6 +42,12 @@ export function navSections({ workspace, role }) {
       { key: 'templates', icon: 'layoutTemplate', to: `${base}/quotes?tab=templates` },
       { key: 'company', icon: 'building', to: `${base}/quotes?company=1`, minor: true },
     ] })
+    sections.push({ key: 'inventory', icon: 'package', items: [
+      { key: 'catalogue', icon: 'package', to: `${base}/inventory` },
+      { key: 'locations', icon: 'mapPin', to: `${base}/inventory?tab=locations` },
+      { key: 'movements', icon: 'history', to: `${base}/inventory?tab=movements` },
+      { key: 'labels', icon: 'qrCode', to: `${base}/inventory/labels`, minor: true },
+    ] })
   }
   sections.push({ key: 'organisation', icon: 'users', items: [
     { key: 'members', icon: 'users', to: `${base}?panel=members` },

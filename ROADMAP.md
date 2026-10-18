@@ -106,13 +106,13 @@ in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTA
 | ✅ Crew → member | Organisation admins add someone from the Crew tab to the organisation in one click |
 | ✅ Viewers | Can no longer create gigs (database rule) |
 
-## Phase 5b — Inventory and equipment (next)
+## Phase 5b — Inventory and equipment (in progress)
 
 Full plan in [docs/INVENTORY.md](docs/INVENTORY.md). Each phase ships on its own:
 
 | Phase | Scope |
 |---|---|
-| I1 · Catalogue and stock | Items, bulk and serialised stock, locations, ledger, import, QR labels |
+| ✅ I1 · Catalogue and stock (0.13.0) | Price list becomes the catalogue; bulk and serial-numbered stock, locations, an append-only ledger, counts, import, QR labels and scanning |
 | I2 · Availability | Gear on gigs and quotes through the reservations engine, shortage warnings |
 | I3 · Warehouse | Packing lists, scan out/in with the camera, unit status, missing reports |
 | I4 · Kits | Cases, sets, accessories, alternatives |
@@ -120,11 +120,26 @@ Full plan in [docs/INVENTORY.md](docs/INVENTORY.md). Each phase ships on its own
 | I6 · Subrental and cross-hire | Suppliers, costs, availability between AVX companies |
 | I7 · Reports | Use, return on investment, depreciation |
 
+## Phase 5c — "Your network" picker (after all inventory phases)
+
+In the invite dialogs, find people you've already shared a gig or organisation with, by name, with
+their past functions and an availability warning. Nobody can browse everyone on AVX. Each person
+chooses in their profile who can find them this way: **managers and admins only**, or **also
+other crew**. The privacy notice and terms must describe this setting when it ships.
+
 ## Phase 6 — Messaging (after inventory)
 
 Full plan in [docs/MESSAGING.md](docs/MESSAGING.md): direct, group, gig, department and organisation
 conversations attached to what they're about, then attachments and mentions, announcements with
 acknowledgement, crew calls, client and supplier threads, push, moderation (stages M1–M6).
+
+## Phase 7 — Crew network and job board (after messaging)
+
+Opt-in freelancer profiles (functions, region, languages, certificates) and open positions posted
+by companies to that pool, with the availability check built in; applications become conversations.
+**International from the start.** **Day rates are shared only when a freelancer applies**, never
+shown on a profile. Needs opt-in, abuse protection, reporting and ideally verified profiles; the
+privacy notice and terms need a full section on it. To be written up in detail before building.
 
 ## End of the build
 

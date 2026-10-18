@@ -52,5 +52,15 @@ export function userMessage(error, fallback) {
   if (/Only the gig PM or an organisation admin/i.test(msg)) return t('error.permission')
   if (/Only organisation admins/i.test(msg)) return t('error.permission')
   if (/Invalid email address/i.test(msg)) return t('error.email')
+  // Inventory rules (supabase/migrations/20261025000000_inventory_catalogue.sql)
+  const notEnough = /Not enough stock at that location \((-?\d+) available\)/.exec(msg)
+  if (notEnough) return t('inv.error.notEnough', { count: Number(notEnough[1]) })
+  if (/Stock tracking can't change/i.test(msg)) return t('inv.trackingLocked')
+  if (/Unknown or archived location/i.test(msg)) return t('inv.error.location')
+  if (/stock_(units|movements)_item_id_fkey/.test(msg)) return t('inv.error.hasStock')
+  if (/price_items_code_uniq|stock_units_code_uniq/.test(msg)) return t('inv.error.codeTaken')
+  if (/stock_units_serial_uniq/.test(msg)) return t('inv.error.serialTaken')
+  if (/stock_locations_name_uniq/.test(msg)) return t('inv.error.locationTaken')
+  if (/Only rental or sale items can have stock/i.test(msg)) return t('inv.error.kind')
   return msg
 }

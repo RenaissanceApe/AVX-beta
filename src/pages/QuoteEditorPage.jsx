@@ -69,7 +69,7 @@ export default function QuoteEditorPage() {
         supabase.from('gigs').select('id, name, start_date').eq('org_id', q.org_id).order('start_date', { ascending: false, nullsFirst: false }),
         supabase.from('quote_templates').select('id, name, description, body').eq('org_id', q.org_id).order('name'),
         supabase.from('organisations').select('quote_number_prefix').eq('id', q.org_id).maybeSingle(),
-        supabase.from('price_items').select('*').eq('org_id', q.org_id).order('name'),
+        supabase.from('price_items').select('*').eq('org_id', q.org_id).is('archived_at', null).order('name'),
       ])
       if (cancelled) return
       const b = normalizeBody(q.body)

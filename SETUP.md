@@ -37,6 +37,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 15. `supabase/migrations/20261023000000_my_gig_companies.sql` — company names for My work
 16. `supabase/migrations/20261024000000_reservations_people.sql` — reservations, booking times, availability requests, mutes
 17. `supabase/migrations/20261024000001_requests_unread.sql` — requests list and unread counts for My work
+18. `supabase/migrations/20261025000000_inventory_catalogue.sql` — inventory: catalogue fields, locations, units, stock ledger
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.
