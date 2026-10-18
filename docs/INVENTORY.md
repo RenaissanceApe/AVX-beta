@@ -1,6 +1,6 @@
 # Inventory and equipment: plan
 
-Status: **I1 (0.13.0) to I6 (0.18.0) built**; I7 planned. Each phase ships on its own and is useful alone.
+Status: **all phases built** (I1 0.13.0 to I7 0.19.0). Each phase ships on its own and is useful alone.
 Modelled on how rental software such as Rentman structures equipment (set/case/item types,
 accessories, alternatives, serial numbers, stock locations, repairs, subrentals, planning vs
 use periods). AVX doesn't integrate with Rentman.
@@ -126,6 +126,26 @@ unit_code, quantity, problem, photo)`, `maintenance_due(org)`. Migration
 Functions: `partner_code(org, new)`, `link_supplier(supplier, code)`, `incoming_hire_requests(org)`,
 `answer_hire_request(id, answer, note, total)`. Migration `20261030000000_subrentals.sql`, tests
 `supabase/tests/subrentals.sql`.
+
+## I7 · Reports (built)
+
+Inventory → **Reports**, for the last 90 days, 12 months or this year, with a CSV download
+(semicolon-separated, opens directly in spreadsheets set to Portuguese):
+
+| Figure | How it's counted |
+|---|---|
+| Use | Days booked on confirmed gigs (prep and return days included) ÷ days owned in the period, up to today |
+| Gigs, last used | Confirmed gigs the item was on in the period; the latest booking that has started |
+| Revenue | Lines of quotes accepted in the period that came from the catalogue, after line, phase and quote discounts; optional phases left out |
+| Revenue ÷ cost | That revenue against the purchase cost of the item's units (return on investment) |
+| Repairs | Repairs opened in the period, their cost and what was charged to clients |
+| Lost | Lost minus found in the period, valued at replacement value |
+| Hired in | What subrental lines for the item cost (confirmed or returned subrentals overlapping the period) |
+| Book value | Straight-line depreciation of units with a purchase cost |
+| Not used | Items in stock with no confirmed booking in the period: candidates to sell or stop buying |
+
+No database changes: the report is worked out in the browser from what admins and members can
+already read (`src/lib/reports.js`, tested in `reports.test.js`).
 
 ## How it builds on what exists
 
