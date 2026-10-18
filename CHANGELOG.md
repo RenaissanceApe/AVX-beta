@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.18.0 — Inventory I6: subrental and cross-hire
+
+### Added
+- **Inventory → Subrentals**: suppliers, and gear hired in for a period or a gig, with lines, costs,
+  reference and status
+- Confirmed subrentals count as available stock for the dates they cover, so a gig's shortage clears
+- **Subrent N** on short lines in a gig's Equipment tab, filled in with the gig's dates and the item
+- **Cross-hire between companies on AVX**: share your cross-hire code; companies that link it can
+  send you hire requests, which you confirm or decline with a note and a price. Both sides are
+  notified, and they only see your organisation's name and what was asked
+
 ## 0.17.0 — Inventory I5: maintenance
 
 ### Added

@@ -32,7 +32,7 @@ The button next to the logo picks the workspace:
 | `/orgs` (`?new=1`) | Organisations: yours with your role in each, companies you work for as crew, create one |
 | `/dashboard` | Opens the current workspace (used by sign-in and old links) |
 | `/me?panel=account` | Account (also from the avatar) |
-| `/org/:id/inventory` (`?tab=locations`, `?tab=movements`, `?tab=maintenance`) | Inventory: catalogue, locations, stock ledger, repairs and inspections |
+| `/org/:id/inventory` (`?tab=locations`, `?tab=movements`, `?tab=maintenance`, `?tab=subrentals`) | Inventory: catalogue, locations, stock ledger, repairs and inspections, subrentals |
 | `/org/:id/inventory/:itemId` (`?unit=<id>`) | One item: stock, units, bookings, history |
 | `/gig/:id?tab=equipment` | A gig's equipment and its availability |
 | `/gig/:id/packing` | Printable packing list |

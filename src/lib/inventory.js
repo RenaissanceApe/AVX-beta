@@ -235,3 +235,14 @@ export function repairPhotoPath(orgId, gigId, file, id) {
   const ext = PHOTO_EXT[file?.type]
   return ext ? `${orgId}/${gigId || 'stock'}/${id}.${ext}` : null
 }
+
+// ── Subrentals (I6) ──────────────────────────────────────────────────────────
+export const SUBRENTAL_STATUSES = ['draft', 'requested', 'confirmed', 'declined', 'returned', 'cancelled']
+export const isOpenSubrental = s => !['declined', 'returned', 'cancelled'].includes(s.status)
+
+// What the lines add up to (lines without a cost count as zero); the supplier's quoted
+// price wins when there is one
+export function subrentalTotal(sub) {
+  if (sub?.quoted_total != null) return Number(sub.quoted_total)
+  return (sub?.lines || []).reduce((s, l) => s + (Number(l.quantity) || 0) * (Number(l.unit_cost) || 0), 0)
+}

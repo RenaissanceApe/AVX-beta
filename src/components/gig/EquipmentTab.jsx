@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Loader2, Search, Weight, Zap, ScanLine, ClipboardList, Shuffle, Wrench } from 'lucide-react'
+import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Loader2, Search, Weight, Zap, ScanLine, ClipboardList, Shuffle, Wrench, Handshake } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -13,6 +13,7 @@ import { t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 import { TabHeader } from './parts'
 import ReportDamageModal from './ReportDamageModal'
+import { SubrentalModal, GigSubrentals } from '../inventory/SubrentalPanels'
 
 const AMBER = '#F59E0B'
 const fromLocalInput = v => (v ? new Date(v).toISOString() : null)
@@ -28,6 +29,8 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   const [picking, setPicking] = useState(false)
   const [editing, setEditing] = useState(null)
   const [reporting, setReporting] = useState(false)
+  const [subrenting, setSubrenting] = useState(null) // { itemId, quantity }
+  const [subKey, setSubKey] = useState(0)
   const [altFree, setAltFree] = useState({}) // item_id -> availability of alternatives to short lines
   const kits = useKits(gig.org_id, canEdit)
 
@@ -129,6 +132,8 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
         </div>
       )}
 
+      {canAdd && <GigSubrentals gig={gig} org={org} items={Object.values(kits.items)} refreshKey={subKey} onChanged={load} />}
+
       {rows.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '50px 20px' }}>
           <Package size={28} color={colors.muted} style={{ marginBottom: '10px' }} />
@@ -166,6 +171,13 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
                       <button onClick={() => remove(r)} aria-label={t('equip.removeNamed', { name: r.item_name })} title={t('equip.remove')} style={iconBtn}><Trash2 size={14} /></button>
                     </>
                   )}
+                  {canAdd && missing > 0 && (
+                    <span style={{ flexBasis: '100%', display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px' }}>
+                      <button onClick={() => setSubrenting({ itemId: r.item_id, quantity: missing })} style={{ ...btn, padding: '3px 8px', fontSize: '12px' }}>
+                        <Handshake size={12} /> {t('sub.subrentN', { count: missing })}
+                      </button>
+                    </span>
+                  )}
                   {canEdit && alts.length > 0 && (
                     <span style={{ flexBasis: '100%', display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', fontSize: '12px', color: colors.soft }}>
                       <Shuffle size={12} /> {t('equip.alternatives')}
@@ -187,6 +199,10 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
       ))}
 
       {picking && <EquipmentPicker gig={gig} org={org} planned={lines} kits={kits} onClose={() => setPicking(false)} onAdded={load} />}
+      {subrenting && (
+        <SubrentalModal orgId={gig.org_id} org={org} items={Object.values(kits.items)} preset={{ gig, ...subrenting }}
+          onClose={() => setSubrenting(null)} onSaved={() => { setSubKey(k => k + 1); load() }} />
+      )}
       {reporting && <ReportDamageModal gig={gig} lines={lines} onClose={() => setReporting(false)} />}
       {editing && <LineModal line={editing} onClose={() => setEditing(null)} onSaved={load} />}
     </div>

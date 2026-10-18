@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { levelsByItem, isLowStock, countCorrection, bookValue, parseStockImport, matchItem, scanUrl, expandPlan, kitsFree, alternativesOf, dueState, isOpenRepair, repairPhotoPath } from './inventory'
+import { levelsByItem, isLowStock, countCorrection, bookValue, parseStockImport, matchItem, scanUrl, expandPlan, kitsFree, alternativesOf, dueState, isOpenRepair, repairPhotoPath, subrentalTotal, isOpenSubrental } from './inventory'
 
 describe('stock levels', () => {
   it('adds up per item and location', () => {
@@ -173,5 +173,17 @@ describe('maintenance', () => {
     expect(repairPhotoPath('o', 'g', { type: 'image/jpeg' }, 'x')).toBe('o/g/x.jpg')
     expect(repairPhotoPath('o', null, { type: 'image/png' }, 'x')).toBe('o/stock/x.png')
     expect(repairPhotoPath('o', 'g', { type: 'application/pdf' }, 'x')).toBe(null)
+  })
+})
+
+describe('subrentals', () => {
+  it('adds up lines, or takes the supplier\'s price', () => {
+    expect(subrentalTotal({ lines: [{ quantity: 2, unit_cost: 40 }, { quantity: 3, unit_cost: null }, { quantity: 1, unit_cost: '12.5' }] })).toBe(92.5)
+    expect(subrentalTotal({ quoted_total: '75.00', lines: [{ quantity: 2, unit_cost: 40 }] })).toBe(75)
+    expect(subrentalTotal({})).toBe(0)
+  })
+  it('knows which are still open', () => {
+    expect(['draft', 'requested', 'confirmed', 'declined', 'returned', 'cancelled'].map(status => isOpenSubrental({ status })))
+      .toEqual([true, true, true, false, false, false])
   })
 })
