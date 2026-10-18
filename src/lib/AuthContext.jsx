@@ -15,6 +15,8 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   // True after the user arrives from a password-reset email
   const [passwordRecovery, setPasswordRecovery] = useState(false)
+  // True when this person uses an authenticator app and this session hasn't given the code yet
+  const [mfaRequired, setMfaRequired] = useState(false)
   const { lang, setLang } = useI18n()
 
   // A language saved on the profile (Account → Language) wins over the browser default
@@ -34,15 +36,30 @@ export function AuthProvider({ children }) {
       if (event === 'SIGNED_OUT') clearOfflineData()
       if (!nextUser) {
         setProfile(null)
+        setMfaRequired(false)
         setLoading(false)
         return
       }
       if (event === 'TOKEN_REFRESHED') return
       // Supabase calls made directly inside this callback can deadlock; defer them.
-      setTimeout(() => fetchProfile(nextUser.id), 0)
+      setTimeout(() => afterSignIn(nextUser.id), 0)
     })
     return () => subscription.unsubscribe()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Read from the session itself (no network), so it also works offline
+  async function afterSignIn(userId) {
+    const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    if (error) logger.warn('auth', 'Could not read sign-in level', { message: error.message })
+    const needsCode = data?.nextLevel === 'aal2' && data?.currentLevel !== 'aal2'
+    setMfaRequired(needsCode)
+    if (needsCode) {
+      setProfile(null)
+      setLoading(false)
+      return
+    }
+    fetchProfile(userId)
+  }
 
   async function fetchProfile(userId) {
     const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
@@ -79,7 +96,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      user, profile, loading, signUp, signIn, signOut, updateProfile,
+      user, profile, loading, signUp, signIn, signOut, updateProfile, mfaRequired,
       passwordRecovery, clearPasswordRecovery: () => setPasswordRecovery(false),
     }}>
       {children}

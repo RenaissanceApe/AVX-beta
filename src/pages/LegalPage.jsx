@@ -26,6 +26,8 @@ function Privacy() {
         <li><strong>Account:</strong> your email address, name, optional phone number and password (stored only as a secure hash by our authentication provider).</li>
         <li><strong>Work data you or your team add:</strong> organisations, gigs, your role and call times, files you upload, and updates you post.</li>
         <li><strong>Technical data:</strong> sign-in times and, in our providers' security logs, IP address and browser type.</li>
+        <li><strong>Usage counts:</strong> how many times each screen or feature is used per day, across everyone. These counts contain no name, email, account id, IP address or device id, so they can't be linked to you.</li>
+        <li><strong>Quote recipients:</strong> if a company sends you a quote through {APP_NAME}, we store the contact details they entered and, if you answer, your name, your message and when you answered.</li>
       </ul>
       <p>We don't use advertising, tracking cookies or analytics profiles. Your browser stores a sign-in token locally so you stay signed in — this is strictly necessary for the service.</p>
 
@@ -33,14 +35,14 @@ function Privacy() {
       <ul>
         <li>To provide {APP_NAME} to you and your organisation (performance of a contract).</li>
         <li>To keep the service secure, prevent abuse and fix errors (legitimate interest).</li>
-        <li>To send account emails: confirmations, password resets and invitations.</li>
+        <li>To send emails: account confirmations, password resets, invitations, the optional daily summary of your notifications, and quotes a company sends to its clients.</li>
       </ul>
 
       <h2>Who processes it for us</h2>
       <ul>
         <li><strong>Supabase</strong> — database, sign-in and file storage, hosted in Zurich, Switzerland (recognised by the EU as providing adequate protection).</li>
         <li><strong>Vercel</strong> — serves the app's web pages; may process your IP address in its global network under EU Standard Contractual Clauses.</li>
-        <li><strong>Our email delivery provider</strong> — sends account and invitation emails.</li>
+        <li><strong>Brevo</strong> (Sendinblue SAS, France, EU) — sends our emails: account emails, invitations, the daily summary and quotes. It receives the recipient's email address and the email's content.</li>
         {SENTRY_DSN && <li><strong>Sentry</strong> — receives error reports (no file contents, no IP address; you are identified only by an internal id).</li>}
       </ul>
       <p>We don't sell your data or share it with anyone else, except where the law requires it.</p>

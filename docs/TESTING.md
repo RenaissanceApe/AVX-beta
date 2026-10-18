@@ -12,9 +12,11 @@ Signed-in tests create real users, organisations and gigs, so they run against a
 Supabase project, "AVX test"** (`idvebeadnrxudfgortzg`), never the production one. The CI job
 refuses to start if it's pointed at production.
 
-Each run signs up two brand-new users (`e2e-…@example.com`), creates an organisation and a gig,
-adds a schedule item, checks the offline copy, adds one user to the other's gig and checks the
-notification, then deletes both accounts (which deletes their organisation and gig too).
+Each run signs up brand-new users (`e2e-…@example.com`), creates an organisation and a gig,
+adds a schedule item, builds a quote, checks the offline copy, uploads a file and a new version of
+it, adds an existing user to the gig and checks the notification, invites an address that has no
+account yet and checks it joins the gig on sign-up, then deletes every account it created (which
+deletes their organisation and gig too).
 
 ### One-time setup
 
@@ -53,7 +55,7 @@ Authentication → Users.
 
 ### Database access rules
 
-`supabase/tests/rls_smoke.sql`, `supabase/tests/quotes_rls.sql`, `supabase/tests/phase4b_rls.sql` and
-`supabase/tests/phase4c_rls.sql`
+`supabase/tests/rls_smoke.sql`, `supabase/tests/quotes_rls.sql`, `supabase/tests/phase4b_rls.sql`,
+`supabase/tests/phase4c_rls.sql`, `supabase/tests/mfa_rls.sql` and `supabase/tests/usage.sql`
 check the access rules directly in SQL. Paste each into the **test project's** SQL editor; each runs inside a transaction that is rolled
 back and ends with `ALL … CHECKS PASSED`.

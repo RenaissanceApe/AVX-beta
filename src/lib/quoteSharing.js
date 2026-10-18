@@ -20,10 +20,14 @@ export async function saveVersion(quote, body, note) {
 }
 
 // Creates a link to the version (replacing any earlier open link) and emails it when
-// asked. Returns { link, share_id, emailed, email_error? }.
-export async function sendQuote({ quoteId, versionId, email, sendEmail }) {
+// asked, optionally with a PDF of the quote attached ({ content: base64, name }).
+// Returns { link, share_id, emailed, email_error? }.
+export async function sendQuote({ quoteId, versionId, email, sendEmail, pdf }) {
   const { data, error } = await supabase.functions.invoke('send-quote', {
-    body: { quote_id: quoteId, version_id: versionId, email: email?.trim() || '', send_email: !!sendEmail },
+    body: {
+      quote_id: quoteId, version_id: versionId, email: email?.trim() || '', send_email: !!sendEmail,
+      ...(pdf ? { pdf: pdf.content, pdf_name: pdf.name } : {}),
+    },
   })
   if (error) throw new Error((await errorBody(error)).error || error.message)
   return data

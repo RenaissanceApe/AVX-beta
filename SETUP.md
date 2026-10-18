@@ -32,6 +32,8 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 10. `supabase/migrations/20261019000000_quotes.sql` — quotes, quote templates, company details
 11. `supabase/migrations/20261020000000_branding_pricelist_deletion.sql` — quote branding, price list, numbering, deletion notices
 12. `supabase/migrations/20261021000000_quote_versions_shares_positions.sql` — quote versions, client links, gig positions
+13. `supabase/migrations/20261022000000_two_step_sign_in.sql` — two-step sign-in enforced by the database
+14. `supabase/migrations/20261022000001_usage_counts.sql` — anonymous usage counts
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.

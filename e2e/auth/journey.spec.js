@@ -9,6 +9,8 @@ const run = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}
 const PASSWORD = 'e2e-Password-123'
 const pm = { name: `E2E PM ${run}`, email: `e2e-pm-${run}@example.com` }
 const tech = { name: `E2E Tech ${run}`, email: `e2e-tech-${run}@example.com` }
+// Invited by email before having an account
+const newbie = { name: `E2E Newbie ${run}`, email: `e2e-newbie-${run}@example.com` }
 const ORG = `E2E Org ${run}`
 const GIG = `E2E Gig ${run}`
 
@@ -155,6 +157,58 @@ test('adding an existing user to a gig notifies them', async ({ browser }) => {
   // Clean up the technician now; the PM is removed in the last test
   await deleteAccount(techPage)
   await techContext.close()
+  await pmContext.close()
+})
+
+test('a PM uploads a file and then a new version of it', async ({ page }) => {
+  await english(page)
+  await signIn(page, pm)
+  await page.goto(gigUrl)
+  await page.getByRole('tab', { name: /Assets/ }).click()
+  const upload = async (text) => {
+    await page.getByRole('button', { name: /Upload (first )?asset/ }).first().click()
+    const dialog = page.getByRole('dialog', { name: 'Upload asset' })
+    await dialog.getByLabel(/Asset name/).fill('E2E Patch')
+    await dialog.locator('input[type="file"]').setInputFiles({ name: 'patch.txt', mimeType: 'text/plain', buffer: Buffer.from(text) })
+    await dialog.getByRole('button', { name: 'Upload asset' }).click()
+  }
+  await upload('ch1 kick')
+  await expect(page.getByText('Uploaded "E2E Patch".')).toBeVisible({ timeout: 15_000 })
+  await upload('ch1 kick\nch2 snare')
+  await expect(page.getByText('Uploaded version 2 of "E2E Patch".')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Version 2')).toBeVisible()
+  await expect(page.getByRole('button', { name: /Open · history/ })).toBeVisible()
+})
+
+test('someone invited by email before having an account joins the gig on sign-up', async ({ browser }) => {
+  // The PM invites an address with no account yet: it waits as a pending invite
+  const pmContext = await browser.newContext()
+  const pmPage = await pmContext.newPage()
+  await english(pmPage)
+  await signIn(pmPage, pm)
+  await pmPage.goto(gigUrl)
+  await pmPage.getByRole('tab', { name: /Crew/ }).click()
+  await pmPage.getByRole('button', { name: 'Invite crew' }).first().click()
+  const invite = pmPage.getByRole('dialog')
+  await invite.getByPlaceholder('technician@company.com').fill(newbie.email)
+  await invite.getByRole('button', { name: 'Add to gig' }).click()
+  await expect(pmPage.getByText('Pending — waiting for sign-up')).toBeVisible({ timeout: 15_000 })
+  await expect(pmPage.getByText(newbie.email)).toBeVisible()
+
+  // They sign up with that address and find the gig waiting for them
+  const newContext = await browser.newContext()
+  const newPage = await newContext.newPage()
+  await english(newPage)
+  await signUp(newPage, newbie)
+  await expect(newPage.getByText(GIG)).toBeVisible({ timeout: 15_000 })
+
+  // …and the PM sees them on the crew list instead of the pending invite
+  await pmPage.reload()
+  await pmPage.getByRole('tab', { name: /Crew/ }).click()
+  await expect(pmPage.getByText(newbie.name)).toBeVisible({ timeout: 15_000 })
+
+  await deleteAccount(newPage)
+  await newContext.close()
   await pmContext.close()
 })
 

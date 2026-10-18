@@ -1,0 +1,118 @@
+import { useEffect, useState } from 'react'
+import { ShieldCheck, ShieldOff, Loader2 } from 'lucide-react'
+import { supabase } from '../lib/supabase'
+import { useToast } from '../lib/ToastContext'
+import { logger, userMessage } from '../lib/logger'
+import { useI18n } from '../i18n'
+import { track } from '../lib/usage'
+
+// Account → Two-step sign-in: turn an authenticator app (Google Authenticator, 1Password,
+// Authy…) on or off. With it on, signing in also needs a 6-digit code from the app.
+// Supabase hands back the QR code as an unescaped SVG data URL; its "#" colours cut the
+// URL short in Chromium, so escape the SVG first.
+export function qrSrc(qr) {
+  const svg = String(qr || '').replace(/^(data:image\/svg\+xml;[^,]*,)+/, '')
+  if (!svg.trim().startsWith('<')) return qr
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+}
+
+export default function TwoStepSection({ label, input, smallBtn }) {
+  const { t } = useI18n()
+  const { notify } = useToast()
+  const [factor, setFactor] = useState(undefined) // undefined = loading, null = off
+  const [enrolling, setEnrolling] = useState(null) // { id, qr, secret }
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function load() {
+    const { data, error } = await supabase.auth.mfa.listFactors()
+    if (error) logger.error('mfa', error, { step: 'listFactors' })
+    setFactor(data?.totp?.find(f => f.status === 'verified') ?? null)
+  }
+  useEffect(() => { load() }, [])
+
+  async function start() {
+    setBusy(true)
+    // Clear half-finished attempts so a new one can start
+    const { data: all } = await supabase.auth.mfa.listFactors()
+    for (const f of all?.all || []) if (f.status !== 'verified') await supabase.auth.mfa.unenroll({ factorId: f.id })
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: `AVX ${new Date().toISOString().slice(0, 10)}` })
+    setBusy(false)
+    if (error) {
+      logger.error('mfa', error, { step: 'enroll' })
+      return notify(userMessage(error), 'error')
+    }
+    setEnrolling({ id: data.id, qr: qrSrc(data.totp.qr_code), secret: data.totp.secret })
+  }
+
+  async function confirm(e) {
+    e.preventDefault()
+    if (code.length !== 6) return
+    setBusy(true)
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: enrolling.id, code })
+    setBusy(false)
+    if (error) {
+      setCode('')
+      return notify(t('mfa.wrongCode'), 'error')
+    }
+    setEnrolling(null)
+    setCode('')
+    notify(t('mfa.enabled'), 'success')
+    track('account:mfa-on')
+    load()
+  }
+
+  async function turnOff() {
+    if (!window.confirm(t('mfa.confirmOff'))) return
+    setBusy(true)
+    const { error } = await supabase.auth.mfa.unenroll({ factorId: factor.id })
+    setBusy(false)
+    if (error) {
+      logger.error('mfa', error, { step: 'unenroll' })
+      return notify(userMessage(error), 'error')
+    }
+    // Drop the now-unneeded second-step level from the current session
+    await supabase.auth.refreshSession()
+    notify(t('mfa.disabled'), 'success')
+    load()
+  }
+
+  const hint = { color: '#4A6070', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }
+  return (
+    <div>
+      <span style={label}>{t('mfa.title')}</span>
+      {factor === undefined ? <Loader2 size={16} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
+        : factor ? (
+          <>
+            <p style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+              <ShieldCheck size={16} color="#1EC878" /> {t('mfa.on')}
+            </p>
+            <button onClick={turnOff} disabled={busy} style={{ ...smallBtn, background: 'transparent', borderColor: 'rgba(239,68,68,0.3)', color: '#F87171' }}>
+              <ShieldOff size={14} /> {t('mfa.turnOff')}
+            </button>
+          </>
+        ) : enrolling ? (
+          <form onSubmit={confirm}>
+            <p style={{ fontSize: '13px', color: '#8A9BAE', lineHeight: 1.6, marginBottom: '10px' }}>{t('mfa.scan')}</p>
+            <img src={enrolling.qr} alt={t('mfa.qrAlt')} width={180} height={180} style={{ background: '#fff', borderRadius: '10px', padding: '8px', display: 'block', marginBottom: '8px' }} />
+            <p style={{ ...hint, marginTop: 0, wordBreak: 'break-all' }}>{t('mfa.manual')} <code style={{ color: '#fff' }}>{enrolling.secret}</code></p>
+            <label style={{ ...label, marginTop: '12px' }} htmlFor="mfa-enrol-code">{t('mfa.code')}</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input id="mfa-enrol-code" value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                inputMode="numeric" autoComplete="one-time-code" placeholder="123456" style={{ ...input, fontFamily: 'monospace', letterSpacing: '0.2em' }} />
+              <button type="submit" disabled={busy || code.length !== 6} style={smallBtn}>
+                {busy && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />} {t('mfa.confirm')}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <button onClick={start} disabled={busy} style={smallBtn}>
+              {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={14} />} {t('mfa.turnOn')}
+            </button>
+            <p style={hint}>{t('mfa.hint')}</p>
+          </>
+        )}
+    </div>
+  )
+}

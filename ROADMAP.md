@@ -60,9 +60,10 @@ in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTA
 | ✅ Signed-in browser tests | "AVX test" Supabase project + `e2e-auth` CI job: sign-up, org, gig, schedule, offline, notifications, account deletion (0.6.0; switch on per docs/TESTING.md) |
 | ✅ Offline mode | App shell cached by a service worker; dashboard, gig and call sheet show their last saved copy; files can be kept offline (0.6.0) |
 | ✅ Magic-link sign-in | Passwordless option alongside email + password (0.6.0) |
-| MFA + leaked-password protection | Needs Supabase Pro |
-| Usage analytics for the pilot | Privacy-friendly, cookie-free |
-| Signed-in tests for uploads and invites by email | Extend `e2e/auth/` once the basics are stable |
+| ✅ Two-step sign-in | Optional authenticator-app codes (Account), enforced by the database, not just the screens (0.10.0) |
+| Leaked-password protection | Supabase checks new passwords against known breaches; needs Supabase Pro |
+| ✅ Usage analytics for the pilot | Anonymous daily counts per screen and action; no ids, cookies or IPs (0.10.0; docs/USAGE.md) |
+| ✅ Signed-in tests for uploads and invites by email | File upload + new version; invite by email before sign-up (0.10.0) |
 
 **Later, not now:** Rentman integration (import gigs and crew).
 
@@ -79,7 +80,25 @@ in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTA
 | ✅ Safe deletion | Gigs and organisations, behind a two-step confirmation; people affected are notified (0.8.0) |
 | ✅ Accepted quote → gig crew/schedule | Schedule items from phase dates, crew "positions to fill" from crew lines (0.9.0) |
 | ✅ Send to client | Link to an online quote with Accept / Decline, emailed via Brevo; the team is notified of the answer (0.9.0) |
-| Signed PDF attachment | Attach a generated PDF to the email instead of (or as well as) the link |
+| ✅ PDF attachment | The quote email carries a PDF of the same version, made in the browser; also "Download PDF" (0.10.0) |
+
+## Phase 4d — Navigation and app shell (next)
+
+| Item | Notes |
+|---|---|
+| App shell | One top bar on every signed-in screen; logo → dashboard; bell and account inside it |
+| Organisation switcher | Button-style menu next to the logo; remembers the last organisation; "All my gigs" for crew who work for several companies |
+| Organisations page | Create, open and manage organisations in one place (no forced splash screen) |
+| Proper addresses | `/calendar`, `/org/:id/quotes`, `/org/:id/prices`, `/org/:id/templates`, `/org/:id/company`, `/org/:id/members` |
+| Section menus | Desktop: dark frosted card panels on hover/click; hybrid cards + list once a section grows. Phone: bottom tabs + "More" sheet |
+| Role-aware | One central menu list; viewers and crew never see quote links |
+
+## Before a public launch
+
+- **Full terms of use** to replace the beta terms (prepare near the end of the build phase; can stay hidden while the beta runs)
+- Legal review of the privacy notice and terms
+- Custom domain and email records (SPF, DKIM, DMARC) checked in Brevo
+- Leaked-password protection (Supabase Pro)
 
 ## Known limitations (beta)
 
@@ -87,3 +106,4 @@ in the SMTP provider, paste email templates, add backup secrets, set `VITE_CONTA
 - Quotes have one VAT rate per quote, no inventory/availability checks, and need a connection (not part of offline mode).
 - Offline mode is read-only: uploads, posts and edits need a connection.
 - Supabase free plan: pauses after 7 days idle (the keep-alive workflow prevents this); no leaked-password check.
+- The quote PDF uses standard PDF fonts (Helvetica/Courier), so it looks slightly plainer than the printed page.

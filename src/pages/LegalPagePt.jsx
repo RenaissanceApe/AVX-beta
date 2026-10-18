@@ -22,6 +22,8 @@ export function PrivacyPt() {
         <li><strong>Conta:</strong> o seu email, nome, número de telemóvel (opcional) e palavra-passe (guardada apenas como hash seguro pelo nosso fornecedor de autenticação).</li>
         <li><strong>Dados de trabalho que você ou a sua equipa adicionam:</strong> organizações, eventos, a sua função e hora de chamada, ficheiros que carrega e atualizações que publica.</li>
         <li><strong>Dados técnicos:</strong> horas de início de sessão e, nos registos de segurança dos nossos fornecedores, o endereço IP e o tipo de navegador.</li>
+        <li><strong>Contagens de utilização:</strong> quantas vezes cada ecrã ou funcionalidade é usado por dia, somando todos os utilizadores. Estas contagens não têm nome, email, identificador de conta, endereço IP nem identificador do dispositivo, por isso não podem ser associadas a si.</li>
+        <li><strong>Destinatários de orçamentos:</strong> se uma empresa lhe enviar um orçamento através do {APP_NAME}, guardamos os contactos que ela indicou e, se responder, o seu nome, a sua mensagem e a data da resposta.</li>
       </ul>
       <p>Não usamos publicidade, cookies de seguimento nem perfis de análise. O seu navegador guarda localmente um token de sessão para que não tenha de voltar a entrar — é estritamente necessário para o serviço.</p>
 
@@ -29,14 +31,14 @@ export function PrivacyPt() {
       <ul>
         <li>Para lhe prestar o {APP_NAME} a si e à sua organização (execução de contrato).</li>
         <li>Para manter o serviço seguro, prevenir abusos e corrigir erros (interesse legítimo).</li>
-        <li>Para enviar emails da conta: confirmações, recuperação de palavra-passe e convites.</li>
+        <li>Para enviar emails: confirmações de conta, recuperação de palavra-passe, convites, o resumo diário opcional das suas notificações e os orçamentos que uma empresa envia aos seus clientes.</li>
       </ul>
 
       <h2>Quem os trata por nós</h2>
       <ul>
         <li><strong>Supabase</strong> — base de dados, autenticação e armazenamento de ficheiros, alojados em Zurique, Suíça (país reconhecido pela UE como tendo proteção adequada).</li>
         <li><strong>Vercel</strong> — serve as páginas da aplicação; pode tratar o seu endereço IP na sua rede global ao abrigo de Cláusulas Contratuais-Tipo da UE.</li>
-        <li><strong>O nosso fornecedor de envio de email</strong> — envia os emails da conta e os convites.</li>
+        <li><strong>Brevo</strong> (Sendinblue SAS, França, UE) — envia os nossos emails: emails da conta, convites, o resumo diário e orçamentos. Recebe o endereço de email do destinatário e o conteúdo do email.</li>
         {SENTRY_DSN && <li><strong>Sentry</strong> — recebe relatórios de erros (sem conteúdo de ficheiros nem endereço IP; é identificado apenas por um identificador interno).</li>}
       </ul>
       <p>Não vendemos os seus dados nem os partilhamos com terceiros, exceto quando a lei o exija.</p>

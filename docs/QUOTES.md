@@ -57,6 +57,9 @@ client is saved as a version automatically.
 - For security only a fingerprint of the link is stored, so the link is shown once, right after
   sending. If it gets lost, send again.
 - The window lists every send: to whom, which version, when it was opened and the client's answer.
+- With **Attach the quote as a PDF** ticked (the default), the email also carries a PDF of the same
+  version. The PDF is made in your browser and never stored. **Download PDF** on the print preview
+  (and **PDF** on the client's page) gives the same file.
 
 ## Printing it yourself
 

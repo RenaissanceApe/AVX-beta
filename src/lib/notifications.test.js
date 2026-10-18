@@ -35,3 +35,16 @@ describe('quote notifications', () => {
     expect(notificationLink(n)).toBe('/quote/q1')
   })
 })
+
+describe('usage screen names', () => {
+  it('keeps the screen and drops ids', async () => {
+    const { screenEvent } = await import('./usage')
+    expect(screenEvent('/gig/3f2a9c1e-1111-4111-8111-111111111111', '?tab=crew')).toBe('view:gig/crew')
+    expect(screenEvent('/org/3f2a9c1e-1111-4111-8111-111111111111/quotes')).toBe('view:org-quotes')
+    expect(screenEvent('/quote/abc12345-0000-4000-8000-000000000000/print', '?v=xyz')).toBe('view:quote-print')
+    expect(screenEvent('/q/sometoken')).toBe(null)
+    expect(screenEvent('/gig/x', '?tab=<script>')).toBe('view:gig')
+    expect(screenEvent('/auth')).toBe(null)
+    expect(screenEvent('/dashboard')).toBe('view:dashboard')
+  })
+})
