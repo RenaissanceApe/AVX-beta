@@ -42,6 +42,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 20. `supabase/migrations/20261027000000_warehouse.sql` — scanning out and in, units out on gigs, packing notes
 21. `supabase/migrations/20261028000000_kits.sql` — sets, cases, accessories, alternatives
 22. `supabase/migrations/20261029000000_maintenance.sql` — repairs, damage photos, inspections, daily reminders (turns on `pg_cron`)
+23. `supabase/migrations/20261030000000_subrentals.sql` — suppliers, subrentals, cross-hire between organisations
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.

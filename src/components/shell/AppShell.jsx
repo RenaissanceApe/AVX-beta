@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Zap, ChevronDown, Check, Briefcase, List, CalendarDays, CalendarOff, Building2, Plus, FileText, Tags,
-  LayoutTemplate, Users, Settings, MoreHorizontal, X, LogOut, BellOff, Package, MapPin, History, QrCode, Wrench,
+  LayoutTemplate, Users, Settings, MoreHorizontal, X, LogOut, BellOff, Package, MapPin, History, QrCode, Wrench, Handshake,
 } from 'lucide-react'
 import { useAuth } from '../../lib/AuthContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
@@ -15,7 +15,7 @@ import { colors } from '../ui'
 export const ICONS = {
   briefcase: Briefcase, list: List, calendar: CalendarDays, calendarOff: CalendarOff, building: Building2, plus: Plus,
   fileText: FileText, tags: Tags, layoutTemplate: LayoutTemplate, users: Users, settings: Settings,
-  package: Package, mapPin: MapPin, history: History, qrCode: QrCode, wrench: Wrench,
+  package: Package, mapPin: MapPin, history: History, qrCode: QrCode, wrench: Wrench, handshake: Handshake,
 }
 // Each section has its own tint so the menus are easy to tell apart at a glance
 const TINTS = { work: '30,200,120', gigs: '30,200,120', quotes: '56,189,248', inventory: '251,146,60', organisation: '167,139,250', organisations: '251,191,36' }

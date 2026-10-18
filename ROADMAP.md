@@ -117,7 +117,7 @@ Full plan in [docs/INVENTORY.md](docs/INVENTORY.md). Each phase ships on its own
 | ✅ I3 · Warehouse (0.15.0) | Packing lists, scan out/in with the camera, units out on gigs, damaged → repair, mark missing units lost |
 | ✅ I4 · Kits (0.16.0) | Sets, cases with packed units (scanning a case scans its contents), accessories, alternatives offered when short |
 | ✅ I5 · Maintenance (0.17.0) | Damage reports from site with photos, repairs (repairer, cost, charge to client), inspections with daily reminders |
-| I6 · Subrental and cross-hire | Suppliers, costs, availability between AVX companies |
+| ✅ I6 · Subrental and cross-hire (0.18.0) | Suppliers, subrentals with costs that count as stock when confirmed, hire requests between AVX companies via cross-hire codes |
 | I7 · Reports | Use, return on investment, depreciation |
 
 ## Phase 5c — "Your network" picker (after all inventory phases)

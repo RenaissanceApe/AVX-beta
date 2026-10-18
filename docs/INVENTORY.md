@@ -1,6 +1,6 @@
 # Inventory and equipment: plan
 
-Status: **I1 (0.13.0), I2 (0.14.0), I3 (0.15.0), I4 (0.16.0) and I5 (0.17.0) built**; I6–I7 planned. Each phase ships on its own and is useful alone.
+Status: **I1 (0.13.0) to I6 (0.18.0) built**; I7 planned. Each phase ships on its own and is useful alone.
 Modelled on how rental software such as Rentman structures equipment (set/case/item types,
 accessories, alternatives, serial numbers, stock locations, repairs, subrentals, planning vs
 use periods). AVX doesn't integrate with Rentman.
@@ -113,6 +113,19 @@ Photos live in the private `repair-photos` bucket under `<organisation>/<gig or 
 admins and members see them, anyone on the gig can add one. Functions: `report_damage(gig, item,
 unit_code, quantity, problem, photo)`, `maintenance_due(org)`. Migration
 `20261029000000_maintenance.sql` (enables `pg_cron`), tests `supabase/tests/maintenance.sql`.
+
+## I6 · Subrental and cross-hire (built)
+
+| Piece | How it works |
+|---|---|
+| Suppliers | Inventory → **Subrentals**: name, contact, email, phone, notes. Archived, never deleted |
+| Subrentals | Gear hired in from a supplier for a period, optionally for a gig: lines (linked to a catalogue item or free text), quantity, cost each, reference/PO, status (draft, requested, confirmed, declined, returned, cancelled). Total = lines, or the supplier's price when they gave one. Cancelled, never deleted |
+| Availability | **Confirmed** lines linked to a catalogue item add to what can go out, for periods the subrental covers completely. A short line on a gig offers **Subrent N** (supplier, dates and item filled in) next to the alternatives; the gig lists what's hired in for it |
+| Cross-hire on AVX | Each organisation has a **cross-hire code** (Subrentals tab; admins can replace it). Entering a supplier's code links that supplier to their organisation. Setting a subrental to **requested** then appears in their Subrentals tab under "Hire requests to you" (and notifies their admins) with your organisation's name, dates, reference, notes and what you need, never your costs, gigs or clients. They **confirm or decline** with a note and a price, and you're notified |
+
+Functions: `partner_code(org, new)`, `link_supplier(supplier, code)`, `incoming_hire_requests(org)`,
+`answer_hire_request(id, answer, note, total)`. Migration `20261030000000_subrentals.sql`, tests
+`supabase/tests/subrentals.sql`.
 
 ## How it builds on what exists
 
