@@ -102,8 +102,9 @@ export default function QuotesPage() {
   return (
     <AppShell>
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 0', display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '12px', color: colors.muted }}>{org.name}</div>
+        {/* Title takes its own line on phones; the buttons wrap below it instead of squeezing it */}
+        <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+          <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org.name}</div>
           <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('quotes.title')}</h1>
         </div>
         <button onClick={() => setShowCompany(true)} style={btn}><Building2 size={14} /> {t('quotes.company')}</button>
@@ -111,12 +112,12 @@ export default function QuotesPage() {
       </div>
 
       <main style={{ maxWidth: '960px', margin: '0 auto', padding: '20px 16px 60px' }}>
-        <div role="tablist" style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: `1px solid ${colors.border}` }}>
+        <div role="tablist" style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: `1px solid ${colors.border}`, overflowX: 'auto' }}>
           {[['quotes', <FileText key="i" size={14} />, quotes.length], ['templates', <LayoutTemplate key="i" size={14} />, templates.length], ['prices', <Tags key="i" size={14} />, priceItems.length]].map(([key, icon, count]) => (
             <button key={key} role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
               padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600,
               color: view === key ? colors.accent : colors.muted, borderBottom: view === key ? `2px solid ${colors.accent}` : '2px solid transparent',
-              display: 'flex', alignItems: 'center', gap: '6px',
+              display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', flexShrink: 0,
             }}>
               {icon} {t(`quotes.tab.${key}`)} <span style={{ fontSize: '11px', opacity: 0.7 }}>{count}</span>
             </button>
