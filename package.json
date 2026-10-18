@@ -1,7 +1,7 @@
 {
   "name": "avx-beta",
   "private": true,
-  "version": "0.14.0",
+  "version": "0.15.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,6 +21,7 @@
     "date-fns": "^3.6.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.9",
+    "jsqr": "^1.4.0",
     "lucide-react": "^0.383.0",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",

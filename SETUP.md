@@ -39,6 +39,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 17. `supabase/migrations/20261024000001_requests_unread.sql` — requests list and unread counts for My work
 18. `supabase/migrations/20261025000000_inventory_catalogue.sql` — inventory: catalogue fields, locations, units, stock ledger
 19. `supabase/migrations/20261026000000_equipment_availability.sql` — equipment on gigs, availability, prep/return days
+20. `supabase/migrations/20261027000000_warehouse.sql` — scanning out and in, units out on gigs, packing notes
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.

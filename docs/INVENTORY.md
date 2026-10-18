@@ -1,6 +1,6 @@
 # Inventory and equipment: plan
 
-Status: **I1 (0.13.0) and I2 (0.14.0) built**; I3–I7 planned. Each phase ships on its own and is useful alone.
+Status: **I1 (0.13.0), I2 (0.14.0) and I3 (0.15.0) built**; I4–I7 planned. Each phase ships on its own and is useful alone.
 Modelled on how rental software such as Rentman structures equipment (set/case/item types,
 accessories, alternatives, serial numbers, stock locations, repairs, subrentals, planning vs
 use periods). AVX doesn't integrate with Rentman.
@@ -65,6 +65,23 @@ ledger, viewers and other companies see nothing.
 Functions: `equipment_availability(org, items, from, until, exclude_gig)`, `gig_equipment_status(gig)`,
 `item_bookings(item, from, until)` (admins/members; status also for the gig's managers). Migration
 `20261026000000_equipment_availability.sql`, tests `supabase/tests/equipment_availability.sql`.
+
+## I3 · Warehouse (built)
+
+| Piece | How it works |
+|---|---|
+| Packing list | `/gig/:id/packing`, printable, for everyone on the gig: items by category with quantity, packing note, a tick box, and what has been scanned out and back. The packing note is copied onto the gig's line when it is planned |
+| Scan out / in | `/gig/:id/scan`, for the gig's managers and the organisation's admins/members. Point the phone camera at a QR label (or type the code, or use a hardware scanner that types it). A unit's code moves that unit; an item's code moves a quantity of a bulk item. Returns can be marked damaged, which sends a unit to repair |
+| Warnings, never blocks | More than planned, a unit already out on another gig (it moves to this one), more back than went out, a lost unit turning up (it becomes available again). Scanning the same unit out twice, or in when it isn't out, is refused |
+| Progress | Planned / out / back per item on the scan page and in the Equipment tab; units still out are listed with their codes |
+| Missing | After the gig, **Mark lost** marks every unit still out as lost (with a warning first); if it turns up later, scanning it in brings it back |
+| Units | The item page shows which gig a unit is out on. Only scanning moves a unit out or in |
+
+Every scan is a row in `gig_dispatch`, a log that is only added to (no one can edit or remove it).
+Functions: `dispatch_scan(gig, code, direction, quantity, condition, note)`,
+`gig_dispatch_summary(gig)`, `gig_units_out(gig)`, `mark_units_lost(gig)`. Camera scanning uses the
+browser's barcode reader where there is one and a built-in reader elsewhere; the site allows the
+camera for itself only. Migration `20261027000000_warehouse.sql`, tests `supabase/tests/warehouse.sql`.
 
 ## How it builds on what exists
 

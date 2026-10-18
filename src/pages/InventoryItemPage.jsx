@@ -42,7 +42,7 @@ export default function InventoryItemPage() {
 
   async function loadDetails() {
     const [unitsRes, histRes] = await Promise.all([
-      supabase.from('stock_units').select('*').eq('item_id', itemId).order('code'),
+      supabase.from('stock_units').select('*, out_gig:gigs(name)').eq('item_id', itemId).order('code'),
       supabase.from('stock_movements').select('*').eq('item_id', itemId).order('created_at', { ascending: false }).limit(100),
     ])
     if (unitsRes.error) logger.error('inventory', unitsRes.error, { step: 'units' })
@@ -194,7 +194,11 @@ export default function InventoryItemPage() {
                         <span style={{ display: 'block', fontFamily: 'monospace', fontSize: '13px', fontWeight: 700 }}>{u.code}</span>
                         <span style={{ fontSize: '12px', color: colors.muted }}>{u.serial ? `${t('inv.serial')} ${u.serial}` : t('inv.noSerial')}</span>
                       </span>
-                      <span style={{ fontSize: '13px', color: colors.soft, flex: '1 1 120px' }}>{inv.locationName(u.location_id) || t('inv.noLocation')}</span>
+                      <span style={{ fontSize: '13px', color: colors.soft, flex: '1 1 120px' }}>
+                        {u.out_on_gig
+                          ? <Link to={`/gig/${u.out_on_gig}?tab=equipment`} style={{ color: '#38BDF8' }}>{t('inv.outOn', { gig: u.out_gig?.name || '…' })}</Link>
+                          : inv.locationName(u.location_id) || t('inv.noLocation')}
+                      </span>
                       <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: STATUS_COLOR[u.status] }}>{t(`inv.unitStatus.${u.status}`)}</span>
                       {value != null && <span style={{ fontSize: '12px', color: colors.muted, whiteSpace: 'nowrap' }} title={t('inv.bookValueHint')}>{formatMoney(value, 'EUR', lang)}</span>}
                       <button onClick={() => setUnit(u)} aria-label={t('inv.editUnit', { code: u.code })} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>

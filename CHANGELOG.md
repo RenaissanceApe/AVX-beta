@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.15.0 — Inventory I3: warehouse
+
+### Added
+- **Packing list** for every gig (Equipment tab → Packing list): printable, by category, with
+  packing notes, tick boxes and what has gone out and come back
+- **Scan out / in** (Equipment tab): scan QR labels with the phone camera, a hardware scanner or by
+  typing the code. Units are tracked one by one, bulk items by quantity; returns can be marked
+  damaged, which sends the unit to repair
+- Warnings for more than planned, a unit already out on another gig, more back than went out and
+  lost units turning up; nothing is blocked
+- Planned / out / back on each line of the Equipment tab; units still out after the gig can be
+  marked lost in one go
+- Item page: shows which gig a unit is out on
+
+### Changed
+- The site may use the camera (for scanning only)
+
 ## 0.14.0 — Inventory I2: availability
 
 ### Added

@@ -97,3 +97,24 @@ describe('availability', () => {
     ])
   })
 })
+
+describe('warehouse', () => {
+  it('reads codes from our labels and from other barcodes', async () => {
+    const { codeFromScan } = await import('./inventory')
+    expect(codeFromScan('https://avx.app/scan/U-7KQ2M9XA')).toBe('U-7KQ2M9XA')
+    expect(codeFromScan('https://avx.app/scan/XLR%2010')).toBeNull() // spaces aren't codes
+    expect(codeFromScan('  SPK-02 ')).toBe('SPK-02')
+    expect(codeFromScan('4006381333931')).toBe('4006381333931')
+    expect(codeFromScan('')).toBeNull()
+    expect(codeFromScan('not a code')).toBeNull()
+  })
+  it('measures packing and returns', async () => {
+    const { dispatchProgress } = await import('./inventory')
+    const p = dispatchProgress([
+      { item_id: 'a', planned: 2, out_qty: 3, back_qty: 1 },
+      { item_id: 'b', planned: 10, out_qty: 6, back_qty: 6 },
+      { item_id: 'c', planned: 0, out_qty: 1, back_qty: 0 }, // taken without being planned
+    ])
+    expect(p).toEqual({ planned: 12, out: 8, outTotal: 10, back: 7, toPack: 1, notBack: 2 })
+  })
+})
