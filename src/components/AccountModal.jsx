@@ -64,6 +64,14 @@ export default function AccountModal({ onClose }) {
     if (error) logger.error('account', error, { step: 'language' })
   }
 
+  async function changeFindable(value) {
+    const { error } = await updateProfile({ findable_by: value })
+    if (error) {
+      logger.error('account', error, { step: 'findableBy' })
+      notify(userMessage(error), 'error')
+    }
+  }
+
   async function changeDigest(on) {
     const { error } = await updateProfile({ email_digest: on })
     if (error) {
@@ -197,6 +205,22 @@ export default function AccountModal({ onClose }) {
           <select id="account-language" value={lang} onChange={e => changeLanguage(e.target.value)} style={{ ...input, cursor: 'pointer' }}>
             {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
           </select>
+        </div>
+
+        <div style={section}>
+          <span style={label} id="account-findable">{t('account.findable')}</span>
+          <div role="radiogroup" aria-labelledby="account-findable" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {['managers', 'crew'].map(v => (
+              <label key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+                <input type="radio" name="findable" checked={(profile?.findable_by || 'managers') === v} onChange={() => changeFindable(v)}
+                  style={{ marginTop: '3px', accentColor: '#1EC878' }} />
+                <span>
+                  <span style={{ fontWeight: 600 }}>{t(`account.findableOpt.${v}`)}</span>
+                  <span style={{ display: 'block', color: '#4A6070', fontSize: '12px', marginTop: '2px', lineHeight: 1.5 }}>{t(`account.findableHint.${v}`)}</span>
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
 
         <div style={section}>

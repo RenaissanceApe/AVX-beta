@@ -12,6 +12,7 @@ import { t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
 import { Avatar, RoleBadge, TabHeader } from './parts'
 import { ClashBox, AskAvailabilityModal, ShiftModal, shiftText, AMBER } from './Booking'
+import { NetworkPicker, PickedPerson, addFromNetwork } from '../NetworkPicker'
 
 // Latest request per person: { user_id: request }
 const latestRequests = rows => {
@@ -232,6 +233,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
   const [sending, setSending] = useState(false)
   const [clashes, setClashes] = useState([])
   const [asking, setAsking] = useState(false)
+  const [picked, setPicked] = useState(null) // someone from your network, instead of an email
 
   async function checkAvailability() {
     const email = form.email.trim()
@@ -243,6 +245,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
 
   async function submit(e) {
     e.preventDefault()
+    if (picked) return addPicked()
     if (!form.email.trim()) return
     setSending(true)
     try {
@@ -263,6 +266,28 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
     }
   }
 
+  async function addPicked() {
+    setSending(true)
+    try {
+      const result = await addFromNetwork({
+        kind: 'gig', targetId: gigId, userId: picked.user_id, role: form.role, functionTitle: form.function_title, callTime: form.call_time,
+      })
+      track(`invite:gig-network-${result}`)
+      if (picked.busy) track('crew:invited-despite-clash')
+      notify(t(result === 'already_member' ? 'network.alreadyOn' : 'network.added', { name: picked.full_name || '' }), result === 'already_member' ? 'info' : 'success')
+      onInvited()
+      onClose()
+    } catch (err) {
+      logger.error('crew', err, { step: 'addFromNetwork', gigId })
+      notify(userMessage(err), 'error')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  if (asking && picked) return (
+    <AskAvailabilityModal gigId={gigId} personId={picked.user_id} name={picked.full_name || ''} onClose={() => setAsking(false)} onSent={onClose} />
+  )
   if (asking) return (
     <AskAvailabilityModal gigId={gigId} personId={clashes[0].user_id} name={form.email.trim()} clashes={clashes}
       onClose={() => setAsking(false)} onSent={onClose} />
@@ -271,10 +296,22 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
   return (
     <Modal title={t('crew.inviteTitle')} onClose={onClose}>
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div>
+        {picked ? (
+          <div>
+            <PickedPerson person={picked} onClear={() => setPicked(null)} />
+            {picked.busy && (
+              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '8px', color: AMBER, borderColor: 'rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.1)' }}>
+                {t('ask.first')}
+              </button>
+            )}
+          </div>
+        ) : (
+          <NetworkPicker gigId={gigId} onPick={p => { setPicked(p); setClashes([]) }} />
+        )}
+        {!picked && <div>
           <label style={label} htmlFor="inv-email">{t('common.email')} *</label>
           <input id="inv-email" type="email" value={form.email} onChange={e => { setClashes([]); setForm(f => ({ ...f, email: e.target.value })) }}
-            onBlur={checkAvailability} placeholder="technician@company.com" style={input} autoFocus required />
+            onBlur={checkAvailability} placeholder="technician@company.com" style={input} required />
           {clashes.length > 0 && (
             <div role="status" style={{ marginTop: '8px', padding: '9px 11px', borderRadius: '9px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', fontSize: '12px', color: AMBER, lineHeight: 1.6 }}>
               <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
@@ -287,7 +324,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
               </button>
             </div>
           )}
-        </div>
+        </div>}
         <div>
           <label style={label} htmlFor="inv-function">{t('crew.function')}</label>
           <input id="inv-function" value={form.function_title} onChange={e => setForm(f => ({ ...f, function_title: e.target.value }))}
@@ -311,7 +348,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
           padding: '10px 13px', borderRadius: '9px', background: 'rgba(30,200,120,0.07)', border: '1px solid rgba(30,200,120,0.15)',
           fontSize: '12px', color: colors.muted, lineHeight: 1.6,
         }}>💡 {t('crew.inviteHint')}</div>
-        <button type="submit" disabled={sending || !form.email.trim()} style={{ ...btnPrimary, justifyContent: 'center', padding: '13px' }}>
+        <button type="submit" disabled={sending || (!picked && !form.email.trim())} style={{ ...btnPrimary, justifyContent: 'center', padding: '13px' }}>
           {sending ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={16} />} {t('crew.addToGig')}
         </button>
       </form>
