@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Loader2, Search, Weight, Zap, ScanLine, ClipboardList, Shuffle } from 'lucide-react'
+import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Loader2, Search, Weight, Zap, ScanLine, ClipboardList, Shuffle, Wrench } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -12,6 +12,7 @@ import { toLocalInput } from './Booking'
 import { t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 import { TabHeader } from './parts'
+import ReportDamageModal from './ReportDamageModal'
 
 const AMBER = '#F59E0B'
 const fromLocalInput = v => (v ? new Date(v).toISOString() : null)
@@ -26,6 +27,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   const [moved, setMoved] = useState({}) // item_id -> { out_qty, back_qty } from scanning
   const [picking, setPicking] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [reporting, setReporting] = useState(false)
   const [altFree, setAltFree] = useState({}) // item_id -> availability of alternatives to short lines
   const kits = useKits(gig.org_id, canEdit)
 
@@ -110,6 +112,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
           <Link to={`/gig/${gig.id}/packing`} style={{ ...ghostLink }}><ClipboardList size={14} /> {t('dispatch.packingList')}</Link>
           {canEdit && <Link to={`/gig/${gig.id}/scan`} style={{ ...ghostLink }}><ScanLine size={14} /> {t('dispatch.open')}</Link>}
+          <button onClick={() => setReporting(true)} style={{ ...ghostLink }}><Wrench size={14} /> {t('report.title')}</button>
         </div>
       )}
       {canEdit && rows.length > 0 && (
@@ -184,6 +187,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
       ))}
 
       {picking && <EquipmentPicker gig={gig} org={org} planned={lines} kits={kits} onClose={() => setPicking(false)} onAdded={load} />}
+      {reporting && <ReportDamageModal gig={gig} lines={lines} onClose={() => setReporting(false)} />}
       {editing && <LineModal line={editing} onClose={() => setEditing(null)} onSaved={load} />}
     </div>
   )

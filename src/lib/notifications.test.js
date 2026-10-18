@@ -16,6 +16,14 @@ describe('notifications', () => {
     expect(notificationLink({ gig_id: 'g1', kind: 'schedule_changed' })).toBe('/gig/g1?tab=schedule')
     expect(notificationLink({ gig_id: 'g1', kind: 'asset_uploaded' })).toBe('/gig/g1')
     expect(notificationLink({ org_id: 'o1', kind: 'added_to_org' })).toBe('/dashboard')
+    expect(notificationLink({ org_id: 'o1', gig_id: 'g1', kind: 'damage_reported' })).toBe('/org/o1/inventory?tab=maintenance')
+    expect(notificationLink({ org_id: 'o1', kind: 'inspection_due' })).toBe('/org/o1/inventory?tab=maintenance')
+  })
+  it('describes maintenance', () => {
+    expect(describeNotification({ kind: 'damage_reported', actor_id: 'u1', details: { item_name: 'Speaker', unit_code: 'U-1', gig_name: 'NOS', excerpt: 'Cracked' } }, nameOf))
+      .toBe('Ana reported damage to Speaker · U-1 on NOS: “Cracked”')
+    expect(describeNotification({ kind: 'inspection_due', details: { count: 3, org_name: 'L&P' } }, nameOf))
+      .toBe('3 inspections due soon in L&P')
   })
 })
 

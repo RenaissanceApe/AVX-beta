@@ -116,7 +116,7 @@ Full plan in [docs/INVENTORY.md](docs/INVENTORY.md). Each phase ships on its own
 | ✅ I2 · Availability (0.14.0) | Equipment tab on gigs, availability with prep/return days, quote availability check, quote → gig equipment, item timeline |
 | ✅ I3 · Warehouse (0.15.0) | Packing lists, scan out/in with the camera, units out on gigs, damaged → repair, mark missing units lost |
 | ✅ I4 · Kits (0.16.0) | Sets, cases with packed units (scanning a case scans its contents), accessories, alternatives offered when short |
-| I5 · Maintenance | Repairs from site, inspections with reminders |
+| ✅ I5 · Maintenance (0.17.0) | Damage reports from site with photos, repairs (repairer, cost, charge to client), inspections with daily reminders |
 | I6 · Subrental and cross-hire | Suppliers, costs, availability between AVX companies |
 | I7 · Reports | Use, return on investment, depreciation |
 

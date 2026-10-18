@@ -212,3 +212,26 @@ export const alternativesOf = (itemId, pairs) =>
 // "3 × Clamp, 2 × Cable" for what came along
 export const broughtList = (added, items) =>
   Object.entries(added).map(([id, n]) => `${n} × ${items[id]?.name || '…'}`).join(', ')
+
+// ── Maintenance (I5) ─────────────────────────────────────────────────────────
+export const REPAIR_STATUSES = ['open', 'in_repair', 'done', 'written_off']
+export const isOpenRepair = r => r.status === 'open' || r.status === 'in_repair'
+export const DUE_SOON_DAYS = 14
+
+// An inspection due date (YYYY-MM-DD) against today: overdue, due soon or fine
+export function dueState(dueOn, today = isoDay(new Date())) {
+  if (!dueOn) return 'ok'
+  if (dueOn < today) return 'overdue'
+  const soon = new Date(`${today}T00:00:00`)
+  soon.setDate(soon.getDate() + DUE_SOON_DAYS)
+  return dueOn <= isoDay(soon) ? 'soon' : 'ok'
+}
+
+// Where a damage photo goes: <org>/<gig or "stock">/<id>.<ext> (the storage rules read the
+// organisation and gig from the path). Null for files that aren't photos.
+const PHOTO_EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic' }
+export const MAX_PHOTO_BYTES = 10 * 1024 * 1024
+export function repairPhotoPath(orgId, gigId, file, id) {
+  const ext = PHOTO_EXT[file?.type]
+  return ext ? `${orgId}/${gigId || 'stock'}/${id}.${ext}` : null
+}

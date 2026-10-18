@@ -1,6 +1,6 @@
 # Inventory and equipment: plan
 
-Status: **I1 (0.13.0), I2 (0.14.0), I3 (0.15.0) and I4 (0.16.0) built**; I5–I7 planned. Each phase ships on its own and is useful alone.
+Status: **I1 (0.13.0), I2 (0.14.0), I3 (0.15.0), I4 (0.16.0) and I5 (0.17.0) built**; I6–I7 planned. Each phase ships on its own and is useful alone.
 Modelled on how rental software such as Rentman structures equipment (set/case/item types,
 accessories, alternatives, serial numbers, stock locations, repairs, subrentals, planning vs
 use periods). AVX doesn't integrate with Rentman.
@@ -97,12 +97,29 @@ Tables `item_parts` (parent, child, `content`/`accessory`, quantity) and `item_a
 row per pair); `price_items.kit_type` (`set`/`case`); `stock_units.case_unit_id`. Admins and
 members manage them. Migration `20261028000000_kits.sql`, tests `supabase/tests/kits.sql`.
 
+## I5 · Maintenance (built)
+
+| Piece | How it works |
+|---|---|
+| Damage from site | **Report damage** on a gig's Equipment tab, for everyone on the gig (crew included): the item, the unit's code (or how many, for bulk items), what's wrong and a photo from the phone camera. It opens a repair and notifies the organisation's admins. A unit with an open repair isn't reported twice |
+| Damaged returns | Scanning a return in as damaged (I3) opens a repair too |
+| Repairs | Inventory → **Maintenance**: open repairs, recently closed ones, and **New repair** for damage found in the warehouse. Each has a status (reported, in repair, repaired, written off), who repairs it (in house or an outside repairer), cost, whether the client is charged, expected return date and outcome. Repairs are never deleted |
+| Availability | A unit is **in repair** while its repair is open (not available, so not offered to gigs), available again when repaired, retired when written off. Bulk quantities under repair count against what can go out |
+| Inspections | Per item: what kind (e.g. PAT test, rigging certificate) and every how many months. Each unit (or the bulk item) is due that long after its last pass; never inspected means due now. **Record inspection** with date, who and a note; a **fail** opens a repair. Inspections are a record: added, never changed |
+| Reminders | Every morning (06:17 UTC, database job `avx-maintenance-reminders`) the admins get one notification per organisation for inspections due in the next two weeks or overdue that haven't been mentioned before |
+| History | The item page shows its repairs and inspections; stock movements already record units going to and back from repair |
+
+Photos live in the private `repair-photos` bucket under `<organisation>/<gig or "stock">/`;
+admins and members see them, anyone on the gig can add one. Functions: `report_damage(gig, item,
+unit_code, quantity, problem, photo)`, `maintenance_due(org)`. Migration
+`20261029000000_maintenance.sql` (enables `pg_cron`), tests `supabase/tests/maintenance.sql`.
+
 ## How it builds on what exists
 
 - **Reservations** ([RESERVATIONS.md](RESERVATIONS.md)): gear on a gig becomes reservations with
   `resource_type = 'equipment'` (with `quantity`) or `'unit'`; availability is stock minus
-  overlapping reservations. Repairs and inspections are reservations too, so a unit in repair is
-  simply not available.
+  overlapping reservations. A unit in repair is simply not available, and bulk quantities under
+  repair are taken off what can go out.
 - **Quotes**: lines get an optional link to a catalogue item; accepted quotes already create the
   gig's schedule and crew positions, and will reserve equipment the same way.
 - **Access rules**: inventory belongs to an organisation; admins and members manage it, viewers

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Plus, Upload, QrCode, Search, Loader2, Package, MapPin, History, ChevronRight, AlertTriangle, Pencil, Archive, ArchiveRestore, Warehouse, Truck, Building2, Box } from 'lucide-react'
+import { Plus, Upload, QrCode, Search, Loader2, Package, MapPin, History, ChevronRight, AlertTriangle, Pencil, Archive, ArchiveRestore, Warehouse, Truck, Building2, Box, Wrench } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -10,15 +10,16 @@ import { isLowStock } from '../lib/inventory'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { ItemModal, LocationModal, ImportStockModal } from '../components/inventory/InventoryModals'
+import { MaintenanceTab } from '../components/inventory/MaintenancePanels'
 import { btn, btnPrimary, iconBtn, input, card, colors } from '../components/ui'
 
-const TABS = ['catalogue', 'locations', 'movements']
-const TAB_ICONS = { catalogue: Package, locations: MapPin, movements: History }
+const TABS = ['catalogue', 'locations', 'movements', 'maintenance']
+const TAB_ICONS = { catalogue: Package, locations: MapPin, movements: History, maintenance: Wrench }
 export const LOCATION_ICONS = { warehouse: Warehouse, vehicle: Truck, site: Building2, other: Box }
 const ghost = { ...btn, background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }
 
 // Inventory of one organisation: the catalogue with stock, locations and the stock ledger.
-//   /org/:orgId/inventory (?tab=locations|movements)
+//   /org/:orgId/inventory (?tab=locations|movements|maintenance)
 export default function InventoryPage() {
   const { orgId } = useParams()
   const [params, setParams] = useSearchParams()
@@ -55,6 +56,7 @@ export default function InventoryPage() {
         {tab === 'catalogue' && <Catalogue inv={inv} orgId={orgId} goLocations={() => setTab('locations')} />}
         {tab === 'locations' && <Locations inv={inv} orgId={orgId} />}
         {tab === 'movements' && <Movements inv={inv} orgId={orgId} />}
+        {tab === 'maintenance' && <MaintenanceTab inv={inv} orgId={orgId} />}
       </div>
       <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </AppShell>

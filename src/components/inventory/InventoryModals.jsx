@@ -33,6 +33,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
     model: item?.model || '', weight_kg: item?.weight_kg ?? '', power_w: item?.power_w ?? '', dimensions: item?.dimensions || '',
     replacement_value: item?.replacement_value ?? '', min_stock: item?.min_stock ?? '', packing_note: item?.packing_note || '',
     details: item?.details || '', kit_type: item?.kit_type || '',
+    inspection_kind: item?.inspection_kind || '', inspection_months: item?.inspection_months ?? '',
   })
   const [saving, setSaving] = useState(false)
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
@@ -55,6 +56,8 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
       weight_kg: numberOrNull(form.weight_kg), power_w: int(form.power_w), dimensions: form.dimensions.trim() || null,
       replacement_value: numberOrNull(form.replacement_value), min_stock: int(form.min_stock),
       packing_note: form.packing_note.trim() || null, details: form.details.trim() || null, updated_at: new Date().toISOString(),
+      inspection_kind: form.inspection_kind.trim() || null,
+      inspection_months: form.tracking === 'none' ? null : Math.min(120, Math.max(1, int(form.inspection_months) || 0)) || null,
     }
     const query = item
       ? supabase.from('price_items').update(row).eq('id', item.id)
@@ -129,6 +132,16 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
         <Field id="it-packing" text={t('inv.packingNote')}>
           <input id="it-packing" value={form.packing_note} onChange={set('packing_note')} maxLength={500} placeholder={t('inv.packingNotePlaceholder')} style={input} />
         </Field>
+        {form.tracking !== 'none' && (
+          <div style={grid}>
+            <Field id="it-insp-kind" text={t('inspect.kind')}>
+              <input id="it-insp-kind" value={form.inspection_kind} onChange={set('inspection_kind')} maxLength={80} placeholder={t('inspect.kindPlaceholder')} style={input} />
+            </Field>
+            <Field id="it-insp-months" text={t('inspect.months')}>
+              <input id="it-insp-months" type="number" min={1} max={120} value={form.inspection_months} onChange={set('inspection_months')} placeholder={t('inspect.monthsPlaceholder')} style={input} />
+            </Field>
+          </div>
+        )}
         <Field id="it-details" text={t('quote.lineDetails')}>
           <textarea id="it-details" value={form.details} onChange={set('details')} rows={2} maxLength={1000} style={{ ...input, resize: 'vertical' }} />
         </Field>

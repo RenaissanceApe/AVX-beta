@@ -224,6 +224,7 @@ function FeedRow({ entry }) {
         {what && <strong style={{ display: 'block' }}>{what}</strong>}
         <span style={{ color: colour }}>{msg}</span>
         {r?.ok && r.planned != null && <span style={{ color: colors.muted }}> · {t('dispatch.counts', { out: r.out, back: r.back, planned: r.planned })}</span>}
+        {r?.repair && <span style={{ display: 'block', color: AMBER }}>{t('dispatch.repairOpened')}</span>}
         {r?.ok && r.contents != null && (
           <span style={{ display: 'block', color: r.contents_skipped ? AMBER : colors.soft }}>
             {t(`dispatch.caseContents.${entry.direction}`, { count: r.contents })}{r.contents_skipped ? ` · ${t('dispatch.caseSkipped', { count: r.contents_skipped })}` : ''}
