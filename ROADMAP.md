@@ -120,12 +120,15 @@ Full plan in [docs/INVENTORY.md](docs/INVENTORY.md). Each phase ships on its own
 | ✅ I6 · Subrental and cross-hire (0.18.0) | Suppliers, subrentals with costs that count as stock when confirmed, hire requests between AVX companies via cross-hire codes |
 | ✅ I7 · Reports (0.19.0) | Use, revenue and return on cost per item, repairs, losses, hire-in spend, book value, idle stock, CSV |
 
-## Phase 5c — "Your network" picker (after all inventory phases)
+## ✅ Phase 5c — "Your network" picker (0.20.0)
 
-In the invite dialogs, find people you've already shared a gig or organisation with, by name, with
-their past functions and an availability warning. Nobody can browse everyone on AVX. Each person
-chooses in their profile who can find them this way: **managers and admins only**, or **also
-other crew**. The privacy notice and terms must describe this setting when it ships.
+In the gig and organisation invite dialogs, find people you've already shared a gig or
+organisation with, by name, with their past functions, how many gigs together and a ⚠ when
+they're booked on the gig's dates; pick one to add them by account (their email is never shown).
+Nobody can browse everyone on AVX. Each person chooses in Account who can find them:
+**managers and admins only** (organisation admins and members; the default) or **also other
+crew** (freelancers, including freelance PMs). The privacy notice describes it. Migration
+`20261031000000_network.sql`, tests `supabase/tests/network.sql`.
 
 ## Phase 6 — Messaging (after inventory)
 

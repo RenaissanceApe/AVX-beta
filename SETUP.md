@@ -43,6 +43,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 21. `supabase/migrations/20261028000000_kits.sql` — sets, cases, accessories, alternatives
 22. `supabase/migrations/20261029000000_maintenance.sql` — repairs, damage photos, inspections, daily reminders (turns on `pg_cron`)
 23. `supabase/migrations/20261030000000_subrentals.sql` — suppliers, subrentals, cross-hire between organisations
+24. `supabase/migrations/20261031000000_network.sql` — "your network" picker and who can find you
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.

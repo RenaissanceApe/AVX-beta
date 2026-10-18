@@ -45,6 +45,7 @@ export function PrivacyPt() {
 
       <h2>Quem vê os seus dados no {APP_NAME}</h2>
       <p>Os membros de uma organização veem os seus eventos, ficheiros e atualizações, e os nomes e emails uns dos outros. Quem é adicionado a um evento vê esse evento, o horário, a lista da equipa (nomes, funções, horas de chamada e telemóveis, se indicados), os ficheiros, as atualizações e o registo de alterações.</p>
+      <p><strong>Encontrar quem já trabalhou consigo:</strong> ao adicionar alguém a um evento ou organização, quem adiciona pode pesquisar pelo nome entre as pessoas com quem já partilhou um evento ou organização, e ver as funções que essas pessoas tiveram nesses eventos, quantos eventos partilharam e se estão reservadas noutro sítio nas datas do novo evento (sem dizer onde). Ninguém pode pesquisar toda a gente no {APP_NAME}, e os emails não são mostrados. Em Conta escolhe quem o pode encontrar assim: <strong>só gestores e administradores</strong> (as pessoas das próprias empresas; é o valor por defeito) ou <strong>também outros técnicos</strong>.</p>
 
       <h2>Durante quanto tempo os guardamos</h2>
       <p>Enquanto a sua conta existir. Quando apaga a conta, apagamos de imediato o seu perfil e as suas associações; as atualizações e ficheiros que adicionou a eventos partilhados ficam nesses eventos, sem ligação a si. As cópias de segurança cifradas são guardadas até 30 dias.</p>

@@ -49,6 +49,7 @@ function Privacy() {
 
       <h2>Who can see your data in {APP_NAME}</h2>
       <p>Members of an organisation can see its gigs, files and updates, and each other's names and email addresses. People added to a gig can see that gig, its schedule, its crew list (names, roles, call times and phone numbers if given), files, updates and a log of changes.</p>
+      <p><strong>Finding people you've worked with:</strong> when adding someone to a gig or organisation, the person adding can search by name among people they've already shared a gig or organisation with, and see the functions those people had on those gigs, how many gigs they shared and whether they're booked elsewhere on the new gig's dates (not where). Nobody can search everyone on {APP_NAME}, and email addresses aren't shown. In Account you choose who can find you this way: <strong>managers and admins only</strong> (the companies' own people; the default) or <strong>also other crew</strong>.</p>
 
       <h2>How long we keep it</h2>
       <p>For as long as your account exists. When you delete your account we delete your profile and memberships immediately; updates and files you added to a shared gig stay with that gig, no longer linked to you. Encrypted backups are kept for up to 30 days.</p>

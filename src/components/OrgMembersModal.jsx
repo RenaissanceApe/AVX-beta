@@ -5,6 +5,7 @@ import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { sendInvite, inviteMessage } from '../lib/invites'
+import { NetworkPicker, addFromNetwork } from './NetworkPicker'
 import { useI18n } from '../i18n'
 
 // Labels: orgRole.<value>
@@ -60,6 +61,20 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
     }
   }
 
+  // Someone from your network joins with the role chosen below
+  async function addPicked(person) {
+    if (!window.confirm(t('network.confirmOrg', { name: person.full_name || '', org: org.name, role: t(`orgRole.${role}`) }))) return
+    try {
+      const result = await addFromNetwork({ kind: 'org', targetId: org.id, userId: person.user_id, role })
+      notify(t(result === 'already_member' ? 'network.alreadyOn' : 'network.added', { name: person.full_name || '' }), result === 'already_member' ? 'info' : 'success')
+      load()
+      onChanged?.()
+    } catch (err) {
+      logger.error('org', err, { step: 'addFromNetwork', orgId: org.id })
+      notify(userMessage(err), 'error')
+    }
+  }
+
   async function changeRole(member, newRole) {
     setBusy(member.user_id)
     const { error } = await supabase.from('org_members').update({ role: newRole })
@@ -111,6 +126,11 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
           {t('org.intro')}
         </p>
 
+        {isAdmin && (
+          <div style={{ marginBottom: '10px' }}>
+            <NetworkPicker orgId={org.id} key={members.length} onPick={addPicked} />
+          </div>
+        )}
         {isAdmin && (
           <form onSubmit={invite} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px' }}>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="colleague@company.com"

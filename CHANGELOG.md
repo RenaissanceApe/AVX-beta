@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.20.0 — Your network
+
+### Added
+- **Your network** in the invite dialogs (gig crew and organisation members): search people
+  you've already shared a gig or organisation with, see the functions they had on those gigs,
+  how many gigs together and whether they're booked on the gig's dates, and add them in one go,
+  without needing their email. Nobody can browse everyone on AVX
+- **Account → Who can find you by name**: managers and admins only (default) or also other crew
+- Privacy notice (EN/PT): what this search shows and the setting
+
 ## 0.19.0 — Inventory I7: reports
 
 ### Added
