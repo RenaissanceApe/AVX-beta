@@ -71,7 +71,7 @@ function Catalogue({ inv, orgId, goLocations }) {
   const q = search.trim().toLowerCase()
   const visible = useMemo(() => inv.items.filter(i => {
     if (filter === 'archived' ? !i.archived_at : i.archived_at) return false
-    if (filter === 'tracked' && i.tracking === 'none') return false
+    if (filter === 'tracked' && i.tracking === 'none' && !i.kit_type) return false
     if (filter === 'low' && !isLowStock(i, inv.stock[i.id]?.total)) return false
     return !q || [i.name, i.code, i.category, i.brand, i.model].some(v => (v || '').toLowerCase().includes(q))
   }), [inv.items, inv.stock, filter, q])
@@ -128,7 +128,8 @@ function Catalogue({ inv, orgId, goLocations }) {
                     <span style={{ display: 'block', fontWeight: 600, fontSize: '14px', overflowWrap: 'anywhere' }}>{item.name}</span>
                     <span style={{ fontSize: '12px', color: colors.muted, display: 'flex', gap: '4px 10px', flexWrap: 'wrap' }}>
                       {item.code && <span style={{ fontFamily: 'monospace' }}>{item.code}</span>}
-                      <span>{t(`inv.trackingOpt.${item.tracking}`)}</span>
+                      {item.kit_type && <span style={{ color: colors.accent }}>{t(`kit.typeOpt.${item.kit_type}`)}</span>}
+                      {item.kit_type !== 'set' && <span>{t(`inv.trackingOpt.${item.tracking}`)}</span>}
                       {[item.brand, item.model].filter(Boolean).length > 0 && <span>{[item.brand, item.model].filter(Boolean).join(' ')}</span>}
                     </span>
                   </span>

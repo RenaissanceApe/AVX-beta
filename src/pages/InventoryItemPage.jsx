@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Pencil, Archive, ArchiveRestore, PackagePlus, PackageMinus, ArrowRightLeft, ClipboardCheck, Plus, QrCode, Loader2, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Boxes, Pencil, Archive, ArchiveRestore, PackagePlus, PackageMinus, ArrowRightLeft, ClipboardCheck, Plus, QrCode, Loader2, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
-import { useInventory } from '../lib/useInventory'
+import { useInventory, useKits } from '../lib/useInventory'
 import { isLowStock, bookValue, dailyAvailability } from '../lib/inventory'
 import { rangeText } from '../lib/clashes'
 import { formatMoney } from '../lib/quotes'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { ItemModal, MovementModal, AddUnitsModal, UnitModal } from '../components/inventory/InventoryModals'
+import { KitPanel, CaseContentsModal } from '../components/inventory/KitPanels'
 import { MovementList, useNames, LOCATION_ICONS } from './InventoryPage'
 import { btn, btnPrimary, iconBtn, card, label, colors } from '../components/ui'
 
@@ -29,6 +30,7 @@ export default function InventoryItemPage() {
   const { lang } = useI18n()
   const navigate = useNavigate()
   const inv = useInventory(orgId)
+  const kits = useKits(orgId, inv.canManage)
   const [units, setUnits] = useState([])
   const [history, setHistory] = useState([])
   const [editing, setEditing] = useState(false)
@@ -36,19 +38,26 @@ export default function InventoryItemPage() {
   const [addingUnits, setAddingUnits] = useState(false)
   const [unit, setUnit] = useState(null)
   const [selected, setSelected] = useState([])
+  const [packedIn, setPackedIn] = useState({}) // case unit id -> units packed in it
+  const [packing, setPacking] = useState(null)
   const item = inv.items.find(i => i.id === itemId)
   const nameOf = useNames(history.map(h => h.created_by))
   const highlight = params.get('unit')
 
   async function loadDetails() {
     const [unitsRes, histRes] = await Promise.all([
-      supabase.from('stock_units').select('*, out_gig:gigs(name)').eq('item_id', itemId).order('code'),
+      supabase.from('stock_units').select('*, out_gig:gigs(name), in_case:case_unit_id(code)').eq('item_id', itemId).order('code'),
       supabase.from('stock_movements').select('*').eq('item_id', itemId).order('created_at', { ascending: false }).limit(100),
     ])
     if (unitsRes.error) logger.error('inventory', unitsRes.error, { step: 'units' })
     if (histRes.error) logger.error('inventory', histRes.error, { step: 'history' })
     setUnits(unitsRes.data || [])
     setHistory(histRes.data || [])
+    const ids = (unitsRes.data || []).map(u => u.id)
+    const { data: inside } = ids.length
+      ? await supabase.from('stock_units').select('case_unit_id').in('case_unit_id', ids)
+      : { data: [] }
+    setPackedIn((inside || []).reduce((m, u) => ({ ...m, [u.case_unit_id]: (m[u.case_unit_id] || 0) + 1 }), {}))
   }
   useEffect(() => { if (inv.canManage) loadDetails() }, [itemId, inv.canManage]) // eslint-disable-line react-hooks/exhaustive-deps
   const refresh = () => { inv.reload(); loadDetails() }
@@ -99,7 +108,8 @@ export default function InventoryItemPage() {
             <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px', overflowWrap: 'anywhere' }}>{item.name}</h1>
             <div style={{ fontSize: '13px', color: colors.soft, display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px' }}>
               {item.code && <span style={{ fontFamily: 'monospace' }}>{item.code}</span>}
-              <span>{t(`inv.trackingOpt.${item.tracking}`)}</span>
+              {item.kit_type ? <span style={{ color: colors.accent }}>{t(`kit.typeOpt.${item.kit_type}`)}</span> : null}
+              {item.kit_type !== 'set' && <span>{t(`inv.trackingOpt.${item.tracking}`)}</span>}
               {item.archived_at && <span style={{ color: '#F59E0B' }}>{t('inv.archived')}</span>}
             </div>
           </div>
@@ -140,7 +150,8 @@ export default function InventoryItemPage() {
             )}
           </div>
 
-          {item.tracking === 'none' && (
+          {item.kit_type === 'set' && <div style={{ ...card, fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>{t('kit.setNoStock')}</div>}
+          {item.tracking === 'none' && item.kit_type !== 'set' && (
             <div style={{ ...card, fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>
               {t('inv.notTracked')} <button onClick={() => setEditing(true)} style={{ ...small, marginLeft: '6px' }}><Pencil size={12} /> {t('inv.startTracking')}</button>
             </div>
@@ -192,7 +203,9 @@ export default function InventoryItemPage() {
                       <input type="checkbox" checked={selected.includes(u.id)} onChange={() => toggle(u.id)} aria-label={t('inv.selectUnit', { code: u.code })} style={{ accentColor: colors.accent }} />
                       <span style={{ flex: '1 1 180px', minWidth: 0 }}>
                         <span style={{ display: 'block', fontFamily: 'monospace', fontSize: '13px', fontWeight: 700 }}>{u.code}</span>
-                        <span style={{ fontSize: '12px', color: colors.muted }}>{u.serial ? `${t('inv.serial')} ${u.serial}` : t('inv.noSerial')}</span>
+                        <span style={{ fontSize: '12px', color: colors.muted }}>
+                          {[u.serial ? `${t('inv.serial')} ${u.serial}` : t('inv.noSerial'), u.case_unit_id && t('kit.inCase', { code: u.in_case?.code || '…' })].filter(Boolean).join(' · ')}
+                        </span>
                       </span>
                       <span style={{ fontSize: '13px', color: colors.soft, flex: '1 1 120px' }}>
                         {u.out_on_gig
@@ -201,6 +214,9 @@ export default function InventoryItemPage() {
                       </span>
                       <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: STATUS_COLOR[u.status] }}>{t(`inv.unitStatus.${u.status}`)}</span>
                       {value != null && <span style={{ fontSize: '12px', color: colors.muted, whiteSpace: 'nowrap' }} title={t('inv.bookValueHint')}>{formatMoney(value, 'EUR', lang)}</span>}
+                      {item.kit_type === 'case' && (
+                        <button onClick={() => setPacking(u)} style={small} title={t('kit.packHint')}><Boxes size={12} /> {t('kit.packed', { count: packedIn[u.id] || 0 })}</button>
+                      )}
                       <button onClick={() => setUnit(u)} aria-label={t('inv.editUnit', { code: u.code })} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>
                     </div>
                   )
@@ -209,6 +225,8 @@ export default function InventoryItemPage() {
             )
           )}
         </section>
+
+        <KitPanel orgId={orgId} item={item} kits={kits} />
 
         {item.tracking !== 'none' && <Bookings item={item} owned={(s?.total || 0) - (s?.inRepair || 0)} />}
 
@@ -230,6 +248,7 @@ export default function InventoryItemPage() {
           stock={s} onClose={() => setMovement(null)} onSaved={refresh} />
       )}
       {addingUnits && <AddUnitsModal item={item} locations={inv.activeLocations} onClose={() => setAddingUnits(false)} onSaved={refresh} />}
+      {packing && <CaseContentsModal caseUnit={packing} kits={kits} onClose={() => setPacking(null)} onSaved={loadDetails} />}
       {unit && <UnitModal unit={unit} locations={inv.locations.filter(l => !l.archived_at || l.id === unit.location_id)} onClose={() => setUnit(null)} onSaved={refresh} />}
       <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </AppShell>

@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.16.0 — Inventory I4: kits
+
+### Added
+- **Sets**: catalogue items with no stock of their own that stand for a group of items. Adding a
+  set to a gig (or filling a gig from a quote that has one) plans its contents; sets can hold sets
+- **Cases**: stock items with fixed contents. Planning a case plans its contents; each case unit
+  records which units are packed in it, and scanning the case out or in moves them and its bulk
+  contents too
+- **Accessories**: items that come along automatically when another is planned, per item
+- **Alternatives**: when a gig line is short, the Equipment tab offers a free alternative and moves
+  the shortfall across in one click
+- Item page: Contents, Accessories and Alternatives panels; units show which case they're in
+- The equipment picker shows what each item brings and how many sets are free
+
+### Fixed
+- Filling a gig from a quote no longer fails when the quote has catalogue items that aren't
+  stock-tracked (they're left out of the equipment list)
+
 ## 0.15.0 — Inventory I3: warehouse
 
 ### Added

@@ -1,6 +1,6 @@
 # Inventory and equipment: plan
 
-Status: **I1 (0.13.0), I2 (0.14.0) and I3 (0.15.0) built**; I4–I7 planned. Each phase ships on its own and is useful alone.
+Status: **I1 (0.13.0), I2 (0.14.0), I3 (0.15.0) and I4 (0.16.0) built**; I5–I7 planned. Each phase ships on its own and is useful alone.
 Modelled on how rental software such as Rentman structures equipment (set/case/item types,
 accessories, alternatives, serial numbers, stock locations, repairs, subrentals, planning vs
 use periods). AVX doesn't integrate with Rentman.
@@ -82,6 +82,20 @@ Functions: `dispatch_scan(gig, code, direction, quantity, condition, note)`,
 `gig_dispatch_summary(gig)`, `gig_units_out(gig)`, `mark_units_lost(gig)`. Camera scanning uses the
 browser's barcode reader where there is one and a built-in reader elsewhere; the site allows the
 camera for itself only. Migration `20261027000000_warehouse.sql`, tests `supabase/tests/warehouse.sql`.
+
+## I4 · Kits (built)
+
+| Piece | How it works |
+|---|---|
+| Sets | An item marked **Set** (Edit item → Kit) has no stock of its own: it's a planning shortcut and a quote line. Adding a set to a gig, or filling a gig from a quote with a set on it, adds its contents. Sets can hold other sets. The picker shows how many sets are free |
+| Cases | An item marked **Case** is stock (a flight case, a rack), usually per unit. Its contents are planned with it. On each case unit, **packed** chooses which units travel in it; scanning the case out or in moves those units and the bulk items in its contents, and says if any packed unit wasn't available (repair, lost, out elsewhere) |
+| Accessories | On a stock-tracked item: what comes along, per item, when it's planned (a speaker brings its clamp). Only an increase brings more; lowering a quantity leaves accessories as they are |
+| Alternatives | Pairs of items that can stand in for each other. When a gig line is short, the Equipment tab offers "Use 3 × other item" if the alternative is free, moving the shortfall across |
+| Rules | Contents belong to sets and cases, accessories to stock-tracked items; only stock-tracked items (or sets inside sets) go in; nothing can contain itself, however indirectly; an item stays a set or case while it has contents or packed units; a case can't be packed in a case |
+
+Tables `item_parts` (parent, child, `content`/`accessory`, quantity) and `item_alternatives` (one
+row per pair); `price_items.kit_type` (`set`/`case`); `stock_units.case_unit_id`. Admins and
+members manage them. Migration `20261028000000_kits.sql`, tests `supabase/tests/kits.sql`.
 
 ## How it builds on what exists
 

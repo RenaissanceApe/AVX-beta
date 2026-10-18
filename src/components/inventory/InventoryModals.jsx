@@ -5,7 +5,7 @@ import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { UNITS, parsePrice } from '../../lib/quotes'
-import { TRACKING, STOCK_KINDS, LOCATION_KINDS, UNIT_STATUSES, MOVEMENT_SHAPES, countCorrection, parseStockImport, matchItem } from '../../lib/inventory'
+import { TRACKING, KIT_TYPES, STOCK_KINDS, LOCATION_KINDS, UNIT_STATUSES, MOVEMENT_SHAPES, countCorrection, parseStockImport, matchItem } from '../../lib/inventory'
 import { useI18n, t } from '../../i18n'
 import { Modal, btnPrimary, input, label, colors } from '../ui'
 
@@ -32,10 +32,15 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
     unit: item?.unit || 'day', tracking: item?.tracking || 'bulk', code: item?.code || '', brand: item?.brand || '',
     model: item?.model || '', weight_kg: item?.weight_kg ?? '', power_w: item?.power_w ?? '', dimensions: item?.dimensions || '',
     replacement_value: item?.replacement_value ?? '', min_stock: item?.min_stock ?? '', packing_note: item?.packing_note || '',
-    details: item?.details || '',
+    details: item?.details || '', kit_type: item?.kit_type || '',
   })
   const [saving, setSaving] = useState(false)
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
+  // A set is a planning shortcut (no stock of its own); a case is stock (usually per unit)
+  const setKit = e => setForm(f => ({
+    ...f, kit_type: e.target.value,
+    tracking: e.target.value === 'set' ? 'none' : e.target.value === 'case' && f.tracking === 'none' ? 'serial' : f.tracking,
+  }))
   const price = parsePrice(form.unit_price === '' ? '0' : form.unit_price)
   const codeOk = !form.code.trim() || /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/.test(form.code.trim())
 
@@ -46,7 +51,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
     const int = v => { const n = numberOrNull(v); return n == null ? null : Math.round(n) }
     const row = {
       name: form.name.trim(), kind: form.kind, category: form.category.trim() || null, unit_price: price, unit: form.unit,
-      tracking: form.tracking, code: form.code.trim() || null, brand: form.brand.trim() || null, model: form.model.trim() || null,
+      tracking: form.tracking, kit_type: form.kit_type || null, code: form.code.trim() || null, brand: form.brand.trim() || null, model: form.model.trim() || null,
       weight_kg: numberOrNull(form.weight_kg), power_w: int(form.power_w), dimensions: form.dimensions.trim() || null,
       replacement_value: numberOrNull(form.replacement_value), min_stock: int(form.min_stock),
       packing_note: form.packing_note.trim() || null, details: form.details.trim() || null, updated_at: new Date().toISOString(),
@@ -92,8 +97,14 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
         </div>
         <div style={grid}>
           <Field id="it-tracking" text={t('inv.tracking')}>
-            <select id="it-tracking" value={form.tracking} onChange={set('tracking')} disabled={hasStock} style={select}>
-              {TRACKING.map(k => <option key={k} value={k}>{t(`inv.trackingOpt.${k}`)}</option>)}
+            <select id="it-tracking" value={form.tracking} onChange={set('tracking')} disabled={hasStock || form.kit_type === 'set'} style={select}>
+              {TRACKING.filter(k => !(form.kit_type === 'case' && k === 'none')).map(k => <option key={k} value={k}>{t(`inv.trackingOpt.${k}`)}</option>)}
+            </select>
+          </Field>
+          <Field id="it-kit" text={t('kit.type')}>
+            <select id="it-kit" value={form.kit_type} onChange={setKit} style={select}>
+              <option value="">{t('kit.typeOpt.none')}</option>
+              {KIT_TYPES.filter(k => !(k === 'set' && hasStock && item?.tracking !== 'none')).map(k => <option key={k} value={k}>{t(`kit.typeOpt.${k}`)}</option>)}
             </select>
           </Field>
           <Field id="it-code" text={t('inv.code')}>
@@ -104,7 +115,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
           </Field>
         </div>
         <p style={{ fontSize: '12px', color: hasStock ? '#F59E0B' : colors.muted, lineHeight: 1.5, marginTop: '-4px' }}>
-          {hasStock ? t('inv.trackingLocked') : t(`inv.trackingHint.${form.tracking}`)}
+          {form.kit_type ? t(`kit.typeHint.${form.kit_type}`) : hasStock ? t('inv.trackingLocked') : t(`inv.trackingHint.${form.tracking}`)}
           {!codeOk && <span style={{ color: colors.danger, display: 'block' }}>{t('inv.codeInvalid')}</span>}
         </p>
         <div style={grid}>

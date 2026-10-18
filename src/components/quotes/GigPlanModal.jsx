@@ -4,6 +4,8 @@ import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { quoteToGigPlan } from '../../lib/quotes'
+import { expandPlan, broughtList } from '../../lib/inventory'
+import { useKits } from '../../lib/useInventory'
 import { track } from '../../lib/usage'
 import { useI18n } from '../../i18n'
 import { Modal, btnPrimary, input, label, colors } from '../ui'
@@ -21,9 +23,12 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
   const [schedule, setSchedule] = useState(null)
   const [positions, setPositions] = useState(null)
   const [equipment, setEquipment] = useState(null)
+  const [haveGear, setHaveGear] = useState({})
   const [saving, setSaving] = useState(false)
+  const kits = useKits(gig.org_id)
 
   useEffect(() => {
+    if (!kits.loaded) return
     let cancelled = false
     Promise.all([
       supabase.from('gig_schedule').select('day, start_time, title').eq('gig_id', gig.id),
@@ -44,11 +49,15 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
         return { ...pos, key: `p${i}`, exists, on: !exists }
       }))
       // Equipment already on the gig starts unticked; ticking it sets the quote's quantity
-      const haveGear = Object.fromEntries((e.data || []).map(r => [r.item_id, r.quantity]))
-      setEquipment(plan.equipment.map(g => ({ ...g, key: g.item_id, current: haveGear[g.item_id] ?? null, on: haveGear[g.item_id] == null })))
+      // Only stock-tracked items and sets (which become their contents) can be planned
+      const have = Object.fromEntries((e.data || []).map(r => [r.item_id, r.quantity]))
+      setHaveGear(have)
+      setEquipment(plan.equipment
+        .filter(g => kits.items[g.item_id] && (kits.items[g.item_id].tracking !== 'none' || kits.items[g.item_id].kit_type === 'set'))
+        .map(g => ({ ...g, key: g.item_id, isSet: kits.items[g.item_id].kit_type === 'set', current: have[g.item_id] ?? null, on: have[g.item_id] == null })))
     })
     return () => { cancelled = true }
-  }, [gig.id, plan, t])
+  }, [gig.id, plan, t, kits.loaded]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loading = schedule === null || positions === null || equipment === null
   const chosenItems = (schedule || []).filter(i => i.on)
@@ -57,6 +66,8 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
 
   async function add() {
     setSaving(true)
+    const gear = expandPlan(Object.fromEntries(chosenGear.map(g => [g.item_id, Math.min(100000, Math.max(1, Math.round(Number(g.quantity))))])),
+      haveGear, kits.parts, kits.items)
     const [s, p, e] = await Promise.all([
       chosenItems.length
         ? supabase.from('gig_schedule').insert(chosenItems.map(i => ({
@@ -69,9 +80,9 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
             notes: pos.phases.length ? pos.phases.join(', ').slice(0, 500) : null, source_quote_id: quoteId, created_by: userId,
           })))
         : { error: null },
-      chosenGear.length
-        ? supabase.from('gig_equipment').upsert(chosenGear.map(g => ({
-            gig_id: gig.id, org_id: gig.org_id, item_id: g.item_id, quantity: Math.min(100000, Math.max(1, Math.round(Number(g.quantity)))), source_quote_id: quoteId,
+      Object.keys(gear.lines).length
+        ? supabase.from('gig_equipment').upsert(Object.entries(gear.lines).map(([item_id, quantity]) => ({
+            gig_id: gig.id, org_id: gig.org_id, item_id, quantity, source_quote_id: quoteId,
           })), { onConflict: 'gig_id,item_id' })
         : { error: null },
     ])
@@ -83,6 +94,7 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
     }
     track('quote:gig-filled')
     notify(t('plan.addedAll', { items: chosenItems.length, positions: chosenPositions.length, gear: chosenGear.length }), 'success')
+    if (Object.keys(gear.added).length) notify(t('equip.alsoAdded', { list: broughtList(gear.added, kits.items) }), 'success')
     onDone()
   }
 
@@ -129,7 +141,7 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
               {equipment.map(g => (
                 <div key={g.key} style={row}>
                   <input type="checkbox" checked={g.on} onChange={ev => setGear(g.key, { on: ev.target.checked })} aria-label={t('plan.include', { name: g.description })} />
-                  <span style={{ flex: 1, minWidth: 0, fontSize: '13px' }}>{g.description}</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: '13px' }}>{g.description}{g.isSet && <span style={small}> · {t('kit.typeOpt.set')}</span>}</span>
                   <input type="number" min={1} max={100000} value={g.quantity} onChange={ev => setGear(g.key, { quantity: ev.target.value })} aria-label={t('equip.quantityFor', { name: g.description })} style={{ ...input, width: '72px', padding: '7px 8px' }} />
                   {g.current != null && <span style={small}>{t('plan.gearAlready', { count: g.current })}</span>}
                 </div>

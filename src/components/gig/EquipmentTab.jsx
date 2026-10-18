@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Loader2, Search, Weight, Zap, ScanLine, ClipboardList } from 'lucide-react'
+import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Loader2, Search, Weight, Zap, ScanLine, ClipboardList, Shuffle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
-import { equipmentWindow, shortBy } from '../../lib/inventory'
+import { equipmentWindow, shortBy, expandPlan, kitsFree, alternativesOf, broughtList } from '../../lib/inventory'
+import { useKits } from '../../lib/useInventory'
 import { rangeText } from '../../lib/clashes'
 import { toLocalInput } from './Booking'
 import { t } from '../../i18n'
@@ -25,6 +26,8 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   const [moved, setMoved] = useState({}) // item_id -> { out_qty, back_qty } from scanning
   const [picking, setPicking] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [altFree, setAltFree] = useState({}) // item_id -> availability of alternatives to short lines
+  const kits = useKits(gig.org_id, canEdit)
 
   async function load() {
     const [linesRes, statusRes, movedRes] = await Promise.all([
@@ -43,8 +46,31 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   async function setQuantity(line, value) {
     const quantity = Math.max(1, Math.min(100000, Math.round(Number(value) || 1)))
     if (quantity === line.quantity) return
-    const { error } = await supabase.from('gig_equipment').update({ quantity }).eq('id', line.id)
+    // More of an item brings more of its accessories
+    const plan = quantity > line.quantity ? expandPlan({ [line.item_id]: quantity }, onGig, kits.parts, kits.items) : { added: {} }
+    const added = plan.added
+    const { error } = Object.keys(added).length
+      ? await saveLines(gig, plan.lines)
+      : await supabase.from('gig_equipment').update({ quantity }).eq('id', line.id)
     if (error) return notify(userMessage(error), 'error')
+    if (Object.keys(added).length) notify(t('equip.alsoAdded', { list: broughtList(added, kits.items) }), 'success')
+    load()
+  }
+  // Use an alternative for what's short: move that many to the other item
+  async function swap(line, altId, count) {
+    const plan = expandPlan({ [altId]: (onGig[altId] || 0) + count }, onGig, kits.parts, kits.items)
+    const [moveRes, altRes] = await Promise.all([
+      count >= line.quantity
+        ? supabase.from('gig_equipment').delete().eq('id', line.id)
+        : supabase.from('gig_equipment').update({ quantity: line.quantity - count }).eq('id', line.id),
+      saveLines(gig, plan.lines),
+    ])
+    const error = moveRes.error || altRes.error
+    if (error) {
+      logger.error('equipment', error, { step: 'swap' })
+      return notify(userMessage(error), 'error')
+    }
+    notify(t('equip.swapped', { count, name: kits.items[altId]?.name || '' }), 'success')
     load()
   }
   async function remove(line) {
@@ -53,6 +79,20 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
     if (error) return notify(userMessage(error), 'error')
     load()
   }
+
+  const onGig = Object.fromEntries((lines || []).map(l => [l.item_id, l.quantity]))
+  const shortIds = (lines || []).filter(l => status[l.id] && shortBy({ ...l, ...status[l.id] }) > 0).map(l => l.item_id)
+  const altIds = [...new Set(shortIds.flatMap(id => alternativesOf(id, kits.pairs)))]
+  const altKey = altIds.sort().join(',')
+  useEffect(() => {
+    const win = equipmentWindow(gig, org)
+    if (!altKey || !win) return setAltFree({})
+    supabase.rpc('equipment_availability', { p_org: gig.org_id, p_items: altKey.split(','), p_from: win.from, p_until: win.until, p_exclude_gig: gig.id })
+      .then(({ data, error }) => {
+        if (error) logger.error('equipment', error, { step: 'alternatives' })
+        setAltFree(Object.fromEntries((data || []).map(r => [r.item_id, r])))
+      })
+  }, [altKey, gig.id, gig.start_date, gig.end_date]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!lines) return <Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
   const rows = lines.map(l => ({ ...l, ...(status[l.id] || {}) }))
@@ -97,6 +137,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {list.map(r => {
               const missing = status[r.id] ? shortBy(r) : 0
+              const alts = missing ? alternativesOf(r.item_id, kits.pairs).filter(id => altFree[id]?.available - (onGig[id] || 0) > 0) : []
               return (
                 <div key={r.id} style={{ ...card, padding: '9px 12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', borderColor: missing ? 'rgba(245,158,11,0.4)' : colors.border }}>
                   <span style={{ flex: '1 1 200px', minWidth: 0 }}>
@@ -122,6 +163,19 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
                       <button onClick={() => remove(r)} aria-label={t('equip.removeNamed', { name: r.item_name })} title={t('equip.remove')} style={iconBtn}><Trash2 size={14} /></button>
                     </>
                   )}
+                  {canEdit && alts.length > 0 && (
+                    <span style={{ flexBasis: '100%', display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', fontSize: '12px', color: colors.soft }}>
+                      <Shuffle size={12} /> {t('equip.alternatives')}
+                      {alts.map(id => {
+                        const n = Math.min(missing, altFree[id].available - (onGig[id] || 0))
+                        return (
+                          <button key={id} onClick={() => swap(r, id, n)} style={{ ...btn, padding: '3px 8px', fontSize: '12px' }} title={t('equip.swapHint', { count: n, name: kits.items[id]?.name || '' })}>
+                            {t('equip.swap', { count: n, name: kits.items[id]?.name || '' })}
+                          </button>
+                        )
+                      })}
+                    </span>
+                  )}
                 </div>
               )
             })}
@@ -129,7 +183,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
         </section>
       ))}
 
-      {picking && <EquipmentPicker gig={gig} org={org} planned={lines} onClose={() => setPicking(false)} onAdded={load} />}
+      {picking && <EquipmentPicker gig={gig} org={org} planned={lines} kits={kits} onClose={() => setPicking(false)} onAdded={load} />}
       {editing && <LineModal line={editing} onClose={() => setEditing(null)} onSaved={load} />}
     </div>
   )
@@ -137,9 +191,15 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
 
 const ghostLink = { ...btn, textDecoration: 'none', background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }
 
+// Saves planned quantities (item_id -> quantity), adding or updating lines
+const saveLines = (gig, lines) => {
+  const rows = Object.entries(lines).map(([item_id, quantity]) => ({ gig_id: gig.id, org_id: gig.org_id, item_id, quantity }))
+  return rows.length ? supabase.from('gig_equipment').upsert(rows, { onConflict: 'gig_id,item_id' }) : Promise.resolve({ error: null })
+}
+
 // Pick catalogue items with what's free for the gig's dates; ticked items are added
 // (or their quantity updated if already on the gig)
-function EquipmentPicker({ gig, org, planned, onClose, onAdded }) {
+function EquipmentPicker({ gig, org, planned, kits, onClose, onAdded }) {
   const { notify } = useToast()
   const [items, setItems] = useState(null)
   const [free, setFree] = useState({})
@@ -151,12 +211,12 @@ function EquipmentPicker({ gig, org, planned, onClose, onAdded }) {
 
   useEffect(() => {
     Promise.all([
-      supabase.from('price_items').select('id, name, category, code, tracking').eq('org_id', gig.org_id).neq('tracking', 'none').is('archived_at', null).order('name'),
+      supabase.from('price_items').select('id, name, category, code, tracking, kit_type').eq('org_id', gig.org_id).or('tracking.neq.none,kit_type.eq.set').is('archived_at', null).order('name'),
       win ? supabase.rpc('equipment_availability', { p_org: gig.org_id, p_items: null, p_from: win.from, p_until: win.until, p_exclude_gig: gig.id }) : Promise.resolve({ data: [] }),
     ]).then(([itemsRes, freeRes]) => {
       if (itemsRes.error) logger.error('equipment', itemsRes.error, { step: 'catalogue' })
       if (freeRes.error) logger.error('equipment', freeRes.error, { step: 'availability' })
-      setItems(itemsRes.data || [])
+      setItems((itemsRes.data || []).filter(i => i.tracking !== 'none' || i.kit_type === 'set'))
       setFree(Object.fromEntries((freeRes.data || []).map(r => [r.item_id, r])))
     })
   }, [gig.id]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -167,16 +227,16 @@ function EquipmentPicker({ gig, org, planned, onClose, onAdded }) {
 
   async function add() {
     setSaving(true)
-    const rows = Object.entries(picked).map(([item_id, quantity]) => ({
-      gig_id: gig.id, org_id: gig.org_id, item_id, quantity: Math.max(1, Math.round(Number(quantity) || 1)),
-    }))
-    const { error } = await supabase.from('gig_equipment').upsert(rows, { onConflict: 'gig_id,item_id' })
+    const picks = Object.fromEntries(Object.entries(picked).map(([id, q]) => [id, Math.max(1, Math.round(Number(q) || 1))]))
+    const { lines, added } = expandPlan(picks, already, kits.parts, kits.items)
+    const { error } = await saveLines(gig, lines)
     setSaving(false)
     if (error) {
-      logger.error('equipment', error, { step: 'add', count: rows.length })
+      logger.error('equipment', error, { step: 'add', count: Object.keys(lines).length })
       return notify(userMessage(error), 'error')
     }
     track('equipment:planned')
+    if (Object.keys(added).length) notify(t('equip.alsoAdded', { list: broughtList(added, kits.items) }), 'success')
     onAdded()
     onClose()
   }
@@ -195,7 +255,10 @@ function EquipmentPicker({ gig, org, planned, onClose, onAdded }) {
       ) : (
         <div style={{ maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '12px' }}>
           {visible.map(item => {
-            const f = free[item.id]
+            const isSet = item.kit_type === 'set'
+            const setsFree = isSet ? kitsFree(item.id, kits.parts, kits.items, free) : null
+            const f = isSet ? (setsFree == null ? null : { available: setsFree }) : free[item.id]
+            const brings = kits.parts.filter(p => p.parent_id === item.id)
             const on = picked[item.id] != null
             const qty = Number(picked[item.id] ?? already[item.id] ?? 1)
             const over = f && on && qty > f.available
@@ -206,10 +269,15 @@ function EquipmentPicker({ gig, org, planned, onClose, onAdded }) {
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: '14px' }}>{item.name}</span>
                   <span style={{ fontSize: '12px', color: colors.muted }}>
-                    {[item.category, already[item.id] && t('equip.alreadyPlanned', { count: already[item.id] })].filter(Boolean).join(' · ')}
+                    {[item.kit_type && t(`kit.typeOpt.${item.kit_type}`), item.category, already[item.id] && t('equip.alreadyPlanned', { count: already[item.id] })].filter(Boolean).join(' · ')}
                   </span>
+                  {brings.length > 0 && (
+                    <span style={{ display: 'block', fontSize: '11px', color: colors.muted }}>
+                      {t(isSet ? 'equip.setContents' : 'equip.brings', { list: brings.map(p => `${p.quantity} × ${kits.items[p.child_id]?.name || '…'}`).join(', ') })}
+                    </span>
+                  )}
                 </span>
-                {f && <span style={{ fontSize: '12px', whiteSpace: 'nowrap', color: f.available <= 0 || over ? AMBER : colors.soft }}>{t('equip.freeOf', { count: Math.max(0, f.available), owned: f.owned })}</span>}
+                {f && <span style={{ fontSize: '12px', whiteSpace: 'nowrap', color: f.available <= 0 || over ? AMBER : colors.soft }}>{isSet ? t('equip.setsFree', { count: Math.max(0, f.available) }) : t('equip.freeOf', { count: Math.max(0, f.available), owned: f.owned })}</span>}
                 <input type="number" min={1} max={100000} value={on ? picked[item.id] : ''} placeholder={String(already[item.id] || 1)} disabled={!on}
                   onChange={e => setPicked(p => ({ ...p, [item.id]: e.target.value }))} onClick={e => e.stopPropagation()}
                   aria-label={t('equip.quantityFor', { name: item.name })} style={{ ...input, width: '70px', padding: '5px 8px', borderColor: over ? AMBER : undefined }} />
