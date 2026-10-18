@@ -18,11 +18,14 @@ export function describeNotification(n, nameOf) {
     case 'gig_details':       return t('notif.details', { actor, gig })
     case 'gig_deleted':       return t('notif.gigDeleted', { actor, gig })
     case 'org_deleted':       return t('notif.orgDeleted', { actor, org: d.org_name })
+    case 'quote_accepted':    return t('notif.quoteAccepted', { client: d.client_name, number: d.number, title: d.quote_title })
+    case 'quote_declined':    return t('notif.quoteDeclined', { client: d.client_name, number: d.number, title: d.quote_title })
     default:                  return t('notif.generic', { gig })
   }
 }
 
 export function notificationLink(n) {
+  if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
   if (n.gig_id) return n.kind === 'schedule_changed' ? `/gig/${n.gig_id}?tab=schedule` : `/gig/${n.gig_id}`
   return '/dashboard'
 }

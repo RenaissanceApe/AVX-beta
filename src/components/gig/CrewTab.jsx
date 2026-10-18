@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { UserPlus, X, Clock, Phone, Loader2, Send, AlertTriangle } from 'lucide-react'
+import { UserPlus, X, Clock, Phone, Loader2, Send, AlertTriangle, Plus, Briefcase, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { sendInvite, inviteMessage } from '../../lib/invites'
 import { shortTime } from '../../lib/schedule'
 import { useI18n, t } from '../../i18n'
-import { Modal, btnPrimary, iconBtn, input, label, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
 import { Avatar, RoleBadge, TabHeader } from './parts'
 
 // One-line description of a clash, e.g. "Busy 2–3 Nov (Other gig)" / "Not available 5 Nov"
@@ -21,6 +21,7 @@ export default function CrewTab({ gigId, gigDatesKey, members, invites, isPM, us
   const { fmt } = useI18n()
   const { notify } = useToast()
   const [conflicts, setConflicts] = useState({}) // user_id -> [conflict]
+  const [inviteFor, setInviteFor] = useState('') // function title to prefill when inviting for a position
 
   // Managers see who is booked elsewhere or unavailable on this gig's dates
   useEffect(() => {
@@ -54,6 +55,9 @@ export default function CrewTab({ gigId, gigDatesKey, members, invites, isPM, us
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
+      <Positions gigId={gigId} isPM={isPM} userId={userId} members={members} invites={invites}
+        onInvite={title => { setInviteFor(title); setShowInvite(true) }} />
+
       <TabHeader title={t('gig.tab.crew')} subtitle={t('crew.count', { count: members.length })}
         action={isPM && <button onClick={() => setShowInvite(true)} style={btnPrimary}><UserPlus size={14} /> {t('crew.invite')}</button>} />
 
@@ -131,17 +135,17 @@ export default function CrewTab({ gigId, gigDatesKey, members, invites, isPM, us
         </div>
       )}
 
-      {showInvite && <InviteModal gigId={gigId} onClose={() => setShowInvite(false)} onInvited={onChanged} />}
+      {showInvite && <InviteModal gigId={gigId} functionTitle={inviteFor} onClose={() => { setShowInvite(false); setInviteFor('') }} onInvited={onChanged} />}
     </div>
   )
 }
 
 const EMPTY_INVITE = { email: '', role: 'crew', function_title: '', call_time: '' }
 
-function InviteModal({ gigId, onClose, onInvited }) {
+function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
   const { fmt } = useI18n()
   const { notify } = useToast()
-  const [form, setForm] = useState(EMPTY_INVITE)
+  const [form, setForm] = useState({ ...EMPTY_INVITE, function_title: functionTitle || '' })
   const [sending, setSending] = useState(false)
   const [clashes, setClashes] = useState([])
 
@@ -216,5 +220,103 @@ function InviteModal({ gigId, onClose, onInvited }) {
         </button>
       </form>
     </Modal>
+  )
+}
+
+// Roles the gig needs ("Sound technician × 2"), added by hand or from the quote.
+// "Filled" counts crew and pending invites whose function matches the title.
+function Positions({ gigId, isPM, userId, members, invites, onInvite }) {
+  const { notify } = useToast()
+  const [positions, setPositions] = useState([])
+  const [adding, setAdding] = useState(false)
+  const [form, setForm] = useState({ title: '', quantity: 1 })
+
+  async function load() {
+    const { data, error } = await supabase.from('gig_positions').select('*').eq('gig_id', gigId).order('created_at')
+    if (error) return logger.error('positions', error, { gigId })
+    setPositions(data || [])
+  }
+  useEffect(() => { load() }, [gigId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!positions.length && !isPM) return null
+
+  const filledFor = title => {
+    const key = title.trim().toLowerCase()
+    return [...members, ...invites].filter(m => (m.function_title || '').trim().toLowerCase() === key).length
+  }
+
+  async function add(e) {
+    e.preventDefault()
+    if (!form.title.trim()) return
+    const { error } = await supabase.from('gig_positions').insert({
+      gig_id: gigId, title: form.title.trim(), quantity: Math.min(99, Math.max(1, Math.round(Number(form.quantity) || 1))), created_by: userId,
+    })
+    if (error) return notify(userMessage(error), 'error')
+    setForm({ title: '', quantity: 1 })
+    setAdding(false)
+    load()
+  }
+  async function setQuantity(pos, value) {
+    const quantity = Math.min(99, Math.max(1, Math.round(Number(value) || 1)))
+    if (quantity === pos.quantity) return
+    setPositions(list => list.map(p => (p.id === pos.id ? { ...p, quantity } : p)))
+    const { error } = await supabase.from('gig_positions').update({ quantity }).eq('id', pos.id)
+    if (error) { notify(userMessage(error), 'error'); load() }
+  }
+  async function remove(pos) {
+    if (!window.confirm(t('positions.confirmRemove', { title: pos.title }))) return
+    const { error } = await supabase.from('gig_positions').delete().eq('id', pos.id)
+    if (error) return notify(userMessage(error), 'error')
+    load()
+  }
+
+  const open = positions.reduce((sum, p) => sum + Math.max(0, p.quantity - filledFor(p.title)), 0)
+  return (
+    <section style={{ marginBottom: '26px' }} aria-labelledby="positions-title">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
+        <h3 id="positions-title" style={{ ...label, marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Briefcase size={13} /> {t('positions.heading')}
+        </h3>
+        {positions.length > 0 && <span style={{ fontSize: '12px', color: open ? '#F59E0B' : colors.accent }}>{open ? t('positions.open', { count: open }) : t('positions.allFilled')}</span>}
+        {isPM && !adding && <button onClick={() => setAdding(true)} style={{ ...btn, marginLeft: 'auto', padding: '6px 10px' }}><Plus size={13} /> {t('positions.add')}</button>}
+      </div>
+      {positions.length === 0 && !adding && <p style={{ fontSize: '13px', color: colors.muted }}>{t('positions.empty')}</p>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {positions.map(pos => {
+          const filled = filledFor(pos.title)
+          return (
+            <div key={pos.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '10px', border: `1px solid ${colors.border}`, background: 'rgba(255,255,255,0.02)' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: '14px' }}>{pos.title}</div>
+                {pos.notes && <div style={{ fontSize: '12px', color: colors.muted }}>{pos.notes}</div>}
+              </div>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: filled >= pos.quantity ? colors.accent : '#F59E0B', whiteSpace: 'nowrap' }}>
+                {t('positions.filled', { filled, total: pos.quantity })}
+              </span>
+              {isPM && (
+                <>
+                  <input type="number" min={1} max={99} defaultValue={pos.quantity} key={pos.quantity} onBlur={e => setQuantity(pos, e.target.value)}
+                    aria-label={t('positions.quantityFor', { title: pos.title })} style={{ ...input, width: '58px', padding: '5px 6px' }} />
+                  {filled < pos.quantity && (
+                    <button onClick={() => onInvite(pos.title)} aria-label={t('positions.inviteFor', { title: pos.title })} title={t('crew.invite')} style={{ ...iconBtn, color: colors.accent }}><UserPlus size={15} /></button>
+                  )}
+                  <button onClick={() => remove(pos)} aria-label={t('positions.removeNamed', { title: pos.title })} title={t('positions.remove')} style={iconBtn}><Trash2 size={14} /></button>
+                </>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      {adding && (
+        <form onSubmit={add} style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+          <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} maxLength={120} placeholder={t('crew.functionPlaceholder')}
+            aria-label={t('positions.title')} autoFocus style={{ ...input, flex: '1 1 200px' }} />
+          <input type="number" min={1} max={99} value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
+            aria-label={t('positions.quantity')} style={{ ...input, width: '70px' }} />
+          <button type="submit" disabled={!form.title.trim()} style={btn}><Plus size={14} /> {t('positions.add')}</button>
+          <button type="button" onClick={() => setAdding(false)} aria-label={t('common.cancel')} style={iconBtn}><X size={16} /></button>
+        </form>
+      )}
+    </section>
   )
 }

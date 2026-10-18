@@ -121,6 +121,81 @@ export function quoteDateRange(body) {
   return { start: starts[0] || null, end: ends[ends.length - 1] || null }
 }
 
+// Everything the client sees on a quote. A version (and the copy sent to a client)
+// freezes these fields plus the body; restoring a version puts them back.
+export const SNAPSHOT_FIELDS = [
+  'title', 'language', 'currency', 'client_name', 'client_company', 'client_email', 'client_address', 'client_tax_id',
+  'issue_date', 'valid_until', 'intro', 'terms', 'vat_rate', 'discount_pct', 'show_line_prices', 'payment_terms', 'manager_name',
+]
+
+export function quoteSnapshot(quote, body) {
+  return {
+    ...Object.fromEntries(SNAPSHOT_FIELDS.map(k => [k, quote[k] ?? null])),
+    number: quote.number,
+    body: normalizeBody(body ?? quote.body),
+  }
+}
+
+// The editable fields of a snapshot, for restoring it into the live quote
+export function snapshotFields(snapshot) {
+  return Object.fromEntries(SNAPSHOT_FIELDS.filter(k => k in (snapshot || {})).map(k => [k, snapshot[k]]))
+}
+
+const MAX_PLAN_DAYS = 31
+const pad2 = n => String(n).padStart(2, '0')
+function isoDays(start, end) {
+  const days = []
+  const d = new Date(`${start}T00:00:00Z`)
+  const last = new Date(`${end && end > start ? end : start}T00:00:00Z`)
+  while (d <= last && days.length < MAX_PLAN_DAYS) {
+    days.push(`${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`)
+    d.setUTCDate(d.getUTCDate() + 1)
+  }
+  return days
+}
+
+// What an accepted quote adds to its gig:
+// - schedule: one item per day of each dated, non-optional phase (the phase's start
+//   time on its first day, 09:00 otherwise; its end time on its last day)
+// - positions: crew lines of non-optional phases, merged by description. Quantity is
+//   the most needed at once in any phase (qty, or 1 for lines priced per hour, km or
+//   lump sum). The person filling the gig can adjust everything before it's added.
+export function quoteToGigPlan(body) {
+  const phases = normalizeBody(body).phases.filter(p => !p.optional)
+  const schedule = []
+  for (const p of phases) {
+    if (!p.start_date) continue
+    const days = isoDays(p.start_date, p.end_date)
+    days.forEach((day, i) => {
+      const last = i === days.length - 1
+      schedule.push({
+        day,
+        start_time: (i === 0 && p.start_time) || '09:00',
+        end_time: last && p.end_time && (days.length > 1 || !p.start_time || p.end_time > p.start_time) ? p.end_time : null,
+        phase: p.name.trim(),
+        dayIndex: i + 1,
+        dayCount: days.length,
+      })
+    })
+  }
+  const positions = new Map()
+  for (const p of phases) {
+    for (const s of p.sections) {
+      for (const l of s.lines) {
+        const title = l.description.trim().slice(0, 120)
+        if (l.kind !== 'crew' || !title) continue
+        const people = !['hour', 'km', 'lump'].includes(l.unit) ? Math.min(99, Math.max(1, Math.round(num(l.qty, 1)))) : 1
+        const key = title.toLowerCase()
+        const pos = positions.get(key) || { title, quantity: 0, phases: [] }
+        pos.quantity = Math.max(pos.quantity, people)
+        if (p.name.trim() && !pos.phases.includes(p.name.trim())) pos.phases.push(p.name.trim())
+        positions.set(key, pos)
+      }
+    }
+  }
+  return { schedule, positions: [...positions.values()] }
+}
+
 // Dates as YYYY-MM-DD in the device's time zone (toISOString would use UTC)
 export function localISODate(date = new Date()) {
   const d = new Date(date)

@@ -53,6 +53,7 @@ Authentication → Users.
 
 ### Database access rules
 
-`supabase/tests/rls_smoke.sql`, `supabase/tests/quotes_rls.sql` and `supabase/tests/phase4b_rls.sql`
+`supabase/tests/rls_smoke.sql`, `supabase/tests/quotes_rls.sql`, `supabase/tests/phase4b_rls.sql` and
+`supabase/tests/phase4c_rls.sql`
 check the access rules directly in SQL. Paste each into the **test project's** SQL editor; each runs inside a transaction that is rolled
 back and ends with `ALL … CHECKS PASSED`.

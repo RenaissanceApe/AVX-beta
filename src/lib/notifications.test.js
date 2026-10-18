@@ -26,3 +26,12 @@ describe('deletion notices', () => {
     expect(notificationLink({ kind: 'gig_deleted', gig_id: null })).toBe('/dashboard')
   })
 })
+
+describe('quote notifications', () => {
+  it('describes an accepted quote and links to it', () => {
+    const n = { kind: 'quote_accepted', org_id: 'o', details: { quote_id: 'q1', client_name: 'Ana', number: 'Q0012', quote_title: 'Gala' } }
+    expect(describeNotification(n, () => '')).toContain('Ana')
+    expect(describeNotification(n, () => '')).toContain('Q0012')
+    expect(notificationLink(n)).toBe('/quote/q1')
+  })
+})
