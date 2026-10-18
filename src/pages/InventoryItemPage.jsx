@@ -6,7 +6,8 @@ import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { useInventory } from '../lib/useInventory'
-import { isLowStock, bookValue } from '../lib/inventory'
+import { isLowStock, bookValue, dailyAvailability } from '../lib/inventory'
+import { rangeText } from '../lib/clashes'
 import { formatMoney } from '../lib/quotes'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
@@ -205,6 +206,8 @@ export default function InventoryItemPage() {
           )}
         </section>
 
+        {item.tracking !== 'none' && <Bookings item={item} owned={(s?.total || 0) - (s?.inRepair || 0)} />}
+
         <section>
           <h2 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '8px' }}>{t('inv.history')}</h2>
           <MovementList rows={history} locationName={id => inv.locationName(id) || '—'} nameOf={nameOf}
@@ -226,5 +229,56 @@ export default function InventoryItemPage() {
       {unit && <UnitModal unit={unit} locations={inv.locations.filter(l => !l.archived_at || l.id === unit.location_id)} onClose={() => setUnit(null)} onSaved={refresh} />}
       <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </AppShell>
+  )
+}
+
+// Where the item is booked in the coming weeks, and how many are free each day
+const DAYS = 42
+function Bookings({ item, owned }) {
+  const { fmt } = useI18n()
+  const [bookings, setBookings] = useState(null)
+  const today = new Date()
+  const startDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  useEffect(() => {
+    const from = new Date(`${startDate}T00:00:00`)
+    const until = new Date(from); until.setDate(until.getDate() + 120)
+    supabase.rpc('item_bookings', { p_item: item.id, p_from: from.toISOString(), p_until: until.toISOString() })
+      .then(({ data, error }) => { if (error) logger.error('inventory', error, { step: 'bookings' }); setBookings(data || []) })
+  }, [item.id, startDate])
+  if (!bookings) return null
+  const days = dailyAvailability(owned, bookings, startDate, DAYS)
+  const tight = days.filter(d => d.free <= 0).length
+  return (
+    <section style={{ marginBottom: '24px' }}>
+      <h2 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '4px' }}>{t('inv.bookings')}</h2>
+      <p style={{ fontSize: '12px', color: tight ? '#F59E0B' : colors.muted, marginBottom: '8px' }}>
+        {tight ? t('inv.daysFullyBooked', { count: tight, days: DAYS }) : t('inv.freeNextDays', { days: DAYS })}
+      </p>
+      <div role="img" aria-label={t('inv.availabilityStrip', { days: DAYS })} style={{ display: 'grid', gridTemplateColumns: `repeat(${DAYS}, 1fr)`, gap: '2px', marginBottom: '4px' }}>
+        {days.map(d => (
+          <div key={d.day} title={`${fmt(d.day, 'EEE d MMM')}: ${t('inv.freeOn', { free: Math.max(0, d.free), owned })}`} style={{
+            height: '26px', borderRadius: '3px',
+            background: d.free <= 0 ? 'rgba(245,158,11,0.85)' : d.booked ? `rgba(30,200,120,${0.25 + 0.5 * (1 - d.free / Math.max(1, owned))})` : 'rgba(255,255,255,0.06)',
+          }} />
+        ))}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: colors.muted, marginBottom: '10px' }}>
+        <span>{fmt(days[0].day, 'd MMM')}</span><span>{fmt(days[days.length - 1].day, 'd MMM')}</span>
+      </div>
+      {bookings.length === 0 ? <p style={{ fontSize: '13px', color: colors.muted }}>{t('inv.noBookings')}</p> : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {bookings.map((b, i) => (
+            <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'baseline', padding: '7px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px', flexWrap: 'wrap' }}>
+              <span style={{ color: colors.soft, minWidth: '120px' }}>{rangeText(b.starts_at, b.ends_at)}</span>
+              <span style={{ flex: '1 1 160px', minWidth: 0 }}>
+                {b.gig_id ? <Link to={`/gig/${b.gig_id}?tab=equipment`} style={{ color: '#fff' }}>{b.gig_name}</Link> : '—'}
+                {b.status === 'hold' && <span style={{ fontSize: '11px', color: colors.muted }}> · {t('clash.hold')}</span>}
+              </span>
+              <strong>× {b.quantity}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   )
 }

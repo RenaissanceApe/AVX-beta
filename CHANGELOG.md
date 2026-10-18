@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.14.0 — Inventory I2: availability
+
+### Added
+- **Equipment** tab on every gig: everyone on the gig sees the list; the gig's managers and the
+  organisation's admins and members add gear from the catalogue, with how many are free on the
+  gig's dates, and change quantities or give a line its own dates. Shortages are flagged, never
+  blocked. Planners see total weight and power
+- Equipment on gigs is booked in the reservations engine, for the gig's days plus the
+  organisation's prep and return days (new in Organisation settings). Draft gigs hold gear,
+  archived gigs free it, date changes move it
+- Availability counts the busiest moment in a period, so bookings on different days don't add up;
+  units in repair don't count as available
+- Quotes: lines added from the price list remember their catalogue item; **Availability** in the
+  quote editor checks them for the quote's dates; filling a gig from its quote now adds the
+  equipment too (the most used in any one phase)
+- Item page: upcoming bookings and a six-week availability strip
+
+### Changed
+- The "fill gig from quote" dialog lists equipment alongside schedule and positions
+
 ## 0.13.0 — Inventory I1: catalogue and stock
 
 ### Added

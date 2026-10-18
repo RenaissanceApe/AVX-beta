@@ -33,7 +33,8 @@ The button next to the logo picks the workspace:
 | `/dashboard` | Opens the current workspace (used by sign-in and old links) |
 | `/me?panel=account` | Account (also from the avatar) |
 | `/org/:id/inventory` (`?tab=locations`, `?tab=movements`) | Inventory: catalogue, locations, stock ledger |
-| `/org/:id/inventory/:itemId` (`?unit=<id>`) | One item: stock, units, history |
+| `/org/:id/inventory/:itemId` (`?unit=<id>`) | One item: stock, units, bookings, history |
+| `/gig/:id?tab=equipment` | A gig's equipment and its availability |
 | `/org/:id/inventory/labels` (`?items=…&units=…`) | Printable QR labels |
 | `/scan/:code` | What a label's QR code opens: finds the item or unit and goes there |
 

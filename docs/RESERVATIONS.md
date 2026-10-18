@@ -56,12 +56,13 @@ the person gets a notification and answers "available" / "not available" with an
 from My work (`my_availability_requests()`), which notifies whoever asked. Only one open question
 per person per gig; managers can withdraw it. Nothing is booked by asking.
 
-## Adding equipment later (Inventory, see docs/INVENTORY.md)
+## Equipment (Inventory I2, built in 0.14.0; see docs/INVENTORY.md)
 
-1. Planning equipment on a gig writes reservations with `resource_type = 'equipment'` (bulk, with
-   `quantity`) or `'unit'` (a serial-numbered item), `source_type = 'gig_equipment'`.
-2. Availability = stock minus the sum of overlapping, non-cancelled reservations; the same GiST
-   index (`resource_type, resource_id, period`) makes that fast.
-3. Prep/return buffers (e.g. a day before and after) are just a wider `period`.
-4. The visibility rule for non-person resources is already in place: members of the owning
-   organisation see them.
+1. Planning equipment on a gig (`gig_equipment`) writes a reservation with
+   `resource_type = 'equipment'`, the item id and a `quantity`, `source_type = 'gig_equipment'`.
+   Assigning specific serial-numbered units (`'unit'`) comes with scanning in I3.
+2. Availability = what can go out minus the **busiest moment** of overlapping, non-cancelled
+   reservations (`private.equipment_peak`); the GiST index (`resource_type, resource_id, period`)
+   keeps it fast.
+3. Prep/return days (organisation setting) are just a wider `period`; a line can set its own.
+4. Members of the owning organisation see non-person reservations.

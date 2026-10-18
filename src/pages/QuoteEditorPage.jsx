@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft, Loader2, Printer, Copy, LayoutTemplate, Trash2, Plus, CalendarPlus, ExternalLink, CheckCircle, AlertTriangle, CloudOff, Download,
-  History, Send, ListChecks,
+  History, Send, ListChecks, Package,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
@@ -16,6 +16,8 @@ import QuoteSummary from '../components/quotes/QuoteSummary'
 import { QuoteStatusBadge } from '../components/quotes/parts'
 import { VersionsModal, SendQuoteModal } from '../components/quotes/QuoteSharing'
 import GigPlanModal from '../components/quotes/GigPlanModal'
+import QuoteAvailabilityModal from '../components/quotes/QuoteAvailability'
+import { useWorkspace } from '../lib/WorkspaceContext'
 import {
   QUOTE_STATUSES, normalizeBody, quoteTotals, emptyPhase, cloneBody, quoteNumber, formatMoney, move, quoteDateRange, localISODate, snapshotFields,
 } from '../lib/quotes'
@@ -31,6 +33,7 @@ const SAVE_DELAY = 1000
 export default function QuoteEditorPage() {
   const { id } = useParams()
   const { user } = useAuth()
+  const { orgs } = useWorkspace()
   const { notify } = useToast()
   const { t, lang } = useI18n()
   const navigate = useNavigate()
@@ -66,7 +69,7 @@ export default function QuoteEditorPage() {
       }
       const [roleRes, gigsRes, tplRes, orgRes, pricesRes] = await Promise.all([
         supabase.from('org_members').select('role').eq('org_id', q.org_id).eq('user_id', user.id).maybeSingle(),
-        supabase.from('gigs').select('id, name, start_date').eq('org_id', q.org_id).order('start_date', { ascending: false, nullsFirst: false }),
+        supabase.from('gigs').select('id, name, start_date, org_id').eq('org_id', q.org_id).order('start_date', { ascending: false, nullsFirst: false }),
         supabase.from('quote_templates').select('id, name, description, body').eq('org_id', q.org_id).order('name'),
         supabase.from('organisations').select('quote_number_prefix').eq('id', q.org_id).maybeSingle(),
         supabase.from('price_items').select('*').eq('org_id', q.org_id).is('archived_at', null).order('name'),
@@ -249,7 +252,7 @@ export default function QuoteEditorPage() {
       org_id: quote.org_id, name: quote.title.slice(0, 200), start_date: start, end_date: end,
       status: quote.status === 'accepted' ? 'confirmed' : 'draft', created_by: user.id,
       description: [quote.client_company, quote.client_name].filter(Boolean).join(' · ') || null,
-    }).select('id, name, start_date').single()
+    }).select('id, name, start_date, org_id').single()
     if (error) {
       logger.error('quote', error, { step: 'createGig', quoteId: id })
       return notify(userMessage(error), 'error')
@@ -292,6 +295,7 @@ export default function QuoteEditorPage() {
             <button onClick={() => flushThen(() => navigate(`/quote/${id}/print`))} style={btn}><Printer size={14} /> {t('quote.preview')}</button>
             <button onClick={() => setModal({ kind: 'send' })} style={btn}><Send size={14} /> {t('send.button')}</button>
             <button onClick={() => setModal({ kind: 'versions' })} style={btnGhost}><History size={14} /> {t('quoteVersions.button')}</button>
+            <button onClick={() => setModal({ kind: 'availability' })} style={btnGhost}><Package size={14} /> {t('quoteAvail.button')}</button>
             <button onClick={duplicateQuote} style={btnGhost}><Copy size={14} /> {t('quote.duplicate')}</button>
             <button onClick={() => setModal({ kind: 'saveTemplate', body, name: quote.title })} style={btnGhost}><LayoutTemplate size={14} /> {t('quote.saveAsTemplate')}</button>
             {linkedGig
@@ -364,6 +368,9 @@ export default function QuoteEditorPage() {
         <SendQuoteModal quoteId={id} prepare={prepare} defaultEmail={quote.client_email}
           onSent={() => { if (latest.current.quote.status === 'draft') updateQuote({ status: 'sent' }) }}
           onClose={() => setModal(null)} />
+      )}
+      {modal?.kind === 'availability' && (
+        <QuoteAvailabilityModal quote={quote} body={body} org={orgs.find(o => o.id === quote.org_id) || {}} onClose={() => setModal(null)} />
       )}
       {modal?.kind === 'plan' && (
         <GigPlanModal quoteId={id} body={body} gig={modal.gig} userId={user.id} onClose={() => setModal(null)}

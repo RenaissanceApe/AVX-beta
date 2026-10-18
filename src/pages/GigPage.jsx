@@ -12,6 +12,7 @@ import OverviewTab from '../components/gig/OverviewTab'
 import ScheduleTab from '../components/gig/ScheduleTab'
 import AssetsTab from '../components/gig/AssetsTab'
 import CrewTab from '../components/gig/CrewTab'
+import EquipmentTab from '../components/gig/EquipmentTab'
 import FeedTab from '../components/gig/FeedTab'
 import ActivityTab from '../components/gig/ActivityTab'
 import AssetVersionsModal from '../components/gig/AssetVersionsModal'
@@ -222,6 +223,10 @@ export default function GigPage() {
         {tab === 'crew' && (
           <CrewTab gig={gig} members={members} invites={invites} isPM={isPM} orgRole={orgRole} userId={user.id} nameOf={nameOf} phoneOf={phoneOf}
             onChanged={reload} onLeft={() => navigate('/dashboard')} showInvite={showInvite} setShowInvite={setShowInvite} />
+        )}
+        {tab === 'equipment' && (
+          <EquipmentTab gig={gig} org={orgs.find(o => o.id === gig.org_id) || {}}
+            canEdit={isPM || orgRole === 'admin' || orgRole === 'member'} canAdd={orgRole === 'admin' || orgRole === 'member'} />
         )}
         {tab === 'feed' && <FeedTab gigId={id} posts={posts} userId={user.id} isPM={isPM} nameOf={nameOf} onChanged={reload} />}
         {tab === 'activity' && <ActivityTab entries={activity} nameOf={nameOf} />}

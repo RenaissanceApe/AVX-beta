@@ -94,3 +94,42 @@ export const LABEL_SIZES = {
   small: { cols: 3, widthMm: 63.5, heightMm: 38.1, qrMm: 28 },
   large: { cols: 2, widthMm: 99.1, heightMm: 67.7, qrMm: 50 },
 }
+
+// ── Availability (I2) ────────────────────────────────────────────────────────
+const pad2 = n => String(n).padStart(2, '0')
+const isoDay = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
+
+// When a gig's equipment is out: its days in local time, widened by the organisation's
+// prep and return days (mirrors private.equipment_period). Null without dates.
+export function equipmentWindow(gig, org = {}) {
+  if (!gig?.start_date) return null
+  const last = gig.end_date && gig.end_date >= gig.start_date ? gig.end_date : gig.start_date
+  const from = new Date(`${gig.start_date}T00:00:00`)
+  from.setDate(from.getDate() - (org.equipment_prep_days || 0))
+  const until = new Date(`${last}T00:00:00`)
+  until.setDate(until.getDate() + 1 + (org.equipment_return_days || 0))
+  return { from: from.toISOString(), until: until.toISOString() }
+}
+
+// Same for a quote's dates ({ from, until } as YYYY-MM-DD, inclusive)
+export const quoteWindow = (dates, org) => (dates ? equipmentWindow({ start_date: dates.from, end_date: dates.until }, org) : null)
+
+export const shortBy = line => Math.max(0, (line.quantity || 0) - Math.max(0, line.available ?? 0))
+
+// Free units per day: what you own minus the busiest moment of each day's bookings.
+// bookings: [{ starts_at, ends_at, quantity }]
+export function dailyAvailability(owned, bookings, startDate, days) {
+  const list = (bookings || []).map(b => ({ from: new Date(b.starts_at), until: new Date(b.ends_at), qty: b.quantity || 0 }))
+  const out = []
+  const day = new Date(`${startDate}T00:00:00`)
+  for (let i = 0; i < days; i++) {
+    const start = new Date(day)
+    const end = new Date(day); end.setDate(end.getDate() + 1)
+    const today = list.filter(b => b.from < end && b.until > start)
+    const points = [start, ...today.map(b => b.from).filter(t => t > start && t < end)]
+    const booked = Math.max(0, ...points.map(p => today.filter(b => b.from <= p && b.until > p).reduce((s, b) => s + b.qty, 0)))
+    out.push({ day: isoDay(start), booked, free: owned - booked })
+    day.setDate(day.getDate() + 1)
+  }
+  return out
+}

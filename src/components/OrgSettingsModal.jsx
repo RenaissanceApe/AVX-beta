@@ -23,25 +23,30 @@ async function orgDeletionImpact(orgId, t) {
   ]
 }
 
-// Organisation settings for admins: rename, and (well hidden) deletion.
+// Organisation settings for admins: name, equipment prep/return days, and (well hidden) deletion.
 export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted }) {
   const { t } = useI18n()
   const { notify } = useToast()
   const [name, setName] = useState(org.name)
+  const [prep, setPrep] = useState(String(org.equipment_prep_days ?? 0))
+  const [ret, setRet] = useState(String(org.equipment_return_days ?? 0))
+  const days = v => Math.min(14, Math.max(0, Math.round(Number(v) || 0)))
+  const changed = name.trim() !== org.name || days(prep) !== (org.equipment_prep_days ?? 0) || days(ret) !== (org.equipment_return_days ?? 0)
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   async function save(e) {
     e.preventDefault()
-    if (!name.trim() || name.trim() === org.name) return
+    if (!name.trim() || !changed) return
     setSaving(true)
-    const { error } = await supabase.from('organisations').update({ name: name.trim() }).eq('id', org.id)
+    const { error } = await supabase.from('organisations')
+      .update({ name: name.trim(), equipment_prep_days: days(prep), equipment_return_days: days(ret) }).eq('id', org.id)
     setSaving(false)
     if (error) {
       logger.error('org', error, { step: 'rename', orgId: org.id })
       return notify(userMessage(error), 'error')
     }
-    notify(t('orgSettings.renamed'), 'success')
+    notify(t('orgSettings.saved'), 'success')
     onChanged()
   }
 
@@ -71,7 +76,18 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
           <label style={label} htmlFor="org-name">{t('dash.orgName')}</label>
           <input id="org-name" value={name} onChange={e => setName(e.target.value)} maxLength={120} style={input} />
         </div>
-        <button type="submit" disabled={saving || !name.trim() || name.trim() === org.name} style={{ ...btnPrimary, justifyContent: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div>
+            <label style={label} htmlFor="org-prep">{t('orgSettings.prepDays')}</label>
+            <input id="org-prep" type="number" min={0} max={14} value={prep} onChange={e => setPrep(e.target.value)} style={input} />
+          </div>
+          <div>
+            <label style={label} htmlFor="org-return">{t('orgSettings.returnDays')}</label>
+            <input id="org-return" type="number" min={0} max={14} value={ret} onChange={e => setRet(e.target.value)} style={input} />
+          </div>
+        </div>
+        <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginTop: '-4px' }}>{t('orgSettings.equipmentDaysHint')}</p>
+        <button type="submit" disabled={saving || !name.trim() || !changed} style={{ ...btnPrimary, justifyContent: 'center' }}>
           {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={15} />} {t('common.saveChanges')}
         </button>
         <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('orgSettings.companyHint')}</p>

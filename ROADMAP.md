@@ -113,7 +113,7 @@ Full plan in [docs/INVENTORY.md](docs/INVENTORY.md). Each phase ships on its own
 | Phase | Scope |
 |---|---|
 | ✅ I1 · Catalogue and stock (0.13.0) | Price list becomes the catalogue; bulk and serial-numbered stock, locations, an append-only ledger, counts, import, QR labels and scanning |
-| I2 · Availability | Gear on gigs and quotes through the reservations engine, shortage warnings |
+| ✅ I2 · Availability (0.14.0) | Equipment tab on gigs, availability with prep/return days, quote availability check, quote → gig equipment, item timeline |
 | I3 · Warehouse | Packing lists, scan out/in with the camera, unit status, missing reports |
 | I4 · Kits | Cases, sets, accessories, alternatives |
 | I5 · Maintenance | Repairs from site, inspections with reminders |
@@ -156,7 +156,7 @@ privacy notice and terms need a full section on it. To be written up in detail b
 ## Known limitations (beta)
 
 - The email summary goes out once a day, not instantly.
-- Quotes have one VAT rate per quote, no inventory/availability checks yet, and need a connection (not part of offline mode).
+- Quotes have one VAT rate per quote and need a connection (not part of offline mode). Availability is checked only for lines added from the price list.
 - Gig days are read in the organisation's time zone (Lisbon for now; there's no setting for it yet). Unavailable dates are Lisbon days.
 - Offline mode is read-only: uploads, posts and edits need a connection.
 - Supabase free plan: pauses after 7 days idle (the keep-alive workflow prevents this); no leaked-password check.

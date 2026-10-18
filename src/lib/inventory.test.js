@@ -68,3 +68,32 @@ describe('import', () => {
     expect(scanUrl('https://avx.app/', 'U-7KQ2M9XA')).toBe('https://avx.app/scan/U-7KQ2M9XA')
   })
 })
+
+describe('availability', () => {
+  const at = (d, h = 0) => new Date(2026, 10, d, h).toISOString()
+  it('works out when a gig\'s equipment is out', async () => {
+    const { equipmentWindow, quoteWindow } = await import('./inventory')
+    expect(equipmentWindow({ start_date: null })).toBeNull()
+    expect(equipmentWindow({ start_date: '2026-11-10', end_date: '2026-11-11' })).toEqual({ from: at(10), until: at(12) })
+    expect(equipmentWindow({ start_date: '2026-11-10' }, { equipment_prep_days: 1, equipment_return_days: 2 })).toEqual({ from: at(9), until: at(13) })
+    expect(quoteWindow({ from: '2026-11-10', until: '2026-11-10' }, {})).toEqual({ from: at(10), until: at(11) })
+    expect(quoteWindow(null, {})).toBeNull()
+  })
+  it('says how many are missing', async () => {
+    const { shortBy } = await import('./inventory')
+    expect(shortBy({ quantity: 6, available: 4 })).toBe(2)
+    expect(shortBy({ quantity: 6, available: -3 })).toBe(6)
+    expect(shortBy({ quantity: 2, available: 10 })).toBe(0)
+  })
+  it('counts the busiest moment of each day', async () => {
+    const { dailyAvailability } = await import('./inventory')
+    const days = dailyAvailability(10, [
+      { starts_at: at(10), ends_at: at(12), quantity: 6 },
+      { starts_at: at(11, 18), ends_at: at(11, 23), quantity: 3 },
+      { starts_at: at(11, 8), ends_at: at(11, 12), quantity: 4 }, // morning, gone before the evening one
+    ], '2026-11-09', 4)
+    expect(days.map(d => [d.day, d.booked, d.free])).toEqual([
+      ['2026-11-09', 0, 10], ['2026-11-10', 6, 4], ['2026-11-11', 10, 0], ['2026-11-12', 0, 10],
+    ])
+  })
+})

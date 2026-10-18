@@ -199,3 +199,37 @@ describe('versions and gig plan', () => {
     ])
   })
 })
+
+describe('equipment from quotes', () => {
+  const A = '11111111-1111-4111-8111-111111111111'
+  const B = '22222222-2222-4222-8222-222222222222'
+  it('keeps the catalogue link on lines added from the price list', async () => {
+    const { lineFromPriceItem, normalizeBody } = await import('./quotes')
+    expect(lineFromPriceItem({ id: A, name: 'Sub', kind: 'rental', unit: 'day', unit_price: 80 }).item_id).toBe(A)
+    const body = normalizeBody({ phases: [phase([line({ item_id: A }), line({ item_id: 'not-a-uuid' })])] })
+    expect(body.phases[0].sections[0].lines[0].item_id).toBe(A)
+    expect(body.phases[0].sections[0].lines[1]).not.toHaveProperty('item_id')
+  })
+  it('needs the most of each item used in any one phase', async () => {
+    const { quoteEquipment } = await import('./quotes')
+    const needs = quoteEquipment({ phases: [
+      phase([line({ item_id: A, description: 'Speaker', qty: 4 }), line({ item_id: A, description: 'Speaker', qty: 2 }), line({ item_id: B, description: 'Desk', qty: 1 })], { name: 'Day 1' }),
+      phase([line({ item_id: A, description: 'Speaker', qty: 5 }), line({ kind: 'crew', item_id: B, qty: 9 })], { id: 'p2', name: 'Day 2' }),
+      phase([line({ item_id: B, qty: 8 })], { id: 'p3', optional: true }),
+      phase([line({ description: 'Not from the catalogue', qty: 3 })], { id: 'p4' }),
+    ] })
+    expect(needs).toEqual([
+      { item_id: A, description: 'Speaker', quantity: 6 },
+      { item_id: B, description: 'Desk', quantity: 1 },
+    ])
+  })
+  it('finds the dates the equipment is needed', async () => {
+    const { quoteEquipmentDates } = await import('./quotes')
+    expect(quoteEquipmentDates({ phases: [phase([])] })).toBeNull()
+    expect(quoteEquipmentDates({ phases: [
+      phase([], { start_date: '2026-11-05', end_date: '2026-11-06' }),
+      phase([], { id: 'b', start_date: '2026-11-03' }),
+      phase([], { id: 'c', start_date: '2026-11-20', optional: true }),
+    ] })).toEqual({ from: '2026-11-03', until: '2026-11-06' })
+  })
+})
