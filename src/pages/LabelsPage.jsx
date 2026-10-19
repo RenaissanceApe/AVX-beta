@@ -60,7 +60,7 @@ export default function LabelsPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#e9ebef', color: '#111' }}>
-      <div className="no-print" style={{ position: 'sticky', top: 0, zIndex: 5, background: '#0F1520', color: '#fff', padding: '10px 16px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="no-print" style={{ position: 'sticky', top: 'var(--safe-top)', zIndex: 5, background: '#0F1520', color: '#fff', padding: '10px 16px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
         <button onClick={() => navigate(-1)} style={toolbarBtn}><ArrowLeft size={14} /> {t('common.back')}</button>
         <strong style={{ flex: 1, minWidth: '120px' }}>{t('inv.labelsTitle', { count: labels?.length || 0 })}</strong>
         <label style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>

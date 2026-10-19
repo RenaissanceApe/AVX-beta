@@ -219,7 +219,7 @@ const numInput = { ...input, padding: '7px 6px', textAlign: 'right' }
 
 // Layout for the line grid: one row on wide screens, two rows on phones.
 export const QUOTE_EDITOR_CSS = `
-  .q-header { position: sticky; top: 0; }
+  .q-header { position: sticky; top: var(--safe-top); }
   /* Phones (portrait) and short landscape screens: don't pin the tall header over the fields */
   @media (max-width: 760px), (max-height: 560px) { .q-header { position: static; } }
   .q-cell { min-width: 0; }

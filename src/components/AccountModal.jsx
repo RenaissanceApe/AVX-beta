@@ -275,12 +275,12 @@ export default function AccountModal({ onClose }) {
 
 const overlay = {
   position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
+  display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'calc(16px + var(--safe-top)) 16px 16px'
 }
 const panel = {
   background: '#0F1520', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px',
   padding: '24px', width: '100%', maxWidth: '420px', animation: 'fadeIn 0.2s ease', color: '#fff',
-  maxHeight: 'calc(100vh - 32px)', overflowY: 'auto'
+  maxHeight: 'calc(100vh - 32px - var(--safe-top))', overflowY: 'auto'
 }
 const section = { marginBottom: '22px', paddingBottom: '22px', borderBottom: '1px solid rgba(255,255,255,0.06)' }
 const label = {

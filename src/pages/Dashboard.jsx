@@ -357,11 +357,11 @@ function Modal({ title, onClose, children }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px'
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'calc(24px + var(--safe-top)) 24px 24px'
     }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label={title} style={{
         background: '#0F1520', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '28px', width: '100%', maxWidth: '480px',
-        animation: 'fadeIn 0.2s ease', maxHeight: 'calc(100vh - 32px)', overflowY: 'auto',
+        animation: 'fadeIn 0.2s ease', maxHeight: 'calc(100vh - 32px - var(--safe-top))', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{title}</h2>

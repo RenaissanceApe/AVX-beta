@@ -9,7 +9,7 @@ export default function OfflineBanner({ savedAt = null }) {
   if (online && !savedAt) return null
   return (
     <div role="status" style={{
-      position: 'sticky', top: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+      position: 'sticky', top: 'var(--safe-top)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
       padding: '7px 12px', background: '#3A2A08', color: '#FBBF24', fontSize: '13px', fontWeight: 600, textAlign: 'center',
     }}>
       <WifiOff size={14} />
