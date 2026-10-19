@@ -21,6 +21,8 @@
 ### Fixed
 - Signing in sometimes opened My work instead of your organisation (the start page was chosen
   before your organisations had loaded); found by the signed-in browser tests, which now run
+- Offline, the app sat on a spinner for about 7 seconds before showing saved copies (the database
+  library retries failed requests); with no connection it now gives up at once
 
 ## 0.23.0 — Messaging M3: channels, pins, announcements, search
 
