@@ -18,6 +18,12 @@
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html, body, #root { height: 100%; }
       body { background: #080C14; color: #fff; font-family: 'DM Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+      /* Installed on an iPhone (home screen), the app is drawn under the status bar (clock, battery)
+         and, sideways, beside the notch. Keep everything clear of them; a strip in the app's colour
+         sits behind the status bar so nothing scrolls under the clock. Elsewhere these are 0. */
+      :root { --safe-top: env(safe-area-inset-top, 0px); --safe-left: env(safe-area-inset-left, 0px); --safe-right: env(safe-area-inset-right, 0px); }
+      body { padding: var(--safe-top) var(--safe-right) 0 var(--safe-left); }
+      body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: var(--safe-top); background: #080C14; z-index: 1000; pointer-events: none; }
       input, textarea, select, button { font-family: inherit; }
       button:disabled { opacity: 0.5; cursor: not-allowed; }
       /* Inputs at 16px+ stop iOS Safari from zooming in on focus */

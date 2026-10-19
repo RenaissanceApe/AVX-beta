@@ -275,7 +275,7 @@ const GRAIN = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg
 
 const SHELL_CSS = `
   .shell { min-height: 100vh; background: ${colors.bg}; color: #fff; }
-  .shell-bar { position: sticky; top: 0; z-index: 60; height: 60px; display: flex; align-items: center; gap: 10px;
+  .shell-bar { position: sticky; top: var(--safe-top); z-index: 60; height: 60px; display: flex; align-items: center; gap: 10px;
     padding: 0 18px; background: rgba(8,12,20,0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid rgba(255,255,255,0.06); }
   .shell-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: #fff; border-radius: 10px; padding: 4px; }

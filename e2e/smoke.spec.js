@@ -89,3 +89,18 @@ test('no JavaScript errors on public pages', async ({ page }) => {
   }
   expect(errors).toEqual([])
 })
+
+// Installed on an iPhone the app is drawn under the status bar; browsers here report no status
+// bar, so simulate one (47px) and check the page keeps clear of it with a strip behind the clock
+test('keeps clear of an iPhone status bar when installed', async ({ page }) => {
+  await page.goto('/privacy')
+  await page.addStyleTag({ content: ':root { --safe-top: 47px !important }' })
+  const layout = await page.evaluate(() => ({
+    padding: getComputedStyle(document.body).paddingTop,
+    strip: getComputedStyle(document.body, '::before').height,
+    stripPosition: getComputedStyle(document.body, '::before').position,
+  }))
+  expect(layout).toEqual({ padding: '47px', strip: '47px', stripPosition: 'fixed' })
+  const heading = await page.getByRole('heading').first().boundingBox()
+  expect(heading.y).toBeGreaterThanOrEqual(47)
+})

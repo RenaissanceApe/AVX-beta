@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.27.2 — iPhone home-screen app: top bar under the status bar
+
+### Fixed
+- Opened from the iPhone home screen, the top bar sat under the clock and battery. The app now
+  keeps clear of the status bar (and of the notch when the phone is sideways) on every screen,
+  with the app's colour behind the clock; windows such as Account open below it too
+
 ## 0.27.1 — Notifications panel on phones
 
 ### Fixed
