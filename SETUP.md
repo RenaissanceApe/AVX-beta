@@ -53,6 +53,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 31. `supabase/migrations/20261104000002_account_deletion_activity.sql` — fix: people on a gig can delete their account
 32. `supabase/migrations/20261105000000_guest_conversations.sql` — conversations with clients and suppliers (**run by hand**: it replaces a rule)
 33. `supabase/migrations/20261105000001_messaging_m4b.sql` — client conversation on a quote's page, supplier links
+34. `supabase/migrations/20261106000000_push.sql` — push notifications (turns on pg_net)
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.
@@ -84,6 +85,10 @@ Recommended while you're in Auth settings:
 - Sending quotes to clients: deploy `supabase/functions/send-quote` (Verify JWT **on**) and
   `supabase/functions/quote-public` (Verify JWT **off**: clients have no account; the link's token is
   the key). Emailing the link uses the same `BREVO_API_KEY` / `DIGEST_FROM` secrets as the summary.
+- Push notifications: deploy `supabase/functions/send-push` with "Verify JWT" **off** (the database
+  calls it; it checks the user's token itself for the app's requests). It makes its own keys the
+  first time someone turns notifications on. It shares `supabase/functions/_shared/` with
+  send-digest, so deploy with the CLI (or include that file).
 - Follow [docs/EMAIL.md](docs/EMAIL.md): custom SMTP, sender domain DNS, no click tracking, and the email templates.
 - Optional: [docs/BACKUPS.md](docs/BACKUPS.md) for daily encrypted backups.
 

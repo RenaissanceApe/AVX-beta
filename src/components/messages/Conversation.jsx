@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Send, Reply, X, Loader2, Paperclip, Link2, MoreHorizontal, Pencil, Trash2, History, Copy, FileText, Pin, PinOff, Bookmark, BookmarkCheck, Megaphone, CheckCircle2 } from 'lucide-react'
+import { Send, Reply, X, Loader2, Paperclip, Link2, MoreHorizontal, Pencil, Trash2, History, Copy, FileText, Pin, PinOff, Bookmark, BookmarkCheck, Megaphone, CheckCircle2, Clock } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
@@ -10,6 +10,8 @@ import {
   messageFilePath, messageLink, formatSize, dayRange, REACTIONS, MAX_FILES, MAX_FILE_BYTES,
 } from '../../lib/messages'
 import { MESSAGES_READ } from '../../lib/useMessages'
+import { isNetworkError } from '../../lib/offline'
+import { OUTBOX_CHANGED, readOutbox, queueMessage, dropQueued, flushOutbox } from '../../lib/outbox'
 import { useI18n, t, fmt as fmtDate } from '../../i18n'
 import { Attachments, CardView, CardPicker, ReactionBar, HistoryModal, AckStatusModal, EventCard } from './MessageParts'
 import { colors } from '../ui'
@@ -88,6 +90,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
   const [ackCounts, setAckCounts] = useState({})
   const [saved, setSaved] = useState(() => new Set())
   const [statusFor, setStatusFor] = useState(null)
+  const [queued, setQueued] = useState([]) // written offline, waiting to be sent (lib/outbox)
   const fetchedExtras = useRef(new Set())
   const scroller = useRef(null)
   const textarea = useRef(null)
@@ -163,6 +166,20 @@ export default function Conversation({ conversationId, canPost = true, height = 
     document.addEventListener('visibilitychange', onVisible)
     return () => { cancelled = true; supabase.removeChannel(channel); document.removeEventListener('visibilitychange', onVisible) }
   }, [conversationId, focusId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Messages written offline for this conversation; ones sent meanwhile join the list
+  useEffect(() => {
+    const refresh = e => {
+      setQueued(readOutbox(user.id).filter(q => q.conversation_id === conversationId))
+      const sent = (e?.detail?.sent || []).filter(m => m.conversation_id === conversationId)
+      if (sent.length) setMessages(list => mergeMessages(list || [], sent))
+      if ((e?.detail?.failed || []).some(m => m.conversation_id === conversationId)) notify(t('chat.outbox.failed'), 'error')
+    }
+    refresh()
+    window.addEventListener(OUTBOX_CHANGED, refresh)
+    if (navigator.onLine !== false) flushOutbox(user.id)
+    return () => window.removeEventListener(OUTBOX_CHANGED, refresh)
+  }, [conversationId, user.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Who reads this conversation (names, roles, functions) and whether you run it (pins,
   // announcements, group mentions on a gig)
@@ -258,7 +275,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
   useEffect(() => {
     const el = scroller.current
     if (el && atBottom.current) el.scrollTop = el.scrollHeight
-  }, [messages])
+  }, [messages, queued.length])
   useEffect(() => {
     if (!highlight || !messages) return
     document.getElementById(`msg-${highlight}`)?.scrollIntoView({ block: 'center' })
@@ -357,6 +374,18 @@ export default function Conversation({ conversationId, canPost = true, height = 
     const typedBody = text.trim()
     const body = typedBody || autoBody({ files, cardLabel: card ? t(`chat.card.${card.type}`) : '' })
     if (!body) return
+    // No connection: plain text waits in the outbox; files, cards and announcements need one
+    const plain = !files.length && !card && !announce
+    const queue = () => {
+      queueMessage(user.id, { conversation_id: conversationId, body: body.slice(0, 4000), reply_to: replyTo?.id || null, mentions: parseMentions(typedBody, candidates) })
+      track('messages:queued')
+      atBottom.current = true
+      resetComposer()
+    }
+    if (navigator.onLine === false) {
+      if (!plain) return notify(t('chat.outbox.needsConnection'), 'error')
+      return queue()
+    }
     setSending(true)
     const attachments = []
     for (const f of files) {
@@ -375,6 +404,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
       needs_ack: announce,
     }).select().single()
     setSending(false)
+    if (error && plain && isNetworkError(error)) return queue()
     if (error) {
       logger.error('messages', error, { step: 'send' })
       return notify(userMessage(error), 'error')
@@ -600,6 +630,16 @@ export default function Conversation({ conversationId, canPost = true, height = 
             </div>
           )
         })}
+        {queued.map(q => (
+          <div key={q.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', margin: '6px 0' }}>
+            <div style={{ background: MINE, borderRadius: '12px', padding: '7px 11px', maxWidth: '80%', fontSize: '14px', lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word', opacity: 0.65 }}>{q.body}</div>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: colors.muted, marginTop: '2px' }}>
+              <Clock size={11} /> {t('chat.outbox.waiting')}
+              <button type="button" onClick={() => dropQueued(user.id, q.id)} aria-label={t('chat.outbox.cancel')} title={t('chat.outbox.cancel')}
+                style={{ background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', padding: 0, display: 'flex' }}><X size={12} /></button>
+            </span>
+          </div>
+        ))}
       </div>
       {canPost ? (
         <form onSubmit={send} style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '8px', position: 'relative' }}

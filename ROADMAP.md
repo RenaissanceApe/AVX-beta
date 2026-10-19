@@ -143,7 +143,8 @@ acknowledgement, crew calls, client and supplier threads, push, moderation (stag
 | ✅ M3 · Channels (0.23.0) | Organisation channels with audiences and "admins only", department channels per function on a gig, pinned messages, announcements with read-and-confirm, search, saved messages |
 | ✅ M4a · Connected to AVX (0.24.0) | Availability questions and crew calls answered in messages, call sheet sent to the crew with read-and-confirm, schedule changes posted in the gig's chat, team conversations on equipment, repairs and subrentals |
 | ✅ M4b · Clients and suppliers (0.25.0) | Conversations with a quote's client (on the quote's page) and a subrental's supplier (through a link made for them), without an account |
-| M5 · Reach | Push notifications, reply by email, offline outbox |
+| ✅ M5a · Push and offline (0.26.0) | Push notifications on phones and computers, messages written offline are sent when the connection is back |
+| M5b · Email replies | Reply by email to the summary; email clients and suppliers when you answer (needs inbound email on the domain) |
 | M6 · Safety | Moderation, retention, export, rate limits |
 
 ## Help and inclusion (planned)

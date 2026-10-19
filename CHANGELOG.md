@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.26.0 — Messaging M5a: push notifications and offline messages
+
+### Added
+- **Notifications on your phone or computer:** turn them on in Account → Notifications on this
+  device. Messages, mentions, crew calls and the rest arrive like any app's notifications, in your
+  language; tapping one opens it in AVX. On iPhone, add AVX to the home screen first. "Send a
+  test" checks it works. A busy conversation shows one notification, not one per message
+- **Write without a connection:** a message you write offline waits on your phone ("Waiting for a
+  connection") and is sent by itself when the connection comes back. You can cancel it while it
+  waits. Files need a connection
+- Privacy notice (EN/PT): notifications on your devices and the push services that carry them;
+  messages waiting to be sent are kept on the device
+
+### Changed
+- The email summary and push notifications share their wording (no change to the emails)
+
 ## 0.25.0 — Messaging M4b: clients and suppliers
 
 ### Added

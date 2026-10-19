@@ -25,8 +25,9 @@ export function PrivacyPt() {
         <li><strong>Contagens de utilização:</strong> quantas vezes cada ecrã ou funcionalidade é usado por dia, somando todos os utilizadores. Estas contagens não têm nome, email, identificador de conta, endereço IP nem identificador do dispositivo, por isso não podem ser associadas a si.</li>
         <li><strong>Destinatários de orçamentos:</strong> se uma empresa lhe enviar um orçamento através do {APP_NAME}, guardamos os contactos que ela indicou e, se responder, o seu nome, a sua mensagem e a data da resposta.</li>
         <li><strong>Clientes e fornecedores que escrevem através de uma ligação:</strong> se escrever a uma empresa na página de um orçamento ou através de uma ligação de aluguer externo que ela lhe enviou, guardamos o nome que indicar e as suas mensagens. Só os administradores e membros dessa empresa as veem. São apagadas quando a empresa apagar o orçamento ou o aluguer externo, ou a sua organização.</li>
+        <li><strong>Notificações nos seus dispositivos:</strong> se as ativar, guardamos para cada telemóvel ou computador o endereço que o serviço de notificações do navegador lhe deu, as chaves que cifram as notificações para ele e um nome do dispositivo (como "Chrome · Android"). Desativá-las, ou terminar a sessão nesse dispositivo, faz com que deixem de chegar.</li>
       </ul>
-      <p>Não usamos publicidade, cookies de seguimento nem perfis de análise. O seu navegador guarda localmente um token de sessão para que não tenha de voltar a entrar — é estritamente necessário para o serviço.</p>
+      <p>Não usamos publicidade, cookies de seguimento nem perfis de análise. O seu navegador guarda localmente um token de sessão para que não tenha de voltar a entrar — é estritamente necessário para o serviço. As mensagens que escreve sem ligação ficam guardadas no seu navegador até serem enviadas; terminar a sessão apaga-as.</p>
 
       <h2>Para que os usamos</h2>
       <ul>
@@ -40,6 +41,7 @@ export function PrivacyPt() {
         <li><strong>Supabase</strong> — base de dados, autenticação e armazenamento de ficheiros, alojados em Zurique, Suíça (país reconhecido pela UE como tendo proteção adequada).</li>
         <li><strong>Vercel</strong> — serve as páginas da aplicação; pode tratar o seu endereço IP na sua rede global ao abrigo de Cláusulas Contratuais-Tipo da UE.</li>
         <li><strong>Brevo</strong> (Sendinblue SAS, França, UE) — envia os nossos emails: emails da conta, convites, o resumo diário e orçamentos. Recebe o endereço de email do destinatário e o conteúdo do email.</li>
+        <li><strong>O serviço de notificações do seu navegador</strong> (Google no Chrome e Android, Apple no Safari e iPhone, Mozilla no Firefox, Microsoft no Edge) — só se ativar as notificações num dispositivo: entrega cada notificação a esse dispositivo. O texto é cifrado para o seu dispositivo, por isso o serviço de notificações não o consegue ler.</li>
         {SENTRY_DSN && <li><strong>Sentry</strong> — recebe relatórios de erros (sem conteúdo de ficheiros nem endereço IP; é identificado apenas por um identificador interno).</li>}
       </ul>
       <p>Não vendemos os seus dados nem os partilhamos com terceiros, exceto quando a lei o exija.</p>

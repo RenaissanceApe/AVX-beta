@@ -1744,4 +1744,18 @@ export default {
   "supplierPage.contact": "Contacto de {org}:",
   "notif.guest": "{guest} escreveu sobre {about}: “{excerpt}”",
   "notif.guestMany": "{guest} escreveu {count} mensagens sobre {about}, a última: “{excerpt}”",
+  // Mensagens M5a: notificações neste dispositivo, caixa de saída
+  "push.title": "Notificações neste dispositivo",
+  "push.hint": "Receba uma notificação neste telemóvel ou computador quando algo precisa de si: mensagens, perguntas, chamadas de equipa, novidades dos seus eventos. Organizações silenciadas ficam em silêncio, como no resumo por email.",
+  "push.onNow": "As notificações estão ativas neste dispositivo.",
+  "push.denied": "As notificações do AVX estão bloqueadas neste navegador. Permita-as nas definições do site no navegador e tente novamente.",
+  "push.failed": "Não foi possível alterar as notificações: {reason}",
+  "push.test": "Enviar um teste",
+  "push.testNone": "Nenhum dispositivo a recebeu. Desative e volte a ativar as notificações.",
+  "push.installFirst": "No iPhone e iPad, adicione primeiro o AVX ao ecrã principal (Partilhar → Adicionar ao ecrã principal) e abra-o a partir daí; depois ative as notificações.",
+  "push.unsupported": "Este navegador não consegue mostrar notificações do AVX.",
+  "chat.outbox.waiting": "À espera de ligação",
+  "chat.outbox.cancel": "Não enviar",
+  "chat.outbox.needsConnection": "Ficheiros, cartões e avisos precisam de ligação. As mensagens de texto ficam guardadas e são enviadas quando voltar a ter rede.",
+  "chat.outbox.failed": "Não foi possível enviar uma mensagem escrita sem rede (pode já não estar nesta conversa).",
 }

@@ -52,6 +52,7 @@ Use your second email address as a crew member. Each line is a few minutes. New 
 | T13 | **Messages M3:** as admin, create an organisation channel ("Everyone", then "Only admins write"); send an announcement and confirm it from the second account; pin a message; open a department chip in a gig's Chat (as crew you only see your own function); search for a word; save a message and find it under Saved | M3 (0.23.0) |
 | T14 | **Messages M4a:** ask the second account if they're available (Crew → a clash → Ask) and answer from their Messages; send a crew call for a position to the second account and accept it there (they join the gig); open the call sheet and "Send to the crew", then confirm from the second account; add two schedule items and see one note in the gig's chat; open "Team conversation" on an item, a repair and a subrental | M4a (0.24.0) |
 | T15 | **Messages M4b:** send a quote to your own second email and write from the quote's page (signed out, or in a private window); answer from the quote's Summary tab; make a supplier link on a subrental, open it in a private window, write, and answer from the subrental; make a new link and check the old one stops working | M4b (0.25.0) |
+| T16 | **Messages M5a:** on your phone (iPhone: add AVX to the home screen first) turn on Account → Notifications on this device and "Send a test"; lock the phone and send it a message from the second account; tap the notification. Then turn on airplane mode, write a message, turn it off and see it sent | M5a (0.26.0) |
 
 ## 3. Decisions still open
 

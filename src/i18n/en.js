@@ -1745,4 +1745,18 @@ export default {
   "supplierPage.contact": "Contact {org}:",
   "notif.guest": "{guest} wrote about {about}: “{excerpt}”",
   "notif.guestMany": "{guest} wrote {count} messages about {about}, latest: “{excerpt}”",
+  // Messaging M5a: notifications on this device, outbox
+  "push.title": "Notifications on this device",
+  "push.hint": "Get a notification on this phone or computer when something needs you: messages, questions, crew calls, updates on your gigs. Muted organisations stay quiet, as in the email summary.",
+  "push.onNow": "Notifications are on for this device.",
+  "push.denied": "Notifications are blocked for AVX in this browser. Allow them in the browser’s site settings, then try again.",
+  "push.failed": "Couldn’t change notifications: {reason}",
+  "push.test": "Send a test",
+  "push.testNone": "No device got it. Turn notifications off and on again.",
+  "push.installFirst": "On iPhone and iPad, add AVX to the home screen first (Share → Add to Home Screen) and open it from there, then turn notifications on.",
+  "push.unsupported": "This browser can’t show notifications from AVX.",
+  "chat.outbox.waiting": "Waiting for a connection",
+  "chat.outbox.cancel": "Don’t send",
+  "chat.outbox.needsConnection": "Files, cards and announcements need a connection. Text messages are kept and sent when you’re back online.",
+  "chat.outbox.failed": "A message written offline couldn’t be sent (you may no longer be in this conversation).",
 }
