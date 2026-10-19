@@ -29,8 +29,9 @@ function Privacy() {
         <li><strong>Usage counts:</strong> how many times each screen or feature is used per day, across everyone. These counts contain no name, email, account id, IP address or device id, so they can't be linked to you.</li>
         <li><strong>Quote recipients:</strong> if a company sends you a quote through {APP_NAME}, we store the contact details they entered and, if you answer, your name, your message and when you answered.</li>
         <li><strong>Clients and suppliers writing through a link:</strong> if you write to a company from a quote's page or from a subrental link they sent you, we store the name you type and your messages. Only that company's admins and members see them. They're deleted when the company deletes the quote or subrental, or its organisation.</li>
+        <li><strong>Notifications on your devices:</strong> if you turn them on, we store for each phone or computer the address its browser's push service gave it, the keys that encrypt notifications for it and a device name (such as "Chrome · Android"). Turning them off, or signing out on that device, stops them.</li>
       </ul>
-      <p>We don't use advertising, tracking cookies or analytics profiles. Your browser stores a sign-in token locally so you stay signed in — this is strictly necessary for the service.</p>
+      <p>We don't use advertising, tracking cookies or analytics profiles. Your browser stores a sign-in token locally so you stay signed in — this is strictly necessary for the service. Messages you write without a connection are kept in your browser until they're sent; signing out removes them.</p>
 
       <h2>Why we use it</h2>
       <ul>
@@ -44,6 +45,7 @@ function Privacy() {
         <li><strong>Supabase</strong> — database, sign-in and file storage, hosted in Zurich, Switzerland (recognised by the EU as providing adequate protection).</li>
         <li><strong>Vercel</strong> — serves the app's web pages; may process your IP address in its global network under EU Standard Contractual Clauses.</li>
         <li><strong>Brevo</strong> (Sendinblue SAS, France, EU) — sends our emails: account emails, invitations, the daily summary and quotes. It receives the recipient's email address and the email's content.</li>
+        <li><strong>Your browser's push service</strong> (Google for Chrome and Android, Apple for Safari and iPhone, Mozilla for Firefox, Microsoft for Edge) — only if you turn on notifications on a device: it carries each notification to that device. The text is encrypted for your device, so the push service can't read it.</li>
         {SENTRY_DSN && <li><strong>Sentry</strong> — receives error reports (no file contents, no IP address; you are identified only by an internal id).</li>}
       </ul>
       <p>We don't sell your data or share it with anyone else, except where the law requires it.</p>

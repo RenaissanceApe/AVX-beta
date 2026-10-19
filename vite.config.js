@@ -20,6 +20,8 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/assets\//],
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        // Push notifications: shown and opened by public/push-sw.js
+        importScripts: ['push-sw.js'],
       },
     }),
   ],

@@ -1,6 +1,6 @@
 # Messaging: plan
 
-Status: **M1 (0.21.0), M2 (0.22.0), M3 (0.23.0), M4a (0.24.0) and M4b (0.25.0) built**; M5–M6 planned. A project of
+Status: **M1 (0.21.0), M2 (0.22.0), M3 (0.23.0), M4a (0.24.0), M4b (0.25.0) and M5a (0.26.0) built**; M5b and M6 planned. A project of
 its own, built in stages M1–M6. The aim: one messaging system that works wherever people need
 to talk about something in AVX (a gig, a person's availability, a file, a quote, a piece of
 equipment), instead of WhatsApp groups that lose the context.
@@ -103,7 +103,7 @@ Attachments count against file storage, like gig files.
 | **M2** | Attachments, object cards, mentions (people and groups), reactions, edit/delete |
 | **M3** | Organisation and department channels, pinned, announcements with acknowledgement, search |
 | **M4** | Integrations: availability requests, crew calls, call sheet, quotes with clients, equipment threads |
-| **M5** | Push notifications, reply by email, offline outbox |
+| **M5** | Push notifications, offline outbox (M5a); reply by email, emailing clients and suppliers (M5b) |
 | **M6** | Moderation, retention, export, rate limits |
 
 ## Decisions (settled before M1)
@@ -244,4 +244,28 @@ conversations with a quote's client and a subrental's supplier, who have no acco
   covers the M4a team conversations).
 - Not yet: emailing the client or supplier when you answer (they see it when they open the page
   again; tell them in the quote email). Reply by email is part of M5. Files in guest conversations.
+
+## What M5a built (0.26.0)
+
+- Migration `20261106000000_push.sql` (turns on pg_net if needed). Tests `supabase/tests/push.sql`.
+- **Push notifications on this device** (Account → "Notifications on this device"): each phone or
+  computer turns them on for itself. On iPhone and iPad, only once AVX is added to the home screen
+  (Apple's rule); the setting says so. A "Send a test" button checks it works.
+- How it's sent: a trigger on `notifications` (a new one, or a grouped one counting up) asks the
+  `send-push` function to deliver it, through pg_net, only if the person has a device turned on.
+  `send-push` uses the same wording, mutes and links as the email summary
+  (`supabase/functions/_shared/notification-text.ts`, now shared by both). Only notifications from
+  the last 10 minutes, at most once every 2 minutes each, so a busy conversation doesn't buzz on
+  every message; one notification per conversation on the phone, the newest replacing the last.
+  Tapping it opens that page. Devices the push service no longer knows are turned off.
+- The push keys (VAPID) are made by `send-push` on first use and kept in `push_keys`, which no
+  user can read: nothing to configure. Signing out turns that device off.
+- **Offline outbox:** a text message written without a connection waits on the device ("Waiting
+  for a connection", with a cross to cancel it) and is sent as soon as the connection is back,
+  in order. Each message gets its id on the device, so it can't be posted twice. Files, cards and
+  announcements need a connection. If the server refuses one (e.g. you left the gig meanwhile),
+  you're told and it's dropped. Signing out removes what's waiting.
+- Not yet (M5b): reply by email to the summary, and emailing a client or supplier when you answer
+  them. Both need inbound email on your domain (DNS records), so they wait for that decision.
+  Quick replies from the notification itself are left for the phone app, if it's built.
 

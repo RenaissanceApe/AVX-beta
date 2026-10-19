@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { WorkspaceProvider, useWorkspace } from './lib/WorkspaceContext'
 import { homePath } from './lib/nav'
+import { flushOutbox } from './lib/outbox'
 import { ToastProvider } from './lib/ToastContext'
 import { I18nProvider, t } from './i18n'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -67,6 +68,14 @@ function AppRoutes() {
     const event = user && !mfaRequired ? screenEvent(location.pathname, location.search) : null
     if (event) track(event)
   }, [location.pathname, location.search, user, mfaRequired])
+  // Messages written offline go out when the connection comes back (lib/outbox)
+  useEffect(() => {
+    if (!user || mfaRequired) return
+    const flush = () => flushOutbox(user.id)
+    flush()
+    window.addEventListener('online', flush)
+    return () => window.removeEventListener('online', flush)
+  }, [user, mfaRequired])
   if (loading) return <Spinner />
 
   // People with an authenticator app give their code before anything else (public pages excepted)

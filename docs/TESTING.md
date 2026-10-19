@@ -57,6 +57,6 @@ Authentication → Users.
 
 `supabase/tests/rls_smoke.sql`, `supabase/tests/quotes_rls.sql`, `supabase/tests/phase4b_rls.sql`,
 `supabase/tests/phase4c_rls.sql`, `supabase/tests/mfa_rls.sql`, `supabase/tests/usage.sql`,
-`supabase/tests/my_gig_companies.sql`, `supabase/tests/reservations_people.sql`, `supabase/tests/inventory.sql`, `supabase/tests/equipment_availability.sql`, `supabase/tests/warehouse.sql`, `supabase/tests/kits.sql`, `supabase/tests/maintenance.sql`, `supabase/tests/subrentals.sql`, `supabase/tests/network.sql`, `supabase/tests/messaging.sql`, `supabase/tests/messaging_m2.sql`, `supabase/tests/messaging_m3.sql`, `supabase/tests/messaging_m4.sql`, `supabase/tests/messaging_m4b.sql` and `supabase/tests/account_deletion.sql`
+`supabase/tests/my_gig_companies.sql`, `supabase/tests/reservations_people.sql`, `supabase/tests/inventory.sql`, `supabase/tests/equipment_availability.sql`, `supabase/tests/warehouse.sql`, `supabase/tests/kits.sql`, `supabase/tests/maintenance.sql`, `supabase/tests/subrentals.sql`, `supabase/tests/network.sql`, `supabase/tests/messaging.sql`, `supabase/tests/messaging_m2.sql`, `supabase/tests/messaging_m3.sql`, `supabase/tests/messaging_m4.sql`, `supabase/tests/messaging_m4b.sql`, `supabase/tests/push.sql` and `supabase/tests/account_deletion.sql`
 check the access rules directly in SQL. Paste each into the **test project's** SQL editor; each runs inside a transaction that is rolled
 back and ends with `ALL … CHECKS PASSED`.

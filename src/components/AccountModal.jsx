@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X, Loader2, LogOut, CheckCircle, Download, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { removeGigFiles } from '../lib/storage'
+import PushSettings from './PushSettings'
 import { useI18n, LANGUAGES } from '../i18n'
 import AvailabilitySection from './AvailabilitySection'
 import TwoStepSection from './TwoStepSection'
@@ -240,6 +241,10 @@ export default function AccountModal({ onClose }) {
               <span style={{ display: 'block', color: '#4A6070', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.emailDigestHint')}</span>
             </span>
           </label>
+        </div>
+
+        <div style={section}>
+          <PushSettings />
         </div>
 
         <div style={section}>
