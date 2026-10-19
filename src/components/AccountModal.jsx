@@ -3,6 +3,7 @@ import { X, Loader2, LogOut, CheckCircle, Download, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { removeGigFiles } from '../lib/storage'
 import PushSettings from './PushSettings'
+import BlockedPeople from './BlockedPeople'
 import { useI18n, LANGUAGES } from '../i18n'
 import AvailabilitySection from './AvailabilitySection'
 import TwoStepSection from './TwoStepSection'
@@ -246,6 +247,8 @@ export default function AccountModal({ onClose }) {
         <div style={section}>
           <PushSettings />
         </div>
+
+        <BlockedPeople style={section} />
 
         <div style={section}>
           <span style={label}>{t('account.yourData')}</span>

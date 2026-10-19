@@ -59,6 +59,14 @@ describe('notifications', () => {
       .toBe('Marta wrote 3 messages about Gala dinner, latest: “Thanks”')
     expect(notificationLink({ kind: 'guest_message', org_id: 'o1', details: { conversation_id: 'c2' } })).toBe('/messages/c2')
     expect(countsAsUnread({ kind: 'guest_message', org_id: 'o1' }, new Set(['o1']))).toBe(true)
+    // Reports and removals (M6a): open the message; never hidden by a muted organisation
+    expect(describeNotification({ kind: 'message_report', details: { where: 'NOS', reason: 'spam', conversation_id: 'c3', message_id: 'm9' } }, nameOf))
+      .toBe('A message in NOS was reported (Spam). Remove it or keep it')
+    expect(notificationLink({ kind: 'message_report', details: { conversation_id: 'c3', message_id: 'm9' } })).toBe('/messages/c3?m=m9')
+    expect(describeNotification({ kind: 'message_removed', details: { where: 'NOS', excerpt: 'Cheap watches' } }, nameOf))
+      .toBe('A moderator removed your message in NOS: “Cheap watches”')
+    expect(notificationLink({ kind: 'message_removed', gig_id: 'g1', details: { conversation_id: 'c3' } })).toBe('/messages/c3')
+    expect(countsAsUnread({ kind: 'message_report', org_id: 'o1' }, new Set(['o1']))).toBe(true)
   })
 })
 

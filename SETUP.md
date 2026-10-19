@@ -54,6 +54,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 32. `supabase/migrations/20261105000000_guest_conversations.sql` — conversations with clients and suppliers (**run by hand**: it replaces a rule)
 33. `supabase/migrations/20261105000001_messaging_m4b.sql` — client conversation on a quote's page, supplier links
 34. `supabase/migrations/20261106000000_push.sql` — push notifications (turns on pg_net)
+35. `supabase/migrations/20261107000000_messaging_m6a.sql` — report messages, moderators, blocking, rate limits
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.

@@ -47,7 +47,8 @@ export async function flushOutbox(userId) {
       const { data, error } = await supabase.from('messages').insert({
         id: m.id, conversation_id: m.conversation_id, body: m.body, reply_to: m.reply_to || null, mentions: m.mentions || [],
       }).select().single()
-      if (error && isNetworkError(error)) break
+      // No connection, or too many at once (54000, M6a): the rest waits for the next try
+      if (error && (isNetworkError(error) || error.code === '54000')) break
       if (error && error.code !== '23505') {
         logger.error('outbox', error, { step: 'send' })
         failed.push(m)
