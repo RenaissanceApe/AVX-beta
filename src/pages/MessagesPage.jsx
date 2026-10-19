@@ -38,6 +38,7 @@ export default function MessagesPage() {
   const narrow = useNarrow()
   const { conversations, reload } = useConversations()
   const to = params.get('to')
+  const focusId = params.get('m')
 
   useEffect(() => {
     if (!to) return
@@ -54,7 +55,7 @@ export default function MessagesPage() {
   const list = (
     <ConversationList conversations={conversations} openId={id} />
   )
-  const open = id ? <OpenConversation key={id} id={id} summary={conversations?.find(c => c.id === id)} onMuted={reload} back={narrow} /> : null
+  const open = id ? <OpenConversation key={id} id={id} focusId={focusId} summary={conversations?.find(c => c.id === id)} onMuted={reload} back={narrow} /> : null
 
   return (
     <AppShell>
@@ -116,7 +117,7 @@ function ConversationList({ conversations, openId }) {
 
 // The open conversation with its header. A conversation that has no messages yet isn't in the
 // list, so its title is looked up here.
-function OpenConversation({ id, summary, onMuted, back }) {
+function OpenConversation({ id, focusId, summary, onMuted, back }) {
   const { user } = useAuth()
   const { notify } = useToast()
   const [info, setInfo] = useState(null)
@@ -171,7 +172,7 @@ function OpenConversation({ id, summary, onMuted, back }) {
         <button onClick={toggleMute} aria-pressed={muted} aria-label={muted ? t('chat.unmute') : t('chat.mute')} title={muted ? t('chat.unmute') : t('chat.mute')}
           style={{ ...iconBtn, color: muted ? colors.muted : colors.soft }}>{muted ? <BellOff size={16} /> : <Bell size={16} />}</button>
       </div>
-      <Conversation conversationId={id} canPost={info.canPost} height={back ? 'calc(100dvh - 210px)' : '65vh'}
+      <Conversation conversationId={id} focusId={focusId} canPost={info.canPost} height={back ? 'calc(100dvh - 210px)' : '65vh'}
         emptyText={info.kind === 'direct' ? t('chat.emptyDirect', { name: info.title }) : undefined} />
     </section>
   )

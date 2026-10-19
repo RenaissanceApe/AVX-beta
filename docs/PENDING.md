@@ -10,8 +10,13 @@ created, and nobody has turned on two-step sign-in. So inventory, warehouse scan
 maintenance, subrentals, reports, the network picker and messaging have **never been used with
 real data**. They pass their automated checks, but none of it has been tried by a person.
 
-Already done (no action): company details with NIF, address and default terms; Brevo secrets;
-daily database backups (running); daily email summary (running, nothing to send yet).
+Already done (no action): company details with NIF, address and default terms; Brevo secrets and
+the domain authenticated in Brevo (SPF, DKIM, DMARC); daily database backups (running); daily
+email summary (running, nothing to send yet).
+
+**How this list is used (agreed 2026-10-19):** the tests in section 2 are run **once, at the end of
+the build**, not after each PR. Each new phase adds its lines to section 2, so the list is complete
+when building finishes.
 
 ## 1. Foundations: without these the new features can't be used
 
@@ -21,15 +26,14 @@ daily database backups (running); daily email summary (running, nothing to send 
 | F2 | **Create your locations**: the warehouse, each van | Inventory → Locations | Stock has to sit somewhere |
 | F3 | **Set prep and return days** (both are 0 now). E.g. 1 day before and 1 after each gig | Organisation settings | Otherwise gear is "free" on the day before a gig, when it's actually being prepped |
 | F4 | **Add serial-numbered units** for gear you track one by one (speakers, desks, projectors) and **print QR labels** | Item page → Add units; Inventory → QR labels | Scanning out/in only works with labels |
-| F5 | **Turn on two-step sign-in** for your own admin account | Account | Recommended for admins; nobody has it on yet |
-| F6 | **Vercel Pro ($20/month)** before AVX is used for paid work: the free Hobby plan doesn't allow commercial use | vercel.com → Settings → Billing | Terms of the hosting plan |
-| F7 | **Custom domain + email records** (SPF, DKIM, DMARC) and **click tracking off** in Brevo | Vercel domains; your DNS; Brevo | Emails landing in spam, the "not secure" link warning |
-| F8 | **Switch on the signed-in browser tests**: in the "AVX test" project, run the two SQL files and change the sign-in settings, then add the GitHub variables `TEST_SUPABASE_URL`, `TEST_SUPABASE_ANON_KEY` and `E2E_AUTH_ENABLED=true` (steps in [TESTING.md](TESTING.md)) | Supabase test project; GitHub → Settings → Variables | They've been **skipped on every PR** so far, so sign-up, invites and uploads aren't tested automatically |
+| F5 | **Turn on two-step sign-in** for your own admin account | Tap your initials (top right) → Account → "Two-step sign-in" → **Turn on**; scan the QR code with an authenticator app and type the 6-digit code | Recommended for admins; nobody has it on yet |
+| F7 | Optional: **click tracking off** in Brevo, and a custom domain for the app itself (now avx-beta.vercel.app) | Brevo settings; Vercel → Domains | The "not secure" link warning; a nicer address |
+| F8 | **Switch on the signed-in browser tests.** The SQL part is already done. Left: (a) Supabase "AVX test" → Authentication → Sign In / Providers → Email: turn off **Confirm email**; URL Configuration: Site URL `http://localhost:4173` and redirect URL `http://localhost:4173/**`. (b) GitHub repo → Settings → Secrets and variables → Actions → **Variables** tab → add `TEST_SUPABASE_URL` = `https://idvebeadnrxudfgortzg.supabase.co`, `TEST_SUPABASE_ANON_KEY` = the test project's anon key (Project Settings → API), `E2E_AUTH_ENABLED` = `true` | Supabase test project; GitHub settings | They've been **skipped on every PR** so far, so sign-up, invites and uploads aren't tested automatically |
 | F9 | Optional: `SUPABASE_SERVICE_ROLE_KEY` GitHub secret to back up uploaded files, not just the database ([BACKUPS.md](BACKUPS.md)) | GitHub → Secrets | Files aren't in the backup today |
 
-## 2. Tests only you can do (two accounts, real phones)
+## 2. Final test list (run once, at the end of the build)
 
-Use your second email address as a crew member. Each line is a few minutes.
+Use your second email address as a crew member. Each line is a few minutes. New phases add lines here.
 
 | # | Try | Built in |
 |---|---|---|
@@ -44,6 +48,7 @@ Use your second email address as a crew member. Each line is a few minutes.
 | T9 | **Cross-hire:** only if a second company joins: link codes and send a hire request | I6 |
 | T10 | **Reports** after a few gigs with gear: do the numbers look right to you? | I7 |
 | T11 | **Delete a test gig** (two-step warning) to confirm deletion still works with equipment and messages attached | 4b |
+| T12 | **Messages M2:** in a gig chat attach a photo and a PDF, share a schedule item, @mention the second account (and, as manager, @crew), react, edit a message and look at its earlier version, remove one, copy a message link and open it | M2 (0.22.0) |
 
 ## 3. Decisions still open
 
@@ -62,9 +67,9 @@ Each has a default already built; nothing is blocked. Say "keep" or "change".
 | D9 | Lines typed by hand in a quote (not from the catalogue) **aren't checked for availability** | Skipped, and the check says how many | I2 |
 | D10 | Organisation **time zone**: everything is read as Lisbon time; needed once a company abroad joins (the job board is international) | Lisbon only | 5a |
 | D11 | **Phone app** (wrapper around this app vs. the installed web app) | Planned for the end of the build, after T5 shows how scanning behaves | I3 |
-| D12 | **Order of the next work:** help & inclusion ([HELP.md](HELP.md)), switching from other tools ([SWITCHING.md](SWITCHING.md)), messaging M2–M6, crew network & job board | See the roadmap | now |
 
 ## 4. Before a public launch (already in the roadmap)
 
+- Vercel Pro ($20/month): the free plan doesn't allow commercial use. Deferred while the beta runs.
 - Full terms of use, then a legal review of the privacy notice and terms.
 - Supabase Pro (daily backups you can restore, leaked-password check) once real companies use it.

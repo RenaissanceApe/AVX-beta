@@ -45,6 +45,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 23. `supabase/migrations/20261030000000_subrentals.sql` — suppliers, subrentals, cross-hire between organisations
 24. `supabase/migrations/20261031000000_network.sql` — "your network" picker and who can find you
 25. `supabase/migrations/20261101000000_messaging.sql` — messages: direct conversations and gig channels
+26. `supabase/migrations/20261102000000_messaging_m2.sql` — message files, cards, mentions, reactions, edits
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.

@@ -139,7 +139,7 @@ acknowledgement, crew calls, client and supplier threads, push, moderation (stag
 | Stage | Scope |
 |---|---|
 | ✅ M1 · Direct and gig conversations (0.21.0) | Messages page, a Chat tab on every gig (status, date and venue changes posted in it), replies, unread counts, mute, live delivery, bell + email summary, "Message" buttons on crew and organisation members |
-| M2 · Richer messages | Attachments, object cards, mentions, reactions, edit/delete |
+| ✅ M2 · Richer messages (0.22.0) | Files with previews, cards for gigs, schedule items, files, quotes and equipment, @mentions of people and groups, reactions, edit with history, remove, link to a message |
 | M3 · Organisation channels | Organisation and department channels, pinned, announcements with acknowledgement, search |
 | M4 · Integrations | Availability requests, crew calls, call sheet, client and supplier threads |
 | M5 · Reach | Push notifications, reply by email, offline outbox |
@@ -157,8 +157,10 @@ Import wizard (CSV/Excel, column matching with saved presets, preview, dry run, 
 directory, crew and upcoming jobs, a Rentman preset built from real exports, and an organisation
 export. File import only, no live integration. Stages S1–S5 in [docs/SWITCHING.md](docs/SWITCHING.md).
 
-**Suggested order from here:** H1 (small, and it sets the rule for everything after) → S1 →
-messaging M2 → H2 → S2–S3 → the rest. To confirm (see [docs/PENDING.md](docs/PENDING.md), D12).
+**Order (decided 2026-10-19):** finish messaging (M2–M6) → help and inclusion (H1 first) → switching
+(S1 onwards; the Rentman preset is built by reading the field structure of a mock Rentman account
+made for this) → crew network and job board. Final testing happens once, at the end, from
+[docs/PENDING.md](docs/PENDING.md).
 
 ## Phase 7 — Crew network and job board (after messaging)
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { linkify, layoutMessages, mergeMessages, totalUnread } from './messages'
+import { linkify, layoutMessages, mergeMessages, totalUnread, autoBody, isAutoBody, parseMentions, mentionQuery, summarizeReactions, formatSize, messageFilePath, messageLink, dayRange } from './messages'
 
 describe('messages', () => {
   it('turns web addresses into links and leaves the rest as text', () => {
@@ -26,5 +26,49 @@ describe('messages', () => {
   })
   it('counts unread, leaving out muted conversations', () => {
     expect(totalUnread([{ unread: 2 }, { unread: 5, muted: true }, { unread: 1 }])).toBe(3)
+  })
+  it('writes a short text for messages that are only files or a card, and spots it', () => {
+    expect(autoBody({ files: [{ name: 'rider.pdf' }, { name: 'plot.png' }] })).toBe('📎 rider.pdf, plot.png')
+    expect(autoBody({ cardLabel: 'Quote' })).toBe('🔗 Quote')
+    expect(autoBody({})).toBe('')
+    expect(isAutoBody({ body: '📎 rider.pdf', attachments: [{ path: 'x' }] })).toBe(true)
+    expect(isAutoBody({ body: '📎 rider.pdf', attachments: [] })).toBe(false)
+    expect(isAutoBody({ body: 'see this', payload: { card: { type: 'gig' } } })).toBe(false)
+  })
+  it('finds mentions among the people and groups offered', () => {
+    const c = [
+      { label: 'Ana', mention: { user: 'a' } }, { label: 'Ana Rita', mention: { user: 'ar' } },
+      { label: 'Sound', mention: { group: 'fn:sound' } }, { label: 'crew', mention: { group: 'crew' } },
+    ]
+    expect(parseMentions('@Ana Rita and @sound, check', c)).toEqual([{ user: 'ar' }, { group: 'fn:sound' }])
+    expect(parseMentions('hi @Ana', c)).toEqual([{ user: 'a' }])
+    expect(parseMentions('mail ana@Anabela.pt @crewing', c)).toEqual([])
+    expect(parseMentions('@crew @crew', c)).toEqual([{ group: 'crew' }])
+  })
+  it('knows the mention being typed', () => {
+    expect(mentionQuery('hello @an', 9)).toEqual({ query: 'an', start: 6 })
+    expect(mentionQuery('@', 1)).toEqual({ query: '', start: 0 })
+    expect(mentionQuery('mail@x', 6)).toBe(null)
+  })
+  it('sums reactions in a fixed order', () => {
+    const rows = [{ emoji: '✅', user_id: 'a' }, { emoji: '👍', user_id: 'b' }, { emoji: '👍', user_id: 'a' }, { emoji: '😂', user_id: 'b', active: false }]
+    expect(summarizeReactions(rows, 'a')).toEqual([
+      { emoji: '👍', count: 2, mine: true, users: ['b', 'a'] }, { emoji: '✅', count: 1, mine: true, users: ['a'] },
+    ])
+  })
+  it('writes plain date ranges', () => {
+    const f = (d, p) => (p === 'd' ? String(Number(d.slice(8))) : `${Number(d.slice(8))} ${d.slice(5, 7)}`)
+    expect(dayRange('2026-11-13', '2026-11-13', f)).toBe('13 11')
+    expect(dayRange('2026-11-13', null, f)).toBe('13 11')
+    expect(dayRange('2026-11-13', '2026-11-15', f)).toBe('13–15 11')
+    expect(dayRange('2026-11-30', '2026-12-02', f)).toBe('30 11–2 12')
+  })
+  it('formats sizes, file paths and links', () => {
+    expect(formatSize(900)).toBe('900 B')
+    expect(formatSize(2048)).toBe('2 KB')
+    expect(formatSize(3.5 * 1024 * 1024)).toBe('3.5 MB')
+    expect(messageFilePath('c1', 'Rider final (v2).pdf', 'r1')).toBe('c1/r1/Rider_final_v2_.pdf')
+    expect(messageFilePath('c1', 'Plano ç ã.png', 'r1')).toBe('c1/r1/Plano_c_a.png')
+    expect(messageLink('https://x.app', 'c1', 'm1')).toBe('https://x.app/messages/c1?m=m1')
   })
 })

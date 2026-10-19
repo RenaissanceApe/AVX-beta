@@ -1,6 +1,6 @@
 # Messaging: plan
 
-Status: **M1 built (0.21.0)**; M2–M6 planned. A project of
+Status: **M1 (0.21.0) and M2 (0.22.0) built**; M3–M6 planned. A project of
 its own, built in stages M1–M6. The aim: one messaging system that works wherever people need
 to talk about something in AVX (a gig, a person's availability, a file, a quote, a piece of
 equipment), instead of WhatsApp groups that lose the context.
@@ -130,4 +130,26 @@ Attachments count against file storage, like gig files.
 - Functions `start_direct`, `gig_conversation`, `my_conversations`, `read_conversation`.
 - UI: `/messages` (list and conversation, one at a time on phones), the gig Chat tab, a messages
   button with an unread count in the top bar, "Message" buttons on crew rows and organisation members.
+
+## What M2 built (0.22.0)
+
+- Migration `20261102000000_messaging_m2.sql`, tests `supabase/tests/messaging_m2.sql`.
+- **Files:** up to 10 per message, 50 MB each, in the private `message-files` bucket
+  (`<conversation>/<random>/<name>`). Whoever can post uploads; whoever can read the conversation
+  downloads, but only files a message still shows. Pictures show as previews.
+- **Cards:** one gig, schedule item, file, quote or equipment item per message. The author can only
+  share what they can see; readers who can't open it see "… you can't open", never its contents.
+- **@mentions** in gig channels: people on the gig, and (from the gig's managers only) the groups
+  everyone, crew, managers and each function ("@Sound"). Mentioned people get a notification
+  (grouped per conversation like other messages, kind `message`, `details.why = 'mention'`).
+- **Reactions** from a fixed set (👍 ❤️ 😂 😮 🙏 ✅ 👀), switched on and off, live.
+- **Edit** your own messages; earlier versions are kept and visible to the conversation ("edited").
+- **Remove** your own messages: text, files, card, mentions, earlier versions and reactions are
+  cleared; a "Message removed" marker stays.
+- **Copy link** to a message (`/messages/<conversation>?m=<message>`); opening it jumps there.
+- Functions `edit_message`, `remove_message`, `react`.
+- Why a message always has text: changing the M1 rule would need a destructive statement, so a
+  message that is only files or a card gets a short automatic text ("📎 rider.pdf"), hidden next
+  to its files or card and used in notifications and the email summary.
+- Not yet: files of removed messages stay in storage (unreachable) until the retention work in M6.
 

@@ -76,12 +76,9 @@ week, and import again before switching for good.
 Live integrations (syncing both ways with another tool) stay out of scope. A public API for
 integrations is a later, separate decision.
 
-## Questions to settle before S1
+## Decided (2026-10-19)
 
-1. **Sample files.** Can you export from Rentman (or get from a friendly company) one file of
-   each kind: equipment, serial numbers, contacts, crew, projects? Your own data is fine; it's
-   only used to build the preset and isn't stored in the repository.
-2. This session can also see a **Rentman connection**. If it's your account, reading its field
-   structure (not copying data) would help build the Rentman preset. Only with your go-ahead,
-   since we agreed no Rentman integration.
-3. Which tools do the companies you want to win use most, after Rentman?
+- The Rentman preset is built from a **mock Rentman account** the owner created for this, whose
+  field structure Claude may read and write freely. Sample export files are only needed if that
+  route doesn't give enough.
+- Order: after messaging and after help stage H1.
