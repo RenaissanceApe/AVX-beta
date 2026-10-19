@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Printer, Loader2 } from 'lucide-react'
+import { ArrowLeft, Printer, Loader2, Megaphone } from 'lucide-react'
 import { useI18n } from '../i18n'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import OfflineBanner from '../components/OfflineBanner'
 import { supabase } from '../lib/supabase'
-import { logger } from '../lib/logger'
+import { logger, userMessage } from '../lib/logger'
+import { useAuth } from '../lib/AuthContext'
+import { useToast } from '../lib/ToastContext'
+import { track } from '../lib/usage'
 import { groupByDay, shortTime, sortCrewForCallSheet } from '../lib/schedule'
 
 // Printable call sheet: gig details, schedule by day, crew with call times and phones.
@@ -15,7 +18,11 @@ export default function CallSheetPage() {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [error, setError] = useState(false)
+  const [orgRole, setOrgRole] = useState(null)
+  const [publishing, setPublishing] = useState(false)
   const { t, fmt } = useI18n()
+  const { user } = useAuth()
+  const { notify } = useToast()
 
   useEffect(() => {
     async function load() {
@@ -46,9 +53,24 @@ export default function CallSheetPage() {
       }
       setData(sheet)
       saveSnapshot(`callsheet.${id}`, sheet)
+      if (gigRes.data.org_id) {
+        const { data: om } = await supabase.from('org_members').select('role').eq('org_id', gigRes.data.org_id).eq('user_id', user.id).maybeSingle()
+        setOrgRole(om?.role || null)
+      }
     }
     load()
-  }, [id])
+  }, [id, user.id])
+
+  // Post it in the gig's chat, asking everyone to confirm they've read it (docs/MESSAGING.md, M4)
+  async function publish() {
+    if (!window.confirm(t('callsheet.publishConfirm'))) return
+    setPublishing(true)
+    const { error: err } = await supabase.rpc('publish_call_sheet', { p_gig: id, p_body: t('callsheet.publishBody', { gig: data.gig.name }) })
+    setPublishing(false)
+    if (err) { logger.error('callsheet', err, { step: 'publish' }); return notify(userMessage(err), 'error') }
+    track('callsheet:publish')
+    notify(t('callsheet.published'), 'success')
+  }
 
   if (error) return (
     <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>
@@ -64,6 +86,8 @@ export default function CallSheetPage() {
   const { gig, schedule, members, profiles } = data
   const nameOf = uid => profiles[uid]?.full_name || t('common.unknown')
   const crew = sortCrewForCallSheet(members, nameOf)
+  // Mirrors private.can_manage_gig
+  const isPM = !data.savedAt && (gig.created_by === user.id || orgRole === 'admin' || members.some(m => m.user_id === user.id && m.role === 'pm'))
   const dates = gig.start_date
     ? fmt(gig.start_date, 'd MMM yyyy') + (gig.end_date && gig.end_date !== gig.start_date ? ` – ${fmt(gig.end_date, 'd MMM yyyy')}` : '')
     : t('callsheet.datesTbc')
@@ -92,9 +116,16 @@ export default function CallSheetPage() {
       <div className="toolbar-offline"><OfflineBanner savedAt={data.savedAt} /></div>
       <div className="toolbar">
         <button onClick={() => navigate(`/gig/${id}`)} style={toolbarBtn}><ArrowLeft size={14} /> {t('callsheet.backToGig')}</button>
-        <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0FA85A', color: '#fff', border: 'none' }}>
-          <Printer size={14} /> {t('callsheet.print')}
-        </button>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {isPM && (
+            <button onClick={publish} disabled={publishing} title={t('callsheet.publishHint')} style={toolbarBtn}>
+              {publishing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Megaphone size={14} />} {t('callsheet.publish')}
+            </button>
+          )}
+          <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0FA85A', color: '#fff', border: 'none' }}>
+            <Printer size={14} /> {t('callsheet.print')}
+          </button>
+        </div>
       </div>
 
       <article className="sheet">

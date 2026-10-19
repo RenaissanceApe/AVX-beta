@@ -50,6 +50,7 @@ Use your second email address as a crew member. Each line is a few minutes. New 
 | T11 | **Delete a test gig** (two-step warning) to confirm deletion still works with equipment and messages attached | 4b |
 | T12 | **Messages M2:** in a gig chat attach a photo and a PDF, share a schedule item, @mention the second account (and, as manager, @crew), react, edit a message and look at its earlier version, remove one, copy a message link and open it | M2 (0.22.0) |
 | T13 | **Messages M3:** as admin, create an organisation channel ("Everyone", then "Only admins write"); send an announcement and confirm it from the second account; pin a message; open a department chip in a gig's Chat (as crew you only see your own function); search for a word; save a message and find it under Saved | M3 (0.23.0) |
+| T14 | **Messages M4a:** ask the second account if they're available (Crew → a clash → Ask) and answer from their Messages; send a crew call for a position to the second account and accept it there (they join the gig); open the call sheet and "Send to the crew", then confirm from the second account; add two schedule items and see one note in the gig's chat; open "Team conversation" on an item, a repair and a subrental | M4a (0.24.0) |
 
 ## 3. Decisions still open
 

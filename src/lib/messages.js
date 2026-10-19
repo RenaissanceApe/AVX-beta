@@ -139,6 +139,15 @@ export function conversationTitle(c, t) {
   if (c.kind === 'department') return `${c.gig_name || ''} · ${departmentLabel(c.department, null, t)}`
   return c.title || ''
 }
-// Second line where it helps: the organisation of a channel
-export const conversationContext = c => (c?.kind === 'org' ? c.org_name || '' : '')
+// Second line where it helps: the organisation of a channel or of a conversation about one thing
+export const conversationContext = c => (c?.kind === 'org' || c?.kind === 'context' ? c.org_name || '' : '')
+
+// Where the thing a conversation is about lives (an item, a repair, a subrental)
+export function contextLink(c) {
+  if (c?.kind !== 'context') return null
+  if (c.context_type === 'item') return `/org/${c.org_id}/inventory/${c.context_id}`
+  if (c.context_type === 'repair') return `/org/${c.org_id}/inventory?tab=maintenance&open=${c.context_id}`
+  if (c.context_type === 'subrental') return `/org/${c.org_id}/inventory?tab=subrentals&open=${c.context_id}`
+  return null
+}
 

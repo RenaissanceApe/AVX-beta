@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Bell, BellOff, Loader2, MessageCircle, Hash, Users, Megaphone, Search, Bookmark, Plus, Settings, Archive } from 'lucide-react'
+import { ArrowLeft, Bell, BellOff, Loader2, MessageCircle, Hash, Users, Megaphone, Search, Bookmark, Plus, Settings, Archive, Package } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -8,14 +8,14 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useConversations } from '../lib/useMessages'
-import { conversationTitle, conversationContext } from '../lib/messages'
+import { conversationTitle, conversationContext, contextLink } from '../lib/messages'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import Conversation from '../components/messages/Conversation'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
 
 const spinner = <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}><Loader2 size={22} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /></div>
-const KIND_ICONS = { direct: MessageCircle, gig: Hash, department: Users, org: Megaphone }
+const KIND_ICONS = { direct: MessageCircle, gig: Hash, department: Users, org: Megaphone, context: Package }
 
 function useNarrow() {
   const query = '(max-width: 760px)'
@@ -283,7 +283,7 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
 
   async function load() {
     const { data: conv } = await supabase.from('conversations')
-      .select('id, kind, gig_id, org_id, title, department, audience, admins_post, archived_at, gigs(name), organisations(name)').eq('id', id).maybeSingle()
+      .select('id, kind, gig_id, org_id, title, department, audience, admins_post, archived_at, context_type, context_id, gigs(name), organisations(name)').eq('id', id).maybeSingle()
     if (!conv) return setMissing(true)
     let title = conversationTitle({ ...conv, gig_name: conv.gigs?.name, org_name: conv.organisations?.name }, t)
     let canPost = !conv.archived_at
@@ -295,6 +295,7 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
       const role = roleIn(conv.org_id)
       canPost = !conv.archived_at && (role === 'admin' || (!conv.admins_post && role && role !== 'viewer'))
     }
+    if (conv.kind === 'context') canPost = ['admin', 'member'].includes(roleIn(conv.org_id))
     if (conv.kind === 'direct') {
       const { data: members } = await supabase.from('conversation_members').select('user_id').eq('conversation_id', id)
       const other = members?.find(m => m.user_id !== user.id)?.user_id
@@ -326,12 +327,16 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
         <Icon size={16} color={colors.accent} />
         <span style={{ flex: 1, minWidth: 0 }}>
           <strong style={{ display: 'block', fontSize: '15px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.title}</strong>
+          {info.kind === 'context' && (
+            <span style={{ display: 'block', fontSize: '11px', color: colors.muted }}>{[t(`chat.context.kind.${info.context_type}`), info.orgName].filter(Boolean).join(' · ')}</span>
+          )}
           {info.kind === 'org' && (
             <span style={{ display: 'block', fontSize: '11px', color: colors.muted }}>
               {[info.orgName, t(`chat.audience.${info.audience}`), info.admins_post && t('chat.adminsPostShort'), info.archived_at && t('chat.archived')].filter(Boolean).join(' · ')}
             </span>
           )}
         </span>
+        {info.kind === 'context' && contextLink(info) && <Link to={contextLink(info)} style={{ fontSize: '12px', color: colors.accent, whiteSpace: 'nowrap' }}>{t(`chat.context.open.${info.context_type}`)}</Link>}
         {(info.kind === 'gig' || info.kind === 'department') && <Link to={`/gig/${info.gig_id}?tab=chat`} style={{ fontSize: '12px', color: colors.accent, whiteSpace: 'nowrap' }}>{t('chat.openGig')}</Link>}
         {info.isAdmin && <button onClick={() => setEditing(true)} aria-label={t('chat.channelSettings')} title={t('chat.channelSettings')} style={{ ...iconBtn, color: colors.soft }}><Settings size={16} /></button>}
         <button onClick={toggleMute} aria-pressed={muted} aria-label={muted ? t('chat.unmute') : t('chat.mute')} title={muted ? t('chat.unmute') : t('chat.mute')}

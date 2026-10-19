@@ -11,7 +11,7 @@ const AMBER = '#F59E0B'
 // for a gig you manage (gigId) or an organisation you administer (orgId). Shows the functions
 // they had on gigs with you, and for a gig whether they're booked elsewhere on its dates.
 // Nobody else is listed, and emails are never shown: picking someone adds them by account.
-export function NetworkPicker({ gigId, orgId, onPick }) {
+export function NetworkPicker({ gigId, orgId, onPick, hint }) {
   const { fmt } = useI18n()
   const [query, setQuery] = useState('')
   const [people, setPeople] = useState(null)
@@ -64,7 +64,7 @@ export function NetworkPicker({ gigId, orgId, onPick }) {
           ))}
         </div>
       )}
-      <p style={{ fontSize: '11px', color: colors.muted, marginTop: '6px', lineHeight: 1.5 }}>{t('network.hint')}</p>
+      <p style={{ fontSize: '11px', color: colors.muted, marginTop: '6px', lineHeight: 1.5 }}>{hint || t('network.hint')}</p>
     </div>
   )
 }

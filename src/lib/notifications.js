@@ -1,4 +1,5 @@
-import { t } from '../i18n'
+import { t, fmt } from '../i18n'
+import { dayRange } from './messages'
 import { shortTime } from './schedule'
 import { rangeText } from './clashes'
 
@@ -26,6 +27,8 @@ export function describeNotification(n, nameOf) {
     case 'damage_reported':   return t('notif.damage', { actor, item: [d.item_name, d.unit_code].filter(Boolean).join(' · '), gig: gig || '—', excerpt: d.excerpt || '' })
     case 'inspection_due':    return t('notif.inspectionDue', { count: d.count || 0, org: d.org_name || '' })
     case 'hire_request':      return t('notif.hireRequest', { org: d.from_org || '', range: d.starts_at && d.ends_at ? rangeText(d.starts_at, d.ends_at) : '—' })
+    case 'crew_call':         return t('notif.crewCall', { actor, title: d.title || '', gig, range: d.start_date ? dayRange(d.start_date, d.end_date, fmt) : '—' })
+    case 'crew_call_answer':  return t(`notif.crewCall.${d.answer === 'accepted' ? 'accepted' : 'declined'}`, { actor, title: d.title || '', gig })
     case 'announcement':      return t('notif.announcement', { actor, where: d.where || gig || '', excerpt: d.excerpt || '' })
     case 'message': {
       const key = d.why === 'mention' ? 'notif.messageMention' : d.gig_name ? 'notif.messageReply' : 'notif.messageDirect'
@@ -41,18 +44,18 @@ export function describeNotification(n, nameOf) {
 }
 
 // Kinds that are a direct question to you: they still count when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call'])
 export const countsAsUnread = (n, mutedOrgIds) => !n.read_at && (!n.org_id || !mutedOrgIds?.has(n.org_id) || DIRECT_KINDS.has(n.kind))
 
 export function notificationLink(n) {
-  if (n.kind === 'message' && n.details?.conversation_id) return `/messages/${n.details.conversation_id}`
+  if ((n.kind === 'message' || n.kind === 'crew_call') && n.details?.conversation_id) return `/messages/${n.details.conversation_id}`
   if (n.kind === 'announcement' && n.details?.conversation_id) return `/messages/${n.details.conversation_id}?m=${n.details.message_id}`
   if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `/org/${n.org_id}/inventory?tab=maintenance`
   if ((n.kind === 'hire_request' || n.kind === 'hire_answered') && n.org_id) return `/org/${n.org_id}/inventory?tab=subrentals`
   // Requests are answered in My work (you may not be on the gig yet)
   if (n.kind === 'availability_request') return '/me#requests'
-  if (n.gig_id && (n.kind === 'availability_reply' || n.kind === 'booking_changed')) return `/gig/${n.gig_id}?tab=crew`
+  if (n.gig_id && (n.kind === 'availability_reply' || n.kind === 'booking_changed' || n.kind === 'crew_call_answer')) return `/gig/${n.gig_id}?tab=crew`
   if (n.gig_id) return n.kind === 'schedule_changed' ? `/gig/${n.gig_id}?tab=schedule` : `/gig/${n.gig_id}`
   return '/dashboard'
 }

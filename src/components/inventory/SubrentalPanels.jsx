@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Plus, Trash2, Loader2, Check, X, Handshake, Truck, Inbox, Link2, Copy, RefreshCw, Archive, ArchiveRestore, Pencil } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
@@ -11,6 +11,7 @@ import { formatMoney } from '../../lib/quotes'
 import { toLocalInput } from '../gig/Booking'
 import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import ContextThread from '../messages/ContextThread'
 
 const AMBER = '#F59E0B'
 const select = { ...input, appearance: 'auto' }
@@ -182,6 +183,7 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
           </button>
         </form>
       )}
+      {subrental && <div style={{ marginTop: '14px' }}><ContextThread type="subrental" id={subrental.id} height="260px" /></div>}
     </Modal>
   )
 }
@@ -369,6 +371,8 @@ export function SubrentalsTab({ orgId, inv }) {
   const [showArchived, setShowArchived] = useState(false)
   const [editing, setEditing] = useState(null) // subrental or {}
   const [supplier, setSupplier] = useState(null) // supplier or {}
+  const [params] = useSearchParams()
+  const linkOpened = useRef(false)
 
   async function load() {
     const [s, sp] = await Promise.all([
@@ -378,6 +382,9 @@ export function SubrentalsTab({ orgId, inv }) {
     if (s.error) logger.error('subrentals', s.error, { step: 'list' })
     setSubs(s.data || [])
     setSuppliers(sp.data || [])
+    // ?open=<subrental id>: a link from its conversation
+    const linked = !linkOpened.current && params.get('open') && (s.data || []).find(x => x.id === params.get('open'))
+    if (linked) { linkOpened.current = true; setEditing(linked) }
   }
   useEffect(() => { load() }, [orgId]) // eslint-disable-line react-hooks/exhaustive-deps
   async function archive(sp) {

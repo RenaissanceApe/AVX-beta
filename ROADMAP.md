@@ -141,7 +141,8 @@ acknowledgement, crew calls, client and supplier threads, push, moderation (stag
 | ✅ M1 · Direct and gig conversations (0.21.0) | Messages page, a Chat tab on every gig (status, date and venue changes posted in it), replies, unread counts, mute, live delivery, bell + email summary, "Message" buttons on crew and organisation members |
 | ✅ M2 · Richer messages (0.22.0) | Files with previews, cards for gigs, schedule items, files, quotes and equipment, @mentions of people and groups, reactions, edit with history, remove, link to a message |
 | ✅ M3 · Channels (0.23.0) | Organisation channels with audiences and "admins only", department channels per function on a gig, pinned messages, announcements with read-and-confirm, search, saved messages |
-| M4 · Integrations | Availability requests, crew calls, call sheet, client and supplier threads |
+| ✅ M4a · Connected to AVX (0.24.0) | Availability questions and crew calls answered in messages, call sheet sent to the crew with read-and-confirm, schedule changes posted in the gig's chat, team conversations on equipment, repairs and subrentals |
+| M4b · Clients and suppliers | Conversations with a quote's client and a subrental's supplier through secure links, without an account |
 | M5 · Reach | Push notifications, reply by email, offline outbox |
 | M6 · Safety | Moderation, retention, export, rate limits |
 

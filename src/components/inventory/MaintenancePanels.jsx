@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Wrench, ClipboardCheck, Camera, Loader2, Check, Plus, AlertTriangle, Image as ImageIcon } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
@@ -9,6 +9,7 @@ import { REPAIR_STATUSES, isOpenRepair, dueState, repairPhotoPath, MAX_PHOTO_BYT
 import { formatMoney, localISODate } from '../../lib/quotes'
 import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, input, label, card, colors } from '../ui'
+import ContextThread from '../messages/ContextThread'
 
 const AMBER = '#F59E0B'
 const select = { ...input, appearance: 'auto' }
@@ -162,6 +163,7 @@ export function RepairModal({ orgId, repair, items = [], preset = {}, onClose, o
           {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
         </button>
       </form>
+      {repair && <div style={{ marginTop: '14px' }}><ContextThread type="repair" id={repair.id} height="260px" /></div>}
     </Modal>
   )
 }
@@ -290,6 +292,8 @@ export function MaintenanceTab({ orgId, inv }) {
   const [allDue, setAllDue] = useState(false)
   const [editing, setEditing] = useState(null) // repair, or {} for a new one
   const [inspecting, setInspecting] = useState(null)
+  const [params] = useSearchParams()
+  const linkOpened = useRef(false)
   const nameOf = id => inv.items.find(i => i.id === id)?.name
 
   async function load() {
@@ -301,6 +305,9 @@ export function MaintenanceTab({ orgId, inv }) {
     if (dueRes.error) logger.error('repairs', dueRes.error, { step: 'due' })
     setRepairs(repRes.data || [])
     setDue(dueRes.data || [])
+    // ?open=<repair id>: a link from its conversation
+    const linked = !linkOpened.current && params.get('open') && (repRes.data || []).find(r => r.id === params.get('open'))
+    if (linked) { linkOpened.current = true; setEditing(linked) }
   }
   useEffect(() => { load() }, [orgId]) // eslint-disable-line react-hooks/exhaustive-deps
 

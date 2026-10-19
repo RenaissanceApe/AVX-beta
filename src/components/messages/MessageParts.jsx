@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FileText, Download, Calendar, Clock, Package, Receipt, Lock, Loader2, Search } from 'lucide-react'
+import { FileText, Download, Calendar, Clock, Package, Receipt, Lock, Loader2, Search, ClipboardList, UserPlus, HelpCircle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { logger } from '../../lib/logger'
+import { logger, userMessage } from '../../lib/logger'
+import { useToast } from '../../lib/ToastContext'
+import { track } from '../../lib/usage'
+import { rangeText } from '../../lib/clashes'
 import { formatSize, dayRange } from '../../lib/messages'
 import { useI18n, t, fmt } from '../../i18n'
-import { Modal, input, colors } from '../ui'
+import { Modal, input, btn, btnPrimary, colors } from '../ui'
 
 // Pieces of a message (docs/MESSAGING.md, M2): files, object cards, reactions, earlier versions.
 
@@ -68,7 +71,7 @@ export function Attachments({ files }) {
 }
 
 // ── Object cards ─────────────────────────────────────────────────────────────
-const CARD_ICONS = { gig: Calendar, schedule: Clock, asset: FileText, quote: Receipt, item: Package }
+const CARD_ICONS = { gig: Calendar, schedule: Clock, asset: FileText, quote: Receipt, item: Package, callsheet: ClipboardList }
 
 // What each card shows and where it leads; the database decides whether the reader can see it
 async function loadCard(type, id) {
@@ -87,6 +90,10 @@ async function loadCard(type, id) {
   if (type === 'quote') {
     const { data } = await supabase.from('quotes').select('id, number, title, client_name, status').eq('id', id).maybeSingle()
     return data && { title: `${data.number} · ${data.title}`, sub: [data.client_name, t(`quoteStatus.${data.status}`)].filter(Boolean).join(' · '), to: `/quote/${data.id}` }
+  }
+  if (type === 'callsheet') {
+    const { data } = await supabase.from('gigs').select('id, name, start_date, end_date').eq('id', id).maybeSingle()
+    return data && { title: data.name, sub: dayRange(data.start_date, data.end_date, fmt), to: `/gig/${data.id}/callsheet` }
   }
   if (type === 'item') {
     const { data } = await supabase.from('price_items').select('id, org_id, name, code, category').eq('id', id).maybeSingle()
@@ -271,5 +278,103 @@ export function AckStatusModal({ message, onClose }) {
         </>
       )}
     </Modal>
+  )
+}
+
+// ── Questions and offers in a direct conversation (M4) ───────────────────────
+// An availability question or a crew call, with its answer buttons for the person asked. What
+// was answered comes from the answer lines that follow it in the conversation (`answers`).
+export function EventCard({ message: m, mine, actor, answers }) {
+  const { notify } = useToast()
+  const p = m.payload || {}
+  const [busy, setBusy] = useState(null)
+  const [note, setNote] = useState('')
+  const [call, setCall] = useState(null)
+  const last = answers[answers.length - 1]?.payload
+  const isCall = p.event === 'crew_call'
+
+  // Whoever sent a crew call sees how many places are filled, and can close it
+  useEffect(() => {
+    if (!isCall || !mine) return
+    let on = true
+    Promise.all([
+      supabase.from('crew_calls').select('quantity, closed_at').eq('id', p.call_id).maybeSingle(),
+      supabase.from('crew_call_answers').select('answer').eq('call_id', p.call_id),
+    ]).then(([{ data: c }, { data: rows }]) => {
+      if (on && c) setCall({ ...c, taken: (rows || []).filter(r => r.answer === 'accepted').length })
+    })
+    return () => { on = false }
+  }, [isCall, mine, p.call_id, answers.length])
+
+  async function answerAvailability(status) {
+    setBusy(status)
+    const { data, error } = await supabase.from('availability_requests')
+      .update({ status, reply_note: note.trim() || null }).eq('id', p.request_id).select('id')
+    setBusy(null)
+    if (error) { logger.error('messages', error, { step: 'availability' }); return notify(userMessage(error), 'error') }
+    if (!data?.length) notify(t('requests.gone'), 'info')
+    else track(`requests:${status}`)
+  }
+
+  async function answerCall(accept) {
+    setBusy(accept ? 'accept' : 'decline')
+    const { data, error } = await supabase.rpc('answer_crew_call', { p_call: p.call_id, p_accept: accept })
+    setBusy(null)
+    if (error) { logger.error('messages', error, { step: 'crew call' }); return notify(userMessage(error), 'error') }
+    track(`crewcall:${data}`)
+    if (data === 'full') notify(t('chat.ev.full'), 'info')
+  }
+
+  async function closeCall() {
+    setBusy('close')
+    const { error } = await supabase.rpc('close_crew_call', { p_call: p.call_id })
+    setBusy(null)
+    if (error) { logger.error('messages', error, { step: 'close call' }); return notify(userMessage(error), 'error') }
+    setCall(c => ({ ...c, closed_at: new Date().toISOString() }))
+  }
+
+  const Icon = isCall ? UserPlus : HelpCircle
+  const range = isCall ? dayRange(p.start_date, p.end_date, fmt) : (p.from && p.until ? rangeText(p.from, p.until) : '')
+  const heading = isCall
+    ? t(mine ? 'chat.ev.crewCallSent' : 'chat.ev.crewCall', { actor, title: p.title })
+    : t(mine ? 'chat.ev.availabilitySent' : 'chat.ev.availability', { actor })
+  let state = null
+  if (isCall) {
+    if (mine) state = call && (call.closed_at ? t('chat.ev.closedFilled', { taken: call.taken, quantity: call.quantity }) : t('chat.ev.filled', { taken: call.taken, quantity: call.quantity }))
+    else if (last) state = t(`chat.ev.you.${last.answer}`)
+  } else if (last) {
+    state = last.status === 'withdrawn' ? t('chat.ev.withdrawn') : t(`requests.${last.status}`)
+  } else if (mine) state = t('chat.ev.waiting')
+  const canAnswer = !mine && !last
+
+  return (
+    <div style={{ margin: '8px auto', maxWidth: '420px', padding: '12px 14px', borderRadius: '12px', border: `1px solid ${isCall ? 'rgba(30,200,120,0.35)' : 'rgba(245,158,11,0.35)'}`, background: isCall ? 'rgba(30,200,120,0.06)' : 'rgba(245,158,11,0.06)' }}>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: colors.soft }}>
+        <Icon size={16} color={isCall ? colors.accent : '#F59E0B'} style={{ flexShrink: 0 }} />
+        <span style={{ flex: 1 }}>{heading}</span>
+        <span style={{ fontSize: '11px', color: colors.muted }}>{fmt(m.created_at, 'HH:mm')}</span>
+      </div>
+      <Link to={`/gig/${p.gig_id}`} style={{ display: 'block', color: '#fff', fontWeight: 700, fontSize: '15px', margin: '6px 0 2px', textDecoration: 'none' }}>{p.gig_name}</Link>
+      {range && <div style={{ fontSize: '13px', color: colors.soft }}>{range}</div>}
+      {p.message && <div style={{ fontSize: '13px', marginTop: '6px', whiteSpace: 'pre-wrap' }}>“{p.message}”</div>}
+      {state && <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '8px', color: last?.status === 'unavailable' || last?.answer === 'declined' ? colors.muted : colors.accent }}>{state}{last?.note ? ` · ${last.note}` : ''}</div>}
+      {canAnswer && !isCall && (
+        <input value={note} onChange={e => setNote(e.target.value)} placeholder={t('requests.notePlaceholder')} aria-label={t('requests.note')} maxLength={300}
+          style={{ ...input, marginTop: '8px', fontSize: '13px', padding: '8px 10px' }} />
+      )}
+      {canAnswer && (
+        <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+          <button type="button" disabled={!!busy} onClick={() => (isCall ? answerCall(true) : answerAvailability('available'))} style={{ ...btnPrimary, padding: '8px 14px', fontSize: '13px' }}>
+            {busy === 'accept' || busy === 'available' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : t(isCall ? 'chat.ev.accept' : 'requests.available')}
+          </button>
+          <button type="button" disabled={!!busy} onClick={() => (isCall ? answerCall(false) : answerAvailability('unavailable'))} style={{ ...btn, padding: '8px 14px', fontSize: '13px' }}>
+            {busy === 'decline' || busy === 'unavailable' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : t(isCall ? 'chat.ev.decline' : 'requests.unavailable')}
+          </button>
+        </div>
+      )}
+      {isCall && mine && call && !call.closed_at && (
+        <button type="button" disabled={!!busy} onClick={closeCall} style={{ ...btn, padding: '6px 12px', fontSize: '12px', marginTop: '8px' }}>{t('chat.ev.closeCall')}</button>
+      )}
+    </div>
   )
 }
