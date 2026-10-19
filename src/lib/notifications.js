@@ -26,9 +26,11 @@ export function describeNotification(n, nameOf) {
     case 'damage_reported':   return t('notif.damage', { actor, item: [d.item_name, d.unit_code].filter(Boolean).join(' · '), gig: gig || '—', excerpt: d.excerpt || '' })
     case 'inspection_due':    return t('notif.inspectionDue', { count: d.count || 0, org: d.org_name || '' })
     case 'hire_request':      return t('notif.hireRequest', { org: d.from_org || '', range: d.starts_at && d.ends_at ? rangeText(d.starts_at, d.ends_at) : '—' })
-    case 'message':           return d.gig_name
-      ? t('notif.messageReply', { actor, gig, count: d.count || 1, excerpt: d.excerpt || '' })
-      : t('notif.messageDirect', { actor, count: d.count || 1, excerpt: d.excerpt || '' })
+    case 'message': {
+      const key = d.why === 'mention' ? 'notif.messageMention' : d.gig_name ? 'notif.messageReply' : 'notif.messageDirect'
+      if (!d.excerpt) return t(d.gig_name ? 'notif.messageNoTextGig' : 'notif.messageNoText', { actor, gig })
+      return t(key, { actor, gig, count: d.count || 1, excerpt: d.excerpt })
+    }
     case 'hire_answered':     return t(d.answer === 'confirmed' ? 'notif.hireConfirmed' : 'notif.hireDeclined', { supplier: d.supplier || '' })
     case 'booking_changed':   return d.booked_from && d.booked_until
       ? t('notif.bookingChanged', { actor, gig, range: rangeText(d.booked_from, d.booked_until) })

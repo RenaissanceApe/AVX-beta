@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.22.0 — Messaging M2: files, cards, mentions, reactions, edits
+
+### Added
+- **Files in messages:** attach up to 10 files (50 MB each) with the paperclip, by pasting or by
+  dropping them on the box; pictures show as previews, other files download
+- **Share a card:** a gig, schedule item, file, quote or equipment item, shown as a card that opens
+  it. People who can't open it see only that it's there
+- **@mentions** in gig chats: type @ to pick someone on the gig; the gig's managers can also
+  mention @everyone, @crew, @managers or a function such as @Sound. Mentions notify (bell and email
+  summary) and are highlighted for the person mentioned
+- **Reactions** (👍 ❤️ 😂 😮 🙏 ✅ 👀), **edit** your messages (earlier versions stay visible),
+  **remove** them (cleared for everyone, a marker stays), and **copy a link** to a message
+- Your data export now includes your messages' files, cards and edit state
+- Privacy notice (EN/PT): message files, edits and removal
+
+### Fixed
+- The chat message for changed gig dates showed the range one day short
+
 ## 0.21.1 — Fixes and plans
 
 ### Fixed

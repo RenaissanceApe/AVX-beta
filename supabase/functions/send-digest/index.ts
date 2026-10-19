@@ -73,6 +73,10 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     messageDirectMany: '{count} messages from {actor}, latest: “{excerpt}”',
     messageReplyOne: '{actor} replied to you in {gig}: “{excerpt}”',
     messageReplyMany: '{actor} replied to you in {gig} ({count}): “{excerpt}”',
+    messageMentionOne: '{actor} mentioned you in {gig}: “{excerpt}”',
+    messageMentionMany: '{actor} mentioned you in {gig} ({count}): “{excerpt}”',
+    messageNoText: '{actor} sent you a message',
+    messageNoTextGig: '{actor} wrote to you in {gig}',
     'role.pm': 'Production Manager', 'role.crew': 'Crew', 'role.viewer': 'Viewer',
     'orgRole.admin': 'Admin', 'orgRole.member': 'Member', 'orgRole.viewer': 'Viewer',
     'status.draft': 'Draft', 'status.confirmed': 'Confirmed', 'status.active': 'Active',
@@ -115,6 +119,10 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     messageDirectMany: '{count} mensagens de {actor}, a última: “{excerpt}”',
     messageReplyOne: '{actor} respondeu-lhe em {gig}: “{excerpt}”',
     messageReplyMany: '{actor} respondeu-lhe em {gig} ({count}): “{excerpt}”',
+    messageMentionOne: '{actor} mencionou-o em {gig}: “{excerpt}”',
+    messageMentionMany: '{actor} mencionou-o em {gig} ({count}): “{excerpt}”',
+    messageNoText: '{actor} enviou-lhe uma mensagem',
+    messageNoTextGig: '{actor} escreveu-lhe em {gig}',
     'role.pm': 'Production Manager', 'role.crew': 'Equipa', 'role.viewer': 'Leitor',
     'orgRole.admin': 'Administrador', 'orgRole.member': 'Membro', 'orgRole.viewer': 'Leitor',
     'status.draft': 'Rascunho', 'status.confirmed': 'Confirmado', 'status.active': 'Em curso',
@@ -182,6 +190,8 @@ function describe(n: Notification, lang: Lang, actorName: string | undefined) {
     case 'message': {
       const many = Number(d.count ?? 1) > 1
       const vars = { actor, gig, count: d.count ?? 1, excerpt: d.excerpt ?? '' }
+      if (!d.excerpt) return fill(d.gig_name ? s.messageNoTextGig : s.messageNoText, vars)
+      if (d.why === 'mention') return fill(many ? s.messageMentionMany : s.messageMentionOne, vars)
       return d.gig_name ? fill(many ? s.messageReplyMany : s.messageReplyOne, vars) : fill(many ? s.messageDirectMany : s.messageDirectOne, vars)
     }
     default: return fill(s.generic, { gig })

@@ -113,8 +113,7 @@ A feature's PR also ships:
 
 ## Questions to settle before H1
 
-1. Who reviews the wording? Plain-language Portuguese is best checked by someone from the
-   trade, ideally one of the older technicians this is for.
+1. ~~Who reviews the wording?~~ The owner reviews the Portuguese wording.
 2. Light theme: worth adding (outdoor readability), or keep AVX dark-only with a high-contrast
    variant?
 3. Simple mode: automatic for people who are only crew, or something each person switches on?

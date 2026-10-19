@@ -90,7 +90,7 @@ export default function AccountModal({ onClose }) {
         supabase.from('gig_members').select('role, function_title, call_time, gigs(id, name, venue, start_date, end_date, status)').eq('user_id', user.id),
         supabase.from('feed_posts').select('id, gig_id, content, is_important, created_at').eq('user_id', user.id),
         supabase.from('assets').select('id, gig_id, type, name, version, file_size, created_at').eq('created_by', user.id),
-        supabase.from('messages').select('id, conversation_id, body, reply_to, created_at').eq('author_id', user.id).order('created_at'),
+        supabase.from('messages').select('id, conversation_id, body, reply_to, attachments, payload, mentions, edited_at, deleted_at, created_at').eq('author_id', user.id).order('created_at'),
       ])
       const firstError = [profileRes, orgsRes, gigsRes, postsRes, assetsRes, messagesRes].find(r => r.error)?.error
       if (firstError) throw firstError
