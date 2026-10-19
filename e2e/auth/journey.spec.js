@@ -153,11 +153,16 @@ test('adding an existing user to a gig notifies them', async ({ browser }) => {
   await invite.getByRole('button', { name: 'Add to gig' }).click()
   await expect(pmPage.getByText(tech.name)).toBeVisible({ timeout: 15_000 })
 
-  // The technician sees it in the bell (live, or after a reload)
+  // The technician sees it in the bell (live, or after a reload), on a phone-sized screen: the
+  // panel must stay inside the screen (it used to spill off the left edge on phones)
+  await techPage.setViewportSize({ width: 390, height: 844 })
   await techPage.reload()
   await expect(techPage.getByRole('button', { name: /1 unread notification/ })).toBeVisible({ timeout: 15_000 })
   await techPage.getByRole('button', { name: /1 unread notification/ }).click()
   await expect(techPage.getByText(new RegExp(`added you to ${GIG}`))).toBeVisible()
+  const panel = await techPage.getByRole('dialog', { name: 'Notifications' }).boundingBox()
+  expect(panel.x).toBeGreaterThanOrEqual(0)
+  expect(panel.x + panel.width).toBeLessThanOrEqual(390)
 
   // Clean up the technician now; the PM is removed in the last test
   await deleteAccount(techPage)

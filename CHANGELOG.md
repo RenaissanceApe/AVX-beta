@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.27.1 — Notifications panel on phones
+
+### Fixed
+- On phones, the notifications panel opened partly off the left edge of the screen; it now
+  always fits the screen
+
 ## 0.27.0 — Messaging M6a: reports, moderators and blocking
 
 ### Added
