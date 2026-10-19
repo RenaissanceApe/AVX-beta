@@ -24,6 +24,7 @@ export function PrivacyPt() {
         <li><strong>Dados técnicos:</strong> horas de início de sessão e, nos registos de segurança dos nossos fornecedores, o endereço IP e o tipo de navegador.</li>
         <li><strong>Contagens de utilização:</strong> quantas vezes cada ecrã ou funcionalidade é usado por dia, somando todos os utilizadores. Estas contagens não têm nome, email, identificador de conta, endereço IP nem identificador do dispositivo, por isso não podem ser associadas a si.</li>
         <li><strong>Destinatários de orçamentos:</strong> se uma empresa lhe enviar um orçamento através do {APP_NAME}, guardamos os contactos que ela indicou e, se responder, o seu nome, a sua mensagem e a data da resposta.</li>
+        <li><strong>Clientes e fornecedores que escrevem através de uma ligação:</strong> se escrever a uma empresa na página de um orçamento ou através de uma ligação de aluguer externo que ela lhe enviou, guardamos o nome que indicar e as suas mensagens. Só os administradores e membros dessa empresa as veem. São apagadas quando a empresa apagar o orçamento ou o aluguer externo, ou a sua organização.</li>
       </ul>
       <p>Não usamos publicidade, cookies de seguimento nem perfis de análise. O seu navegador guarda localmente um token de sessão para que não tenha de voltar a entrar — é estritamente necessário para o serviço.</p>
 

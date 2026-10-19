@@ -177,8 +177,12 @@ function UploadModal({ gigId, assets, onClose, onUploaded }) {
       const { error: storageError } = await supabase.storage.from('gig-assets').upload(path, form.file, { contentType: form.file.type })
       if (storageError) throw storageError
 
-      // Same type + same name = a new version of that document
-      const version = existing ? (existing.version || 1) + 1 : 1
+      // Same type + same name = a new version of that document. Looked up again now: the list on
+      // screen may not have caught up yet with an upload made a moment ago
+      const { data: latest } = await supabase.from('assets').select('id, type, name, version, superseded_by')
+        .eq('gig_id', gigId).is('superseded_by', null)
+      const current = findAssetToSupersede(latest || assets, form.type, form.name)
+      const version = current ? (current.version || 1) + 1 : 1
       const { data: newAsset, error: dbError } = await supabase.from('assets').insert({
         gig_id: gigId, type: form.type, name: form.name.trim(), file_url: path,
         file_size: form.file.size, version, created_by: user.id,
@@ -188,11 +192,11 @@ function UploadModal({ gigId, assets, onClose, onUploaded }) {
         await supabase.storage.from('gig-assets').remove([path])
         throw dbError
       }
-      if (existing) {
-        const { error: supersedeError } = await supabase.from('assets').update({ superseded_by: newAsset.id }).eq('id', existing.id)
-        if (supersedeError) logger.error('assets', supersedeError, { step: 'supersede', assetId: existing.id })
+      if (current) {
+        const { error: supersedeError } = await supabase.from('assets').update({ superseded_by: newAsset.id }).eq('id', current.id)
+        if (supersedeError) logger.error('assets', supersedeError, { step: 'supersede', assetId: current.id })
       }
-      notify(existing ? t('assets.uploadedVersion', { version, name: newAsset.name }) : t('assets.uploaded', { name: newAsset.name }), 'success')
+      notify(current ? t('assets.uploadedVersion', { version, name: newAsset.name }) : t('assets.uploaded', { name: newAsset.name }), 'success')
       onUploaded()
       onClose()
     } catch (err) {

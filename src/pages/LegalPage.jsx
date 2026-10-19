@@ -28,6 +28,7 @@ function Privacy() {
         <li><strong>Technical data:</strong> sign-in times and, in our providers' security logs, IP address and browser type.</li>
         <li><strong>Usage counts:</strong> how many times each screen or feature is used per day, across everyone. These counts contain no name, email, account id, IP address or device id, so they can't be linked to you.</li>
         <li><strong>Quote recipients:</strong> if a company sends you a quote through {APP_NAME}, we store the contact details they entered and, if you answer, your name, your message and when you answered.</li>
+        <li><strong>Clients and suppliers writing through a link:</strong> if you write to a company from a quote's page or from a subrental link they sent you, we store the name you type and your messages. Only that company's admins and members see them. They're deleted when the company deletes the quote or subrental, or its organisation.</li>
       </ul>
       <p>We don't use advertising, tracking cookies or analytics profiles. Your browser stores a sign-in token locally so you stay signed in — this is strictly necessary for the service.</p>
 

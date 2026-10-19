@@ -28,7 +28,7 @@ export function layoutMessages(messages) {
   for (const m of messages) {
     const day = dayOf(m.created_at)
     if (!prev || dayOf(prev.created_at) !== day) rows.push({ type: 'day', day, key: `d-${day}` })
-    const continues = !!prev && prev.kind === 'text' && m.kind === 'text' && prev.author_id === m.author_id
+    const continues = !!prev && prev.kind === 'text' && m.kind === 'text' && prev.author_id === m.author_id && (prev.guest_name || null) === (m.guest_name || null)
       && dayOf(prev.created_at) === day && new Date(m.created_at) - new Date(prev.created_at) < 5 * 60 * 1000 && !m.reply_to
     rows.push({ type: 'message', message: m, continues, key: m.id })
     prev = m
@@ -142,12 +142,13 @@ export function conversationTitle(c, t) {
 // Second line where it helps: the organisation of a channel or of a conversation about one thing
 export const conversationContext = c => (c?.kind === 'org' || c?.kind === 'context' ? c.org_name || '' : '')
 
-// Where the thing a conversation is about lives (an item, a repair, a subrental)
+// Where the thing a conversation is about lives (an item, a repair, a subrental, a quote)
 export function contextLink(c) {
   if (c?.kind !== 'context') return null
   if (c.context_type === 'item') return `/org/${c.org_id}/inventory/${c.context_id}`
   if (c.context_type === 'repair') return `/org/${c.org_id}/inventory?tab=maintenance&open=${c.context_id}`
-  if (c.context_type === 'subrental') return `/org/${c.org_id}/inventory?tab=subrentals&open=${c.context_id}`
+  if (c.context_type === 'subrental' || c.context_type === 'supplier') return `/org/${c.org_id}/inventory?tab=subrentals&open=${c.context_id}`
+  if (c.context_type === 'quote') return `/quote/${c.context_id}`
   return null
 }
 

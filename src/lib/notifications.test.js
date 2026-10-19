@@ -52,6 +52,13 @@ describe('notifications', () => {
     expect(describeNotification({ kind: 'crew_call_answer', actor_id: 'u1', gig_id: 'g1', details: { title: 'Rigger', gig_name: 'NOS', answer: 'accepted' } }, nameOf))
       .toBe('Ana accepted the place as Rigger on NOS')
     expect(notificationLink({ kind: 'crew_call_answer', gig_id: 'g1', details: {} })).toBe('/gig/g1?tab=crew')
+    // A client or supplier writing through their link (M4b)
+    expect(describeNotification({ kind: 'guest_message', details: { guest_name: 'Marta', about: 'Gala dinner', count: 1, excerpt: 'Second screen?' } }, nameOf))
+      .toBe('Marta wrote about Gala dinner: “Second screen?”')
+    expect(describeNotification({ kind: 'guest_message', details: { guest_name: 'Marta', about: 'Gala dinner', count: 3, excerpt: 'Thanks' } }, nameOf))
+      .toBe('Marta wrote 3 messages about Gala dinner, latest: “Thanks”')
+    expect(notificationLink({ kind: 'guest_message', org_id: 'o1', details: { conversation_id: 'c2' } })).toBe('/messages/c2')
+    expect(countsAsUnread({ kind: 'guest_message', org_id: 'o1' }, new Set(['o1']))).toBe(true)
   })
 })
 

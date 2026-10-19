@@ -86,6 +86,8 @@ describe('messages', () => {
     expect(contextLink({ ...c, context_type: 'item' })).toBe('/org/o1/inventory/x1')
     expect(contextLink({ ...c, context_type: 'repair' })).toBe('/org/o1/inventory?tab=maintenance&open=x1')
     expect(contextLink({ ...c, context_type: 'subrental' })).toBe('/org/o1/inventory?tab=subrentals&open=x1')
+    expect(contextLink({ ...c, context_type: 'supplier' })).toBe('/org/o1/inventory?tab=subrentals&open=x1')
+    expect(contextLink({ ...c, context_type: 'quote' })).toBe('/quote/x1')
     expect(contextLink({ kind: 'gig', gig_id: 'g1' })).toBe(null)
     expect(conversationContext(c)).toBe('L&P')
   })

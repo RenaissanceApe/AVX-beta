@@ -1,6 +1,6 @@
 # Messaging: plan
 
-Status: **M1 (0.21.0), M2 (0.22.0), M3 (0.23.0) and M4a (0.24.0) built**; M4b–M6 planned. A project of
+Status: **M1 (0.21.0), M2 (0.22.0), M3 (0.23.0), M4a (0.24.0) and M4b (0.25.0) built**; M5–M6 planned. A project of
 its own, built in stages M1–M6. The aim: one messaging system that works wherever people need
 to talk about something in AVX (a gig, a person's availability, a file, a quote, a piece of
 equipment), instead of WhatsApp groups that lose the context.
@@ -180,7 +180,7 @@ Attachments count against file storage, like gig files.
 
 ## What M4a built (0.24.0)
 
-M4 is split in two: **M4a** connects messages to the rest of AVX; **M4b** (next) adds
+M4 is split in two: **M4a** connects messages to the rest of AVX; **M4b** (0.25.0, below) adds
 conversations with a quote's client and a subrental's supplier, who have no account.
 
 - Two migrations: `20261104000000_context_kind.sql` (**run by hand**: it adds the `context` kind
@@ -216,4 +216,32 @@ conversations with a quote's client and a subrental's supplier, who have no acco
   the question.
 - Not in M4a: a photo of the damage from site is already a damage report (I5), so it isn't
   repeated in messages; quote and supplier conversations are M4b.
+
+## What M4b built (0.25.0)
+
+- Two migrations: `20261105000000_guest_conversations.sql` (**run by hand**: adds the `supplier`
+  conversation type, which replaces a rule, and clean-up triggers) and
+  `20261105000001_messaging_m4b.sql`. Tests `supabase/tests/messaging_m4b.sql`.
+- **Client conversation on a quote** (`context_type = 'quote'`): the client writes from the quote's
+  page (`/q/…`, the link they were sent), under the quote, with the name they type; it works on
+  any of the quote's links that hasn't been revoked, also after the quote expired (e.g. to ask for
+  an extension). Staff answer from the quote's Summary tab or from Messages.
+- **Supplier conversation on a subrental** (`context_type = 'supplier'`): "Make a link for the
+  supplier" in the subrental window creates `/s/…`, where the supplier sees the order (reference,
+  dates, items and quantities, no prices) and the conversation. Only a hash of the link is stored,
+  so it's shown once; a new link turns the old one off, and it can be turned off. The window shows
+  when the link was made and last opened. This conversation is separate from the team's own
+  conversation about the subrental (M4a), which the supplier never sees.
+- Guests have no account: they read and write only through `guest_thread` / `guest_post` with the
+  link's token, text only, at most 20 messages an hour per conversation. Their messages have no
+  author and keep the name they typed (`messages.guest_name`), shown in the app with a
+  "client"/"supplier" label. The page fetches new messages every 20 seconds.
+- **Notifications** (kind `guest_message`, grouped per conversation, shown even in a muted
+  organisation): to the quote's author and whoever sent the link, or the subrental's author and
+  whoever made its link; the organisation's admins if none of them is still there. Opening the
+  conversation clears them. In the email summary too.
+- Deleting an item, a repair, a subrental or a quote now deletes its conversations (this also
+  covers the M4a team conversations).
+- Not yet: emailing the client or supplier when you answer (they see it when they open the page
+  again; tell them in the quote email). Reply by email is part of M5. Files in guest conversations.
 

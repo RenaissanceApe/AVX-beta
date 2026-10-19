@@ -6,12 +6,14 @@ import { quoteNumber } from '../lib/quotes'
 import { useI18n, translate, fmtIn } from '../i18n'
 import QuoteDocument, { toolbarBtn } from '../components/quotes/QuoteDocument'
 import { downloadQuotePdf } from '../lib/quotePdf'
+import GuestThread from '../components/messages/GuestThread'
 
 // The page a client opens from a quote link: no account needed. Shows the version
-// that was sent, in the quote's language, with Accept / Decline.
+// that was sent, in the quote's language, with Accept / Decline, and a conversation with the
+// company (docs/MESSAGING.md, M4b).
 export default function QuotePublicPage() {
   const { token } = useParams()
-  const { t } = useI18n()
+  const { t, lang: uiLang } = useI18n()
   const [data, setData] = useState(null)
 
   useEffect(() => {
@@ -44,6 +46,8 @@ export default function QuotePublicPage() {
             : data.state === 'error' ? t('publicQuote.errorBody') : t('publicQuote.notFoundBody')}
           {data.org?.email && <> <a href={`mailto:${data.org.email}`}>{data.org.email}</a></>}
         </p>
+        {/* An expired quote can still be asked about (e.g. to extend it) */}
+        {data.state === 'expired' && <div style={{ textAlign: 'left' }}><GuestThread token={token} lang={uiLang} /></div>}
       </div>
     </div>
   )
@@ -55,6 +59,7 @@ export default function QuotePublicPage() {
       <button onClick={() => downloadQuotePdf(data).catch(() => window.print())} style={toolbarBtn}><FileDown size={14} /> PDF</button>
       <button onClick={() => window.print()} style={toolbarBtn}><Printer size={14} /> {translate(L, 'publicQuote.print')}</button>
     </>}>
+      <GuestThread token={token} lang={L} defaultName={data.responder_name || data.quote.client_name || ''} />
       <Answer token={token} lang={L} data={data} onAnswered={res => setData(d => ({ ...d, ...res }))} />
     </QuoteDocument>
   )
