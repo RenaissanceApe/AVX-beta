@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import QRCode from 'qrcode'
 import { ShieldCheck, ShieldOff, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
@@ -14,6 +15,17 @@ export function qrSrc(qr) {
   const svg = String(qr || '').replace(/^(data:image\/svg\+xml;[^,]*,)+/, '')
   if (!svg.trim().startsWith('<')) return qr
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+}
+
+// The authenticator link with AVX's name and icon: apps that show service icons from the link
+// (FreeOTP, 2FAS, Ente Auth and others) pick it up. Authy and Google Authenticator use their own
+// icon lists and ignore it.
+export function totpUriWithLogo(uri, origin) {
+  if (!uri) return uri
+  const url = new URL(uri)
+  url.searchParams.set('issuer', 'AVX')
+  url.searchParams.set('image', `${origin}/icon-512.png`)
+  return url.toString()
 }
 
 export default function TwoStepSection({ label, input, smallBtn }) {
@@ -36,13 +48,19 @@ export default function TwoStepSection({ label, input, smallBtn }) {
     // Clear half-finished attempts so a new one can start
     const { data: all } = await supabase.auth.mfa.listFactors()
     for (const f of all?.all || []) if (f.status !== 'verified') await supabase.auth.mfa.unenroll({ factorId: f.id })
-    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: `AVX ${new Date().toISOString().slice(0, 10)}` })
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', issuer: 'AVX', friendlyName: `AVX ${new Date().toISOString().slice(0, 10)}` })
     setBusy(false)
     if (error) {
       logger.error('mfa', error, { step: 'enroll' })
       return notify(userMessage(error), 'error')
     }
-    setEnrolling({ id: data.id, qr: qrSrc(data.totp.qr_code), secret: data.totp.secret })
+    let qr = qrSrc(data.totp.qr_code)
+    try {
+      qr = await QRCode.toDataURL(totpUriWithLogo(data.totp.uri, window.location.origin), { margin: 1, width: 220, errorCorrectionLevel: 'M' })
+    } catch (err) {
+      logger.warn('mfa', 'Own QR code failed, using Supabase\'s', { message: err?.message })
+    }
+    setEnrolling({ id: data.id, qr, secret: data.totp.secret })
   }
 
   async function confirm(e) {

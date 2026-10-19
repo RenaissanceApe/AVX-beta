@@ -38,4 +38,13 @@ describe('authenticator QR code', () => {
     expect(qrSrc(`data:image/svg+xml;utf-8,data:image/svg+xml;utf-8,${svg}`)).toBe(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`)
     expect(qrSrc('data:image/png;base64,AAAA')).toBe('data:image/png;base64,AAAA')
   })
+  it('names AVX and points to its icon in the authenticator link', async () => {
+    const { totpUriWithLogo } = await import('../components/TwoStepSection')
+    const out = totpUriWithLogo('otpauth://totp/AVX:ana@x.pt?secret=ABC&issuer=avx-beta.vercel.app', 'https://avx-beta.vercel.app')
+    expect(out.startsWith('otpauth://totp/AVX:ana@x.pt?')).toBe(true)
+    const params = new URL(out).searchParams
+    expect(params.get('secret')).toBe('ABC')
+    expect(params.get('issuer')).toBe('AVX')
+    expect(params.get('image')).toBe('https://avx-beta.vercel.app/icon-512.png')
+  })
 })

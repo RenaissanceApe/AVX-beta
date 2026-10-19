@@ -17,6 +17,9 @@
 
 ### Fixed
 - The chat message for changed gig dates showed the range one day short
+- Two-step sign-in: the authenticator entry is now named "AVX" and points to the AVX icon, for
+  apps that show icons from the link (FreeOTP, 2FAS, Ente Auth…). Authy and Google Authenticator
+  use their own icon lists, so they still show a generic icon
 
 ## 0.21.1 — Fixes and plans
 
