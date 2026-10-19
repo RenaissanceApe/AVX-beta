@@ -1,6 +1,6 @@
 # Messaging: plan
 
-Status: **M1 (0.21.0), M2 (0.22.0) and M3 (0.23.0) built**; M4–M6 planned. A project of
+Status: **M1 (0.21.0), M2 (0.22.0), M3 (0.23.0) and M4a (0.24.0) built**; M4b–M6 planned. A project of
 its own, built in stages M1–M6. The aim: one messaging system that works wherever people need
 to talk about something in AVX (a gig, a person's availability, a file, a quote, a piece of
 equipment), instead of WhatsApp groups that lose the context.
@@ -177,4 +177,43 @@ Attachments count against file storage, like gig files.
   organisation, archived and the number of pinned messages); the old function stays for now.
 - Who reads what is still decided only in the database (`can_access_conversation`,
   `can_post_conversation`, `conversation_audience`, `can_manage_conversation`).
+
+## What M4a built (0.24.0)
+
+M4 is split in two: **M4a** connects messages to the rest of AVX; **M4b** (next) adds
+conversations with a quote's client and a subrental's supplier, who have no account.
+
+- Two migrations: `20261104000000_context_kind.sql` (**run by hand**: it adds the `context` kind
+  and the `context_type`/`context_id` columns, which needs DROP CONSTRAINT) and
+  `20261104000001_messaging_m4.sql`. Tests `supabase/tests/messaging_m4.sql`.
+- **Availability questions in messages:** asking someone if they're available (Crew tab) also posts
+  the question as a card in your direct conversation with them, with Available / Not available
+  buttons and an optional note; the answer (or withdrawing the question) is posted under it. The
+  question still appears in My work, and either place answers it. A database trigger does this,
+  so every way of asking is covered.
+- **Crew calls:** a gig's managers offer a place ("Rigger", 2 places, a note) to several people
+  from their network at once (Crew tab → Crew call, or the 📣 button on an open position). Each
+  person gets it as a card in their direct conversation with the sender, and a notification
+  (`crew_call`, shown even when the organisation is muted). The first to accept are added to the
+  gig with that function; later ones get "all places taken". The call closes when full, or when a
+  manager closes it. Managers see each call's answers on the Crew tab and get a `crew_call_answer`
+  notification for each accept or decline. People already on the gig and people you can't message
+  are skipped. Tables `crew_calls`, `crew_call_answers`; functions `send_crew_call`,
+  `answer_crew_call`, `close_crew_call`.
+- **Call sheet to the crew:** "Send to the crew" on the call sheet page (managers) posts an
+  announcement with a call sheet card in the gig's chat; everyone confirms they've read it, as with
+  M3 announcements (`publish_call_sheet`).
+- **Schedule notes:** adding or changing schedule items posts a short note in the gig's chat
+  (not for draft gigs, and only once the chat exists). Several changes by the same person within
+  15 minutes are gathered into one note.
+- **Team conversations on one thing** (`kind = 'context'`): an equipment item, a repair or a
+  subrental has a "Team conversation" (on the item page and in the repair and subrental windows),
+  for the organisation's admins and members only. It's made the first time someone opens it
+  (`context_conversation`) and appears in Messages once it has a message, with a link back to the
+  thing. `context_type` already allows `quote` for M4b.
+- `private.ensure_direct` opens a direct conversation for AVX itself (questions, crew calls)
+  without the "can message" check, because the person asking already passed the rules that allow
+  the question.
+- Not in M4a: a photo of the damage from site is already a damage report (I5), so it isn't
+  repeated in messages; quote and supplier conversations are M4b.
 

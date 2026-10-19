@@ -13,6 +13,7 @@ import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { ItemModal, MovementModal, AddUnitsModal, UnitModal } from '../components/inventory/InventoryModals'
 import { KitPanel, CaseContentsModal } from '../components/inventory/KitPanels'
+import ContextThread from '../components/messages/ContextThread'
 import { ItemMaintenance } from '../components/inventory/MaintenancePanels'
 import { MovementList, useNames, LOCATION_ICONS } from './InventoryPage'
 import { btn, btnPrimary, iconBtn, card, label, colors } from '../components/ui'
@@ -230,6 +231,8 @@ export default function InventoryItemPage() {
         <KitPanel orgId={orgId} item={item} kits={kits} />
 
         <ItemMaintenance orgId={orgId} item={item} onChanged={refresh} />
+
+        <ContextThread type="item" id={item.id} />
 
         {item.tracking !== 'none' && <Bookings item={item} owned={(s?.total || 0) - (s?.inRepair || 0)} />}
 

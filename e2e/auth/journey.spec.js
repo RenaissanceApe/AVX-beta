@@ -198,19 +198,19 @@ test('someone invited by email before having an account joins the gig on sign-up
   await invite.getByPlaceholder('technician@company.com').fill(newbie.email)
   await invite.getByRole('button', { name: 'Add to gig' }).click()
   await expect(pmPage.getByText('Pending — waiting for sign-up')).toBeVisible({ timeout: 15_000 })
-  await expect(pmPage.getByText(newbie.email)).toBeVisible()
+  await expect(pmPage.getByText(newbie.email, { exact: true })).toBeVisible()
 
   // They sign up with that address and find the gig waiting for them
   const newContext = await browser.newContext()
   const newPage = await newContext.newPage()
   await english(newPage)
   await signUp(newPage, newbie)
-  await expect(newPage.getByText(GIG)).toBeVisible({ timeout: 15_000 })
+  await expect(newPage.getByText(GIG).first()).toBeVisible({ timeout: 15_000 })
 
   // …and the PM sees them on the crew list instead of the pending invite
   await pmPage.reload()
   await pmPage.getByRole('tab', { name: /Crew/ }).click()
-  await expect(pmPage.getByText(newbie.name)).toBeVisible({ timeout: 15_000 })
+  await expect(pmPage.getByText(newbie.name).first()).toBeVisible({ timeout: 15_000 })
 
   await deleteAccount(newPage)
   await newContext.close()
@@ -227,7 +227,7 @@ test('the logo goes home and the workspace switcher lists My work and the organi
   await page.getByRole('menuitemradio', { name: /My work/ }).click()
   await expect(page).toHaveURL(/\/me$/)
   // The PM created the gig, so it is one of their own gigs, labelled with the company and their role
-  await expect(page.getByText(GIG)).toBeVisible()
+  await expect(page.getByText(GIG).first()).toBeVisible()
   await expect(page.getByText(ORG).first()).toBeVisible()
 })
 

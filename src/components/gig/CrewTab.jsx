@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { UserPlus, X, Clock, Phone, Loader2, Send, AlertTriangle, Plus, Briefcase, Trash2, CalendarClock, UserCheck, MessageCircle } from 'lucide-react'
+import { UserPlus, X, Clock, Phone, Loader2, Send, AlertTriangle, Plus, Briefcase, Trash2, CalendarClock, UserCheck, MessageCircle, Megaphone } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
@@ -14,6 +14,7 @@ import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
 import { Avatar, RoleBadge, TabHeader } from './parts'
 import { ClashBox, AskAvailabilityModal, ShiftModal, shiftText, AMBER } from './Booking'
 import { NetworkPicker, PickedPerson, addFromNetwork } from '../NetworkPicker'
+import { CrewCallModal, CrewCallList } from './CrewCalls'
 
 // Latest request per person: { user_id: request }
 const latestRequests = rows => {
@@ -32,6 +33,8 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
   const [asking, setAsking] = useState(null) // member being asked
   const [shiftFor, setShiftFor] = useState(null) // member whose times are being edited
   const [inviteFor, setInviteFor] = useState('') // function title to prefill when inviting for a position
+  const [callFor, setCallFor] = useState(null) // { title, quantity } for a new crew call
+  const [callsKey, setCallsKey] = useState(0)
   const isOrgAdmin = orgRole === 'admin'
   const orgName = orgs.find(o => o.id === gig.org_id)?.name || ''
   const bookingKey = members.map(m => `${m.user_id}:${m.booked_from}:${m.booked_until}`).join('|')
@@ -98,10 +101,17 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
       <Positions gigId={gigId} isPM={isPM} userId={userId} members={members} invites={invites}
-        onInvite={title => { setInviteFor(title); setShowInvite(true) }} />
+        onInvite={title => { setInviteFor(title); setShowInvite(true) }} onCall={setCallFor} />
+
+      {isPM && <CrewCallList gigId={gigId} nameOf={nameOf} refreshKey={`${callsKey}:${members.length}`} />}
 
       <TabHeader title={t('gig.tab.crew')} subtitle={t('crew.count', { count: members.length })}
-        action={isPM && <button onClick={() => setShowInvite(true)} style={btnPrimary}><UserPlus size={14} /> {t('crew.invite')}</button>} />
+        action={isPM && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button onClick={() => setCallFor({})} style={btn} title={t('crewCall.hint')}><Megaphone size={14} /> {t('crewCall.button')}</button>
+            <button onClick={() => setShowInvite(true)} style={btnPrimary}><UserPlus size={14} /> {t('crew.invite')}</button>
+          </div>
+        )} />
 
       {members.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
@@ -218,6 +228,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
         @media (max-width: 640px) { .crew-extra { padding-left: 0; } }
       `}</style>
       {showInvite && <InviteModal gigId={gigId} functionTitle={inviteFor} onClose={() => { setShowInvite(false); setInviteFor('') }} onInvited={onChanged} />}
+      {callFor && <CrewCallModal gigId={gigId} preset={callFor} onClose={() => setCallFor(null)} onSent={() => setCallsKey(k => k + 1)} />}
       {asking && (
         <AskAvailabilityModal gigId={gigId} personId={asking.user_id} name={nameOf(asking.user_id)} clashes={clashes[asking.user_id] || []}
           onClose={() => setAsking(null)} onSent={loadBookingState} />
@@ -364,7 +375,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
 
 // Roles the gig needs ("Sound technician × 2"), added by hand or from the quote.
 // "Filled" counts crew and pending invites whose function matches the title.
-function Positions({ gigId, isPM, userId, members, invites, onInvite }) {
+function Positions({ gigId, isPM, userId, members, invites, onInvite, onCall }) {
   const { notify } = useToast()
   const [positions, setPositions] = useState([])
   const [adding, setAdding] = useState(false)
@@ -437,7 +448,10 @@ function Positions({ gigId, isPM, userId, members, invites, onInvite }) {
                   <input type="number" min={1} max={99} defaultValue={pos.quantity} key={pos.quantity} onBlur={e => setQuantity(pos, e.target.value)}
                     aria-label={t('positions.quantityFor', { title: pos.title })} style={{ ...input, width: '58px', padding: '5px 6px' }} />
                   {filled < pos.quantity && (
-                    <button onClick={() => onInvite(pos.title)} aria-label={t('positions.inviteFor', { title: pos.title })} title={t('crew.invite')} style={{ ...iconBtn, color: colors.accent }}><UserPlus size={15} /></button>
+                    <>
+                      <button onClick={() => onCall({ title: pos.title, quantity: Math.min(20, pos.quantity - filled) })} aria-label={t('crewCall.forNamed', { title: pos.title })} title={t('crewCall.button')} style={iconBtn}><Megaphone size={15} /></button>
+                      <button onClick={() => onInvite(pos.title)} aria-label={t('positions.inviteFor', { title: pos.title })} title={t('crew.invite')} style={{ ...iconBtn, color: colors.accent }}><UserPlus size={15} /></button>
+                    </>
                   )}
                   <button onClick={() => remove(pos)} aria-label={t('positions.removeNamed', { title: pos.title })} title={t('positions.remove')} style={iconBtn}><Trash2 size={14} /></button>
                 </>

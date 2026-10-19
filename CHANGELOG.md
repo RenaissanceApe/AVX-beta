@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.24.0 — Messaging M4a: messages connected to gigs and equipment
+
+### Added
+- **Availability questions in messages:** the question arrives in your direct conversation with
+  the person asking, with Available / Not available buttons; the answer is posted under it
+- **Crew calls:** offer a place on a gig to several people at once from the Crew tab (or from an
+  open position). They accept or decline in the message; the first to accept join the gig with
+  that function and the call closes when it's full. Managers see who answered
+- **Send the call sheet to the crew:** posts it in the gig's chat as an announcement everyone
+  confirms
+- **Schedule changes** are noted in the gig's chat (gathered when you make several in a row)
+- **Team conversations** on equipment items, repairs and subrentals, for the organisation's admins
+  and members; they show in Messages with a link back
+- Notifications and the email summary: crew calls and their answers (crew calls come through
+  even when the organisation is muted)
+- Account export includes the crew calls you received and your answers
+- Privacy notice (EN/PT): questions and crew calls in messages, schedule notes, team conversations
+
+### Fixed
+- Signing in sometimes opened My work instead of your organisation (the start page was chosen
+  before your organisations had loaded); found by the signed-in browser tests, which now run
+- Offline, the app sat on a spinner for about 7 seconds before showing saved copies (the database
+  library retries failed requests); with no connection it now gives up at once
+- **Deleting your account failed if you were on a gig** (the gig's activity log tried to name
+  you after your account was already gone). Fixed in the database on both projects
+
 ## 0.23.0 — Messaging M3: channels, pins, announcements, search
 
 ### Added

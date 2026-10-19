@@ -14,7 +14,7 @@
 // - only people whose profile has email_digest = true
 // - each notification is emailed at most once (notifications.emailed_at)
 // - nothing from organisations the person muted (org_mutes), except direct questions
-//   to them (availability requests, messages, announcements)
+//   to them (availability requests, messages, announcements, crew calls)
 // Logs carry counts only, never addresses or content.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
@@ -33,7 +33,7 @@ type Notification = {
 
 const MAX_LINES = 20
 // Kinds that are a direct question to the person: sent even when the organisation is muted
-const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement'])
+const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call'])
 
 const STRINGS: Record<Lang, Record<string, string>> = {
   en: {
@@ -78,6 +78,9 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     messageNoText: '{actor} sent you a message',
     messageNoTextGig: '{actor} wrote to you in {gig}',
     announcement: '📣 {actor} in {where}: “{excerpt}” — please confirm you’ve read it',
+    crewCall: '{actor} offers you a place as {title} on {gig} ({range})',
+    crewCallAccepted: '{actor} accepted the place as {title} on {gig}',
+    crewCallDeclined: '{actor} declined the place as {title} on {gig}',
     'role.pm': 'Production Manager', 'role.crew': 'Crew', 'role.viewer': 'Viewer',
     'orgRole.admin': 'Admin', 'orgRole.member': 'Member', 'orgRole.viewer': 'Viewer',
     'status.draft': 'Draft', 'status.confirmed': 'Confirmed', 'status.active': 'Active',
@@ -125,6 +128,9 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     messageNoText: '{actor} enviou-lhe uma mensagem',
     messageNoTextGig: '{actor} escreveu-lhe em {gig}',
     announcement: '📣 {actor} em {where}: “{excerpt}” — confirme que leu',
+    crewCall: '{actor} oferece-lhe um lugar como {title} em {gig} ({range})',
+    crewCallAccepted: '{actor} aceitou o lugar como {title} em {gig}',
+    crewCallDeclined: '{actor} recusou o lugar como {title} em {gig}',
     'role.pm': 'Production Manager', 'role.crew': 'Equipa', 'role.viewer': 'Leitor',
     'orgRole.admin': 'Administrador', 'orgRole.member': 'Membro', 'orgRole.viewer': 'Leitor',
     'status.draft': 'Rascunho', 'status.confirmed': 'Confirmado', 'status.active': 'Em curso',
@@ -151,6 +157,15 @@ function rangeText(from: unknown, until: unknown, lang: Lang) {
   return day.format(start) === day.format(end)
     ? `${day.format(start)}, ${time.format(start)} – ${time.format(end)}`
     : `${day.format(start)}, ${time.format(start)} – ${day.format(end)}, ${time.format(end)}`
+}
+
+// Gig days (dates, last day included): "12 Nov", "12 Nov – 14 Nov"
+function dayText(start: unknown, end: unknown, lang: Lang) {
+  if (!start) return '—'
+  const day = new Intl.DateTimeFormat(lang === 'pt' ? 'pt-PT' : 'en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' })
+  const a = day.format(new Date(`${start}T00:00:00Z`))
+  const b = end && end !== start ? day.format(new Date(`${end}T00:00:00Z`)) : a
+  return a === b ? a : `${a} – ${b}`
 }
 
 function escapeHtml(s: string) {
@@ -189,6 +204,8 @@ function describe(n: Notification, lang: Lang, actorName: string | undefined) {
       return fill(Number(d.count) === 1 ? s.inspectionDueOne : s.inspectionDueMany, { count: d.count ?? 0, org: d.org_name ?? '' })
     case 'hire_request': return fill(s.hireRequest, { org: d.from_org ?? '', range: rangeText(d.starts_at, d.ends_at, lang) })
     case 'hire_answered': return fill(d.answer === 'confirmed' ? s.hireConfirmed : s.hireDeclined, { supplier: d.supplier ?? '' })
+    case 'crew_call': return fill(s.crewCall, { actor, title: d.title ?? '', gig, range: dayText(d.start_date, d.end_date, lang) })
+    case 'crew_call_answer': return fill(d.answer === 'accepted' ? s.crewCallAccepted : s.crewCallDeclined, { actor, title: d.title ?? '', gig })
     case 'announcement': return fill(s.announcement, { actor, where: d.where ?? gig, excerpt: d.excerpt ?? '' })
     case 'message': {
       const many = Number(d.count ?? 1) > 1
@@ -202,13 +219,13 @@ function describe(n: Notification, lang: Lang, actorName: string | undefined) {
 }
 
 function linkFor(n: Notification, appUrl: string) {
-  if (n.kind === 'message' && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}`
+  if ((n.kind === 'message' || n.kind === 'crew_call') && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}`
   if (n.kind === 'announcement' && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}?m=${n.details.message_id}`
   if (n.details?.quote_id) return `${appUrl}/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=maintenance`
   if ((n.kind === 'hire_request' || n.kind === 'hire_answered') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=subrentals`
   if (n.kind === 'availability_request') return `${appUrl}/me#requests`
-  if (n.gig_id && (n.kind === 'availability_reply' || n.kind === 'booking_changed')) return `${appUrl}/gig/${n.gig_id}?tab=crew`
+  if (n.gig_id && (n.kind === 'availability_reply' || n.kind === 'booking_changed' || n.kind === 'crew_call_answer')) return `${appUrl}/gig/${n.gig_id}?tab=crew`
   if (!n.gig_id) return `${appUrl}/dashboard`
   return n.kind === 'schedule_changed' ? `${appUrl}/gig/${n.gig_id}?tab=schedule` : `${appUrl}/gig/${n.gig_id}`
 }

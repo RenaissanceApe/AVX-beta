@@ -44,6 +44,14 @@ describe('notifications', () => {
     expect(notificationLink({ kind: 'announcement', details: { conversation_id: 'c1', message_id: 'm1' } })).toBe('/messages/c1?m=m1')
     expect(countsAsUnread({ kind: 'announcement', org_id: 'o1' }, new Set(['o1']))).toBe(true)
     expect(countsAsUnread({ kind: 'message', org_id: 'o1' }, new Set(['o1']))).toBe(true)
+    // Crew calls (M4): the offer opens its conversation, the answer opens the gig's crew
+    expect(describeNotification({ kind: 'crew_call', actor_id: 'u1', details: { title: 'Rigger', gig_name: 'NOS', start_date: '2026-11-12', end_date: '2026-11-13' } }, nameOf))
+      .toBe('Ana offers you a place as Rigger on NOS (12–13 Nov)')
+    expect(notificationLink({ kind: 'crew_call', org_id: 'o1', details: { conversation_id: 'c1' } })).toBe('/messages/c1')
+    expect(countsAsUnread({ kind: 'crew_call', org_id: 'o1' }, new Set(['o1']))).toBe(true)
+    expect(describeNotification({ kind: 'crew_call_answer', actor_id: 'u1', gig_id: 'g1', details: { title: 'Rigger', gig_name: 'NOS', answer: 'accepted' } }, nameOf))
+      .toBe('Ana accepted the place as Rigger on NOS')
+    expect(notificationLink({ kind: 'crew_call_answer', gig_id: 'g1', details: {} })).toBe('/gig/g1?tab=crew')
   })
 })
 

@@ -84,7 +84,7 @@ export default function AccountModal({ onClose }) {
   async function exportData() {
     setExporting(true)
     try {
-      const [profileRes, orgsRes, gigsRes, postsRes, assetsRes, messagesRes, savedRes, acksRes] = await Promise.all([
+      const [profileRes, orgsRes, gigsRes, postsRes, assetsRes, messagesRes, savedRes, acksRes, callsRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
         supabase.from('org_members').select('role, joined_at, organisations(id, name, created_at)').eq('user_id', user.id),
         supabase.from('gig_members').select('role, function_title, call_time, gigs(id, name, venue, start_date, end_date, status)').eq('user_id', user.id),
@@ -93,8 +93,9 @@ export default function AccountModal({ onClose }) {
         supabase.from('messages').select('id, conversation_id, body, reply_to, attachments, payload, mentions, edited_at, deleted_at, needs_ack, created_at').eq('author_id', user.id).order('created_at'),
         supabase.from('saved_messages').select('message_id, conversation_id, saved, saved_at').eq('user_id', user.id),
         supabase.from('message_acks').select('message_id, conversation_id, acked_at').eq('user_id', user.id),
+        supabase.from('crew_call_answers').select('call_id, answer, answered_at, crew_calls(title, gig_id, created_at)').eq('user_id', user.id),
       ])
-      const firstError = [profileRes, orgsRes, gigsRes, postsRes, assetsRes, messagesRes, savedRes, acksRes].find(r => r.error)?.error
+      const firstError = [profileRes, orgsRes, gigsRes, postsRes, assetsRes, messagesRes, savedRes, acksRes, callsRes].find(r => r.error)?.error
       if (firstError) throw firstError
       const data = {
         exported_at: new Date().toISOString(),
@@ -107,6 +108,7 @@ export default function AccountModal({ onClose }) {
         messages_sent: messagesRes.data,
         messages_saved: savedRes.data,
         announcements_confirmed: acksRes.data,
+        crew_calls_received: callsRes.data,
       }
       const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
       const a = document.createElement('a')

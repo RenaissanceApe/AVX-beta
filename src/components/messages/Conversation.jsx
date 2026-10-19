@@ -11,12 +11,14 @@ import {
 } from '../../lib/messages'
 import { MESSAGES_READ } from '../../lib/useMessages'
 import { useI18n, t, fmt as fmtDate } from '../../i18n'
-import { Attachments, CardView, CardPicker, ReactionBar, HistoryModal, AckStatusModal } from './MessageParts'
+import { Attachments, CardView, CardPicker, ReactionBar, HistoryModal, AckStatusModal, EventCard } from './MessageParts'
 import { colors } from '../ui'
 
 const PAGE = 50
 const MINE = 'rgba(30,200,120,0.14)'
 const AMBER = '#F59E0B'
+// System messages shown as a card with answer buttons (availability questions, crew calls)
+const EVENTS = new Set(['availability', 'crew_call'])
 const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 // Text with links, and @mentions of known names and groups highlighted (any other "@word" too)
@@ -36,6 +38,15 @@ function systemText(m, name) {
   if (p.event === 'dates') return p.start_date
     ? t('chat.sys.dates', { actor, range: dayRange(p.start_date, p.end_date, fmtDate) }) : t('chat.sys.noDates', { actor })
   if (p.event === 'venue') return p.venue ? t('chat.sys.venue', { actor, venue: p.venue }) : t('chat.sys.noVenue', { actor })
+  if (p.event === 'availability_answer') {
+    const line = t(`chat.sys.availability.${p.status}`, { actor })
+    return p.note ? `${line} · “${p.note}”` : line
+  }
+  if (p.event === 'crew_call_answer') return t(`chat.sys.crewCall.${p.answer}`, { actor, title: p.title })
+  if (p.event === 'schedule') {
+    const items = (p.items || []).slice(0, 3).join(', ') + ((p.items || []).length > 3 ? ', …' : '')
+    return t('chat.sys.schedule', { actor, count: p.count || 1, items })
+  }
   return t('chat.sys.other', { actor })
 }
 
@@ -163,9 +174,10 @@ export default function Conversation({ conversationId, canPost = true, height = 
       if (conv.kind === 'direct') return setContext({ kind: 'direct', gigId: null, members: [], canManage: false })
       let members = []
       let canManage = false
-      if (conv.kind === 'org') {
+      if (conv.kind === 'org' || conv.kind === 'context') {
         const { data: rows } = await supabase.from('org_members').select('user_id, role').eq('org_id', conv.org_id)
-        const inAudience = r => conv.audience === 'everyone' || (conv.audience === 'staff' && r.role !== 'viewer') || (conv.audience === 'admins' && r.role === 'admin')
+        // A conversation about one thing (an item, a repair…) is for the organisation's admins and members
+        const inAudience = r => (conv.kind === 'context' && r.role !== 'viewer') || conv.audience === 'everyone' || (conv.audience === 'staff' && r.role !== 'viewer') || (conv.audience === 'admins' && r.role === 'admin')
         members = (rows || []).filter(inAudience).map(r => ({ user_id: r.user_id, role: r.role, function_title: null }))
         canManage = (rows || []).some(r => r.user_id === user.id && r.role === 'admin')
       } else {
@@ -439,6 +451,11 @@ export default function Conversation({ conversationId, canPost = true, height = 
 
   if (!messages) return <div style={{ padding: '24px', display: 'flex', justifyContent: 'center' }}><Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /></div>
   const byId = Object.fromEntries(messages.map(m => [m.id, m]))
+  const answersFor = {}
+  for (const m of messages) {
+    const key = m.kind === 'system' && (m.payload?.event === 'availability_answer' ? m.payload.request_id : m.payload?.event === 'crew_call_answer' ? m.payload.call_id : null)
+    if (key) (answersFor[key] ||= []).push(m)
+  }
   const me = context.members.find(m => m.user_id === user.id)
   const smallBtn = { background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', padding: '4px', display: 'flex' }
   const menuItem = { display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '7px 10px', background: 'none', border: 'none', color: '#fff', font: 'inherit', fontSize: '13px', cursor: 'pointer', textAlign: 'left', borderRadius: '6px' }
@@ -481,6 +498,10 @@ export default function Conversation({ conversationId, canPost = true, height = 
             <div key={row.key} style={{ textAlign: 'center', fontSize: '11px', color: colors.muted, margin: '12px 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{fmt(row.day, 'EEEE, d MMM')}</div>
           )
           const m = row.message
+          if (m.kind === 'system' && EVENTS.has(m.payload?.event)) return (
+            <EventCard key={row.key} message={m} mine={m.author_id === user.id} actor={name(m.author_id)}
+              answers={answersFor[m.payload.request_id || m.payload.call_id] || []} />
+          )
           if (m.kind === 'system') return (
             <div key={row.key} style={{ textAlign: 'center', fontSize: '12px', color: colors.soft, margin: '6px 0' }}>{systemText(m, name)} · {fmt(m.created_at, 'HH:mm')}</div>
           )

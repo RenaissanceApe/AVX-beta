@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { linkify, layoutMessages, mergeMessages, totalUnread, autoBody, isAutoBody, parseMentions, mentionQuery, summarizeReactions, formatSize, messageFilePath, messageLink, dayRange, conversationTitle, departmentLabel } from './messages'
+import { linkify, layoutMessages, mergeMessages, totalUnread, autoBody, isAutoBody, parseMentions, mentionQuery, summarizeReactions, formatSize, messageFilePath, messageLink, dayRange, conversationTitle, departmentLabel, conversationContext, contextLink } from './messages'
 
 describe('messages', () => {
   it('turns web addresses into links and leaves the rest as text', () => {
@@ -80,5 +80,13 @@ describe('messages', () => {
     expect(conversationTitle({ kind: 'department', gig_name: 'NOS', department: 'managers' }, t)).toBe('NOS · Managers')
     expect(conversationTitle({ kind: 'org', title: 'General', org_name: 'L&P' }, t)).toBe('General')
     expect(departmentLabel('sound', 'Sound', t)).toBe('Sound')
+  })
+  it('links a conversation about one thing to that thing', () => {
+    const c = { kind: 'context', org_id: 'o1', org_name: 'L&P', context_id: 'x1' }
+    expect(contextLink({ ...c, context_type: 'item' })).toBe('/org/o1/inventory/x1')
+    expect(contextLink({ ...c, context_type: 'repair' })).toBe('/org/o1/inventory?tab=maintenance&open=x1')
+    expect(contextLink({ ...c, context_type: 'subrental' })).toBe('/org/o1/inventory?tab=subrentals&open=x1')
+    expect(contextLink({ kind: 'gig', gig_id: 'g1' })).toBe(null)
+    expect(conversationContext(c)).toBe('L&P')
   })
 })
