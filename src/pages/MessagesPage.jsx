@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Bell, BellOff, Loader2, MessageCircle, Hash, Users, Megaphone, Search, Bookmark, Plus, Settings, Archive, Package } from 'lucide-react'
+import { ArrowLeft, Bell, BellOff, Loader2, MessageCircle, Hash, Users, Megaphone, Search, Bookmark, Plus, Settings, Archive, Package, Eye } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -342,6 +342,9 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
         <button onClick={toggleMute} aria-pressed={muted} aria-label={muted ? t('chat.unmute') : t('chat.mute')} title={muted ? t('chat.unmute') : t('chat.mute')}
           style={{ ...iconBtn, color: muted ? colors.muted : colors.soft }}>{muted ? <BellOff size={16} /> : <Bell size={16} />}</button>
       </div>
+      {info.kind === 'context' && (info.context_type === 'quote' || info.context_type === 'supplier') && (
+        <p style={{ fontSize: '12px', color: '#F59E0B', padding: '6px 2px', display: 'flex', gap: '6px', alignItems: 'center' }}><Eye size={13} /> {t(`chat.guest.notice.${info.context_type}`)}</p>
+      )}
       {info.archived_at && (
         <p style={{ fontSize: '12px', color: colors.muted, padding: '6px 2px', display: 'flex', gap: '6px', alignItems: 'center' }}><Archive size={13} /> {t('chat.archivedNote')}</p>
       )}

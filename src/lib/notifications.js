@@ -29,6 +29,8 @@ export function describeNotification(n, nameOf) {
     case 'hire_request':      return t('notif.hireRequest', { org: d.from_org || '', range: d.starts_at && d.ends_at ? rangeText(d.starts_at, d.ends_at) : '—' })
     case 'crew_call':         return t('notif.crewCall', { actor, title: d.title || '', gig, range: d.start_date ? dayRange(d.start_date, d.end_date, fmt) : '—' })
     case 'crew_call_answer':  return t(`notif.crewCall.${d.answer === 'accepted' ? 'accepted' : 'declined'}`, { actor, title: d.title || '', gig })
+    case 'guest_message':     return t(Number(d.count) > 1 ? 'notif.guestMany' : 'notif.guest', {
+      guest: d.guest_name || t('common.someone'), about: d.about || t(`chat.context.kind.${d.about_kind || 'quote'}`), count: d.count || 1, excerpt: d.excerpt || '' })
     case 'announcement':      return t('notif.announcement', { actor, where: d.where || gig || '', excerpt: d.excerpt || '' })
     case 'message': {
       const key = d.why === 'mention' ? 'notif.messageMention' : d.gig_name ? 'notif.messageReply' : 'notif.messageDirect'
@@ -44,11 +46,11 @@ export function describeNotification(n, nameOf) {
 }
 
 // Kinds that are a direct question to you: they still count when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message'])
 export const countsAsUnread = (n, mutedOrgIds) => !n.read_at && (!n.org_id || !mutedOrgIds?.has(n.org_id) || DIRECT_KINDS.has(n.kind))
 
 export function notificationLink(n) {
-  if ((n.kind === 'message' || n.kind === 'crew_call') && n.details?.conversation_id) return `/messages/${n.details.conversation_id}`
+  if ((n.kind === 'message' || n.kind === 'crew_call' || n.kind === 'guest_message') && n.details?.conversation_id) return `/messages/${n.details.conversation_id}`
   if (n.kind === 'announcement' && n.details?.conversation_id) return `/messages/${n.details.conversation_id}?m=${n.details.message_id}`
   if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `/org/${n.org_id}/inventory?tab=maintenance`

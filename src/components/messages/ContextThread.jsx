@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MessagesSquare, ChevronDown, ChevronRight, Loader2 } from 'lucide-react'
+import { MessagesSquare, ChevronDown, ChevronRight, Loader2, Eye } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -8,9 +8,13 @@ import { colors } from '../ui'
 import Conversation from './Conversation'
 
 // The team's conversation about one thing — an equipment item, a repair, a subrental
-// (docs/MESSAGING.md, M4). For the organisation's admins and members. Closed until opened;
-// opening it the first time starts the conversation.
-export default function ContextThread({ type, id, height = '320px' }) {
+// (docs/MESSAGING.md, M4) — or the conversation with someone outside who has a link: a quote's
+// client ('quote') or a subrental's supplier ('supplier'), M4b. For the organisation's admins and
+// members. Closed until opened; opening it the first time starts the conversation.
+const GUEST_TYPES = new Set(['quote', 'supplier'])
+
+export default function ContextThread({ type, id, height = '320px', children }) {
+  const guest = GUEST_TYPES.has(type)
   const { notify } = useToast()
   const [open, setOpen] = useState(false)
   const [convId, setConvId] = useState(null)
@@ -50,10 +54,20 @@ export default function ContextThread({ type, id, height = '320px' }) {
       }}>
         {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         <MessagesSquare size={16} color={colors.accent} />
-        <span style={{ flex: 1 }}>{t('chat.context.title')}</span>
+        <span style={{ flex: 1 }}>{guest ? t(`chat.guest.title.${type}`) : t('chat.context.title')}</span>
         {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
           : count > 0 && <span style={{ fontSize: '12px', fontWeight: 400, color: colors.muted }}>{t('chat.context.count', { count })}</span>}
       </button>
+      {open && (guest || children) && (
+        <div style={{ padding: '8px 12px 0' }}>
+          {guest && (
+            <p style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', fontSize: '12px', color: '#F59E0B', lineHeight: 1.5, marginBottom: children ? '8px' : 0 }}>
+              <Eye size={13} style={{ flexShrink: 0, marginTop: '2px' }} /> {t(`chat.guest.notice.${type}`)}
+            </p>
+          )}
+          {children}
+        </div>
+      )}
       {open && convId && (
         <div style={{ padding: '0 8px 8px' }}>
           <Conversation conversationId={convId} height={height} emptyText={t(`chat.context.empty.${type}`)} />

@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.25.0 — Messaging M4b: clients and suppliers
+
+### Added
+- **Talk to your client on the quote:** the quote's page (the link you sent) now has a
+  conversation under the quote. The client writes with their name, no account needed, even after
+  the quote expired. You answer from the quote's Summary tab or from Messages
+- **Talk to your supplier on a subrental:** make a link for the supplier in the subrental window.
+  They see what you're hiring (items, quantities and dates, no prices) and can write to you. A new
+  link turns the old one off; you can turn it off at any time
+- The supplier conversation is separate from your team's own conversation about the subrental
+- Notifications and the email summary for messages from clients and suppliers (they come through
+  even when the organisation is muted)
+- Privacy notice (EN/PT): messages from clients and suppliers
+
+### Fixed
+- Deleting an equipment item, a repair, a subrental or a quote left its conversations behind; now
+  they're deleted with it
+
+### Planning
+- Public site, pricing and help: a plan for the end of the build ([docs/PUBLIC_SITE.md](docs/PUBLIC_SITE.md))
+
 ## 0.24.0 — Messaging M4a: messages connected to gigs and equipment
 
 ### Added

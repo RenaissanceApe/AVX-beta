@@ -14,7 +14,7 @@
 // - only people whose profile has email_digest = true
 // - each notification is emailed at most once (notifications.emailed_at)
 // - nothing from organisations the person muted (org_mutes), except direct questions
-//   to them (availability requests, messages, announcements, crew calls)
+//   to them (availability requests, messages, announcements, crew calls, client/supplier messages)
 // Logs carry counts only, never addresses or content.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
@@ -33,7 +33,7 @@ type Notification = {
 
 const MAX_LINES = 20
 // Kinds that are a direct question to the person: sent even when the organisation is muted
-const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call'])
+const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message'])
 
 const STRINGS: Record<Lang, Record<string, string>> = {
   en: {
@@ -81,6 +81,9 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     crewCall: '{actor} offers you a place as {title} on {gig} ({range})',
     crewCallAccepted: '{actor} accepted the place as {title} on {gig}',
     crewCallDeclined: '{actor} declined the place as {title} on {gig}',
+    guestOne: '{guest} wrote about {about}: “{excerpt}”',
+    guestMany: '{guest} wrote {count} messages about {about}, latest: “{excerpt}”',
+    'about.quote': 'a quote', 'about.supplier': 'a subrental',
     'role.pm': 'Production Manager', 'role.crew': 'Crew', 'role.viewer': 'Viewer',
     'orgRole.admin': 'Admin', 'orgRole.member': 'Member', 'orgRole.viewer': 'Viewer',
     'status.draft': 'Draft', 'status.confirmed': 'Confirmed', 'status.active': 'Active',
@@ -131,6 +134,9 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     crewCall: '{actor} oferece-lhe um lugar como {title} em {gig} ({range})',
     crewCallAccepted: '{actor} aceitou o lugar como {title} em {gig}',
     crewCallDeclined: '{actor} recusou o lugar como {title} em {gig}',
+    guestOne: '{guest} escreveu sobre {about}: “{excerpt}”',
+    guestMany: '{guest} escreveu {count} mensagens sobre {about}, a última: “{excerpt}”',
+    'about.quote': 'um orçamento', 'about.supplier': 'um aluguer externo',
     'role.pm': 'Production Manager', 'role.crew': 'Equipa', 'role.viewer': 'Leitor',
     'orgRole.admin': 'Administrador', 'orgRole.member': 'Membro', 'orgRole.viewer': 'Leitor',
     'status.draft': 'Rascunho', 'status.confirmed': 'Confirmado', 'status.active': 'Em curso',
@@ -206,6 +212,8 @@ function describe(n: Notification, lang: Lang, actorName: string | undefined) {
     case 'hire_answered': return fill(d.answer === 'confirmed' ? s.hireConfirmed : s.hireDeclined, { supplier: d.supplier ?? '' })
     case 'crew_call': return fill(s.crewCall, { actor, title: d.title ?? '', gig, range: dayText(d.start_date, d.end_date, lang) })
     case 'crew_call_answer': return fill(d.answer === 'accepted' ? s.crewCallAccepted : s.crewCallDeclined, { actor, title: d.title ?? '', gig })
+    case 'guest_message': return fill(Number(d.count ?? 1) > 1 ? s.guestMany : s.guestOne, {
+      guest: d.guest_name ?? s.someone, about: d.about || s[`about.${d.about_kind ?? 'quote'}`], count: d.count ?? 1, excerpt: d.excerpt ?? '' })
     case 'announcement': return fill(s.announcement, { actor, where: d.where ?? gig, excerpt: d.excerpt ?? '' })
     case 'message': {
       const many = Number(d.count ?? 1) > 1
@@ -219,7 +227,7 @@ function describe(n: Notification, lang: Lang, actorName: string | undefined) {
 }
 
 function linkFor(n: Notification, appUrl: string) {
-  if ((n.kind === 'message' || n.kind === 'crew_call') && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}`
+  if ((n.kind === 'message' || n.kind === 'crew_call' || n.kind === 'guest_message') && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}`
   if (n.kind === 'announcement' && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}?m=${n.details.message_id}`
   if (n.details?.quote_id) return `${appUrl}/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=maintenance`

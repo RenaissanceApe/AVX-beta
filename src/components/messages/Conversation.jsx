@@ -169,7 +169,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const { data: conv } = await supabase.from('conversations').select('kind, gig_id, org_id, department, audience').eq('id', conversationId).maybeSingle()
+      const { data: conv } = await supabase.from('conversations').select('kind, gig_id, org_id, department, audience, context_type').eq('id', conversationId).maybeSingle()
       if (cancelled || !conv) return
       if (conv.kind === 'direct') return setContext({ kind: 'direct', gigId: null, members: [], canManage: false })
       let members = []
@@ -197,7 +197,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
       if (cancelled) return
       const nameMap = Object.fromEntries((people || []).map(p => [p.id, p.full_name || '']))
       setNames(n => ({ ...n, ...nameMap }))
-      setContext({ kind: conv.kind, gigId: conv.gig_id || null, members: members.map(m => ({ ...m, name: nameMap[m.user_id] || '' })), canManage })
+      setContext({ kind: conv.kind, contextType: conv.context_type || null, gigId: conv.gig_id || null, members: members.map(m => ({ ...m, name: nameMap[m.user_id] || '' })), canManage })
     })()
     return () => { cancelled = true }
   }, [conversationId, user.id])
@@ -211,6 +211,8 @@ export default function Conversation({ conversationId, canPost = true, height = 
     })
   }, [messages]) // eslint-disable-line react-hooks/exhaustive-deps
   const name = id => (id === user.id ? t('chat.you') : names[id] || t('common.someone'))
+  // A client or supplier writing through their link has no account, just the name they typed
+  const who = m => m.guest_name || name(m.author_id)
 
   // Reactions for messages as they load
   useEffect(() => {
@@ -512,7 +514,12 @@ export default function Conversation({ conversationId, canPost = true, height = 
           const summary = summarizeReactions(reactionsByMessage[m.id] || [], user.id)
           return (
             <div key={row.key} id={`msg-${m.id}`} className="chat-row" style={{ display: 'flex', flexDirection: 'column', alignItems: mine ? 'flex-end' : 'flex-start', marginTop: row.continues ? '2px' : '10px' }}>
-              {!row.continues && !mine && <span style={{ fontSize: '12px', fontWeight: 700, color: colors.soft, margin: '0 0 2px 4px' }}>{name(m.author_id)}</span>}
+              {!row.continues && !mine && (
+                <span style={{ fontSize: '12px', fontWeight: 700, color: colors.soft, margin: '0 0 2px 4px' }}>
+                  {who(m)}
+                  {m.guest_name && <span style={{ marginLeft: '6px', fontSize: '10px', fontWeight: 700, color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t(`chat.guest.badge.${context.contextType || 'quote'}`)}</span>}
+                </span>
+              )}
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', flexDirection: mine ? 'row-reverse' : 'row', maxWidth: '88%', position: 'relative' }}>
                 <div style={{
                   background: mine ? MINE : 'rgba(255,255,255,0.06)', borderRadius: '12px', padding: '7px 11px', fontSize: '14px', lineHeight: 1.5,
@@ -527,7 +534,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
                     )}
                     {m.reply_to && (
                       <div style={{ borderLeft: `3px solid ${colors.accent}`, padding: '2px 8px', marginBottom: '4px', fontSize: '12px', color: colors.soft, background: 'rgba(0,0,0,0.15)', borderRadius: '4px' }}>
-                        {quoted ? <><strong>{name(quoted.author_id)}</strong> {quoted.deleted_at ? t('chat.removed') : (quoted.body || '').slice(0, 120)}</> : t('chat.earlierMessage')}
+                        {quoted ? <><strong>{who(quoted)}</strong> {quoted.deleted_at ? t('chat.removed') : (quoted.body || '').slice(0, 120)}</> : t('chat.earlierMessage')}
                       </div>
                     )}
                     {m.payload?.card && <CardView card={m.payload.card} />}
@@ -558,11 +565,11 @@ export default function Conversation({ conversationId, canPost = true, height = 
                   </span>
                 </div>
                 {!removed && canPost && (
-                  <button className="chat-tool" onClick={() => { setEditing(null); setReplyTo(m); textarea.current?.focus() }} aria-label={t('chat.replyTo', { name: name(m.author_id) })} title={t('chat.reply')} style={smallBtn}><Reply size={14} /></button>
+                  <button className="chat-tool" onClick={() => { setEditing(null); setReplyTo(m); textarea.current?.focus() }} aria-label={t('chat.replyTo', { name: who(m) })} title={t('chat.reply')} style={smallBtn}><Reply size={14} /></button>
                 )}
                 {!removed && (
                   <button className="chat-tool chat-menu" onClick={() => setMenuFor(menuFor === m.id ? null : m.id)} aria-haspopup="menu" aria-expanded={menuFor === m.id}
-                    aria-label={t('chat.moreFor', { name: name(m.author_id) })} title={t('chat.more')} style={smallBtn}><MoreHorizontal size={14} /></button>
+                    aria-label={t('chat.moreFor', { name: who(m) })} title={t('chat.more')} style={smallBtn}><MoreHorizontal size={14} /></button>
                 )}
                 {menuFor === m.id && (
                   <div role="menu" className="chat-menu" style={{

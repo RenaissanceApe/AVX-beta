@@ -12,6 +12,7 @@ import { toLocalInput } from '../gig/Booking'
 import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 import ContextThread from '../messages/ContextThread'
+import SupplierLink from './SupplierLink'
 
 const AMBER = '#F59E0B'
 const select = { ...input, appearance: 'auto' }
@@ -183,7 +184,12 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
           </button>
         </form>
       )}
-      {subrental && <div style={{ marginTop: '14px' }}><ContextThread type="subrental" id={subrental.id} height="260px" /></div>}
+      {subrental && (
+        <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <ContextThread type="supplier" id={subrental.id} height="260px"><SupplierLink subrental={subrental} /></ContextThread>
+          <ContextThread type="subrental" id={subrental.id} height="260px" />
+        </div>
+      )}
     </Modal>
   )
 }

@@ -51,6 +51,8 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 29. `supabase/migrations/20261104000000_context_kind.sql` — conversations about one thing (**run by hand**: it replaces two rules)
 30. `supabase/migrations/20261104000001_messaging_m4.sql` — availability questions and crew calls in messages, call sheet to the crew, schedule notes, equipment conversations
 31. `supabase/migrations/20261104000002_account_deletion_activity.sql` — fix: people on a gig can delete their account
+32. `supabase/migrations/20261105000000_guest_conversations.sql` — conversations with clients and suppliers (**run by hand**: it replaces a rule)
+33. `supabase/migrations/20261105000001_messaging_m4b.sql` — client conversation on a quote's page, supplier links
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.

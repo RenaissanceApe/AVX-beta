@@ -142,7 +142,7 @@ acknowledgement, crew calls, client and supplier threads, push, moderation (stag
 | ✅ M2 · Richer messages (0.22.0) | Files with previews, cards for gigs, schedule items, files, quotes and equipment, @mentions of people and groups, reactions, edit with history, remove, link to a message |
 | ✅ M3 · Channels (0.23.0) | Organisation channels with audiences and "admins only", department channels per function on a gig, pinned messages, announcements with read-and-confirm, search, saved messages |
 | ✅ M4a · Connected to AVX (0.24.0) | Availability questions and crew calls answered in messages, call sheet sent to the crew with read-and-confirm, schedule changes posted in the gig's chat, team conversations on equipment, repairs and subrentals |
-| M4b · Clients and suppliers | Conversations with a quote's client and a subrental's supplier through secure links, without an account |
+| ✅ M4b · Clients and suppliers (0.25.0) | Conversations with a quote's client (on the quote's page) and a subrental's supplier (through a link made for them), without an account |
 | M5 · Reach | Push notifications, reply by email, offline outbox |
 | M6 · Safety | Moderation, retention, export, rate limits |
 
@@ -173,6 +173,10 @@ privacy notice and terms need a full section on it. To be written up in detail b
 
 ## End of the build
 
+- **Public site, pricing and help** (planned 2026-10-19): a commercial site with pricing tiers and
+  the sales workflows (trial, billing, certified invoices), public documentation, and help in
+  layers (FAQ → docs → AI-assisted help centre), all built from the in-app guides. Stages P1–P5 in
+  [docs/PUBLIC_SITE.md](docs/PUBLIC_SITE.md).
 - **Phone app decision** (wrapper around this app vs. staying with the installed web app), once
   inventory scanning and messaging show what on-site use needs
 

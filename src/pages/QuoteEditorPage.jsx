@@ -18,6 +18,7 @@ import { VersionsModal, SendQuoteModal } from '../components/quotes/QuoteSharing
 import GigPlanModal from '../components/quotes/GigPlanModal'
 import QuoteAvailabilityModal from '../components/quotes/QuoteAvailability'
 import { useWorkspace } from '../lib/WorkspaceContext'
+import ContextThread from '../components/messages/ContextThread'
 import {
   QUOTE_STATUSES, normalizeBody, quoteTotals, emptyPhase, cloneBody, quoteNumber, formatMoney, move, quoteDateRange, localISODate, snapshotFields,
 } from '../lib/quotes'
@@ -333,6 +334,7 @@ export default function QuoteEditorPage() {
       <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 16px' }}>
         {tab === 'details' && <QuoteDetails quote={quote} gigs={gigs} onChange={updateQuote} />}
         {tab === 'summary' && <QuoteSummary quote={quote} body={body} totals={totals} onOpenPhase={i => setTab(`phase:${body.phases[i].id}`)} />}
+        {tab === 'summary' && <div style={{ marginTop: '18px' }}><ContextThread type="quote" id={quote.id} /></div>}
         {phase && (
           <PhaseEditor key={phase.id} phase={phase} index={phaseIndex} count={body.phases.length} currency={quote.currency} priceItems={priceItems}
             onChange={updatePhase}

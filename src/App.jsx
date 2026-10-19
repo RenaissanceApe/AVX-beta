@@ -30,6 +30,7 @@ const PackingListPage = lazy(() => import('./pages/PackingListPage'))
 // Public: the page a client opens from a quote link (no account)
 const MessagesPage = lazy(() => import('./pages/MessagesPage'))
 const QuotePublicPage = lazy(() => import('./pages/QuotePublicPage'))
+const SupplierLinkPage = lazy(() => import('./pages/SupplierLinkPage'))
 
 function Spinner() {
   return (
@@ -69,7 +70,7 @@ function AppRoutes() {
   if (loading) return <Spinner />
 
   // People with an authenticator app give their code before anything else (public pages excepted)
-  if (user && mfaRequired && !/^\/(q\/|privacy|terms)/.test(location.pathname)) return <MfaChallengePage />
+  if (user && mfaRequired && !/^\/(q\/|s\/|privacy|terms)/.test(location.pathname)) return <MfaChallengePage />
 
   // A password-reset link may land on any URL (e.g. the Site URL); always finish the reset first.
   if (passwordRecovery && location.pathname !== '/reset-password') {
@@ -84,6 +85,7 @@ function AppRoutes() {
       <Route path="/privacy" element={<LegalPage doc="privacy" />} />
       <Route path="/terms" element={<LegalPage doc="terms" />} />
       <Route path="/q/:token" element={<Suspense fallback={<Spinner />}><QuotePublicPage /></Suspense>} />
+      <Route path="/s/:token" element={<Suspense fallback={<Spinner />}><SupplierLinkPage /></Suspense>} />
       <Route path="/dashboard" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
       <Route path="/me" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/messages" element={<ProtectedRoute><Suspense fallback={<Spinner />}><MessagesPage /></Suspense></ProtectedRoute>} />

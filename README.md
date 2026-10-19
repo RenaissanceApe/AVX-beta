@@ -9,7 +9,7 @@ Built with React + Vite, Supabase (database, auth, file storage) and hosted on V
 - **How we work on the repo:** [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Release notes:** [CHANGELOG.md](CHANGELOG.md)
 - **Email setup / spam:** [docs/EMAIL.md](docs/EMAIL.md) · **Backups:** [docs/BACKUPS.md](docs/BACKUPS.md) · **Testing:** [docs/TESTING.md](docs/TESTING.md) · **Quotes:** [docs/QUOTES.md](docs/QUOTES.md) · **Usage counts:** [docs/USAGE.md](docs/USAGE.md) · **Two-step sign-in:** [docs/SECURITY.md](docs/SECURITY.md) · **Navigation & roles:** [docs/NAVIGATION.md](docs/NAVIGATION.md)
-- **Waiting on you:** [docs/PENDING.md](docs/PENDING.md) · **Help & inclusion plan:** [docs/HELP.md](docs/HELP.md) · **Switching from other tools:** [docs/SWITCHING.md](docs/SWITCHING.md)
+- **Waiting on you:** [docs/PENDING.md](docs/PENDING.md) · **Help & inclusion plan:** [docs/HELP.md](docs/HELP.md) · **Switching from other tools:** [docs/SWITCHING.md](docs/SWITCHING.md) · **Public site, pricing and help (plan):** [docs/PUBLIC_SITE.md](docs/PUBLIC_SITE.md)
 
 ## Quick start
 
