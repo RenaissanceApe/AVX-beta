@@ -7,6 +7,7 @@ import { removeGigFiles } from '../lib/storage'
 import { useI18n } from '../i18n'
 import { Modal, btnPrimary, input, label, colors } from './ui'
 import { DangerZone, DangerConfirmModal } from './DangerConfirm'
+import OrgMessagesSettings from './OrgMessagesSettings'
 
 // What deleting an organisation destroys, as readable lines for the confirmation dialog
 async function orgDeletionImpact(orgId, t) {
@@ -23,7 +24,8 @@ async function orgDeletionImpact(orgId, t) {
   ]
 }
 
-// Organisation settings for admins: name, equipment prep/return days, and (well hidden) deletion.
+// Organisation settings for admins: name, equipment prep/return days, messages (retention, export,
+// usage) and (well hidden) deletion.
 export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted }) {
   const { t } = useI18n()
   const { notify } = useToast()
@@ -92,6 +94,7 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
         </button>
         <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('orgSettings.companyHint')}</p>
       </form>
+      <OrgMessagesSettings org={org} />
       <DangerZone description={t('danger.orgZoneText')} actionLabel={t('org.delete')} onAction={() => setConfirmDelete(true)} />
     </Modal>
   )

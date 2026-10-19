@@ -1,6 +1,6 @@
 # Messaging: plan
 
-Status: **M1 (0.21.0), M2 (0.22.0), M3 (0.23.0), M4a (0.24.0), M4b (0.25.0), M5a (0.26.0) and M6a (0.27.0) built**; M5b and M6b planned. A project of
+Status: **M1 (0.21.0), M2 (0.22.0), M3 (0.23.0), M4a (0.24.0), M4b (0.25.0), M5a (0.26.0), M6a (0.27.0) and M6b (0.28.0) built**; M5b planned. A project of
 its own, built in stages M1–M6. The aim: one messaging system that works wherever people need
 to talk about something in AVX (a gig, a person's availability, a file, a quote, a piece of
 equipment), instead of WhatsApp groups that lose the context.
@@ -295,4 +295,28 @@ conversations with a quote's client and a subrental's supplier, who have no acco
 - Not yet (M6b): retention per organisation (delete messages older than…), organisation export
   of its conversations, usage counts per organisation. A place for the AVX team to read reports
   from direct conversations comes with the help centre (docs/PUBLIC_SITE.md).
+
+## What M6b built (0.28.0)
+
+- Migrations `20261108000000_messaging_m6b.sql` and `20261108000001_message_retention_delete.sql`
+  (**run by hand**: the step that deletes messages). Edge function `message-retention`. Tests
+  `supabase/tests/messaging_m6b.sql`.
+- **Organisation settings → Messages** (admins): usage counts (messages, conversations, the last
+  30 days and how many people wrote, files and their size, the oldest message), how long to keep
+  messages, and a download of all conversations.
+- **Retention:** for ever (the default), 90 days, 6 months, 1 year or 2 years. It covers the
+  organisation's channels, its gigs' chats (and department channels) and its conversations about
+  equipment, quotes and subrentals, including clients' and suppliers' messages; **never direct
+  conversations**. Choosing a shorter period goes through the two-step deletion warning (what goes
+  tonight, how many files, typing the organisation's name); a longer one, or for ever, just saves.
+  Who set it and when is kept (`organisations.message_retention_set_by/_at`).
+- **The nightly job:** pg_cron runs `private.run_message_retention()` at 03:17 UTC, which calls the
+  `message-retention` function with a key kept in `job_keys` (nobody signed in can read it). The
+  function lists due messages (`retention_due`), deletes their files from storage first, then the
+  messages (`retention_delete`, which checks again that each is past its period and takes the
+  deleted text out of notifications that quoted it). Up to 10,000 messages a night; the rest the
+  next night. A message whose files couldn't be deleted waits for the next night.
+- **Export:** a JSON file with the organisation's conversations (newest 50,000 messages): who wrote
+  what and when, replies, edits and removals, names of attached files (not the files).
+- Not done: usage per person, and an export of the files themselves.
 

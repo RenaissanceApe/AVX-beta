@@ -55,6 +55,8 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 33. `supabase/migrations/20261105000001_messaging_m4b.sql` — client conversation on a quote's page, supplier links
 34. `supabase/migrations/20261106000000_push.sql` — push notifications (turns on pg_net)
 35. `supabase/migrations/20261107000000_messaging_m6a.sql` — report messages, moderators, blocking, rate limits
+36. `supabase/migrations/20261108000000_messaging_m6b.sql` — message retention, export, usage counts (turns on pg_cron)
+37. `supabase/migrations/20261108000001_message_retention_delete.sql` — the nightly deletion step (**run by hand**)
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.
@@ -90,6 +92,10 @@ Recommended while you're in Auth settings:
   calls it; it checks the user's token itself for the app's requests). It makes its own keys the
   first time someone turns notifications on. It shares `supabase/functions/_shared/` with
   send-digest, so deploy with the CLI (or include that file).
+- Message retention: deploy `supabase/functions/message-retention` with "Verify JWT" **off**, then
+  tell the nightly job where it is (SQL editor):
+  `update job_keys set function_url = 'https://<project-ref>.supabase.co/functions/v1/message-retention' where name = 'message_retention';`
+  Until then the job does nothing.
 - Follow [docs/EMAIL.md](docs/EMAIL.md): custom SMTP, sender domain DNS, no click tracking, and the email templates.
 - Optional: [docs/BACKUPS.md](docs/BACKUPS.md) for daily encrypted backups.
 

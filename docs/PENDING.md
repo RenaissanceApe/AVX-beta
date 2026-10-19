@@ -54,6 +54,7 @@ Use your second email address as a crew member. Each line is a few minutes. New 
 | T15 | **Messages M4b:** send a quote to your own second email and write from the quote's page (signed out, or in a private window); answer from the quote's Summary tab; make a supplier link on a subrental, open it in a private window, write, and answer from the subrental; make a new link and check the old one stops working | M4b (0.25.0) |
 | T16 | **Messages M5a:** on your phone (iPhone: add AVX to the home screen first) turn on Account → Notifications on this device and "Send a test"; lock the phone and send it a message from the second account; tap the notification. Then turn on airplane mode, write a message, turn it off and see it sent | M5a (0.26.0) |
 | T17 | **Messages M6a:** from the second account, report a message of yours in a gig's chat; as the gig's manager, open the notification and choose Keep it, then report another and Remove it (the second account sees "Removed by a moderator" and a notification). In a direct conversation, block the second account and check neither of you can write; unblock from Account | M6a (0.27.0) |
+| T18 | **Messages M6b:** run `supabase/migrations/20261108000001_message_retention_delete.sql` by hand in the SQL editor (test, then production). As admin open the organisation's settings: check the usage line; choose "For 2 years" and read the warning (cancel or confirm); download all messages and open the file | M6b (0.28.0) |
 
 ## 3. Decisions still open
 
