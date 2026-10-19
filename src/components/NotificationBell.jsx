@@ -20,7 +20,9 @@ export default function NotificationBell() {
   const [items, setItems] = useState([])
   const [names, setNames] = useState({})
   const [open, setOpen] = useState(false)
+  const [place, setPlace] = useState(null)
   const panelRef = useRef()
+  const buttonRef = useRef()
 
   async function load() {
     const { data, error } = await supabase.from('notifications').select('*')
@@ -44,14 +46,27 @@ export default function NotificationBell() {
     return () => { supabase.removeChannel(channel) }
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Close on outside click / Escape
+  // The panel sits under the bell but always inside the screen: on a phone the bell isn't at the
+  // right edge (the account button is), so lining it up with the bell pushed it off the left side
+  function toggle() {
+    if (open) return setOpen(false)
+    const r = buttonRef.current.getBoundingClientRect()
+    const width = Math.min(360, window.innerWidth - 24)
+    const right = Math.max(12, Math.min(window.innerWidth - r.right, window.innerWidth - width - 12))
+    setPlace({ top: r.bottom + 8, right, width })
+    setOpen(true)
+  }
+
+  // Close on outside click / Escape / a change of screen size
   useEffect(() => {
     if (!open) return
+    const onResize = () => setOpen(false)
+    window.addEventListener('resize', onResize)
     const onClick = e => { if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false) }
     const onKey = e => { if (e.key === 'Escape') setOpen(false) }
     document.addEventListener('mousedown', onClick)
     document.addEventListener('keydown', onKey)
-    return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey) }
+    return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); window.removeEventListener('resize', onResize) }
   }, [open])
 
   // Muted organisations stay in the list but don't make the bell light up
@@ -76,7 +91,7 @@ export default function NotificationBell() {
 
   return (
     <div ref={panelRef} style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(o => !o)} aria-expanded={open} aria-haspopup="true"
+      <button ref={buttonRef} onClick={toggle} aria-expanded={open} aria-haspopup="true"
         aria-label={unread ? t('notif.bellUnread', { count: unread }) : t('notif.bell')} title={t('notif.bell')}
         style={{ ...iconBtn, position: 'relative', color: unread ? '#fff' : colors.muted }}>
         <Bell size={17} />
@@ -88,9 +103,9 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {open && (
+      {open && place && (
         <div role="dialog" aria-label={t('notif.bell')} style={{
-          position: 'absolute', right: 0, top: '40px', width: 'min(360px, calc(100vw - 24px))', maxHeight: '70vh', overflowY: 'auto',
+          position: 'fixed', right: `${place.right}px`, top: `${place.top}px`, width: `${place.width}px`, maxHeight: '70vh', overflowY: 'auto',
           background: colors.panel, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', boxShadow: '0 12px 32px rgba(0,0,0,0.5)', zIndex: 200,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderBottom: `1px solid ${colors.border}` }}>
