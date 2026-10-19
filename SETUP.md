@@ -50,6 +50,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 28. `supabase/migrations/20261103000001_messaging_m3.sql` — organisation and department channels, pins, announcements, search, saved
 29. `supabase/migrations/20261104000000_context_kind.sql` — conversations about one thing (**run by hand**: it replaces two rules)
 30. `supabase/migrations/20261104000001_messaging_m4.sql` — availability questions and crew calls in messages, call sheet to the crew, schedule notes, equipment conversations
+31. `supabase/migrations/20261104000002_account_deletion_activity.sql` — fix: people on a gig can delete their account
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.
