@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.27.0 — Messaging M6a: reports, moderators and blocking
+
+### Added
+- **Report a message:** message menu → Report, with a reason. The gig's managers or the
+  organisation's admins are told (never who reported it) and choose Remove or Keep it, right under
+  the message. Reports from direct conversations go to the AVX team
+- **Remove as moderator:** whoever runs a gig's or organisation's conversation can remove any
+  message in it; it shows "Removed by a moderator" and the author is told
+- **Block a person:** in a direct conversation. Neither of you can write there, and their
+  mentions don't notify you; work questions (availability, crew calls) still arrive. Unblock in the
+  conversation or in Account → People you blocked
+- **Rate limits** against spam: at most 20 messages a minute per person
+- Privacy notice (EN/PT): reports and blocks
+
 ## 0.26.0 — Messaging M5a: push notifications and offline messages
 
 ### Added

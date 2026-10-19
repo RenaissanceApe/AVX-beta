@@ -1,6 +1,6 @@
 # Messaging: plan
 
-Status: **M1 (0.21.0), M2 (0.22.0), M3 (0.23.0), M4a (0.24.0), M4b (0.25.0) and M5a (0.26.0) built**; M5b and M6 planned. A project of
+Status: **M1 (0.21.0), M2 (0.22.0), M3 (0.23.0), M4a (0.24.0), M4b (0.25.0), M5a (0.26.0) and M6a (0.27.0) built**; M5b and M6b planned. A project of
 its own, built in stages M1–M6. The aim: one messaging system that works wherever people need
 to talk about something in AVX (a gig, a person's availability, a file, a quote, a piece of
 equipment), instead of WhatsApp groups that lose the context.
@@ -104,7 +104,7 @@ Attachments count against file storage, like gig files.
 | **M3** | Organisation and department channels, pinned, announcements with acknowledgement, search |
 | **M4** | Integrations: availability requests, crew calls, call sheet, quotes with clients, equipment threads |
 | **M5** | Push notifications, offline outbox (M5a); reply by email, emailing clients and suppliers (M5b) |
-| **M6** | Moderation, retention, export, rate limits |
+| **M6** | Reports, moderators, blocking, rate limits (M6a); retention, organisation export, usage counts (M6b) |
 
 ## Decisions (settled before M1)
 
@@ -268,4 +268,31 @@ conversations with a quote's client and a subrental's supplier, who have no acco
 - Not yet (M5b): reply by email to the summary, and emailing a client or supplier when you answer
   them. Both need inbound email on your domain (DNS records), so they wait for that decision.
   Quick replies from the notification itself are left for the phone app, if it's built.
+
+## What M6a built (0.27.0)
+
+- Migration `20261107000000_messaging_m6a.sql`. Tests `supabase/tests/messaging_m6a.sql`.
+- **Report a message** (message menu → Report, with a reason: spam, abusive or harassing, something
+  else, and an optional note). In a gig's or organisation's conversation the people running it
+  are told (`message_report` notification, also in muted organisations): the gig's managers (its
+  PMs, whoever created it, the organisation's admins) or the organisation's admins. They see the
+  message, the reasons, the notes and how many reported it, **never who**; under the message they
+  choose Remove or Keep it. Reports from direct conversations, which nobody runs, are kept for
+  the AVX team (`message_reports`, read in Supabase for now). One report per person per message,
+  at most 20 a day.
+- **Moderators remove messages** (menu → Remove as moderator), reported or not, in the
+  conversations they run (never direct ones). The message shows "Removed by a moderator"
+  (`messages.removed_by`), its text, files and earlier versions are cleared like the author's own
+  removal, and the author gets a `message_removed` notification with the start of the text.
+- **Block a person** (in a direct conversation: the message menu, or the report window). Neither
+  of you can write in your direct conversation; their mentions and replies in shared channels
+  don't notify you. Work questions (availability, crew calls) still arrive, since the gig still
+  needs an answer. The other person isn't told; they see their messages aren't delivered.
+  Unblock in the conversation or in Account → People you blocked (`user_blocks`, with `active`).
+- **Rate limits:** at most 20 messages a minute and 300 an hour per person (what they write
+  themselves; work messages like crew calls don't count). Messages written offline that hit the
+  limit wait for the next try instead of being dropped.
+- Not yet (M6b): retention per organisation (delete messages older than…), organisation export
+  of its conversations, usage counts per organisation. A place for the AVX team to read reports
+  from direct conversations comes with the help centre (docs/PUBLIC_SITE.md).
 

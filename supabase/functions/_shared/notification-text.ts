@@ -14,7 +14,7 @@ export type Notification = {
 }
 
 // Kinds that are a direct question to the person: sent even when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed'])
 
 export const STRINGS: Record<Lang, Record<string, string>> = {
   en: {
@@ -65,6 +65,9 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     guestOne: '{guest} wrote about {about}: “{excerpt}”',
     guestMany: '{guest} wrote {count} messages about {about}, latest: “{excerpt}”',
     'about.quote': 'a quote', 'about.supplier': 'a subrental',
+    messageReport: 'A message in {where} was reported ({reason}). Remove it or keep it',
+    messageRemoved: 'A moderator removed your message in {where}: “{excerpt}”',
+    'reason.spam': 'spam', 'reason.abuse': 'abusive or harassing', 'reason.other': 'other',
     pushTest: 'Notifications are on for this device.',
     'role.pm': 'Production Manager', 'role.crew': 'Crew', 'role.viewer': 'Viewer',
     'orgRole.admin': 'Admin', 'orgRole.member': 'Member', 'orgRole.viewer': 'Viewer',
@@ -119,6 +122,9 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     guestOne: '{guest} escreveu sobre {about}: “{excerpt}”',
     guestMany: '{guest} escreveu {count} mensagens sobre {about}, a última: “{excerpt}”',
     'about.quote': 'um orçamento', 'about.supplier': 'um aluguer externo',
+    messageReport: 'Uma mensagem em {where} foi denunciada ({reason}). Remova-a ou mantenha-a',
+    messageRemoved: 'Um moderador removeu a sua mensagem em {where}: “{excerpt}”',
+    'reason.spam': 'spam', 'reason.abuse': 'abusiva ou ofensiva', 'reason.other': 'outro motivo',
     pushTest: 'As notificações estão ativas neste dispositivo.',
     'role.pm': 'Production Manager', 'role.crew': 'Equipa', 'role.viewer': 'Leitor',
     'orgRole.admin': 'Administrador', 'orgRole.member': 'Membro', 'orgRole.viewer': 'Leitor',
@@ -193,6 +199,8 @@ export function describe(n: Notification, lang: Lang, actorName: string | undefi
     case 'crew_call_answer': return fill(d.answer === 'accepted' ? s.crewCallAccepted : s.crewCallDeclined, { actor, title: d.title ?? '', gig })
     case 'guest_message': return fill(Number(d.count ?? 1) > 1 ? s.guestMany : s.guestOne, {
       guest: d.guest_name ?? s.someone, about: d.about || s[`about.${d.about_kind ?? 'quote'}`], count: d.count ?? 1, excerpt: d.excerpt ?? '' })
+    case 'message_report': return fill(s.messageReport, { where: d.where ?? gig, reason: s[`reason.${d.reason ?? 'other'}`] ?? '' })
+    case 'message_removed': return fill(s.messageRemoved, { where: d.where ?? gig, excerpt: d.excerpt ?? '' })
     case 'announcement': return fill(s.announcement, { actor, where: d.where ?? gig, excerpt: d.excerpt ?? '' })
     case 'message': {
       const many = Number(d.count ?? 1) > 1
@@ -207,7 +215,8 @@ export function describe(n: Notification, lang: Lang, actorName: string | undefi
 
 export function linkFor(n: Notification, appUrl: string) {
   if ((n.kind === 'message' || n.kind === 'crew_call' || n.kind === 'guest_message') && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}`
-  if (n.kind === 'announcement' && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}?m=${n.details.message_id}`
+  if ((n.kind === 'announcement' || n.kind === 'message_report') && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}?m=${n.details.message_id}`
+  if (n.kind === 'message_removed' && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}`
   if (n.details?.quote_id) return `${appUrl}/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=maintenance`
   if ((n.kind === 'hire_request' || n.kind === 'hire_answered') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=subrentals`

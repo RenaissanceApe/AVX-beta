@@ -378,3 +378,47 @@ export function EventCard({ message: m, mine, actor, answers }) {
     </div>
   )
 }
+
+// ── Report a message (M6a): to whoever runs the conversation, or the AVX team in a direct one ──
+const REPORT_REASONS = ['spam', 'abuse', 'other']
+export function ReportModal({ message, direct, onClose, onBlock }) {
+  const { notify } = useToast()
+  const [reason, setReason] = useState('spam')
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  async function submit(e) {
+    e.preventDefault()
+    setBusy(true)
+    const { error } = await supabase.rpc('report_message', { p_id: message.id, p_reason: reason, p_note: note.trim() || null })
+    setBusy(false)
+    if (error) {
+      logger.error('messages', error, { step: 'report' })
+      return notify(error.code === '54000' ? t('chat.report.tooMany') : userMessage(error), 'error')
+    }
+    track('messages:reported')
+    notify(t('chat.report.sent'), 'success')
+    onClose(true)
+  }
+  return (
+    <Modal title={t('chat.report.title')} onClose={() => onClose(false)}>
+      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.5 }}>{t(direct ? 'chat.report.hintDirect' : 'chat.report.hint')}</p>
+        <fieldset style={{ border: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <legend style={{ fontSize: '12px', fontWeight: 600, color: colors.muted, marginBottom: '6px' }}>{t('chat.report.why')}</legend>
+          {REPORT_REASONS.map(r => (
+            <label key={r} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
+              <input type="radio" name="reason" value={r} checked={reason === r} onChange={() => setReason(r)} style={{ accentColor: colors.accent }} />
+              {t(`chat.report.reason.${r}`)}
+            </label>
+          ))}
+        </fieldset>
+        <textarea value={note} onChange={e => setNote(e.target.value)} maxLength={500} rows={3} placeholder={t('chat.report.note')}
+          aria-label={t('chat.report.note')} style={{ ...input, resize: 'vertical', font: 'inherit' }} />
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+          {direct && onBlock && <button type="button" onClick={onBlock} style={{ ...btn, marginRight: 'auto' }}>{t('chat.block.action')}</button>}
+          <button type="submit" disabled={busy} style={btnPrimary}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : null}{t('chat.report.send')}</button>
+        </div>
+      </form>
+    </Modal>
+  )
+}

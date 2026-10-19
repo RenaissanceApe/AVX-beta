@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Send, Reply, X, Loader2, Paperclip, Link2, MoreHorizontal, Pencil, Trash2, History, Copy, FileText, Pin, PinOff, Bookmark, BookmarkCheck, Megaphone, CheckCircle2, Clock } from 'lucide-react'
+import { Send, Reply, X, Loader2, Paperclip, Link2, MoreHorizontal, Pencil, Trash2, History, Copy, FileText, Pin, PinOff, Bookmark, BookmarkCheck, Megaphone, CheckCircle2, Clock, Flag, ShieldX, Ban } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
@@ -13,7 +13,7 @@ import { MESSAGES_READ } from '../../lib/useMessages'
 import { isNetworkError } from '../../lib/offline'
 import { OUTBOX_CHANGED, readOutbox, queueMessage, dropQueued, flushOutbox } from '../../lib/outbox'
 import { useI18n, t, fmt as fmtDate } from '../../i18n'
-import { Attachments, CardView, CardPicker, ReactionBar, HistoryModal, AckStatusModal, EventCard } from './MessageParts'
+import { Attachments, CardView, CardPicker, ReactionBar, HistoryModal, AckStatusModal, EventCard, ReportModal } from './MessageParts'
 import { colors } from '../ui'
 
 const PAGE = 50
@@ -50,6 +50,13 @@ function systemText(m, name) {
     return t('chat.sys.schedule', { actor, count: p.count || 1, items })
   }
   return t('chat.sys.other', { actor })
+}
+
+// A refused message, in words: too many at once, or a direct conversation with a block (M6a)
+function sendError(error) {
+  if (error?.code === '54000') return t('chat.tooMany')
+  if (error?.code === '42501' && error?.message === 'Blocked') return t('chat.block.cantSend')
+  return userMessage(error)
 }
 
 // Whether a message's mentions reach this person (directly or through a group on the gig)
@@ -91,6 +98,9 @@ export default function Conversation({ conversationId, canPost = true, height = 
   const [saved, setSaved] = useState(() => new Set())
   const [statusFor, setStatusFor] = useState(null)
   const [queued, setQueued] = useState([]) // written offline, waiting to be sent (lib/outbox)
+  const [reports, setReports] = useState({}) // open reports, for whoever runs the conversation (M6a)
+  const [reporting, setReporting] = useState(null)
+  const [other, setOther] = useState(null) // the other person in a direct conversation, and whether you blocked them
   const fetchedExtras = useRef(new Set())
   const scroller = useRef(null)
   const textarea = useRef(null)
@@ -185,10 +195,18 @@ export default function Conversation({ conversationId, canPost = true, height = 
   // announcements, group mentions on a gig)
   useEffect(() => {
     let cancelled = false
+    setOther(null)
     ;(async () => {
       const { data: conv } = await supabase.from('conversations').select('kind, gig_id, org_id, department, audience, context_type').eq('id', conversationId).maybeSingle()
       if (cancelled || !conv) return
-      if (conv.kind === 'direct') return setContext({ kind: 'direct', gigId: null, members: [], canManage: false })
+      if (conv.kind === 'direct') {
+        setContext({ kind: 'direct', gigId: null, members: [], canManage: false })
+        const { data: pair } = await supabase.from('conversation_members').select('user_id').eq('conversation_id', conversationId).neq('user_id', user.id).maybeSingle()
+        if (!pair || cancelled) return
+        const { data: block } = await supabase.from('user_blocks').select('active').eq('blocked_id', pair.user_id).maybeSingle()
+        if (!cancelled) setOther({ id: pair.user_id, blocked: !!block?.active })
+        return
+      }
       let members = []
       let canManage = false
       if (conv.kind === 'org' || conv.kind === 'context') {
@@ -264,6 +282,17 @@ export default function Conversation({ conversationId, canPost = true, height = 
       }
     }
   }, [messages, context.canManage, user.id])
+
+  // Open reports in this conversation, for the people running it (never who reported)
+  const loadReports = useCallback(async () => {
+    const { data, error } = await supabase.rpc('open_reports', { p_conv: conversationId })
+    if (error) return logger.error('messages', error, { step: 'reports' })
+    setReports(Object.fromEntries((data || []).map(r => [r.message_id, r])))
+  }, [conversationId])
+  useEffect(() => {
+    setReports({})
+    if (context.canManage && context.kind && context.kind !== 'direct') loadReports()
+  }, [context.canManage, context.kind, loadReports])
 
   const reactionsByMessage = useMemo(() => {
     const out = {}
@@ -407,7 +436,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
     if (error && plain && isNetworkError(error)) return queue()
     if (error) {
       logger.error('messages', error, { step: 'send' })
-      return notify(userMessage(error), 'error')
+      return notify(sendError(error), 'error')
     }
     track('messages:sent')
     if (attachments.length) track('messages:files')
@@ -438,6 +467,29 @@ export default function Conversation({ conversationId, canPost = true, height = 
     if (error) return notify(userMessage(error), 'error')
     track('messages:removed')
     setMessages(list => list.map(x => (x.id === m.id ? { ...x, body: '—', attachments: [], payload: null, mentions: [], deleted_at: new Date().toISOString() } : x)))
+  }
+
+  // Whoever runs the conversation removes a message, or keeps a reported one (M6a)
+  async function moderate(m, remove) {
+    setMenuFor(null)
+    if (remove && !window.confirm(t('chat.moderate.confirm'))) return
+    const { error } = await supabase.rpc('moderate_message', { p_id: m.id, p_remove: remove })
+    if (error) return notify(userMessage(error), 'error')
+    track(remove ? 'messages:moderated' : 'messages:reportKept')
+    if (remove) setMessages(list => list.map(x => (x.id === m.id ? { ...x, body: '—', attachments: [], payload: null, mentions: [], deleted_at: new Date().toISOString(), removed_by: user.id } : x)))
+    setReports(all => { const next = { ...all }; delete next[m.id]; return next })
+    notify(t(remove ? 'chat.moderate.removed' : 'chat.moderate.kept'), 'success')
+  }
+
+  async function setBlocked(on) {
+    if (!other) return
+    if (on && !window.confirm(t('chat.block.confirm', { name: name(other.id) }))) return
+    const { error } = await supabase.rpc('block_user', { p_user: other.id, p_block: on })
+    if (error) return notify(userMessage(error), 'error')
+    track(on ? 'messages:blocked' : 'messages:unblocked')
+    setOther(o => ({ ...o, blocked: on }))
+    setReporting(null)
+    notify(t(on ? 'chat.block.done' : 'chat.block.undone', { name: name(other.id) }), 'success')
   }
 
   async function pin(m, on) {
@@ -556,7 +608,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
                   whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', minWidth: 0,
                   boxShadow: highlight === m.id ? `0 0 0 2px ${colors.accent}` : forMe ? `inset 3px 0 0 ${AMBER}` : 'none', transition: 'box-shadow .3s',
                 }}>
-                  {removed ? <span style={{ fontStyle: 'italic', color: colors.muted }}>{t('chat.removed')}</span> : <>
+                  {removed ? <span style={{ fontStyle: 'italic', color: colors.muted }}>{t(m.removed_by ? 'chat.removedByModerator' : 'chat.removed')}</span> : <>
                     {m.needs_ack && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: AMBER, marginBottom: '3px' }}>
                         <Megaphone size={13} /> {t('chat.announcement')}
@@ -623,10 +675,28 @@ export default function Conversation({ conversationId, canPost = true, height = 
                     {m.edited_at && <button role="menuitem" style={menuItem} onClick={() => { setMenuFor(null); setHistory(m) }}><History size={14} /> {t('chat.history')}</button>}
                     {mine && canPost && <button role="menuitem" style={menuItem} onClick={() => startEdit(m)}><Pencil size={14} /> {t('chat.edit')}</button>}
                     {mine && <button role="menuitem" style={{ ...menuItem, color: colors.danger }} onClick={() => remove(m)}><Trash2 size={14} /> {t('chat.remove')}</button>}
+                    {!mine && <button role="menuitem" style={menuItem} onClick={() => { setMenuFor(null); setReporting(m) }}><Flag size={14} /> {t('chat.report.action')}</button>}
+                    {!mine && context.canManage && context.kind !== 'direct' && (
+                      <button role="menuitem" style={{ ...menuItem, color: colors.danger }} onClick={() => moderate(m, true)}><ShieldX size={14} /> {t('chat.moderate.remove')}</button>
+                    )}
+                    {!mine && context.kind === 'direct' && other && !other.blocked && (
+                      <button role="menuitem" style={{ ...menuItem, color: colors.danger }} onClick={() => { setMenuFor(null); setBlocked(true) }}><Ban size={14} /> {t('chat.block.action')}</button>
+                    )}
                   </div>
                 )}
               </div>
               {!removed && <ReactionBar summary={summary} name={name} onToggle={canPost ? emoji => react(m, emoji) : null} alignEnd={mine} />}
+              {!removed && reports[m.id] && (
+                <div role="note" style={{ maxWidth: '88%', marginTop: '4px', padding: '6px 10px', borderRadius: '8px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', fontSize: '12px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                  <Flag size={12} color={colors.danger} />
+                  <span style={{ flex: 1, minWidth: '160px' }}>
+                    {t('chat.moderate.reported', { count: reports[m.id].reports, reasons: reports[m.id].reasons.map(r => t(`chat.report.reason.${r}`)).join(', ') })}
+                    {reports[m.id].notes?.length > 0 && <span style={{ color: colors.soft }}> · “{reports[m.id].notes.join('” · “')}”</span>}
+                  </span>
+                  <button type="button" onClick={() => moderate(m, true)} style={{ background: 'none', border: '1px solid rgba(239,68,68,0.4)', color: colors.danger, borderRadius: '6px', padding: '3px 8px', font: 'inherit', fontSize: '12px', cursor: 'pointer' }}>{t('chat.moderate.removeShort')}</button>
+                  <button type="button" onClick={() => moderate(m, false)} style={{ background: 'none', border: `1px solid ${colors.border}`, color: colors.soft, borderRadius: '6px', padding: '3px 8px', font: 'inherit', fontSize: '12px', cursor: 'pointer' }}>{t('chat.moderate.keep')}</button>
+                </div>
+              )}
             </div>
           )
         })}
@@ -641,7 +711,12 @@ export default function Conversation({ conversationId, canPost = true, height = 
           </div>
         ))}
       </div>
-      {canPost ? (
+      {other?.blocked ? (
+        <p style={{ fontSize: '13px', color: colors.soft, textAlign: 'center', padding: '10px 8px', borderTop: `1px solid ${colors.border}`, display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Ban size={14} /> {t('chat.block.banner', { name: name(other.id) })}
+          <button type="button" onClick={() => setBlocked(false)} style={{ background: 'none', border: `1px solid ${colors.border}`, color: colors.accent, borderRadius: '8px', padding: '4px 10px', font: 'inherit', fontSize: '12px', cursor: 'pointer' }}>{t('chat.block.unblock')}</button>
+        </p>
+      ) : canPost ? (
         <form onSubmit={send} style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '8px', position: 'relative' }}
           onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (!editing && e.dataTransfer.files.length) addFiles(e.dataTransfer.files) }}>
           {announce && (
@@ -724,6 +799,8 @@ export default function Conversation({ conversationId, canPost = true, height = 
       {picker && <CardPicker gigId={context.gigId} onClose={() => setPicker(false)} onPick={(c, title) => { setCard({ ...c, title }); setPicker(false); textarea.current?.focus() }} />}
       {history && <HistoryModal message={history} onClose={() => setHistory(null)} />}
       {statusFor && <AckStatusModal message={statusFor} onClose={() => setStatusFor(null)} />}
+      {reporting && <ReportModal message={reporting} direct={context.kind === 'direct'} onClose={() => setReporting(null)}
+        onBlock={context.kind === 'direct' && other && !other.blocked ? () => setBlocked(true) : null} />}
       <style>{'.chat-tool { opacity: 0.35 } .chat-row:hover .chat-tool, .chat-tool:focus-visible, .chat-tool[aria-expanded="true"] { opacity: 1 }'}</style>
     </div>
   )
