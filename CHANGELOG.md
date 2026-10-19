@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.23.0 — Messaging M3: channels, pins, announcements, search
+
+### Added
+- **Organisation channels:** admins create them from Messages (+) for everyone, admins and
+  members, or admins only, and can make them "only admins write" or archive them
+- **Department channels** in a gig's Chat: one per function (Sound, Light…) and one for the
+  managers, seen only by those people and the gig's managers
+- **Pin** messages; a bar above the conversation lists them
+- **Announcements:** whoever runs a channel can send a message that everyone must confirm
+  ("I've read this"); they see who has and hasn't confirmed. Everyone is notified, even in muted
+  channels, in the app and in the email summary
+- **Search** your messages, and **save** messages for later (only you see them)
+- Account export includes saved messages and the announcements you confirmed
+- Privacy notice (EN/PT): channels, announcements, saved messages and search
+
+### Fixed
+- Two-step sign-in: the authenticator entry is now named "AVX" and points to the AVX icon, for
+  apps that show icons from the link (FreeOTP, 2FAS, Ente Auth…). Authy and Google Authenticator
+  use their own icon lists, so they still show a generic icon
+
 ## 0.22.0 — Messaging M2: files, cards, mentions, reactions, edits
 
 ### Added

@@ -46,6 +46,8 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 24. `supabase/migrations/20261031000000_network.sql` — "your network" picker and who can find you
 25. `supabase/migrations/20261101000000_messaging.sql` — messages: direct conversations and gig channels
 26. `supabase/migrations/20261102000000_messaging_m2.sql` — message files, cards, mentions, reactions, edits
+27. `supabase/migrations/20261103000000_conversation_kinds.sql` — conversation kinds for channels (**run by hand**: it replaces two rules)
+28. `supabase/migrations/20261103000001_messaging_m3.sql` — organisation and department channels, pins, announcements, search, saved
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.

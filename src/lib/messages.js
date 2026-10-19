@@ -125,3 +125,20 @@ export function dayRange(start, end, fmt) {
 
 // Link to one message
 export const messageLink = (origin, conversationId, messageId) => `${origin}/messages/${conversationId}?m=${messageId}`
+
+// ── M3 ───────────────────────────────────────────────────────────────────────
+
+// A department's name: the function as people typed it ("Sound"), or "Managers"
+export const departmentLabel = (department, label, t) => (department === 'managers' ? t('chat.dept.managers') : label || (department ? department[0].toUpperCase() + department.slice(1) : ''))
+
+// What a conversation is called in lists and headers (inbox rows from my_inbox)
+export function conversationTitle(c, t) {
+  if (!c) return ''
+  if (c.kind === 'direct') return c.other_name || t('common.someone')
+  if (c.kind === 'gig') return c.gig_name || t('common.someone')
+  if (c.kind === 'department') return `${c.gig_name || ''} · ${departmentLabel(c.department, null, t)}`
+  return c.title || ''
+}
+// Second line where it helps: the organisation of a channel
+export const conversationContext = c => (c?.kind === 'org' ? c.org_name || '' : '')
+

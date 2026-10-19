@@ -242,3 +242,34 @@ export function HistoryModal({ message, onClose }) {
     </Modal>
   )
 }
+
+// ── Who has confirmed an announcement (its author and whoever runs the channel) ──
+export function AckStatusModal({ message, onClose }) {
+  const { fmt } = useI18n()
+  const [rows, setRows] = useState(null)
+  useEffect(() => {
+    supabase.rpc('announcement_status', { p_id: message.id }).then(({ data, error }) => {
+      if (error) logger.warn('messages', 'Announcement status failed', { code: error.code })
+      setRows(data || [])
+    })
+  }, [message.id])
+  const done = (rows || []).filter(r => r.acked_at)
+  const waiting = (rows || []).filter(r => !r.acked_at)
+  const row = (r, ok) => (
+    <li key={r.user_id} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', padding: '6px 2px', borderBottom: `1px solid ${colors.border}`, fontSize: '14px' }}>
+      <span>{r.full_name || t('common.someone')}</span>
+      <span style={{ fontSize: '12px', color: ok ? colors.accent : colors.muted }}>{ok ? fmt(r.acked_at, 'd MMM, HH:mm') : t('chat.ackWaiting')}</span>
+    </li>
+  )
+  return (
+    <Modal title={t('chat.ackTitle')} onClose={onClose}>
+      <p style={{ fontSize: '13px', color: colors.soft, marginBottom: '12px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{(message.body || '').slice(0, 300)}</p>
+      {!rows ? <Loader2 size={18} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /> : (
+        <>
+          <p style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>{t('chat.ackCount', { done: done.length, total: rows.length })}</p>
+          <ul style={{ listStyle: 'none' }}>{waiting.map(r => row(r, false))}{done.map(r => row(r, true))}</ul>
+        </>
+      )}
+    </Modal>
+  )
+}

@@ -14,7 +14,7 @@
 // - only people whose profile has email_digest = true
 // - each notification is emailed at most once (notifications.emailed_at)
 // - nothing from organisations the person muted (org_mutes), except direct questions
-//   to them (availability requests, messages)
+//   to them (availability requests, messages, announcements)
 // Logs carry counts only, never addresses or content.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
@@ -33,7 +33,7 @@ type Notification = {
 
 const MAX_LINES = 20
 // Kinds that are a direct question to the person: sent even when the organisation is muted
-const DIRECT_KINDS = new Set(['availability_request', 'message'])
+const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement'])
 
 const STRINGS: Record<Lang, Record<string, string>> = {
   en: {
@@ -77,6 +77,7 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     messageMentionMany: '{actor} mentioned you in {gig} ({count}): “{excerpt}”',
     messageNoText: '{actor} sent you a message',
     messageNoTextGig: '{actor} wrote to you in {gig}',
+    announcement: '📣 {actor} in {where}: “{excerpt}” — please confirm you’ve read it',
     'role.pm': 'Production Manager', 'role.crew': 'Crew', 'role.viewer': 'Viewer',
     'orgRole.admin': 'Admin', 'orgRole.member': 'Member', 'orgRole.viewer': 'Viewer',
     'status.draft': 'Draft', 'status.confirmed': 'Confirmed', 'status.active': 'Active',
@@ -123,6 +124,7 @@ const STRINGS: Record<Lang, Record<string, string>> = {
     messageMentionMany: '{actor} mencionou-o em {gig} ({count}): “{excerpt}”',
     messageNoText: '{actor} enviou-lhe uma mensagem',
     messageNoTextGig: '{actor} escreveu-lhe em {gig}',
+    announcement: '📣 {actor} em {where}: “{excerpt}” — confirme que leu',
     'role.pm': 'Production Manager', 'role.crew': 'Equipa', 'role.viewer': 'Leitor',
     'orgRole.admin': 'Administrador', 'orgRole.member': 'Membro', 'orgRole.viewer': 'Leitor',
     'status.draft': 'Rascunho', 'status.confirmed': 'Confirmado', 'status.active': 'Em curso',
@@ -187,6 +189,7 @@ function describe(n: Notification, lang: Lang, actorName: string | undefined) {
       return fill(Number(d.count) === 1 ? s.inspectionDueOne : s.inspectionDueMany, { count: d.count ?? 0, org: d.org_name ?? '' })
     case 'hire_request': return fill(s.hireRequest, { org: d.from_org ?? '', range: rangeText(d.starts_at, d.ends_at, lang) })
     case 'hire_answered': return fill(d.answer === 'confirmed' ? s.hireConfirmed : s.hireDeclined, { supplier: d.supplier ?? '' })
+    case 'announcement': return fill(s.announcement, { actor, where: d.where ?? gig, excerpt: d.excerpt ?? '' })
     case 'message': {
       const many = Number(d.count ?? 1) > 1
       const vars = { actor, gig, count: d.count ?? 1, excerpt: d.excerpt ?? '' }
@@ -200,6 +203,7 @@ function describe(n: Notification, lang: Lang, actorName: string | undefined) {
 
 function linkFor(n: Notification, appUrl: string) {
   if (n.kind === 'message' && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}`
+  if (n.kind === 'announcement' && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}?m=${n.details.message_id}`
   if (n.details?.quote_id) return `${appUrl}/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=maintenance`
   if ((n.kind === 'hire_request' || n.kind === 'hire_answered') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=subrentals`
