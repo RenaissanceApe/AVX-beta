@@ -18,6 +18,10 @@
 - Account export includes the crew calls you received and your answers
 - Privacy notice (EN/PT): questions and crew calls in messages, schedule notes, team conversations
 
+### Fixed
+- Signing in sometimes opened My work instead of your organisation (the start page was chosen
+  before your organisations had loaded); found by the signed-in browser tests, which now run
+
 ## 0.23.0 — Messaging M3: channels, pins, announcements, search
 
 ### Added

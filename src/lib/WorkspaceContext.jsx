@@ -23,6 +23,7 @@ export function WorkspaceProvider({ children }) {
   const { user, mfaRequired } = useAuth()
   const [orgs, setOrgs] = useState([]) // [{ ...organisation, myRole }]
   const [loading, setLoading] = useState(true)
+  const [loadedFor, setLoadedFor] = useState(null) // whose organisations are loaded
   const [offlineSince, setOfflineSince] = useState(null)
   const [workspace, setWorkspaceState] = useState(MY_WORK)
   const [unreadByOrg, setUnreadByOrg] = useState({}) // org_id ('' = none) -> unread count
@@ -49,6 +50,7 @@ export function WorkspaceProvider({ children }) {
       return next
     })
     setLoading(false)
+    setLoadedFor(user.id)
     return list
   }, [user])
 
@@ -103,14 +105,16 @@ export function WorkspaceProvider({ children }) {
     const unreadMyWork = Object.entries(unreadByOrg)
       .filter(([id]) => !memberOf.has(id) && !mutedIds.has(id)).reduce((sum, [, n]) => sum + n, 0)
     return {
-      orgs, loading, offlineSince, refresh, setWorkspace,
+      // Still loading until this person's organisations are in: right after signing in, the
+      // first render has a user but the previous (signed-out) state, which would open My work
+      orgs, loading: loading || (!!user && !mfaRequired && loadedFor !== user.id), offlineSince, refresh, setWorkspace,
       mutedIds, setMuted, unreadIn, unreadMyWork, refreshUnread,
       workspace: currentOrg ? workspace : MY_WORK,
       currentOrg,
       role: currentOrg?.myRole ?? null,
       roleIn: orgId => orgs.find(o => o.id === orgId)?.myRole ?? null,
     }
-  }, [orgs, loading, offlineSince, refresh, setWorkspace, workspace, unreadByOrg, mutedIds, setMuted, refreshUnread])
+  }, [orgs, loading, loadedFor, user, mfaRequired, offlineSince, refresh, setWorkspace, workspace, unreadByOrg, mutedIds, setMuted, refreshUnread])
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>
 }
