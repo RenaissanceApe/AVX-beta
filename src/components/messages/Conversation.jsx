@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Send, Reply, X, Loader2, Paperclip, Link2, MoreHorizontal, Pencil, Trash2, History, Copy, FileText } from 'lucide-react'
+import { Send, Reply, X, Loader2, Paperclip, Link2, MoreHorizontal, Pencil, Trash2, History, Copy, FileText, Pin, PinOff, Bookmark, BookmarkCheck, Megaphone, CheckCircle2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
@@ -11,7 +11,7 @@ import {
 } from '../../lib/messages'
 import { MESSAGES_READ } from '../../lib/useMessages'
 import { useI18n, t, fmt as fmtDate } from '../../i18n'
-import { Attachments, CardView, CardPicker, ReactionBar, HistoryModal } from './MessageParts'
+import { Attachments, CardView, CardPicker, ReactionBar, HistoryModal, AckStatusModal } from './MessageParts'
 import { colors } from '../ui'
 
 const PAGE = 50
@@ -70,6 +70,14 @@ export default function Conversation({ conversationId, canPost = true, height = 
   const [mention, setMention] = useState(null)
   const [mentionIndex, setMentionIndex] = useState(0)
   const [sending, setSending] = useState(false)
+  const [pinned, setPinned] = useState([])
+  const [showPins, setShowPins] = useState(false)
+  const [announce, setAnnounce] = useState(false)
+  const [myAcks, setMyAcks] = useState(() => new Set())
+  const [ackCounts, setAckCounts] = useState({})
+  const [saved, setSaved] = useState(() => new Set())
+  const [statusFor, setStatusFor] = useState(null)
+  const fetchedExtras = useRef(new Set())
   const scroller = useRef(null)
   const textarea = useRef(null)
   const fileInput = useRef(null)
@@ -81,6 +89,12 @@ export default function Conversation({ conversationId, canPost = true, height = 
     supabase.rpc('read_conversation', { p_conv: conversationId }).then(({ error }) => {
       if (!error) window.dispatchEvent(new Event(MESSAGES_READ))
     })
+  }, [conversationId])
+
+  const loadPins = useCallback(async () => {
+    const { data } = await supabase.from('messages').select('id, author_id, body, pinned_at, created_at, attachments, payload')
+      .eq('conversation_id', conversationId).not('pinned_at', 'is', null).is('deleted_at', null).order('pinned_at', { ascending: false }).limit(20)
+    setPinned(data || [])
   }, [conversationId])
 
   async function loadPage(before) {
@@ -107,6 +121,8 @@ export default function Conversation({ conversationId, canPost = true, height = 
   useEffect(() => {
     let cancelled = false
     setMessages(null); setReplyTo(null); setEditing(null); setReactions({}); fetchedReactions.current = new Set()
+    setMyAcks(new Set()); setAckCounts({}); setSaved(new Set()); fetchedExtras.current = new Set(); setShowPins(false)
+    loadPins()
     atBottom.current = !focusId
     ;(focusId ? loadAround(focusId) : loadPage()).then(list => {
       if (cancelled) return
@@ -120,6 +136,12 @@ export default function Conversation({ conversationId, canPost = true, height = 
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
         setMessages(list => (list || []).map(m => (m.id === payload.new.id ? { ...m, ...payload.new } : m)))
+        loadPins()
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'message_acks', filter: `conversation_id=eq.${conversationId}` }, payload => {
+        const r = payload.new
+        if (r.user_id === user.id) setMyAcks(set => new Set(set).add(r.message_id))
+        setAckCounts(all => (all[r.message_id] ? { ...all, [r.message_id]: { ...all[r.message_id], done: all[r.message_id].done + 1 } } : all))
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions', filter: `conversation_id=eq.${conversationId}` }, payload => {
         const r = payload.new
@@ -131,31 +153,39 @@ export default function Conversation({ conversationId, canPost = true, height = 
     return () => { cancelled = true; supabase.removeChannel(channel); document.removeEventListener('visibilitychange', onVisible) }
   }, [conversationId, focusId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Who's in a gig's channel (names, roles, functions) and whether you can mention groups
+  // Who reads this conversation (names, roles, functions) and whether you run it (pins,
+  // announcements, group mentions on a gig)
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const { data: conv } = await supabase.from('conversations').select('kind, gig_id').eq('id', conversationId).maybeSingle()
+      const { data: conv } = await supabase.from('conversations').select('kind, gig_id, org_id, department, audience').eq('id', conversationId).maybeSingle()
       if (cancelled || !conv) return
-      if (conv.kind !== 'gig') return setContext({ kind: conv.kind, gigId: null, members: [], canManage: false })
-      const [{ data: members }, { data: gig }] = await Promise.all([
-        supabase.from('gig_members').select('user_id, role, function_title').eq('gig_id', conv.gig_id),
-        supabase.from('gigs').select('created_by, org_id').eq('id', conv.gig_id).maybeSingle(),
-      ])
-      const ids = (members || []).map(m => m.user_id)
-      const [{ data: people }, { data: orgRole }] = await Promise.all([
-        ids.length ? supabase.from('profiles').select('id, full_name').in('id', ids) : Promise.resolve({ data: [] }),
-        gig?.org_id ? supabase.from('org_members').select('role').eq('org_id', gig.org_id).eq('user_id', user.id).maybeSingle() : Promise.resolve({ data: null }),
-      ])
+      if (conv.kind === 'direct') return setContext({ kind: 'direct', gigId: null, members: [], canManage: false })
+      let members = []
+      let canManage = false
+      if (conv.kind === 'org') {
+        const { data: rows } = await supabase.from('org_members').select('user_id, role').eq('org_id', conv.org_id)
+        const inAudience = r => conv.audience === 'everyone' || (conv.audience === 'staff' && r.role !== 'viewer') || (conv.audience === 'admins' && r.role === 'admin')
+        members = (rows || []).filter(inAudience).map(r => ({ user_id: r.user_id, role: r.role, function_title: null }))
+        canManage = (rows || []).some(r => r.user_id === user.id && r.role === 'admin')
+      } else {
+        const [{ data: rows }, { data: gig }] = await Promise.all([
+          supabase.from('gig_members').select('user_id, role, function_title').eq('gig_id', conv.gig_id),
+          supabase.from('gigs').select('created_by, org_id').eq('id', conv.gig_id).maybeSingle(),
+        ])
+        const { data: orgRole } = gig?.org_id
+          ? await supabase.from('org_members').select('role').eq('org_id', gig.org_id).eq('user_id', user.id).maybeSingle() : { data: null }
+        const inDepartment = r => r.role !== 'viewer' && (conv.department === 'managers' ? r.role === 'pm' : (r.function_title || '').trim().toLowerCase() === conv.department)
+        members = conv.kind === 'department' ? (rows || []).filter(inDepartment) : (rows || [])
+        const mine = (rows || []).find(r => r.user_id === user.id)
+        canManage = gig?.created_by === user.id || mine?.role === 'pm' || orgRole?.role === 'admin'
+      }
+      const ids = members.map(m => m.user_id)
+      const { data: people } = ids.length ? await supabase.from('profiles').select('id, full_name').in('id', ids) : { data: [] }
       if (cancelled) return
       const nameMap = Object.fromEntries((people || []).map(p => [p.id, p.full_name || '']))
       setNames(n => ({ ...n, ...nameMap }))
-      const mine = (members || []).find(m => m.user_id === user.id)
-      setContext({
-        kind: 'gig', gigId: conv.gig_id,
-        members: (members || []).map(m => ({ ...m, name: nameMap[m.user_id] || '' })),
-        canManage: gig?.created_by === user.id || mine?.role === 'pm' || orgRole?.role === 'admin',
-      })
+      setContext({ kind: conv.kind, gigId: conv.gig_id || null, members: members.map(m => ({ ...m, name: nameMap[m.user_id] || '' })), canManage })
     })()
     return () => { cancelled = true }
   }, [conversationId, user.id])
@@ -181,6 +211,29 @@ export default function Conversation({ conversationId, canPost = true, height = 
         .then(({ data }) => setReactions(all => ({ ...all, ...Object.fromEntries((data || []).map(r => [`${r.message_id}|${r.user_id}|${r.emoji}`, r])) })))
     }
   }, [messages, conversationId])
+  // Saved marks, your confirmations, and (for whoever runs the channel or wrote it) how many confirmed
+  useEffect(() => {
+    const fresh = (messages || []).filter(m => m.kind === 'text' && !fetchedExtras.current.has(m.id))
+    if (!fresh.length) return
+    fresh.forEach(m => fetchedExtras.current.add(m.id))
+    const ids = fresh.map(m => m.id)
+    const announcements = fresh.filter(m => m.needs_ack && !m.deleted_at)
+    for (let i = 0; i < ids.length; i += 100) {
+      supabase.from('saved_messages').select('message_id').eq('saved', true).in('message_id', ids.slice(i, i + 100))
+        .then(({ data }) => { if (data?.length) setSaved(set => { const next = new Set(set); data.forEach(r => next.add(r.message_id)); return next }) })
+    }
+    if (announcements.length) {
+      supabase.from('message_acks').select('message_id').eq('user_id', user.id).in('message_id', announcements.map(m => m.id))
+        .then(({ data }) => { if (data?.length) setMyAcks(set => { const next = new Set(set); data.forEach(r => next.add(r.message_id)); return next }) })
+      for (const m of announcements) {
+        if (m.author_id !== user.id && !context.canManage) continue
+        supabase.rpc('announcement_status', { p_id: m.id }).then(({ data }) => {
+          if (data) setAckCounts(all => ({ ...all, [m.id]: { done: data.filter(r => r.acked_at).length, total: data.length } }))
+        })
+      }
+    }
+  }, [messages, context.canManage, user.id])
+
   const reactionsByMessage = useMemo(() => {
     const out = {}
     for (const r of Object.values(reactions)) (out[r.message_id] ||= []).push(r)
@@ -209,9 +262,9 @@ export default function Conversation({ conversationId, canPost = true, height = 
 
   // People and groups that can be mentioned in a gig's channel
   const candidates = useMemo(() => {
-    if (context.kind !== 'gig') return []
+    if (!context.kind || context.kind === 'direct') return []
     const people = context.members.filter(m => m.user_id !== user.id && m.name).map(m => ({ label: m.name, mention: { user: m.user_id }, hint: m.function_title || '' }))
-    if (!context.canManage) return people
+    if (context.kind !== 'gig' || !context.canManage) return people
     const functions = new Map()
     for (const m of context.members) {
       const key = (m.function_title || '').trim().toLowerCase()
@@ -252,6 +305,14 @@ export default function Conversation({ conversationId, canPost = true, height = 
     setFiles(fs => [...fs, ...incoming.filter(f => f.size <= MAX_FILE_BYTES)].slice(0, MAX_FILES))
   }
 
+  // Go to a message (from the pinned list): scroll if loaded, otherwise load around it
+  async function jumpTo(id) {
+    setShowPins(false)
+    atBottom.current = false
+    if (!messages?.some(m => m.id === id)) setMessages(await loadAround(id))
+    setHighlight(id)
+  }
+
   async function earlier() {
     const el = scroller.current
     const before = el?.scrollHeight || 0
@@ -262,7 +323,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
   }
 
   function resetComposer() {
-    setText(''); setReplyTo(null); setEditing(null); setFiles([]); setCard(null); setMention(null)
+    setText(''); setReplyTo(null); setEditing(null); setFiles([]); setCard(null); setMention(null); setAnnounce(false)
   }
 
   async function send(e) {
@@ -297,6 +358,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
     const { data, error } = await supabase.from('messages').insert({
       conversation_id: conversationId, body: body.slice(0, 4000), reply_to: replyTo?.id || null,
       attachments, mentions: parseMentions(typedBody, candidates), payload: card ? { card: { type: card.type, id: card.id } } : null,
+      needs_ack: announce,
     }).select().single()
     setSending(false)
     if (error) {
@@ -306,6 +368,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
     track('messages:sent')
     if (attachments.length) track('messages:files')
     if (card) track('messages:card')
+    if (announce) track('messages:announcement')
     atBottom.current = true
     setMessages(list => mergeMessages(list || [], [data]))
     resetComposer()
@@ -333,6 +396,31 @@ export default function Conversation({ conversationId, canPost = true, height = 
     setMessages(list => list.map(x => (x.id === m.id ? { ...x, body: '—', attachments: [], payload: null, mentions: [], deleted_at: new Date().toISOString() } : x)))
   }
 
+  async function pin(m, on) {
+    setMenuFor(null)
+    const { error } = await supabase.rpc('pin_message', { p_id: m.id, p_on: on })
+    if (error) return notify(userMessage(error), 'error')
+    track(on ? 'messages:pinned' : 'messages:unpinned')
+    setMessages(list => list.map(x => (x.id === m.id ? { ...x, pinned_at: on ? new Date().toISOString() : null } : x)))
+    loadPins()
+  }
+
+  async function toggleSave(m) {
+    setMenuFor(null)
+    const { data, error } = await supabase.rpc('toggle_saved', { p_id: m.id })
+    if (error) return notify(userMessage(error), 'error')
+    setSaved(set => { const next = new Set(set); if (data) next.add(m.id); else next.delete(m.id); return next })
+    notify(data ? t('chat.savedNow') : t('chat.unsavedNow'), 'success')
+  }
+
+  async function ack(m) {
+    const { error } = await supabase.rpc('ack_message', { p_id: m.id })
+    if (error) return notify(userMessage(error), 'error')
+    track('messages:acked')
+    setMyAcks(set => new Set(set).add(m.id))
+    window.dispatchEvent(new Event(MESSAGES_READ))
+  }
+
   async function copyLink(m) {
     setMenuFor(null)
     try {
@@ -357,6 +445,29 @@ export default function Conversation({ conversationId, canPost = true, height = 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height, minHeight: '320px' }}>
+      {pinned.length > 0 && (
+        <div style={{ position: 'relative', padding: '6px 2px', borderBottom: `1px solid ${colors.border}` }}>
+          <button type="button" onClick={() => setShowPins(v => !v)} aria-expanded={showPins} style={{
+            display: 'flex', alignItems: 'center', gap: '6px', width: '100%', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)',
+            borderRadius: '8px', padding: '6px 10px', color: '#fff', font: 'inherit', fontSize: '13px', cursor: 'pointer', textAlign: 'left',
+          }}>
+            <Pin size={13} color={AMBER} style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <strong>{t('chat.pinnedCount', { count: pinned.length })}</strong> · {isAutoBody(pinned[0]) ? pinned[0].body : (pinned[0].body || '').slice(0, 100)}
+            </span>
+          </button>
+          {showPins && (
+            <div role="list" style={{ position: 'absolute', zIndex: 25, top: '100%', left: 0, right: 0, background: colors.panel, border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', padding: '4px', boxShadow: '0 12px 28px rgba(0,0,0,0.5)', maxHeight: '50vh', overflowY: 'auto' }}>
+              {pinned.map(p => (
+                <button key={p.id} role="listitem" type="button" onClick={() => jumpTo(p.id)} style={{ ...menuItem, alignItems: 'flex-start', flexDirection: 'column', gap: '2px' }}>
+                  <span style={{ fontSize: '11px', color: colors.muted }}>{name(p.author_id)} · {fmt(p.created_at, 'd MMM HH:mm')}</span>
+                  <span style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{(p.body || '').slice(0, 200)}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       <div ref={scroller} onScroll={e => { const el = e.currentTarget; atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60 }}
         role="log" aria-live="polite" style={{ flex: 1, overflowY: 'auto', padding: '8px 4px' }}>
         {hasMore && (
@@ -388,6 +499,11 @@ export default function Conversation({ conversationId, canPost = true, height = 
                   boxShadow: highlight === m.id ? `0 0 0 2px ${colors.accent}` : forMe ? `inset 3px 0 0 ${AMBER}` : 'none', transition: 'box-shadow .3s',
                 }}>
                   {removed ? <span style={{ fontStyle: 'italic', color: colors.muted }}>{t('chat.removed')}</span> : <>
+                    {m.needs_ack && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: AMBER, marginBottom: '3px' }}>
+                        <Megaphone size={13} /> {t('chat.announcement')}
+                      </div>
+                    )}
                     {m.reply_to && (
                       <div style={{ borderLeft: `3px solid ${colors.accent}`, padding: '2px 8px', marginBottom: '4px', fontSize: '12px', color: colors.soft, background: 'rgba(0,0,0,0.15)', borderRadius: '4px' }}>
                         {quoted ? <><strong>{name(quoted.author_id)}</strong> {quoted.deleted_at ? t('chat.removed') : (quoted.body || '').slice(0, 120)}</> : t('chat.earlierMessage')}
@@ -396,8 +512,24 @@ export default function Conversation({ conversationId, canPost = true, height = 
                     {m.payload?.card && <CardView card={m.payload.card} />}
                     <Attachments files={m.attachments} />
                     {!isAutoBody(m) && <Body text={m.body} mentionRe={mentionRe} />}
+                    {m.needs_ack && (
+                      <div style={{ clear: 'both', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                        {(mine || context.canManage) && (
+                          <button type="button" onClick={() => setStatusFor(m)} style={{ background: 'none', border: 'none', color: colors.soft, font: 'inherit', fontSize: '12px', cursor: 'pointer', padding: 0, textDecoration: 'underline dotted' }}>
+                            {ackCounts[m.id] ? t('chat.ackCount', { done: ackCounts[m.id].done, total: ackCounts[m.id].total }) : t('chat.ackWho')}
+                          </button>
+                        )}
+                        {!mine && (myAcks.has(m.id)
+                          ? <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: colors.accent, fontWeight: 600 }}><CheckCircle2 size={14} /> {t('chat.acked')}</span>
+                          : <button type="button" onClick={() => ack(m)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: colors.accent, color: '#04110a', border: 'none', borderRadius: '8px', padding: '6px 10px', font: 'inherit', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                            <CheckCircle2 size={14} /> {t('chat.ack')}
+                          </button>)}
+                      </div>
+                    )}
                   </>}
                   <span style={{ fontSize: '10px', color: colors.muted, marginLeft: '8px', float: 'right', marginTop: '4px' }}>
+                    {m.pinned_at && !removed && <Pin size={10} color={AMBER} aria-label={t('chat.pinned')} style={{ marginRight: '4px', verticalAlign: '-1px' }} />}
+                    {saved.has(m.id) && !removed && <Bookmark size={10} color={colors.accent} aria-label={t('chat.savedMark')} style={{ marginRight: '4px', verticalAlign: '-1px' }} />}
                     {m.edited_at && !removed && (
                       <button type="button" onClick={() => setHistory(m)} title={t('chat.history')} style={{ background: 'none', border: 'none', color: colors.muted, font: 'inherit', fontSize: '10px', cursor: 'pointer', padding: 0, marginRight: '4px', textDecoration: 'underline dotted' }}>{t('chat.edited')}</button>
                     )}
@@ -426,6 +558,10 @@ export default function Conversation({ conversationId, canPost = true, height = 
                     )}
                     {canPost && <button role="menuitem" style={menuItem} onClick={() => { setMenuFor(null); setEditing(null); setReplyTo(m); textarea.current?.focus() }}><Reply size={14} /> {t('chat.reply')}</button>}
                     <button role="menuitem" style={menuItem} onClick={() => copyLink(m)}><Copy size={14} /> {t('chat.copyLink')}</button>
+                    <button role="menuitem" style={menuItem} onClick={() => toggleSave(m)}>{saved.has(m.id) ? <><BookmarkCheck size={14} /> {t('chat.unsave')}</> : <><Bookmark size={14} /> {t('chat.save')}</>}</button>
+                    {(context.canManage || context.kind === 'direct') && canPost && (
+                      <button role="menuitem" style={menuItem} onClick={() => pin(m, !m.pinned_at)}>{m.pinned_at ? <><PinOff size={14} /> {t('chat.unpin')}</> : <><Pin size={14} /> {t('chat.pin')}</>}</button>
+                    )}
                     {m.edited_at && <button role="menuitem" style={menuItem} onClick={() => { setMenuFor(null); setHistory(m) }}><History size={14} /> {t('chat.history')}</button>}
                     {mine && canPost && <button role="menuitem" style={menuItem} onClick={() => startEdit(m)}><Pencil size={14} /> {t('chat.edit')}</button>}
                     {mine && <button role="menuitem" style={{ ...menuItem, color: colors.danger }} onClick={() => remove(m)}><Trash2 size={14} /> {t('chat.remove')}</button>}
@@ -440,6 +576,12 @@ export default function Conversation({ conversationId, canPost = true, height = 
       {canPost ? (
         <form onSubmit={send} style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '8px', position: 'relative' }}
           onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (!editing && e.dataTransfer.files.length) addFiles(e.dataTransfer.files) }}>
+          {announce && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#fff', marginBottom: '6px', padding: '6px 8px', borderLeft: `3px solid ${AMBER}`, background: 'rgba(245,158,11,0.08)', borderRadius: '4px' }}>
+              <Megaphone size={13} color={AMBER} /> <span style={{ flex: 1 }}>{t('chat.announceHint')}</span>
+              <button type="button" onClick={() => setAnnounce(false)} aria-label={t('chat.announceOff')} style={{ background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', display: 'flex' }}><X size={14} /></button>
+            </div>
+          )}
           {(replyTo || editing) && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: colors.soft, marginBottom: '6px', padding: '4px 8px', borderLeft: `3px solid ${editing ? AMBER : colors.accent}`, background: 'rgba(255,255,255,0.04)', borderRadius: '4px' }}>
               <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -484,6 +626,10 @@ export default function Conversation({ conversationId, canPost = true, height = 
                 style={{ ...smallBtn, color: colors.soft, height: '40px', padding: '0 4px' }}><Paperclip size={18} /></button>
               <button type="button" onClick={() => setPicker(true)} aria-label={t('chat.share')} title={t('chat.share')}
                 style={{ ...smallBtn, color: colors.soft, height: '40px', padding: '0 4px' }}><Link2 size={18} /></button>
+              {context.canManage && context.kind !== 'direct' && (
+                <button type="button" onClick={() => setAnnounce(a => !a)} aria-pressed={announce} aria-label={t('chat.announceToggle')} title={t('chat.announceToggle')}
+                  style={{ ...smallBtn, color: announce ? AMBER : colors.soft, height: '40px', padding: '0 4px' }}><Megaphone size={18} /></button>
+              )}
             </>}
             <textarea ref={textarea} value={text} rows={Math.min(5, Math.max(1, text.split('\n').length))} maxLength={4000}
               placeholder={editing ? t('chat.editPlaceholder') : t('chat.placeholder')} aria-label={t('chat.placeholder')}
@@ -509,6 +655,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
       ) : <p style={{ fontSize: '12px', color: colors.muted, textAlign: 'center', padding: '8px', borderTop: `1px solid ${colors.border}` }}>{t('chat.readOnly')}</p>}
       {picker && <CardPicker gigId={context.gigId} onClose={() => setPicker(false)} onPick={(c, title) => { setCard({ ...c, title }); setPicker(false); textarea.current?.focus() }} />}
       {history && <HistoryModal message={history} onClose={() => setHistory(null)} />}
+      {statusFor && <AckStatusModal message={statusFor} onClose={() => setStatusFor(null)} />}
       <style>{'.chat-tool { opacity: 0.35 } .chat-row:hover .chat-tool, .chat-tool:focus-visible, .chat-tool[aria-expanded="true"] { opacity: 1 }'}</style>
     </div>
   )

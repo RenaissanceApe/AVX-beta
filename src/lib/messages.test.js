@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { linkify, layoutMessages, mergeMessages, totalUnread, autoBody, isAutoBody, parseMentions, mentionQuery, summarizeReactions, formatSize, messageFilePath, messageLink, dayRange } from './messages'
+import { linkify, layoutMessages, mergeMessages, totalUnread, autoBody, isAutoBody, parseMentions, mentionQuery, summarizeReactions, formatSize, messageFilePath, messageLink, dayRange, conversationTitle, departmentLabel } from './messages'
 
 describe('messages', () => {
   it('turns web addresses into links and leaves the rest as text', () => {
@@ -70,5 +70,15 @@ describe('messages', () => {
     expect(messageFilePath('c1', 'Rider final (v2).pdf', 'r1')).toBe('c1/r1/Rider_final_v2_.pdf')
     expect(messageFilePath('c1', 'Plano ç ã.png', 'r1')).toBe('c1/r1/Plano_c_a.png')
     expect(messageLink('https://x.app', 'c1', 'm1')).toBe('https://x.app/messages/c1?m=m1')
+  })
+  it('names conversations of every kind', () => {
+    const t = k => ({ 'common.someone': 'Someone', 'chat.dept.managers': 'Managers' }[k])
+    expect(conversationTitle({ kind: 'direct', other_name: 'Ana' }, t)).toBe('Ana')
+    expect(conversationTitle({ kind: 'direct' }, t)).toBe('Someone')
+    expect(conversationTitle({ kind: 'gig', gig_name: 'NOS' }, t)).toBe('NOS')
+    expect(conversationTitle({ kind: 'department', gig_name: 'NOS', department: 'sound' }, t)).toBe('NOS · Sound')
+    expect(conversationTitle({ kind: 'department', gig_name: 'NOS', department: 'managers' }, t)).toBe('NOS · Managers')
+    expect(conversationTitle({ kind: 'org', title: 'General', org_name: 'L&P' }, t)).toBe('General')
+    expect(departmentLabel('sound', 'Sound', t)).toBe('Sound')
   })
 })

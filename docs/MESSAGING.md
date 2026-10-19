@@ -1,6 +1,6 @@
 # Messaging: plan
 
-Status: **M1 (0.21.0) and M2 (0.22.0) built**; M3–M6 planned. A project of
+Status: **M1 (0.21.0), M2 (0.22.0) and M3 (0.23.0) built**; M4–M6 planned. A project of
 its own, built in stages M1–M6. The aim: one messaging system that works wherever people need
 to talk about something in AVX (a gig, a person's availability, a file, a quote, a piece of
 equipment), instead of WhatsApp groups that lose the context.
@@ -152,4 +152,29 @@ Attachments count against file storage, like gig files.
   message that is only files or a card gets a short automatic text ("📎 rider.pdf"), hidden next
   to its files or card and used in notifications and the email summary.
 - Not yet: files of removed messages stay in storage (unreachable) until the retention work in M6.
+
+## What M3 built (0.23.0)
+
+- Two migrations: `20261103000000_conversation_kinds.sql` (**run by hand** in the SQL editor: it
+  replaces two rules on `conversations`, which needs DROP CONSTRAINT) and
+  `20261103000001_messaging_m3.sql`. Tests `supabase/tests/messaging_m3.sql`.
+- **Organisation channels** (`kind = 'org'`): made by the organisation's admins (Messages → +), with
+  a name, an audience (everyone, admins and members, or admins only) and optionally "only admins
+  write". Viewers read but don't write. Admins rename, change or archive them (archived channels are
+  read-only and sink to the bottom of the list). No deleting yet.
+- **Department channels** on gigs (`kind = 'department'`): one per function on the gig ("Sound",
+  "Light"…) plus "Managers" (the gig's PMs). Seen by those people and the gig's managers, made on
+  first use from the chips in the gig's Chat tab (`gig_departments`, `department_channel`).
+- **Pinned messages**: the people running a channel (gig managers, organisation admins), or either
+  person in a direct conversation, pin messages; a bar above the conversation lists them.
+- **Announcements with read-and-confirm**: the people running a channel send a message as an
+  announcement. Everyone in the channel gets a notification (kind `announcement`, one each, even in
+  muted channels) and a "I've read this" button; the author and the channel's managers see
+  "3 of 12 confirmed" and who hasn't. Confirming clears the notification.
+- **Search** across every conversation you can read (`search_messages`, plain text, newest first,
+  50 results) and **saved messages** (private to you).
+- `my_inbox()` replaces `my_conversations()` in the app (same rows plus channel titles, the
+  organisation, archived and the number of pinned messages); the old function stays for now.
+- Who reads what is still decided only in the database (`can_access_conversation`,
+  `can_post_conversation`, `conversation_audience`, `can_manage_conversation`).
 

@@ -18,7 +18,7 @@ export function useConversations() {
   const timer = useRef(null)
 
   const reload = useCallback(async () => {
-    const { data, error } = await supabase.rpc('my_conversations')
+    const { data, error } = await supabase.rpc('my_inbox')
     if (error) return logger.warn('messages', 'Conversation list failed', { code: error.code })
     setConversations(data || [])
   }, [])
