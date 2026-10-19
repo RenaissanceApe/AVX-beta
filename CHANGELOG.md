@@ -17,6 +17,8 @@
 ### Fixed
 - Deleting an equipment item, a repair, a subrental or a quote left its conversations behind; now
   they're deleted with it
+- Uploading a file again right after the first upload could save it as a separate file instead of
+  version 2 (the list on screen hadn't caught up yet); found by the signed-in browser tests
 
 ### Planning
 - Public site, pricing and help: a plan for the end of the build ([docs/PUBLIC_SITE.md](docs/PUBLIC_SITE.md))
