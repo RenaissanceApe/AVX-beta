@@ -1,6 +1,6 @@
 # Field tools: plan
 
-Status: **planned** (decided 2026-10-20). Optional tools for the technical side of a gig (stage
+Status: **F1a built (0.36.0)**: Tools tab, organisation switches, shared show model, input list, Updates tab; F1b (stage plot) next. Decided 2026-10-20. Optional tools for the technical side of a gig (stage
 plot, input list, patch, light plot, DMX patch, sound system calculator) that share their data,
 so a stage plot can produce a channel list and a light plot a DMX patch. An ever-growing set,
 added one tool at a time, without making AVX harder to use.
@@ -45,7 +45,8 @@ venue or the artist through a private link (like quotes), and can be saved as a 
 
 | Stage | Scope |
 |---|---|
-| **F1** | Tools tab, organisation switches, the shared show model; **stage plot** and **input list**; Feed + Activity become Updates |
+| **F1a** ✅ (0.36.0) | Tools tab, organisation switches, the shared show model (table), **input list** (print, offline, line check, mics to equipment); Feed + Activity become Updates |
+| **F1b** | **Stage plot** (grid and symbols) that fills the input list and the show model's stage size |
 | **F2** | Patch (stage boxes, splits) and **DMX patch** |
 | **F3** | **Light plot** (truss, positions, fixtures from the catalogue, power) |
 | **F4** | **Sound system calculator** (delays, time alignment, coverage), clearly labelled as estimates |
@@ -53,8 +54,22 @@ venue or the artist through a private link (like quotes), and can be saved as a 
 
 Each stage ships its glossary words, hints and a guide with screenshots (the help rule).
 
+## How F1a works
+
+| Piece | How it works |
+|---|---|
+| Organisation | `organisations.field_tools` lists the tools the company uses (both F1 tools on by default). Settings → Field tools; a tool not built yet shows "coming soon" |
+| Gig | `gig_tools` (gig, tool) is what the Tools tab lists. Editors add a tool from those the organisation uses; removing it from the gig keeps its data |
+| Who | `private.can_edit_tools(gig)`: the gig's managers and the organisation's admins and members. `private.can_see_tools(gig)`: also everyone on the gig. Crew only see the Tools tab once the gig uses a tool |
+| Show model | `gig_show` (one row per gig, `stage` jsonb: width, depth, trim, notes). Created now; the stage plot (F1b) is the first to write it |
+| Input list | `gig_inputs`: channel (unique per gig, 1–512), source, mic or DI, optional catalogue item, stand, 48V, stage box, notes, checked (line check), `plot_ref` for F1b. `order_inputs(gig, ids)` renumbers 1, 2, 3… in a new order. Print at `/gig/:id/inputs`; both work offline from the last copy |
+| Mics → equipment | Inputs linked to catalogue items are counted; "Add mics and DIs to equipment" raises or adds the gig's equipment lines to match (admins and members) |
+| Updates | The Feed and Activity tabs are now one "Updates" tab (Posts / History). Old `?tab=feed` and `?tab=activity` links still work |
+
+Checks: `supabase/tests/field_tools.sql`.
+
 ## Open questions
 
-1. **When:** proposed after H5 (field kit) and before switching (S1); the owner may move it.
+1. **When:** after H5 (field kit) and before switching (S1); started 2026-10-20 (the owner may move it).
 2. Drawing on screen: a simple grid-and-symbols editor first (no free drawing), symbols from a
    small built-in library plus the catalogue.

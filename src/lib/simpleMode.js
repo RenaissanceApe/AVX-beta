@@ -15,8 +15,8 @@ export const isCrewOnly = (orgs, managesGigs) => !managesGigs && !(orgs || []).s
 // The setting ('auto' | 'on' | 'off') and the facts → simple mode or not
 export const resolveSimple = (setting, crewOnly) => (setting === 'on' ? true : setting === 'off' ? false : crewOnly)
 
-// The gig tabs in simple mode (equipment stays for "report damage")
-export const SIMPLE_GIG_TABS = ['overview', 'schedule', 'assets', 'equipment', 'chat']
+// The gig tabs in simple mode (equipment stays for "report damage"; tools only shows when the gig uses one)
+export const SIMPLE_GIG_TABS = ['overview', 'schedule', 'assets', 'equipment', 'tools', 'chat']
 
 const pmCache = new Map() // user id → Promise<boolean>
 function managesAnyGig(userId) {

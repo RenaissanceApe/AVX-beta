@@ -7,16 +7,16 @@ import { logger } from '../lib/logger'
 import { useI18n } from '../i18n'
 import { useToast } from '../lib/ToastContext'
 import { btnPrimary, colors } from '../components/ui'
-import GigHeader, { GIG_TABS } from '../components/gig/GigHeader'
+import GigHeader, { GIG_TABS, TAB_ALIASES } from '../components/gig/GigHeader'
 import { useSimpleMode, SIMPLE_GIG_TABS } from '../lib/simpleMode'
 import OverviewTab from '../components/gig/OverviewTab'
 import ScheduleTab from '../components/gig/ScheduleTab'
 import AssetsTab from '../components/gig/AssetsTab'
 import CrewTab from '../components/gig/CrewTab'
 import EquipmentTab from '../components/gig/EquipmentTab'
-import FeedTab from '../components/gig/FeedTab'
+import UpdatesTab from '../components/gig/UpdatesTab'
+import ToolsTab from '../components/gig/ToolsTab'
 import ChatTab from '../components/gig/ChatTab'
-import ActivityTab from '../components/gig/ActivityTab'
 import AssetVersionsModal from '../components/gig/AssetVersionsModal'
 import EditGigModal from '../components/gig/EditGigModal'
 import AppShell from '../components/shell/AppShell'
@@ -33,7 +33,11 @@ export default function GigPage() {
   const { notify } = useToast()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const requestedTab = searchParams.get('tab')
+  const rawTab = searchParams.get('tab')
+  const requestedTab = TAB_ALIASES[rawTab] || rawTab
+  // Updates shows posts, or the history when the link asked for the old Activity tab
+  const [updatesView, setUpdatesView] = useState(rawTab === 'activity' ? 'history' : 'posts')
+  useEffect(() => { if (rawTab === 'activity') setUpdatesView('history'); else if (rawTab === 'feed') setUpdatesView('posts') }, [rawTab])
 
   const [data, setData] = useState(null) // { gig, members, assets, posts, invites, schedule, activity }
   const [profiles, setProfiles] = useState({})
@@ -74,7 +78,12 @@ export default function GigPage() {
 
   // Simple mode (H4) shows fewer tabs; a link to another tab (from a notification) still opens it
   const { simple } = useSimpleMode()
-  const tabs = simple ? [...SIMPLE_GIG_TABS, ...(GIG_TABS.includes(requestedTab) && !SIMPLE_GIG_TABS.includes(requestedTab) ? [requestedTab] : [])] : GIG_TABS
+  // Tools (FIELD_TOOLS.md, F1): people who only read see the tab once the gig uses a tool
+  const editsTools = !!data?.gig && (data.gig.created_by === user.id || orgRole === 'admin' || orgRole === 'member'
+    || (data.members || []).some(m => m.user_id === user.id && m.role === 'pm'))
+  const hideTools = !!data?.gig && !editsTools && !(data.tools || []).length
+  const tabs = (simple ? [...SIMPLE_GIG_TABS, ...(GIG_TABS.includes(requestedTab) && !SIMPLE_GIG_TABS.includes(requestedTab) ? [requestedTab] : [])] : GIG_TABS)
+    .filter(key => !(key === 'tools' && hideTools))
   useEffect(() => { if (!tabs.includes(tab)) setTab('overview') }, [tabs.join(), tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Links such as /gig/:id?tab=schedule (from notifications) select a tab
@@ -96,7 +105,7 @@ export default function GigPage() {
 
   async function loadAll({ silent = false } = {}) {
     if (!silent) setLoading(true)
-    const [gigRes, membersRes, assetsRes, postsRes, invitesRes, scheduleRes, activityRes] = await Promise.all([
+    const [gigRes, membersRes, assetsRes, postsRes, invitesRes, scheduleRes, activityRes, toolsRes] = await Promise.all([
       supabase.from('gigs').select('*').eq('id', id).maybeSingle(),
       supabase.from('gig_members').select('*').eq('gig_id', id),
       supabase.from('assets').select('*').eq('gig_id', id).is('superseded_by', null).order('created_at', { ascending: false }),
@@ -105,6 +114,7 @@ export default function GigPage() {
       supabase.from('gig_invites').select('*').eq('gig_id', id).order('created_at', { ascending: true }),
       supabase.from('gig_schedule').select('*').eq('gig_id', id),
       supabase.from('gig_activity').select('*').eq('gig_id', id).order('created_at', { ascending: false }).limit(100),
+      supabase.from('gig_tools').select('tool').eq('gig_id', id),
     ])
     const results = { gig: gigRes, members: membersRes, assets: assetsRes, posts: postsRes, schedule: scheduleRes, activity: activityRes }
 
@@ -133,6 +143,7 @@ export default function GigPage() {
       invites: invitesRes.data || [],
       schedule: scheduleRes.data || [],
       activity: activityRes.data || [],
+      tools: (toolsRes.data || []).map(r => r.tool),
     }
 
     // My role in the gig's organisation decides what I can edit (mirrors the database rules)
@@ -196,6 +207,7 @@ export default function GigPage() {
   )
 
   const { gig, members, assets, posts, invites, schedule, activity } = data
+  const tools = data.tools || []
   const nameOf = uid => profiles[uid]?.full_name || t('common.unknown')
   const phoneOf = uid => profiles[uid]?.phone || ''
   const myMembership = members.find(m => m.user_id === user.id)
@@ -208,7 +220,7 @@ export default function GigPage() {
     <AppShell>
       <OfflineBanner savedAt={savedAt} />
       <GigHeader gig={gig} crewCount={members.length} myMembership={myMembership} canEdit={isPM}
-        tab={tab} setTab={setTab} tabs={tabs} counts={{ assets: assets.length, crew: members.length, feed: posts.length, schedule: schedule.length }}
+        tab={tab} setTab={setTab} tabs={tabs} counts={{ assets: assets.length, crew: members.length, updates: posts.length, schedule: schedule.length, tools: tools.length }}
         onBack={goBack} onRefresh={() => loadAll()} onEdit={() => setShowEdit(true)}
         company={company} orgRole={orgRole} />
 
@@ -236,8 +248,15 @@ export default function GigPage() {
             canEdit={isPM || orgRole === 'admin' || orgRole === 'member'} canAdd={orgRole === 'admin' || orgRole === 'member'} />
         )}
         {tab === 'chat' && <ChatTab gigId={id} canPost={isPM || ['pm', 'crew'].includes(myMembership?.role)} />}
-        {tab === 'feed' && <FeedTab gigId={id} posts={posts} userId={user.id} isPM={isPM} nameOf={nameOf} onChanged={reload} />}
-        {tab === 'activity' && <ActivityTab entries={activity} nameOf={nameOf} />}
+        {tab === 'tools' && (
+          <ToolsTab gig={gig} tools={tools} canEdit={editsTools} canPlanEquipment={orgRole === 'admin' || orgRole === 'member'}
+            orgTools={orgs.find(o => o.id === gig.org_id)?.field_tools} offline={!!savedAt} onChanged={reload} />
+        )}
+        {tab === 'updates' && (
+          <UpdatesTab view={updatesView} setView={setUpdatesView}
+            feed={{ gigId: id, posts, userId: user.id, isPM, nameOf, onChanged: reload }}
+            activity={{ entries: activity, nameOf }} />
+        )}
       </main>
 
       {versionsAsset && <AssetVersionsModal asset={versionsAsset} nameOf={nameOf} onClose={() => setVersionsAsset(null)} />}

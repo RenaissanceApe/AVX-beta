@@ -50,6 +50,11 @@ export default {
     'packing-list': { term: 'Packing list', definition: 'What must leave the warehouse for a gig, with quantities.', example: 'Printed for the warehouse team on the day before.', where: 'Gig → Equipment → Packing list' },
     'scan-out-in': { term: 'Scan out / scan in', definition: 'Reading QR labels when equipment leaves for a gig and when it comes back.', example: 'Scanning 40 units into the truck.', where: 'Gig → Equipment → Scan' },
     'equipment-steps': { term: 'Equipment steps', definition: 'Where a gig\'s equipment is between the warehouse and back: prepped, out, on site, loaded back, back in, checked in.', example: '60 of 69 prepped, 40 out.', where: 'Gig → Equipment, Scan out / in, packing list' },
+    'input-list': { term: 'Input list', definition: 'The list of everything plugged into the sound desk, one line per channel: source, mic or DI, stand, 48V.', example: 'Ch 1 Kick in, Beta 91A, 48V.', where: 'Gig → Tools' },
+    'phantom-power': { term: '48V (phantom power)', definition: 'Power the desk sends down the mic cable for condenser mics and active DIs.', example: 'Overheads and DI boxes need 48V; a dynamic SM58 doesn\'t.', where: 'Gig → Tools → Input list' },
+    'stage-box': { term: 'Stage box', definition: 'A box on stage with many inputs that sends them to the desk over one cable.', example: 'SB1-03: stage box 1, input 3.', where: 'Gig → Tools → Input list' },
+    'line-check': { term: 'Line check', definition: 'Testing every channel before the soundcheck: something plugged in, signal at the desk. Tick each line as you go.', example: 'All 24 lines checked by 15:00.', where: 'Gig → Tools → Input list' },
+    'field-tools': { term: 'Field tools', definition: 'Optional technical tools on a gig (input list, and soon stage plot, patch, light plot), in its Tools tab.', example: 'The input list for the gala.', where: 'Gig → Tools; organisation settings' },
     'scan-mode': { term: 'Scan mode', definition: 'A full-screen way to scan, with big buttons, sounds, vibration and a torch, for gloves, noise and the dark.', example: 'Loading the van at night with one hand free.', where: 'Gig → Equipment → Scan out / in' },
     'mark-lost': { term: 'Mark as lost', definition: 'Units that did not come back are recorded as lost, so stock and reports are right.', example: 'Two cables missing after the festival.', where: 'Gig → Scan' },
     damage: { term: 'Damage report', definition: 'A note, with photos, that something broke. The unit can be taken out of use.', example: 'Cracked lens reported from site.', where: 'Gig → Equipment, Inventory → Maintenance' },
@@ -97,6 +102,8 @@ export default {
     findable: 'Who can find you by name when building a crew. Only people you already worked with, never everyone on AVX.',
     'email-summary': 'One email a day with what you haven’t read in the app. Nothing is sent when you are up to date.',
     'two-step': 'Signing in will also ask for a 6-digit code from an app on your phone. Recommended for admins.',
+    'input-item': 'Link the mic or DI to an item in your catalogue. "Add mics and DIs to equipment" then plans them on the gig, so they are booked, packed and scanned.',
+    'stage-box': 'Which stage box input the line goes into, e.g. SB1-03 (box 1, input 3). Helps the stage crew patch it.',
     'mark-lost': 'Records the units that did not come back as lost. Stock and reports change. If one turns up later, set its status back to Available.',
   },
 
@@ -299,6 +306,20 @@ export default {
       mistakes: [
         'Asking doesn\'t book anyone. Add them to the gig when they say yes.',
         'Without booking times, a person counts as booked for the whole of each gig day.',
+      ],
+    },
+    'pm-input-list': {
+      title: 'Make the input list',
+      intro: 'The input list tells the sound team what goes into each channel of the desk. Everyone on the gig can read it on their phone, even without signal.',
+      steps: [
+        'Open the gig, tap Tools, then "Add a tool" and choose Input list.',
+        'Tap "Add input" for each channel: the source (Kick in, Lead vocal), the mic or DI, the stand, the stage box input, and tick 48V if it needs phantom power.',
+        'Use the arrows to change the order; the channels are renumbered for you. Print it for the desk and the stage.',
+        'On site, tick each line as it\'s checked. If the mics come from your catalogue, "Add mics and DIs to equipment" plans them on the gig.',
+      ],
+      mistakes: [
+        'Two lines can\'t share a channel. Move one first, or pick a free number.',
+        'Crew can read the list but not change it: ask the production manager.',
       ],
     },
     'pm-equipment': {

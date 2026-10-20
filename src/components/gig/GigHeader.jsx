@@ -5,7 +5,9 @@ import { colors } from '../ui'
 import { StatusBadge } from './parts'
 import { PageHelp } from '../help/HelpParts'
 
-export const GIG_TABS = ['overview', 'schedule', 'assets', 'crew', 'equipment', 'chat', 'feed', 'activity']
+export const GIG_TABS = ['overview', 'schedule', 'assets', 'crew', 'equipment', 'tools', 'chat', 'updates']
+// Older links still work: Feed and Activity are now the two halves of Updates (FIELD_TOOLS.md, F1)
+export const TAB_ALIASES = { feed: 'updates', activity: 'updates' }
 
 export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, setTab, tabs = GIG_TABS, counts, onBack, onRefresh, onEdit, company, orgRole }) {
   const { t, fmt } = useI18n()
