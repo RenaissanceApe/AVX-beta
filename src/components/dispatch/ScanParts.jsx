@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import jsQR from 'jsqr'
-import { Check, AlertTriangle, X, Flashlight, FlashlightOff, Minus, Plus, Volume2, VolumeX, Speech, Loader2, ScanLine, PackageCheck } from 'lucide-react'
+import { Check, AlertTriangle, X, Flashlight, FlashlightOff, Minus, Plus, Volume2, VolumeX, Speech, Loader2, ScanLine, PackageCheck, Undo2 } from 'lucide-react'
 import { canSpeak } from '../../lib/fieldKit'
+import { STEPS } from '../../lib/inventory'
 import { t } from '../../i18n'
 import { btn, btnPrimary, input, colors, tint } from '../ui'
 
@@ -12,39 +13,78 @@ const TONE = {
   error: { colour: colors.danger, text: colors.danger, Icon: X },
 }
 
+// Steps on the way out in green, on the way back in blue
+export const stepHue = step => (STEPS.indexOf(step) <= STEPS.indexOf('on_site') ? colors.accent : 'var(--sky)')
+
+// A scan that can still be undone: it went through, it's this person's, and it opened no repair
+export const canUndo = entry => !!(entry?.result?.ok && entry.result.batch && !entry.result.repair && !entry.undone)
+
 // What a scan did, in words: { what: "Martin MAC Aura · U-0042", msg: "Out", extra: [...] }
+// Scans out and in have a direction; the other steps only a step.
 export function feedText(entry) {
   const r = entry.result
   const what = r ? [r.item_name, r.unit_code, r.serial].filter(Boolean).join(' · ') : ''
+  const vars = { gig: r?.other_gig || '', step: entry.step ? t(`steps.name.${entry.step}`) : '' }
   const msg = !r ? entry.text
-    : !r.ok ? t(`dispatch.error.${r.error}`, { gig: r.other_gig || '' })
-    : r.warning ? t(`dispatch.warning.${r.warning}`, { gig: r.other_gig || '' })
+    : entry.undone ? t('undoScan.undone')
+    : !r.ok ? t(`dispatch.error.${r.error}`, vars)
+    : r.warning ? t(`dispatch.warning.${r.warning}`, vars)
+    : !entry.direction ? (r.kind === 'bulk' ? t('steps.okBulk', { ...vars, count: r.quantity }) : t('steps.ok', vars))
     : r.kind === 'bulk' ? t(`dispatch.okBulk.${entry.direction}`, { count: r.quantity }) : t(`dispatch.ok.${entry.direction}`)
   const extra = []
   if (r?.repair) extra.push({ text: t('dispatch.repairOpened'), warn: true })
   if (r?.ok && r.contents != null) {
     extra.push({
-      text: t(`dispatch.caseContents.${entry.direction}`, { count: r.contents }) + (r.contents_skipped ? ` · ${t('dispatch.caseSkipped', { count: r.contents_skipped })}` : ''),
+      text: (entry.direction ? t(`dispatch.caseContents.${entry.direction}`, { count: r.contents }) : t('steps.caseContents', { count: r.contents }))
+        + (r.contents_skipped ? ` · ${t('dispatch.caseSkipped', { count: r.contents_skipped })}` : ''),
       warn: !!r.contents_skipped,
     })
   }
   return { what, msg, extra }
 }
 
-export function FeedRow({ entry }) {
+export function FeedRow({ entry, onUndo }) {
   const r = entry.result
-  const { colour, text, Icon } = TONE[entry.tone] || TONE.ok
+  const { colour, text, Icon } = entry.undone ? { colour: colors.muted, text: colors.muted, Icon: Undo2 } : TONE[entry.tone] || TONE.ok
   const { what, msg, extra } = feedText(entry)
   return (
     <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', padding: '8px 10px', borderRadius: '10px', marginBottom: '4px',
       background: tint(colour, 8), border: `1px solid ${tint(colour, 33)}`, fontSize: '13px' }}>
       <Icon size={15} color={text} style={{ flexShrink: 0, marginTop: '1px' }} />
       <span style={{ flex: 1, minWidth: 0 }}>
-        {what && <strong style={{ display: 'block' }}>{what}</strong>}
+        {what && <strong style={{ display: 'block', textDecoration: entry.undone ? 'line-through' : 'none' }}>{what}</strong>}
         <span style={{ color: text }}>{msg}</span>
-        {r?.ok && r.planned != null && <span style={{ color: colors.muted }}> · {t('dispatch.counts', { out: r.out, back: r.back, planned: r.planned })}</span>}
-        {extra.map(x => <span key={x.text} style={{ display: 'block', color: x.warn ? AMBER : colors.soft }}>{x.text}</span>)}
+        {r?.ok && !entry.undone && r.planned != null && (
+          <span style={{ color: colors.muted }}> · {entry.direction ? t('dispatch.counts', { out: r.out, back: r.back, planned: r.planned }) : t('steps.counts', { done: r.done, planned: r.planned })}</span>
+        )}
+        {!entry.undone && extra.map(x => <span key={x.text} style={{ display: 'block', color: x.warn ? AMBER : colors.soft }}>{x.text}</span>)}
       </span>
+      {onUndo && canUndo(entry) && (
+        <button type="button" onClick={() => onUndo(entry)} style={{ ...btn, padding: '4px 10px', fontSize: '12px', flexShrink: 0 }}>
+          <Undo2 size={13} aria-hidden="true" /> {t('common.undo')}<span className="sr-only"> {what}</span>
+        </button>
+      )}
+    </div>
+  )
+}
+
+// Which step a scan records: the organisation's steps as one row of big choices
+export function StepPicker({ steps, step, onChange, big = false }) {
+  const cols = steps.length <= 2 ? 2 : 3
+  return (
+    <div role="radiogroup" aria-label={t('steps.picker')} style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: big ? '8px' : '6px' }}>
+      {steps.map(s => {
+        const on = step === s
+        const hue = stepHue(s)
+        return (
+          <button key={s} type="button" role="radio" aria-checked={on} onClick={() => onChange(s)} style={{
+            minHeight: big ? '60px' : '48px', padding: '8px 6px', borderRadius: big ? '14px' : '12px', cursor: 'pointer', lineHeight: 1.2,
+            fontSize: big ? (steps.length <= 2 ? '19px' : '16px') : '14px', fontWeight: 800,
+            border: `${big ? 3 : 2}px solid ${on ? hue : colors.border}`, background: on ? tint(hue, big ? 18 : 12) : 'transparent',
+            color: on ? 'var(--text)' : colors.soft,
+          }}>{t(`steps.name.${s}`)}</button>
+        )
+      })}
     </div>
   )
 }
@@ -145,7 +185,7 @@ export function CameraScanner({ onCode, onClose, tall = false }) {
 // Scan mode (docs/HELP.md, H5): the whole screen for scanning, made for gloves, the dark and one
 // hand. Big out/in switch, the camera, the last scan in large type with its colour, icon, sound
 // and vibration, the count, and the controls at the bottom where a thumb reaches.
-export function ScanMode({ gigName, direction, setDirection, quantity, setQuantity, damaged, setDamaged, onScan, last, busy, progress, kit, setKit, onClose }) {
+export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity, damaged, setDamaged, onScan, onUndo, last, busy, progress, kit, setKit, onClose }) {
   const [code, setCode] = useState('')
   const [camera, setCamera] = useState(true)
   const titleRef = useRef(null)
@@ -165,9 +205,8 @@ export function ScanMode({ gigName, direction, setDirection, quantity, setQuanti
   const toggle = on => ({ ...btn, ...big, flex: '1 1 140px', fontSize: '15px', borderWidth: '2px',
     borderColor: on ? colors.accent : colors.border, background: on ? tint(colors.accent, 14) : 'transparent', color: on ? 'var(--text)' : colors.muted })
   const qty = Math.max(1, Number(quantity) || 1)
-  const done = direction === 'out' ? progress.out : progress.back
-  const total = direction === 'out' ? progress.planned : progress.outTotal
-  const tone = last ? TONE[last.tone] || TONE.ok : null
+  const { done, total } = progress
+  const tone = last ? (last.undone ? { colour: colors.muted, text: colors.muted, Icon: Undo2 } : TONE[last.tone] || TONE.ok) : null
   const said = last ? feedText(last) : null
 
   return (
@@ -183,18 +222,7 @@ export function ScanMode({ gigName, direction, setDirection, quantity, setQuanti
           <button type="button" onClick={onClose} style={{ ...btn, ...big, minWidth: '96px' }}>{t('scanMode.done')}</button>
         </div>
 
-        <div role="radiogroup" aria-label={t('dispatch.direction')} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          {['out', 'in'].map(d => {
-            const on = direction === d
-            const hue = d === 'out' ? colors.accent : 'var(--sky)'
-            return (
-              <button key={d} type="button" role="radio" aria-checked={on} onClick={() => setDirection(d)} style={{
-                minHeight: '64px', borderRadius: '14px', fontSize: '19px', fontWeight: 800, cursor: 'pointer',
-                border: `3px solid ${on ? hue : colors.border}`, background: on ? tint(hue, 18) : 'transparent', color: on ? 'var(--text)' : colors.soft,
-              }}>{t(`dispatch.dir.${d}`)}</button>
-            )
-          })}
-        </div>
+        <StepPicker steps={steps} step={step} onChange={setStep} big />
 
         {camera
           ? <CameraScanner onCode={onScan} onClose={() => setCamera(false)} tall />
@@ -212,18 +240,23 @@ export function ScanMode({ gigName, direction, setDirection, quantity, setQuanti
               <>
                 {said.what && <strong style={{ display: 'block', fontSize: '20px', lineHeight: 1.25, overflowWrap: 'anywhere' }}>{said.what}</strong>}
                 <span style={{ display: 'block', fontSize: '18px', fontWeight: 700, color: tone.text, marginTop: '2px' }}>{said.msg}</span>
-                {said.extra.map(x => <span key={x.text} style={{ display: 'block', fontSize: '15px', color: x.warn ? AMBER : colors.soft, marginTop: '2px' }}>{x.text}</span>)}
+                {!last.undone && said.extra.map(x => <span key={x.text} style={{ display: 'block', fontSize: '15px', color: x.warn ? AMBER : colors.soft, marginTop: '2px' }}>{x.text}</span>)}
               </>
             ) : <span style={{ fontSize: '17px', color: colors.muted }}>{t('scanMode.waiting')}</span>}
           </div>
+          {canUndo(last) && (
+            <button type="button" onClick={() => onUndo(last)} style={{ ...btn, ...big, minWidth: '88px', fontSize: '15px', alignSelf: 'stretch', flexDirection: 'column', gap: '2px' }}>
+              <Undo2 size={22} aria-hidden="true" /> {t('common.undo')}
+            </button>
+          )}
         </section>
 
         <div>
           <p style={{ fontSize: '20px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-            <PackageCheck size={22} aria-hidden="true" /> {direction === 'out' ? t('dispatch.packed', { done, total }) : t('dispatch.returned', { done, total })}
+            <PackageCheck size={22} aria-hidden="true" /> {t(`steps.progress.${step}`, { done, total })}
           </p>
           <div aria-hidden="true" style={{ height: '12px', borderRadius: '6px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', background: direction === 'out' ? colors.accent : 'var(--sky)', width: `${Math.min(100, (100 * done) / Math.max(1, total))}%` }} />
+            <div style={{ height: '100%', background: stepHue(step), width: `${Math.min(100, (100 * done) / Math.max(1, total))}%` }} />
           </div>
         </div>
 
@@ -239,7 +272,7 @@ export function ScanMode({ gigName, direction, setDirection, quantity, setQuanti
               <Plus size={22} aria-hidden="true" /><span className="sr-only">{t('scanMode.more')}</span>
             </button>
           </div>
-          {direction === 'in' && (
+          {step === 'returned' && (
             <button type="button" aria-pressed={damaged} onClick={() => setDamaged(!damaged)} style={{
               ...btn, ...big, flex: '1 1 160px', borderWidth: '2px',
               borderColor: damaged ? AMBER : colors.border, background: damaged ? tint(AMBER, 16) : 'transparent', color: damaged ? AMBER : colors.soft,

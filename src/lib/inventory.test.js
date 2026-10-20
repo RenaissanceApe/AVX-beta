@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { levelsByItem, isLowStock, countCorrection, bookValue, parseStockImport, matchItem, scanUrl, expandPlan, kitsFree, alternativesOf, dueState, isOpenRepair, repairPhotoPath, subrentalTotal, isOpenSubrental } from './inventory'
+import { levelsByItem, isLowStock, countCorrection, bookValue, parseStockImport, matchItem, scanUrl, expandPlan, kitsFree, alternativesOf, dueState, isOpenRepair, repairPhotoPath, subrentalTotal, isOpenSubrental, STEPS, activeSteps, stepTarget, lineStep, stepCounts, stepTotals } from './inventory'
 
 describe('stock levels', () => {
   it('adds up per item and location', () => {
@@ -185,5 +185,39 @@ describe('subrentals', () => {
   it('knows which are still open', () => {
     expect(['draft', 'requested', 'confirmed', 'declined', 'returned', 'cancelled'].map(status => isOpenSubrental({ status })))
       .toEqual([true, true, true, false, false, false])
+  })
+})
+
+describe('equipment steps', () => {
+  it('keeps loaded and returned whatever the organisation chose', () => {
+    expect(activeSteps(['prepped'])).toEqual(['prepped', 'loaded', 'returned'])
+    expect(activeSteps(null)).toEqual(STEPS)
+    expect(activeSteps([])).toEqual(['loaded', 'returned'])
+  })
+
+  it('aims for the plan on the way out and for what went out on the way back', () => {
+    const line = { item_id: 'a', planned: 4, out_qty: 3 }
+    expect(stepTarget('prepped', line, {})).toBe(4)
+    expect(stepTarget('on_site', line, { loaded: 3 })).toBe(4)
+    expect(stepTarget('returned', line, { loaded: 3 })).toBe(3)
+    expect(stepTarget('checked_in', line, {})).toBe(3)
+  })
+
+  it('says how far a line has got, stopping at the first step not complete', () => {
+    const line = { item_id: 'a', planned: 2 }
+    expect(lineStep(line, {})).toBe(null)
+    expect(lineStep(line, { prepped: 2, loaded: 1 })).toBe('prepped')
+    expect(lineStep(line, { prepped: 2, loaded: 2, on_site: 2, loaded_back: 2, returned: 2 })).toBe('returned')
+    expect(lineStep(line, { prepped: 2, loaded: 2, returned: 2 }, ['prepped', 'loaded', 'returned'])).toBe('returned')
+  })
+
+  it('adds up a step over the gig without counting extras', () => {
+    const lines = [{ item_id: 'a', planned: 2 }, { item_id: 'b', planned: 10 }]
+    const counts = stepCounts([
+      { item_id: 'a', step: 'prepped', done: 3 }, { item_id: 'b', step: 'prepped', done: 6 },
+      { item_id: 'a', step: 'loaded', done: 2 }, { item_id: 'a', step: 'returned', done: 1 },
+    ])
+    expect(stepTotals(lines, counts, 'prepped')).toEqual({ done: 8, total: 12 })
+    expect(stepTotals(lines, counts, 'returned')).toEqual({ done: 1, total: 2 })
   })
 })

@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.35.0 — Help H5b: equipment steps and undoing a scan
+
+### Added
+- **Equipment steps** on a gig: prepped → out (loaded) → on site → loaded back → back in →
+  checked in. Pick the step at the top of "Scan out / in" (and in scan mode) and scan; a case
+  brings what's packed in it. Out and back in are the scans out and in, as before; the other
+  steps only record where the gear is.
+- The gig's **Equipment tab** shows a bar per step ("66 of 69 out"), and the **packing list** has a
+  Step column with how far each line has got
+- **Organisation settings → Equipment steps**: an admin unticks the steps the company doesn't
+  use (out and back in are always on)
+- **Undo a scan**: each scan in the list (and the last one in scan mode) has an Undo button.
+  Units go back to where they were, and the counts drop. It works for your own scans for 15
+  minutes, while nothing else has happened to those units; a damaged return (which opened a
+  repair) is changed under Maintenance instead.
+- Guide "Follow equipment step by step" and the glossary word "Equipment steps"
+
+### Database
+- Migration `20261109000000_equipment_steps.sql` (no manual steps): scans grouped in batches,
+  each unit's state before a scan kept for undo, undone scans no longer counted, the
+  `gig_steps` log with `step_scan`, `undo_scan` and `gig_step_summary`, and
+  `organisations.equipment_steps`. Checks in `supabase/tests/equipment_steps.sql`.
+
 ## 0.34.0 — Help H5a: field kit
 
 ### Added

@@ -246,3 +246,48 @@ export function subrentalTotal(sub) {
   if (sub?.quoted_total != null) return Number(sub.quoted_total)
   return (sub?.lines || []).reduce((s, l) => s + (Number(l.quantity) || 0) * (Number(l.unit_cost) || 0), 0)
 }
+
+// ── Equipment steps (docs/HELP.md, H5b) ─────────────────────────────────────
+// A gig's equipment goes prepped → loaded (scanned out) → on site → loaded back → returned
+// (scanned in) → checked in. Loaded and returned are the scans out and in; an organisation
+// can leave out the others.
+export const STEPS = ['prepped', 'loaded', 'on_site', 'loaded_back', 'returned', 'checked_in']
+export const OPTIONAL_STEPS = ['prepped', 'on_site', 'loaded_back', 'checked_in']
+export const DISPATCH_STEP = { loaded: 'out', returned: 'in' }
+export const activeSteps = chosen => STEPS.filter(s => !chosen || chosen.includes(s) || DISPATCH_STEP[s])
+
+// gig_step_summary rows → { item_id: { step: how many have reached it } }
+export function stepCounts(rows) {
+  const out = {}
+  for (const r of rows || []) (out[r.item_id] ||= {})[r.step] = r.done || 0
+  return out
+}
+
+// What a step aims for on one line: what's planned, up to on site; after that, what went out
+export function stepTarget(step, line, counts) {
+  if (STEPS.indexOf(step) <= STEPS.indexOf('on_site')) return line.planned || 0
+  return counts?.loaded ?? line.out_qty ?? 0
+}
+
+// The last of the steps in use that the whole line has reached, or null (still in the warehouse)
+export function lineStep(line, counts, steps = STEPS) {
+  let reached = null
+  for (const step of steps) {
+    const target = stepTarget(step, line, counts)
+    if (target > 0 && (counts?.[step] || 0) >= target) reached = step
+    else break
+  }
+  return reached
+}
+
+// One step over the whole gig: { done, total }, never counting more than a line needs
+export function stepTotals(lines, countsByItem, step) {
+  let done = 0, total = 0
+  for (const line of lines || []) {
+    const counts = countsByItem?.[line.item_id]
+    const target = stepTarget(step, line, counts)
+    total += target
+    done += Math.min(counts?.[step] || 0, target)
+  }
+  return { done, total }
+}

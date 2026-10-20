@@ -3,10 +3,12 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Printer, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
+import { activeSteps, lineStep, stepCounts } from '../lib/inventory'
 import { useI18n } from '../i18n'
 
-// Printable packing list: what goes to the gig, by category, with packing notes and
-// what's already been scanned out and back. Readable by everyone on the gig.
+// Printable packing list: what goes to the gig, by category, with packing notes, what's
+// already been scanned out and back, and how far each line has got through the organisation's
+// steps (docs/HELP.md, H5b). Readable by everyone on the gig.
 //   /gig/:id/packing
 export default function PackingListPage() {
   const { id } = useParams()
@@ -17,23 +19,26 @@ export default function PackingListPage() {
 
   useEffect(() => {
     Promise.all([
-      supabase.from('gigs').select('*, organisations(name)').eq('id', id).maybeSingle(),
+      supabase.from('gigs').select('*, organisations(name, equipment_steps)').eq('id', id).maybeSingle(),
       supabase.rpc('gig_dispatch_summary', { p_gig: id }),
       supabase.rpc('gig_units_out', { p_gig: id }),
-    ]).then(([gigRes, sumRes, unitsRes]) => {
+      supabase.rpc('gig_step_summary', { p_gig: id }),
+    ]).then(([gigRes, sumRes, unitsRes, stepRes]) => {
       if (gigRes.error || !gigRes.data) {
         if (gigRes.error) logger.error('packing', gigRes.error, { gigId: id })
         return setError(true)
       }
       if (sumRes.error) logger.error('packing', sumRes.error, { step: 'summary' })
-      setData({ gig: gigRes.data, rows: sumRes.data || [], units: unitsRes.data || [] })
+      if (stepRes.error) logger.error('packing', stepRes.error, { step: 'steps' })
+      setData({ gig: gigRes.data, rows: sumRes.data || [], units: unitsRes.data || [], counts: stepCounts(stepRes.data) })
     })
   }, [id])
 
   if (error) return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>{t('callsheet.notAvailable')} <button onClick={() => navigate('/dashboard')} style={toolbarBtn}>{t('common.back')}</button></div>
   if (!data) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 size={26} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} /></div>
 
-  const { gig, rows, units } = data
+  const { gig, rows, units, counts } = data
+  const steps = activeSteps(gig.organisations?.equipment_steps || null)
   const groups = rows.reduce((map, r) => { const k = r.category || ''; (map[k] ||= []).push(r); return map }, {})
   const dates = gig.start_date
     ? fmt(gig.start_date, 'd MMM yyyy') + (gig.end_date && gig.end_date !== gig.start_date ? ` – ${fmt(gig.end_date, 'd MMM yyyy')}` : '')
@@ -53,6 +58,7 @@ export default function PackingListPage() {
         .sheet .box { width: 14px; height: 14px; border: 1.5px solid #111; border-radius: 2px; display: inline-block; }
         .sheet .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .sheet .muted { color: #666; }
+        .sheet .step { white-space: nowrap; font-size: 12px; }
         .toolbar { max-width: 800px; margin: 0 auto 12px; display: flex; justify-content: space-between; }
         @media print {
           @page { margin: 12mm; }
@@ -83,7 +89,7 @@ export default function PackingListPage() {
             <section key={category || '—'}>
               <h2>{category || t('prices.noCategory')}</h2>
               <table>
-                <thead><tr><th style={{ width: '28px' }} /><th className="num" style={{ width: '50px' }}>{t('packing.qty')}</th><th>{t('packing.item')}</th><th className="num">{t('packing.out')}</th><th className="num">{t('packing.back')}</th></tr></thead>
+                <thead><tr><th style={{ width: '28px' }} /><th className="num" style={{ width: '50px' }}>{t('packing.qty')}</th><th>{t('packing.item')}</th><th className="num">{t('packing.out')}</th><th className="num">{t('packing.back')}</th><th>{t('packing.step')}</th></tr></thead>
                 <tbody>
                   {list.map(r => (
                     <tr key={r.item_id}>
@@ -97,6 +103,7 @@ export default function PackingListPage() {
                       </td>
                       <td className="num">{r.out_qty || ''}</td>
                       <td className="num">{r.back_qty || ''}</td>
+                      <td className="step">{(() => { const at = lineStep(r, counts[r.item_id], steps); return at ? t(`steps.name.${at}`) : '' })()}</td>
                     </tr>
                   ))}
                 </tbody>

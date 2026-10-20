@@ -1,6 +1,6 @@
 # Help and inclusion: plan
 
-Status: **H1 built (0.29.0)**, **H2 built (0.30.0, 0.31.0)**, **H3 built (0.32.0)**, **H4 built (0.33.0)**, **H5a built (0.34.0)**; H5b–H6 planned. A project of its own, built in stages H1–H6, and a
+Status: **H1 built (0.29.0)**, **H2 built (0.30.0, 0.31.0)**, **H3 built (0.32.0)**, **H4 built (0.33.0)**, **H5a built (0.34.0)**, **H5b built (0.35.0)**; H6 planned. A project of its own, built in stages H1–H6, and a
 rule for every feature after it.
 
 The aim: anyone who works in events can use AVX without help from a colleague, whatever their
@@ -99,7 +99,7 @@ times a month. The app has to explain itself in the moment, in plain words.
 | **H2 · Guides** | ✅ H2a (0.30.0): guide format and side panel; screenshot script; crew and production-manager guides. ✅ H2b (0.31.0): warehouse, office and admin | 2 PRs |
 | **H3 · Comfort** | ✅ (0.32.0) Colours as theme tokens; light and high-contrast themes; text size, comfortable mode, readable font | 1 PR |
 | **H4 · First steps** | ✅ (0.33.0) Teaching empty states; first-steps checklists per role; simple mode (automatic for crew-only people, a switch for everyone) | 1 PR |
-| **H5 · Field kit** | ✅ H5a (0.34.0): scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on removals. H5b: **equipment steps** (below) and undo of the last scan | 2 PRs |
+| **H5 · Field kit** | ✅ H5a (0.34.0): scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on removals. ✅ H5b (0.35.0): **equipment steps** (below) and undoing a scan | 2 PRs |
 | **H6 · Reach** | Ask for help; more languages; SMS/WhatsApp notifications; short video guides | later, as needed |
 
 ## How H5a works
@@ -118,7 +118,7 @@ times a month. The app has to explain itself in the moment, in plain words.
 - **Large print** is remembered per device, and starts on for people who chose a larger text
   size in Appearance.
 
-## Equipment steps (with H5b, decided 2026-10-20)
+## Equipment steps (H5b, built in 0.35.0; decided 2026-10-20)
 
 Today a gig's equipment is either out or back (scan out / scan in), units have a status
 (available, in repair, lost, retired) and a location (a warehouse, a vehicle, a site). H5 adds
@@ -133,6 +133,21 @@ loaded back → returned → checked in**.
   loaded, returned).
 - Field-kit scanning (big buttons, sound, vibration) is what makes the steps fast in the
   warehouse and the van.
+
+### How H5b works
+
+- **Steps** are `prepped, loaded, on_site, loaded_back, returned, checked_in`. Loaded and
+  returned are the existing scans out and in (`dispatch_scan`, which also moves units); the
+  other four are recorded by `step_scan` in `gig_steps` and move nothing. An organisation's
+  `equipment_steps` lists the ones it uses; loaded and returned can't be removed.
+- **Progress** (`gig_step_summary`) counts, per item and step, how many have reached that step
+  *or a later one*: a unit scanned back in has been out, even if nobody ticked "loaded". Bulk
+  items take the largest quantity at that step or after. Up to on site a step aims for what's
+  planned; after that, for what went out.
+- **Undo** (`undo_scan`): every scan is one batch (a case and its contents share it), and the
+  log keeps each unit's state before the scan. Only the person who scanned, within 15 minutes,
+  while no later scan touched those units; not a damaged return (it opened a repair). Undone
+  rows stay in the logs, marked `undone_at`, and no longer count anywhere.
 
 ## Colours for H3: based on the Lumen and Pixel palette
 
