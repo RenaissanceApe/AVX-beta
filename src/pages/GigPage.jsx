@@ -8,6 +8,7 @@ import { useI18n } from '../i18n'
 import { useToast } from '../lib/ToastContext'
 import { btnPrimary, colors } from '../components/ui'
 import GigHeader, { GIG_TABS } from '../components/gig/GigHeader'
+import { useSimpleMode, SIMPLE_GIG_TABS } from '../lib/simpleMode'
 import OverviewTab from '../components/gig/OverviewTab'
 import ScheduleTab from '../components/gig/ScheduleTab'
 import AssetsTab from '../components/gig/AssetsTab'
@@ -70,6 +71,11 @@ export default function GigPage() {
     })
     return () => { cancelled = true }
   }, [gigOrgId, orgs])
+
+  // Simple mode (H4) shows fewer tabs; a link to another tab (from a notification) still opens it
+  const { simple } = useSimpleMode()
+  const tabs = simple ? [...SIMPLE_GIG_TABS, ...(GIG_TABS.includes(requestedTab) && !SIMPLE_GIG_TABS.includes(requestedTab) ? [requestedTab] : [])] : GIG_TABS
+  useEffect(() => { if (!tabs.includes(tab)) setTab('overview') }, [tabs.join(), tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Links such as /gig/:id?tab=schedule (from notifications) select a tab
   useEffect(() => { if (GIG_TABS.includes(requestedTab)) setTab(requestedTab) }, [requestedTab, id])
@@ -202,7 +208,7 @@ export default function GigPage() {
     <AppShell>
       <OfflineBanner savedAt={savedAt} />
       <GigHeader gig={gig} crewCount={members.length} myMembership={myMembership} canEdit={isPM}
-        tab={tab} setTab={setTab} counts={{ assets: assets.length, crew: members.length, feed: posts.length, schedule: schedule.length }}
+        tab={tab} setTab={setTab} tabs={tabs} counts={{ assets: assets.length, crew: members.length, feed: posts.length, schedule: schedule.length }}
         onBack={goBack} onRefresh={() => loadAll()} onEdit={() => setShowEdit(true)}
         company={company} orgRole={orgRole} />
 

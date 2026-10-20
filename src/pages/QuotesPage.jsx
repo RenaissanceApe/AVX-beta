@@ -7,6 +7,7 @@ import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { useI18n } from '../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
+import EmptyState from '../components/EmptyState'
 import { QUOTE_STATUSES, quoteNumber, formatMoney, cloneBody, emptyPhase, localISODate, addDays, quoteTotals } from '../lib/quotes'
 import CompanyDetailsModal from '../components/quotes/CompanyDetailsModal'
 import { PriceListTab } from '../components/quotes/PriceList'
@@ -140,12 +141,8 @@ export default function QuotesPage() {
             </div>
 
             {quotes.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <FileText size={30} color={colors.accentText} />
-                <h2 style={{ fontWeight: 700, margin: '12px 0 8px', fontSize: '17px' }}>{t('quotes.emptyTitle')}</h2>
-                <p style={{ color: colors.muted, fontSize: '13px', marginBottom: '20px', lineHeight: 1.6 }}>{t('quotes.emptyBody')}</p>
-                <button onClick={() => setShowNew(true)} style={btnPrimary}><Plus size={15} /> {t('quotes.new')}</button>
-              </div>
+              <EmptyState icon={<FileText size={28} />} title={t('quotes.emptyTitle')} body={t('quotes.emptyBody')}
+                action={t('quotes.new')} onAction={() => setShowNew(true)} guide="of-build-quote" />
             ) : visible.length === 0 ? (
               <p style={{ color: colors.muted, fontSize: '14px', textAlign: 'center', padding: '40px' }}>{t('quotes.noMatch')}</p>
             ) : (

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.33.0 — Help H4: first steps and simple mode
+
+### Added
+- **Simple mode**: crew who only work on gigs (not in an organisation) see their **next gig** first,
+  big, with the call time and four big buttons: call sheet, chat, open the gig, report damage.
+  Gigs show fewer tabs. Anyone can turn it on or off in Account → Appearance.
+- **First steps** on the home page for new admins (company details, equipment, team, first gig)
+  and new crew (name and phone, AVX on the phone, notifications), each with its guide
+- **Empty screens explain themselves**: what goes there, a button for the first thing to do and
+  the guide
+
+### Changed
+- Crew guides describe the simple home
+
 ## 0.32.0 — Help H3: themes, text size and comfort
 
 ### Added

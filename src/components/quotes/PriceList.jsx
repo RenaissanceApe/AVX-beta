@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import { Plus, Pencil, Trash2, Upload, Loader2, Search, Check } from 'lucide-react'
+import { Plus, Pencil, Trash2, Upload, Loader2, Search, Check, Tags } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import EmptyState from '../EmptyState'
 import { PRICED_KINDS, UNITS, formatMoney, parsePriceImport, parsePrice } from '../../lib/quotes'
 
 const matches = (item, q) => !q || [item.name, item.category, item.details].some(v => (v || '').toLowerCase().includes(q))
@@ -46,7 +47,7 @@ export function PriceListTab({ orgId, userId, items, setItems }) {
       </div>
 
       {items.length === 0 ? (
-        <p style={{ color: colors.muted, fontSize: '13px', textAlign: 'center', padding: '40px 20px', lineHeight: 1.6 }}>{t('prices.empty')}</p>
+        <EmptyState icon={<Tags size={26} />} body={t('prices.empty')} action={t('prices.add')} onAction={() => setEditing('new')} guide="of-price-list" />
       ) : byCategory(visible).map(([category, list]) => (
         <section key={category || '—'} style={{ marginBottom: '16px' }}>
           <h3 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: colors.muted, marginBottom: '6px' }}>{category || t('prices.noCategory')}</h3>

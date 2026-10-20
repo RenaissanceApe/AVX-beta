@@ -11,6 +11,7 @@ import { shortTime } from '../../lib/schedule'
 import { clashText, groupByUser } from '../../lib/clashes'
 import { t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
+import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import { Avatar, RoleBadge, TabHeader } from './parts'
 import { ClashBox, AskAvailabilityModal, ShiftModal, shiftText, AMBER } from './Booking'
@@ -115,11 +116,8 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
         )} />
 
       {members.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <h3 style={{ fontWeight: 700, marginBottom: '8px' }}>{t('crew.emptyTitle')}</h3>
-          <p style={{ color: colors.muted, fontSize: '13px', marginBottom: '20px' }}>{t('crew.emptyBody')}</p>
-          {isPM && <button onClick={() => setShowInvite(true)} style={btnPrimary}><UserPlus size={14} /> {t('crew.invite')}</button>}
-        </div>
+        <EmptyState icon={<UserPlus size={28} />} title={t('crew.emptyTitle')} body={t('crew.emptyBody')}
+          action={isPM ? t('crew.invite') : null} actionIcon={<UserPlus size={14} />} onAction={() => setShowInvite(true)} guide={isPM ? 'pm-invite-crew' : null} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {members.map(m => {

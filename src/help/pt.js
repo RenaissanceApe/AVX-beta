@@ -114,7 +114,7 @@ export default {
       steps: [
         'Abra o email do AVX e toque no botão. Use o telemóvel ou o computador com que vai trabalhar.',
         'Escreva o seu nome completo e escolha uma palavra-passe com pelo menos 8 caracteres. Toque em Continuar.',
-        'Já está. "O meu trabalho" mostra todos os eventos em que está, em qualquer empresa. Toque num para o abrir.',
+        'Já está. "O meu trabalho" mostra o seu próximo evento com a hora de chamada; "Todos os meus eventos" lista todos os eventos em que está, em qualquer empresa.',
         'Da próxima vez, entre com o mesmo email e a mesma palavra-passe. Se se esquecer dela, "Esqueceu-se da palavra-passe?" na página de entrada envia-lhe um link.',
       ],
       mistakes: [
@@ -140,8 +140,8 @@ export default {
       title: 'Ver a hora de chamada e a folha de serviço',
       intro: 'A hora de chamada é a hora a que tem de chegar. A folha de serviço tem o plano do dia e o telefone de toda a gente.',
       steps: [
-        'Em "O meu trabalho", toque no evento.',
-        'A sua hora de chamada está por baixo do nome do evento, a verde.',
+        'Em "O meu trabalho", o seu próximo evento está no topo, com a hora de chamada a verde. "Folha de serviço" abre-a logo; "Abrir o evento" mostra o resto.',
+        'No evento, a sua hora de chamada está por baixo do nome do evento, a verde.',
         'Toque em Horário para ver o alinhamento. Toque em "Folha de serviço" para a folha completa.',
         'A folha de serviço mostra o horário e a equipa com os telefones. Pode imprimi-la ou guardá-la em PDF.',
       ],
@@ -193,7 +193,7 @@ export default {
       title: 'Reportar equipamento danificado',
       intro: 'Algo se partiu no local? Avise logo o armazém, para ser reparado antes do próximo trabalho.',
       steps: [
-        'Abra o evento, toque em Equipamento e depois em "Reportar dano".',
+        'Em "O meu trabalho", toque em "Reportar dano" no seu próximo evento. Para outro evento, abra-o, toque em Equipamento e depois em "Reportar dano".',
         'Escolha o artigo. Para equipamento com etiqueta própria, escreva o código da etiqueta. Para cabos e outros artigos contados, diga quantos.',
         'Diga o que se passa e junte uma fotografia, se puder. Toque em Enviar. Os administradores da organização são avisados.',
       ],
@@ -208,7 +208,7 @@ export default {
       steps: [
         'Toque nas suas iniciais, no canto superior direito, para abrir a sua conta.',
         'Em Aparência, escolha o tema: Claro para o sol, Alto contraste para a maior diferença, ou Como o dispositivo. Escolha também o tamanho do texto.',
-        'Ligue o Modo confortável para botões maiores (com luvas, em movimento) e a letra fácil de ler se as letras se confundirem.',
+        'Ligue o Modo confortável para botões maiores (com luvas, em movimento) e a letra fácil de ler se as letras se confundirem. O Modo simples mostra só o seu próximo evento e o que precisa para ele; liga-se sozinho para a equipa técnica.',
       ],
       mistakes: [
         'Estas escolhas ficam guardadas em cada dispositivo. Volte a escolhê-las no seu outro telemóvel ou computador.',
