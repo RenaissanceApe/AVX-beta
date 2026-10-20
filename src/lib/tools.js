@@ -4,7 +4,7 @@
 // Every tool AVX knows, in the order they're offered. ready: built so far (the rest are planned).
 export const TOOLS = [
   { id: 'input_list', icon: 'listOrdered', ready: true },
-  { id: 'stage_plot', icon: 'layoutGrid', ready: false },
+  { id: 'stage_plot', icon: 'layoutGrid', ready: true },
 ]
 export const ALL_TOOL_IDS = ['stage_plot', 'input_list', 'patch', 'dmx_patch', 'light_plot', 'system_calc']
 

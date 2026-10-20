@@ -14,7 +14,7 @@ export const page = id => content().pages[id] || en.pages[id] || null
 // Terms worth reading for each page (shown under the page note)
 export const PAGE_TERMS = {
   home: ['gig', 'gig-status', 'workspace', 'my-work', 'double-booking', 'offline-copy'],
-  gig: ['pm', 'crew', 'viewer', 'call-time', 'booking-times', 'call-sheet', 'schedule', 'feed', 'files', 'availability-request', 'crew-call', 'field-tools', 'input-list'],
+  gig: ['pm', 'crew', 'viewer', 'call-time', 'booking-times', 'call-sheet', 'schedule', 'feed', 'files', 'availability-request', 'crew-call', 'field-tools', 'input-list', 'stage-plot'],
   messages: ['chat', 'direct-message', 'announcement', 'mute', 'report', 'block', 'push-notifications', 'email-summary'],
   inventory: ['catalogue-item', 'bulk-item', 'serial-item', 'location', 'stock-movement', 'subrental', 'inspection', 'repair'],
   'inventory-item': ['unit', 'set', 'case', 'accessory', 'alternative', 'replacement-value', 'depreciation', 'inspection', 'write-off'],
@@ -51,6 +51,7 @@ export const GUIDES = {
   'pm-schedule': { role: 'pm', pages: ['gig'], terms: ['schedule', 'call-time', 'feed'], shots: ['schedule-add', 'schedule-form', null] },
   'pm-call-sheet': { role: 'pm', pages: ['gig'], terms: ['call-sheet', 'schedule', 'call-time'], shots: [null, 'schedule-callsheet', 'call-sheet-send', null] },
   'pm-double-booking': { role: 'pm', pages: ['gig', 'home'], terms: ['double-booking', 'booking-times', 'availability-request', 'unavailable-dates'], shots: ['crew-clash', 'ask-form', null, null] },
+  'pm-stage-plot': { role: 'pm', pages: ['gig'], terms: ['stage-plot', 'input-list', 'field-tools'], shots: [null, 'plot-drawing', 'plot-list', 'plot-to-inputs'] },
   'pm-input-list': { role: 'pm', pages: ['gig'], terms: ['input-list', 'phantom-power', 'stage-box', 'line-check', 'field-tools'], shots: ['tools-add', 'input-form', 'input-list', null] },
   'pm-equipment': { role: 'pm', pages: ['gig'], terms: ['catalogue-item', 'prep-return-days', 'subrental', 'alternative'], shots: ['equipment-add', 'equipment-picker', null, null] },
   'wh-import': { role: 'warehouse', pages: ['inventory'], terms: ['catalogue-item', 'bulk-item', 'serial-item', 'location'], shots: [null, 'inv-import', null] },

@@ -1,6 +1,6 @@
 # Field tools: plan
 
-Status: **F1a built (0.36.0)**: Tools tab, organisation switches, shared show model, input list, Updates tab; F1b (stage plot) next. Decided 2026-10-20. Optional tools for the technical side of a gig (stage
+Status: **F1 built**: F1a (0.36.0) Tools tab, organisation switches, shared show model, input list, Updates tab; F1b (0.37.0) stage plot. F2 (patch, DMX patch) next. Decided 2026-10-20. Optional tools for the technical side of a gig (stage
 plot, input list, patch, light plot, DMX patch, sound system calculator) that share their data,
 so a stage plot can produce a channel list and a light plot a DMX patch. An ever-growing set,
 added one tool at a time, without making AVX harder to use.
@@ -46,7 +46,7 @@ venue or the artist through a private link (like quotes), and can be saved as a 
 | Stage | Scope |
 |---|---|
 | **F1a** ✅ (0.36.0) | Tools tab, organisation switches, the shared show model (table), **input list** (print, offline, line check, mics to equipment); Feed + Activity become Updates |
-| **F1b** | **Stage plot** (grid and symbols) that fills the input list and the show model's stage size |
+| **F1b** ✅ (0.37.0) | **Stage plot** (grid and symbols) that fills the input list and the show model's stage size |
 | **F2** | Patch (stage boxes, splits) and **DMX patch** |
 | **F3** | **Light plot** (truss, positions, fixtures from the catalogue, power) |
 | **F4** | **Sound system calculator** (delays, time alignment, coverage), clearly labelled as estimates |
@@ -67,6 +67,21 @@ Each stage ships its glossary words, hints and a guide with screenshots (the hel
 | Updates | The Feed and Activity tabs are now one "Updates" tab (Posts / History). Old `?tab=feed` and `?tab=activity` links still work |
 
 Checks: `supabase/tests/field_tools.sql`.
+
+## How F1b works (stage plot)
+
+| Piece | How it works |
+|---|---|
+| Stage | Width and depth in the show model (`gig_show.stage`), 2–40 m × 2–30 m, 10 × 6 m until set. Drawn from above with the audience at the bottom and a 1 m grid |
+| Things | `gig_plot_items`: kind, name, x (metres from the left as the audience sees it), y (metres from the front), rotation 0/90/180/270, optional catalogue item, notes; up to 300 per gig |
+| Library | `src/lib/stagePlot.js`: drum kit, vocal mic, guitar amp, bass amp, keyboard, acoustic guitar, DI box, monitor wedge, musician, riser, power drop, text. No free drawing (decided as the first editor) |
+| Editing | Drag with a finger or the mouse, or select a thing and use the arrow keys or buttons (25 cm; Shift 1 m), R rotates, Delete removes (with Undo). Changes are saved half a second after the last move |
+| Input list | Symbols that make sound carry their channels (a drum kit 7, a keyboard 2…). "Send to the input list" adds the channels not there yet (`gig_inputs.plot_ref` = item id:n), numbered after the last channel, and adds the input list to the gig if needed. It never changes existing lines |
+| Equipment | Things linked to catalogue items can be added to the gig's equipment, as from the input list |
+| Reading | Crew see the drawing and the "On stage" list (also offline); print at `/gig/:id/plot` (landscape, black on white) |
+| Accessibility | Each thing is a button with its name and position; the drawn names are hidden from screen readers, and the list under the drawing says the same in words |
+
+Checks: `supabase/tests/stage_plot.sql`.
 
 ## Open questions
 
