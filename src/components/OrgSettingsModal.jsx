@@ -79,7 +79,7 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
           <label style={label} htmlFor="org-name">{t('dash.orgName')}</label>
           <input id="org-name" value={name} onChange={e => setName(e.target.value)} maxLength={120} style={input} />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
           <div>
             <HintLabel htmlFor="org-prep" hint="prep-days">{t('orgSettings.prepDays')}</HintLabel>
             <input id="org-prep" type="number" min={0} max={14} value={prep} onChange={e => setPrep(e.target.value)} style={input} />

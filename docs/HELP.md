@@ -1,6 +1,6 @@
 # Help and inclusion: plan
 
-Status: **H1 built (0.29.0)**; H2–H6 planned. A project of its own, built in stages H1–H6, and a
+Status: **H1 built (0.29.0)**, **H2a built (0.30.0)**; H2b–H6 planned. A project of its own, built in stages H1–H6, and a
 rule for every feature after it.
 
 The aim: anyone who works in events can use AVX without help from a colleague, whatever their
@@ -96,7 +96,7 @@ times a month. The app has to explain itself in the moment, in plain words.
 | Stage | Scope | Roughly |
 |---|---|---|
 | **H1 · Foundations** | Help content files (PT/EN) and tests; glossary page and tappable terms; ⓘ hints on the first batch of fields; **?** on page headers; accessibility checks (axe) in the browser tests; the "part of done" rule in CONTRIBUTING | 1 PR |
-| **H2 · Guides** | Guide format and side panel; screenshot script; crew and production-manager guides first, then warehouse, office and admin | 2 PRs |
+| **H2 · Guides** | ✅ H2a (0.30.0): guide format and side panel; screenshot script; crew and production-manager guides. H2b: warehouse, office and admin | 2 PRs |
 | **H3 · Comfort** | Colours as theme tokens; light theme (first), then high contrast; text size, comfortable mode, readable font | 1–2 PRs |
 | **H4 · First steps** | Teaching empty states everywhere; first-steps checklists per role; simple mode (automatic for crew-only people, a switch for everyone) | 1 PR |
 | **H5 · Field kit** | Scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on common actions | 1 PR |
@@ -161,6 +161,36 @@ rule the accessibility checks enforce.
   lightened; the logo, account and company buttons are now named by what they show (voice
   control).
 - Not yet (H2): guides with screenshots; hints on the remaining fields.
+
+## What H2a built (0.30.0)
+
+- **Guide format** (`src/help/index.js` → `GUIDES`): for each guide, who it's for (`crew`, `pm`),
+  the pages whose **?** lists it, the glossary words it links to and one screenshot name per step
+  (or none). The words (`title`, `intro`, `steps`, `mistakes`) are in `src/help/en.js` and
+  `pt.js` under `guides`. `help.test.js` fails if a language is missing a guide, the step counts
+  differ, a word or page doesn't exist, or a screenshot is missing in either language.
+- **14 guides.** Crew: accept an invitation and set a password; install AVX on your phone; find
+  your call time and the call sheet; mark the dates you can't work; answer an availability
+  question; chat with the team; report damaged equipment; use AVX without signal. Production
+  managers: create a gig; invite crew; build the schedule; prepare and send the call sheet; avoid
+  double bookings; plan the equipment. ("The gig chat" from the plan is covered by the crew chat
+  guide.)
+- **Where they show:** Help (`/help`) lists them by role above the glossary; each has its own
+  address (`/help/guide/crew-call-time`). The **?** on a page header lists that page's guides,
+  grouped by role, and opens them inside the panel, so you don't lose your place.
+- **Screenshots** (`npm run help:screens`, in `scripts/help-screens/`): builds the app against a
+  pretend database address, answers every call with sample data (`sample-data.mjs`: Carla, crew
+  only, and Ricardo, admin and production manager; dates counted from today), opens each screen
+  on a 390 px phone, outlines in yellow what to tap and saves a JPEG per language in
+  `public/help/shots/<pt|en>/` (21 per language, about 4 MB in all; not cached for offline use).
+  Date and time fields follow each language. A failed scene saves what the screen looked like in
+  `node_modules/.help-screens-failed/`. The pictures have no alt text on purpose: each step's
+  text says everything, the picture only shows where.
+- **Found while taking them, fixed:** on a phone, the "Add schedule item" and "New gig" forms
+  were wider than the screen (date and time fields side by side); the "New gig" labels weren't
+  linked to their fields (screen readers read them without a name); the invite form's email
+  example was in English in Portuguese.
+- Not yet (H2b): guides for the warehouse, office and admins.
 
 ## The rule for every new feature (from H1 on)
 

@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Info, HelpCircle, X, BookOpen } from 'lucide-react'
-import { term, hint, page, PAGE_TERMS } from '../../help'
+import { Info, HelpCircle, X, BookOpen, ListChecks, ChevronRight, ArrowLeft } from 'lucide-react'
+import { term, hint, page, guide, guidesFor, GUIDE_ROLES, GUIDES, PAGE_TERMS } from '../../help'
+import GuideView from './GuideView'
 import { useI18n } from '../../i18n'
 import { label as labelStyle, colors } from '../ui'
 
@@ -108,22 +109,27 @@ export function Term({ id, children }) {
   )
 }
 
-// The ? on a page header: what the page is for and the words used on it, without leaving the page
+// The ? on a page header: what the page is for, its how-to guides (read in the panel) and the
+// words used on it, without leaving the page
 export function PageHelp({ page: pageId }) {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
+  const [reading, setReading] = useState(null) // a guide id, shown in the panel
+  const panel = useRef(null)
   const button = useRef(null)
   const closeBtn = useRef(null)
   const entry = page(pageId)
+  useEffect(() => { if (panel.current) panel.current.scrollTop = 0 }, [reading])
   useEffect(() => {
     if (!open) return
     closeBtn.current?.focus()
-    const onKey = e => { if (e.key === 'Escape') { setOpen(false); button.current?.focus() } }
+    const onKey = e => { if (e.key === 'Escape') { setOpen(false); setReading(null); button.current?.focus() } }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [open])
   if (!entry) return null
-  const close = () => { setOpen(false); button.current?.focus() }
+  const close = () => { setOpen(false); setReading(null); button.current?.focus() }
+  const guides = guidesFor(pageId)
   return (
     <>
       <button ref={button} type="button" onClick={() => setOpen(true)} aria-label={t('help.aboutPage', { page: entry.title })} title={t('help.aboutPage', { page: entry.title })}
@@ -132,7 +138,7 @@ export function PageHelp({ page: pageId }) {
       </button>
       {open && (
         <div onClick={e => e.target === e.currentTarget && close()} style={{ position: 'fixed', inset: 0, zIndex: 250, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'flex-end' }}>
-          <aside role="dialog" aria-modal="true" aria-label={entry.title} style={{
+          <aside ref={panel} role="dialog" aria-modal="true" aria-label={entry.title} style={{
             width: 'min(400px, 100vw)', height: '100%', overflowY: 'auto', background: colors.panel, borderLeft: `1px solid ${colors.border}`,
             padding: 'calc(18px + var(--safe-top)) 20px calc(24px + env(safe-area-inset-bottom, 0px))', color: '#fff', animation: 'fadeIn .15s ease',
           }}>
@@ -141,22 +147,55 @@ export function PageHelp({ page: pageId }) {
               <h2 style={{ fontSize: '17px', fontWeight: 700, flex: 1 }}>{entry.title}</h2>
               <button ref={closeBtn} type="button" onClick={close} aria-label={t('common.close')} style={{ background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', padding: '4px', display: 'flex' }}><X size={18} /></button>
             </div>
-            <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#D5DEE7' }}>{entry.summary}</p>
-            <h3 style={{ ...labelStyle, marginTop: '20px' }}>{t('help.wordsHere')}</h3>
-            <dl style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {(PAGE_TERMS[pageId] || []).map(id => {
-                const x = term(id)
-                return (
-                  <div key={id}>
-                    <dt style={{ fontWeight: 700, fontSize: '14px' }}>{x.term}</dt>
-                    <dd style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.55 }}>{x.definition}</dd>
-                  </div>
-                )
-              })}
-            </dl>
-            <Link to="/help" onClick={() => setOpen(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '20px', color: colors.accent, fontSize: '14px', fontWeight: 600 }}>
-              <BookOpen size={15} aria-hidden="true" /> {t('help.allTerms')}
-            </Link>
+            {reading ? (
+              <>
+                <button type="button" onClick={() => setReading(null)} style={{ background: 'none', border: 'none', padding: '4px 0', marginBottom: '10px', color: colors.soft, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+                  <ArrowLeft size={14} aria-hidden="true" /> {t('help.backToPage')}
+                </button>
+                <GuideView id={reading} compact />
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#D5DEE7' }}>{entry.summary}</p>
+                {guides.length > 0 && (
+                  <>
+                    <h3 style={{ ...labelStyle, marginTop: '20px', display: 'flex', alignItems: 'center', gap: '6px' }}><ListChecks size={13} aria-hidden="true" /> {t('help.guidesHere')}</h3>
+                    {GUIDE_ROLES.map(role => ({ role, list: guides.filter(id => GUIDES[id].role === role) })).filter(g => g.list.length).map(({ role, list }) => (
+                      <div key={role} style={{ marginBottom: '10px' }}>
+                        <p style={{ fontSize: '12px', color: colors.soft, margin: '0 0 6px' }}>{t(`help.role.${role}`)}</p>
+                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {list.map(id => (
+                            <li key={id}>
+                              <button type="button" onClick={() => setReading(id)} style={{
+                                width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '10px', cursor: 'pointer', textAlign: 'left',
+                                background: 'rgba(255,255,255,0.04)', border: `1px solid ${colors.border}`, color: '#fff', fontSize: '14px', fontWeight: 600,
+                              }}>
+                                <span style={{ flex: 1 }}>{guide(id).title}</span> <ChevronRight size={15} color={colors.soft} aria-hidden="true" />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </>
+                )}
+                <h3 style={{ ...labelStyle, marginTop: '20px' }}>{t('help.wordsHere')}</h3>
+                <dl style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {(PAGE_TERMS[pageId] || []).map(id => {
+                    const x = term(id)
+                    return (
+                      <div key={id}>
+                        <dt style={{ fontWeight: 700, fontSize: '14px' }}>{x.term}</dt>
+                        <dd style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.55 }}>{x.definition}</dd>
+                      </div>
+                    )
+                  })}
+                </dl>
+                <Link to="/help" onClick={() => setOpen(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '20px', color: colors.accent, fontSize: '14px', fontWeight: 600 }}>
+                  <BookOpen size={15} aria-hidden="true" /> {t('help.allHelp')}
+                </Link>
+              </>
+            )}
           </aside>
         </div>
       )}

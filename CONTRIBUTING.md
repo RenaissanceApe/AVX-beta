@@ -48,7 +48,11 @@ languages: glossary entries for new terms, ⓘ hints on ambiguous fields, an upd
 refreshed screenshots, and a keyboard and screen-reader pass. Never use colour or hover as the
 only signal, and keep text plain.
 
-- Help text lives in `src/help/en.js` and `src/help/pt.js` (`terms`, `hints`, `pages`, same ids in both).
+- Help text lives in `src/help/en.js` and `src/help/pt.js` (`terms`, `hints`, `pages`, `guides`, same ids in both).
+- Changed a screen a guide shows (see `GUIDES` in `src/help/index.js`)? Update the guide's steps
+  and run `npm run help:screens` (or `npm run help:screens -- call-time,push` for some), look at
+  the new pictures in `public/help/shots/` and commit them. New screens or data go in
+  `scripts/help-screens/` (sample data only, never real people).
   Use `<HintLabel htmlFor="…" hint="id">Label</HintLabel>` for a field, `<Hint id>` next to anything else,
   `<Term id>` for a word in a sentence and `<PageHelp page>` on a page header.
 - The browser tests run axe: serious or critical accessibility findings fail CI. Small text needs a

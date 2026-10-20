@@ -95,6 +95,7 @@ function AppRoutes() {
       <Route path="/privacy" element={<LegalPage doc="privacy" />} />
       <Route path="/terms" element={<LegalPage doc="terms" />} />
       <Route path="/help" element={<Suspense fallback={<Spinner />}><HelpPage /></Suspense>} />
+      <Route path="/help/guide/:guideId" element={<Suspense fallback={<Spinner />}><HelpPage /></Suspense>} />
       <Route path="/q/:token" element={<Suspense fallback={<Spinner />}><QuotePublicPage /></Suspense>} />
       <Route path="/s/:token" element={<Suspense fallback={<Spinner />}><SupplierLinkPage /></Suspense>} />
       <Route path="/dashboard" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />

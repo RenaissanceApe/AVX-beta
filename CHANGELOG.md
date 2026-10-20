@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.30.0 — Help H2a: how-to guides for crew and production managers
+
+### Added
+- **Guides**, step by step with a picture of each screen and the button to tap outlined, in
+  Portuguese and English:
+  - for crew: accept an invitation and set a password; install AVX on your phone; find your call
+    time and the call sheet; mark the dates you can't work; answer an availability question;
+    chat with the team; report damaged equipment; use AVX without signal;
+  - for production managers: create a gig; invite crew; build the schedule; prepare and send the
+    call sheet; avoid double bookings; plan the equipment.
+  Each guide ends with common mistakes and the words it uses (linked to the glossary)
+- **Help** now lists the guides by role above the glossary, and each guide has its own link
+- The **?** next to a page title lists that page's guides and opens them right there, without
+  leaving the page
+- The pictures are made from the real screens with sample data by `npm run help:screens`, so they
+  can be refreshed whenever a screen changes
+
+### Fixed
+- On a phone, the "Add schedule item" and "New gig" forms no longer run off the side of the screen
+- The "New gig" form's labels are linked to their fields (screen readers now name them)
+- The email example in the invite form is in Portuguese when AVX is
+
 ## 0.29.0 — Help H1: glossary, hints and accessibility checks
 
 ### Added

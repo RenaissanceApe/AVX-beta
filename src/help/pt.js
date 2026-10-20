@@ -105,4 +105,196 @@ export default {
     quote: { title: 'Um orçamento', summary: 'Construa o orçamento em fases, com linhas da sua tabela de preços. Cada envio guarda uma versão. O cliente lê e aceita através de uma ligação privada.' },
     orgs: { title: 'Organizações', summary: 'As empresas a que pertence e o seu papel em cada uma. Os administradores abrem daqui os membros e as definições.' },
   },
+
+  // guides: Ajuda → Guias e o painel ?. Os passos correspondem às imagens em index.js (GUIDES).
+  guides: {
+    'crew-join': {
+      title: 'Aceitar um convite e definir a palavra-passe',
+      intro: 'Um diretor de produção adicionou-o a um evento. Configure a conta uma vez e passa a ver todos os seus eventos num só sítio.',
+      steps: [
+        'Abra o email do AVX e toque no botão. Use o telemóvel ou o computador com que vai trabalhar.',
+        'Escreva o seu nome completo e escolha uma palavra-passe com pelo menos 8 caracteres. Toque em Continuar.',
+        'Já está. "O meu trabalho" mostra todos os eventos em que está, em qualquer empresa. Toque num para o abrir.',
+        'Da próxima vez, entre com o mesmo email e a mesma palavra-passe. Se se esquecer dela, "Esqueceu-se da palavra-passe?" na página de entrada envia-lhe um link.',
+      ],
+      mistakes: [
+        'O link expirou: vá à página de entrada, toque em "Esqueceu-se da palavra-passe?" e use o email para onde foi enviado o convite.',
+        'Criou a conta com outro email: o evento não aparece. Peça ao diretor de produção que convide esse email.',
+      ],
+    },
+    'crew-install': {
+      title: 'Instalar o AVX no telemóvel',
+      intro: 'O AVX funciona no navegador, mas no ecrã principal abre como uma app, em ecrã inteiro, e pode enviar-lhe notificações.',
+      steps: [
+        'iPhone: abra o AVX no Safari. Toque em Partilhar (o quadrado com uma seta) e depois em "Adicionar ao ecrã principal".',
+        'Android: abra o AVX no Chrome. Toque no menu (três pontos) e depois em "Instalar app" ou "Adicionar ao ecrã principal".',
+        'Abra o AVX a partir do novo ícone no ecrã principal e entre na conta, se lhe for pedido.',
+        'Para receber notificações: toque nas suas iniciais, no canto superior direito, e ligue "Notificações neste dispositivo".',
+      ],
+      mistakes: [
+        'No iPhone, as notificações só funcionam com o AVX aberto a partir do ícone do ecrã principal, não no Safari.',
+        'Tocou em "Não permitir": autorize as notificações do AVX nas definições do telemóvel e volte a ligá-las no AVX.',
+      ],
+    },
+    'crew-call-time': {
+      title: 'Ver a hora de chamada e a folha de serviço',
+      intro: 'A hora de chamada é a hora a que tem de chegar. A folha de serviço tem o plano do dia e o telefone de toda a gente.',
+      steps: [
+        'Em "O meu trabalho", toque no evento.',
+        'A sua hora de chamada está por baixo do nome do evento, a verde.',
+        'Toque em Horário para ver o alinhamento. Toque em "Folha de serviço" para a folha completa.',
+        'A folha de serviço mostra o horário e a equipa com os telefones. Pode imprimi-la ou guardá-la em PDF.',
+      ],
+      mistakes: [
+        'A hora de chamada é a hora a que começa a trabalhar, não a hora do espetáculo.',
+        'As horas podem mudar. Volte a ver na véspera; as alterações ao horário também aparecem na conversa do evento.',
+      ],
+    },
+    'crew-unavailable': {
+      title: 'Marcar as datas em que não pode trabalhar',
+      intro: 'Férias, outro trabalho, uma consulta: marque-as uma vez e os diretores de produção são avisados antes de o marcarem.',
+      steps: [
+        'Em "O meu trabalho", abra Disponibilidade. No telemóvel, está em Mais.',
+        'Em "Datas indisponíveis", escolha o primeiro dia em De. Se for mais de um dia, escolha o último em Até. Se quiser, escreva uma nota para si.',
+        'Toque em "Adicionar datas". Para as tirar mais tarde, toque no × ao lado.',
+      ],
+      mistakes: [
+        'Os diretores de produção não veem a sua nota nem o motivo, só que não está disponível. Podem marcá-lo na mesma, mas o AVX aconselha-os a falar consigo primeiro.',
+      ],
+    },
+    'crew-availability': {
+      title: 'Responder a uma pergunta de disponibilidade',
+      intro: 'Antes de o marcar, um diretor de produção pode perguntar se está livre. Responder é um toque.',
+      steps: [
+        'Recebe uma notificação: alguém pergunta se está disponível para um evento.',
+        'Em "O meu trabalho", as perguntas aparecem no topo. Se precisar, escreva uma nota (por exemplo "só a partir das 10:00") e toque em Disponível ou Indisponível.',
+        'A pergunta também aparece nas mensagens com essa pessoa, e pode responder aí.',
+      ],
+      mistakes: [
+        'Responder "Disponível" ainda não o marca. Fica marcado quando o diretor de produção o adiciona ao evento.',
+        'Uma chamada de equipa é diferente: oferece-lhe um lugar, e ficam com ele os primeiros a aceitar.',
+      ],
+    },
+    'crew-chat': {
+      title: 'Conversar com a equipa',
+      intro: 'Cada evento tem uma conversa para todos os que estão nele. Também pode escrever diretamente a uma pessoa.',
+      steps: [
+        'Toque no balão de conversa, no topo, para abrir as Mensagens. As conversas com mensagens por ler aparecem primeiro.',
+        'Abra a conversa do evento. Escreva na caixa em baixo e toque em Enviar. O clipe anexa fotografias e ficheiros; escreva @ para mencionar alguém.',
+        'Abra o menu de uma mensagem para responder, reagir, guardar ou denunciar.',
+        'Demasiadas notificações? Silencie a conversa no menu dela. Continua a ver as mensagens quando a abre.',
+      ],
+      mistakes: [
+        'Toda a gente do evento lê a conversa do evento. Para assuntos privados, envie uma mensagem direta.',
+        'Sem rede, as mensagens esperam no telemóvel e são enviadas quando voltar a ter ligação.',
+      ],
+    },
+    'crew-damage': {
+      title: 'Reportar equipamento danificado',
+      intro: 'Algo se partiu no local? Avise logo o armazém, para ser reparado antes do próximo trabalho.',
+      steps: [
+        'Abra o evento, toque em Equipamento e depois em "Reportar dano".',
+        'Escolha o artigo. Para equipamento com etiqueta própria, escreva o código da etiqueta. Para cabos e outros artigos contados, diga quantos.',
+        'Diga o que se passa e junte uma fotografia, se puder. Toque em Enviar. Os administradores da organização são avisados.',
+      ],
+      mistakes: [
+        'Reporte mesmo que pareça pouco. Um conector solto hoje é um canal morto no próximo espetáculo.',
+        'Não continue a usar equipamento que não seja seguro, sobretudo o que liga à corrente.',
+      ],
+    },
+    'crew-offline': {
+      title: 'Usar o AVX sem rede',
+      intro: 'Recintos e caves muitas vezes não têm rede. Prepare-se antes de sair e o evento fica no telemóvel.',
+      steps: [
+        'Enquanto ainda tem rede, abra o evento. O AVX guarda uma cópia neste telemóvel.',
+        'Abra Ficheiros e toque em "Guardar todos os ficheiros offline" para guardar também riders, plantas e outros ficheiros.',
+        'Sem rede, uma barra no topo avisa que está offline e o AVX mostra a cópia guardada.',
+        'As mensagens que escrever offline são enviadas quando voltar a ter ligação. As outras alterações precisam de ligação.',
+      ],
+      mistakes: [
+        'Um evento que nunca abriu neste telemóvel não está guardado. Abra-o uma vez antes de sair.',
+        'Os ficheiros são guardados em cada telemóvel. Guardá-los no computador não os guarda no telemóvel.',
+      ],
+    },
+    'pm-create-gig': {
+      title: 'Criar um evento',
+      intro: 'Um evento reúne tudo sobre um trabalho: equipa, horário, equipamento, ficheiros e conversa.',
+      steps: [
+        'No topo, escolha a empresa a que o evento pertence.',
+        'Toque em "Novo evento" (no telemóvel, em Mais). Escreva o nome e o local e escolha as datas de início e de fim.',
+        'Escolha o estado: Rascunho enquanto não é certo, Confirmado quando vai acontecer. Toque em "Criar evento" e depois adicione a equipa, o horário e o equipamento.',
+      ],
+      mistakes: [
+        'Sem datas, o AVX não consegue avisar de marcações duplas nem ver se há equipamento suficiente.',
+        'Se o cliente aceitou um orçamento, abra o evento e use "Preencher evento a partir do orçamento" para juntar horário, posições e equipamento de uma vez.',
+      ],
+    },
+    'pm-invite-crew': {
+      title: 'Convidar a equipa',
+      intro: 'Adicione pessoas a um evento para verem o horário, os ficheiros e a conversa. Pode convidar qualquer pessoa por email.',
+      steps: [
+        'Abra o evento, toque em Equipa e depois em "Convidar equipa".',
+        'Procure pessoas com quem já trabalhou, ou escreva um email.',
+        'Escreva a função (por exemplo "Técnico de FOH"), escolha o nível de acesso (Equipa técnica para a maioria) e a hora de chamada. Toque em "Adicionar ao evento".',
+        'Quem não tem conta recebe um email e fica pendente até se registar. Para oferecer um lugar a várias pessoas de uma vez, use "Chamada de equipa".',
+      ],
+      mistakes: [
+        'O acesso de Diretor de Produção permite alterar tudo no evento. Dê-o só a quem o gere consigo.',
+        'Um sinal de aviso ao lado de alguém quer dizer que já está marcado ou indisponível nessa altura. Pergunte-lhe primeiro.',
+      ],
+    },
+    'pm-schedule': {
+      title: 'Montar o horário',
+      intro: 'O horário é o alinhamento que toda a gente do evento vê: carga, soundcheck, abertura de portas, espetáculo, desmontagem.',
+      steps: [
+        'Abra o evento, toque em Horário e depois em Adicionar.',
+        'Escreva o que acontece e escolha o dia, as horas de início e de fim e o local. Junte notas, se precisar, e guarde.',
+        'Toda a gente do evento vê o horário logo, e as alterações aparecem na conversa do evento.',
+      ],
+      mistakes: [
+        'O horário é do evento todo. A hora a que cada pessoa começa é a hora de chamada, definida em Equipa.',
+      ],
+    },
+    'pm-call-sheet': {
+      title: 'Preparar e enviar a folha de serviço',
+      intro: 'A folha de serviço junta numa página o horário, a equipa, as horas de chamada e os telefones.',
+      steps: [
+        'Preencha primeiro o horário e a hora de chamada de cada pessoa.',
+        'Abra o evento, toque em Horário e depois em "Folha de serviço".',
+        'Toque em "Enviar à equipa" para a publicar na conversa do evento, ou em "Imprimir / Guardar como PDF".',
+        'Na conversa do evento, veja quem já confirmou que a leu.',
+      ],
+      mistakes: [
+        'Os telefones só aparecem para quem os pôs na sua conta.',
+        'Se o horário mudar depois de enviar, envie outra vez para todos confirmarem a nova versão.',
+      ],
+    },
+    'pm-double-booking': {
+      title: 'Evitar marcações duplas',
+      intro: 'O AVX avisa quando alguém já está marcado ou marcou essas datas como indisponíveis. Nada é bloqueado; a decisão é sua.',
+      steps: [
+        'Em Equipa, um sinal de aviso ao lado de uma pessoa quer dizer que está marcada noutro sítio ou indisponível à mesma hora.',
+        'Antes de adicionar alguém, toque em "Perguntar disponibilidade". A pessoa responde disponível ou indisponível, com uma nota.',
+        'Se alguém só é preciso parte do dia, defina as horas da marcação ("Definir horas") para que trabalhos curtos no mesmo dia não colidam.',
+        'As suas próprias sobreposições aparecem como "Marcação dupla" nos seus eventos.',
+      ],
+      mistakes: [
+        'Perguntar não marca ninguém. Adicione a pessoa ao evento quando ela disser que sim.',
+        'Sem horas de marcação, a pessoa conta como marcada durante todo o dia de cada dia do evento.',
+      ],
+    },
+    'pm-equipment': {
+      title: 'Planear o equipamento',
+      intro: 'Liste o material de que o evento precisa. O AVX reserva-o para as datas e avisa se não houver que chegue.',
+      steps: [
+        'Abra o evento, toque em Equipamento e depois em "Adicionar equipamento".',
+        'Marque os artigos e escolha as quantidades. Cada um mostra quantos estão livres nas datas do evento, mais os dias de preparação e de devolução.',
+        'Se faltar um artigo, alugue-o fora, troque-o por uma alternativa ou mude a quantidade. Nada é bloqueado.',
+        'Se o evento vem de um orçamento aceite, "Preencher evento a partir do orçamento" junta o equipamento por si.',
+      ],
+      mistakes: [
+        'Mudar as datas do evento muda também a reserva do equipamento. Volte a ver o separador Equipamento depois.',
+      ],
+    },
+  },
 }

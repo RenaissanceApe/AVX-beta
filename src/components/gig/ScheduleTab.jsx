@@ -115,8 +115,9 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
               <input id="sch-title" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 placeholder={t('schedule.whatPlaceholder')} maxLength={200} style={input} autoFocus required />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1fr', gap: '8px' }}>
-              <div>
+            {/* The day gets its own row: three date/time fields don't fit side by side on a phone */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '8px 10px' }}>
+              <div style={{ gridColumn: '1 / -1' }}>
                 <label style={label} htmlFor="sch-day">{t('schedule.day')} *</label>
                 <input id="sch-day" type="date" value={form.day} onChange={e => setForm(f => ({ ...f, day: e.target.value }))} style={input} required />
               </div>

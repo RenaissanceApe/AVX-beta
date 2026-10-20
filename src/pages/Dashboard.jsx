@@ -213,7 +213,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
           <input value={form.venue} onChange={e => setForm(f => ({ ...f, venue: e.target.value }))}
             placeholder={t('gigForm.venuePlaceholder')} style={modalInput} />
         </FieldLabel>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
           <FieldLabel label={t('gigForm.start')}>
             <input type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} style={modalInput} />
           </FieldLabel>
@@ -377,12 +377,13 @@ function Modal({ title, onClose, children }) {
   )
 }
 
+// The label wraps its field, so tapping the words focuses it and screen readers name it
 function FieldLabel({ label, children }) {
   return (
-    <div>
-      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#7D93A9', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</label>
+    <label style={{ display: 'block' }}>
+      <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#7D93A9', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</span>
       {children}
-    </div>
+    </label>
   )
 }
 

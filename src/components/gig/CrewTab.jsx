@@ -329,7 +329,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
         {!picked && <div>
           <label style={label} htmlFor="inv-email">{t('common.email')} *</label>
           <input id="inv-email" type="email" value={form.email} onChange={e => { setClashes([]); setForm(f => ({ ...f, email: e.target.value })) }}
-            onBlur={checkAvailability} placeholder="technician@company.com" style={input} required />
+            onBlur={checkAvailability} placeholder={t('crew.emailPlaceholder')} style={input} required />
           {clashes.length > 0 && (
             <div role="status" style={{ marginTop: '8px', padding: '9px 11px', borderRadius: '9px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', fontSize: '12px', color: AMBER, lineHeight: 1.6 }}>
               <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
@@ -348,7 +348,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
           <input id="inv-function" value={form.function_title} onChange={e => setForm(f => ({ ...f, function_title: e.target.value }))}
             placeholder={t('crew.functionPlaceholder')} maxLength={120} style={input} />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
           <div>
             <HintLabel htmlFor="inv-role" hint="gig-role">{t('crew.access')}</HintLabel>
             <select id="inv-role" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} style={{ ...input, cursor: 'pointer' }}>

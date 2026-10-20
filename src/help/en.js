@@ -108,4 +108,196 @@ export default {
     quote: { title: 'A quote', summary: 'Build the quote in phases with lines from your price list. Each send saves a version. The client reads and accepts it through a private link.' },
     orgs: { title: 'Organisations', summary: 'The companies you belong to and your role in each. Admins open the members and settings from here.' },
   },
+
+  // guides: Help → Guides and the ? panel. Steps line up with the screenshots in index.js (GUIDES).
+  guides: {
+    'crew-join': {
+      title: 'Accept an invitation and set your password',
+      intro: 'A production manager added you to a gig. Set up your account once, then every gig you are on shows up in one place.',
+      steps: [
+        'Open the email from AVX and tap the button in it. Use the phone or computer you will use at work.',
+        'Type your full name and choose a password of at least 8 characters. Tap Continue.',
+        'You are in. "My work" lists every gig you are on, at any company. Tap one to open it.',
+        'Next time, sign in with the same email and password. If you forget it, "Forgot password?" on the sign-in page sends you a link.',
+      ],
+      mistakes: [
+        'The link has expired: go to the sign-in page, tap "Forgot password?" and use the email the invitation was sent to.',
+        'You created an account with another email: the gig is not there. Ask the production manager to invite that email instead.',
+      ],
+    },
+    'crew-install': {
+      title: 'Install AVX on your phone',
+      intro: 'AVX works in the browser, but on the home screen it opens like an app, full screen, and can send you notifications.',
+      steps: [
+        'iPhone: open AVX in Safari. Tap Share (the square with an arrow), then "Add to Home Screen".',
+        'Android: open AVX in Chrome. Tap the menu (three dots), then "Install app" or "Add to home screen".',
+        'Open AVX from the new icon on your home screen, and sign in if asked.',
+        'For notifications: tap your initials at the top right, then turn on "Notifications on this device".',
+      ],
+      mistakes: [
+        'On iPhone, notifications only work when AVX is opened from the home-screen icon, not from Safari.',
+        'You tapped "Don\'t allow": allow notifications for AVX in the phone\'s settings, then turn them on again in AVX.',
+      ],
+    },
+    'crew-call-time': {
+      title: 'Find your call time and the call sheet',
+      intro: 'Your call time is when you must be there. The call sheet has the day\'s plan and everyone\'s phone number.',
+      steps: [
+        'In "My work", tap the gig.',
+        'Your call time is under the gig\'s name, in green.',
+        'Tap Schedule to see the running order. Tap "Call sheet" for the full sheet.',
+        'The call sheet shows the schedule and the crew with their phones. You can print it or save it as a PDF.',
+      ],
+      mistakes: [
+        'The call time is when you start work, not when the show starts.',
+        'Times can change. Look again the day before; changes to the schedule are also posted in the gig\'s chat.',
+      ],
+    },
+    'crew-unavailable': {
+      title: 'Mark the dates you can\'t work',
+      intro: 'Holidays, another job, a doctor\'s appointment: mark them once and production managers are warned before booking you.',
+      steps: [
+        'In "My work", open Availability. On a phone, it is under More.',
+        'Under "Unavailable dates", choose the first day in From. If it is more than one day, choose the last day in To. Add a note for yourself if you like.',
+        'Tap "Add dates". To remove dates later, tap the × next to them.',
+      ],
+      mistakes: [
+        'Production managers don\'t see your note or the reason, only that you are not available. They can still add you, but they are advised to talk to you first.',
+      ],
+    },
+    'crew-availability': {
+      title: 'Answer an availability question',
+      intro: 'Before booking you, a production manager can ask whether you are free. Answering takes one tap.',
+      steps: [
+        'You get a notification: someone asks if you are available for a gig.',
+        'In "My work", the questions are at the top. Add a note if needed (for example "only from 10:00"), then tap Available or Not available.',
+        'The question also appears in your messages with that person, and you can answer there too.',
+      ],
+      mistakes: [
+        'Answering "Available" doesn\'t book you yet. You are booked when the production manager adds you to the gig.',
+        'A crew call is different: it offers you a place, and the first people to accept get it.',
+      ],
+    },
+    'crew-chat': {
+      title: 'Chat with the team',
+      intro: 'Every gig has its own chat for everyone on it. You can also write to one person directly.',
+      steps: [
+        'Tap the speech bubble at the top to open Messages. Conversations with unread messages come first.',
+        'Open the gig\'s chat. Write in the box at the bottom and tap Send. The clip attaches photos and files; type @ to mention someone.',
+        'Open the menu on a message to reply, react, save or report it.',
+        'Too many notifications? Mute a conversation from its menu. You still see its messages when you open it.',
+      ],
+      mistakes: [
+        'Everyone on the gig reads the gig chat. For something private, send a direct message.',
+        'Without signal, messages wait on your phone and are sent when you are back online.',
+      ],
+    },
+    'crew-damage': {
+      title: 'Report damaged equipment',
+      intro: 'Something broke on site? Tell the warehouse straight away, so it is repaired before the next job.',
+      steps: [
+        'Open the gig and tap Equipment, then "Report damage".',
+        'Choose the item. For gear with its own label, type the code from the label. For cables and other counted items, say how many.',
+        'Say what is wrong and add a photo if you can. Tap Send. The organisation\'s admins are notified.',
+      ],
+      mistakes: [
+        'Report it even if it looks small. A loose connector today is a dead channel at the next show.',
+        'Don\'t keep using equipment that is unsafe, especially anything on mains power.',
+      ],
+    },
+    'crew-offline': {
+      title: 'Use AVX without signal',
+      intro: 'Venues and basements often have no signal. Prepare before you go and the gig stays on your phone.',
+      steps: [
+        'While you still have signal, open the gig. AVX keeps a copy on this phone.',
+        'Open Assets and tap "Save all files offline" to keep the riders, plans and other files too.',
+        'Without signal, a bar at the top says you are offline and AVX shows the saved copy.',
+        'Messages you write offline are sent when you are back online. Other changes need a connection.',
+      ],
+      mistakes: [
+        'A gig you never opened on this phone is not saved. Open it once before you leave.',
+        'Files are saved one by one on each phone. Saving them on your computer doesn\'t save them on your phone.',
+      ],
+    },
+    'pm-create-gig': {
+      title: 'Create a gig',
+      intro: 'A gig holds everything about one job: crew, schedule, equipment, files and chat.',
+      steps: [
+        'At the top, choose the company the gig belongs to.',
+        'Tap "New gig" (on a phone, under More). Type the name and venue, and choose the start and end dates.',
+        'Choose the status: Draft while it is not certain, Confirmed when it is happening. Tap "Create gig", then add crew, schedule and equipment.',
+      ],
+      mistakes: [
+        'Without dates, AVX can\'t warn about double bookings or check whether there is enough equipment.',
+        'If the client accepted a quote, open the gig and use "Fill gig from quote" to add the schedule, positions and equipment in one go.',
+      ],
+    },
+    'pm-invite-crew': {
+      title: 'Invite crew',
+      intro: 'Add people to a gig so they see its schedule, files and chat. Anyone can be invited by email.',
+      steps: [
+        'Open the gig, tap Crew, then "Invite crew".',
+        'Search people you have worked with, or type an email address.',
+        'Write their function (for example "FOH engineer"), choose the access level (Crew for most people) and their call time. Tap "Add to gig".',
+        'People without an account get an email and show as pending until they sign up. To offer one place to several people at once, use "Crew call".',
+      ],
+      mistakes: [
+        'Production manager access lets someone change everything on the gig. Give it only to people who run it with you.',
+        'A warning sign next to someone means they are already booked or unavailable at that time. Ask them first.',
+      ],
+    },
+    'pm-schedule': {
+      title: 'Build the schedule',
+      intro: 'The schedule is the running order everyone on the gig sees: load-in, soundcheck, doors, show, load-out.',
+      steps: [
+        'Open the gig, tap Schedule, then "Add item".',
+        'Write what happens, choose the day, the start and end times and where. Add notes if needed, and save.',
+        'Everyone on the gig sees the schedule at once, and changes are posted in the gig\'s chat.',
+      ],
+      mistakes: [
+        'The schedule is for the whole gig. Each person\'s own start time is their call time, set in Crew.',
+      ],
+    },
+    'pm-call-sheet': {
+      title: 'Prepare and send the call sheet',
+      intro: 'The call sheet puts the schedule, the crew, their call times and their phones on one page.',
+      steps: [
+        'Fill in the schedule and each person\'s call time first.',
+        'Open the gig, tap Schedule, then "Call sheet".',
+        'Tap "Send to the crew" to post it in the gig\'s chat, or "Print / Save as PDF".',
+        'In the gig\'s chat, see who has confirmed reading it.',
+      ],
+      mistakes: [
+        'Phone numbers appear only for people who added one in their account.',
+        'If the schedule changes after you send it, send it again so everyone confirms the new version.',
+      ],
+    },
+    'pm-double-booking': {
+      title: 'Avoid double bookings',
+      intro: 'AVX warns when someone is already booked or has marked the dates as unavailable. Nothing is blocked; you decide.',
+      steps: [
+        'In Crew, a warning sign next to a person means they are booked elsewhere or unavailable at the same time.',
+        'Before adding someone, tap "Ask availability". They answer available or not available, with a note.',
+        'If someone is needed only part of the day, set their booking times ("Set times") so short jobs on the same day don\'t clash.',
+        'Your own clashes show as "Double booking" on your gigs.',
+      ],
+      mistakes: [
+        'Asking doesn\'t book anyone. Add them to the gig when they say yes.',
+        'Without booking times, a person counts as booked for the whole of each gig day.',
+      ],
+    },
+    'pm-equipment': {
+      title: 'Plan the equipment',
+      intro: 'List the gear the gig needs. AVX books it for the dates and tells you if there is not enough.',
+      steps: [
+        'Open the gig, tap Equipment, then "Add equipment".',
+        'Tick the items and set the quantities. Each shows how many are free for the gig\'s dates, plus the prep and return days.',
+        'If an item is short, hire it in, swap it for an alternative or change the quantity. Nothing is blocked.',
+        'If the gig comes from an accepted quote, "Fill gig from quote" adds its equipment for you.',
+      ],
+      mistakes: [
+        'Changing the gig\'s dates changes the equipment booking too. Check the Equipment tab again afterwards.',
+      ],
+    },
+  },
 }
