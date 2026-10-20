@@ -9,6 +9,7 @@ import { equipmentWindow, shortBy, expandPlan, kitsFree, alternativesOf, brought
 import { useKits } from '../../lib/useInventory'
 import { rangeText } from '../../lib/clashes'
 import { toLocalInput } from './Booking'
+import { useUndoRemove } from '../../lib/undo'
 import { t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 import EmptyState from '../EmptyState'
@@ -25,6 +26,7 @@ const fromLocalInput = v => (v ? new Date(v).toISOString() : null)
 export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   const { notify } = useToast()
   const [lines, setLines] = useState(null)
+  const { hidden, remove: removeLater } = useUndoRemove()
   const [status, setStatus] = useState({}) // line_id -> gig_equipment_status row
   const [moved, setMoved] = useState({}) // item_id -> { out_qty, back_qty } from scanning
   const [picking, setPicking] = useState(false)
@@ -88,11 +90,12 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
     notify(t('equip.swapped', { count, name: kits.items[altId]?.name || '' }), 'success')
     load()
   }
-  async function remove(line) {
-    if (!window.confirm(t('equip.confirmRemove', { name: line.item_name }))) return
-    const { error } = await supabase.from('gig_equipment').delete().eq('id', line.id)
-    if (error) return notify(userMessage(error), 'error')
-    load()
+  function remove(line) {
+    removeLater(line.id, {
+      message: t('undo.removed', { name: line.item_name }),
+      commit: async () => (await supabase.from('gig_equipment').delete().eq('id', line.id)).error,
+      onDone: load,
+    })
   }
 
   const onGig = Object.fromEntries((lines || []).map(l => [l.item_id, l.quantity]))
@@ -110,7 +113,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   }, [altKey, gig.id, gig.start_date, gig.end_date]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!lines) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
-  const rows = lines.map(l => ({ ...l, ...(status[l.id] || {}) }))
+  const rows = lines.filter(l => !hidden.has(l.id)).map(l => ({ ...l, ...(status[l.id] || {}) }))
   const short = rows.filter(r => status[r.id] && shortBy(r) > 0)
   const weight = rows.reduce((s, r) => s + (Number(r.weight_kg) || 0) * r.quantity, 0)
   const power = rows.reduce((s, r) => s + (Number(r.power_w) || 0) * r.quantity, 0)

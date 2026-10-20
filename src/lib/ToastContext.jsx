@@ -3,7 +3,8 @@ import { CheckCircle, AlertCircle, Info, X } from 'lucide-react'
 import { t } from '../i18n'
 
 // Lightweight in-app notifications, replacing window.alert().
-const ToastContext = createContext({ notify: () => {} })
+// notify(message, kind, { duration, action: { label, onClick } }) returns the toast's id
+const ToastContext = createContext({ notify: () => 0, dismiss: () => {} })
 
 const KIND = {
   success: { icon: CheckCircle, color: 'var(--accent-text)', border: 'color-mix(in srgb, var(--accent) 35%, transparent)' },
@@ -17,15 +18,16 @@ export function ToastProvider({ children }) {
 
   const dismiss = useCallback(id => setToasts(list => list.filter(item => item.id !== id)), [])
 
-  const notify = useCallback((message, kind = 'info', { duration } = {}) => {
+  const notify = useCallback((message, kind = 'info', { duration, action } = {}) => {
     const id = nextId.current++
-    setToasts(list => [...list.slice(-3), { id, message, kind }])
+    setToasts(list => [...list.slice(-3), { id, message, kind, action }])
     const ms = duration ?? (kind === 'error' ? 8000 : 5000)
     if (ms > 0) setTimeout(() => dismiss(id), ms)
+    return id
   }, [dismiss])
 
   return (
-    <ToastContext.Provider value={{ notify }}>
+    <ToastContext.Provider value={{ notify, dismiss }}>
       {children}
       <div aria-live="polite" style={{
         position: 'fixed', bottom: '16px', left: '50%', transform: 'translateX(-50%)',
@@ -44,6 +46,12 @@ export function ToastProvider({ children }) {
             }}>
               <Icon size={18} color={cfg.color} style={{ flexShrink: 0, marginTop: '1px' }} />
               <div style={{ flex: 1 }}>{toast.message}</div>
+              {toast.action && (
+                <button type="button" onClick={() => { dismiss(toast.id); toast.action.onClick() }} style={{
+                  background: 'none', border: 'none', color: 'var(--accent-text)', cursor: 'pointer', padding: '0 4px',
+                  fontWeight: 800, fontSize: '14px', fontFamily: 'inherit', textDecoration: 'underline', textUnderlineOffset: '3px',
+                }}>{toast.action.label}</button>
+              )}
               <button onClick={() => dismiss(toast.id)} aria-label={t('common.dismiss')} style={{
                 background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: 0, display: 'flex'
               }}>

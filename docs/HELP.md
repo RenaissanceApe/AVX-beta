@@ -1,6 +1,6 @@
 # Help and inclusion: plan
 
-Status: **H1 built (0.29.0)**, **H2 built (0.30.0, 0.31.0)**, **H3 built (0.32.0)**, **H4 built (0.33.0)**; H5–H6 planned. A project of its own, built in stages H1–H6, and a
+Status: **H1 built (0.29.0)**, **H2 built (0.30.0, 0.31.0)**, **H3 built (0.32.0)**, **H4 built (0.33.0)**, **H5a built (0.34.0)**; H5b–H6 planned. A project of its own, built in stages H1–H6, and a
 rule for every feature after it.
 
 The aim: anyone who works in events can use AVX without help from a colleague, whatever their
@@ -99,10 +99,26 @@ times a month. The app has to explain itself in the moment, in plain words.
 | **H2 · Guides** | ✅ H2a (0.30.0): guide format and side panel; screenshot script; crew and production-manager guides. ✅ H2b (0.31.0): warehouse, office and admin | 2 PRs |
 | **H3 · Comfort** | ✅ (0.32.0) Colours as theme tokens; light and high-contrast themes; text size, comfortable mode, readable font | 1 PR |
 | **H4 · First steps** | ✅ (0.33.0) Teaching empty states; first-steps checklists per role; simple mode (automatic for crew-only people, a switch for everyone) | 1 PR |
-| **H5 · Field kit** | Scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on common actions; **equipment steps** (below) | 1–2 PRs |
+| **H5 · Field kit** | ✅ H5a (0.34.0): scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on removals. H5b: **equipment steps** (below) and undo of the last scan | 2 PRs |
 | **H6 · Reach** | Ask for help; more languages; SMS/WhatsApp notifications; short video guides | later, as needed |
 
-## Equipment steps (with H5, decided 2026-10-20)
+## How H5a works
+
+- **Undo, not "are you sure?"** Removing a schedule item, an equipment line, a crew position, a kit
+  part or alternative, or your own chat message hides it at once and shows Undo for 8 seconds.
+  The delete is only sent when that time runs out, or when the page is left or the app goes to
+  the background (`src/lib/undo.js`). Nothing is put back after a delete, so no "added again"
+  chat posts or notifications. Removals that can't wait (a whole quote, a gig, files) keep their
+  warnings.
+- **Scan mode** is `?mode=scan` on the scan page, a step in the history so the back button
+  closes it. Sounds come from the Web Audio API (no files to download); vibration where the
+  phone allows it (Android); the torch where the camera says it has one (Android Chrome).
+- **Read aloud** uses the browser's own voice (`speechSynthesis`): nothing leaves the phone. A
+  European Portuguese voice is preferred over a Brazilian one when both exist.
+- **Large print** is remembered per device, and starts on for people who chose a larger text
+  size in Appearance.
+
+## Equipment steps (with H5b, decided 2026-10-20)
 
 Today a gig's equipment is either out or back (scan out / scan in), units have a status
 (available, in repair, lost, retired) and a location (a warehouse, a vehicle, a site). H5 adds

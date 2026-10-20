@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import jsQR from 'jsqr'
-import { ArrowLeft, Camera, CameraOff, ScanLine, Check, AlertTriangle, X, Loader2, PackageCheck, ClipboardList } from 'lucide-react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Camera, CameraOff, ScanLine, Check, X, Loader2, PackageCheck, ClipboardList, Maximize2, Volume2, VolumeX } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useWorkspace } from '../lib/WorkspaceContext'
@@ -9,12 +8,13 @@ import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { codeFromScan, dispatchProgress } from '../lib/inventory'
+import { useFieldKit, beep, buzz, speak } from '../lib/fieldKit'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
-import { btn, btnPrimary, input, label, card, colors, tint } from '../components/ui'
+import { btn, btnPrimary, input, label, card, colors } from '../components/ui'
 import { Hint } from '../components/help/HelpParts'
+import { CameraScanner, FeedRow, ScanMode, feedText, AMBER } from '../components/dispatch/ScanParts'
 
-const AMBER = 'var(--warn)'
 const REPEAT_MS = 2500 // the same code seen again within this time is the same scan
 
 // Scan equipment out to a gig and back in: with the phone camera (QR labels), a USB/Bluetooth
@@ -27,7 +27,10 @@ export default function DispatchPage() {
   const { user } = useAuth()
   const { roleIn } = useWorkspace()
   const { notify } = useToast()
-  const { ago } = useI18n()
+  const { ago, lang } = useI18n()
+  const [params, setParams] = useSearchParams()
+  const scanMode = params.get('mode') === 'scan'
+  const [kit, setKit] = useFieldKit()
   const [gig, setGig] = useState(null)
   const [allowed, setAllowed] = useState(null)
   const [summary, setSummary] = useState([])
@@ -63,9 +66,30 @@ export default function DispatchPage() {
     loadProgress()
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Every scan is heard and felt as well as seen (docs/HELP.md, H5): a beep, a buzz and,
+  // when asked for, the phone's voice saying what was scanned
+  const signal = useCallback(entry => {
+    if (kit.sound) beep(entry.tone)
+    buzz(entry.tone)
+    if (kit.speak) { const { what, msg } = feedText(entry); speak([what, msg].filter(Boolean).join('. '), lang) }
+  }, [kit.sound, kit.speak, lang])
+  // Scan mode is its own history step, so the phone's back button closes it
+  const openedHere = useRef(false)
+  const setScanMode = useCallback(on => {
+    if (!on && openedHere.current) { openedHere.current = false; return navigate(-1) }
+    openedHere.current = on
+    setParams(p => { const next = new URLSearchParams(p); if (on) next.set('mode', 'scan'); else next.delete('mode'); return next }, { replace: !on })
+  }, [navigate, setParams])
+  const closeScanMode = useCallback(() => setScanMode(false), [setScanMode])
+
   const scan = useCallback(async raw => {
     const value = codeFromScan(raw)
-    if (!value) { setFeed(f => [{ key: Date.now(), tone: 'error', text: t('dispatch.badCode', { code: String(raw).slice(0, 40) }) }, ...f].slice(0, 30)); return }
+    if (!value) {
+      const entry = { key: Date.now(), tone: 'error', text: t('dispatch.badCode', { code: String(raw).slice(0, 40) }) }
+      signal(entry)
+      setFeed(f => [entry, ...f].slice(0, 30))
+      return
+    }
     const now = Date.now()
     if (value === last.current.code && now - last.current.at < REPEAT_MS) return
     last.current = { code: value, at: now }
@@ -81,16 +105,17 @@ export default function DispatchPage() {
       return notify(userMessage(error), 'error')
     }
     const tone = !data.ok ? 'error' : data.warning ? 'warn' : 'ok'
-    try { navigator.vibrate?.(tone === 'ok' ? 40 : [60, 60, 60]) } catch { /* not supported */ }
+    const entry = { key: now, tone, code: value, result: data, direction }
+    signal(entry)
     if (data.ok) {
       track(`dispatch:${direction}`)
       setQuantity('1')
       setDamaged(false)
     }
-    setFeed(f => [{ key: now, tone, code: value, result: data, direction }, ...f].slice(0, 30))
+    setFeed(f => [entry, ...f].slice(0, 30))
     loadProgress()
-    inputRef.current?.focus()
-  }, [id, direction, damaged, quantity, loadProgress, notify])
+    if (!scanMode) inputRef.current?.focus()
+  }, [id, direction, damaged, quantity, loadProgress, notify, scanMode, signal])
 
   async function markLost() {
     if (!window.confirm(t('dispatch.markLostConfirm', { count: unitsOut.length }))) return
@@ -112,6 +137,15 @@ export default function DispatchPage() {
   )
 
   const progress = dispatchProgress(summary)
+  // Scan mode takes the whole screen, in place of the page (nothing behind it to tab into)
+  if (scanMode) return (
+    <>
+      <ScanMode gigName={gig.name} direction={direction} setDirection={setDirection} quantity={quantity} setQuantity={setQuantity}
+        damaged={damaged} setDamaged={setDamaged} onScan={scan} last={feed[0]} busy={busy} progress={progress}
+        kit={kit} setKit={setKit} onClose={closeScanMode} />
+      <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
+    </>
+  )
   return (
     <AppShell>
       <div style={{ maxWidth: '760px', margin: '0 auto', padding: '16px 16px 60px' }}>
@@ -119,7 +153,13 @@ export default function DispatchPage() {
           <button onClick={() => navigate(`/gig/${id}?tab=equipment`)} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft, padding: '6px 10px' }}><ArrowLeft size={14} /> {gig.name}</button>
           <button onClick={() => navigate(`/gig/${id}/packing`)} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft, padding: '6px 10px', marginLeft: 'auto' }}><ClipboardList size={14} /> {t('dispatch.packingList')}</button>
         </div>
-        <h1 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '12px' }}>{t('dispatch.title')}</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 800, flex: 1 }}>{t('dispatch.title')}</h1>
+          <button type="button" aria-pressed={kit.sound} onClick={() => setKit({ sound: !kit.sound })} style={btn}>
+            {kit.sound ? <Volume2 size={15} /> : <VolumeX size={15} />} {t('scanMode.sound')}
+          </button>
+          <button type="button" onClick={() => setScanMode(true)} style={btnPrimary}><Maximize2 size={15} /> {t('scanMode.open')}</button>
+        </div>
 
         <div role="radiogroup" aria-label={t('dispatch.direction')} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '12px' }}>
           {['out', 'in'].map(d => (
@@ -206,103 +246,5 @@ export default function DispatchPage() {
       </div>
       <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </AppShell>
-  )
-}
-
-function FeedRow({ entry }) {
-  const r = entry.result
-  const colour = entry.tone === 'ok' ? colors.accent : entry.tone === 'warn' ? AMBER : colors.danger
-  const Icon = entry.tone === 'ok' ? Check : entry.tone === 'warn' ? AlertTriangle : X
-  const what = r ? [r.item_name, r.unit_code, r.serial].filter(Boolean).join(' · ') : ''
-  const msg = !r ? entry.text
-    : !r.ok ? t(`dispatch.error.${r.error}`, { gig: r.other_gig || '' })
-    : r.warning ? t(`dispatch.warning.${r.warning}`, { gig: r.other_gig || '' })
-    : r.kind === 'bulk' ? t(`dispatch.okBulk.${entry.direction}`, { count: r.quantity }) : t(`dispatch.ok.${entry.direction}`)
-  return (
-    <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', padding: '8px 10px', borderRadius: '10px', marginBottom: '4px',
-      background: tint(colour, 8), border: `1px solid ${tint(colour, 33)}`, fontSize: '13px' }}>
-      <Icon size={15} color={colour} style={{ flexShrink: 0, marginTop: '1px' }} />
-      <span style={{ flex: 1, minWidth: 0 }}>
-        {what && <strong style={{ display: 'block' }}>{what}</strong>}
-        <span style={{ color: colour }}>{msg}</span>
-        {r?.ok && r.planned != null && <span style={{ color: colors.muted }}> · {t('dispatch.counts', { out: r.out, back: r.back, planned: r.planned })}</span>}
-        {r?.repair && <span style={{ display: 'block', color: AMBER }}>{t('dispatch.repairOpened')}</span>}
-        {r?.ok && r.contents != null && (
-          <span style={{ display: 'block', color: r.contents_skipped ? AMBER : colors.soft }}>
-            {t(`dispatch.caseContents.${entry.direction}`, { count: r.contents })}{r.contents_skipped ? ` · ${t('dispatch.caseSkipped', { count: r.contents_skipped })}` : ''}
-          </span>
-        )}
-      </span>
-    </div>
-  )
-}
-
-// The phone camera as a scanner: the browser's own barcode reader where there is one
-// (Chrome on Android), otherwise QR codes are read from the video with jsQR
-function CameraScanner({ onCode, onClose }) {
-  const videoRef = useRef(null)
-  const [error, setError] = useState(null)
-  // The camera starts once; the latest scan settings come through this ref
-  const onCodeRef = useRef(onCode)
-  useEffect(() => { onCodeRef.current = onCode }, [onCode])
-
-  useEffect(() => {
-    let stream = null
-    let timer = null
-    let stopped = false
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d', { willReadFrequently: true })
-    const detector = 'BarcodeDetector' in window
-      ? (() => { try { return new window.BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8', 'data_matrix'] }) } catch { return null } })()
-      : null
-
-    async function tick() {
-      if (stopped) return
-      const video = videoRef.current
-      if (video && video.readyState >= 2) {
-        try {
-          if (detector) {
-            const found = await detector.detect(video)
-            if (found[0]?.rawValue) onCodeRef.current(found[0].rawValue)
-          } else {
-            const w = Math.min(640, video.videoWidth)
-            const h = Math.round(video.videoHeight * (w / video.videoWidth))
-            canvas.width = w; canvas.height = h
-            ctx.drawImage(video, 0, 0, w, h)
-            const img = ctx.getImageData(0, 0, w, h)
-            const qr = jsQR(img.data, w, h, { inversionAttempts: 'dontInvert' })
-            if (qr?.data) onCodeRef.current(qr.data)
-          }
-        } catch { /* a bad frame; try the next one */ }
-      }
-      timer = setTimeout(tick, 250)
-    }
-
-    navigator.mediaDevices?.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
-      .then(s => {
-        if (stopped) { s.getTracks().forEach(tr => tr.stop()); return }
-        stream = s
-        if (videoRef.current) { videoRef.current.srcObject = s; videoRef.current.play().catch(() => {}) }
-        tick()
-      })
-      .catch(err => setError(err?.name === 'NotAllowedError' ? 'denied' : 'unavailable'))
-    if (!navigator.mediaDevices?.getUserMedia) setError('unavailable')
-
-    return () => { stopped = true; clearTimeout(timer); stream?.getTracks().forEach(tr => tr.stop()) }
-  }, [])
-
-  return (
-    <div style={{ marginBottom: '12px' }}>
-      {error ? (
-        <p role="alert" style={{ fontSize: '13px', color: AMBER, lineHeight: 1.5 }}>
-          {t(`dispatch.camera.${error}`)} <button onClick={onClose} style={{ ...btn, padding: '4px 8px', fontSize: '12px', marginLeft: '6px' }}>{t('common.close')}</button>
-        </p>
-      ) : (
-        <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', background: '#000', aspectRatio: '4 / 3', maxHeight: '50vh' }}>
-          <video ref={videoRef} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div aria-hidden style={{ position: 'absolute', inset: '18%', border: `2px solid ${colors.accent}`, borderRadius: '14px', boxShadow: '0 0 0 9999px rgba(0,0,0,0.35)' }} />
-        </div>
-      )}
-    </div>
   )
 }

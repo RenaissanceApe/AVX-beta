@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { alternativesOf } from '../../lib/inventory'
+import { useUndoRemove } from '../../lib/undo'
 import { t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, card, colors } from '../ui'
 
@@ -32,6 +33,7 @@ function PartList({ orgId, item, kits, kind }) {
   const [adding, setAdding] = useState('')
   const [qty, setQty] = useState('1')
   const [saving, setSaving] = useState(false)
+  const { hidden, remove: removeLater } = useUndoRemove()
   const Icon = ICONS[kind]
   const name = id => kits.items[id]?.name || '…'
   const rows = kind === 'alternative'
@@ -67,13 +69,14 @@ function PartList({ orgId, item, kits, kind }) {
     if (error) return notify(userMessage(error), 'error')
     kits.reload()
   }
-  async function remove(row) {
-    if (!window.confirm(t(`kit.confirmRemove.${kind}`, { name: name(row.child_id) }))) return
-    const { error } = kind === 'alternative'
-      ? await supabase.from('item_alternatives').delete().eq('id', row.pair.id)
-      : await supabase.from('item_parts').delete().eq('id', row.id)
-    if (error) return notify(userMessage(error), 'error')
-    kits.reload()
+  function remove(row) {
+    removeLater(row.id, {
+      message: t('undo.removed', { name: name(row.child_id) }),
+      commit: async () => (kind === 'alternative'
+        ? await supabase.from('item_alternatives').delete().eq('id', row.pair.id)
+        : await supabase.from('item_parts').delete().eq('id', row.id)).error,
+      onDone: kits.reload,
+    })
   }
 
   return (
@@ -81,7 +84,7 @@ function PartList({ orgId, item, kits, kind }) {
       <h2 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}><Icon size={15} color={colors.accentText} /> {t(`kit.section.${kind}`)}</h2>
       <p style={{ ...small, marginBottom: '8px' }}>{t(`kit.sectionHint.${kind === 'content' ? item.kit_type : kind}`)}</p>
       {rows.length === 0 && <p style={{ ...small, marginBottom: '8px' }}>{t('kit.none')}</p>}
-      {rows.map(r => (
+      {rows.filter(r => !hidden.has(r.id)).map(r => (
         <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 0', borderTop: `1px solid ${colors.border}` }}>
           <Link to={`/org/${orgId}/inventory/${r.child_id}`} style={{ flex: 1, minWidth: 0, fontSize: '13px', color: 'var(--text)', overflowWrap: 'anywhere' }}>
             {name(r.child_id)}{kits.items[r.child_id]?.kit_type === 'set' && <span style={small}> · {t('kit.typeOpt.set')}</span>}

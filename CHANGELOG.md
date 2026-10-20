@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.34.0 — Help H5a: field kit
+
+### Added
+- **Scan mode** (Scan out / in → Scan mode): the whole screen for scanning in the van or the
+  dark, with gloves on. Big out/in switch, the camera, the last scan in large type, the count,
+  and big buttons for the quantity and "damaged" where a thumb reaches. The phone's back button
+  closes it.
+- **Sounds and vibration on every scan**: one high beep when it's fine, two beeps for a warning,
+  a low buzz for a problem (sound can be turned off; it's remembered on the device)
+- **Torch** button on the camera, where the phone allows it (Android; not iPhones yet)
+- **Read aloud** with the phone's own voice: the call sheet (your call first), your next gig on
+  the simple home, any chat message (message menu), and, when turned on in scan mode, each scan
+- **Large print** call sheet (prints large too); on by default for people who chose a larger text
+  size. Your own line is marked in yellow, and phone numbers can be tapped to call.
+- **Undo** instead of "are you sure?" when removing a schedule item, an equipment line, a crew
+  position, a kit part or alternative, or your own chat message: it disappears at once, and is
+  only deleted when the 8-second Undo runs out (or when you leave the page)
+
+### Changed
+- The green Print and Accept buttons on printable pages are darker, so white text on them is
+  easier to read (WCAG contrast)
+- Warehouse and crew guides cover scan mode, large print and read aloud
+
 ## 0.33.1 — Tabs scroll sideways only
 
 ### Fixed

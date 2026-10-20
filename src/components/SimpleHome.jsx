@@ -3,6 +3,7 @@ import { FileText, MessageCircle, Wrench, ChevronRight, Clock, MapPin, CalendarD
 import { useI18n } from '../i18n'
 import { localToday } from '../lib/gigs'
 import EmptyState from './EmptyState'
+import ReadAloud from './ReadAloud'
 import { btnPrimary, btn, card, colors, tint } from './ui'
 
 const shortTime = v => (v ? String(v).slice(0, 5) : '')
@@ -55,6 +56,12 @@ export default function SimpleHome({ gigs, onShowAll }) {
             <button type="button" onClick={() => navigate(`/gig/${next.id}`)} style={action}><ChevronRight size={18} /> {t('simple.openGig')}</button>
             <button type="button" onClick={() => navigate(`/gig/${next.id}?tab=equipment&report=1`)} style={action}><Wrench size={18} /> {t('report.title')}</button>
           </div>
+          <ReadAloud style={{ ...action, width: '100%', marginTop: '8px' }} text={() => [
+            t('speak.nextGig', { name: next.name }),
+            next.start_date && fmt(next.start_date, 'EEEE, d MMMM') + '.',
+            next.venue && next.venue + '.',
+            next.myCallTime && t('speak.yourCall', { time: shortTime(next.myCallTime) }) + (next.myFunction ? `, ${next.myFunction}` : '') + '.',
+          ].filter(Boolean).join(' ')} />
         </section>
       )}
 

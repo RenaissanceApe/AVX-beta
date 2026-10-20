@@ -56,6 +56,10 @@ const SCENES = {
     await page.getByText(L('callsheet.print')).waitFor()
     return null
   } },
+  'call-sheet-large': { persona: 'crew', url: `/gig/${ids.gig}/callsheet`, async run(page, L) {
+    await page.getByRole('button', { name: L('callsheet.large') }).click()
+    return page.getByRole('button', { name: L('callsheet.large') })
+  } },
   'call-sheet-send': { persona: 'pm', url: `/gig/${ids.gig}/callsheet`, async run(page, L) {
     return page.getByRole('button', { name: L('callsheet.publish') })
   } },
@@ -175,6 +179,11 @@ const SCENES = {
   'dispatch-out': { persona: 'pm', url: `/gig/${ids.gig}/scan`, async run(page, L) {
     await page.getByPlaceholder(L('dispatch.codePlaceholder')).fill('U-7KQ2M9XG')
     return page.getByPlaceholder(L('dispatch.codePlaceholder')).locator('xpath=ancestor::form[1]')
+  } },
+  'scan-mode': { persona: 'pm', url: `/gig/${ids.gig}/scan?mode=scan`, async run(page, L) {
+    await page.getByPlaceholder(L('scanMode.typeCode')).fill('U-7KQ2M9XG')
+    await page.getByPlaceholder(L('scanMode.typeCode')).press('Enter')
+    return page.locator('section[aria-live]')
   } },
   'dispatch-in': { persona: 'pm', url: `/gig/${ids.gig}/scan`, async run(page, L) {
     await page.getByRole('radio', { name: L('dispatch.dir.in') }).click()

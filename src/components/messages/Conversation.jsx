@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Send, Reply, X, Loader2, Paperclip, Link2, MoreHorizontal, Pencil, Trash2, History, Copy, FileText, Pin, PinOff, Bookmark, BookmarkCheck, Megaphone, CheckCircle2, Clock, Flag, ShieldX, Ban } from 'lucide-react'
+import { Send, Reply, X, Loader2, Paperclip, Link2, MoreHorizontal, Pencil, Trash2, History, Copy, FileText, Pin, PinOff, Bookmark, BookmarkCheck, Megaphone, CheckCircle2, Clock, Flag, ShieldX, Ban, Volume2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
@@ -11,6 +11,8 @@ import {
 } from '../../lib/messages'
 import { MESSAGES_READ } from '../../lib/useMessages'
 import { isNetworkError } from '../../lib/offline'
+import { later, cancel, UNDO_MS } from '../../lib/undo'
+import { canSpeak, speak } from '../../lib/fieldKit'
 import { OUTBOX_CHANGED, readOutbox, queueMessage, dropQueued, flushOutbox } from '../../lib/outbox'
 import { useI18n, t, fmt as fmtDate } from '../../i18n'
 import { Attachments, CardView, CardPicker, ReactionBar, HistoryModal, AckStatusModal, EventCard, ReportModal } from './MessageParts'
@@ -72,7 +74,7 @@ function mentionsMe(m, me) {
 export default function Conversation({ conversationId, canPost = true, height = '60vh', emptyText, focusId }) {
   const { user } = useAuth()
   const { notify } = useToast()
-  const { fmt } = useI18n()
+  const { fmt, lang } = useI18n()
   const [messages, setMessages] = useState(null)
   const [hasMore, setHasMore] = useState(false)
   const [names, setNames] = useState({})
@@ -460,13 +462,18 @@ export default function Conversation({ conversationId, canPost = true, height = 
     setReactions(all => ({ ...all, [key]: { message_id: m.id, user_id: user.id, emoji, active: data } }))
   }
 
-  async function remove(m) {
+  // Shown as removed at once; sent when the Undo toast runs out (lib/undo.js)
+  function remove(m) {
     setMenuFor(null)
-    if (!window.confirm(t('chat.confirmRemove'))) return
-    const { error } = await supabase.rpc('remove_message', { p_id: m.id })
-    if (error) return notify(userMessage(error), 'error')
-    track('messages:removed')
-    setMessages(list => list.map(x => (x.id === m.id ? { ...x, body: '—', attachments: [], payload: null, mentions: [], deleted_at: new Date().toISOString() } : x)))
+    const key = `undo:message:${m.id}`
+    const put = row => setMessages(list => list.map(x => (x.id === m.id ? row : x)))
+    put({ ...m, body: '—', attachments: [], payload: null, mentions: [], deleted_at: new Date().toISOString() })
+    later(key, async () => {
+      const { error } = await supabase.rpc('remove_message', { p_id: m.id })
+      if (error) { put(m); return notify(userMessage(error), 'error') }
+      track('messages:removed')
+    })
+    notify(t('chat.removed'), 'success', { duration: UNDO_MS, action: { label: t('common.undo'), onClick: () => { if (cancel(key)) put(m) } } })
   }
 
   // Whoever runs the conversation removes a message, or keeps a reported one (M6a)
@@ -667,6 +674,9 @@ export default function Conversation({ conversationId, canPost = true, height = 
                       </div>
                     )}
                     {canPost && <button role="menuitem" style={menuItem} onClick={() => { setMenuFor(null); setEditing(null); setReplyTo(m); textarea.current?.focus() }}><Reply size={14} /> {t('chat.reply')}</button>}
+                    {canSpeak() && m.body && (
+                      <button role="menuitem" style={menuItem} onClick={() => { setMenuFor(null); speak(`${who(m)}: ${m.body}`, lang) }}><Volume2 size={14} /> {t('speak.read')}</button>
+                    )}
                     <button role="menuitem" style={menuItem} onClick={() => copyLink(m)}><Copy size={14} /> {t('chat.copyLink')}</button>
                     <button role="menuitem" style={menuItem} onClick={() => toggleSave(m)}>{saved.has(m.id) ? <><BookmarkCheck size={14} /> {t('chat.unsave')}</> : <><Bookmark size={14} /> {t('chat.save')}</>}</button>
                     {(context.canManage || context.kind === 'direct') && canPost && (

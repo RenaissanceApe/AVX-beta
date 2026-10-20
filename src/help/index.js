@@ -39,7 +39,7 @@ export const GUIDE_ROLES = ['crew', 'pm', 'warehouse', 'office', 'admin']
 export const GUIDES = {
   'crew-join': { role: 'crew', pages: ['home'], terms: ['gig', 'my-work', 'workspace'], shots: [null, 'welcome', 'gig-list', null] },
   'crew-install': { role: 'crew', pages: ['home'], terms: ['push-notifications', 'offline-copy'], shots: [null, null, null, 'push'] },
-  'crew-call-time': { role: 'crew', pages: ['home', 'gig'], terms: ['call-time', 'schedule', 'call-sheet'], shots: ['gig-list', 'call-time', 'schedule-callsheet', 'call-sheet'] },
+  'crew-call-time': { role: 'crew', pages: ['home', 'gig'], terms: ['call-time', 'schedule', 'call-sheet'], shots: ['gig-list', 'call-time', 'schedule-callsheet', 'call-sheet', 'call-sheet-large'] },
   'crew-unavailable': { role: 'crew', pages: ['home'], terms: ['unavailable-dates', 'double-booking'], shots: ['more-availability', 'unavailable', null] },
   'crew-availability': { role: 'crew', pages: ['home', 'messages'], terms: ['availability-request', 'crew-call'], shots: [null, 'requests', 'chat-availability'] },
   'crew-chat': { role: 'crew', pages: ['gig', 'messages'], terms: ['chat', 'direct-message', 'mute', 'report'], shots: ['inbox', 'chat-compose', null, null] },
@@ -55,7 +55,7 @@ export const GUIDES = {
   'wh-import': { role: 'warehouse', pages: ['inventory'], terms: ['catalogue-item', 'bulk-item', 'serial-item', 'location'], shots: [null, 'inv-import', null] },
   'wh-locations': { role: 'warehouse', pages: ['inventory'], terms: ['location', 'stock-movement'], shots: ['inv-locations', null, null] },
   'wh-units-labels': { role: 'warehouse', pages: ['inventory-item', 'inventory'], terms: ['serial-item', 'unit', 'depreciation'], shots: ['item-units', null, 'labels'] },
-  'wh-scan': { role: 'warehouse', pages: ['gig', 'inventory'], terms: ['packing-list', 'scan-out-in', 'case', 'unit'], shots: [null, 'dispatch-out', null] },
+  'wh-scan': { role: 'warehouse', pages: ['gig', 'inventory'], terms: ['packing-list', 'scan-out-in', 'scan-mode', 'case', 'unit'], shots: [null, 'dispatch-out', null, 'scan-mode'] },
   'wh-returns': { role: 'warehouse', pages: ['gig', 'inventory'], terms: ['scan-out-in', 'damage', 'mark-lost', 'repair'], shots: ['dispatch-in', null, null] },
   'wh-repairs': { role: 'warehouse', pages: ['inventory', 'inventory-item'], terms: ['repair', 'inspection', 'write-off', 'damage'], shots: ['maintenance', null, null] },
   'wh-subrentals': { role: 'warehouse', pages: ['inventory'], terms: ['subrental', 'supplier', 'cross-hire-code'], shots: [null, 'sub-form', null, null] },
