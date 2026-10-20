@@ -317,7 +317,7 @@ export default function QuoteEditorPage() {
           )}
           {/* The tabs (phases, details, summary) and, between them on screen, the add buttons, which
               aren't tabs: the tab list takes no box of its own and `order` places the buttons */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', overflowX: 'auto', scrollbarWidth: 'thin' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'thin' }}>
             <div role="tablist" aria-label={t('quote.phases')} style={{ display: 'contents' }}>
             {tabs.map(tb => (
               <button key={tb.key} role="tab" aria-selected={tab === tb.key} onClick={() => setTab(tb.key)} style={tabStyle(tab === tb.key)}>

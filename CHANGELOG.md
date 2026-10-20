@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.33.1 — Tabs scroll sideways only
+
+### Fixed
+- On phones, the gig's tabs (and other sideways-scrolling strips) could also be dragged up and
+  down, hiding them behind the page for a moment; they now only scroll sideways
+
 ## 0.33.0 — Help H4: first steps and simple mode
 
 ### Added

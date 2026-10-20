@@ -48,7 +48,7 @@ export default function InventoryPage() {
           </div>
           <Link to={`/org/${orgId}/inventory/labels`} style={{ ...ghost, textDecoration: 'none' }}><QrCode size={14} /> {t('inv.labels')}</Link>
         </div>
-        <div role="tablist" style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: `1px solid ${colors.border}`, overflowX: 'auto' }}>
+        <div role="tablist" style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: `1px solid ${colors.border}`, overflowX: 'auto', overflowY: 'hidden' }}>
           {TABS.map(key => { const Icon = TAB_ICONS[key]; return (
             <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)} style={{
               padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0,

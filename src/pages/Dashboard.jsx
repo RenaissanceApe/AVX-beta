@@ -267,7 +267,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
             }}>{icon}</button>
           ))}
         </div>
-        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'color-mix(in srgb, var(--shade) 30%, transparent)', borderRadius: '10px', padding: '3px', overflowX: 'auto' }}>
+        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'color-mix(in srgb, var(--shade) 30%, transparent)', borderRadius: '10px', padding: '3px', overflowX: 'auto', overflowY: 'hidden' }}>
           {GIG_FILTERS.map(f => (
             <button key={f.value} role="tab" aria-selected={filter === f.value} onClick={() => setFilter(f.value)} style={{
               padding: '6px 12px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',

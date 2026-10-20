@@ -369,7 +369,7 @@ const SHELL_CSS = `
     .shell-sheet-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
     .shell-sheet-head strong { font-size: 16px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .shell-sheet-head .shell-role + .shell-icon-btn, .shell-sheet-head strong + .shell-icon-btn { margin-left: auto; }
-    .shell-sheet-ws { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; scrollbar-width: none; }
+    .shell-sheet-ws { display: flex; gap: 6px; overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; margin-bottom: 8px; scrollbar-width: none; }
     .shell-chip { flex-shrink: 0; padding: 7px 12px; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent); background: color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent);
       color: ${colors.soft}; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .shell-chip.is-active { color: ${colors.accentText}; border-color: color-mix(in srgb, var(--accent) 40%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
