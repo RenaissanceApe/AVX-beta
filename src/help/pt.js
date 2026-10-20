@@ -46,6 +46,7 @@ export default {
     'prep-return-days': { term: 'Dias de preparação e de devolução', definition: 'Dias antes e depois de um evento em que o equipamento continua reservado, para carregar, testar e conferir.', example: '1 dia de preparação: o material fica ocupado desde a véspera.', where: 'Definições da organização, equipamento do evento' },
     'packing-list': { term: 'Lista de carga', definition: 'O que tem de sair do armazém para um evento, com quantidades.', example: 'Impressa para o armazém na véspera.', where: 'Evento → Equipamento → Lista de carga' },
     'scan-out-in': { term: 'Registar saída / entrada', definition: 'Ler as etiquetas QR quando o equipamento sai para um evento e quando volta.', example: 'Registar 40 unidades à entrada do camião.', where: 'Evento → Equipamento → Ler' },
+    'scan-mode': { term: 'Modo de leitura', definition: 'Uma forma de ler etiquetas em ecrã inteiro, com botões grandes, sons, vibração e lanterna, para luvas, barulho e escuro.', example: 'Carregar a carrinha à noite só com uma mão livre.', where: 'Evento → Equipamento → Saída / entrada' },
     'mark-lost': { term: 'Marcar como perdido', definition: 'As unidades que não voltaram são registadas como perdidas, para que o stock e os relatórios estejam certos.', example: 'Dois cabos em falta depois do festival.', where: 'Evento → Ler' },
     damage: { term: 'Relatório de dano', definition: 'Uma nota, com fotografias, de que algo se partiu. A unidade pode ficar fora de uso.', example: 'Lente rachada, reportada no local.', where: 'Evento → Equipamento, Inventário → Manutenção' },
     repair: { term: 'Reparação', definition: 'Arranjar uma unidade danificada. Enquanto está em reparação não fica disponível para eventos.', example: 'Enviada ao fabricante durante 2 semanas.', where: 'Inventário → Manutenção' },
@@ -144,6 +145,7 @@ export default {
         'No evento, a sua hora de chamada está por baixo do nome do evento, a verde.',
         'Toque em Horário para ver o alinhamento. Toque em "Folha de serviço" para a folha completa.',
         'A folha de serviço mostra o horário e a equipa com os telefones. Pode imprimi-la ou guardá-la em PDF.',
+        'Toque em "Letra grande" para letras maiores (imprime assim também), ou em "Ler em voz alta" para a ouvir com a voz do telemóvel. A sua linha está marcada a amarelo.',
       ],
       mistakes: [
         'A hora de chamada é a hora a que começa a trabalhar, não a hora do espetáculo.',
@@ -353,8 +355,10 @@ export default {
         'Abra o evento, toque em Equipamento e depois em "Lista de carga" para preparar tudo o que está previsto.',
         'Toque em "Saída / entrada" e escolha "Saída para o evento". Leia cada etiqueta com a câmara, ou escreva o código. Nos artigos a granel, indique primeiro a quantidade.',
         'Acompanhe o progresso ("Carregado 32 de 40"). Um flight case lê tudo o que vai dentro dele.',
+        'Na carrinha ou no escuro, toque em "Modo de leitura": o ecrã inteiro passa a botões grandes, a câmara e a última leitura em letra grande. Cada leitura apita e vibra: um apito agudo está bem, dois apitos são um aviso, um zumbido grave é um problema. O botão da lanterna ilumina a etiqueta (em telemóveis Android).',
       ],
       mistakes: [
+        'Removeu algo por engano? A maior parte das remoções mostra "Anular" durante uns segundos antes de apagar.',
         'O AVX avisa quando algo não está previsto para o evento ou passa do previsto. Regista na mesma, por isso leia o aviso.',
         'Um leitor de códigos USB ou Bluetooth também funciona: escreve o código e carrega em Enter por si.',
       ],

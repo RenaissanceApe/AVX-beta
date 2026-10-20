@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Printer, Loader2, Megaphone } from 'lucide-react'
+import { ArrowLeft, Printer, Loader2, Megaphone, Type } from 'lucide-react'
 import { useI18n } from '../i18n'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import OfflineBanner from '../components/OfflineBanner'
@@ -9,7 +9,19 @@ import { logger, userMessage } from '../lib/logger'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { track } from '../lib/usage'
-import { groupByDay, shortTime, sortCrewForCallSheet } from '../lib/schedule'
+import { groupByDay, shortTime, sortCrewForCallSheet, callSheetSpeech } from '../lib/schedule'
+import { readAppearance } from '../lib/appearance'
+import ReadAloud from '../components/ReadAloud'
+
+// Large print (docs/HELP.md, H5): remembered on this device; starts on for people who use a
+// larger text size in Appearance
+const LARGE_KEY = 'avx.callsheet.large'
+function readLarge() {
+  try {
+    const saved = localStorage.getItem(LARGE_KEY)
+    return saved === null ? readAppearance().size !== 'normal' : saved === '1'
+  } catch { return false }
+}
 
 // Printable call sheet: gig details, schedule by day, crew with call times and phones.
 // Use the browser's Print → "Save as PDF" to share it as a file.
@@ -20,6 +32,8 @@ export default function CallSheetPage() {
   const [error, setError] = useState(false)
   const [orgRole, setOrgRole] = useState(null)
   const [publishing, setPublishing] = useState(false)
+  const [large, setLarge] = useState(readLarge)
+  const toggleLarge = () => setLarge(on => { try { localStorage.setItem(LARGE_KEY, on ? '0' : '1') } catch { /* private mode */ } return !on })
   const { t, fmt } = useI18n()
   const { user } = useAuth()
   const { notify } = useToast()
@@ -104,7 +118,25 @@ export default function CallSheetPage() {
         .sheet td { padding: 6px; border-bottom: 1px solid #eee; vertical-align: top; }
         .sheet .time { white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 700; width: 110px; }
         .sheet .muted { color: #666; }
-        .toolbar { max-width: 800px; margin: 0 auto 12px; display: flex; justify-content: space-between; }
+        .sheet tr.me td { background: #fff4c2; font-weight: 700; }
+        .sheet.large { font-size: 18px; line-height: 1.5; }
+        .sheet.large h1 { font-size: 34px; }
+        .sheet.large h2 { font-size: 16px; color: #222; }
+        .sheet.large th { font-size: 14px; color: #333; }
+        .sheet.large td { padding: 10px 8px; }
+        .sheet.large .time { width: 160px; }
+        .sheet.large .muted { color: #333; }
+        .sheet a.tel { color: inherit; text-decoration: none; }
+        @media screen and (max-width: 600px) {
+          .sheet { padding: 20px 16px; }
+          .sheet.large .time { width: 6.5em; }
+          .sheet.large .crew thead { display: none; }
+          .sheet.large .crew tr { display: grid; grid-template-columns: 4.5em 1fr; border-bottom: 1px solid #ccc; padding: 6px 0; }
+          .sheet.large .crew td { border: none; padding: 2px 6px; white-space: normal !important; }
+          .sheet.large .crew td.time { grid-row: span 3; width: auto; }
+          .sheet.large a.tel { text-decoration: underline; }
+        }
+        .toolbar { max-width: 800px; margin: 0 auto 12px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
         @media print {
           @page { margin: 12mm; }
           body, .callsheet-page { background: #fff !important; padding: 0; }
@@ -122,13 +154,17 @@ export default function CallSheetPage() {
               {publishing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Megaphone size={14} />} {t('callsheet.publish')}
             </button>
           )}
-          <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0FA85A', color: '#fff', border: 'none' }}>
+          <ReadAloud style={toolbarBtn} text={() => callSheetSpeech({ gig, schedule, crew, nameOf, me: user.id }, { t, fmt })} />
+          <button onClick={toggleLarge} aria-pressed={large} style={{ ...toolbarBtn, ...(large ? { background: '#111', color: '#fff', borderColor: '#111' } : {}) }}>
+            <Type size={14} /> {t('callsheet.large')}
+          </button>
+          <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0B7A41', color: '#fff', border: 'none' }}>
             <Printer size={14} /> {t('callsheet.print')}
           </button>
         </div>
       </div>
 
-      <article className="sheet">
+      <article className={large ? 'sheet large' : 'sheet'}>
         <header style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
           <div>
             <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.1em' }}>{t('schedule.callSheet')}</div>
@@ -166,15 +202,15 @@ export default function CallSheetPage() {
 
         <h2>{t('gig.tab.crew')}</h2>
         {crew.length === 0 ? <p className="muted">{t('overview.noCrew')}</p> : (
-          <table>
+          <table className="crew">
             <thead><tr><th>{t('callsheet.call')}</th><th>{t('callsheet.name')}</th><th>{t('callsheet.role')}</th><th>{t('callsheet.phone')}</th></tr></thead>
             <tbody>
               {crew.map(m => (
-                <tr key={m.user_id}>
+                <tr key={m.user_id} className={m.user_id === user.id ? 'me' : undefined}>
                   <td className="time">{shortTime(m.call_time) || '—'}</td>
                   <td>{nameOf(m.user_id)}</td>
                   <td>{m.function_title || t(`gigRoleLong.${m.role}`)}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{profiles[m.user_id]?.phone || <span className="muted">—</span>}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{profiles[m.user_id]?.phone ? <a className="tel" href={`tel:${profiles[m.user_id].phone.replace(/[^\d+]/g, '')}`}>{profiles[m.user_id].phone}</a> : <span className="muted">—</span>}</td>
                 </tr>
               ))}
             </tbody>

@@ -17,6 +17,7 @@ import { Avatar, RoleBadge, TabHeader } from './parts'
 import { ClashBox, AskAvailabilityModal, ShiftModal, shiftText, AMBER } from './Booking'
 import { NetworkPicker, PickedPerson, addFromNetwork } from '../NetworkPicker'
 import { CrewCallModal, CrewCallList } from './CrewCalls'
+import { useUndoRemove } from '../../lib/undo'
 
 // Latest request per person: { user_id: request }
 const latestRequests = rows => {
@@ -379,6 +380,7 @@ function Positions({ gigId, isPM, userId, members, invites, onInvite, onCall }) 
   const [positions, setPositions] = useState([])
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({ title: '', quantity: 1 })
+  const { hidden, remove: removeLater } = useUndoRemove()
 
   async function load() {
     const { data, error } = await supabase.from('gig_positions').select('*').eq('gig_id', gigId).order('created_at')
@@ -412,14 +414,15 @@ function Positions({ gigId, isPM, userId, members, invites, onInvite, onCall }) 
     const { error } = await supabase.from('gig_positions').update({ quantity }).eq('id', pos.id)
     if (error) { notify(userMessage(error), 'error'); load() }
   }
-  async function remove(pos) {
-    if (!window.confirm(t('positions.confirmRemove', { title: pos.title }))) return
-    const { error } = await supabase.from('gig_positions').delete().eq('id', pos.id)
-    if (error) return notify(userMessage(error), 'error')
-    load()
+  function remove(pos) {
+    removeLater(pos.id, {
+      message: t('undo.removed', { name: pos.title }),
+      commit: async () => (await supabase.from('gig_positions').delete().eq('id', pos.id)).error,
+      onDone: load,
+    })
   }
 
-  const open = positions.reduce((sum, p) => sum + Math.max(0, p.quantity - filledFor(p.title)), 0)
+  const open = positions.filter(p => !hidden.has(p.id)).reduce((sum, p) => sum + Math.max(0, p.quantity - filledFor(p.title)), 0)
   return (
     <section style={{ marginBottom: '26px' }} aria-labelledby="positions-title">
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
@@ -431,7 +434,7 @@ function Positions({ gigId, isPM, userId, members, invites, onInvite, onCall }) 
       </div>
       {positions.length === 0 && !adding && <p style={{ fontSize: '13px', color: colors.muted }}>{t('positions.empty')}</p>}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {positions.map(pos => {
+        {positions.filter(p => !hidden.has(p.id)).map(pos => {
           const filled = filledFor(pos.title)
           return (
             <div key={pos.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '10px', border: `1px solid ${colors.border}`, background: 'color-mix(in srgb, var(--fg) min(100%, calc(2% * var(--line-k))), transparent)' }}>

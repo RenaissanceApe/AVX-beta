@@ -243,6 +243,7 @@ export function sampleData(persona, lang) {
         { item_id: XLR, item_name: w.cables, category: w.cab, tracking: 'bulk', planned: 60, out_qty: 60, back_qty: 0, packing_note: null },
         { item_id: QL1, item_name: w.desk, category: w.sys, tracking: 'serial', planned: 1, out_qty: 0, back_qty: 0, packing_note: null },
       ],
+      dispatch_scan: { ok: true, kind: 'unit', item_name: w.speaker, unit_code: 'U-7KQ2M9XG', serial: units[0].serial, planned: 8, out: 7, back: 0 },
       gig_units_out: units.slice(0, 2).map(u => ({ unit_id: u.id, item_id: SPK, item_name: w.speaker, code: u.code, serial: u.serial, out_since: ago(10) })),
       maintenance_due: due,
       incoming_hire_requests: [],

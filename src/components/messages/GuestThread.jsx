@@ -105,5 +105,5 @@ const labelStyle = { display: 'flex', flexDirection: 'column', gap: '4px', fontS
 const field = { padding: '9px 11px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '14px', color: '#111', background: '#fff', fontFamily: 'inherit' }
 const sendBtn = {
   display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', borderRadius: '6px', border: 'none',
-  background: '#0FA85A', color: '#fff', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+  background: '#0B7A41', color: '#fff', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
 }

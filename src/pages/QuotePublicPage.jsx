@@ -111,7 +111,7 @@ function Answer({ token, lang, data, onAnswered }) {
             {data.expires_at && <span style={{ display: 'block', fontSize: '12px', color: '#666' }}>{tr('publicQuote.openUntil', { date: fmtIn(lang, data.expires_at, lang === 'pt' ? 'dd-MM-yyyy' : 'd MMM yyyy') })}</span>}
           </span>
           <button onClick={() => setChoice('decline')} style={toolbarBtn}><X size={14} /> {tr('publicQuote.decline')}</button>
-          <button onClick={() => setChoice('accept')} style={{ ...toolbarBtn, background: '#0FA85A', borderColor: '#0FA85A', color: '#fff' }}><Check size={14} /> {tr('publicQuote.accept')}</button>
+          <button onClick={() => setChoice('accept')} style={{ ...toolbarBtn, background: '#0B7A41', borderColor: '#0B7A41', color: '#fff' }}><Check size={14} /> {tr('publicQuote.accept')}</button>
         </>
       ) : (
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
@@ -128,7 +128,7 @@ function Answer({ token, lang, data, onAnswered }) {
           {error && <p role="alert" style={{ fontSize: '13px', color: '#B91C1C', margin: 0 }}>{error}</p>}
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             <button type="button" onClick={() => setChoice(null)} style={toolbarBtn}>{tr('publicQuote.back')}</button>
-            <button type="submit" disabled={busy || !name.trim()} style={{ ...toolbarBtn, background: choice === 'accept' ? '#0FA85A' : '#111', borderColor: 'transparent', color: '#fff' }}>
+            <button type="submit" disabled={busy || !name.trim()} style={{ ...toolbarBtn, background: choice === 'accept' ? '#0B7A41' : '#111', borderColor: 'transparent', color: '#fff' }}>
               {busy && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
               {tr(choice === 'accept' ? 'publicQuote.confirmAccept' : 'publicQuote.confirmDecline')}
             </button>

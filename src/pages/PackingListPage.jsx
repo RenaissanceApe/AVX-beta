@@ -64,7 +64,7 @@ export default function PackingListPage() {
       `}</style>
       <div className="toolbar">
         <button onClick={() => navigate(`/gig/${id}?tab=equipment`)} style={toolbarBtn}><ArrowLeft size={14} /> {t('callsheet.backToGig')}</button>
-        <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0FA85A', color: '#fff', border: 'none' }}><Printer size={14} /> {t('callsheet.print')}</button>
+        <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0B7A41', color: '#fff', border: 'none' }}><Printer size={14} /> {t('callsheet.print')}</button>
       </div>
       <article className="sheet">
         <header style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>

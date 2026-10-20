@@ -49,6 +49,7 @@ export default {
     'prep-return-days': { term: 'Prep and return days', definition: 'Days before and after a gig when its equipment is still booked, for loading, testing and checking in.', example: '1 prep day: the gear is busy from the day before.', where: 'Organisation settings, gig equipment' },
     'packing-list': { term: 'Packing list', definition: 'What must leave the warehouse for a gig, with quantities.', example: 'Printed for the warehouse team on the day before.', where: 'Gig → Equipment → Packing list' },
     'scan-out-in': { term: 'Scan out / scan in', definition: 'Reading QR labels when equipment leaves for a gig and when it comes back.', example: 'Scanning 40 units into the truck.', where: 'Gig → Equipment → Scan' },
+    'scan-mode': { term: 'Scan mode', definition: 'A full-screen way to scan, with big buttons, sounds, vibration and a torch, for gloves, noise and the dark.', example: 'Loading the van at night with one hand free.', where: 'Gig → Equipment → Scan out / in' },
     'mark-lost': { term: 'Mark as lost', definition: 'Units that did not come back are recorded as lost, so stock and reports are right.', example: 'Two cables missing after the festival.', where: 'Gig → Scan' },
     damage: { term: 'Damage report', definition: 'A note, with photos, that something broke. The unit can be taken out of use.', example: 'Cracked lens reported from site.', where: 'Gig → Equipment, Inventory → Maintenance' },
     repair: { term: 'Repair', definition: 'Fixing a damaged unit. While in repair it is not available for gigs.', example: 'Sent to the manufacturer for 2 weeks.', where: 'Inventory → Maintenance' },
@@ -147,6 +148,7 @@ export default {
         'On the gig, your call time is under the gig\'s name, in green.',
         'Tap Schedule to see the running order. Tap "Call sheet" for the full sheet.',
         'The call sheet shows the schedule and the crew with their phones. You can print it or save it as a PDF.',
+        'Tap "Large print" for bigger type (it prints that way too), or "Read aloud" to hear it with your phone\'s voice. Your own line is marked in yellow.',
       ],
       mistakes: [
         'The call time is when you start work, not when the show starts.',
@@ -356,8 +358,10 @@ export default {
         'Open the gig, tap Equipment, then "Packing list" to prepare everything planned.',
         'Tap "Scan out / in" and choose "Out to the gig". Scan each label with the camera, or type the code. For bulk items, set the quantity first.',
         'Watch the progress ("Packed 32 of 40"). A case scans everything packed inside it.',
+        'In the van or the dark, tap "Scan mode": the whole screen becomes big buttons, the camera and the last scan in large type. Each scan beeps and buzzes: one high beep is fine, two beeps is a warning, a low buzz is a problem. The torch button lights the label (on Android phones).',
       ],
       mistakes: [
+        'Removed something by mistake? Most removals show "Undo" for a few seconds before anything is deleted.',
         'AVX warns when something isn\'t planned for the gig or is more than planned. It still records it, so check the warning.',
         'A USB or Bluetooth barcode scanner works too: it types the code and presses Enter for you.',
       ],

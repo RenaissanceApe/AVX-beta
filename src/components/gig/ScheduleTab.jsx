@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { groupByDay, shortTime } from '../../lib/schedule'
+import { useUndoRemove } from '../../lib/undo'
 import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, card, label, colors } from '../ui'
 import EmptyState from '../EmptyState'
@@ -19,6 +20,7 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
   const [editing, setEditing] = useState(null) // null | 'new' | item
   const [form, setForm] = useState(EMPTY)
   const [saving, setSaving] = useState(false)
+  const { hidden, remove: removeLater } = useUndoRemove()
 
   useEffect(() => {
     if (editing === 'new') {
@@ -52,17 +54,19 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
     onChanged()
   }
 
-  async function remove(item) {
-    if (!window.confirm(t('schedule.confirmRemove', { title: item.title }))) return
-    const { error } = await supabase.from('gig_schedule').delete().eq('id', item.id)
-    if (error) {
-      logger.error('schedule', error, { step: 'delete', gigId: gig.id })
-      return notify(userMessage(error), 'error')
-    }
-    onChanged()
+  function remove(item) {
+    removeLater(item.id, {
+      message: t('undo.removed', { name: item.title }),
+      commit: async () => {
+        const { error } = await supabase.from('gig_schedule').delete().eq('id', item.id)
+        if (error) logger.error('schedule', error, { step: 'delete', gigId: gig.id })
+        return error
+      },
+      onDone: onChanged,
+    })
   }
 
-  const groups = groupByDay(items)
+  const groups = groupByDay(items.filter(i => !hidden.has(i.id)))
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
