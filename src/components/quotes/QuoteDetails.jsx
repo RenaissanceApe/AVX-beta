@@ -94,6 +94,6 @@ export default function QuoteDetails({ quote, gigs, onChange }) {
   )
 }
 
-const box = { border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '14px 16px 16px', minWidth: 0 }
+const box = { border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)', borderRadius: '14px', padding: '14px 16px 16px', minWidth: 0 }
 const legend = { padding: '0 6px', fontSize: '13px', fontWeight: 700, color: colors.soft }
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }

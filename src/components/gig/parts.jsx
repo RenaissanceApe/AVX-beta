@@ -1,25 +1,25 @@
 import { FileText, Image, Clock, Music, Layout, ClipboardList, Trash2 } from 'lucide-react'
 import { useI18n } from '../../i18n'
-import { colors, iconBtn } from '../ui'
+import { colors, iconBtn, tint } from '../ui'
 
 // Pieces shared by the gig page tabs.
 
 export const ASSET_TYPES = [
-  { value: 'patch_list', icon: ClipboardList, color: '#1EC878' },
-  { value: 'plot',       icon: Layout,        color: '#60A5FA' },
-  { value: 'schedule',   icon: Clock,         color: '#F59E0B' },
-  { value: 'rider',      icon: Music,         color: '#A78BFA' },
-  { value: 'document',   icon: FileText,      color: '#6B7280' },
-  { value: 'image',      icon: Image,         color: '#F472B6' },
+  { value: 'patch_list', icon: ClipboardList, color: 'var(--accent-text)' },
+  { value: 'plot',       icon: Layout,        color: 'var(--info)' },
+  { value: 'schedule',   icon: Clock,         color: 'var(--warn)' },
+  { value: 'rider',      icon: Music,         color: 'var(--purple)' },
+  { value: 'document',   icon: FileText,      color: 'var(--soft)' },
+  { value: 'image',      icon: Image,         color: 'var(--pink)' },
 ]
 export const assetType = type => ASSET_TYPES.find(a => a.value === type) || ASSET_TYPES[4]
 
 export const STATUS_STYLE = {
-  draft:     { color: '#7D93A9', bg: 'rgba(74,96,112,0.15)' },
-  confirmed: { color: '#60A5FA', bg: 'rgba(59,130,246,0.15)' },
-  active:    { color: '#1EC878', bg: 'rgba(30,200,120,0.15)' },
-  completed: { color: '#A78BFA', bg: 'rgba(139,92,246,0.15)' },
-  archived:  { color: '#374151', bg: 'rgba(55,65,81,0.1)' },
+  draft:     { color: 'var(--muted)', bg: 'color-mix(in srgb, var(--muted) 15%, transparent)' },
+  confirmed: { color: 'var(--info)', bg: 'color-mix(in srgb, var(--info) 15%, transparent)' },
+  active:    { color: 'var(--accent-text)', bg: 'color-mix(in srgb, var(--accent) 15%, transparent)' },
+  completed: { color: 'var(--purple)', bg: 'color-mix(in srgb, var(--purple) 15%, transparent)' },
+  archived:  { color: 'var(--soft)', bg: 'color-mix(in srgb, var(--soft) 10%, transparent)' },
 }
 export const GIG_STATUSES = Object.keys(STATUS_STYLE)
 
@@ -34,7 +34,7 @@ export function StatusBadge({ status }) {
   )
 }
 
-const AVATAR_COLORS = ['#1EC878', '#60A5FA', '#A78BFA', '#F59E0B', '#F472B6', '#06B6D4']
+const AVATAR_COLORS = ['var(--accent-text)', 'var(--info)', 'var(--purple)', 'var(--warn)', 'var(--pink)', 'var(--sky)']
 
 export function Avatar({ uid, name, size = 32 }) {
   const c = AVATAR_COLORS[uid ? uid.charCodeAt(0) % AVATAR_COLORS.length : 0]
@@ -42,7 +42,7 @@ export function Avatar({ uid, name, size = 32 }) {
   return (
     <div aria-hidden style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      background: `${c}30`, border: `1px solid ${c}50`,
+      background: tint(c, 19), border: `1px solid ${tint(c, 31)}`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: size * 0.35, fontWeight: 700, color: c,
     }}>{initials}</div>
@@ -50,9 +50,9 @@ export function Avatar({ uid, name, size = 32 }) {
 }
 
 const ROLE_STYLE = {
-  pm:     { color: '#1EC878', bg: 'rgba(30,200,120,0.12)' },
-  crew:   { color: '#7D93A9', bg: 'rgba(74,96,112,0.12)' },
-  viewer: { color: '#374151', bg: 'rgba(55,65,81,0.12)' },
+  pm:     { color: 'var(--accent-text)', bg: 'color-mix(in srgb, var(--accent) 12%, transparent)' },
+  crew:   { color: 'var(--muted)', bg: 'color-mix(in srgb, var(--muted) 12%, transparent)' },
+  viewer: { color: 'var(--soft)', bg: 'color-mix(in srgb, var(--soft) 12%, transparent)' },
 }
 
 export function RoleBadge({ role, large = false }) {
@@ -71,8 +71,8 @@ export function FeedPost({ post, name, large = false, onDelete = null }) {
   return (
     <div style={{
       padding: large ? '14px 16px' : '10px 12px', borderRadius: '12px', animation: 'fadeIn 0.3s ease',
-      background: post.is_important ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.03)',
-      border: post.is_important ? '1px solid rgba(239,68,68,0.2)' : '1px solid rgba(255,255,255,0.06)',
+      background: post.is_important ? 'color-mix(in srgb, var(--danger) 6%, transparent)' : 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)',
+      border: post.is_important ? '1px solid color-mix(in srgb, var(--danger) 20%, transparent)' : '1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px 8px', marginBottom: '6px', flexWrap: 'wrap' }}>
         <Avatar uid={post.user_id} name={name} size={24} />
@@ -80,10 +80,10 @@ export function FeedPost({ post, name, large = false, onDelete = null }) {
         {post.is_important && (
           <span style={{
             fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '20px',
-            color: colors.danger, background: 'rgba(239,68,68,0.15)', textTransform: 'uppercase', letterSpacing: '0.05em',
+            color: colors.danger, background: 'color-mix(in srgb, var(--danger) 15%, transparent)', textTransform: 'uppercase', letterSpacing: '0.05em',
           }}>{t('feed.important')}</span>
         )}
-        <span style={{ fontSize: '11px', color: '#7D93A9', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{ago(post.created_at)}</span>
+        <span style={{ fontSize: '11px', color: 'var(--muted)', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{ago(post.created_at)}</span>
         {onDelete && (
           <button onClick={onDelete} aria-label={t('feed.deleteUpdate')} title={t('common.delete')} style={{ ...iconBtn, padding: '2px' }}>
             <Trash2 size={13} />
@@ -101,7 +101,7 @@ export function SectionTitle({ icon, title }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
       <span style={{ color: colors.muted, display: 'flex' }}>{icon}</span>
-      <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{title}</span>
+      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{title}</span>
     </div>
   )
 }
@@ -110,13 +110,13 @@ export function SmallBtn({ onClick, icon, label }) {
   return (
     <button onClick={onClick} style={{
       display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 11px', borderRadius: '8px', cursor: 'pointer',
-      background: 'rgba(30,200,120,0.1)', border: '1px solid rgba(30,200,120,0.2)', color: colors.accent, fontSize: '12px', fontWeight: 600,
+      background: 'color-mix(in srgb, var(--accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)', color: colors.accentText, fontSize: '12px', fontWeight: 600,
     }}>{icon} {label}</button>
   )
 }
 
 export function EmptyMini({ text }) {
-  return <p style={{ color: '#7D93A9', fontSize: '13px', textAlign: 'center', padding: '12px 0' }}>{text}</p>
+  return <p style={{ color: 'var(--muted)', fontSize: '13px', textAlign: 'center', padding: '12px 0' }}>{text}</p>
 }
 
 export function TabHeader({ title, subtitle, action }) {
@@ -132,6 +132,6 @@ export function TabHeader({ title, subtitle, action }) {
 }
 
 export const linkBtn = {
-  background: 'none', border: 'none', cursor: 'pointer', color: colors.accent, fontSize: '12px', fontWeight: 600,
+  background: 'none', border: 'none', cursor: 'pointer', color: colors.accentText, fontSize: '12px', fontWeight: 600,
   padding: '4px 0', display: 'block', width: '100%', textAlign: 'left',
 }

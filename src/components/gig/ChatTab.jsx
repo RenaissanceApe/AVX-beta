@@ -46,10 +46,10 @@ export default function ChatTab({ gigId, canPost }) {
   }
 
   if (failed) return <p style={{ color: colors.muted, fontSize: '14px', textAlign: 'center', padding: '40px 16px' }}>{t('chat.unavailable')}</p>
-  if (!mainId) return <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (!mainId) return <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
   const chip = active => ({
     display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '16px', font: 'inherit', fontSize: '13px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
-    border: `1px solid ${active ? colors.accent : colors.border}`, background: active ? 'rgba(30,200,120,0.12)' : 'transparent', color: active ? colors.accent : colors.soft,
+    border: `1px solid ${active ? colors.accent : colors.border}`, background: active ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent', color: active ? colors.accentText : colors.soft,
   })
   const conversationId = selected === 'all' ? mainId : departmentId
   return (
@@ -65,7 +65,7 @@ export default function ChatTab({ gigId, canPost }) {
           ))}
         </div>
       )}
-      {!conversationId ? <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /></div> : (
+      {!conversationId ? <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div> : (
         <Conversation key={conversationId} conversationId={conversationId} canPost={selected === 'all' ? canPost : true} height="62vh"
           emptyText={selected === 'all' ? t('chat.emptyGig') : t('chat.emptyDepartment', { name: departmentLabel(selected, departments.find(d => d.department === selected)?.label, t) })} />
       )}

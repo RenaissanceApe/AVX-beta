@@ -22,11 +22,11 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import { PageHelp } from '../components/help/HelpParts'
 
 const STATUS_CONFIG = {
-  draft:     { color: '#7D93A9', bg: 'rgba(74,96,112,0.15)' },
-  confirmed: { color: '#60A5FA', bg: 'rgba(59,130,246,0.15)' },
-  active:    { color: '#1EC878', bg: 'rgba(30,200,120,0.15)' },
-  completed: { color: '#A78BFA', bg: 'rgba(139,92,246,0.15)' },
-  archived:  { color: '#374151', bg: 'rgba(55,65,81,0.1)' },
+  draft:     { color: 'var(--muted)', bg: 'color-mix(in srgb, var(--muted) 15%, transparent)' },
+  confirmed: { color: 'var(--info)', bg: 'color-mix(in srgb, var(--info) 15%, transparent)' },
+  active:    { color: 'var(--accent-text)', bg: 'color-mix(in srgb, var(--accent) 15%, transparent)' },
+  completed: { color: 'var(--purple)', bg: 'color-mix(in srgb, var(--purple) 15%, transparent)' },
+  archived:  { color: 'var(--soft)', bg: 'color-mix(in srgb, var(--soft) 10%, transparent)' },
 }
 
 // Home of a workspace:
@@ -115,19 +115,19 @@ export default function Dashboard() {
       <OfflineBanner savedAt={savedAt} />
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '28px 20px' }}>
         {notMember ? (
-          <EmptyState icon={<Building2 size={32} color="#1EC878" />} title={t('home.noAccessTitle')} body={t('home.noAccessBody')}
+          <EmptyState icon={<Building2 size={32} color="var(--accent-text)" />} title={t('home.noAccessTitle')} body={t('home.noAccessBody')}
             action={t('nav.myWork')} onAction={() => navigate('/me')} />
         ) : (
           <>
             <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
               <div style={{ minWidth: 0 }}>
-                <p style={{ color: '#7D93A9', fontSize: '13px', margin: '0 0 4px 0' }}>{t('dash.welcome', { name: firstName })}</p>
+                <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '0 0 4px 0' }}>{t('dash.welcome', { name: firstName })}</p>
                 <h1 style={{ fontSize: '26px', fontWeight: 800, margin: 0, letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                   {mode === 'me' ? t('nav.myWork') : org?.name || '…'}
                   {role && <RoleChip role={role} />}
                   <PageHelp page="home" />
                 </h1>
-                <p style={{ color: '#7D93A9', fontSize: '13px', margin: '6px 0 0' }}>
+                <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '6px 0 0' }}>
                   {mode === 'me' ? t('home.myWorkIntro') : role ? t(`nav.roleDesc.${role}`) : ''}
                 </p>
               </div>
@@ -140,19 +140,19 @@ export default function Dashboard() {
 
             {(loadingGigs || loadingOrgs) ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
-                <Loader2 size={24} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
+                <Loader2 size={24} color="var(--accent-text)" style={{ animation: 'spin 1s linear infinite' }} />
               </div>
             ) : gigs.length === 0 ? (
               mode === 'me' ? (
                 orgs.length === 0 ? (
-                  <EmptyState icon={<Building2 size={32} color="#1EC878" />} title={t('dash.emptyOrgTitle')} body={t('dash.emptyOrgBody')}
+                  <EmptyState icon={<Building2 size={32} color="var(--accent-text)" />} title={t('dash.emptyOrgTitle')} body={t('dash.emptyOrgBody')}
                     action={t('dash.createOrg')} onAction={() => navigate('/orgs?new=1')} />
                 ) : (
-                  <EmptyState icon={<Briefcase size={32} color="#1EC878" />} title={t('home.noAssignedTitle')} body={t('home.noAssignedBody')}
+                  <EmptyState icon={<Briefcase size={32} color="var(--accent-text)" />} title={t('home.noAssignedTitle')} body={t('home.noAssignedBody')}
                     action={t('home.openOrg', { org: orgs[0].name })} onAction={() => { setWorkspace(orgs[0].id); navigate(homePath(orgs[0].id)) }} />
                 )
               ) : (
-                <EmptyState icon={<Calendar size={32} color="#1EC878" />} title={t('dash.emptyGigsTitle')} body={t('dash.emptyGigsBody')}
+                <EmptyState icon={<Calendar size={32} color="var(--accent-text)" />} title={t('dash.emptyGigsTitle')} body={t('dash.emptyGigsBody')}
                   action={canCreateGig ? t('dash.createFirstGig') : null} onAction={() => setParam('new', 'gig')} />
               )
             ) : (
@@ -232,7 +232,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
             placeholder={t('gigForm.descriptionPlaceholder')} rows={3} style={{ ...modalInput, resize: 'vertical', lineHeight: '1.5' }} />
         </FieldLabel>
         {error && (
-          <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#F87171', fontSize: '13px', lineHeight: '1.5' }}>
+          <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'color-mix(in srgb, var(--danger) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)', color: 'var(--danger)', fontSize: '13px', lineHeight: '1.5' }}>
             {error}
           </div>
         )}
@@ -251,36 +251,36 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
   return (
     <div>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
-        <div role="group" aria-label="View" style={{ display: 'flex', gap: '2px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '3px' }}>
+        <div role="group" aria-label="View" style={{ display: 'flex', gap: '2px', background: 'color-mix(in srgb, var(--shade) 30%, transparent)', borderRadius: '10px', padding: '3px' }}>
           {[['list', <List key="i" size={15} />, t('dash.viewList')], ['calendar', <CalendarDays key="i" size={15} />, t('dash.viewCalendar')]].map(([v, icon, labelText]) => (
             <button key={v} onClick={() => setView(v)} aria-pressed={view === v} aria-label={labelText} title={labelText} style={{
               padding: '6px 9px', borderRadius: '7px', border: 'none', cursor: 'pointer', display: 'flex',
-              background: view === v ? 'rgba(30,200,120,0.15)' : 'transparent', color: view === v ? '#1EC878' : '#7D93A9'
+              background: view === v ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent', color: view === v ? 'var(--accent-text)' : 'var(--muted)'
             }}>{icon}</button>
           ))}
         </div>
-        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '3px', overflowX: 'auto' }}>
+        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'color-mix(in srgb, var(--shade) 30%, transparent)', borderRadius: '10px', padding: '3px', overflowX: 'auto' }}>
           {GIG_FILTERS.map(f => (
             <button key={f.value} role="tab" aria-selected={filter === f.value} onClick={() => setFilter(f.value)} style={{
               padding: '6px 12px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
-              background: filter === f.value ? 'rgba(30,200,120,0.15)' : 'transparent',
-              color: filter === f.value ? '#1EC878' : '#7D93A9'
+              background: filter === f.value ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
+              color: filter === f.value ? 'var(--accent-text)' : 'var(--muted)'
             }}>
               {t(`gigFilter.${f.value}`)} <span style={{ opacity: 0.7 }}>{counts[f.value]}</span>
             </button>
           ))}
         </div>}
         <label style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px',
-          background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px' }}>
-          <Search size={14} color="#7D93A9" />
+          background: 'color-mix(in srgb, var(--shade) 30%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)', borderRadius: '10px' }}>
+          <Search size={14} color="var(--muted)" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('dash.searchPlaceholder')} aria-label={t('dash.searchPlaceholder')}
-            style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: '14px', minWidth: 0 }} />
+            style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '14px', minWidth: 0 }} />
         </label>
       </div>
       {view === 'calendar' ? (
         <GigCalendar gigs={filterGigs(gigs, 'all', search).filter(g => g.status !== 'archived')} clashIds={clashIds} onOpen={onOpen} />
       ) : visible.length === 0 ? (
-        <p style={{ color: '#7D93A9', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>
+        <p style={{ color: 'var(--muted)', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>
           {search ? t('dash.noMatch') : t(`dash.noGigs.${filter}`)}
         </p>
       ) : (
@@ -297,13 +297,13 @@ function GigCard({ gig, onOpen, showCompany, clash }) {
   return (
     <button onClick={onOpen} className="gig-card"
       style={{
-        width: '100%', textAlign: 'left', color: '#fff', font: 'inherit',
-        background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+        width: '100%', textAlign: 'left', color: 'var(--text)', font: 'inherit',
+        background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)',
         borderRadius: '14px', padding: '16px 18px', cursor: 'pointer', transition: 'all 0.2s',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px'
       }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(30,200,120,0.25)'; e.currentTarget.style.background = 'rgba(30,200,120,0.04)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--accent) 25%, transparent)'; e.currentTarget.style.background = 'color-mix(in srgb, var(--accent) 4%, transparent)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)'; e.currentTarget.style.background = 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)' }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
@@ -314,16 +314,16 @@ function GigCard({ gig, onOpen, showCompany, clash }) {
           }}>{t(`status.${gig.status}`)}</span>
           {clash && (
             <span title={t('clash.doubleBookingHint')} style={{
-              fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '20px', color: '#F59E0B', background: 'rgba(245,158,11,0.12)',
+              fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '20px', color: 'var(--warn)', background: 'color-mix(in srgb, var(--warn) 12%, transparent)',
               display: 'inline-flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase', letterSpacing: '0.05em',
             }}><AlertTriangle size={11} /> {t('clash.doubleBooking')}</span>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '6px 16px', flexWrap: 'wrap', fontSize: '13px', color: '#7D93A9' }}>
+        <div style={{ display: 'flex', gap: '6px 16px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--muted)' }}>
           {showCompany && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#8A9BAE' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--soft)' }}>
               <Building2 size={12} /> {gig.company || t('home.otherCompany')}
-              <span style={{ color: '#1EC878', fontWeight: 600 }}>· {gig.myFunction || t(`gigRoleLong.${gig.myGigRole || 'crew'}`)}</span>
+              <span style={{ color: 'var(--accent-text)', fontWeight: 600 }}>· {gig.myFunction || t(`gigRoleLong.${gig.myGigRole || 'crew'}`)}</span>
             </span>
           )}
           {gig.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {gig.venue}</span>}
@@ -336,7 +336,7 @@ function GigCard({ gig, onOpen, showCompany, clash }) {
           )}
         </div>
       </div>
-      <ChevronRight size={18} color="#7D93A9" />
+      <ChevronRight size={18} color="var(--muted)" />
     </button>
   )
 }
@@ -345,11 +345,11 @@ export function EmptyState({ icon, title, body, action, onAction }) {
   return (
     <div style={{ textAlign: 'center', padding: '70px 24px' }}>
       <div style={{
-        width: '64px', height: '64px', borderRadius: '18px', background: 'rgba(30,200,120,0.1)', border: '1px solid rgba(30,200,120,0.2)',
+        width: '64px', height: '64px', borderRadius: '18px', background: 'color-mix(in srgb, var(--accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'
       }}>{icon}</div>
       <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>{title}</h3>
-      <p style={{ color: '#7D93A9', fontSize: '14px', maxWidth: '380px', margin: '0 auto 24px', lineHeight: '1.6' }}>{body}</p>
+      <p style={{ color: 'var(--muted)', fontSize: '14px', maxWidth: '380px', margin: '0 auto 24px', lineHeight: '1.6' }}>{body}</p>
       {action && <button onClick={onAction} style={btnPrimary}><Plus size={15} /> {action}</button>}
     </div>
   )
@@ -362,12 +362,12 @@ function Modal({ title, onClose, children }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'calc(24px + var(--safe-top)) 24px 24px'
     }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label={title} style={{
-        background: '#0F1520', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '28px', width: '100%', maxWidth: '480px',
+        background: 'var(--panel)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '18px', padding: '28px', width: '100%', maxWidth: '480px',
         animation: 'fadeIn 0.2s ease', maxHeight: 'calc(100vh - 32px - var(--safe-top))', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{title}</h2>
-          <button onClick={onClose} aria-label={t('common.close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7D93A9', padding: '4px', display: 'flex' }}>
+          <button onClick={onClose} aria-label={t('common.close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '4px', display: 'flex' }}>
             <X size={18} />
           </button>
         </div>
@@ -381,7 +381,7 @@ function Modal({ title, onClose, children }) {
 function FieldLabel({ label, children }) {
   return (
     <label style={{ display: 'block' }}>
-      <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#7D93A9', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</span>
+      <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</span>
       {children}
     </label>
   )
@@ -389,11 +389,11 @@ function FieldLabel({ label, children }) {
 
 const btnPrimary = {
   display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-  background: 'linear-gradient(135deg, #1EC878, #0FA85A)', color: '#fff', fontWeight: 700, fontSize: '14px',
-  fontFamily: "'DM Sans', sans-serif", boxShadow: '0 4px 16px rgba(30,200,120,0.25)', transition: 'all 0.2s'
+  background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', color: 'var(--on-accent)', fontWeight: 700, fontSize: '14px',
+  fontFamily: 'var(--font-ui)', boxShadow: '0 4px 16px color-mix(in srgb, var(--accent) 25%, transparent)', transition: 'all 0.2s'
 }
 const btnModal = { ...btnPrimary, width: '100%', justifyContent: 'center', padding: '13px', fontSize: '15px', marginTop: '4px' }
 const modalInput = {
-  width: '100%', padding: '10px 13px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.09)',
-  borderRadius: '9px', color: '#fff', fontSize: '14px', outline: 'none',
+  width: '100%', padding: '10px 13px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)',
+  borderRadius: '9px', color: 'var(--text)', fontSize: '14px', outline: 'none',
 }

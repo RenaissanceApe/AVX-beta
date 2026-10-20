@@ -55,7 +55,7 @@ export default function ReportDamageModal({ gig, lines, onClose }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
           <div>
             <label style={label} htmlFor="rd-code">{t('report.unitCode')}</label>
-            <input id="rd-code" value={code} onChange={e => setCode(e.target.value)} maxLength={40} placeholder="U-…" style={{ ...input, fontFamily: 'monospace' }} />
+            <input id="rd-code" value={code} onChange={e => setCode(e.target.value)} maxLength={40} placeholder="U-…" style={{ ...input, fontFamily: 'var(--font-mono)' }} />
           </div>
           {!code.trim() && (
             <div>

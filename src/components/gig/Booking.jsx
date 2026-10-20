@@ -9,10 +9,10 @@ import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, input, label, colors } from '../ui'
 import { Term } from '../help/HelpParts'
 
-export const AMBER = '#F59E0B'
+export const AMBER = 'var(--warn)'
 const box = {
-  marginTop: '8px', padding: '9px 11px', borderRadius: '9px', background: 'rgba(245,158,11,0.08)',
-  border: '1px solid rgba(245,158,11,0.3)', fontSize: '12px', color: AMBER, lineHeight: 1.6,
+  marginTop: '8px', padding: '9px 11px', borderRadius: '9px', background: 'color-mix(in srgb, var(--warn) 8%, transparent)',
+  border: '1px solid color-mix(in srgb, var(--warn) 30%, transparent)', fontSize: '12px', color: AMBER, lineHeight: 1.6,
 }
 const smallBtn = { ...btn, padding: '5px 10px', fontSize: '12px' }
 
@@ -32,11 +32,11 @@ export function ClashBox({ name, clashes, request, canAsk, onAsk, onWithdraw }) 
       {canAsk && (
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px', paddingLeft: '18px' }}>
           {request?.status === 'pending' ? (
-            <button type="button" onClick={onWithdraw} style={{ ...smallBtn, background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }}>
+            <button type="button" onClick={onWithdraw} style={{ ...smallBtn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }}>
               {t('ask.withdraw')}
             </button>
           ) : (
-            <button type="button" onClick={onAsk} style={{ ...smallBtn, color: AMBER, borderColor: 'rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.1)' }}>
+            <button type="button" onClick={onAsk} style={{ ...smallBtn, color: AMBER, borderColor: 'color-mix(in srgb, var(--warn) 40%, transparent)', background: 'color-mix(in srgb, var(--warn) 10%, transparent)' }}>
               <MessageCircleQuestion size={13} /> {request ? t('ask.again') : t('ask.button')}
             </button>
           )}
@@ -161,7 +161,7 @@ export function ShiftModal({ gig, member, name, onClose, onSaved }) {
           </button>
           {member.booked_from && (
             <button type="button" disabled={saving} onClick={() => save({ booked_from: null, booked_until: null })}
-              style={{ ...btn, background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }}>
+              style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }}>
               {t('shift.clear')}
             </button>
           )}

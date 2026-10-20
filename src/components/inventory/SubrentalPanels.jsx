@@ -15,7 +15,7 @@ import { Hint } from '../help/HelpParts'
 import ContextThread from '../messages/ContextThread'
 import SupplierLink from './SupplierLink'
 
-const AMBER = '#F59E0B'
+const AMBER = 'var(--warn)'
 const select = { ...input, appearance: 'auto' }
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }
 const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
@@ -114,7 +114,7 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
 
   return (
     <Modal title={subrental ? t('sub.edit') : t('sub.new')} onClose={onClose} maxWidth={720}>
-      {!suppliers ? <Loader2 size={18} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /> : (
+      {!suppliers ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : (
         <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div style={grid}>
             <Field id="sb-supplier" text={`${t('sub.supplier')} *`}>
@@ -144,7 +144,7 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
             </Field>
             <Field id="sb-ref" text={t('sub.reference')}><input id="sb-ref" value={form.reference} onChange={set('reference')} maxLength={80} style={input} /></Field>
           </div>
-          {supplier?.partner_org_id && <p style={{ ...small, color: '#38BDF8' }}>{t('sub.partnerHint')}</p>}
+          {supplier?.partner_org_id && <p style={{ ...small, color: 'var(--sky)' }}>{t('sub.partnerHint')}</p>}
           {subrental?.answered_at && (
             <div style={{ ...card, padding: '10px 12px', fontSize: '13px', borderColor: STATUS_COLOR[subrental.status] }}>
               <strong>{t('sub.answered', { status: t(`sub.status.${subrental.status}`) })}</strong>
@@ -250,14 +250,14 @@ export function SupplierModal({ orgId, supplier, onClose, onSaved }) {
             <div style={{ fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}><Link2 size={13} /> {t('sub.onAvxTitle')}</div>
             {linked !== null ? (
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', fontSize: '13px' }}>
-                <span style={{ color: colors.accent, flex: 1 }}>{linked ? t('sub.linked', { org: linked }) : t('sub.isLinked')}</span>
+                <span style={{ color: colors.accentText, flex: 1 }}>{linked ? t('sub.linked', { org: linked }) : t('sub.isLinked')}</span>
                 <button type="button" onClick={unlink} style={{ ...btn, padding: '4px 9px', fontSize: '12px' }}>{t('sub.unlink')}</button>
               </div>
             ) : (
               <>
                 <p style={{ ...small, marginBottom: '6px' }}>{t('sub.linkHint')}</p>
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  <input value={code} onChange={e => setCode(e.target.value)} maxLength={20} placeholder="P-…" aria-label={t('sub.code')} style={{ ...input, fontFamily: 'monospace' }} />
+                  <input value={code} onChange={e => setCode(e.target.value)} maxLength={20} placeholder="P-…" aria-label={t('sub.code')} style={{ ...input, fontFamily: 'var(--font-mono)' }} />
                   <button type="button" onClick={link} disabled={!code.trim()} style={btn}>{t('sub.link')}</button>
                 </div>
               </>
@@ -276,7 +276,7 @@ export function SubrentalRow({ s, onOpen }) {
   const { lang } = useI18n()
   const count = (s.lines || []).reduce((n, l) => n + (l.quantity || 0), 0)
   return (
-    <button onClick={() => onOpen(s)} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', width: '100%', textAlign: 'left', cursor: 'pointer', color: '#fff', font: 'inherit' }}>
+    <button onClick={() => onOpen(s)} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', width: '100%', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', font: 'inherit' }}>
       <span style={{ flex: '1 1 220px', minWidth: 0 }}>
         <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{s.supplier?.name}{s.reference ? <span style={{ color: colors.muted, fontWeight: 400 }}> · {s.reference}</span> : null}</span>
         <span style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>
@@ -313,10 +313,10 @@ function IncomingRequests({ orgId }) {
   const setA = (id, changes) => setAnswers(m => ({ ...m, [id]: { ...m[id], ...changes } }))
   return (
     <section style={{ marginBottom: '22px' }}>
-      <h2 style={{ fontSize: '17px', fontWeight: 700, margin: '4px 0 8px', display: 'flex', alignItems: 'center', gap: '7px' }}><Inbox size={16} color={colors.accent} /> {t('sub.incoming')}</h2>
+      <h2 style={{ fontSize: '17px', fontWeight: 700, margin: '4px 0 8px', display: 'flex', alignItems: 'center', gap: '7px' }}><Inbox size={16} color={colors.accentText} /> {t('sub.incoming')}</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {rows.slice(0, 30).map(r => (
-          <div key={r.id} style={{ ...card, padding: '10px 12px', borderColor: r.status === 'requested' ? 'rgba(245,158,11,0.4)' : colors.border }}>
+          <div key={r.id} style={{ ...card, padding: '10px 12px', borderColor: r.status === 'requested' ? 'color-mix(in srgb, var(--warn) 40%, transparent)' : colors.border }}>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'baseline', flexWrap: 'wrap' }}>
               <strong style={{ flex: '1 1 200px' }}>{r.from_org}{r.reference ? <span style={{ color: colors.muted, fontWeight: 400 }}> · {r.reference}</span> : null}</strong>
               <span style={{ fontSize: '12px', color: colors.soft }}>{rangeText(r.starts_at, r.ends_at)}</span>
@@ -357,11 +357,11 @@ function CrossHireCode({ orgId, isAdmin }) {
   }
   return (
     <section style={{ ...card, marginTop: '22px' }}>
-      <h2 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}><Link2 size={15} color={colors.accent} /> {t('sub.ourCode')} <Hint id="cross-hire-code" label={t('sub.ourCode')} /></h2>
+      <h2 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}><Link2 size={15} color={colors.accentText} /> {t('sub.ourCode')} <Hint id="cross-hire-code" label={t('sub.ourCode')} /></h2>
       <p style={{ ...small, marginBottom: '8px' }}>{t('sub.ourCodeHint')}</p>
       {code ? (
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <code style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '0.05em', padding: '4px 10px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px' }}>{code}</code>
+          <code style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '0.05em', padding: '4px 10px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', borderRadius: '6px' }}>{code}</code>
           <button onClick={copy} style={{ ...btn, padding: '5px 9px', fontSize: '12px' }}><Copy size={12} /> {t('sub.copy')}</button>
           {isAdmin && <button onClick={() => load(true)} style={{ ...btn, padding: '5px 9px', fontSize: '12px' }}><RefreshCw size={12} /> {t('sub.newCode')}</button>}
         </div>
@@ -399,7 +399,7 @@ export function SubrentalsTab({ orgId, inv }) {
     if (!error) load()
   }
 
-  if (!subs) return <Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+  if (!subs) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
   const now = new Date().toISOString()
   const current = subs.filter(s => isOpenSubrental(s) && s.ends_at >= now).sort((a, b) => a.starts_at.localeCompare(b.starts_at))
   const past = subs.filter(s => !current.includes(s))
@@ -409,7 +409,7 @@ export function SubrentalsTab({ orgId, inv }) {
     <div>
       <IncomingRequests orgId={orgId} />
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-        <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '7px' }}><Handshake size={16} color={colors.accent} /> {t('sub.current')} <span style={{ color: colors.soft, fontWeight: 600 }}>· {current.length}</span></h2>
+        <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '7px' }}><Handshake size={16} color={colors.accentText} /> {t('sub.current')} <span style={{ color: colors.soft, fontWeight: 600 }}>· {current.length}</span></h2>
         <button onClick={() => setEditing({})} style={btnPrimary}><Plus size={15} /> {t('sub.new')}</button>
       </div>
       {current.length === 0 ? <p style={{ ...small, marginBottom: '14px' }}>{t('sub.noneCurrent')}</p> : (
@@ -426,7 +426,7 @@ export function SubrentalsTab({ orgId, inv }) {
 
       <section style={{ marginTop: '18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-          <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '7px' }}><Truck size={16} color={colors.accent} /> {t('sub.suppliers')}</h2>
+          <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '7px' }}><Truck size={16} color={colors.accentText} /> {t('sub.suppliers')}</h2>
           {suppliers.some(s => s.archived_at) && <button onClick={() => setShowArchived(v => !v)} style={{ ...btn, padding: '5px 10px', fontSize: '12px' }}>{showArchived ? t('inv.hideArchived') : t('inv.showArchived')}</button>}
           <button onClick={() => setSupplier({})} style={btn}><Plus size={14} /> {t('sub.newSupplier')}</button>
         </div>
@@ -435,7 +435,7 @@ export function SubrentalsTab({ orgId, inv }) {
             {visibleSuppliers.map(sp => (
               <div key={sp.id} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', opacity: sp.archived_at ? 0.6 : 1 }}>
                 <span style={{ flex: '1 1 200px', minWidth: 0 }}>
-                  <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{sp.name}{sp.partner_org_id && <span style={{ fontSize: '11px', color: '#38BDF8', marginLeft: '6px' }}>{t('sub.onAvx')}</span>}</span>
+                  <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{sp.name}{sp.partner_org_id && <span style={{ fontSize: '11px', color: 'var(--sky)', marginLeft: '6px' }}>{t('sub.onAvx')}</span>}</span>
                   <span style={{ fontSize: '12px', color: colors.muted }}>{[sp.contact_name, sp.phone, sp.email].filter(Boolean).join(' · ')}</span>
                 </span>
                 <button onClick={() => setSupplier(sp)} aria-label={t('common.edit')} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>
@@ -466,7 +466,7 @@ export function GigSubrentals({ gig, org, items, refreshKey, onChanged }) {
   if (!subs.length) return null
   return (
     <section style={{ marginBottom: '14px' }}>
-      <h3 style={{ ...label, marginBottom: '6px' }}>{t('sub.forGig')} · <Link to={`/org/${gig.org_id}/inventory?tab=subrentals`} style={{ color: colors.accent }}>{t('sub.all')}</Link></h3>
+      <h3 style={{ ...label, marginBottom: '6px' }}>{t('sub.forGig')} · <Link to={`/org/${gig.org_id}/inventory?tab=subrentals`} style={{ color: colors.accentText }}>{t('sub.all')}</Link></h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {subs.map(s => <SubrentalRow key={s.id} s={s} onOpen={setEditing} />)}
       </div>

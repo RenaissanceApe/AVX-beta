@@ -7,6 +7,7 @@ import BlockedPeople from './BlockedPeople'
 import { Hint } from './help/HelpParts'
 import { useI18n, LANGUAGES } from '../i18n'
 import AvailabilitySection from './AvailabilitySection'
+import AppearanceSettings from './AppearanceSettings'
 import TwoStepSection from './TwoStepSection'
 import { supabase } from '../lib/supabase'
 import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
@@ -170,7 +171,7 @@ export default function AccountModal({ onClose }) {
           <h2 id="account-title" style={{ fontSize: '18px', fontWeight: 700 }}>{t('account.title')}</h2>
           <button onClick={onClose} aria-label={t('common.close')} style={iconBtn}><X size={18} /></button>
         </div>
-        <p style={{ color: '#7D93A9', fontSize: '13px', marginBottom: '22px', wordBreak: 'break-all' }}>{user?.email}</p>
+        <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '22px', wordBreak: 'break-all' }}>{user?.email}</p>
 
         <form onSubmit={saveName} style={section}>
           <label style={label} htmlFor="account-name">{t('auth.fullName')}</label>
@@ -186,7 +187,7 @@ export default function AccountModal({ onClose }) {
               {savingName ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={14} />} {t('common.save')}
             </button>
           </div>
-          <p style={{ color: '#7D93A9', fontSize: '12px', marginTop: '6px' }}>{t('account.phoneHint')}</p>
+          <p style={{ color: 'var(--muted)', fontSize: '12px', marginTop: '6px' }}>{t('account.phoneHint')}</p>
         </form>
 
         <form onSubmit={savePassword} style={section}>
@@ -197,7 +198,7 @@ export default function AccountModal({ onClose }) {
             placeholder={t('auth.newPasswordPlaceholder', { min: MIN_PASSWORD_LENGTH })} autoComplete="new-password" style={{ ...input, marginBottom: '8px' }} />
           <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
             placeholder={t('auth.confirmPassword')} autoComplete="new-password" style={{ ...input, marginBottom: '8px' }} />
-          {passwordError && <p style={{ color: '#F87171', fontSize: '13px', marginBottom: '8px' }}>{passwordError}</p>}
+          {passwordError && <p style={{ color: 'var(--danger)', fontSize: '13px', marginBottom: '8px' }}>{passwordError}</p>}
           <button type="submit" disabled={savingPassword || !password} style={smallBtn}>
             {savingPassword && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />} {t('account.updatePassword')}
           </button>
@@ -219,15 +220,19 @@ export default function AccountModal({ onClose }) {
         </div>
 
         <div style={section}>
+          <AppearanceSettings />
+        </div>
+
+        <div style={section}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}><span style={{ ...label, marginBottom: 0 }} id="account-findable">{t('account.findable')}</span><Hint id="findable" label={t('account.findable')} /></div>
           <div role="radiogroup" aria-labelledby="account-findable" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {['managers', 'crew'].map(v => (
               <label key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
                 <input type="radio" name="findable" checked={(profile?.findable_by || 'managers') === v} onChange={() => changeFindable(v)}
-                  style={{ marginTop: '3px', accentColor: '#1EC878' }} />
+                  style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
                 <span>
                   <span style={{ fontWeight: 600 }}>{t(`account.findableOpt.${v}`)}</span>
-                  <span style={{ display: 'block', color: '#7D93A9', fontSize: '12px', marginTop: '2px', lineHeight: 1.5 }}>{t(`account.findableHint.${v}`)}</span>
+                  <span style={{ display: 'block', color: 'var(--muted)', fontSize: '12px', marginTop: '2px', lineHeight: 1.5 }}>{t(`account.findableHint.${v}`)}</span>
                 </span>
               </label>
             ))}
@@ -237,10 +242,10 @@ export default function AccountModal({ onClose }) {
         <div style={section}>
           <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
             <input type="checkbox" checked={profile?.email_digest !== false} onChange={e => changeDigest(e.target.checked)}
-              style={{ marginTop: '3px', accentColor: '#1EC878' }} />
+              style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
             <span>
               <span style={{ fontWeight: 600 }}>{t('account.emailDigest')}</span>
-              <span style={{ display: 'block', color: '#7D93A9', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.emailDigestHint')}</span>
+              <span style={{ display: 'block', color: 'var(--muted)', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.emailDigestHint')}</span>
             </span>
           </label>
         </div>
@@ -257,16 +262,16 @@ export default function AccountModal({ onClose }) {
             <button onClick={exportData} disabled={exporting} style={smallBtn}>
               {exporting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={14} />} {t('account.export')}
             </button>
-            <button onClick={deleteAccount} disabled={deleting} style={{ ...smallBtn, background: 'transparent', borderColor: 'rgba(239,68,68,0.3)', color: '#F87171' }}>
+            <button onClick={deleteAccount} disabled={deleting} style={{ ...smallBtn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--danger) 30%, transparent)', color: 'var(--danger)' }}>
               {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} {t('account.delete')}
             </button>
           </div>
-          <p style={{ color: '#7D93A9', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }}>
-            {t('account.privacyPrefix')} <a href="/privacy" target="_blank" rel="noopener" style={{ color: '#1EC878' }}>{t('auth.agreePrivacy')}</a> {t('account.privacySuffix')}
+          <p style={{ color: 'var(--muted)', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }}>
+            {t('account.privacyPrefix')} <a href="/privacy" target="_blank" rel="noopener" style={{ color: 'var(--accent-text)' }}>{t('auth.agreePrivacy')}</a> {t('account.privacySuffix')}
           </p>
         </div>
 
-        <button onClick={signOut} style={{ ...smallBtn, background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.25)', color: '#F87171', width: '100%', justifyContent: 'center' }}>
+        <button onClick={signOut} style={{ ...smallBtn, background: 'color-mix(in srgb, var(--danger) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--danger) 25%, transparent)', color: 'var(--danger)', width: '100%', justifyContent: 'center' }}>
           <LogOut size={14} /> {t('account.signOut')}
         </button>
       </div>
@@ -279,22 +284,22 @@ const overlay = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'calc(16px + var(--safe-top)) 16px 16px'
 }
 const panel = {
-  background: '#0F1520', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px',
-  padding: '24px', width: '100%', maxWidth: '420px', animation: 'fadeIn 0.2s ease', color: '#fff',
+  background: 'var(--panel)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '18px',
+  padding: '24px', width: '100%', maxWidth: '420px', animation: 'fadeIn 0.2s ease', color: 'var(--text)',
   maxHeight: 'calc(100vh - 32px - var(--safe-top))', overflowY: 'auto'
 }
-const section = { marginBottom: '22px', paddingBottom: '22px', borderBottom: '1px solid rgba(255,255,255,0.06)' }
+const section = { marginBottom: '22px', paddingBottom: '22px', borderBottom: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)' }
 const label = {
-  display: 'block', fontSize: '12px', fontWeight: 600, color: '#7D93A9',
+  display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--muted)',
   textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px'
 }
 const input = {
-  width: '100%', padding: '10px 13px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.09)',
-  borderRadius: '9px', color: '#fff', fontSize: '14px', outline: 'none'
+  width: '100%', padding: '10px 13px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)',
+  borderRadius: '9px', color: 'var(--text)', fontSize: '14px', outline: 'none'
 }
 const smallBtn = {
   display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 14px', borderRadius: '9px',
-  border: '1px solid rgba(30,200,120,0.3)', background: 'rgba(30,200,120,0.12)', color: '#1EC878',
+  border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-text)',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0
 }
-const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: '#7D93A9', padding: '4px', display: 'flex' }
+const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '4px', display: 'flex' }

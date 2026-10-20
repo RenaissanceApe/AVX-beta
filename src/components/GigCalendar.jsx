@@ -1,16 +1,16 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react'
 import { monthMatrix, gigsOnDay, toDateStr } from '../lib/calendar'
-import { colors, iconBtn, btn } from './ui'
+import { colors, iconBtn, btn, tint } from './ui'
 import { useI18n, fmt } from '../i18n'
 
 const STATUS_COLOR = {
-  draft: '#7D93A9', confirmed: '#60A5FA', active: '#1EC878', completed: '#A78BFA', archived: '#374151',
+  draft: 'var(--muted)', confirmed: 'var(--info)', active: 'var(--accent)', completed: 'var(--purple)', archived: 'var(--soft)',
 }
 // Monday-first weekday labels in the current language (2026-06-01 is a Monday)
 const weekdays = () => Array.from({ length: 7 }, (_, i) => fmt(`2026-06-0${i + 1}`, 'EEE'))
 
-const AMBER = '#F59E0B'
+const AMBER = 'var(--warn)'
 
 // Month view of gigs. Multi-day gigs appear on every day they run. Gigs in clashIds
 // (double bookings in My work) get an amber outline and a warning sign.
@@ -65,11 +65,11 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
             <div key={day} role="gridcell" className="cal-cell" aria-selected={selected === day}
               onClick={() => setSelected(s => (s === day ? null : day))} style={{
               minHeight: '76px', padding: '4px', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer',
-              background: inMonth ? 'rgba(255,255,255,0.03)' : 'transparent',
-              border: day === selected ? '1px solid #fff' : day === today ? `1px solid ${colors.accent}` : `1px solid ${colors.border}`,
+              background: inMonth ? 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)' : 'transparent',
+              border: day === selected ? '1px solid var(--text)' : day === today ? `1px solid ${colors.accent}` : `1px solid ${colors.border}`,
               opacity: inMonth ? 1 : 0.45,
             }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: day === today ? colors.accent : colors.muted, marginBottom: '3px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: day === today ? colors.accentText : colors.muted, marginBottom: '3px' }}>
                 {Number(day.slice(8))}
               </div>
               <div className="cal-dots" aria-hidden>
@@ -81,8 +81,8 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
                 {dayGigs.slice(0, 3).map(g => (
                   <button key={g.id} onClick={e => { e.stopPropagation(); onOpen(g) }} title={clashes(g) ? `${g.name} · ${t('clash.doubleBooking')}` : g.name} style={{
                     display: 'block', width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
-                    fontSize: '11px', fontWeight: 600, color: '#fff', padding: '2px 4px', borderRadius: '4px',
-                    background: `${STATUS_COLOR[g.status] || colors.muted}55`, borderLeft: `3px solid ${STATUS_COLOR[g.status] || colors.muted}`,
+                    fontSize: '11px', fontWeight: 600, color: 'var(--text)', padding: '2px 4px', borderRadius: '4px',
+                    background: tint(STATUS_COLOR[g.status] || colors.muted, 33), borderLeft: `3px solid ${STATUS_COLOR[g.status] || colors.muted}`,
                     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     outline: clashes(g) ? `1px solid ${AMBER}` : 'none', outlineOffset: '-1px',
                   }}>{clashes(g) && <AlertTriangle size={9} color={AMBER} style={{ marginRight: '3px', verticalAlign: '-1px' }} />}{g.name}</button>
@@ -103,8 +103,8 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
           ) : selectedGigs.map(g => (
             <button key={g.id} onClick={() => onOpen(g)} style={{
               display: 'flex', alignItems: 'center', gap: '8px', width: '100%', textAlign: 'left', cursor: 'pointer',
-              padding: '10px 12px', marginBottom: '6px', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: 600,
-              background: 'rgba(255,255,255,0.03)', border: `1px solid ${colors.border}`,
+              padding: '10px 12px', marginBottom: '6px', borderRadius: '10px', color: 'var(--text)', fontSize: '14px', fontWeight: 600,
+              background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`,
             }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: STATUS_COLOR[g.status] || colors.muted, flexShrink: 0 }} />
               <span style={{ flex: 1, minWidth: 0 }}>{g.name}</span>

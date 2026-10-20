@@ -43,7 +43,7 @@ export default function AvailabilityRequests({ onAnswered }) {
   if (!requests.length) return null
   return (
     <section id="requests" ref={ref} aria-labelledby="requests-title" style={{ marginBottom: '24px' }}>
-      <h2 id="requests-title" style={{ fontSize: '12px', fontWeight: 700, color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <h2 id="requests-title" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--warn)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
         <MessageCircleQuestion size={14} /> {t('requests.title', { count: requests.length })}
       </h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -80,14 +80,14 @@ function RequestCard({ request: r, onDone }) {
   }
 
   return (
-    <div style={{ padding: '14px 16px', borderRadius: '14px', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.3)' }}>
+    <div style={{ padding: '14px 16px', borderRadius: '14px', background: 'color-mix(in srgb, var(--warn) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--warn) 30%, transparent)' }}>
       <div style={{ fontSize: '13px', color: colors.soft, marginBottom: '4px' }}>
         {t('requests.asks', { name: r.asked_by_name || t('common.someone'), when: ago(r.created_at) })}
       </div>
       <div style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px' }}>{r.gig_name}</div>
       <div style={{ display: 'flex', gap: '4px 14px', flexWrap: 'wrap', fontSize: '13px', color: colors.muted }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Building2 size={12} /> {r.company}</span>
-        {r.starts_at && <strong style={{ color: '#fff' }}>{rangeText(r.starts_at, r.ends_at)}</strong>}
+        {r.starts_at && <strong style={{ color: 'var(--text)' }}>{rangeText(r.starts_at, r.ends_at)}</strong>}
         {r.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {r.venue}</span>}
       </div>
       {r.message && <p style={{ fontSize: '13px', marginTop: '8px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>“{r.message}”</p>}
@@ -97,7 +97,7 @@ function RequestCard({ request: r, onDone }) {
         <button onClick={() => answer('available')} disabled={!!saving} style={btn}>
           {saving === 'available' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />} {t('requests.available')}
         </button>
-        <button onClick={() => answer('unavailable')} disabled={!!saving} style={{ ...btn, background: 'transparent', borderColor: 'rgba(239,68,68,0.35)', color: colors.danger }}>
+        <button onClick={() => answer('unavailable')} disabled={!!saving} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--danger) 35%, transparent)', color: colors.danger }}>
           {saving === 'unavailable' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <X size={14} />} {t('requests.unavailable')}
         </button>
       </div>

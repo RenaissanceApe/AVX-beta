@@ -19,8 +19,8 @@ import { MovementList, useNames, LOCATION_ICONS } from './InventoryPage'
 import { btn, btnPrimary, iconBtn, card, label, colors } from '../components/ui'
 import { PageHelp } from '../components/help/HelpParts'
 
-const STATUS_COLOR = { available: colors.accent, repair: '#F59E0B', lost: colors.danger, retired: colors.muted }
-const ghost = { ...btn, background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }
+const STATUS_COLOR = { available: colors.accent, repair: 'var(--warn)', lost: colors.danger, retired: colors.muted }
+const ghost = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }
 const small = { ...ghost, padding: '5px 9px', fontSize: '12px' }
 
 // One catalogue item: details, stock per location (bulk) or per unit (serial), history.
@@ -65,7 +65,7 @@ export default function InventoryItemPage() {
   useEffect(() => { if (inv.canManage) loadDetails() }, [itemId, inv.canManage]) // eslint-disable-line react-hooks/exhaustive-deps
   const refresh = () => { inv.reload(); loadDetails() }
 
-  if (inv.loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (inv.loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
   if (!inv.canManage || !item) return (
     <AppShell>
       <div style={{ maxWidth: '420px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
@@ -110,10 +110,10 @@ export default function InventoryItemPage() {
             <div style={{ fontSize: '12px', color: colors.muted }}>{[item.category, t(`lineKind.${item.kind}`)].filter(Boolean).join(' · ')}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px', overflowWrap: 'anywhere', minWidth: 0 }}>{item.name}</h1><PageHelp page="inventory-item" /></div>
             <div style={{ fontSize: '13px', color: colors.soft, display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px' }}>
-              {item.code && <span style={{ fontFamily: 'monospace' }}>{item.code}</span>}
-              {item.kit_type ? <span style={{ color: colors.accent }}>{t(`kit.typeOpt.${item.kit_type}`)}</span> : null}
+              {item.code && <span style={{ fontFamily: 'var(--font-mono)' }}>{item.code}</span>}
+              {item.kit_type ? <span style={{ color: colors.accentText }}>{t(`kit.typeOpt.${item.kit_type}`)}</span> : null}
               {item.kit_type !== 'set' && <span>{t(`inv.trackingOpt.${item.tracking}`)}</span>}
-              {item.archived_at && <span style={{ color: '#F59E0B' }}>{t('inv.archived')}</span>}
+              {item.archived_at && <span style={{ color: 'var(--warn)' }}>{t('inv.archived')}</span>}
             </div>
           </div>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -139,8 +139,8 @@ export default function InventoryItemPage() {
         <section style={{ marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
             <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto' }}>
-              {t('inv.stock')}{item.tracking !== 'none' && <span style={{ color: low ? '#F59E0B' : colors.soft, fontWeight: 600 }}> · {s?.total || 0}</span>}
-              {low && <span style={{ fontSize: '12px', color: '#F59E0B', marginLeft: '8px' }}><AlertTriangle size={12} style={{ verticalAlign: '-1px' }} /> {t('inv.belowMin', { count: item.min_stock })}</span>}
+              {t('inv.stock')}{item.tracking !== 'none' && <span style={{ color: low ? 'var(--warn)' : colors.soft, fontWeight: 600 }}> · {s?.total || 0}</span>}
+              {low && <span style={{ fontSize: '12px', color: 'var(--warn)', marginLeft: '8px' }}><AlertTriangle size={12} style={{ verticalAlign: '-1px' }} /> {t('inv.belowMin', { count: item.min_stock })}</span>}
             </h2>
             {item.tracking === 'bulk' && !item.archived_at && (
               <>
@@ -160,8 +160,8 @@ export default function InventoryItemPage() {
             </div>
           )}
           {item.tracking !== 'none' && inv.activeLocations.length === 0 && (
-            <p style={{ fontSize: '13px', color: '#F59E0B', marginBottom: '10px' }}>
-              {t('inv.noLocationsYet')} <Link to={`/org/${orgId}/inventory?tab=locations`} style={{ color: colors.accent }}>{t('inv.addLocation')}</Link>
+            <p style={{ fontSize: '13px', color: 'var(--warn)', marginBottom: '10px' }}>
+              {t('inv.noLocationsYet')} <Link to={`/org/${orgId}/inventory?tab=locations`} style={{ color: colors.accentText }}>{t('inv.addLocation')}</Link>
             </p>
           )}
 
@@ -205,14 +205,14 @@ export default function InventoryItemPage() {
                     }}>
                       <input type="checkbox" checked={selected.includes(u.id)} onChange={() => toggle(u.id)} aria-label={t('inv.selectUnit', { code: u.code })} style={{ accentColor: colors.accent }} />
                       <span style={{ flex: '1 1 180px', minWidth: 0 }}>
-                        <span style={{ display: 'block', fontFamily: 'monospace', fontSize: '13px', fontWeight: 700 }}>{u.code}</span>
+                        <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700 }}>{u.code}</span>
                         <span style={{ fontSize: '12px', color: colors.muted }}>
                           {[u.serial ? `${t('inv.serial')} ${u.serial}` : t('inv.noSerial'), u.case_unit_id && t('kit.inCase', { code: u.in_case?.code || '…' })].filter(Boolean).join(' · ')}
                         </span>
                       </span>
                       <span style={{ fontSize: '13px', color: colors.soft, flex: '1 1 120px' }}>
                         {u.out_on_gig
-                          ? <Link to={`/gig/${u.out_on_gig}?tab=equipment`} style={{ color: '#38BDF8' }}>{t('inv.outOn', { gig: u.out_gig?.name || '…' })}</Link>
+                          ? <Link to={`/gig/${u.out_on_gig}?tab=equipment`} style={{ color: 'var(--sky)' }}>{t('inv.outOn', { gig: u.out_gig?.name || '…' })}</Link>
                           : inv.locationName(u.location_id) || t('inv.noLocation')}
                       </span>
                       <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: STATUS_COLOR[u.status] }}>{t(`inv.unitStatus.${u.status}`)}</span>
@@ -281,14 +281,14 @@ function Bookings({ item, owned }) {
   return (
     <section style={{ marginBottom: '24px' }}>
       <h2 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '4px' }}>{t('inv.bookings')}</h2>
-      <p style={{ fontSize: '12px', color: tight ? '#F59E0B' : colors.muted, marginBottom: '8px' }}>
+      <p style={{ fontSize: '12px', color: tight ? 'var(--warn)' : colors.muted, marginBottom: '8px' }}>
         {tight ? t('inv.daysFullyBooked', { count: tight, days: DAYS }) : t('inv.freeNextDays', { days: DAYS })}
       </p>
       <div role="img" aria-label={t('inv.availabilityStrip', { days: DAYS })} style={{ display: 'grid', gridTemplateColumns: `repeat(${DAYS}, 1fr)`, gap: '2px', marginBottom: '4px' }}>
         {days.map(d => (
           <div key={d.day} title={`${fmt(d.day, 'EEE d MMM')}: ${t('inv.freeOn', { free: Math.max(0, d.free), owned })}`} style={{
             height: '26px', borderRadius: '3px',
-            background: d.free <= 0 ? 'rgba(245,158,11,0.85)' : d.booked ? `rgba(30,200,120,${0.25 + 0.5 * (1 - d.free / Math.max(1, owned))})` : 'rgba(255,255,255,0.06)',
+            background: d.free <= 0 ? 'color-mix(in srgb, var(--warn) 85%, transparent)' : d.booked ? `color-mix(in srgb, var(--accent) ${Math.round(25 + 50 * (1 - d.free / Math.max(1, owned)))}%, transparent)` : 'color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)',
           }} />
         ))}
       </div>
@@ -301,7 +301,7 @@ function Bookings({ item, owned }) {
             <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'baseline', padding: '7px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px', flexWrap: 'wrap' }}>
               <span style={{ color: colors.soft, minWidth: '120px' }}>{rangeText(b.starts_at, b.ends_at)}</span>
               <span style={{ flex: '1 1 160px', minWidth: 0 }}>
-                {b.gig_id ? <Link to={`/gig/${b.gig_id}?tab=equipment`} style={{ color: '#fff' }}>{b.gig_name}</Link> : '—'}
+                {b.gig_id ? <Link to={`/gig/${b.gig_id}?tab=equipment`} style={{ color: 'var(--text)' }}>{b.gig_name}</Link> : '—'}
                 {b.status === 'hold' && <span style={{ fontSize: '11px', color: colors.muted }}> · {t('clash.hold')}</span>}
               </span>
               <strong>× {b.quantity}</strong>

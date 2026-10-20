@@ -37,12 +37,12 @@ const SupplierLinkPage = lazy(() => import('./pages/SupplierLinkPage'))
 function Spinner() {
   return (
     <div style={{
-      minHeight: '100vh', background: '#080C14',
+      minHeight: '100vh', background: 'var(--bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
       <div role="status" aria-label={t('common.loading')} style={{
-        width: '32px', height: '32px', border: '3px solid rgba(30,200,120,0.2)',
-        borderTopColor: '#1EC878', borderRadius: '50%',
+        width: '32px', height: '32px', border: '3px solid color-mix(in srgb, var(--accent) 20%, transparent)',
+        borderTopColor: 'var(--accent)', borderRadius: '50%',
         animation: 'spin 0.8s linear infinite'
       }} />
     </div>

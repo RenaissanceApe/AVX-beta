@@ -19,7 +19,7 @@ export const ICONS = {
   package: Package, mapPin: MapPin, history: History, qrCode: QrCode, wrench: Wrench, handshake: Handshake, barChart: BarChart3,
 }
 // Each section has its own tint so the menus are easy to tell apart at a glance
-const TINTS = { work: '30,200,120', gigs: '30,200,120', quotes: '56,189,248', inventory: '251,146,60', organisation: '167,139,250', organisations: '251,191,36' }
+const TINTS = { work: 'var(--accent-text)', gigs: 'var(--accent-text)', quotes: 'var(--sky)', inventory: 'var(--orange)', organisation: 'var(--purple)', organisations: 'var(--yellow)' }
 
 // Signed-in screens share this frame: the logo (always home), the workspace switcher,
 // section menus (desktop) or a bottom tab bar (phones), notifications and account.
@@ -44,7 +44,7 @@ export default function AppShell({ children }) {
       <style>{SHELL_CSS}</style>
       <header className="shell-bar">
         <Link to={homePath(workspace)} className="shell-logo" aria-label={`AVX — ${t('nav.home')}`} title={t('nav.home')}>
-          <span className="shell-logo-mark"><Zap size={15} color="#fff" fill="#fff" /></span>
+          <span className="shell-logo-mark"><Zap size={15} color="var(--on-accent)" fill="var(--on-accent)" /></span>
           <span className="shell-logo-text">AVX</span>
         </Link>
         <span className="shell-divider" aria-hidden="true" />
@@ -133,7 +133,7 @@ function WorkspaceSwitcher() {
             <span className="shell-orgmark shell-orgmark-me" aria-hidden="true"><Briefcase size={12} /></span>
             <span className="shell-ws-text"><strong>{t('nav.myWork')}</strong><small>{t('nav.myWorkDesc')}</small></span>
             <UnreadMark count={unreadMyWork} />
-            {workspace === MY_WORK && <Check size={15} color={colors.accent} />}
+            {workspace === MY_WORK && <Check size={15} color={colors.accentText} />}
           </button>
           {orgs.map(o => (
             <button key={o.id} role="menuitemradio" aria-checked={workspace === o.id} className="shell-ws" onClick={() => pick(o.id)}>
@@ -141,7 +141,7 @@ function WorkspaceSwitcher() {
               <span className="shell-ws-text"><strong>{o.name}</strong></span>
               <RoleChip role={o.myRole} />
               <UnreadMark count={unreadIn(o.id)} muted={mutedIds?.has(o.id)} />
-              {workspace === o.id && <Check size={15} color={colors.accent} />}
+              {workspace === o.id && <Check size={15} color={colors.accentText} />}
             </button>
           ))}
           <div className="shell-pop-sep" />
@@ -277,72 +277,72 @@ function PhoneTabs({ sections, onAccount }) {
 const GRAIN = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")"
 
 const SHELL_CSS = `
-  .shell { min-height: 100vh; background: ${colors.bg}; color: #fff; }
+  .shell { min-height: 100vh; background: ${colors.bg}; color: var(--text); }
   .shell-bar { position: sticky; top: var(--safe-top); z-index: 60; height: 60px; display: flex; align-items: center; gap: 10px;
-    padding: 0 18px; background: rgba(8,12,20,0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(255,255,255,0.06); }
-  .shell-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: #fff; border-radius: 10px; padding: 4px; }
-  .shell-logo:hover .shell-logo-mark { box-shadow: 0 0 18px rgba(30,200,120,0.55); }
+    padding: 0 18px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent); }
+  .shell-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); border-radius: 10px; padding: 4px; }
+  .shell-logo:hover .shell-logo-mark { box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent); }
   .shell-logo-mark { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, #1EC878, #0FA85A); box-shadow: 0 0 12px rgba(30,200,120,0.3); transition: box-shadow .2s; }
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 30%, transparent); transition: box-shadow .2s; }
   .shell-logo-text { font-weight: 800; font-size: 18px; letter-spacing: -0.3px; }
-  .shell-divider { width: 1px; height: 22px; background: rgba(255,255,255,0.08); }
+  .shell-divider { width: 1px; height: 22px; background: color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent); }
   .shell-switcher, .shell-section { position: relative; }
   .shell-switch-btn { display: flex; align-items: center; gap: 8px; max-width: 380px; padding: 6px 10px; border-radius: 10px; cursor: pointer;
-    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #fff; font-size: 14px; font-weight: 700; }
-  .shell-switch-btn:hover { border-color: rgba(30,200,120,0.35); }
+    background: color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent); border: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent); color: var(--text); font-size: 14px; font-weight: 700; }
+  .shell-switch-btn:hover { border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
   .shell-switch-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .shell-chevron { color: ${colors.soft}; flex-shrink: 0; }
   .shell-orgmark { flex-shrink: 0; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800;
-    background: linear-gradient(135deg, rgba(167,139,250,0.9), rgba(99,102,241,0.9)); color: #0b0f19; }
-  .shell-orgmark-me { width: 22px; height: 22px; background: linear-gradient(135deg, #1EC878, #0FA85A); color: #04110a; }
+    background: linear-gradient(135deg, color-mix(in srgb, var(--purple) 90%, transparent), color-mix(in srgb, var(--purple) 90%, transparent)); color: var(--on-accent); }
+  .shell-orgmark-me { width: 22px; height: 22px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--on-accent); }
   .shell-role { flex-shrink: 0; font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; }
-  .shell-role-admin { color: #FBBF24; background: rgba(251,191,36,0.14); }
-  .shell-role-member { color: #38BDF8; background: rgba(56,189,248,0.14); }
-  .shell-role-viewer { color: ${colors.soft}; background: rgba(138,155,174,0.14); }
+  .shell-role-admin { color: var(--yellow); background: color-mix(in srgb, var(--yellow) 14%, transparent); }
+  .shell-role-member { color: var(--sky); background: color-mix(in srgb, var(--sky) 14%, transparent); }
+  .shell-role-viewer { color: ${colors.soft}; background: color-mix(in srgb, var(--soft) 14%, transparent); }
   .shell-sections { display: flex; gap: 2px; margin-left: 8px; }
   .shell-section-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; border-radius: 9px; border: none; cursor: pointer;
     background: transparent; color: ${colors.soft}; font-size: 14px; font-weight: 600; }
-  .shell-section-btn:hover, .shell-section-btn[aria-expanded="true"] { color: #fff; background: rgba(255,255,255,0.05); }
-  .shell-section-btn.is-active { color: ${colors.accent}; }
+  .shell-section-btn:hover, .shell-section-btn[aria-expanded="true"] { color: var(--text); background: color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent); }
+  .shell-section-btn.is-active { color: ${colors.accentText}; }
   .shell-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-  .shell-avatar { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; font-size: 12px; font-weight: 700; color: #fff;
-    background: linear-gradient(135deg, #1EC878, #0FA85A); }
-  .shell-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 70; border-radius: 18px; padding: 14px; color: #fff;
-    background-color: rgba(15,21,32,0.97); background-image: ${GRAIN}, linear-gradient(160deg, rgba(var(--tint, 30,200,120),0.12), rgba(255,255,255,0.02) 55%);
+  .shell-avatar { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--on-accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+  .shell-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 70; border-radius: 18px; padding: 14px; color: var(--text);
+    background-color: color-mix(in srgb, var(--panel) 97%, transparent); background-image: ${GRAIN}, linear-gradient(160deg, color-mix(in srgb, var(--tint, var(--accent)) 12%, transparent), color-mix(in srgb, var(--fg) min(100%, calc(2% * var(--line-k))), transparent) 55%);
     backdrop-filter: blur(22px) saturate(140%); -webkit-backdrop-filter: blur(22px) saturate(140%);
-    border: 1px solid rgba(255,255,255,0.09); box-shadow: 0 24px 60px rgba(0,0,0,0.55); animation: shellIn .16s ease; }
+    border: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent); box-shadow: 0 24px 60px rgba(0,0,0,0.55); animation: shellIn .16s ease; }
   @keyframes shellIn { from { opacity: 0; transform: translateY(-4px) } to { opacity: 1; transform: none } }
   .shell-switch-pop { width: 330px; }
   .shell-pop-title { font-size: 11px; font-weight: 700; color: ${colors.muted}; text-transform: uppercase; letter-spacing: .08em; margin: 2px 6px 8px; }
   .shell-ws { width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 11px; border: none; cursor: pointer;
-    background: transparent; color: #fff; text-align: left; }
-  .shell-ws:hover { background: rgba(255,255,255,0.06); }
+    background: transparent; color: var(--text); text-align: left; }
+  .shell-ws:hover { background: color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent); }
   .shell-ws-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .shell-ws-text strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .shell-ws-text small { font-size: 12px; color: ${colors.soft}; }
-  .shell-unread { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: ${colors.accent}; color: #04110a;
+  .shell-unread { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: ${colors.accent}; color: var(--on-accent);
     font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; flex-shrink: 0; }
   .shell-muted { color: ${colors.muted}; display: inline-flex; flex-shrink: 0; }
   .shell-unread-dot { width: 7px; height: 7px; border-radius: 50%; background: ${colors.accent}; flex-shrink: 0; }
-  .shell-pop-sep { height: 1px; background: rgba(255,255,255,0.07); margin: 8px 4px; }
+  .shell-pop-sep { height: 1px; background: color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent); margin: 8px 4px; }
   .shell-pop-link { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 9px; color: ${colors.soft}; font-size: 13px; font-weight: 600;
     text-decoration: none; background: none; border: none; cursor: pointer; width: 100%; text-align: left; }
-  .shell-pop-link:hover { color: #fff; background: rgba(255,255,255,0.05); }
+  .shell-pop-link:hover { color: var(--text); background: color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent); }
   .shell-panel { display: flex; gap: 14px; width: max-content; max-width: min(760px, calc(100vw - 40px)); }
   .shell-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; min-width: 330px; flex: 1; }
   .shell-panel .shell-cards { grid-template-columns: repeat(var(--cols, 3), 158px); min-width: 0; }
-  .shell-card { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 14px; border-radius: 15px; text-decoration: none; color: #fff;
-    background-image: ${GRAIN}, linear-gradient(145deg, rgba(var(--tint),0.22), rgba(var(--tint),0.05) 70%);
-    border: 1px solid rgba(var(--tint),0.22); transition: transform .15s, border-color .15s, background-color .15s; }
-  .shell-card:hover, .shell-card:focus-visible { transform: translateY(-2px); border-color: rgba(var(--tint),0.55); background-color: rgba(var(--tint),0.06); outline: none; }
+  .shell-card { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 14px; border-radius: 15px; text-decoration: none; color: var(--text);
+    background-image: ${GRAIN}, linear-gradient(145deg, color-mix(in srgb, var(--tint) 22%, transparent), color-mix(in srgb, var(--tint) 5%, transparent) 70%);
+    border: 1px solid color-mix(in srgb, var(--tint) 22%, transparent); transition: transform .15s, border-color .15s, background-color .15s; }
+  .shell-card:hover, .shell-card:focus-visible { transform: translateY(-2px); border-color: color-mix(in srgb, var(--tint) 55%, transparent); background-color: color-mix(in srgb, var(--tint) 6%, transparent); outline: none; }
   .shell-card-icon { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;
-    background: rgb(var(--tint)); color: #071018; box-shadow: 0 6px 16px rgba(var(--tint),0.35); }
+    background: color-mix(in srgb, var(--tint) 22%, var(--panel)); color: var(--tint); box-shadow: 0 6px 16px color-mix(in srgb, var(--tint) 20%, transparent); }
   .shell-card strong { font-size: 14px; }
   .shell-card small { font-size: 12px; color: ${colors.soft}; line-height: 1.4; }
-  .shell-sidelist { display: flex; flex-direction: column; gap: 2px; min-width: 170px; padding-left: 14px; border-left: 1px solid rgba(255,255,255,0.07); }
+  .shell-sidelist { display: flex; flex-direction: column; gap: 2px; min-width: 170px; padding-left: 14px; border-left: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent); }
   .shell-sidelink { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 9px; font-size: 13px; color: ${colors.soft}; text-decoration: none; }
-  .shell-sidelink:hover { color: #fff; background: rgba(255,255,255,0.05); }
+  .shell-sidelink:hover { color: var(--text); background: color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent); }
   .shell-main { padding-bottom: 0; }
   .shell-tabs { display: none; }
   .shell-icon-btn { background: none; border: none; color: ${colors.soft}; cursor: pointer; display: flex; padding: 4px; }
@@ -358,27 +358,27 @@ const SHELL_CSS = `
     .shell-switch-pop { width: calc(100vw - 24px); left: -48px; }
     .shell-main { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
     .shell-tabs { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
-      background: rgba(8,12,20,0.94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid rgba(255,255,255,0.07); }
+      background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent); }
     .shell-tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; border-radius: 10px; border: none;
       background: none; color: ${colors.muted}; font-size: 11px; font-weight: 600; text-decoration: none; cursor: pointer; }
-    .shell-tab.is-active { color: ${colors.accent}; }
+    .shell-tab.is-active { color: ${colors.accentText}; }
     .shell-sheet-backdrop { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,0.55); display: flex; align-items: flex-end; }
     .shell-sheet { width: 100%; max-height: 82vh; overflow-y: auto; border-radius: 22px 22px 0 0; padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
-      background: #111824; background-image: ${GRAIN}; border-top: 1px solid rgba(255,255,255,0.09); animation: shellUp .2s ease; }
+      background: var(--chrome); background-image: ${GRAIN}; border-top: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent); animation: shellUp .2s ease; }
     @keyframes shellUp { from { transform: translateY(30px); opacity: .6 } to { transform: none; opacity: 1 } }
     .shell-sheet-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
     .shell-sheet-head strong { font-size: 16px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .shell-sheet-head .shell-role + .shell-icon-btn, .shell-sheet-head strong + .shell-icon-btn { margin-left: auto; }
     .shell-sheet-ws { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; scrollbar-width: none; }
-    .shell-chip { flex-shrink: 0; padding: 7px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+    .shell-chip { flex-shrink: 0; padding: 7px 12px; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent); background: color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent);
       color: ${colors.soft}; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-    .shell-chip.is-active { color: ${colors.accent}; border-color: rgba(30,200,120,0.4); background: rgba(30,200,120,0.1); }
+    .shell-chip.is-active { color: ${colors.accentText}; border-color: color-mix(in srgb, var(--accent) 40%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
     .shell-sheet-section { margin-top: 12px; }
     .shell-cards-sheet { grid-template-columns: 1fr 1fr; min-width: 0; }
-    .shell-cards-sheet .shell-card { background-image: linear-gradient(145deg, rgba(var(--tint),0.2), rgba(var(--tint),0.04) 70%); }
-    .shell-sheet-foot { margin-top: 16px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.07); }
+    .shell-cards-sheet .shell-card { background-image: linear-gradient(145deg, color-mix(in srgb, var(--tint) 20%, transparent), color-mix(in srgb, var(--tint) 4%, transparent) 70%); }
+    .shell-sheet-foot { margin-top: 16px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent); }
   }
   @media (max-width: 899px) and (prefers-reduced-transparency: reduce), (max-width: 899px) and (update: slow) {
-    .shell-bar, .shell-tabs { backdrop-filter: none; -webkit-backdrop-filter: none; background: #0b111c; }
+    .shell-bar, .shell-tabs { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--chrome); }
   }
 `

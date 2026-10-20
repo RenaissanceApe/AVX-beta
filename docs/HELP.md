@@ -1,6 +1,6 @@
 # Help and inclusion: plan
 
-Status: **H1 built (0.29.0)**, **H2 built (0.30.0, 0.31.0)**; H3–H6 planned. A project of its own, built in stages H1–H6, and a
+Status: **H1 built (0.29.0)**, **H2 built (0.30.0, 0.31.0)**, **H3 built (0.32.0)**; H4–H6 planned. A project of its own, built in stages H1–H6, and a
 rule for every feature after it.
 
 The aim: anyone who works in events can use AVX without help from a colleague, whatever their
@@ -97,7 +97,7 @@ times a month. The app has to explain itself in the moment, in plain words.
 |---|---|---|
 | **H1 · Foundations** | Help content files (PT/EN) and tests; glossary page and tappable terms; ⓘ hints on the first batch of fields; **?** on page headers; accessibility checks (axe) in the browser tests; the "part of done" rule in CONTRIBUTING | 1 PR |
 | **H2 · Guides** | ✅ H2a (0.30.0): guide format and side panel; screenshot script; crew and production-manager guides. ✅ H2b (0.31.0): warehouse, office and admin | 2 PRs |
-| **H3 · Comfort** | Colours as theme tokens; light theme (first), then high contrast; text size, comfortable mode, readable font | 1–2 PRs |
+| **H3 · Comfort** | ✅ (0.32.0) Colours as theme tokens; light and high-contrast themes; text size, comfortable mode, readable font | 1 PR |
 | **H4 · First steps** | Teaching empty states everywhere; first-steps checklists per role; simple mode (automatic for crew-only people, a switch for everyone) | 1 PR |
 | **H5 · Field kit** | Scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on common actions; **equipment steps** (below) | 1–2 PRs |
 | **H6 · Reach** | Ask for help; more languages; SMS/WhatsApp notifications; short video guides | later, as needed |
@@ -223,6 +223,33 @@ rule the accessibility checks enforce.
 - **Screenshots:** 40 per language now (about 7 MB in all). The sample data gained locations,
   units, repairs and inspections due, a subrental, an accepted quote with versions, company
   details, a price list and organisation members.
+
+## What H3 built (0.32.0)
+
+- **Theme tokens** (`src/theme/tokens.js`): dark, light and high contrast, from the Lumen and
+  Pixel palette. Every screen uses them as CSS variables (`var(--text)`, `colors.accent`,
+  `tint(colour, %)`), written into the page by `src/main.jsx`. `tokens.test.js` checks that every
+  text colour is at least 4.5:1 on every background in every theme (7:1 for high contrast), and
+  fails if a screen writes a colour straight in instead of using the theme. Paper-like pages
+  (print, call sheet, packing list, labels, the client's quote, the supplier link) stay as they
+  are.
+- **The new look:** navy page (`#021829`) and the brand's lime (`#33FB31`) in the dark theme;
+  on light, the lime is a fill only and green text is olive. Text on green buttons is navy.
+- **Account → Appearance**, saved on each device: theme (dark, light, high contrast, or like the
+  device), text size (normal, large, extra large: the whole page grows, popovers still land in
+  the right place), comfortable mode (everything you tap at least 44 px) and the easy-to-read
+  font (Atkinson Hyperlegible). Applied before the page draws, so there's no flash.
+- **Fonts:** Nunito for the interface and Space Mono for codes, replacing DM Sans; all
+  self-hosted.
+- **Checks:** the accessibility tests also run in the light and high-contrast themes; a test
+  checks text size, font and comfortable mode apply on load.
+- **Checked by hand** on 13 signed-in screens in all three themes with axe: no serious findings.
+  Fixed on the way: light-theme status colours darkened so they stay readable on their own tints
+  (the token test now checks that too); a repair row had a link inside a button; the quote's
+  column headings hid a focusable ⓘ from screen readers; the quote's add-phase buttons sat
+  inside the list of tabs.
+- **Guide:** "Make AVX easier to read" (crew). Guide screenshots regenerated in the new look;
+  `HELP_THEME=light` renders them in another theme for checking.
 
 ## The rule for every new feature (from H1 on)
 

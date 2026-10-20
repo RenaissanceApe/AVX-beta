@@ -160,7 +160,7 @@ export default function GigPage() {
   if (loading && !data) return (
     <AppShell>
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Loader2 size={28} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+        <Loader2 size={28} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
       </div>
     </AppShell>
   )

@@ -9,7 +9,7 @@ import { track } from '../../lib/usage'
 import { t } from '../../i18n'
 import { Modal, card, colors } from '../ui'
 
-const AMBER = '#F59E0B'
+const AMBER = 'var(--warn)'
 
 // Is the quoted equipment free on the quote's dates? Lines picked from the catalogue are
 // checked against stock and other bookings (the quote's own gig doesn't count against it).
@@ -40,12 +40,12 @@ export default function QuoteAvailabilityModal({ quote, body, org, onClose }) {
       ) : !needs.length ? (
         <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6 }}>{t('quoteAvail.noItems')}</p>
       ) : !rows ? (
-        <Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+        <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
       ) : (
         <>
           <p style={{ fontSize: '13px', color: colors.soft, marginBottom: '10px' }}>{t('quoteAvail.window', { range: rangeText(win.from, win.until) })}</p>
           <div role="status" style={{ ...card, marginBottom: '12px', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'center',
-            color: short.length ? AMBER : colors.accent, borderColor: short.length ? 'rgba(245,158,11,0.4)' : 'rgba(30,200,120,0.3)' }}>
+            color: short.length ? AMBER : colors.accentText, borderColor: short.length ? 'color-mix(in srgb, var(--warn) 40%, transparent)' : 'color-mix(in srgb, var(--accent) 30%, transparent)' }}>
             {short.length ? <AlertTriangle size={15} /> : <Check size={15} />}
             {short.length ? t('quoteAvail.short', { count: short.length }) : t('quoteAvail.allFree')}
           </div>
@@ -56,7 +56,7 @@ export default function QuoteAvailabilityModal({ quote, body, org, onClose }) {
                 <div key={r.item_id} style={{ display: 'flex', gap: '10px', alignItems: 'center', padding: '8px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
                   <span style={{ flex: 1, minWidth: 0 }}>{r.description}</span>
                   <span style={{ color: colors.muted, whiteSpace: 'nowrap' }}>{t('quoteAvail.need', { count: r.quantity })}</span>
-                  <span style={{ whiteSpace: 'nowrap', fontWeight: 700, color: missing ? AMBER : colors.accent }}>
+                  <span style={{ whiteSpace: 'nowrap', fontWeight: 700, color: missing ? AMBER : colors.accentText }}>
                     {r.missingItem ? t('quoteAvail.notInCatalogue') : missing ? t('equip.short', { count: missing, free: Math.max(0, r.available) }) : t('equip.freeOf', { count: r.available, owned: r.owned })}
                   </span>
                 </div>

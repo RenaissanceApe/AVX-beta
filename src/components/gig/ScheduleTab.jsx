@@ -78,7 +78,7 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
 
       {groups.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: colors.muted }}>
-          <CalendarClock size={28} color={colors.accent} style={{ marginBottom: '12px' }} />
+          <CalendarClock size={28} color={colors.accentText} style={{ marginBottom: '12px' }} />
           <p style={{ fontSize: '14px' }}>{canManage ? t('schedule.emptyManager') : t('schedule.empty')}</p>
         </div>
       ) : groups.map(g => (
@@ -87,7 +87,7 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {g.items.map(item => (
               <div key={item.id} style={{ ...card, display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                <div style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: colors.accent, minWidth: '92px', fontSize: '14px' }}>
+                <div style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: colors.accentText, minWidth: '92px', fontSize: '14px' }}>
                   {shortTime(item.start_time)}{item.end_time ? `–${shortTime(item.end_time)}` : ''}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>

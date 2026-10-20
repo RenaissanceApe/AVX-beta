@@ -202,6 +202,18 @@ export default {
         'Não continue a usar equipamento que não seja seguro, sobretudo o que liga à corrente.',
       ],
     },
+    'crew-appearance': {
+      title: 'Tornar o AVX mais fácil de ler',
+      intro: 'Sol forte, ecrã pequeno, olhos cansados: mude o aspeto do AVX neste telemóvel ou computador.',
+      steps: [
+        'Toque nas suas iniciais, no canto superior direito, para abrir a sua conta.',
+        'Em Aparência, escolha o tema: Claro para o sol, Alto contraste para a maior diferença, ou Como o dispositivo. Escolha também o tamanho do texto.',
+        'Ligue o Modo confortável para botões maiores (com luvas, em movimento) e a letra fácil de ler se as letras se confundirem.',
+      ],
+      mistakes: [
+        'Estas escolhas ficam guardadas em cada dispositivo. Volte a escolhê-las no seu outro telemóvel ou computador.',
+      ],
+    },
     'crew-offline': {
       title: 'Usar o AVX sem rede',
       intro: 'Recintos e caves muitas vezes não têm rede. Prepare-se antes de sair e o evento fica no telemóvel.',

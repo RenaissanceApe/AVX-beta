@@ -15,7 +15,7 @@ import { TabHeader } from './parts'
 import ReportDamageModal from './ReportDamageModal'
 import { SubrentalModal, GigSubrentals } from '../inventory/SubrentalPanels'
 
-const AMBER = '#F59E0B'
+const AMBER = 'var(--warn)'
 const fromLocalInput = v => (v ? new Date(v).toISOString() : null)
 
 // Equipment on a gig. Everyone on the gig sees the list; the gig's managers and the
@@ -99,7 +99,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
       })
   }, [altKey, gig.id, gig.start_date, gig.end_date]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!lines) return <Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+  if (!lines) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
   const rows = lines.map(l => ({ ...l, ...(status[l.id] || {}) }))
   const short = rows.filter(r => status[r.id] && shortBy(r) > 0)
   const weight = rows.reduce((s, r) => s + (Number(r.weight_kg) || 0) * r.quantity, 0)
@@ -126,7 +126,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
         </div>
       )}
       {short.length > 0 && (
-        <div role="status" style={{ ...card, borderColor: 'rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.06)', marginBottom: '14px', fontSize: '13px', color: AMBER, display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+        <div role="status" style={{ ...card, borderColor: 'color-mix(in srgb, var(--warn) 40%, transparent)', background: 'color-mix(in srgb, var(--warn) 6%, transparent)', marginBottom: '14px', fontSize: '13px', color: AMBER, display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
           <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: '1px' }} />
           <span>{t('equip.shortBanner', { count: short.length })}</span>
         </div>
@@ -147,7 +147,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
               const missing = status[r.id] ? shortBy(r) : 0
               const alts = missing ? alternativesOf(r.item_id, kits.pairs).filter(id => altFree[id]?.available - (onGig[id] || 0) > 0) : []
               return (
-                <div key={r.id} style={{ ...card, padding: '9px 12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', borderColor: missing ? 'rgba(245,158,11,0.4)' : colors.border }}>
+                <div key={r.id} style={{ ...card, padding: '9px 12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', borderColor: missing ? 'color-mix(in srgb, var(--warn) 40%, transparent)' : colors.border }}>
                   <span style={{ flex: '1 1 200px', minWidth: 0 }}>
                     <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{r.item_name}</span>
                     <span style={{ fontSize: '12px', color: colors.muted }}>
@@ -159,7 +159,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
                   {status[r.id] && (
                     missing
                       ? <span style={{ fontSize: '12px', fontWeight: 700, color: AMBER, display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('equip.short', { count: missing, free: Math.max(0, r.available) })}</span>
-                      : <span style={{ fontSize: '12px', color: colors.accent, display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={12} /> {t('equip.free', { count: r.available })}</span>
+                      : <span style={{ fontSize: '12px', color: colors.accentText, display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={12} /> {t('equip.free', { count: r.available })}</span>
                   )}
                   {canEdit ? (
                     <input type="number" min={1} max={100000} defaultValue={r.quantity} key={r.quantity} onBlur={e => setQuantity(r, e.target.value)}
@@ -209,7 +209,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   )
 }
 
-const ghostLink = { ...btn, textDecoration: 'none', background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }
+const ghostLink = { ...btn, textDecoration: 'none', background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }
 
 // Saves planned quantities (item_id -> quantity), adding or updating lines
 const saveLines = (gig, lines) => {
@@ -270,7 +270,7 @@ function EquipmentPicker({ gig, org, planned, kits, onClose, onAdded }) {
         <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('inv.search')} aria-label={t('inv.search')} autoFocus style={{ ...input, paddingLeft: '32px' }} />
       </div>
-      {!items ? <Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /> : items.length === 0 ? (
+      {!items ? <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : items.length === 0 ? (
         <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6 }}>{t('equip.noCatalogue')}</p>
       ) : (
         <div style={{ maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '12px' }}>
@@ -283,7 +283,7 @@ function EquipmentPicker({ gig, org, planned, kits, onClose, onAdded }) {
             const qty = Number(picked[item.id] ?? already[item.id] ?? 1)
             const over = f && on && qty > f.available
             return (
-              <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: on ? 'rgba(30,200,120,0.08)' : 'transparent' }}>
+              <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: on ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'transparent' }}>
                 <input type="checkbox" checked={on} style={{ accentColor: colors.accent }}
                   onChange={() => setPicked(p => { const n = { ...p }; if (on) delete n[item.id]; else n[item.id] = already[item.id] || 1; return n })} />
                 <span style={{ flex: 1, minWidth: 0 }}>

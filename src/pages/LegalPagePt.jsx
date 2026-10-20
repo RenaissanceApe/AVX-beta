@@ -5,7 +5,7 @@ import { APP_NAME, COMPANY_NAME, CONTACT_EMAIL, LEGAL_LAST_UPDATED, SENTRY_DSN }
 
 function Contacto() {
   if (!CONTACT_EMAIL) return <>através da pessoa que o convidou para o {APP_NAME}</>
-  return <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: '#1EC878' }}>{CONTACT_EMAIL}</a>
+  return <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: 'var(--accent-text)' }}>{CONTACT_EMAIL}</a>
 }
 
 export function PrivacyPt() {
@@ -57,7 +57,7 @@ export function PrivacyPt() {
       <p><strong>As mensagens nas conversas de uma organização</strong> (os seus canais, as conversas dos seus eventos e as conversas sobre equipamento, orçamentos e alugueres externos, incluindo o que clientes e fornecedores lá escrevem) são guardadas durante o tempo que os administradores dessa organização escolherem: para sempre, ou 90 dias, 6 meses, 1 ano ou 2 anos, findos os quais são apagadas, com os seus ficheiros, todas as noites. Esses administradores também podem descarregar as conversas da organização. As conversas diretas entre duas pessoas não são afetadas por nenhuma das duas coisas.</p>
 
       <h2>Os seus direitos</h2>
-      <p>Pode aceder aos seus dados e descarregá-los (Conta → Exportar os meus dados), corrigir o seu nome e apagar a sua conta (Conta → Apagar conta) a qualquer momento. Pode também pedir a limitação do tratamento ou opor-se a ele. Se não estiver satisfeito com a forma como tratamos os seus dados, pode apresentar reclamação à <a href="https://www.cnpd.pt" target="_blank" rel="noopener noreferrer" style={{ color: '#1EC878' }}>CNPD</a> (Comissão Nacional de Proteção de Dados).</p>
+      <p>Pode aceder aos seus dados e descarregá-los (Conta → Exportar os meus dados), corrigir o seu nome e apagar a sua conta (Conta → Apagar conta) a qualquer momento. Pode também pedir a limitação do tratamento ou opor-se a ele. Se não estiver satisfeito com a forma como tratamos os seus dados, pode apresentar reclamação à <a href="https://www.cnpd.pt" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-text)' }}>CNPD</a> (Comissão Nacional de Proteção de Dados).</p>
     </>
   )
 }

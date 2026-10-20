@@ -1,7 +1,7 @@
 {
   "name": "avx-beta",
   "private": true,
-  "version": "0.31.0",
+  "version": "0.32.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,8 +14,9 @@
     "help:screens": "node scripts/help-screens/index.mjs"
   },
   "dependencies": {
-    "@fontsource/dm-sans": "^5.3.0",
+    "@fontsource/atkinson-hyperlegible": "^5.3.0",
     "@fontsource/inter": "^5.2.8",
+    "@fontsource/nunito": "^5.3.0",
     "@fontsource/space-mono": "^5.2.9",
     "@sentry/react": "^11.7.0",
     "@supabase/supabase-js": "^2.43.4",

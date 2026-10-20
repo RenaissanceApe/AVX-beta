@@ -119,7 +119,7 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
                 <img src={branding.header_image} alt={t('company.header')} style={{ display: 'block', width: '100%' }} />
                 {canEdit && (
                   <button type="button" onClick={() => setBranding(b => ({ ...b, header_image: null }))} aria-label={t('company.removeHeader')} title={t('company.removeHeader')}
-                    style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(0,0,0,0.65)', border: 'none', borderRadius: '6px', color: '#fff', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+                    style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(0,0,0,0.65)', border: 'none', borderRadius: '6px', color: 'var(--text)', cursor: 'pointer', padding: '4px', display: 'flex' }}>
                     <X size={14} />
                   </button>
                 )}
@@ -128,7 +128,7 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
               <p style={{ fontSize: '12px', color: colors.muted, marginBottom: '6px' }}>{t('company.noHeader')}</p>
             )}
             {canEdit && (
-              <label style={{ ...btn, marginTop: '8px', background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }}>
+              <label style={{ ...btn, marginTop: '8px', background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }}>
                 <ImagePlus size={14} /> {branding.header_image ? t('company.replaceHeader') : t('company.uploadHeader')}
                 <input type="file" accept={HEADER_TYPES.join(',')} onChange={pickHeader} style={{ display: 'none' }} />
               </label>

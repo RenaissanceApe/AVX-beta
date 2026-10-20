@@ -31,7 +31,7 @@ function ImageFile({ file }) {
   useEffect(() => { let on = true; signedUrl(file.path).then(u => on && setUrl(u)); return () => { on = false } }, [file.path])
   return (
     <a href={url || undefined} target="_blank" rel="noopener noreferrer" aria-label={file.name} title={file.name}
-      style={{ display: 'block', width: '180px', maxWidth: '100%', aspectRatio: '4 / 3', borderRadius: '8px', overflow: 'hidden', background: 'rgba(0,0,0,0.3)' }}>
+      style={{ display: 'block', width: '180px', maxWidth: '100%', aspectRatio: '4 / 3', borderRadius: '8px', overflow: 'hidden', background: 'color-mix(in srgb, var(--shade) 30%, transparent)' }}>
       {url && <img src={url} alt={file.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
     </a>
   )
@@ -48,9 +48,9 @@ function OtherFile({ file }) {
   return (
     <button type="button" onClick={open} title={t('chat.download', { name: file.name })} style={{
       display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', borderRadius: '8px', border: `1px solid ${colors.border}`,
-      background: 'rgba(0,0,0,0.2)', color: '#fff', font: 'inherit', fontSize: '13px', cursor: 'pointer', maxWidth: '100%', textAlign: 'left',
+      background: 'color-mix(in srgb, var(--shade) 20%, transparent)', color: 'var(--text)', font: 'inherit', fontSize: '13px', cursor: 'pointer', maxWidth: '100%', textAlign: 'left',
     }}>
-      <FileText size={16} color={colors.accent} style={{ flexShrink: 0 }} />
+      <FileText size={16} color={colors.accentText} style={{ flexShrink: 0 }} />
       <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
       <span style={{ color: colors.muted, fontSize: '11px', whiteSpace: 'nowrap' }}>{formatSize(file.size)}</span>
       {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={14} color={colors.muted} />}
@@ -110,12 +110,12 @@ export function CardView({ card }) {
     return () => { on = false }
   }, [card.type, card.id])
   const Icon = CARD_ICONS[card.type] || FileText
-  const box = { display: 'flex', gap: '10px', alignItems: 'center', padding: '8px 10px', borderRadius: '10px', border: `1px solid ${colors.border}`, background: 'rgba(0,0,0,0.2)', margin: '2px 0 4px', color: '#fff', textDecoration: 'none', minWidth: '200px' }
+  const box = { display: 'flex', gap: '10px', alignItems: 'center', padding: '8px 10px', borderRadius: '10px', border: `1px solid ${colors.border}`, background: 'color-mix(in srgb, var(--shade) 20%, transparent)', margin: '2px 0 4px', color: 'var(--text)', textDecoration: 'none', minWidth: '200px' }
   if (info === undefined) return <div style={box}><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /></div>
   if (!info) return <div style={{ ...box, color: colors.muted, fontSize: '13px' }}><Lock size={15} /> {t('chat.card.hidden', { type: t(`chat.card.${card.type}`) })}</div>
   return (
     <Link to={info.to} style={box}>
-      <Icon size={18} color={colors.accent} style={{ flexShrink: 0 }} />
+      <Icon size={18} color={colors.accentText} style={{ flexShrink: 0 }} />
       <span style={{ minWidth: 0 }}>
         <span style={{ display: 'block', fontSize: '11px', color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t(`chat.card.${card.type}`)}</span>
         <span style={{ display: 'block', fontWeight: 700, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.title}</span>
@@ -179,7 +179,7 @@ export function CardPicker({ gigId, onPick, onClose }) {
         {types.map(k => (
           <button key={k} role="tab" aria-selected={type === k} onClick={() => setType(k)} style={{
             padding: '6px 10px', borderRadius: '8px', border: `1px solid ${type === k ? colors.accent : colors.border}`, cursor: 'pointer',
-            background: type === k ? 'rgba(30,200,120,0.12)' : 'transparent', color: type === k ? colors.accent : colors.soft, font: 'inherit', fontSize: '13px', fontWeight: 600,
+            background: type === k ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent', color: type === k ? colors.accentText : colors.soft, font: 'inherit', fontSize: '13px', fontWeight: 600,
           }}>{t(`chat.card.${k}`)}</button>
         ))}
       </div>
@@ -188,11 +188,11 @@ export function CardPicker({ gigId, onPick, onClose }) {
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('chat.shareSearch')} aria-label={t('chat.shareSearch')} style={{ ...input, paddingLeft: '30px' }} />
       </div>
       <div style={{ maxHeight: '320px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        {!rows ? <Loader2 size={18} color={colors.accent} style={{ animation: 'spin 1s linear infinite', margin: '16px auto' }} />
+        {!rows ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite', margin: '16px auto' }} />
           : rows.length === 0 ? <p style={{ color: colors.muted, fontSize: '13px', padding: '12px 4px' }}>{t('chat.shareNone')}</p>
             : rows.map(r => (
               <button key={r.id} type="button" onClick={() => onPick({ type, id: r.id }, r.title)} style={{
-                textAlign: 'left', padding: '8px 10px', borderRadius: '8px', border: 'none', background: 'transparent', color: '#fff', font: 'inherit', cursor: 'pointer',
+                textAlign: 'left', padding: '8px 10px', borderRadius: '8px', border: 'none', background: 'transparent', color: 'var(--text)', font: 'inherit', cursor: 'pointer',
               }}>
                 <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{r.title}</span>
                 {r.sub && <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{r.sub}</span>}
@@ -214,8 +214,8 @@ export function ReactionBar({ summary, name, onToggle, alignEnd }) {
           aria-label={t('chat.reactionCount', { emoji: r.emoji, count: r.count })}
           style={{
             display: 'flex', alignItems: 'center', gap: '4px', padding: '1px 7px', borderRadius: '10px', font: 'inherit', fontSize: '12px',
-            border: `1px solid ${r.mine ? colors.accent : colors.border}`, background: r.mine ? 'rgba(30,200,120,0.12)' : 'rgba(255,255,255,0.04)',
-            color: '#fff', cursor: onToggle ? 'pointer' : 'default', opacity: 1,
+            border: `1px solid ${r.mine ? colors.accent : colors.border}`, background: r.mine ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent)',
+            color: 'var(--text)', cursor: onToggle ? 'pointer' : 'default', opacity: 1,
           }}>{r.emoji} <span>{r.count}</span></button>
       ))}
     </div>
@@ -232,17 +232,17 @@ export function HistoryModal({ message, onClose }) {
   }, [message.id])
   return (
     <Modal title={t('chat.history')} onClose={onClose}>
-      {!rows ? <Loader2 size={18} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /> : (
+      {!rows ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : (
         <ol style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {rows.map((r, i) => (
             <li key={i} style={{ fontSize: '13px' }}>
               <div style={{ color: colors.muted, fontSize: '11px' }}>{t('chat.replacedAt', { when: fmt(r.replaced_at, 'd MMM, HH:mm') })}</div>
-              <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', padding: '6px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px' }}>{r.body}</div>
+              <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', padding: '6px 10px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent)', borderRadius: '8px' }}>{r.body}</div>
             </li>
           ))}
           <li style={{ fontSize: '13px' }}>
-            <div style={{ color: colors.accent, fontSize: '11px' }}>{t('chat.current')}</div>
-            <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', padding: '6px 10px', background: 'rgba(30,200,120,0.08)', borderRadius: '8px' }}>{message.body}</div>
+            <div style={{ color: colors.accentText, fontSize: '11px' }}>{t('chat.current')}</div>
+            <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', padding: '6px 10px', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', borderRadius: '8px' }}>{message.body}</div>
           </li>
         </ol>
       )}
@@ -265,13 +265,13 @@ export function AckStatusModal({ message, onClose }) {
   const row = (r, ok) => (
     <li key={r.user_id} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', padding: '6px 2px', borderBottom: `1px solid ${colors.border}`, fontSize: '14px' }}>
       <span>{r.full_name || t('common.someone')}</span>
-      <span style={{ fontSize: '12px', color: ok ? colors.accent : colors.muted }}>{ok ? fmt(r.acked_at, 'd MMM, HH:mm') : t('chat.ackWaiting')}</span>
+      <span style={{ fontSize: '12px', color: ok ? colors.accentText : colors.muted }}>{ok ? fmt(r.acked_at, 'd MMM, HH:mm') : t('chat.ackWaiting')}</span>
     </li>
   )
   return (
     <Modal title={t('chat.ackTitle')} onClose={onClose}>
       <p style={{ fontSize: '13px', color: colors.soft, marginBottom: '12px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{(message.body || '').slice(0, 300)}</p>
-      {!rows ? <Loader2 size={18} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /> : (
+      {!rows ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : (
         <>
           <p style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>{t('chat.ackCount', { done: done.length, total: rows.length })}</p>
           <ul style={{ listStyle: 'none' }}>{waiting.map(r => row(r, false))}{done.map(r => row(r, true))}</ul>
@@ -348,16 +348,16 @@ export function EventCard({ message: m, mine, actor, answers }) {
   const canAnswer = !mine && !last
 
   return (
-    <div style={{ margin: '8px auto', maxWidth: '420px', padding: '12px 14px', borderRadius: '12px', border: `1px solid ${isCall ? 'rgba(30,200,120,0.35)' : 'rgba(245,158,11,0.35)'}`, background: isCall ? 'rgba(30,200,120,0.06)' : 'rgba(245,158,11,0.06)' }}>
+    <div style={{ margin: '8px auto', maxWidth: '420px', padding: '12px 14px', borderRadius: '12px', border: `1px solid ${isCall ? 'color-mix(in srgb, var(--accent) 35%, transparent)' : 'color-mix(in srgb, var(--warn) 35%, transparent)'}`, background: isCall ? 'color-mix(in srgb, var(--accent) 6%, transparent)' : 'color-mix(in srgb, var(--warn) 6%, transparent)' }}>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: colors.soft }}>
-        <Icon size={16} color={isCall ? colors.accent : '#F59E0B'} style={{ flexShrink: 0 }} />
+        <Icon size={16} color={isCall ? colors.accentText : 'var(--warn)'} style={{ flexShrink: 0 }} />
         <span style={{ flex: 1 }}>{heading}</span>
         <span style={{ fontSize: '11px', color: colors.muted }}>{fmt(m.created_at, 'HH:mm')}</span>
       </div>
-      <Link to={`/gig/${p.gig_id}`} style={{ display: 'block', color: '#fff', fontWeight: 700, fontSize: '15px', margin: '6px 0 2px', textDecoration: 'none' }}>{p.gig_name}</Link>
+      <Link to={`/gig/${p.gig_id}`} style={{ display: 'block', color: 'var(--text)', fontWeight: 700, fontSize: '15px', margin: '6px 0 2px', textDecoration: 'none' }}>{p.gig_name}</Link>
       {range && <div style={{ fontSize: '13px', color: colors.soft }}>{range}</div>}
       {p.message && <div style={{ fontSize: '13px', marginTop: '6px', whiteSpace: 'pre-wrap' }}>“{p.message}”</div>}
-      {state && <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '8px', color: last?.status === 'unavailable' || last?.answer === 'declined' ? colors.muted : colors.accent }}>{state}{last?.note ? ` · ${last.note}` : ''}</div>}
+      {state && <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '8px', color: last?.status === 'unavailable' || last?.answer === 'declined' ? colors.muted : colors.accentText }}>{state}{last?.note ? ` · ${last.note}` : ''}</div>}
       {canAnswer && !isCall && (
         <input value={note} onChange={e => setNote(e.target.value)} placeholder={t('requests.notePlaceholder')} aria-label={t('requests.note')} maxLength={300}
           style={{ ...input, marginTop: '8px', fontSize: '13px', padding: '8px 10px' }} />

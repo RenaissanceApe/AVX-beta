@@ -124,7 +124,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
           <h2 id="members-title" style={{ fontSize: '18px', fontWeight: 700 }}>{t('org.membersTitle', { org: org.name })}</h2>
           <button onClick={onClose} aria-label={t('common.close')} style={iconBtn}><X size={18} /></button>
         </div>
-        <p style={{ color: '#7D93A9', fontSize: '13px', marginBottom: '18px' }}>
+        <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '18px' }}>
           {t('org.intro')}
         </p>
 
@@ -149,7 +149,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
 
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-            <Loader2 size={20} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={20} color="var(--accent-text)" style={{ animation: 'spin 1s linear infinite' }} />
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '45vh', overflowY: 'auto' }}>
@@ -158,8 +158,8 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
               return (
                 <div key={m.user_id} style={row}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px' }}>{m.full_name || '—'}{self && <span style={{ color: '#7D93A9' }}> ({t('common.you')})</span>}</div>
-                    <div style={{ fontSize: '12px', color: '#7D93A9', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email}</div>
+                    <div style={{ fontWeight: 600, fontSize: '14px' }}>{m.full_name || '—'}{self && <span style={{ color: 'var(--muted)' }}> ({t('common.you')})</span>}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email}</div>
                   </div>
                   {isAdmin ? (
                     <select value={m.role} disabled={busy === m.user_id} onChange={e => changeRole(m, e.target.value)}
@@ -167,7 +167,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
                       {ROLES.map(r => <option key={r.value} value={r.value}>{t(`orgRole.${r.value}`)}</option>)}
                     </select>
                   ) : (
-                    <span style={{ fontSize: '12px', color: '#7D93A9', }}>{t(`orgRole.${m.role}`)}</span>
+                    <span style={{ fontSize: '12px', color: 'var(--muted)', }}>{t(`orgRole.${m.role}`)}</span>
                   )}
                   {!self && (
                     <Link to={`/messages?to=${m.user_id}`} style={iconBtn} aria-label={t('chat.messageNamed', { name: m.full_name || '—' })} title={t('chat.message')}>
@@ -187,7 +187,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
               <div key={inv.id} style={{ ...row, borderStyle: 'dashed' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inv.email}</div>
-                  <div style={{ fontSize: '12px', color: '#7D93A9' }}>{t('org.invited', { role: t(`orgRole.${inv.role}`) })}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{t('org.invited', { role: t(`orgRole.${inv.role}`) })}</div>
                 </div>
                 <button onClick={() => cancelInvite(inv)} aria-label={t('crew.cancelInviteFor', { email: inv.email })} title={t('crew.cancelInvite')} style={iconBtn}>
                   <X size={15} />
@@ -207,20 +207,20 @@ const overlay = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'calc(16px + var(--safe-top)) 16px 16px'
 }
 const panel = {
-  background: '#0F1520', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px',
-  padding: '24px', width: '100%', maxWidth: '520px', animation: 'fadeIn 0.2s ease', color: '#fff'
+  background: 'var(--panel)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '18px',
+  padding: '24px', width: '100%', maxWidth: '520px', animation: 'fadeIn 0.2s ease', color: 'var(--text)'
 }
 const row = {
   display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
-  border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px'
+  border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)', borderRadius: '12px'
 }
 const input = {
-  width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.09)',
-  borderRadius: '9px', color: '#fff', fontSize: '14px', outline: 'none'
+  width: '100%', padding: '10px 12px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)',
+  borderRadius: '9px', color: 'var(--text)', fontSize: '14px', outline: 'none'
 }
 const smallBtn = {
   display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 14px', borderRadius: '9px',
-  border: '1px solid rgba(30,200,120,0.3)', background: 'rgba(30,200,120,0.12)', color: '#1EC878',
+  border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-text)',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0
 }
-const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: '#7D93A9', padding: '4px', display: 'flex', flexShrink: 0 }
+const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '4px', display: 'flex', flexShrink: 0 }

@@ -9,7 +9,7 @@ import { useI18n, t } from '../../i18n'
 import { btn, input, card, label, colors } from '../ui'
 
 const PERIODS = ['90d', '12m', 'ytd']
-const AMBER = '#F59E0B'
+const AMBER = 'var(--warn)'
 const select = { ...input, appearance: 'auto', width: 'auto', padding: '6px 10px' }
 
 function periodRange(key, now = new Date()) {
@@ -57,11 +57,11 @@ export default function ReportsTab({ orgId, inv }) {
     owned: Object.fromEntries(Object.entries(inv.stock).map(([id, s]) => [id, s.total || 0])),
   }), [data, inv.items, inv.stock, range])
 
-  if (!report) return <Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+  if (!report) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
   const money = v => formatMoney(v, 'EUR', lang)
   const pct = v => `${Math.round(v * 100)}%`
   const cols = [
-    { key: 'name', label: t('report.item'), value: r => r.name, show: r => <Link to={`/org/${orgId}/inventory/${r.id}`} style={{ color: '#fff' }}>{r.name}</Link>, left: true },
+    { key: 'name', label: t('report.item'), value: r => r.name, show: r => <Link to={`/org/${orgId}/inventory/${r.id}`} style={{ color: 'var(--text)' }}>{r.name}</Link>, left: true },
     { key: 'owned', label: t('report.owned'), value: r => r.owned },
     { key: 'use', label: t('report.use'), value: r => r.use, show: r => pct(r.use) },
     { key: 'gigs', label: t('report.gigs'), value: r => r.gigs },
@@ -112,7 +112,7 @@ export default function ReportsTab({ orgId, inv }) {
         {tiles.map(([key, value, sub]) => (
           <div key={key} style={{ ...card, padding: '12px 14px' }}>
             <div style={{ fontSize: '12px', color: colors.muted }}>{t(`report.tile.${key}`)}</div>
-            <div style={{ fontSize: '20px', fontWeight: 800, marginTop: '2px', color: key === 'lostValue' && report.totals.lostValue ? colors.danger : key === 'idle' && report.totals.idle ? AMBER : '#fff' }}>{value}</div>
+            <div style={{ fontSize: '20px', fontWeight: 800, marginTop: '2px', color: key === 'lostValue' && report.totals.lostValue ? colors.danger : key === 'idle' && report.totals.idle ? AMBER : 'var(--text)' }}>{value}</div>
             {sub && <div style={{ fontSize: '11px', color: colors.muted }}>{sub}</div>}
           </div>
         ))}
@@ -124,7 +124,7 @@ export default function ReportsTab({ orgId, inv }) {
             <tr>
               {cols.map(c => (
                 <th key={c.key} style={{ padding: '9px 10px', textAlign: c.left ? 'left' : 'right', borderBottom: `1px solid ${colors.border}`, whiteSpace: 'nowrap' }}>
-                  <button onClick={() => setSort(s => ({ key: c.key, dir: s.key === c.key ? -s.dir : (c.left ? 1 : -1) }))} style={{ background: 'none', border: 'none', color: sort.key === c.key ? colors.accent : colors.muted, font: 'inherit', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px', padding: 0 }}>
+                  <button onClick={() => setSort(s => ({ key: c.key, dir: s.key === c.key ? -s.dir : (c.left ? 1 : -1) }))} style={{ background: 'none', border: 'none', color: sort.key === c.key ? colors.accentText : colors.muted, font: 'inherit', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px', padding: 0 }}>
                     {c.label}{sort.key === c.key && (sort.dir > 0 ? <ArrowUp size={11} /> : <ArrowDown size={11} />)}
                   </button>
                 </th>
@@ -153,7 +153,7 @@ export default function ReportsTab({ orgId, inv }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {idle.slice(0, 50).map(r => (
               <div key={r.id} style={{ ...card, padding: '8px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', fontSize: '13px' }}>
-                <Link to={`/org/${orgId}/inventory/${r.id}`} style={{ color: '#fff', fontWeight: 600, flex: '1 1 180px' }}>{r.name}</Link>
+                <Link to={`/org/${orgId}/inventory/${r.id}`} style={{ color: 'var(--text)', fontWeight: 600, flex: '1 1 180px' }}>{r.name}</Link>
                 <span style={{ color: colors.muted }}>{t('report.idleRow', { count: r.owned, last: r.lastUsed ? fmt(r.lastUsed, 'd MMM yyyy') : t('report.never') })}</span>
                 {r.bookValue > 0 && <strong>{money(r.bookValue)}</strong>}
               </div>

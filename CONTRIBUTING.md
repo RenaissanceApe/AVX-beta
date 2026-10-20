@@ -55,6 +55,10 @@ only signal, and keep text plain.
   `scripts/help-screens/` (sample data only, never real people).
   Use `<HintLabel htmlFor="…" hint="id">Label</HintLabel>` for a field, `<Hint id>` next to anything else,
   `<Term id>` for a word in a sentence and `<PageHelp page>` on a page header.
+- Colours come from the theme (`src/theme/tokens.js`): use `colors.*` from `src/components/ui.jsx`,
+  `var(--text)`-style variables or `tint(colour, percent)` for see-through versions. Green text
+  is `colors.accentText` (the lime is for fills); text on green fills is `colors.onAccent`. A
+  test fails on colours written straight into a screen.
 - The browser tests run axe: serious or critical accessibility findings fail CI. Small text needs a
   contrast of at least 4.5:1 (use `colors.muted` / `colors.soft`, not darker greys), and a button's
   accessible name must include the words it shows.

@@ -9,12 +9,12 @@ export default function MessagesButton() {
   const { unread } = useConversations()
   return (
     <Link to="/messages" aria-label={unread ? t('chat.buttonUnread', { count: unread }) : t('chat.title')} title={t('chat.title')}
-      style={{ ...iconBtn, position: 'relative', color: unread ? '#fff' : colors.muted }}>
+      style={{ ...iconBtn, position: 'relative', color: unread ? 'var(--text)' : colors.muted }}>
       <MessageCircle size={17} />
       {unread > 0 && (
         <span style={{
           position: 'absolute', top: '1px', right: '0', minWidth: '16px', height: '16px', padding: '0 4px', borderRadius: '8px',
-          background: colors.accent, color: '#04110a', fontSize: '10px', fontWeight: 800, lineHeight: '16px', textAlign: 'center',
+          background: colors.accent, color: 'var(--on-accent)', fontSize: '10px', fontWeight: 800, lineHeight: '16px', textAlign: 'center',
         }}>{unread > 9 ? '9+' : unread}</span>
       )}
     </Link>

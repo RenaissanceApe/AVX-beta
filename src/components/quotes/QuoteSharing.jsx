@@ -77,7 +77,7 @@ export function VersionsModal({ quoteId, prepare, currency, onRestore, onClose }
         </button>
       </form>
       {versions === null
-        ? <Loader2 size={18} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+        ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
         : versions.length === 0
           ? <p style={small}>{t('quoteVersions.empty')}</p>
           : (
@@ -103,7 +103,7 @@ export function VersionsModal({ quoteId, prepare, currency, onRestore, onClose }
   )
 }
 
-const SHARE_COLORS = { open: '#60A5FA', accepted: colors.accent, declined: colors.danger, revoked: colors.muted, expired: colors.muted }
+const SHARE_COLORS = { open: 'var(--info)', accepted: colors.accent, declined: colors.danger, revoked: colors.muted, expired: colors.muted }
 
 // Send to the client: saves a version, creates a link to it (replacing any earlier
 // open link) and emails it if asked. Lists earlier links with their answers.
@@ -193,7 +193,7 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
           <p style={{ fontSize: '14px', lineHeight: 1.5 }}>{result.emailed ? t('send.doneEmailed', { email: email.trim() }) : t('send.doneLink')}</p>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <input readOnly value={result.link} aria-label={t('send.link')} onFocus={e => e.target.select()} style={{ ...input, fontFamily: 'monospace', fontSize: '12px' }} />
+            <input readOnly value={result.link} aria-label={t('send.link')} onFocus={e => e.target.select()} style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '12px' }} />
             <button onClick={copy} style={btn}>{copied ? <Check size={14} /> : <Copy size={14} />} {copied ? t('send.copied') : t('send.copy')}</button>
           </div>
           <p style={small}>{t('send.linkOnce')}</p>
@@ -223,7 +223,7 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
 
       <h3 style={{ ...label, marginBottom: '8px' }}>{t('send.history')}</h3>
       {shares === null
-        ? <Loader2 size={18} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+        ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
         : shares.length === 0
           ? <p style={small}>{t('send.noHistory')}</p>
           : (

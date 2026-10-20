@@ -19,7 +19,7 @@ import { PageHelp } from '../components/help/HelpParts'
 const TABS = ['catalogue', 'locations', 'movements', 'maintenance', 'subrentals', 'reports']
 const TAB_ICONS = { catalogue: Package, locations: MapPin, movements: History, maintenance: Wrench, subrentals: Handshake, reports: BarChart3 }
 export const LOCATION_ICONS = { warehouse: Warehouse, vehicle: Truck, site: Building2, other: Box }
-const ghost = { ...btn, background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }
+const ghost = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }
 
 // Inventory of one organisation: the catalogue with stock, locations and the stock ledger.
 //   /org/:orgId/inventory (?tab=locations|movements|maintenance|subrentals|reports)
@@ -30,7 +30,7 @@ export default function InventoryPage() {
   const tab = TABS.includes(params.get('tab')) ? params.get('tab') : 'catalogue'
   const setTab = key => { const next = new URLSearchParams(params); if (key === 'catalogue') next.delete('tab'); else next.set('tab', key); setParams(next, { replace: true }) }
 
-  if (inv.loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (inv.loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
   if (!inv.canManage) return (
     <AppShell>
       <p style={{ maxWidth: '420px', margin: '80px auto', textAlign: 'center', color: colors.muted, fontSize: '14px', lineHeight: 1.6, padding: '0 16px' }}>{t('inv.noAccess')}</p>
@@ -51,7 +51,7 @@ export default function InventoryPage() {
           {TABS.map(key => { const Icon = TAB_ICONS[key]; return (
             <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)} style={{
               padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0,
-              color: tab === key ? colors.accent : colors.muted, borderBottom: tab === key ? `2px solid ${colors.accent}` : '2px solid transparent',
+              color: tab === key ? colors.accentText : colors.muted, borderBottom: tab === key ? `2px solid ${colors.accent}` : '2px solid transparent',
               display: 'flex', alignItems: 'center', gap: '6px',
             }}><Icon size={14} /> {t(`inv.tab.${key}`)}</button>
           ) })}
@@ -92,8 +92,8 @@ function Catalogue({ inv, orgId, goLocations }) {
   return (
     <div>
       {inv.activeLocations.length === 0 && (
-        <div style={{ ...card, borderColor: 'rgba(245,158,11,0.35)', marginBottom: '14px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <MapPin size={16} color="#F59E0B" />
+        <div style={{ ...card, borderColor: 'color-mix(in srgb, var(--warn) 35%, transparent)', marginBottom: '14px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <MapPin size={16} color="var(--warn)" />
           <span style={{ flex: '1 1 220px', fontSize: '13px', color: colors.soft, lineHeight: 1.5 }}>{t('inv.noLocationsYet')}</span>
           <button onClick={goLocations} style={btn}><Plus size={14} /> {t('inv.addLocation')}</button>
         </div>
@@ -110,8 +110,8 @@ function Catalogue({ inv, orgId, goLocations }) {
         {['all', 'tracked', 'low', 'archived'].map(f => (
           <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f} style={{
             padding: '5px 11px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
-            border: `1px solid ${filter === f ? 'rgba(30,200,120,0.4)' : colors.border}`,
-            background: filter === f ? 'rgba(30,200,120,0.12)' : 'transparent', color: filter === f ? colors.accent : f === 'low' && lowCount ? '#F59E0B' : colors.soft,
+            border: `1px solid ${filter === f ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : colors.border}`,
+            background: filter === f ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent', color: filter === f ? colors.accentText : f === 'low' && lowCount ? 'var(--warn)' : colors.soft,
           }}>{t(`inv.filterOpt.${f}`)}{f === 'low' && lowCount ? ` · ${lowCount}` : ''}</button>
         ))}
       </div>
@@ -129,20 +129,20 @@ function Catalogue({ inv, orgId, goLocations }) {
               const low = isLowStock(item, s?.total)
               return (
                 <button key={item.id} onClick={() => navigate(`/org/${orgId}/inventory/${item.id}`)} style={{
-                  ...card, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left', color: '#fff', font: 'inherit', width: '100%',
+                  ...card, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left', color: 'var(--text)', font: 'inherit', width: '100%',
                 }}>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontWeight: 600, fontSize: '14px', overflowWrap: 'anywhere' }}>{item.name}</span>
                     <span style={{ fontSize: '12px', color: colors.muted, display: 'flex', gap: '4px 10px', flexWrap: 'wrap' }}>
-                      {item.code && <span style={{ fontFamily: 'monospace' }}>{item.code}</span>}
-                      {item.kit_type && <span style={{ color: colors.accent }}>{t(`kit.typeOpt.${item.kit_type}`)}</span>}
+                      {item.code && <span style={{ fontFamily: 'var(--font-mono)' }}>{item.code}</span>}
+                      {item.kit_type && <span style={{ color: colors.accentText }}>{t(`kit.typeOpt.${item.kit_type}`)}</span>}
                       {item.kit_type !== 'set' && <span>{t(`inv.trackingOpt.${item.tracking}`)}</span>}
                       {[item.brand, item.model].filter(Boolean).length > 0 && <span>{[item.brand, item.model].filter(Boolean).join(' ')}</span>}
                     </span>
                   </span>
                   {item.tracking !== 'none' && (
                     <span style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 800, fontSize: '16px', color: low ? '#F59E0B' : '#fff', justifyContent: 'flex-end' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 800, fontSize: '16px', color: low ? 'var(--warn)' : 'var(--text)', justifyContent: 'flex-end' }}>
                         {low && <AlertTriangle size={13} aria-label={t('inv.lowStock')} />}{s?.total || 0}
                       </span>
                       <span style={{ fontSize: '11px', color: colors.muted }}>
@@ -240,11 +240,11 @@ export function MovementList({ rows, itemName, locationName, nameOf, unitCode })
             <span style={{ flex: '1 1 220px', minWidth: 0 }}>
               {itemName && <strong>{itemName(m.item_id)} · </strong>}
               {t(`inv.kind.${m.kind}`)}
-              {m.unit_id && unitCode && <span style={{ fontFamily: 'monospace', color: colors.soft }}> {unitCode(m.unit_id)}</span>}
+              {m.unit_id && unitCode && <span style={{ fontFamily: 'var(--font-mono)', color: colors.soft }}> {unitCode(m.unit_id)}</span>}
               {where && <span style={{ color: colors.soft }}> · {where}</span>}
               {m.note && <span style={{ color: colors.muted }}> · {m.note}</span>}
             </span>
-            {!m.unit_id && <strong style={{ color: out ? colors.danger : m.to_location_id && !m.from_location_id ? colors.accent : '#fff', whiteSpace: 'nowrap' }}>{out ? '−' : m.from_location_id ? '' : '+'}{m.quantity}</strong>}
+            {!m.unit_id && <strong style={{ color: out ? colors.danger : m.to_location_id && !m.from_location_id ? colors.accentText : 'var(--text)', whiteSpace: 'nowrap' }}>{out ? '−' : m.from_location_id ? '' : '+'}{m.quantity}</strong>}
             <span style={{ fontSize: '12px', color: colors.muted }}>{nameOf(m.created_by)}</span>
           </div>
         )
@@ -271,7 +271,7 @@ function Movements({ inv, orgId }) {
     supabase.from('stock_movements').select('*').eq('org_id', orgId).order('created_at', { ascending: false }).limit(200)
       .then(({ data, error }) => { if (error) logger.error('inventory', error, { step: 'movements' }); setRows(data || []) })
   }, [orgId])
-  if (!rows) return <Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+  if (!rows) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
   const itemName = id => inv.items.find(i => i.id === id)?.name || '—'
   return (
     <div>

@@ -11,11 +11,11 @@ import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, input, label, card, colors } from '../ui'
 import ContextThread from '../messages/ContextThread'
 
-const AMBER = '#F59E0B'
+const AMBER = 'var(--warn)'
 const select = { ...input, appearance: 'auto' }
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }
 const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
-const STATUS_COLOR = { open: AMBER, in_repair: '#38BDF8', done: colors.accent, written_off: colors.muted }
+const STATUS_COLOR = { open: AMBER, in_repair: 'var(--sky)', done: colors.accent, written_off: colors.muted }
 const DUE_COLOR = { overdue: colors.danger, soon: AMBER, ok: colors.muted }
 const REPAIR_SELECT = '*, unit:unit_id(code), gig:gig_id(name)'
 
@@ -52,7 +52,7 @@ function PhotoLink({ path }) {
     supabase.storage.from('repair-photos').createSignedUrl(path, 600).then(({ data }) => setUrl(data?.signedUrl || null))
   }, [path])
   if (!url) return null
-  return <a href={url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#38BDF8', fontSize: '12px' }}><ImageIcon size={12} /> {t('repair.photo')}</a>
+  return <a href={url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--sky)', fontSize: '12px' }}><ImageIcon size={12} /> {t('repair.photo')}</a>
 }
 
 // A new repair (from the warehouse) or an existing one: status, repairer, cost, outcome
@@ -222,7 +222,7 @@ export function InspectionModal({ item, unitId: presetUnit, onClose, onSaved }) 
           {['pass', 'fail'].map(r => (
             <button key={r} type="button" role="radio" aria-checked={form.result === r} onClick={() => setForm(f => ({ ...f, result: r }))} style={{
               ...btn, flex: 1, justifyContent: 'center',
-              ...(form.result === r ? { background: r === 'pass' ? 'rgba(30,200,120,0.15)' : 'rgba(239,68,68,0.15)', borderColor: r === 'pass' ? colors.accent : colors.danger, color: '#fff' } : {}),
+              ...(form.result === r ? { background: r === 'pass' ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'color-mix(in srgb, var(--danger) 15%, transparent)', borderColor: r === 'pass' ? colors.accent : colors.danger, color: 'var(--text)' } : {}),
             }}>{t(`inspect.${r}`)}</button>
           ))}
         </div>
@@ -236,14 +236,14 @@ export function InspectionModal({ item, unitId: presetUnit, onClose, onSaved }) 
   )
 }
 
-function RepairRow({ r, itemName, orgId, onOpen }) {
+function RepairRow({ r, itemName, onOpen }) {
   const { lang, fmt } = useI18n()
   return (
-    <button onClick={() => onOpen(r)} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', width: '100%', textAlign: 'left', cursor: 'pointer', color: '#fff', font: 'inherit' }}>
+    <button onClick={() => onOpen(r)} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', width: '100%', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', font: 'inherit' }}>
       <span style={{ flex: '1 1 220px', minWidth: 0 }}>
         <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>
-          {itemName && <>{orgId ? <Link to={`/org/${orgId}/inventory/${r.item_id}`} onClick={e => e.stopPropagation()} style={{ color: '#fff' }}>{itemName}</Link> : itemName} · </>}
-          {r.unit?.code ? <span style={{ fontFamily: 'monospace' }}>{r.unit.code}</span> : t('repair.quantity', { count: r.quantity })}
+          {itemName && <>{itemName} · </>}
+          {r.unit?.code ? <span style={{ fontFamily: 'var(--font-mono)' }}>{r.unit.code}</span> : t('repair.quantity', { count: r.quantity })}
         </span>
         <span style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>
           {[r.problem, r.gig?.name && t('repair.fromGig', { gig: r.gig.name }), r.repairer, r.cost != null && formatMoney(r.cost, 'EUR', lang), r.charge_client && t('repair.charged')].filter(Boolean).join(' · ')}
@@ -263,8 +263,8 @@ function DueRow({ d, orgId, onRecord }) {
     <div style={{ ...card, padding: '9px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
       <span style={{ flex: '1 1 220px', minWidth: 0 }}>
         <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>
-          <Link to={`/org/${orgId}/inventory/${d.item_id}`} style={{ color: '#fff' }}>{d.item_name}</Link>
-          {d.unit_code && <span style={{ fontFamily: 'monospace', fontWeight: 400 }}> · {d.unit_code}</span>}
+          <Link to={`/org/${orgId}/inventory/${d.item_id}`} style={{ color: 'var(--text)' }}>{d.item_name}</Link>
+          {d.unit_code && <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}> · {d.unit_code}</span>}
         </span>
         <span style={{ fontSize: '12px', color: colors.muted }}>
           {[d.inspection_kind, d.last_done ? t('inspect.lastDone', { date: fmt(d.last_done, 'd MMM yyyy') }) : t('inspect.never'), d.last_result === 'fail' && t('inspect.lastFailed')].filter(Boolean).join(' · ')}
@@ -280,7 +280,7 @@ function H({ icon, children, count }) {
   const Icon = icon
   return (
     <h2 style={{ fontSize: '17px', fontWeight: 700, margin: '4px 0 8px', display: 'flex', alignItems: 'center', gap: '7px' }}>
-      <Icon size={16} color={colors.accent} /> {children}{count != null && <span style={{ color: colors.soft, fontWeight: 600 }}>· {count}</span>}
+      <Icon size={16} color={colors.accentText} /> {children}{count != null && <span style={{ color: colors.soft, fontWeight: 600 }}>· {count}</span>}
     </h2>
   )
 }
@@ -311,7 +311,7 @@ export function MaintenanceTab({ orgId, inv }) {
   }
   useEffect(() => { load() }, [orgId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!repairs) return <Loader2 size={20} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+  if (!repairs) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
   const open = repairs.filter(isOpenRepair)
   const closed = repairs.filter(r => !isOpenRepair(r)).slice(0, 30)
   const dueSoon = due.filter(d => dueState(d.due_on) !== 'ok')
@@ -326,7 +326,7 @@ export function MaintenanceTab({ orgId, inv }) {
         <H icon={Wrench} count={open.length}>{t('repair.open')}</H>
         {open.length === 0 ? <p style={small}>{t('repair.noneOpen')}</p> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {open.map(r => <RepairRow key={r.id} r={r} itemName={nameOf(r.item_id)} orgId={orgId} onOpen={setEditing} />)}
+            {open.map(r => <RepairRow key={r.id} r={r} itemName={nameOf(r.item_id)} onOpen={setEditing} />)}
           </div>
         )}
       </section>
@@ -350,7 +350,7 @@ export function MaintenanceTab({ orgId, inv }) {
         <section>
           <H icon={Check}>{t('repair.closed')}</H>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {closed.map(r => <RepairRow key={r.id} r={r} itemName={nameOf(r.item_id)} orgId={orgId} onOpen={setEditing} />)}
+            {closed.map(r => <RepairRow key={r.id} r={r} itemName={nameOf(r.item_id)} onOpen={setEditing} />)}
           </div>
         </section>
       )}
@@ -416,8 +416,8 @@ export function ItemMaintenance({ orgId, item, onChanged }) {
           {inspections.map(i => (
             <div key={i.id} style={{ display: 'flex', gap: '10px', padding: '6px 4px', borderBottom: `1px solid ${colors.border}`, flexWrap: 'wrap' }}>
               <span style={{ color: colors.soft, minWidth: '90px' }}>{fmt(i.done_on, 'd MMM yyyy')}</span>
-              {i.unit?.code && <span style={{ fontFamily: 'monospace' }}>{i.unit.code}</span>}
-              <span style={{ fontWeight: 700, color: i.result === 'pass' ? colors.accent : colors.danger }}>{t(`inspect.${i.result}`)}</span>
+              {i.unit?.code && <span style={{ fontFamily: 'var(--font-mono)' }}>{i.unit.code}</span>}
+              <span style={{ fontWeight: 700, color: i.result === 'pass' ? colors.accentText : colors.danger }}>{t(`inspect.${i.result}`)}</span>
               <span style={{ color: colors.muted, flex: '1 1 160px' }}>{[i.inspector, i.notes].filter(Boolean).join(' · ')}</span>
             </div>
           ))}

@@ -40,14 +40,14 @@ export default function MfaChallengePage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <form onSubmit={submit} style={{ width: '100%', maxWidth: '360px', background: colors.panel, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '26px', color: '#fff' }}>
-        <ShieldCheck size={30} color={colors.accent} />
+      <form onSubmit={submit} style={{ width: '100%', maxWidth: '360px', background: colors.panel, border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '18px', padding: '26px', color: 'var(--text)' }}>
+        <ShieldCheck size={30} color={colors.accentText} />
         <h1 style={{ fontSize: '20px', fontWeight: 800, margin: '12px 0 6px' }}>{t('mfa.challengeTitle')}</h1>
         <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6, marginBottom: '18px' }}>{t('mfa.challengeBody')}</p>
         <label style={label} htmlFor="mfa-code">{t('mfa.code')}</label>
         <input id="mfa-code" value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
           inputMode="numeric" autoComplete="one-time-code" autoFocus placeholder="123456"
-          style={{ ...input, fontSize: '22px', letterSpacing: '0.3em', textAlign: 'center', fontFamily: 'monospace' }} />
+          style={{ ...input, fontSize: '22px', letterSpacing: '0.3em', textAlign: 'center', fontFamily: 'var(--font-mono)' }} />
         {error && <p role="alert" style={{ color: colors.danger, fontSize: '13px', marginTop: '8px' }}>{error}</p>}
         <button type="submit" disabled={busy || code.length !== 6 || !factorId} style={{ ...btnPrimary, width: '100%', justifyContent: 'center', marginTop: '14px' }}>
           {busy ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={16} />} {t('mfa.verify')}

@@ -205,6 +205,18 @@ export default {
         'Don\'t keep using equipment that is unsafe, especially anything on mains power.',
       ],
     },
+    'crew-appearance': {
+      title: 'Make AVX easier to read',
+      intro: 'Bright sun, small screen, tired eyes: change how AVX looks on this phone or computer.',
+      steps: [
+        'Tap your initials at the top right to open your account.',
+        'Under Appearance, choose the theme: Light for sunlight, High contrast for the strongest difference, or Like the device. Choose the text size too.',
+        'Turn on Comfortable mode for bigger buttons (with gloves, on the move), and the easy-to-read font if letters blur together.',
+      ],
+      mistakes: [
+        'These choices are saved on each device. Set them again on your other phone or computer.',
+      ],
+    },
     'crew-offline': {
       title: 'Use AVX without signal',
       intro: 'Venues and basements often have no signal. Prepare before you go and the gig stays on your phone.',

@@ -9,7 +9,7 @@ import { PrivacyPt, TermsPt } from './LegalPagePt'
 
 function Contact() {
   if (!CONTACT_EMAIL) return <>through the person who invited you to {APP_NAME}</>
-  return <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: '#1EC878' }}>{CONTACT_EMAIL}</a>
+  return <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: 'var(--accent-text)' }}>{CONTACT_EMAIL}</a>
 }
 
 function Privacy() {
@@ -61,7 +61,7 @@ function Privacy() {
       <p><strong>Messages in an organisation's conversations</strong> (its channels, its gigs' chats and its conversations about equipment, quotes and subrentals, including what clients and suppliers write there) are kept for as long as that organisation's admins choose: for ever, or 90 days, 6 months, 1 year or 2 years, after which they and their files are deleted every night. Those admins can also download the organisation's conversations. Direct conversations between two people aren't affected by either.</p>
 
       <h2>Your rights</h2>
-      <p>You can access and download your data (Account → Export my data), correct your name, and delete your account (Account → Delete account) at any time. You can also ask us to restrict or object to processing. If you're unhappy with how we handle your data you can complain to the Portuguese data protection authority, the <a href="https://www.cnpd.pt" target="_blank" rel="noopener noreferrer" style={{ color: '#1EC878' }}>CNPD</a>.</p>
+      <p>You can access and download your data (Account → Export my data), correct your name, and delete your account (Account → Delete account) at any time. You can also ask us to restrict or object to processing. If you're unhappy with how we handle your data you can complain to the Portuguese data protection authority, the <a href="https://www.cnpd.pt" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-text)' }}>CNPD</a>.</p>
     </>
   )
 }
@@ -100,28 +100,28 @@ export default function LegalPage({ doc }) {
   const { lang, t } = useI18n()
   const pt = lang === 'pt'
   return (
-    <div style={{ minHeight: '100vh', background: '#080C14', color: '#C8D3DE', padding: '24px 16px 60px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text-2)', padding: '24px 16px 60px' }}>
       <style>{`
-        .legal h1 { color: #fff; font-size: 26px; font-weight: 800; margin-bottom: 4px; }
-        .legal h2 { color: #fff; font-size: 16px; font-weight: 700; margin: 26px 0 8px; }
+        .legal h1 { color: var(--text); font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+        .legal h2 { color: var(--text); font-size: 16px; font-weight: 700; margin: 26px 0 8px; }
         .legal p, .legal li { font-size: 15px; line-height: 1.7; }
         .legal ul { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
-        .legal .meta { color: #7D93A9; font-size: 13px; }
+        .legal .meta { color: var(--muted); font-size: 13px; }
       `}</style>
       <div className="legal" style={{ maxWidth: '680px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#8A9BAE', textDecoration: 'none', fontSize: '14px' }}>
+          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--soft)', textDecoration: 'none', fontSize: '14px' }}>
             <ArrowLeft size={14} /> {t('common.back')}
           </Link>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#fff', fontWeight: 800 }}>
-            <Zap size={16} color="#1EC878" fill="#1EC878" /> {APP_NAME}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontWeight: 800 }}>
+            <Zap size={16} color="var(--accent-text)" fill="var(--accent-text)" /> {APP_NAME}
           </span>
         </div>
         {doc === 'terms' ? (pt ? <TermsPt /> : <Terms />) : (pt ? <PrivacyPt /> : <Privacy />)}
-        <p style={{ marginTop: '40px', fontSize: '13px', color: '#7D93A9' }}>
+        <p style={{ marginTop: '40px', fontSize: '13px', color: 'var(--muted)' }}>
           {doc === 'terms'
-            ? <Link to="/privacy" style={{ color: '#1EC878' }}>{t('legal.privacyShort')}</Link>
-            : <Link to="/terms" style={{ color: '#1EC878' }}>{t('legal.termsShort')}</Link>}
+            ? <Link to="/privacy" style={{ color: 'var(--accent-text)' }}>{t('legal.privacyShort')}</Link>
+            : <Link to="/terms" style={{ color: 'var(--accent-text)' }}>{t('legal.termsShort')}</Link>}
         </p>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { logger } from '../lib/logger'
 import { useI18n, t } from '../i18n'
 import { input, colors } from './ui'
 
-const AMBER = '#F59E0B'
+const AMBER = 'var(--warn)'
 
 // "Your network" (ROADMAP Phase 5c): people you've already shared a gig or organisation with,
 // for a gig you manage (gigId) or an organisation you administer (orgId). Shows the functions
@@ -31,7 +31,7 @@ export function NetworkPicker({ gigId, orgId, onPick, hint }) {
 
   if (people && !people.length && !query) return null
   return (
-    <div style={{ border: `1px solid ${colors.border}`, borderRadius: '10px', padding: '10px', background: 'rgba(255,255,255,0.02)' }}>
+    <div style={{ border: `1px solid ${colors.border}`, borderRadius: '10px', padding: '10px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(2% * var(--line-k))), transparent)' }}>
       <div style={{ fontSize: '12px', fontWeight: 700, color: colors.soft, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
         <Users size={13} /> {t('network.title')}
       </div>
@@ -40,14 +40,14 @@ export function NetworkPicker({ gigId, orgId, onPick, hint }) {
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('network.search')} aria-label={t('network.search')}
           style={{ ...input, paddingLeft: '30px', padding: '8px 10px 8px 30px' }} />
       </div>
-      {!people ? <Loader2 size={16} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /> : people.length === 0 ? (
+      {!people ? <Loader2 size={16} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : people.length === 0 ? (
         <p style={{ fontSize: '12px', color: colors.muted, padding: '4px 2px' }}>{t('network.none')}</p>
       ) : (
         <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {people.map(p => (
             <button key={p.user_id} type="button" onClick={() => onPick(p)} disabled={p.already} style={{
               display: 'flex', gap: '10px', alignItems: 'center', padding: '7px 8px', borderRadius: '8px', border: 'none', textAlign: 'left',
-              background: 'transparent', color: '#fff', font: 'inherit', cursor: p.already ? 'default' : 'pointer', width: '100%',
+              background: 'transparent', color: 'var(--text)', font: 'inherit', cursor: p.already ? 'default' : 'pointer', width: '100%',
             }}>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'block', fontSize: '14px', fontWeight: 600 }}>{p.full_name || t('common.someone')}</span>
@@ -58,7 +58,7 @@ export function NetworkPicker({ gigId, orgId, onPick, hint }) {
                 </span>
               </span>
               {p.already
-                ? <span style={{ fontSize: '11px', color: colors.accent, display: 'flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}><Check size={12} /> {t('network.already')}</span>
+                ? <span style={{ fontSize: '11px', color: colors.accentText, display: 'flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}><Check size={12} /> {t('network.already')}</span>
                 : p.busy && <span style={{ fontSize: '11px', color: AMBER, display: 'flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}><AlertTriangle size={12} /> {t('network.busy')}</span>}
             </button>
           ))}
@@ -72,8 +72,8 @@ export function NetworkPicker({ gigId, orgId, onPick, hint }) {
 // The person picked, instead of an email field
 export function PickedPerson({ person, onClear }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', borderRadius: '10px', background: 'rgba(30,200,120,0.08)', border: '1px solid rgba(30,200,120,0.25)' }}>
-      <Users size={14} color={colors.accent} />
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', borderRadius: '10px', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)' }}>
+      <Users size={14} color={colors.accentText} />
       <span style={{ flex: 1, minWidth: 0, fontWeight: 600, fontSize: '14px' }}>{person.full_name || t('common.someone')}</span>
       {person.busy && <span style={{ fontSize: '12px', color: AMBER, display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('network.busy')}</span>}
       <button type="button" onClick={onClear} aria-label={t('network.clear')} title={t('network.clear')} style={{ background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', display: 'flex' }}><X size={15} /></button>

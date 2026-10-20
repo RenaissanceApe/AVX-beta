@@ -2,7 +2,7 @@ import { FileText, Users, MessageSquare, Plus, UserPlus, ArrowRight, Eye, Calend
 import { shortTime, groupByDay } from '../../lib/schedule'
 import { localToday } from '../../lib/gigs'
 import { useI18n } from '../../i18n'
-import { card, colors } from '../ui'
+import { card, colors, tint } from '../ui'
 import { assetType, Avatar, RoleBadge, FeedPost, SectionTitle, SmallBtn, EmptyMini, linkBtn } from './parts'
 
 // Upcoming schedule items: today and later, at most `limit`.
@@ -36,7 +36,7 @@ export default function OverviewTab({ gig, assets, members, posts, schedule, can
             {next.map(s => (
               <div key={s.id} style={{ display: 'flex', gap: '12px', fontSize: '14px', alignItems: 'baseline' }}>
                 <span style={{ color: colors.muted, fontSize: '12px', minWidth: '78px' }}>{fmt(s.day, 'EEE d MMM')}</span>
-                <span style={{ color: colors.accent, fontWeight: 700, minWidth: '44px', fontVariantNumeric: 'tabular-nums' }}>{shortTime(s.start_time)}</span>
+                <span style={{ color: colors.accentText, fontWeight: 700, minWidth: '44px', fontVariantNumeric: 'tabular-nums' }}>{shortTime(s.start_time)}</span>
                 <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}</span>
               </div>
             ))}
@@ -57,16 +57,16 @@ export default function OverviewTab({ gig, assets, members, posts, schedule, can
               return (
                 <button key={a.id} onClick={() => onOpenAsset(a)} style={{
                   display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '9px', textAlign: 'left',
-                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer', color: '#fff', width: '100%',
+                  background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', cursor: 'pointer', color: 'var(--text)', width: '100%',
                 }}>
-                  <span style={{ width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0, background: `${cfg.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0, background: tint(cfg.color, 9), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={14} color={cfg.color} />
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.name}</span>
                     <span style={{ display: 'block', fontSize: '11px', color: colors.muted }}>v{a.version} · {t(`assetType.${a.type}`)}</span>
                   </span>
-                  <Eye size={13} color="#7D93A9" />
+                  <Eye size={13} color="var(--muted)" />
                 </button>
               )
             })}
@@ -89,7 +89,7 @@ export default function OverviewTab({ gig, assets, members, posts, schedule, can
                   <div style={{ fontSize: '13px', fontWeight: 600 }}>{nameOf(m.user_id)}</div>
                   <div style={{ fontSize: '11px', color: colors.muted }}>
                     {m.function_title || t(`gigRoleLong.${m.role}`)}
-                    {m.call_time && <span style={{ color: colors.accent, marginLeft: '6px' }}>· {shortTime(m.call_time)}</span>}
+                    {m.call_time && <span style={{ color: colors.accentText, marginLeft: '6px' }}>· {shortTime(m.call_time)}</span>}
                   </div>
                 </div>
                 <RoleBadge role={m.role} />
