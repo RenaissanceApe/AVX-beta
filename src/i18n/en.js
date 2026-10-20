@@ -1850,4 +1850,7 @@ export default {
   "help.guideMissing": "This guide doesn’t exist. See all guides on the Help page.",
   "help.backToPage": "Back to this page’s help",
   "crew.emailPlaceholder": "technician@company.com",
+  "help.role.warehouse": "For the warehouse",
+  "help.role.office": "For the office and sales",
+  "help.role.admin": "For admins",
 }

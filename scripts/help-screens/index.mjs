@@ -143,11 +143,97 @@ const SCENES = {
   'equipment-picker': { persona: 'pm', url: `/gig/${ids.gig}?tab=equipment`, async run(page, L) {
     await page.getByRole('button', { name: L('equip.add') }).first().click()
     const dialog = page.getByRole('dialog')
-    const row = dialog.locator('label').filter({ hasText: page.lang === 'pt' ? 'Powercon' : 'Powercon' }).first()
+    const row = dialog.locator('label').filter({ hasText: 'Powercon' }).first()
     await row.locator('input[type=checkbox]').check()
     return row
   } },
+
+  // Warehouse
+  'inv-import': { persona: 'pm', url: `/org/${ids.org}/inventory`, async run(page, L) {
+    await page.getByRole('button', { name: L('inv.import'), exact: true }).first().click()
+    const dialog = page.getByRole('dialog')
+    await dialog.locator('textarea').first().fill(L('inv.importExample'))
+    await page.waitForTimeout(300)
+    return dialog.getByRole('button', { name: new RegExp(`^${L('inv.import')} `) })
+  } },
+  'inv-locations': { persona: 'pm', url: `/org/${ids.org}/inventory?tab=locations`, async run(page, L) {
+    return page.getByRole('button', { name: L('inv.addLocation') }).first()
+  } },
+  'item-units': { persona: 'pm', url: `/org/${ids.org}/inventory/${ids.speaker}`, async run(page, L) {
+    return page.getByRole('button', { name: L('inv.addUnits') }).first()
+  } },
+  labels: { persona: 'pm', url: `/org/${ids.org}/inventory/labels`, async run(page, L) {
+    return page.getByRole('button', { name: L('inv.print') }).first()
+  } },
+  'dispatch-out': { persona: 'pm', url: `/gig/${ids.gig}/scan`, async run(page, L) {
+    await page.getByPlaceholder(L('dispatch.codePlaceholder')).fill('U-7KQ2M9XG')
+    return page.getByPlaceholder(L('dispatch.codePlaceholder')).locator('xpath=ancestor::form[1]')
+  } },
+  'dispatch-in': { persona: 'pm', url: `/gig/${ids.gig}/scan`, async run(page, L) {
+    await page.getByRole('radio', { name: L('dispatch.dir.in') }).click()
+    return page.getByText(L('dispatch.damaged')).first()
+  } },
+  maintenance: { persona: 'pm', url: `/org/${ids.org}/inventory?tab=maintenance`, async run(page, L) {
+    return page.getByRole('button', { name: L('repair.new') }).first()
+  } },
+  'sub-form': { persona: 'pm', url: `/org/${ids.org}/inventory?tab=subrentals`, async run(page, L) {
+    await page.getByRole('button', { name: L('sub.new') }).first().click()
+    await page.waitForTimeout(400)
+    return null
+  } },
+  reports: { persona: 'pm', url: `/org/${ids.org}/inventory?tab=reports`, async run(page, L) {
+    return page.getByRole('button', { name: L('report.csv') }).first()
+  } },
+
+  // Office
+  'company-details': { persona: 'pm', url: `/org/${ids.org}/quotes?company=1`, async run() {
+    await page_wait()
+    return null
+  } },
+  'price-list': { persona: 'pm', url: `/org/${ids.org}/quotes?tab=prices`, async run(page, L) {
+    return page.getByRole('button', { name: L('prices.add') }).first()
+  } },
+  'quote-phases': { persona: 'pm', url: '/quote/q1', async run(page, L) {
+    return page.getByRole('button', { name: L('quote.addPhase') }).first()
+  } },
+  'quote-versions': { persona: 'pm', url: '/quote/q1', async run(page, L) {
+    await page.getByRole('button', { name: L('quoteVersions.button') }).first().click()
+    const dialog = page.getByRole('dialog')
+    await dialog.getByPlaceholder(L('quoteVersions.notePlaceholder')).fill(page.lang === 'pt' ? 'Antes de mudar o som' : 'Before changing the audio')
+    return dialog.getByRole('button', { name: L('quoteVersions.save') })
+  } },
+  'send-quote': { persona: 'pm', url: '/quote/q1', async run(page, L) {
+    await page.getByRole('button', { name: L('send.button') }).first().click()
+    return page.getByRole('dialog').getByRole('button', { name: L('send.sendEmail') })
+  } },
+  'quote-gig': { persona: 'pm', url: '/quote/q1', async run(page, L) {
+    await page.getByRole('button', { name: L('plan.button') }).first().click()
+    await page.waitForTimeout(500)
+    return page.getByRole('dialog').getByRole('button', { name: /^\S/ }).last()
+  } },
+
+  // Admins
+  members: { persona: 'pm', url: `/org/${ids.org}?panel=members`, async run(page, L) {
+    const dialog = page.getByRole('dialog')
+    await dialog.getByLabel(L('common.email'), { exact: true }).fill('marco@example.com')
+    return dialog.getByRole('button', { name: L('common.invite'), exact: true }).locator('xpath=..')
+  } },
+  'orgs-mute': { persona: 'pm', url: '/orgs', async run(page, L) {
+    return page.getByRole('button', { name: L('mute.muteNamed', { name: 'Lumen and Pixel' }) }).first()
+  } },
+  'gig-danger': { persona: 'pm', url: `/gig/${ids.gig}`, async run(page, L) {
+    await page.getByRole('button', { name: L('gig.edit') }).first().click()
+    const dialog = page.getByRole('dialog')
+    const zone = dialog.getByRole('button', { name: new RegExp(L('danger.zone')) })
+    await zone.click()
+    return dialog.getByRole('button', { name: L('danger.deleteGig') })
+  } },
+  'export-account': { persona: 'pm', url: '/me?panel=account', async run(page, L) {
+    return page.getByRole('button', { name: L('account.export') }).first()
+  } },
 }
+
+async function page_wait() { await new Promise(r => setTimeout(r, 400)) }
 
 function dayFromNow(n) { return new Date(Date.now() + n * 86400e3).toISOString().slice(0, 10) }
 

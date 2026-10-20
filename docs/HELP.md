@@ -1,6 +1,6 @@
 # Help and inclusion: plan
 
-Status: **H1 built (0.29.0)**, **H2a built (0.30.0)**; H2b–H6 planned. A project of its own, built in stages H1–H6, and a
+Status: **H1 built (0.29.0)**, **H2 built (0.30.0, 0.31.0)**; H3–H6 planned. A project of its own, built in stages H1–H6, and a
 rule for every feature after it.
 
 The aim: anyone who works in events can use AVX without help from a colleague, whatever their
@@ -96,7 +96,7 @@ times a month. The app has to explain itself in the moment, in plain words.
 | Stage | Scope | Roughly |
 |---|---|---|
 | **H1 · Foundations** | Help content files (PT/EN) and tests; glossary page and tappable terms; ⓘ hints on the first batch of fields; **?** on page headers; accessibility checks (axe) in the browser tests; the "part of done" rule in CONTRIBUTING | 1 PR |
-| **H2 · Guides** | ✅ H2a (0.30.0): guide format and side panel; screenshot script; crew and production-manager guides. H2b: warehouse, office and admin | 2 PRs |
+| **H2 · Guides** | ✅ H2a (0.30.0): guide format and side panel; screenshot script; crew and production-manager guides. ✅ H2b (0.31.0): warehouse, office and admin | 2 PRs |
 | **H3 · Comfort** | Colours as theme tokens; light theme (first), then high contrast; text size, comfortable mode, readable font | 1–2 PRs |
 | **H4 · First steps** | Teaching empty states everywhere; first-steps checklists per role; simple mode (automatic for crew-only people, a switch for everyone) | 1 PR |
 | **H5 · Field kit** | Scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on common actions; **equipment steps** (below) | 1–2 PRs |
@@ -207,6 +207,22 @@ rule the accessibility checks enforce.
   linked to their fields (screen readers read them without a name); the invite form's email
   example was in English in Portuguese.
 - Not yet (H2b): guides for the warehouse, office and admins.
+
+## What H2b built (0.31.0)
+
+- **18 more guides** (32 in all), same format and checks as H2a:
+  - **Warehouse:** import the catalogue; set up locations; add units and print QR labels; scan
+    equipment out to a gig; check equipment back in (damage, lost units); repairs and
+    inspections; hire in equipment (subrentals, cross-hire codes); read the inventory reports.
+  - **Office and sales:** company details; the price list; build a quote in phases; versions;
+    send a quote to the client; from accepted quote to gig.
+  - **Admins:** members and roles; mute an organisation or a conversation; delete safely
+    (archive first, then the danger zone); download your data.
+- Help lists five groups (crew, production managers, warehouse, office and sales, admins); the
+  ? panel groups a page's guides the same way.
+- **Screenshots:** 40 per language now (about 7 MB in all). The sample data gained locations,
+  units, repairs and inspections due, a subrental, an accepted quote with versions, company
+  details, a price list and organisation members.
 
 ## The rule for every new feature (from H1 on)
 

@@ -19,6 +19,7 @@ export const ids = {
   org: '22222222-2222-4222-8222-222222222222',
   otherOrg: '77777777-7777-4777-8777-777777777777',
   gig: '33333333-3333-4333-8333-333333333333',
+  speaker: 'bbbb0000-0000-4000-8000-000000000002',
   jazz: '33333333-3333-4333-8333-333333333334',
   gigChat: 'dddd0000-0000-4000-8000-000000000002',
   direct: 'dddd0000-0000-4000-8000-000000000001',
@@ -34,7 +35,7 @@ const W = {
     dock: 'Cais de carga', stageMain: 'Palco principal', holiday: 'Férias', askMsg: 'Precisamos de si a partir das 08:00 para a montagem. Consegue?',
     welcome: 'Bem-vindos! Carga às 08:00 no cais de carga.', reply: 'Perfeito, lá estarei.', rider: 'Rider de som.pdf', plot: 'Planta de palco.pdf',
     general: 'Geral', safety: 'Capacete obrigatório na zona de carga.', cables: 'Cabo XLR 10m', speaker: 'Coluna NEXT LA210x', desk: 'Mesa Yamaha QL1', powercon: 'Cabo Powercon 5m',
-    sys: 'Sistema de som', cab: 'Cabos', warehouse: 'Armazém Alcântara', desc: 'Concerto de Natal, dois dias.',
+    sys: 'Sistema de som', cab: 'Cabos', warehouse: 'Armazém principal', desc: 'Concerto de Natal, dois dias.',
   },
   en: {
     sound: 'Sound technician', lights: 'Lighting operator', production: 'Production', stage: 'Stage manager',
@@ -52,7 +53,12 @@ export function sampleData(persona, lang) {
   const names = { [carla]: 'Carla Mendes', [ricardo]: 'Ricardo Bedulho', [duarte]: 'Duarte Silva', [ana]: 'Ana Costa' }
   if (persona === 'new') names[carla] = ''
   const phones = { [carla]: '+351 912 345 678', [ricardo]: '+351 913 222 111', [duarte]: '+351 914 555 000', [ana]: '+351 915 000 999' }
-  const org = { id: orgId, name: 'Lumen and Pixel', equipment_prep_days: 1, equipment_return_days: 1, created_at: '2026-01-10T10:00:00Z' }
+  const org = {
+    id: orgId, name: 'Lumen and Pixel', equipment_prep_days: 1, equipment_return_days: 1, created_at: '2026-01-10T10:00:00Z',
+    legal_name: 'Lumen and Pixel, Lda', tax_id: '500 000 000', address: 'Rua da Cozinha Económica 30\n1300-149 Lisboa', email: 'info@example.com',
+    phone: '+351 210 000 000', website: 'example.com', default_vat_rate: 23, quote_validity_days: 30, quote_number_prefix: 'Q',
+    quote_terms: lang === 'pt' ? '50% na adjudicação, 50% até 30 dias após o evento.' : '50% on acceptance, 50% within 30 days of the event.',
+  }
   const gig = {
     id: gigId, org_id: orgId, name: 'Marcolino — Natal', venue: 'Coliseu dos Recreios, Lisboa', start_date: day(24), end_date: day(25),
     status: 'confirmed', description: w.desc, created_by: ricardo, created_at: ago(400), organisations: { name: 'Lumen and Pixel' },
@@ -82,10 +88,10 @@ export function sampleData(persona, lang) {
   const W1 = 'aaaa0000-0000-4000-8000-000000000001'
   const item = (id, name, category, tracking, extra = {}) => ({ id, org_id: orgId, name, category, tracking, kind: 'rental', unit: 'day', unit_price: 10, code: null, archived_at: null, ...extra })
   const items = [
-    item(XLR, w.cables, w.cab, 'bulk', { code: 'XLR10', weight_kg: 0.6 }),
-    item(PWC, w.powercon, w.cab, 'bulk'),
-    item(SPK, w.speaker, w.sys, 'serial', { code: 'LA210', weight_kg: 32, power_w: 1600 }),
-    item(QL1, w.desk, w.sys, 'serial', { weight_kg: 25, power_w: 300 }),
+    item(XLR, w.cables, w.cab, 'bulk', { code: 'XLR10', weight_kg: 0.6, unit_price: 2.5 }),
+    item(PWC, w.powercon, w.cab, 'bulk', { unit_price: 2 }),
+    item(SPK, w.speaker, w.sys, 'serial', { code: 'LA210', weight_kg: 32, power_w: 1600, unit_price: 60 }),
+    item(QL1, w.desk, w.sys, 'serial', { weight_kg: 25, power_w: 300, unit_price: 180 }),
   ]
   const gear = [
     { id: 'l1', gig_id: gigId, org_id: orgId, item_id: SPK, item_name: w.speaker, category: w.sys, quantity: 8, planned_from: null, planned_until: null, notes: null },
@@ -117,6 +123,61 @@ export function sampleData(persona, lang) {
     starts_at: `${day(24)}T00:00:00Z`, ends_at: `${day(26)}T00:00:00Z`, created_at: ago(3), replied_at: null,
     gig_name: gig.name, venue: gig.venue, company: 'Lumen and Pixel', asked_by_name: 'Ricardo Bedulho' }
 
+
+  // Warehouse, office and admin screens (guides H2b)
+  const tx = (ptText, enText) => (lang === 'pt' ? ptText : enText)
+  const V1 = 'aaaa0000-0000-4000-8000-000000000002'
+  const locations = [
+    { id: W1, org_id: orgId, name: w.warehouse, kind: 'warehouse', address: 'Rua da Cozinha Económica 30, Lisboa', archived_at: null },
+    { id: V1, org_id: orgId, name: tx('Carrinha 1', 'Van 1'), kind: 'vehicle', address: null, archived_at: null },
+  ]
+  const units = Array.from({ length: 7 }, (_, i) => ({
+    id: `cccc0000-0000-4000-8000-00000000000${i}`, org_id: orgId, item_id: SPK, code: `U-7KQ2M9X${'ABCDEFG'[i]}`, serial: `LA210-0${41 + i}`,
+    location_id: i < 6 ? W1 : V1, status: i === 2 ? 'repair' : 'available', purchase_date: '2023-03-15', purchase_cost: 3400, depreciation_months: 72,
+    case_unit_id: null, notes: null, price_items: { name: w.speaker },
+  }))
+  const movements = [
+    { id: 3, org_id: orgId, item_id: XLR, kind: 'transfer', quantity: 24, from_location_id: W1, to_location_id: V1, note: null, created_by: ricardo, created_at: ago(30) },
+    { id: 2, org_id: orgId, item_id: XLR, kind: 'purchase', quantity: 120, from_location_id: null, to_location_id: W1, note: tx('Importação', 'Import'), created_by: ricardo, created_at: ago(400) },
+  ]
+  const repairs = [
+    { id: 'r1', org_id: orgId, item_id: SPK, unit_id: units[2].id, unit: { code: units[2].code }, quantity: 1, gig_id: gigId, gig: { name: gig.name }, status: 'in_repair', problem: tx('Grelha amolgada, driver a vibrar', 'Dented grille, rattling driver'), photo_path: null, repairer: 'AudioFix', cost: 85, charge_client: false, expected_back: day(4), created_at: ago(120) },
+    { id: 'r2', org_id: orgId, item_id: XLR, unit_id: null, unit: null, quantity: 3, gig_id: null, gig: null, status: 'open', problem: tx('Fichas soltas', 'Loose connectors'), photo_path: null, repairer: null, cost: null, charge_client: false, expected_back: null, created_at: ago(20) },
+  ]
+  const due = [
+    { item_id: SPK, item_name: w.speaker, inspection_kind: tx('Teste elétrico (PAT)', 'Electrical test (PAT)'), unit_id: units[0].id, unit_code: units[0].code, last_done: day(-370), last_result: 'pass', due_on: day(-5) },
+    { item_id: SPK, item_name: w.speaker, inspection_kind: tx('Teste elétrico (PAT)', 'Electrical test (PAT)'), unit_id: units[1].id, unit_code: units[1].code, last_done: day(-355), last_result: 'pass', due_on: day(10) },
+  ]
+  const suppliers = [
+    { id: 'sp1', org_id: orgId, name: 'Audiomatic', contact_name: 'Rui Costa', phone: '+351 912 000 000', email: 'rui@example.com', partner_org_id: null, archived_at: null },
+  ]
+  const subrentals = [
+    { id: 'sb1', org_id: orgId, supplier_id: 'sp1', supplier: { name: 'Audiomatic', partner_org_id: null }, gig_id: gigId, gig: { name: gig.name }, status: 'requested', starts_at: span[0], ends_at: span[1], reference: 'PO-118', notes: null,
+      lines: [{ id: 'x1', item_id: SPK, description: w.speaker, quantity: 2, unit_cost: 40, position: 0 }] },
+  ]
+  const Lq = (id, kind, description, qty, unit, factor, unit_price, item_id) => ({ id, kind, description, details: '', qty, unit, factor, unit_price, discount_pct: 0, ...(item_id ? { item_id } : {}) })
+  const quote = {
+    id: 'q1', org_id: orgId, gig_id: gigId, number: 143, title: gig.name, status: 'accepted', language: lang, currency: 'EUR',
+    client_company: 'Marcolino Produções', client_name: 'Marta Lopes', client_email: 'marta@example.com', client_address: null, client_tax_id: null,
+    issue_date: day(-10), valid_until: day(20), intro: null, terms: null, payment_terms: null, manager_name: 'Ricardo Bedulho',
+    vat_rate: 23, discount_pct: 0, show_line_prices: true, version: 3, created_by: ricardo, total_net: 4280, created_at: ago(240), updated_at: ago(30),
+    body: { phases: [
+      { id: 'p1', name: tx('Montagem', 'Load-in'), start_date: day(24), start_time: '08:00', end_date: day(24), end_time: '16:00', discount_pct: 0, optional: false, sections: [
+        { id: 's1', name: tx('Som', 'Audio'), lines: [Lq('a1', 'rental', w.speaker, 8, 'unit', 2, 60, SPK), Lq('a2', 'rental', w.desk, 1, 'unit', 2, 180, QL1)] },
+        { id: 's2', name: tx('Equipa', 'Crew'), lines: [Lq('a3', 'crew', w.sound, 2, 'day', 2, 200)] },
+      ] },
+      { id: 'p2', name: tx('Espetáculo', 'Show'), start_date: day(24), start_time: '21:00', end_date: day(24), end_time: '23:00', discount_pct: 0, optional: false, sections: [] },
+      { id: 'p3', name: tx('Desmontagem', 'Load-out'), start_date: day(25), start_time: '23:00', end_date: day(25), end_time: '03:00', discount_pct: 0, optional: false, sections: [] },
+    ] },
+  }
+  const versions = [
+    { id: 'v2', quote_id: 'q1', version_no: 2, note: tx('Enviado para marta@example.com', 'Sent to marta@example.com'), total_net: 4280, created_at: ago(48), snapshot: quote },
+    { id: 'v1', quote_id: 'q1', version_no: 1, note: tx('Antes de cortar o ecrã LED', 'Before cutting the LED wall'), total_net: 5120, created_at: ago(96), snapshot: quote },
+  ]
+  const priceList = [
+    { id: 'pl3', org_id: orgId, name: w.sound, kind: 'crew', unit: 'day', unit_price: 200, category: tx('Equipa', 'Crew'), details: null, tracking: 'none' },
+    { id: 'pl4', org_id: orgId, name: tx('Transporte', 'Transport'), kind: 'transport', unit: 'km', unit_price: 0.45, category: tx('Transporte', 'Transport'), details: null, tracking: 'none' },
+  ]
   return {
     me, names, persona,
     user: { id: me, email: persona === 'pm' ? 'ricardo@example.com' : 'carla@example.com', aud: 'authenticated', role: 'authenticated', user_metadata: { full_name: names[me] }, app_metadata: {} },
@@ -136,8 +197,22 @@ export function sampleData(persona, lang) {
       crew_unavailability: persona === 'pm' ? [] : [{ id: 'u1', user_id: carla, start_date: day(50), end_date: day(57), note: w.holiday, created_at: ago(100) }],
       notifications: persona === 'pm' ? [] : [{ id: 1, user_id: carla, org_id: orgId, gig_id: gigId, actor_id: ricardo, kind: 'availability_request', details: { gig_name: gig.name, from: `${day(24)}T00:00:00Z`, until: `${day(26)}T00:00:00Z` }, read_at: null, created_at: ago(3) }],
       gig_equipment: gear,
-      price_items: items,
-      stock_locations: [{ id: W1, org_id: orgId, name: w.warehouse, kind: 'warehouse', address: null, archived_at: null }],
+      price_items: items.concat(priceList),
+      stock_locations: locations,
+      stock_units: units,
+      stock_movements: movements,
+      repairs,
+      inspections: [],
+      suppliers,
+      subrentals,
+      quotes: [{ ...quote, organisations: org }],
+      quote_versions: versions,
+      quote_shares: [{ id: 'sh1', status: 'accepted', sent_to: 'marta@example.com', emailed: true, created_at: ago(48), expires_at: `${day(28)}T00:00:00Z`, viewed_at: ago(40), responded_at: ago(30), responder_name: 'Marta Lopes', responder_note: null, quote_versions: { version_no: 2 } }],
+      quote_templates: [],
+      org_branding: [{ org_id: orgId, legal_name: 'Lumen and Pixel, Lda', tax_id: '500000000', address: 'Lisboa', phone: '+351 210 000 000', website: 'lumenandpixel.com', default_vat: 23, validity_days: 30, default_terms: null, brand_color: '#33FB31' }],
+      org_invites: persona === 'pm' ? [{ id: 'oi1', org_id: orgId, email: 'joana.r@example.com', role: 'member', created_at: ago(5) }] : [],
+      org_mutes: [],
+      reservations: [],
       stock_levels: [
         { org_id: orgId, item_id: XLR, location_id: W1, quantity: 120, in_repair: 0 }, { org_id: orgId, item_id: PWC, location_id: W1, quantity: 40, in_repair: 0 },
         { org_id: orgId, item_id: SPK, location_id: W1, quantity: 7, in_repair: 0 }, { org_id: orgId, item_id: QL1, location_id: W1, quantity: 1, in_repair: 0 },
@@ -163,7 +238,22 @@ export function sampleData(persona, lang) {
         { user_id: carla, full_name: 'Carla Mendes', functions: [w.sound], gigs_together: 4, last_together: day(-60), busy: false, already: true },
       ],
       gig_equipment_status: gearStatus,
-      gig_dispatch_summary: [],
+      gig_dispatch_summary: [
+        { item_id: SPK, item_name: w.speaker, category: w.sys, tracking: 'serial', planned: 8, out_qty: 6, back_qty: 0, packing_note: null },
+        { item_id: XLR, item_name: w.cables, category: w.cab, tracking: 'bulk', planned: 60, out_qty: 60, back_qty: 0, packing_note: null },
+        { item_id: QL1, item_name: w.desk, category: w.sys, tracking: 'serial', planned: 1, out_qty: 0, back_qty: 0, packing_note: null },
+      ],
+      gig_units_out: units.slice(0, 2).map(u => ({ unit_id: u.id, item_id: SPK, item_name: w.speaker, code: u.code, serial: u.serial, out_since: ago(10) })),
+      maintenance_due: due,
+      incoming_hire_requests: [],
+      partner_code: 'P-7KQ2M9XA',
+      item_bookings: [],
+      org_member_list: [
+        { user_id: ricardo, full_name: 'Ricardo Bedulho', email: 'ricardo@example.com', role: 'admin', joined_at: '2026-01-10T10:00:00Z' },
+        { user_id: ana, full_name: 'Ana Costa', email: 'ana@example.com', role: 'admin', joined_at: '2026-02-01T10:00:00Z' },
+        { user_id: duarte, full_name: 'Duarte Silva', email: 'duarte@example.com', role: 'member', joined_at: '2026-03-01T10:00:00Z' },
+        { user_id: carla, full_name: 'Carla Mendes', email: 'carla@example.com', role: 'viewer', joined_at: '2026-04-01T10:00:00Z' },
+      ],
       equipment_availability: [
         { item_id: SPK, owned: 7, booked: 2, available: 5 }, { item_id: XLR, owned: 120, booked: 24, available: 96 },
         { item_id: PWC, owned: 40, booked: 0, available: 40 }, { item_id: QL1, owned: 1, booked: 0, available: 1 },

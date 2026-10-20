@@ -35,7 +35,7 @@ export function searchTerms(query) {
 // Guides (docs/HELP.md, H2): who each is for, the pages whose ? lists it, the glossary words
 // it links to, and a screenshot per step (null: no picture). The words are in en.js / pt.js.
 // Screenshots come from scripts/help-screens (npm run help:screens), in both languages.
-export const GUIDE_ROLES = ['crew', 'pm']
+export const GUIDE_ROLES = ['crew', 'pm', 'warehouse', 'office', 'admin']
 export const GUIDES = {
   'crew-join': { role: 'crew', pages: ['home'], terms: ['gig', 'my-work', 'workspace'], shots: [null, 'welcome', 'gig-list', null] },
   'crew-install': { role: 'crew', pages: ['home'], terms: ['push-notifications', 'offline-copy'], shots: [null, null, null, 'push'] },
@@ -51,6 +51,24 @@ export const GUIDES = {
   'pm-call-sheet': { role: 'pm', pages: ['gig'], terms: ['call-sheet', 'schedule', 'call-time'], shots: [null, 'schedule-callsheet', 'call-sheet-send', null] },
   'pm-double-booking': { role: 'pm', pages: ['gig', 'home'], terms: ['double-booking', 'booking-times', 'availability-request', 'unavailable-dates'], shots: ['crew-clash', 'ask-form', null, null] },
   'pm-equipment': { role: 'pm', pages: ['gig'], terms: ['catalogue-item', 'prep-return-days', 'subrental', 'alternative'], shots: ['equipment-add', 'equipment-picker', null, null] },
+  'wh-import': { role: 'warehouse', pages: ['inventory'], terms: ['catalogue-item', 'bulk-item', 'serial-item', 'location'], shots: [null, 'inv-import', null] },
+  'wh-locations': { role: 'warehouse', pages: ['inventory'], terms: ['location', 'stock-movement'], shots: ['inv-locations', null, null] },
+  'wh-units-labels': { role: 'warehouse', pages: ['inventory-item', 'inventory'], terms: ['serial-item', 'unit', 'depreciation'], shots: ['item-units', null, 'labels'] },
+  'wh-scan': { role: 'warehouse', pages: ['gig', 'inventory'], terms: ['packing-list', 'scan-out-in', 'case', 'unit'], shots: [null, 'dispatch-out', null] },
+  'wh-returns': { role: 'warehouse', pages: ['gig', 'inventory'], terms: ['scan-out-in', 'damage', 'mark-lost', 'repair'], shots: ['dispatch-in', null, null] },
+  'wh-repairs': { role: 'warehouse', pages: ['inventory', 'inventory-item'], terms: ['repair', 'inspection', 'write-off', 'damage'], shots: ['maintenance', null, null] },
+  'wh-subrentals': { role: 'warehouse', pages: ['inventory'], terms: ['subrental', 'supplier', 'cross-hire-code'], shots: [null, 'sub-form', null, null] },
+  'wh-reports': { role: 'warehouse', pages: ['inventory'], terms: ['replacement-value', 'depreciation', 'write-off'], shots: ['reports', null, null] },
+  'of-company': { role: 'office', pages: ['quotes'], terms: ['vat', 'validity'], shots: [null, 'company-details', null] },
+  'of-price-list': { role: 'office', pages: ['quotes', 'quote'], terms: ['price-list', 'catalogue-item'], shots: ['price-list', null, null] },
+  'of-build-quote': { role: 'office', pages: ['quotes', 'quote'], terms: ['quote', 'phase', 'factor', 'vat', 'price-list'], shots: [null, 'quote-phases', null, null] },
+  'of-versions': { role: 'office', pages: ['quote'], terms: ['quote-version', 'quote'], shots: [null, 'quote-versions', null] },
+  'of-send-quote': { role: 'office', pages: ['quote'], terms: ['client-link', 'quote-version', 'validity'], shots: [null, 'send-quote', null] },
+  'of-quote-to-gig': { role: 'office', pages: ['quote', 'gig'], terms: ['quote', 'gig', 'phase'], shots: [null, 'quote-gig', null] },
+  'ad-members': { role: 'admin', pages: ['orgs', 'home'], terms: ['organisation', 'org-admin', 'org-member', 'viewer'], shots: [null, 'members', null] },
+  'ad-mute': { role: 'admin', pages: ['orgs', 'messages'], terms: ['mute', 'email-summary', 'push-notifications'], shots: ['orgs-mute', null, null] },
+  'ad-delete': { role: 'admin', pages: ['gig', 'orgs'], terms: ['gig-status', 'organisation'], shots: [null, null, 'gig-danger', null] },
+  'ad-export': { role: 'admin', pages: ['orgs'], terms: ['retention', 'organisation'], shots: ['export-account', null, null] },
 }
 
 export const guideIds = () => Object.keys(GUIDES)
