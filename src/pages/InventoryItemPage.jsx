@@ -17,6 +17,7 @@ import ContextThread from '../components/messages/ContextThread'
 import { ItemMaintenance } from '../components/inventory/MaintenancePanels'
 import { MovementList, useNames, LOCATION_ICONS } from './InventoryPage'
 import { btn, btnPrimary, iconBtn, card, label, colors } from '../components/ui'
+import { PageHelp } from '../components/help/HelpParts'
 
 const STATUS_COLOR = { available: colors.accent, repair: '#F59E0B', lost: colors.danger, retired: colors.muted }
 const ghost = { ...btn, background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }
@@ -107,7 +108,7 @@ export default function InventoryItemPage() {
         <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: '14px' }}>
           <div style={{ flex: '1 1 260px', minWidth: 0 }}>
             <div style={{ fontSize: '12px', color: colors.muted }}>{[item.category, t(`lineKind.${item.kind}`)].filter(Boolean).join(' · ')}</div>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px', overflowWrap: 'anywhere' }}>{item.name}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px', overflowWrap: 'anywhere', minWidth: 0 }}>{item.name}</h1><PageHelp page="inventory-item" /></div>
             <div style={{ fontSize: '13px', color: colors.soft, display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px' }}>
               {item.code && <span style={{ fontFamily: 'monospace' }}>{item.code}</span>}
               {item.kit_type ? <span style={{ color: colors.accent }}>{t(`kit.typeOpt.${item.kit_type}`)}</span> : null}

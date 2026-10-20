@@ -13,6 +13,7 @@ import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import Conversation from '../components/messages/Conversation'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
+import { PageHelp } from '../components/help/HelpParts'
 
 const spinner = <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}><Loader2 size={22} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /></div>
 const KIND_ICONS = { direct: MessageCircle, gig: Hash, department: Users, org: Megaphone, context: Package }
@@ -78,7 +79,7 @@ export default function MessagesPage() {
   return (
     <AppShell>
       <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '24px 16px 40px' }}>
-        {(!narrow || !id) && <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px', marginBottom: '16px' }}>{t('chat.title')}</h1>}
+        {(!narrow || !id) && <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}><h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('chat.title')}</h1><PageHelp page="messages" /></div>}
         {to ? spinner : narrow ? (id ? open : side) : (
           <div style={{ display: 'grid', gridTemplateColumns: '320px minmax(0, 1fr)', gap: '16px', alignItems: 'start' }}>
             {side}

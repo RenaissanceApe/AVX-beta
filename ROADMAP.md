@@ -147,9 +147,16 @@ acknowledgement, crew calls, client and supplier threads, push, moderation (stag
 | ✅ M6a · Safety (0.27.0) | Report a message, moderators remove messages, block a person, rate limits |
 | ✅ M6b · Care (0.28.0) | Retention per organisation (nightly deletion), download of the organisation's conversations, usage counts |
 | M5b · Email replies | Reply by email to the summary; email clients and suppliers when you answer (needs inbound email on the domain) |
-| M6 · Safety | Moderation, retention, export, rate limits |
 
-## Help and inclusion (planned)
+## Help and inclusion (H1 built in 0.29.0)
+
+| Stage | Scope |
+|---|---|
+| ✅ H1 · Foundations (0.29.0) | Glossary (Help) with tappable words, ⓘ hints on the first fields, ? on page headers, accessibility checks in the browser tests, contrast fixes |
+| H2 · Guides | How-to guides per role with generated screenshots |
+| H3 · Comfort | Text size, comfortable mode, themes, readable font |
+| H4 · First steps | Teaching empty states, first-steps checklists, simple mode for crew |
+| H5 · Field kit | Scan mode, read aloud, large-print call sheet, undo |
 
 Glossary, ⓘ hints on ambiguous fields, how-to guides with screenshots per role, text size,
 comfortable and high-contrast modes, simple mode for crew, a field kit for scanning, and a rule

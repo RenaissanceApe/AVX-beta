@@ -12,6 +12,7 @@ import { codeFromScan, dispatchProgress } from '../lib/inventory'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { btn, btnPrimary, input, label, card, colors } from '../components/ui'
+import { Hint } from '../components/help/HelpParts'
 
 const AMBER = '#F59E0B'
 const REPEAT_MS = 2500 // the same code seen again within this time is the same scan
@@ -199,6 +200,7 @@ export default function DispatchPage() {
                 <X size={14} /> {t('dispatch.markLost', { count: unitsOut.length })}
               </button>
             )}
+            {direction === 'in' && <Hint id="mark-lost" label={t('dispatch.markLost', { count: unitsOut.length })} />}
           </section>
         )}
       </div>

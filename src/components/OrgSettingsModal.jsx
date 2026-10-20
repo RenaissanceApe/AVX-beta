@@ -8,6 +8,7 @@ import { useI18n } from '../i18n'
 import { Modal, btnPrimary, input, label, colors } from './ui'
 import { DangerZone, DangerConfirmModal } from './DangerConfirm'
 import OrgMessagesSettings from './OrgMessagesSettings'
+import { HintLabel } from './help/HelpParts'
 
 // What deleting an organisation destroys, as readable lines for the confirmation dialog
 async function orgDeletionImpact(orgId, t) {
@@ -80,11 +81,11 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
           <div>
-            <label style={label} htmlFor="org-prep">{t('orgSettings.prepDays')}</label>
+            <HintLabel htmlFor="org-prep" hint="prep-days">{t('orgSettings.prepDays')}</HintLabel>
             <input id="org-prep" type="number" min={0} max={14} value={prep} onChange={e => setPrep(e.target.value)} style={input} />
           </div>
           <div>
-            <label style={label} htmlFor="org-return">{t('orgSettings.returnDays')}</label>
+            <HintLabel htmlFor="org-return" hint="return-days">{t('orgSettings.returnDays')}</HintLabel>
             <input id="org-return" type="number" min={0} max={14} value={ret} onChange={e => setRet(e.target.value)} style={input} />
           </div>
         </div>

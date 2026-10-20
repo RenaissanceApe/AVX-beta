@@ -119,7 +119,7 @@ export default function AssetsTab({ gigId, assets, canUpload, offline = false, o
                     <span style={{ color: cfg.color, fontWeight: 600 }}>{t(`assetType.${a.type}`)}</span>
                     <span style={{ color: colors.muted }}>{t('assets.version', { version: a.version })}</span>
                     {a.file_size ? <span style={{ color: colors.muted }}>{formatBytes(a.file_size)}</span> : null}
-                    <span style={{ color: '#2A3A48' }}>{ago(a.created_at)}</span>
+                    <span style={{ color: '#7D93A9' }}>{ago(a.created_at)}</span>
                   </div>
                 </div>
                 <button onClick={() => onOpen(a)} style={{
@@ -260,9 +260,9 @@ function UploadModal({ gigId, assets, onClose, onUploaded }) {
               </div>
             ) : (
               <div>
-                <Upload size={24} color="#2A3A48" style={{ marginBottom: '8px' }} />
+                <Upload size={24} color="#7D93A9" style={{ marginBottom: '8px' }} />
                 <div style={{ color: colors.muted, fontSize: '13px' }}>{t('assets.drop')}</div>
-                <div style={{ color: '#2A3A48', fontSize: '12px', marginTop: '4px' }}>{t('assets.dropHint')}</div>
+                <div style={{ color: '#7D93A9', fontSize: '12px', marginTop: '4px' }}>{t('assets.dropHint')}</div>
               </div>
             )}
           </div>

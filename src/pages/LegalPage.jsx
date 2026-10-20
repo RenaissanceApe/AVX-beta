@@ -106,7 +106,7 @@ export default function LegalPage({ doc }) {
         .legal h2 { color: #fff; font-size: 16px; font-weight: 700; margin: 26px 0 8px; }
         .legal p, .legal li { font-size: 15px; line-height: 1.7; }
         .legal ul { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
-        .legal .meta { color: #4A6070; font-size: 13px; }
+        .legal .meta { color: #7D93A9; font-size: 13px; }
       `}</style>
       <div className="legal" style={{ maxWidth: '680px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
@@ -118,7 +118,7 @@ export default function LegalPage({ doc }) {
           </span>
         </div>
         {doc === 'terms' ? (pt ? <TermsPt /> : <Terms />) : (pt ? <PrivacyPt /> : <Privacy />)}
-        <p style={{ marginTop: '40px', fontSize: '13px', color: '#4A6070' }}>
+        <p style={{ marginTop: '40px', fontSize: '13px', color: '#7D93A9' }}>
           {doc === 'terms'
             ? <Link to="/privacy" style={{ color: '#1EC878' }}>{t('legal.privacyShort')}</Link>
             : <Link to="/terms" style={{ color: '#1EC878' }}>{t('legal.termsShort')}</Link>}

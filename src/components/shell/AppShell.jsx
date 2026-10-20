@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Zap, ChevronDown, Check, Briefcase, List, CalendarDays, CalendarOff, Building2, Plus, FileText, Tags,
-  LayoutTemplate, Users, Settings, MoreHorizontal, X, LogOut, BellOff, Package, MapPin, History, QrCode, Wrench, Handshake, BarChart3,
+  LayoutTemplate, Users, Settings, MoreHorizontal, X, LogOut, BellOff, Package, MapPin, History, QrCode, Wrench, Handshake, BarChart3, HelpCircle,
 } from 'lucide-react'
 import { useAuth } from '../../lib/AuthContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
@@ -11,7 +11,7 @@ import { useI18n } from '../../i18n'
 import NotificationBell from '../NotificationBell'
 import MessagesButton from '../messages/MessagesButton'
 import AccountModal from '../AccountModal'
-import { colors } from '../ui'
+import { colors, iconBtn } from '../ui'
 
 export const ICONS = {
   briefcase: Briefcase, list: List, calendar: CalendarDays, calendarOff: CalendarOff, building: Building2, plus: Plus,
@@ -43,7 +43,7 @@ export default function AppShell({ children }) {
     <div className="shell">
       <style>{SHELL_CSS}</style>
       <header className="shell-bar">
-        <Link to={homePath(workspace)} className="shell-logo" aria-label={t('nav.home')} title={t('nav.home')}>
+        <Link to={homePath(workspace)} className="shell-logo" aria-label={`AVX — ${t('nav.home')}`} title={t('nav.home')}>
           <span className="shell-logo-mark"><Zap size={15} color="#fff" fill="#fff" /></span>
           <span className="shell-logo-text">AVX</span>
         </Link>
@@ -53,9 +53,10 @@ export default function AppShell({ children }) {
           {sections.map(s => <SectionMenu key={s.key} section={s} />)}
         </nav>
         <div className="shell-right">
+          <Link to="/help" className="shell-help" aria-label={t('help.title')} title={t('help.title')} style={{ ...iconBtn, color: colors.muted }}><HelpCircle size={17} /></Link>
           <MessagesButton />
           <NotificationBell />
-          <button onClick={() => setAccountOpen(true)} className="shell-avatar" aria-label={t('account.title')} title={t('account.title')}>{initials}</button>
+          <button onClick={() => setAccountOpen(true)} className="shell-avatar" aria-label={`${initials} — ${t('account.title')}`} title={t('account.title')}>{initials}</button>
         </div>
       </header>
       <main className="shell-main">{children}</main>
@@ -115,8 +116,9 @@ function WorkspaceSwitcher() {
 
   return (
     <div className="shell-switcher" ref={ref}>
+      {/* Named by what it shows (company, role) so voice control can use the visible words */}
       <button className="shell-switch-btn" onClick={() => setOpen(o => !o)} aria-haspopup="menu" aria-expanded={open}
-        aria-label={t('nav.switchWorkspace', { name: currentOrg?.name || t('nav.myWork') })}>
+        title={t('nav.switchWorkspace', { name: currentOrg?.name || t('nav.myWork') })}>
         {currentOrg ? <OrgMark name={currentOrg.name} /> : <span className="shell-orgmark shell-orgmark-me" aria-hidden="true"><Briefcase size={12} /></span>}
         <span className="shell-switch-name">{currentOrg?.name || t('nav.myWork')}</span>
         {currentOrg && <RoleChip role={currentOrg.myRole} />}
@@ -261,6 +263,7 @@ function PhoneTabs({ sections, onAccount }) {
             ))}
             <div className="shell-sheet-foot">
               <button className="shell-pop-link" onClick={() => { setMore(false); onAccount() }}><Users size={14} /> {t('account.title')}</button>
+              <Link className="shell-pop-link" to="/help" onClick={() => setMore(false)}><HelpCircle size={14} /> {t('help.title')}</Link>
               <button className="shell-pop-link" onClick={signOut}><LogOut size={14} /> {t('account.signOut')}</button>
             </div>
           </div>
@@ -344,6 +347,7 @@ const SHELL_CSS = `
   .shell-tabs { display: none; }
   .shell-icon-btn { background: none; border: none; color: ${colors.soft}; cursor: pointer; display: flex; padding: 4px; }
   @media (max-width: 899px) {
+    .shell-help { display: none !important; }
     .shell-sections { display: none; }
     .shell-bar { padding: 0 12px; gap: 8px; }
     .shell-logo-text { display: none; }

@@ -1,7 +1,7 @@
 # Help and inclusion: plan
 
-Status: **planned**. A project of its own, built in stages H1–H6, and a rule for every feature
-after it.
+Status: **H1 built (0.29.0)**; H2–H6 planned. A project of its own, built in stages H1–H6, and a
+rule for every feature after it.
 
 The aim: anyone who works in events can use AVX without help from a colleague, whatever their
 age, eyesight, language or comfort with technology. Crew are often older, often on a phone,
@@ -102,6 +102,33 @@ times a month. The app has to explain itself in the moment, in plain words.
 | **H5 · Field kit** | Scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on common actions | 1 PR |
 | **H6 · Reach** | Ask for help; more languages; SMS/WhatsApp notifications; short video guides | later, as needed |
 
+## What H1 built (0.29.0)
+
+- **Help content** in `src/help/en.js` and `src/help/pt.js` (the same ids in both): 64 glossary
+  terms (term, definition, example, where it appears), 23 field hints and 8 page notes.
+  `src/help/help.test.js` fails if a language is missing anything, a text is empty, or the app
+  uses a hint, term or page that doesn't exist.
+- **Help → Glossary** (`/help`, readable signed out too): search (accents and case don't matter),
+  language switch, and `/help#call-time` opens at that word. In the top bar on computers (?) and
+  in **More** on phones.
+- **Components** (`src/components/help/HelpParts.jsx`): `<Hint id>` (ⓘ, opens on tap or keyboard,
+  closes with Escape, stays inside the screen), `<HintLabel htmlFor hint>` (a label with its ⓘ),
+  `<Term id>` (a word with a dotted underline that shows its definition and links to the
+  glossary) and `<PageHelp page>` (the ? on a page header: what the page is for and the words used
+  on it, in a side panel).
+- **Hints on the first fields:** tracking, kit type, minimum stock, replacement value, inspection
+  interval, depreciation (two places), unit status, prep and return days, who can find you,
+  two-step sign-in, phase discount, factor, VAT (two places), validity, gig access, call time,
+  gig status, organisation role, mark as lost, cross-hire code. Terms in the booking window.
+- **? on page headers:** gigs, gig, messages, inventory, an item, quotes, a quote, organisations.
+- **Accessibility checks:** axe (`@axe-core/playwright`) in the browser tests on the public pages
+  and, in the signed-in tests, the organisation and gig pages; serious and critical findings
+  fail the build. Fixes made: the muted grey (`#4A6070`, about 3:1) became `#7D93A9` (at least
+  4.5:1 on every background it's used on); empty-state text, light blue, pink and purple
+  lightened; the logo, account and company buttons are now named by what they show (voice
+  control).
+- Not yet (H2): guides with screenshots; hints on the remaining fields.
+
 ## The rule for every new feature (from H1 on)
 
 A feature's PR also ships:
@@ -111,7 +138,7 @@ A feature's PR also ships:
 - a keyboard and screen-reader pass (the axe checks must pass);
 - text reviewed for plain language.
 
-## Questions to settle before H1
+## Open questions
 
 1. ~~Who reviews the wording?~~ The owner reviews the Portuguese wording.
 2. Light theme: worth adding (outdoor readability), or keep AVX dark-only with a high-contrast

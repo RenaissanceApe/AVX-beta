@@ -6,19 +6,19 @@ import { colors, iconBtn } from '../ui'
 
 export const ASSET_TYPES = [
   { value: 'patch_list', icon: ClipboardList, color: '#1EC878' },
-  { value: 'plot',       icon: Layout,        color: '#3B82F6' },
+  { value: 'plot',       icon: Layout,        color: '#60A5FA' },
   { value: 'schedule',   icon: Clock,         color: '#F59E0B' },
-  { value: 'rider',      icon: Music,         color: '#8B5CF6' },
+  { value: 'rider',      icon: Music,         color: '#A78BFA' },
   { value: 'document',   icon: FileText,      color: '#6B7280' },
-  { value: 'image',      icon: Image,         color: '#EC4899' },
+  { value: 'image',      icon: Image,         color: '#F472B6' },
 ]
 export const assetType = type => ASSET_TYPES.find(a => a.value === type) || ASSET_TYPES[4]
 
 export const STATUS_STYLE = {
-  draft:     { color: '#4A6070', bg: 'rgba(74,96,112,0.15)' },
-  confirmed: { color: '#3B82F6', bg: 'rgba(59,130,246,0.15)' },
+  draft:     { color: '#7D93A9', bg: 'rgba(74,96,112,0.15)' },
+  confirmed: { color: '#60A5FA', bg: 'rgba(59,130,246,0.15)' },
   active:    { color: '#1EC878', bg: 'rgba(30,200,120,0.15)' },
-  completed: { color: '#8B5CF6', bg: 'rgba(139,92,246,0.15)' },
+  completed: { color: '#A78BFA', bg: 'rgba(139,92,246,0.15)' },
   archived:  { color: '#374151', bg: 'rgba(55,65,81,0.1)' },
 }
 export const GIG_STATUSES = Object.keys(STATUS_STYLE)
@@ -34,7 +34,7 @@ export function StatusBadge({ status }) {
   )
 }
 
-const AVATAR_COLORS = ['#1EC878', '#3B82F6', '#8B5CF6', '#F59E0B', '#EC4899', '#06B6D4']
+const AVATAR_COLORS = ['#1EC878', '#60A5FA', '#A78BFA', '#F59E0B', '#F472B6', '#06B6D4']
 
 export function Avatar({ uid, name, size = 32 }) {
   const c = AVATAR_COLORS[uid ? uid.charCodeAt(0) % AVATAR_COLORS.length : 0]
@@ -51,7 +51,7 @@ export function Avatar({ uid, name, size = 32 }) {
 
 const ROLE_STYLE = {
   pm:     { color: '#1EC878', bg: 'rgba(30,200,120,0.12)' },
-  crew:   { color: '#4A6070', bg: 'rgba(74,96,112,0.12)' },
+  crew:   { color: '#7D93A9', bg: 'rgba(74,96,112,0.12)' },
   viewer: { color: '#374151', bg: 'rgba(55,65,81,0.12)' },
 }
 
@@ -83,7 +83,7 @@ export function FeedPost({ post, name, large = false, onDelete = null }) {
             color: colors.danger, background: 'rgba(239,68,68,0.15)', textTransform: 'uppercase', letterSpacing: '0.05em',
           }}>{t('feed.important')}</span>
         )}
-        <span style={{ fontSize: '11px', color: '#2A3A48', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{ago(post.created_at)}</span>
+        <span style={{ fontSize: '11px', color: '#7D93A9', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{ago(post.created_at)}</span>
         {onDelete && (
           <button onClick={onDelete} aria-label={t('feed.deleteUpdate')} title={t('common.delete')} style={{ ...iconBtn, padding: '2px' }}>
             <Trash2 size={13} />
@@ -116,7 +116,7 @@ export function SmallBtn({ onClick, icon, label }) {
 }
 
 export function EmptyMini({ text }) {
-  return <p style={{ color: '#2A3A48', fontSize: '13px', textAlign: 'center', padding: '12px 0' }}>{text}</p>
+  return <p style={{ color: '#7D93A9', fontSize: '13px', textAlign: 'center', padding: '12px 0' }}>{text}</p>
 }
 
 export function TabHeader({ title, subtitle, action }) {

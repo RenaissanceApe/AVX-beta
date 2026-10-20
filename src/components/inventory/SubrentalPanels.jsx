@@ -11,6 +11,7 @@ import { formatMoney } from '../../lib/quotes'
 import { toLocalInput } from '../gig/Booking'
 import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { Hint } from '../help/HelpParts'
 import ContextThread from '../messages/ContextThread'
 import SupplierLink from './SupplierLink'
 
@@ -356,7 +357,7 @@ function CrossHireCode({ orgId, isAdmin }) {
   }
   return (
     <section style={{ ...card, marginTop: '22px' }}>
-      <h2 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}><Link2 size={15} color={colors.accent} /> {t('sub.ourCode')}</h2>
+      <h2 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}><Link2 size={15} color={colors.accent} /> {t('sub.ourCode')} <Hint id="cross-hire-code" label={t('sub.ourCode')} /></h2>
       <p style={{ ...small, marginBottom: '8px' }}>{t('sub.ourCodeHint')}</p>
       {code ? (
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>

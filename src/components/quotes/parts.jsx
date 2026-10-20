@@ -2,7 +2,7 @@ import { t } from '../../i18n'
 
 export const STATUS_COLORS = {
   draft:    { color: '#8A9BAE', bg: 'rgba(138,155,174,0.12)' },
-  sent:     { color: '#3B82F6', bg: 'rgba(59,130,246,0.15)' },
+  sent:     { color: '#60A5FA', bg: 'rgba(59,130,246,0.15)' },
   accepted: { color: '#1EC878', bg: 'rgba(30,200,120,0.15)' },
   declined: { color: '#F87171', bg: 'rgba(248,113,113,0.12)' },
 }

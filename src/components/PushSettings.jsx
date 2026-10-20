@@ -51,7 +51,7 @@ export default function PushSettings() {
     }
   }
 
-  const hint = { display: 'block', color: '#4A6070', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }
+  const hint = { display: 'block', color: '#7D93A9', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }
   if (support !== 'ok') return (
     <div style={{ fontSize: '14px' }}>
       <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}><BellRing size={14} /> {t('push.title')}</span>

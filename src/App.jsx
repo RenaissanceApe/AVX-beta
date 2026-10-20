@@ -20,6 +20,7 @@ import { track, screenEvent } from './lib/usage'
 
 // Quotes are only for organisation admins/members, so they load on demand
 const QuotesPage = lazy(() => import('./pages/QuotesPage'))
+const HelpPage = lazy(() => import('./pages/HelpPage'))
 const QuoteEditorPage = lazy(() => import('./pages/QuoteEditorPage'))
 const QuotePrintPage = lazy(() => import('./pages/QuotePrintPage'))
 const InventoryPage = lazy(() => import('./pages/InventoryPage'))
@@ -93,6 +94,7 @@ function AppRoutes() {
       <Route path="/welcome" element={<WelcomePage />} />
       <Route path="/privacy" element={<LegalPage doc="privacy" />} />
       <Route path="/terms" element={<LegalPage doc="terms" />} />
+      <Route path="/help" element={<Suspense fallback={<Spinner />}><HelpPage /></Suspense>} />
       <Route path="/q/:token" element={<Suspense fallback={<Spinner />}><QuotePublicPage /></Suspense>} />
       <Route path="/s/:token" element={<Suspense fallback={<Spinner />}><SupplierLinkPage /></Suspense>} />
       <Route path="/dashboard" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />

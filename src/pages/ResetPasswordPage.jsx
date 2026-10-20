@@ -61,7 +61,7 @@ export default function ResetPasswordPage() {
             </div>
           ) : !user ? (
             <>
-              <p style={{ color: '#4A6070', fontSize: '14px', lineHeight: '1.6', marginBottom: '20px' }}>
+              <p style={{ color: '#7D93A9', fontSize: '14px', lineHeight: '1.6', marginBottom: '20px' }}>
                 {t('auth.resetLinkInvalid')}
               </p>
               <button onClick={() => navigate('/auth')} style={btn}>{t('auth.backToSignIn')}</button>

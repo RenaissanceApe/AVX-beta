@@ -66,7 +66,7 @@ export default function OverviewTab({ gig, assets, members, posts, schedule, can
                     <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.name}</span>
                     <span style={{ display: 'block', fontSize: '11px', color: colors.muted }}>v{a.version} · {t(`assetType.${a.type}`)}</span>
                   </span>
-                  <Eye size={13} color="#2A3A48" />
+                  <Eye size={13} color="#7D93A9" />
                 </button>
               )
             })}

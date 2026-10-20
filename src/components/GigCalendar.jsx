@@ -5,7 +5,7 @@ import { colors, iconBtn, btn } from './ui'
 import { useI18n, fmt } from '../i18n'
 
 const STATUS_COLOR = {
-  draft: '#4A6070', confirmed: '#3B82F6', active: '#1EC878', completed: '#8B5CF6', archived: '#374151',
+  draft: '#7D93A9', confirmed: '#60A5FA', active: '#1EC878', completed: '#A78BFA', archived: '#374151',
 }
 // Monday-first weekday labels in the current language (2026-06-01 is a Monday)
 const weekdays = () => Array.from({ length: 7 }, (_, i) => fmt(`2026-06-0${i + 1}`, 'EEE'))

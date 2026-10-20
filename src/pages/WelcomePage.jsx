@@ -63,7 +63,7 @@ export default function WelcomePage() {
           ) : !user ? (
             <>
               <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>{t('welcome.expiredTitle')}</h1>
-              <p style={{ color: '#4A6070', fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>
+              <p style={{ color: '#7D93A9', fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>
                 {t('welcome.expiredBody')}
               </p>
               <button onClick={() => navigate('/auth')} style={btn}>{t('welcome.goToSignIn')}</button>
@@ -71,7 +71,7 @@ export default function WelcomePage() {
           ) : (
             <>
               <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>{t('welcome.title')}</h1>
-              <p style={{ color: '#4A6070', fontSize: '14px', lineHeight: 1.6, marginBottom: '20px', wordBreak: 'break-all' }}>
+              <p style={{ color: '#7D93A9', fontSize: '14px', lineHeight: 1.6, marginBottom: '20px', wordBreak: 'break-all' }}>
                 {t('welcome.setUpFor', { email: user.email })}
               </p>
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
