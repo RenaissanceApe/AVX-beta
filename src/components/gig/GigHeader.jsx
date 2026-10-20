@@ -62,7 +62,9 @@ export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, 
             </div>
           </div>
 
-          <div role="tablist" aria-label={gig.name} style={{ display: 'flex', overflowX: 'auto', scrollbarWidth: 'none' }}>
+          {/* Scrolls sideways only: without overflow-y hidden, phones let the tabs (1 px taller than the
+              strip, for the underline) be dragged up and down too */}
+          <div role="tablist" aria-label={gig.name} style={{ display: 'flex', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none' }}>
             {tabs.map(key => (
               <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)} style={{
                 padding: '10px 16px', whiteSpace: 'nowrap', flexShrink: 0, border: 'none', background: 'none', cursor: 'pointer',

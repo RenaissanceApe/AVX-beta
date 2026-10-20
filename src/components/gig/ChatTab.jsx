@@ -55,7 +55,7 @@ export default function ChatTab({ gigId, canPost }) {
   return (
     <div style={{ ...card, padding: '10px 12px' }}>
       {departments.length > 0 && (
-        <div role="tablist" aria-label={t('chat.channels')} style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '4px', borderBottom: `1px solid ${colors.border}` }}>
+        <div role="tablist" aria-label={t('chat.channels')} style={{ display: 'flex', gap: '6px', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '8px', marginBottom: '4px', borderBottom: `1px solid ${colors.border}` }}>
           <button role="tab" aria-selected={selected === 'all'} onClick={() => open('all')} style={chip(selected === 'all')}><Hash size={13} /> {t('chat.dept.all')}</button>
           {departments.map(d => (
             <button key={d.department} role="tab" aria-selected={selected === d.department} onClick={() => open(d.department)} style={chip(selected === d.department)}

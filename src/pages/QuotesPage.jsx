@@ -114,7 +114,7 @@ export default function QuotesPage() {
       </div>
 
       <main style={{ maxWidth: '960px', margin: '0 auto', padding: '20px 16px 60px' }}>
-        <div role="tablist" style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: `1px solid ${colors.border}`, overflowX: 'auto' }}>
+        <div role="tablist" style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: `1px solid ${colors.border}`, overflowX: 'auto', overflowY: 'hidden' }}>
           {[['quotes', <FileText key="i" size={14} />, quotes.length], ['templates', <LayoutTemplate key="i" size={14} />, templates.length], ['prices', <Tags key="i" size={14} />, priceItems.length]].map(([key, icon, count]) => (
             <button key={key} role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
               padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600,

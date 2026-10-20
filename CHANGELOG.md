@@ -14,6 +14,10 @@
 ### Changed
 - Crew guides describe the simple home
 
+### Fixed
+- On phones, the gig's tabs (and other sideways-scrolling strips) could also be dragged up and
+  down, hiding them behind the page for a moment; they now only scroll sideways
+
 ## 0.32.0 — Help H3: themes, text size and comfort
 
 ### Added
