@@ -99,8 +99,24 @@ times a month. The app has to explain itself in the moment, in plain words.
 | **H2 · Guides** | ✅ H2a (0.30.0): guide format and side panel; screenshot script; crew and production-manager guides. H2b: warehouse, office and admin | 2 PRs |
 | **H3 · Comfort** | Colours as theme tokens; light theme (first), then high contrast; text size, comfortable mode, readable font | 1–2 PRs |
 | **H4 · First steps** | Teaching empty states everywhere; first-steps checklists per role; simple mode (automatic for crew-only people, a switch for everyone) | 1 PR |
-| **H5 · Field kit** | Scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on common actions | 1 PR |
+| **H5 · Field kit** | Scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on common actions; **equipment steps** (below) | 1–2 PRs |
 | **H6 · Reach** | Ask for help; more languages; SMS/WhatsApp notifications; short video guides | later, as needed |
+
+## Equipment steps (with H5, decided 2026-10-20)
+
+Today a gig's equipment is either out or back (scan out / scan in), units have a status
+(available, in repair, lost, retired) and a location (a warehouse, a vehicle, a site). H5 adds
+the steps in between, per gig: **in the warehouse → prepped and checked → loaded → on site →
+loaded back → returned → checked in**.
+
+- Built on the existing scanning, not a second system: each scan, or a tick on the packing list,
+  moves a case or item one step on. Loading into a vehicle can use the vehicle locations.
+- The gig's Equipment tab shows a bar per step ("32 of 40 loaded"), and the packing list shows
+  each line's step.
+- A fixed list of steps that an organisation can shorten (a small company may use only prepped,
+  loaded, returned).
+- Field-kit scanning (big buttons, sound, vibration) is what makes the steps fast in the
+  warehouse and the van.
 
 ## Colours for H3: based on the Lumen and Pixel palette
 

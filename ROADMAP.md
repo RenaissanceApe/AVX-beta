@@ -157,11 +157,18 @@ acknowledgement, crew calls, client and supplier threads, push, moderation (stag
 | H2b · Guides | Warehouse, office and admin guides |
 | H3 · Comfort | Text size, comfortable mode, themes, readable font |
 | H4 · First steps | Teaching empty states, first-steps checklists, simple mode for crew |
-| H5 · Field kit | Scan mode, read aloud, large-print call sheet, undo |
+| H5 · Field kit | Scan mode, read aloud, large-print call sheet, undo, equipment steps (prepped → loaded → on site → returned) |
 
 Glossary, ⓘ hints on ambiguous fields, how-to guides with screenshots per role, text size,
 comfortable and high-contrast modes, simple mode for crew, a field kit for scanning, and a rule
 that every new feature ships its hints and guide. Stages H1–H6 in [docs/HELP.md](docs/HELP.md).
+
+## Field tools (planned)
+
+A **Tools** tab on each gig (decided 2026-10-20) with optional tools that share their data: stage
+plot and input list, patch and DMX patch, light plot, sound system calculator. The organisation
+turns on only the tools it uses; what is drawn from the catalogue becomes the gig's equipment.
+Proposed after H5, before switching. Stages F1–F4 in [docs/FIELD_TOOLS.md](docs/FIELD_TOOLS.md).
 
 ## Switching to AVX (planned)
 
