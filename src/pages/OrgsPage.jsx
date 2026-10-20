@@ -8,6 +8,7 @@ import { useI18n } from '../i18n'
 import AppShell, { RoleChip } from '../components/shell/AppShell'
 import NewOrgModal from '../components/NewOrgModal'
 import { btn, btnPrimary, colors } from '../components/ui'
+import { PageHelp } from '../components/help/HelpParts'
 
 // Every organisation you belong to, with your role in each, plus the companies you
 // only work for as crew (their gigs live in My work). Creating organisations starts here.
@@ -35,7 +36,7 @@ export default function OrgsPage() {
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '28px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '22px' }}>
           <div>
-            <h1 style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.5px' }}>{t('orgs.title')}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.5px' }}>{t('orgs.title')}</h1><PageHelp page="orgs" /></div>
             <p style={{ color: colors.muted, fontSize: '13px', marginTop: '6px', maxWidth: '520px', lineHeight: 1.6 }}>{t('orgs.intro')}</p>
           </div>
           <button onClick={() => setParams({ new: '1' })} style={btnPrimary}><Plus size={15} /> {t('dash.newOrg')}</button>

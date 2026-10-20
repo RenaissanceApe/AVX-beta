@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { removeGigFiles } from '../lib/storage'
 import PushSettings from './PushSettings'
 import BlockedPeople from './BlockedPeople'
+import { Hint } from './help/HelpParts'
 import { useI18n, LANGUAGES } from '../i18n'
 import AvailabilitySection from './AvailabilitySection'
 import TwoStepSection from './TwoStepSection'
@@ -169,7 +170,7 @@ export default function AccountModal({ onClose }) {
           <h2 id="account-title" style={{ fontSize: '18px', fontWeight: 700 }}>{t('account.title')}</h2>
           <button onClick={onClose} aria-label={t('common.close')} style={iconBtn}><X size={18} /></button>
         </div>
-        <p style={{ color: '#4A6070', fontSize: '13px', marginBottom: '22px', wordBreak: 'break-all' }}>{user?.email}</p>
+        <p style={{ color: '#7D93A9', fontSize: '13px', marginBottom: '22px', wordBreak: 'break-all' }}>{user?.email}</p>
 
         <form onSubmit={saveName} style={section}>
           <label style={label} htmlFor="account-name">{t('auth.fullName')}</label>
@@ -185,7 +186,7 @@ export default function AccountModal({ onClose }) {
               {savingName ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={14} />} {t('common.save')}
             </button>
           </div>
-          <p style={{ color: '#4A6070', fontSize: '12px', marginTop: '6px' }}>{t('account.phoneHint')}</p>
+          <p style={{ color: '#7D93A9', fontSize: '12px', marginTop: '6px' }}>{t('account.phoneHint')}</p>
         </form>
 
         <form onSubmit={savePassword} style={section}>
@@ -218,7 +219,7 @@ export default function AccountModal({ onClose }) {
         </div>
 
         <div style={section}>
-          <span style={label} id="account-findable">{t('account.findable')}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}><span style={{ ...label, marginBottom: 0 }} id="account-findable">{t('account.findable')}</span><Hint id="findable" label={t('account.findable')} /></div>
           <div role="radiogroup" aria-labelledby="account-findable" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {['managers', 'crew'].map(v => (
               <label key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
@@ -226,7 +227,7 @@ export default function AccountModal({ onClose }) {
                   style={{ marginTop: '3px', accentColor: '#1EC878' }} />
                 <span>
                   <span style={{ fontWeight: 600 }}>{t(`account.findableOpt.${v}`)}</span>
-                  <span style={{ display: 'block', color: '#4A6070', fontSize: '12px', marginTop: '2px', lineHeight: 1.5 }}>{t(`account.findableHint.${v}`)}</span>
+                  <span style={{ display: 'block', color: '#7D93A9', fontSize: '12px', marginTop: '2px', lineHeight: 1.5 }}>{t(`account.findableHint.${v}`)}</span>
                 </span>
               </label>
             ))}
@@ -239,7 +240,7 @@ export default function AccountModal({ onClose }) {
               style={{ marginTop: '3px', accentColor: '#1EC878' }} />
             <span>
               <span style={{ fontWeight: 600 }}>{t('account.emailDigest')}</span>
-              <span style={{ display: 'block', color: '#4A6070', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.emailDigestHint')}</span>
+              <span style={{ display: 'block', color: '#7D93A9', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.emailDigestHint')}</span>
             </span>
           </label>
         </div>
@@ -260,7 +261,7 @@ export default function AccountModal({ onClose }) {
               {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} {t('account.delete')}
             </button>
           </div>
-          <p style={{ color: '#4A6070', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }}>
+          <p style={{ color: '#7D93A9', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }}>
             {t('account.privacyPrefix')} <a href="/privacy" target="_blank" rel="noopener" style={{ color: '#1EC878' }}>{t('auth.agreePrivacy')}</a> {t('account.privacySuffix')}
           </p>
         </div>
@@ -284,7 +285,7 @@ const panel = {
 }
 const section = { marginBottom: '22px', paddingBottom: '22px', borderBottom: '1px solid rgba(255,255,255,0.06)' }
 const label = {
-  display: 'block', fontSize: '12px', fontWeight: 600, color: '#4A6070',
+  display: 'block', fontSize: '12px', fontWeight: 600, color: '#7D93A9',
   textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px'
 }
 const input = {
@@ -296,4 +297,4 @@ const smallBtn = {
   border: '1px solid rgba(30,200,120,0.3)', background: 'rgba(30,200,120,0.12)', color: '#1EC878',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0
 }
-const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070', padding: '4px', display: 'flex' }
+const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: '#7D93A9', padding: '4px', display: 'flex' }

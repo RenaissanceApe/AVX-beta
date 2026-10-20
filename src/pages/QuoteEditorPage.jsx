@@ -19,6 +19,7 @@ import GigPlanModal from '../components/quotes/GigPlanModal'
 import QuoteAvailabilityModal from '../components/quotes/QuoteAvailability'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import ContextThread from '../components/messages/ContextThread'
+import { PageHelp } from '../components/help/HelpParts'
 import {
   QUOTE_STATUSES, normalizeBody, quoteTotals, emptyPhase, cloneBody, quoteNumber, formatMoney, move, quoteDateRange, localISODate, snapshotFields,
 } from '../lib/quotes'
@@ -291,6 +292,7 @@ export default function QuoteEditorPage() {
               {QUOTE_STATUSES.map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
             </select>
             <SaveIndicator state={saveState} onRetry={save} />
+            <PageHelp page="quote" />
           </div>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', padding: '8px 0 10px' }}>
             <button onClick={() => flushThen(() => navigate(`/quote/${id}/print`))} style={btn}><Printer size={14} /> {t('quote.preview')}</button>

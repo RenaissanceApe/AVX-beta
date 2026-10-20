@@ -14,6 +14,7 @@ import { MaintenanceTab } from '../components/inventory/MaintenancePanels'
 import { SubrentalsTab } from '../components/inventory/SubrentalPanels'
 import ReportsTab from '../components/inventory/ReportsTab'
 import { btn, btnPrimary, iconBtn, input, card, colors } from '../components/ui'
+import { PageHelp } from '../components/help/HelpParts'
 
 const TABS = ['catalogue', 'locations', 'movements', 'maintenance', 'subrentals', 'reports']
 const TAB_ICONS = { catalogue: Package, locations: MapPin, movements: History, maintenance: Wrench, subrentals: Handshake, reports: BarChart3 }
@@ -42,7 +43,7 @@ export default function InventoryPage() {
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
           <div style={{ flex: '1 1 220px', minWidth: 0 }}>
             <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{inv.org?.name}</div>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('inv.title')}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('inv.title')}</h1><PageHelp page="inventory" /></div>
           </div>
           <Link to={`/org/${orgId}/inventory/labels`} style={{ ...ghost, textDecoration: 'none' }}><QrCode size={14} /> {t('inv.labels')}</Link>
         </div>

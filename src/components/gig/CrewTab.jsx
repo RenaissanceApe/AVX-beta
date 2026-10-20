@@ -11,6 +11,7 @@ import { shortTime } from '../../lib/schedule'
 import { clashText, groupByUser } from '../../lib/clashes'
 import { t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
+import { HintLabel } from '../help/HelpParts'
 import { Avatar, RoleBadge, TabHeader } from './parts'
 import { ClashBox, AskAvailabilityModal, ShiftModal, shiftText, AMBER } from './Booking'
 import { NetworkPicker, PickedPerson, addFromNetwork } from '../NetworkPicker'
@@ -349,7 +350,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
-            <label style={label} htmlFor="inv-role">{t('crew.access')}</label>
+            <HintLabel htmlFor="inv-role" hint="gig-role">{t('crew.access')}</HintLabel>
             <select id="inv-role" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} style={{ ...input, cursor: 'pointer' }}>
               <option value="pm">{t('gigRoleLong.pm')}</option>
               <option value="crew">{t('gigRoleLong.crew')}</option>
@@ -357,7 +358,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
             </select>
           </div>
           <div>
-            <label style={label} htmlFor="inv-call">{t('crew.callTime')}</label>
+            <HintLabel htmlFor="inv-call" hint="call-time">{t('crew.callTime')}</HintLabel>
             <input id="inv-call" type="time" value={form.call_time} onChange={e => setForm(f => ({ ...f, call_time: e.target.value }))} style={input} />
           </div>
         </div>

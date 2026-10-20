@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.29.0 — Help H1: glossary, hints and accessibility checks
+
+### Added
+- **Help → Glossary**: 64 words used in AVX and in event work, in plain language, with an example
+  and where each appears; searchable, in Portuguese and English, readable before signing in. In
+  the top bar on computers (?) and under More on phones
+- **ⓘ next to fields** people get wrong (prep and return days, stock tracking, kit type, minimum
+  stock, depreciation, unit status, VAT, discount, factor, validity, call time, gig status, roles,
+  who can find you, two-step sign-in, mark as lost, cross-hire code…): tap it for a short
+  explanation with an example
+- **? next to page titles**: what the page is for and the words used on it, in a side panel
+- Words with a dotted underline show their meaning when tapped (first in the booking window)
+- **Accessibility checks** in the automatic browser tests: serious problems for screen readers or
+  keyboards now stop a release
+
+### Changed
+- Grey small text is lighter and easier to read (it was too faint for low vision and sunlight),
+  and some blue, pink and purple labels are lighter too
+- The logo, account and company buttons are named by what they show, for voice control
+
 ## 0.28.0 — Messaging M6b: how long messages are kept, export and usage
 
 ### Added

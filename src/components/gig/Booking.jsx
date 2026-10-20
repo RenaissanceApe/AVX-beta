@@ -7,6 +7,7 @@ import { track } from '../../lib/usage'
 import { clashText, rangeText, dayRange } from '../../lib/clashes'
 import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, input, label, colors } from '../ui'
+import { Term } from '../help/HelpParts'
 
 export const AMBER = '#F59E0B'
 const box = {
@@ -142,6 +143,7 @@ export function ShiftModal({ gig, member, name, onClose, onSaved }) {
       <form onSubmit={e => { e.preventDefault(); if (!invalid) save({ booked_from: fromLocalInput(from), booked_until: fromLocalInput(until) }) }}
         style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>{t('shift.intro')}</p>
+        <p style={{ fontSize: '12px', color: colors.muted }}>{t('help.seeAlso')} <Term id="booking-times" /> · <Term id="double-booking" /></p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '10px' }}>
           <div>
             <label style={label} htmlFor="shift-from">{t('shift.from')}</label>

@@ -5,6 +5,7 @@ import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, input, label, colors } from '../ui'
+import { HintLabel } from '../help/HelpParts'
 
 const FIELDS = ['legal_name', 'tax_id', 'address', 'email', 'phone', 'website']
 const MAX_HEADER_BYTES = 320 * 1024 // stored as a data: URL (base64 adds a third)
@@ -103,11 +104,11 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
-              <label style={label} htmlFor="co-vat">{t('company.defaultVat')}</label>
+              <HintLabel htmlFor="co-vat" hint="vat">{t('company.defaultVat')}</HintLabel>
               <input id="co-vat" type="number" min="0" max="100" step="0.01" value={form.default_vat_rate} onChange={e => set('default_vat_rate', e.target.value)} style={input} />
             </div>
             <div>
-              <label style={label} htmlFor="co-valid">{t('company.validityDays')}</label>
+              <HintLabel htmlFor="co-valid" hint="validity">{t('company.validityDays')}</HintLabel>
               <input id="co-valid" type="number" min="1" max="365" value={form.quote_validity_days} onChange={e => set('quote_validity_days', e.target.value)} style={input} />
             </div>
           </div>

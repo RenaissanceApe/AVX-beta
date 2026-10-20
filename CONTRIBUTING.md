@@ -48,6 +48,13 @@ languages: glossary entries for new terms, ⓘ hints on ambiguous fields, an upd
 refreshed screenshots, and a keyboard and screen-reader pass. Never use colour or hover as the
 only signal, and keep text plain.
 
+- Help text lives in `src/help/en.js` and `src/help/pt.js` (`terms`, `hints`, `pages`, same ids in both).
+  Use `<HintLabel htmlFor="…" hint="id">Label</HintLabel>` for a field, `<Hint id>` next to anything else,
+  `<Term id>` for a word in a sentence and `<PageHelp page>` on a page header.
+- The browser tests run axe: serious or critical accessibility findings fail CI. Small text needs a
+  contrast of at least 4.5:1 (use `colors.muted` / `colors.soft`, not darker greys), and a button's
+  accessible name must include the words it shows.
+
 ## Logging hygiene
 
 - Don't use `console.*` directly (lint enforces this). Use `logger` from `src/lib/logger.js`:

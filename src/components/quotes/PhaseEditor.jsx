@@ -3,6 +3,7 @@ import { ChevronUp, ChevronDown, Copy, Trash2, Plus, AlignLeft, ChevronLeft, Che
 import { PricePickerModal } from './PriceList'
 import { useI18n } from '../../i18n'
 import { iconBtn, input, label, colors } from '../ui'
+import { Hint, HintLabel } from '../help/HelpParts'
 import {
   LINE_KINDS, UNITS, emptyLine, emptySection, lineTotal, sectionTotal, phaseTotals, formatMoney, move, newId, lineFromPriceItem,
 } from '../../lib/quotes'
@@ -38,7 +39,7 @@ export default function PhaseEditor({ phase, index, count, currency, priceItems 
           </div>
         </div>
         <div style={{ flex: '0 1 100px' }}>
-          <label style={label} htmlFor="ph-disc">{t('quote.discountPct')}</label>
+          <HintLabel htmlFor="ph-disc" hint="discount">{t('quote.discountPct')}</HintLabel>
           <input id="ph-disc" type="number" min="0" max="100" step="0.5" value={phase.discount_pct} onChange={e => set({ discount_pct: e.target.value })} style={input} />
         </div>
       </div>
@@ -103,7 +104,7 @@ function SectionEditor({ section, currency, priceItems, first, last, onChange, o
           <span className="q-desc">{t('quote.col.description')}</span>
           <span className="q-qty">{t('quote.col.qty')}</span>
           <span className="q-unit">{t('quote.col.unit')}</span>
-          <span className="q-factor">{t('quote.col.factor')}</span>
+          <span className="q-factor">{t('quote.col.factor')} <Hint id="factor" label={t('quote.col.factor')} /></span>
           <span className="q-price">{t('quote.col.price')}</span>
           <span className="q-disc">{t('quote.col.discount')}</span>
           <span className="q-total">{t('quote.col.total')}</span>
@@ -228,7 +229,7 @@ export const QUOTE_EDITOR_CSS = `
   .q-section { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
   .q-line { display: grid; grid-template-columns: 112px minmax(140px,1fr) 64px 82px 58px 92px 58px 96px auto; gap: 6px; align-items: center; }
   .q-line.q-comment { grid-template-columns: 112px 1fr auto; }
-  .q-line-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #4A6070; padding: 0 2px 4px; }
+  .q-line-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #7D93A9; padding: 0 2px 4px; }
   .q-line-head .q-total, .q-line-head .q-qty, .q-line-head .q-factor, .q-line-head .q-price, .q-line-head .q-disc { text-align: right; }
   .q-line-wrap { padding: 4px 0; border-top: 1px solid rgba(255,255,255,0.04); }
   .q-add-line, .q-add-section { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
@@ -251,7 +252,7 @@ export const QUOTE_EDITOR_CSS = `
     .q-hide-narrow { display: none !important; }
     .q-line-wrap { padding: 10px 0; }
     .q-line { row-gap: 8px; align-items: end; }
-    .q-cell-label { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #4A6070; margin: 0 0 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .q-cell-label { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #7D93A9; margin: 0 0 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .q-total .q-cell-label { text-align: right; }
   }
 `

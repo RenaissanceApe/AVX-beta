@@ -5,6 +5,7 @@ import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { useI18n } from '../../i18n'
 import { Modal, btnPrimary, input, label } from '../ui'
+import { HintLabel } from '../help/HelpParts'
 import { GIG_STATUSES } from './parts'
 import { DangerZone, DangerConfirmModal } from '../DangerConfirm'
 import { removeGigFiles } from '../../lib/storage'
@@ -92,7 +93,7 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
         </div>
         <OwnClashWarning startDate={form.start_date} endDate={form.end_date} excludeGig={gig.id} />
         <div>
-          <label style={label} htmlFor="eg-status">{t('gigForm.status')}</label>
+          <HintLabel htmlFor="eg-status" hint="gig-status">{t('gigForm.status')}</HintLabel>
           <select id="eg-status" value={form.status} onChange={set('status')} style={{ ...input, cursor: 'pointer' }}>
             {GIG_STATUSES.map(s => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
           </select>

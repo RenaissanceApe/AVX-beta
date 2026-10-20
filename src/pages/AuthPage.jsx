@@ -134,14 +134,14 @@ export default function AuthPage() {
           <Mail size={32} color="#1EC878" />
         </div>
         <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', marginBottom: '12px' }}>{t('auth.checkEmail')}</h2>
-        <p style={{ color: '#4A6070', fontSize: '15px', lineHeight: '1.7', marginBottom: '8px' }}>
+        <p style={{ color: '#7D93A9', fontSize: '15px', lineHeight: '1.7', marginBottom: '8px' }}>
           {t('auth.sentLinkTo')}
         </p>
         <p style={{ color: '#fff', fontWeight: '700', fontSize: '15px', marginBottom: '24px' }}>{email}</p>
-        <p style={{ color: '#4A6070', fontSize: '14px', lineHeight: '1.7', marginBottom: '28px' }}>
+        <p style={{ color: '#7D93A9', fontSize: '14px', lineHeight: '1.7', marginBottom: '28px' }}>
           {t('auth.clickLink')}
         </p>
-        <p style={{ color: '#4A6070', fontSize: '13px', marginBottom: '20px' }}>
+        <p style={{ color: '#7D93A9', fontSize: '13px', marginBottom: '20px' }}>
           {t('auth.nothingArrived')}{' '}
           <button onClick={resendConfirmation} disabled={resendState !== 'idle'} style={{ ...linkButton, marginTop: 0 }}>
             {resendState === 'sent' ? t('auth.sentAgain') : resendState === 'sending' ? t('auth.sending') : t('auth.resendLower')}
@@ -170,7 +170,7 @@ export default function AuthPage() {
           <CheckCircle size={32} color="#1EC878" />
         </div>
         <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', marginBottom: '12px' }}>{t('auth.emailConfirmed')}</h2>
-        <p style={{ color: '#4A6070', fontSize: '15px', lineHeight: '1.7', marginBottom: '28px' }}>
+        <p style={{ color: '#7D93A9', fontSize: '15px', lineHeight: '1.7', marginBottom: '28px' }}>
           {t('auth.verified')}
         </p>
         <button onClick={() => setConfirmed(false)} style={{
@@ -225,7 +225,7 @@ export default function AuthPage() {
             </div>
             <span style={{ fontSize: '28px', fontWeight: '800', color: '#fff', letterSpacing: '-0.5px' }}>AVX</span>
           </div>
-          <p style={{ color: '#4A6070', fontSize: '14px', margin: 0 }}>{t('app.tagline')}</p>
+          <p style={{ color: '#7D93A9', fontSize: '14px', margin: 0 }}>{t('app.tagline')}</p>
         </div>
 
         {/* Card */}
@@ -247,7 +247,7 @@ export default function AuthPage() {
                 fontSize: '13px', fontWeight: '600', fontFamily: "'DM Sans', sans-serif",
                 transition: 'all 0.2s',
                 background: mode === m ? 'rgba(30,200,120,0.15)' : 'transparent',
-                color: mode === m ? '#1EC878' : '#4A6070',
+                color: mode === m ? '#1EC878' : '#7D93A9',
                 border: mode === m ? '1px solid rgba(30,200,120,0.25)' : '1px solid transparent',
               }}>
                 {m === 'signin' ? t('auth.signIn') : t('auth.createAccount')}
@@ -258,7 +258,7 @@ export default function AuthPage() {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {mode === 'signup' && (
               <div>
-                <label style={{ display: 'block', fontSize: '12px', color: '#4A6070', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <label style={{ display: 'block', fontSize: '12px', color: '#7D93A9', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   {t('auth.fullName')}
                 </label>
                 <input
@@ -272,7 +272,7 @@ export default function AuthPage() {
               </div>
             )}
             <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#4A6070', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: '#7D93A9', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {t('common.email')}
               </label>
               <input
@@ -285,7 +285,7 @@ export default function AuthPage() {
               />
             </div>
             {mode !== 'reset' && mode !== 'magic' && <div>
-              <label style={{ display: 'block', fontSize: '12px', color: '#4A6070', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: '#7D93A9', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {t('auth.password')}
               </label>
               <div style={{ position: 'relative' }}>
@@ -301,7 +301,7 @@ export default function AuthPage() {
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)} aria-label={showPass ? t('auth.hidePassword') : t('auth.showPassword')} style={{
                   position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070', padding: '4px',
+                  background: 'none', border: 'none', cursor: 'pointer', color: '#7D93A9', padding: '4px',
                   display: 'flex', alignItems: 'center'
                 }}>
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -320,14 +320,14 @@ export default function AuthPage() {
             </div>}
 
             {mode === 'signup' && (
-              <p style={{ color: '#4A6070', fontSize: '12px', lineHeight: '1.6', margin: 0 }}>
+              <p style={{ color: '#7D93A9', fontSize: '12px', lineHeight: '1.6', margin: 0 }}>
                 {t('auth.agreePrefix')} <Link to="/terms" style={footerLink}>{t('auth.agreeTerms')}</Link> {t('auth.agreeAnd')}
                 {' '}<Link to="/privacy" style={footerLink}>{t('auth.agreePrivacy')}</Link>.
               </p>
             )}
 
             {(mode === 'reset' || mode === 'magic') && (
-              <p role="status" style={{ color: resetSent ? '#1EC878' : '#4A6070', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
+              <p role="status" style={{ color: resetSent ? '#1EC878' : '#7D93A9', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
                 {mode === 'reset'
                   ? (resetSent ? t('auth.resetSent', { email }) : t('auth.resetIntro'))
                   : (resetSent ? t('auth.magicSent', { email }) : t('auth.magicIntro'))}
@@ -373,7 +373,7 @@ export default function AuthPage() {
           </form>
         </div>
 
-        <p style={{ textAlign: 'center', color: '#2A3A48', fontSize: '12px', marginTop: '24px' }}>
+        <p style={{ textAlign: 'center', color: '#7D93A9', fontSize: '12px', marginTop: '24px' }}>
           AVX Beta · Lumen and Pixel, Lda. ·{' '}
           <Link to="/privacy" style={footerLink}>{t('legal.privacyShort')}</Link> ·{' '}
           <Link to="/terms" style={footerLink}>{t('legal.termsShort')}</Link>
@@ -382,7 +382,7 @@ export default function AuthPage() {
           {LANGUAGES.map(l => (
             <button key={l.value} type="button" onClick={() => setLang(l.value)} aria-pressed={lang === l.value} style={{
               background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', padding: '2px 4px',
-              color: lang === l.value ? '#1EC878' : '#4A6070', fontWeight: lang === l.value ? 700 : 500,
+              color: lang === l.value ? '#1EC878' : '#7D93A9', fontWeight: lang === l.value ? 700 : 500,
             }}>{l.label}</button>
           ))}
         </div>
@@ -411,4 +411,4 @@ const linkButton = {
   fontFamily: "'DM Sans', sans-serif", cursor: 'pointer',
 }
 
-const footerLink = { color: '#4A6070', textDecoration: 'underline' }
+const footerLink = { color: '#7D93A9', textDecoration: 'underline' }

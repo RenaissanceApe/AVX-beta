@@ -23,7 +23,7 @@ export default class ErrorBoundary extends Component {
       }}>
         <div style={{ maxWidth: '380px' }}>
           <h1 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '12px' }}>{t('error.boundaryTitle')}</h1>
-          <p style={{ color: '#4A6070', fontSize: '15px', lineHeight: 1.6, marginBottom: '24px' }}>
+          <p style={{ color: '#7D93A9', fontSize: '15px', lineHeight: 1.6, marginBottom: '24px' }}>
             {t('error.boundaryBody')}
           </p>
           <button onClick={() => window.location.assign('/dashboard')} style={{

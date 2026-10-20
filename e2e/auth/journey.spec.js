@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import AxeBuilder from '@axe-core/playwright'
 
 // Signed-in journeys against the Supabase TEST project (never production).
 // Run with E2E_AUTH=1 and the test project's URL/key — see docs/TESTING.md.
@@ -42,9 +43,16 @@ async function signIn(page, who) {
   await expect(page).toHaveURL(HOME, { timeout: 15_000 })
 }
 
+// No serious accessibility problems on the page as it is now (docs/HELP.md, H1)
+async function expectAccessible(page) {
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
+  expect(results.violations.filter(v => v.impact === 'serious' || v.impact === 'critical')
+    .map(v => `${v.id}: ${v.nodes.slice(0, 3).map(n => n.target.join(' ')).join(' | ')}`)).toEqual([])
+}
+
 async function deleteAccount(page) {
   await page.goto('/dashboard')
-  await page.getByRole('button', { name: 'Account', exact: true }).click()
+  await page.getByRole('button', { name: /— Account$/ }).click()
   page.once('dialog', dialog => dialog.accept('DELETE'))
   await page.getByRole('button', { name: 'Delete account' }).click()
   await expect(page).toHaveURL(/\/auth$/, { timeout: 15_000 })
@@ -85,7 +93,8 @@ test('the organisation builds a quote, saves it as a template and prints it', as
   await english(page)
   await signIn(page, pm)
   // Signing in opens the organisation (where they're admin); Quotes is a section menu
-  await expect(page.getByRole('button', { name: /Workspace: E2E Org/ })).toBeVisible()
+  await expect(page.getByTitle(/Workspace: E2E Org/)).toBeVisible()
+  await expectAccessible(page)
   await page.getByRole('button', { name: 'Quotes' }).click()
   await page.getByRole('link', { name: /^Quotes/ }).first().click()
   await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}\/quotes$/)
@@ -174,6 +183,8 @@ test('a PM uploads a file and then a new version of it', async ({ page }) => {
   await english(page)
   await signIn(page, pm)
   await page.goto(gigUrl)
+  await expect(page.getByRole('tab', { name: /Assets/ })).toBeVisible()
+  await expectAccessible(page)
   await page.getByRole('tab', { name: /Assets/ }).click()
   const upload = async (text) => {
     await page.getByRole('button', { name: /Upload (first )?asset/ }).first().click()
@@ -228,7 +239,7 @@ test('the logo goes home and the workspace switcher lists My work and the organi
   await page.goto(gigUrl)
   await page.getByRole('link', { name: 'Home' }).click()
   await expect(page).toHaveURL(HOME)
-  await page.getByRole('button', { name: /Workspace:/ }).click()
+  await page.getByTitle(/Workspace:/).click()
   await page.getByRole('menuitemradio', { name: /My work/ }).click()
   await expect(page).toHaveURL(/\/me$/)
   // The PM created the gig, so it is one of their own gigs, labelled with the company and their role

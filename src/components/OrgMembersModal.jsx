@@ -8,6 +8,7 @@ import { logger, userMessage } from '../lib/logger'
 import { sendInvite, inviteMessage } from '../lib/invites'
 import { NetworkPicker, addFromNetwork } from './NetworkPicker'
 import { useI18n } from '../i18n'
+import { Hint } from './help/HelpParts'
 
 // Labels: orgRole.<value>
 const ROLES = [{ value: 'admin' }, { value: 'member' }, { value: 'viewer' }]
@@ -123,7 +124,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
           <h2 id="members-title" style={{ fontSize: '18px', fontWeight: 700 }}>{t('org.membersTitle', { org: org.name })}</h2>
           <button onClick={onClose} aria-label={t('common.close')} style={iconBtn}><X size={18} /></button>
         </div>
-        <p style={{ color: '#4A6070', fontSize: '13px', marginBottom: '18px' }}>
+        <p style={{ color: '#7D93A9', fontSize: '13px', marginBottom: '18px' }}>
           {t('org.intro')}
         </p>
 
@@ -139,6 +140,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
             <select value={role} onChange={e => setRole(e.target.value)} aria-label={t('org.role')} style={{ ...input, flex: '0 0 auto', width: 'auto', cursor: 'pointer' }}>
               {ROLES.map(r => <option key={r.value} value={r.value}>{t(`orgRole.${r.value}`)}</option>)}
             </select>
+            <span style={{ display: 'inline-flex', alignItems: 'center' }}><Hint id="org-role" label={t('org.role')} /></span>
             <button type="submit" disabled={sending || !email.trim()} style={smallBtn}>
               {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('common.invite')}
             </button>
@@ -156,8 +158,8 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
               return (
                 <div key={m.user_id} style={row}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px' }}>{m.full_name || '—'}{self && <span style={{ color: '#4A6070' }}> ({t('common.you')})</span>}</div>
-                    <div style={{ fontSize: '12px', color: '#4A6070', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email}</div>
+                    <div style={{ fontWeight: 600, fontSize: '14px' }}>{m.full_name || '—'}{self && <span style={{ color: '#7D93A9' }}> ({t('common.you')})</span>}</div>
+                    <div style={{ fontSize: '12px', color: '#7D93A9', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email}</div>
                   </div>
                   {isAdmin ? (
                     <select value={m.role} disabled={busy === m.user_id} onChange={e => changeRole(m, e.target.value)}
@@ -165,7 +167,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
                       {ROLES.map(r => <option key={r.value} value={r.value}>{t(`orgRole.${r.value}`)}</option>)}
                     </select>
                   ) : (
-                    <span style={{ fontSize: '12px', color: '#4A6070', }}>{t(`orgRole.${m.role}`)}</span>
+                    <span style={{ fontSize: '12px', color: '#7D93A9', }}>{t(`orgRole.${m.role}`)}</span>
                   )}
                   {!self && (
                     <Link to={`/messages?to=${m.user_id}`} style={iconBtn} aria-label={t('chat.messageNamed', { name: m.full_name || '—' })} title={t('chat.message')}>
@@ -185,7 +187,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
               <div key={inv.id} style={{ ...row, borderStyle: 'dashed' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inv.email}</div>
-                  <div style={{ fontSize: '12px', color: '#4A6070' }}>{t('org.invited', { role: t(`orgRole.${inv.role}`) })}</div>
+                  <div style={{ fontSize: '12px', color: '#7D93A9' }}>{t('org.invited', { role: t(`orgRole.${inv.role}`) })}</div>
                 </div>
                 <button onClick={() => cancelInvite(inv)} aria-label={t('crew.cancelInviteFor', { email: inv.email })} title={t('crew.cancelInvite')} style={iconBtn}>
                   <X size={15} />
@@ -221,4 +223,4 @@ const smallBtn = {
   border: '1px solid rgba(30,200,120,0.3)', background: 'rgba(30,200,120,0.12)', color: '#1EC878',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0
 }
-const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070', padding: '4px', display: 'flex', flexShrink: 0 }
+const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: '#7D93A9', padding: '4px', display: 'flex', flexShrink: 0 }

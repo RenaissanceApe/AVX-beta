@@ -6,6 +6,7 @@ import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { useI18n } from '../i18n'
 import { track } from '../lib/usage'
+import { Hint } from './help/HelpParts'
 
 // Account → Two-step sign-in: turn an authenticator app (Google Authenticator, 1Password,
 // Authy…) on or off. With it on, signing in also needs a 6-digit code from the app.
@@ -95,10 +96,10 @@ export default function TwoStepSection({ label, input, smallBtn }) {
     load()
   }
 
-  const hint = { color: '#4A6070', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }
+  const hint = { color: '#7D93A9', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }
   return (
     <div>
-      <span style={label}>{t('mfa.title')}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}><span style={{ ...label, marginBottom: 0 }}>{t('mfa.title')}</span><Hint id="two-step" label={t('mfa.title')} /></div>
       {factor === undefined ? <Loader2 size={16} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
         : factor ? (
           <>

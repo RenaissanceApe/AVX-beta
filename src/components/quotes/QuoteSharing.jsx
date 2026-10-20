@@ -103,7 +103,7 @@ export function VersionsModal({ quoteId, prepare, currency, onRestore, onClose }
   )
 }
 
-const SHARE_COLORS = { open: '#3B82F6', accepted: colors.accent, declined: colors.danger, revoked: colors.muted, expired: colors.muted }
+const SHARE_COLORS = { open: '#60A5FA', accepted: colors.accent, declined: colors.danger, revoked: colors.muted, expired: colors.muted }
 
 // Send to the client: saves a version, creates a link to it (replacing any earlier
 // open link) and emails it if asked. Lists earlier links with their answers.

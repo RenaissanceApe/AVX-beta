@@ -47,7 +47,7 @@ export default function FeedTab({ gigId, posts, userId, isPM, nameOf, onChanged 
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
       <TabHeader title={t('feed.title')} subtitle={t('feed.subtitle')} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-        {posts.length === 0 && <div style={{ textAlign: 'center', padding: '40px 20px', color: '#2A3A48', fontSize: '14px' }}>{t('feed.empty')}</div>}
+        {posts.length === 0 && <div style={{ textAlign: 'center', padding: '40px 20px', color: '#7D93A9', fontSize: '14px' }}>{t('feed.empty')}</div>}
         {posts.map(p => (
           <FeedPost key={p.id} post={p} name={nameOf(p.user_id)} large
             onDelete={(p.user_id === userId || isPM) ? () => remove(p) : null} />
@@ -75,7 +75,7 @@ export default function FeedTab({ gigId, posts, userId, isPM, nameOf, onChanged 
           <button onClick={post} disabled={posting || !canPost} style={{
             display: 'flex', alignItems: 'center', gap: '6px', border: 'none', borderRadius: '8px', padding: '8px 16px',
             background: canPost ? `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})` : 'rgba(255,255,255,0.05)',
-            color: canPost ? '#fff' : '#2A3A48', cursor: canPost ? 'pointer' : 'default', fontSize: '13px', fontWeight: 700,
+            color: canPost ? '#fff' : '#7D93A9', cursor: canPost ? 'pointer' : 'default', fontSize: '13px', fontWeight: 700,
           }}>
             {posting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('feed.post')}
           </button>

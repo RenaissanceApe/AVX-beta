@@ -45,7 +45,7 @@ export function ToastProvider({ children }) {
               <Icon size={18} color={cfg.color} style={{ flexShrink: 0, marginTop: '1px' }} />
               <div style={{ flex: 1 }}>{toast.message}</div>
               <button onClick={() => dismiss(toast.id)} aria-label={t('common.dismiss')} style={{
-                background: 'none', border: 'none', color: '#4A6070', cursor: 'pointer', padding: 0, display: 'flex'
+                background: 'none', border: 'none', color: '#7D93A9', cursor: 'pointer', padding: 0, display: 'flex'
               }}>
                 <X size={15} />
               </button>

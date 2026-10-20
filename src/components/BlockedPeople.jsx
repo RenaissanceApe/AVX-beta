@@ -30,7 +30,7 @@ export default function BlockedPeople({ style }) {
   return (
     <div style={style}>
       <span style={{ fontWeight: 600, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}><Ban size={14} /> {t('account.blocked')}</span>
-      <span style={{ display: 'block', color: '#4A6070', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.blockedHint')}</span>
+      <span style={{ display: 'block', color: '#7D93A9', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.blockedHint')}</span>
       <ul style={{ listStyle: 'none', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {rows.map(r => (
           <li key={r.user_id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>

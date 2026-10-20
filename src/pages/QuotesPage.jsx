@@ -13,6 +13,7 @@ import { PriceListTab } from '../components/quotes/PriceList'
 import { QuoteStatusBadge } from '../components/quotes/parts'
 import AppShell from '../components/shell/AppShell'
 import { useWorkspace } from '../lib/WorkspaceContext'
+import { PageHelp } from '../components/help/HelpParts'
 
 // Quotes of one organisation, plus its quote templates, price list and company details.
 // Tabs and the company dialog have addresses (?tab=templates|prices, ?company=1) so the
@@ -105,7 +106,7 @@ export default function QuotesPage() {
         {/* Title takes its own line on phones; the buttons wrap below it instead of squeezing it */}
         <div style={{ flex: '1 1 220px', minWidth: 0 }}>
           <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org.name}</div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('quotes.title')}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('quotes.title')}</h1><PageHelp page="quotes" /></div>
         </div>
         <button onClick={() => setShowCompany(true)} style={btn}><Building2 size={14} /> {t('quotes.company')}</button>
         <button onClick={() => setShowNew(true)} style={btnPrimary}><Plus size={15} /> {t('quotes.new')}</button>

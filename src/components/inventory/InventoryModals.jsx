@@ -8,10 +8,12 @@ import { UNITS, parsePrice } from '../../lib/quotes'
 import { TRACKING, KIT_TYPES, STOCK_KINDS, LOCATION_KINDS, UNIT_STATUSES, MOVEMENT_SHAPES, countCorrection, parseStockImport, matchItem } from '../../lib/inventory'
 import { useI18n, t } from '../../i18n'
 import { Modal, btnPrimary, input, label, colors } from '../ui'
+import { HintLabel } from '../help/HelpParts'
 
-const Field = ({ id, text, children }) => (
+// A form field; hint adds an ⓘ with its explanation (src/help)
+const Field = ({ id, text, hint, children }) => (
   <div style={{ minWidth: 0 }}>
-    <label style={label} htmlFor={id}>{text}</label>
+    {hint ? <HintLabel htmlFor={id} hint={hint}>{text}</HintLabel> : <label style={label} htmlFor={id}>{text}</label>}
     {children}
   </div>
 )
@@ -99,12 +101,12 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
           </Field>
         </div>
         <div style={grid}>
-          <Field id="it-tracking" text={t('inv.tracking')}>
+          <Field id="it-tracking" text={t('inv.tracking')} hint="tracking">
             <select id="it-tracking" value={form.tracking} onChange={set('tracking')} disabled={hasStock || form.kit_type === 'set'} style={select}>
               {TRACKING.filter(k => !(form.kit_type === 'case' && k === 'none')).map(k => <option key={k} value={k}>{t(`inv.trackingOpt.${k}`)}</option>)}
             </select>
           </Field>
-          <Field id="it-kit" text={t('kit.type')}>
+          <Field id="it-kit" text={t('kit.type')} hint="kit-type">
             <select id="it-kit" value={form.kit_type} onChange={setKit} style={select}>
               <option value="">{t('kit.typeOpt.none')}</option>
               {KIT_TYPES.filter(k => !(k === 'set' && hasStock && item?.tracking !== 'none')).map(k => <option key={k} value={k}>{t(`kit.typeOpt.${k}`)}</option>)}
@@ -113,7 +115,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
           <Field id="it-code" text={t('inv.code')}>
             <input id="it-code" value={form.code} onChange={set('code')} maxLength={40} placeholder={t('inv.codeAuto')} style={{ ...input, fontFamily: 'monospace' }} />
           </Field>
-          <Field id="it-min" text={t('inv.minStock')}>
+          <Field id="it-min" text={t('inv.minStock')} hint="min-stock">
             <input id="it-min" type="number" min={0} value={form.min_stock} onChange={set('min_stock')} style={input} />
           </Field>
         </div>
@@ -127,7 +129,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
           <Field id="it-weight" text={t('inv.weight')}><input id="it-weight" inputMode="decimal" value={form.weight_kg} onChange={set('weight_kg')} style={input} /></Field>
           <Field id="it-power" text={t('inv.power')}><input id="it-power" inputMode="numeric" value={form.power_w} onChange={set('power_w')} style={input} /></Field>
           <Field id="it-dim" text={t('inv.dimensions')}><input id="it-dim" value={form.dimensions} onChange={set('dimensions')} maxLength={80} placeholder="60 × 40 × 35 cm" style={input} /></Field>
-          <Field id="it-value" text={t('inv.replacementValue')}><input id="it-value" inputMode="decimal" value={form.replacement_value} onChange={set('replacement_value')} style={input} /></Field>
+          <Field id="it-value" text={t('inv.replacementValue')} hint="replacement-value"><input id="it-value" inputMode="decimal" value={form.replacement_value} onChange={set('replacement_value')} style={input} /></Field>
         </div>
         <Field id="it-packing" text={t('inv.packingNote')}>
           <input id="it-packing" value={form.packing_note} onChange={set('packing_note')} maxLength={500} placeholder={t('inv.packingNotePlaceholder')} style={input} />
@@ -137,7 +139,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
             <Field id="it-insp-kind" text={t('inspect.kind')}>
               <input id="it-insp-kind" value={form.inspection_kind} onChange={set('inspection_kind')} maxLength={80} placeholder={t('inspect.kindPlaceholder')} style={input} />
             </Field>
-            <Field id="it-insp-months" text={t('inspect.months')}>
+            <Field id="it-insp-months" text={t('inspect.months')} hint="inspection-interval">
               <input id="it-insp-months" type="number" min={1} max={120} value={form.inspection_months} onChange={set('inspection_months')} placeholder={t('inspect.monthsPlaceholder')} style={input} />
             </Field>
           </div>
@@ -285,7 +287,7 @@ export function AddUnitsModal({ item, locations, onClose, onSaved }) {
           </Field>
           <Field id="un-date" text={t('inv.purchaseDate')}><input id="un-date" type="date" value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)} style={input} /></Field>
           <Field id="un-cost" text={t('inv.purchaseCost')}><input id="un-cost" inputMode="decimal" value={cost} onChange={e => setCost(e.target.value)} style={input} /></Field>
-          <Field id="un-life" text={t('inv.depreciationMonths')}><input id="un-life" type="number" min={1} max={600} value={life} onChange={e => setLife(e.target.value)} placeholder="60" style={input} /></Field>
+          <Field id="un-life" text={t('inv.depreciationMonths')} hint="depreciation"><input id="un-life" type="number" min={1} max={600} value={life} onChange={e => setLife(e.target.value)} placeholder="60" style={input} /></Field>
         </div>
         <p style={{ fontSize: '12px', color: colors.muted }}>{t('inv.unitsHint')}</p>
         <SaveButton saving={saving} disabled={!total}>{t('inv.addUnitsButton', { count: total })}</SaveButton>
@@ -326,7 +328,7 @@ export function UnitModal({ unit, locations, onClose, onSaved }) {
       <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={grid}>
           <Field id="u-serial" text={t('inv.serial')}><input id="u-serial" value={form.serial} onChange={set('serial')} maxLength={80} style={{ ...input, fontFamily: 'monospace' }} /></Field>
-          <Field id="u-status" text={t('inv.status')}>
+          <Field id="u-status" text={t('inv.status')} hint="unit-status">
             <select id="u-status" value={form.status} onChange={set('status')} style={select}>
               {UNIT_STATUSES.map(s => <option key={s} value={s}>{t(`inv.unitStatus.${s}`)}</option>)}
             </select>
@@ -339,7 +341,7 @@ export function UnitModal({ unit, locations, onClose, onSaved }) {
           </Field>
           <Field id="u-date" text={t('inv.purchaseDate')}><input id="u-date" type="date" value={form.purchase_date} onChange={set('purchase_date')} style={input} /></Field>
           <Field id="u-cost" text={t('inv.purchaseCost')}><input id="u-cost" inputMode="decimal" value={form.purchase_cost} onChange={set('purchase_cost')} style={input} /></Field>
-          <Field id="u-life" text={t('inv.depreciationMonths')}><input id="u-life" type="number" min={1} max={600} value={form.depreciation_months} onChange={set('depreciation_months')} placeholder="60" style={input} /></Field>
+          <Field id="u-life" text={t('inv.depreciationMonths')} hint="depreciation"><input id="u-life" type="number" min={1} max={600} value={form.depreciation_months} onChange={set('depreciation_months')} placeholder="60" style={input} /></Field>
         </div>
         <Field id="u-notes" text={t('inv.note')}><input id="u-notes" value={form.notes} onChange={set('notes')} maxLength={500} style={input} /></Field>
         {(form.status === 'lost' || form.status === 'retired') && form.status !== unit.status && (

@@ -1,5 +1,6 @@
 import { useI18n } from '../../i18n'
 import { input, label, colors } from '../ui'
+import { HintLabel } from '../help/HelpParts'
 
 // Client, dates, money settings and texts of a quote.
 export default function QuoteDetails({ quote, gigs, onChange }) {
@@ -50,7 +51,7 @@ export default function QuoteDetails({ quote, gigs, onChange }) {
             </select>
           </div>
           <div>
-            <label style={label} htmlFor="qd-vat">{t('quote.vatRate')}</label>
+            <HintLabel htmlFor="qd-vat" hint="vat">{t('quote.vatRate')}</HintLabel>
             <input id="qd-vat" type="number" min="0" max="100" step="0.01" value={quote.vat_rate} onChange={e => set('vat_rate', e.target.value)} style={input} />
           </div>
           <div>

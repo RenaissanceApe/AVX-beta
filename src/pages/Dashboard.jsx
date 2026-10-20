@@ -19,12 +19,13 @@ import { useI18n, t, fmt } from '../i18n'
 import OfflineBanner from '../components/OfflineBanner'
 import { OwnClashWarning } from '../components/gig/Booking'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
+import { PageHelp } from '../components/help/HelpParts'
 
 const STATUS_CONFIG = {
-  draft:     { color: '#4A6070', bg: 'rgba(74,96,112,0.15)' },
-  confirmed: { color: '#3B82F6', bg: 'rgba(59,130,246,0.15)' },
+  draft:     { color: '#7D93A9', bg: 'rgba(74,96,112,0.15)' },
+  confirmed: { color: '#60A5FA', bg: 'rgba(59,130,246,0.15)' },
   active:    { color: '#1EC878', bg: 'rgba(30,200,120,0.15)' },
-  completed: { color: '#8B5CF6', bg: 'rgba(139,92,246,0.15)' },
+  completed: { color: '#A78BFA', bg: 'rgba(139,92,246,0.15)' },
   archived:  { color: '#374151', bg: 'rgba(55,65,81,0.1)' },
 }
 
@@ -120,12 +121,13 @@ export default function Dashboard() {
           <>
             <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
               <div style={{ minWidth: 0 }}>
-                <p style={{ color: '#4A6070', fontSize: '13px', margin: '0 0 4px 0' }}>{t('dash.welcome', { name: firstName })}</p>
+                <p style={{ color: '#7D93A9', fontSize: '13px', margin: '0 0 4px 0' }}>{t('dash.welcome', { name: firstName })}</p>
                 <h1 style={{ fontSize: '26px', fontWeight: 800, margin: 0, letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                   {mode === 'me' ? t('nav.myWork') : org?.name || '…'}
                   {role && <RoleChip role={role} />}
+                  <PageHelp page="home" />
                 </h1>
-                <p style={{ color: '#4A6070', fontSize: '13px', margin: '6px 0 0' }}>
+                <p style={{ color: '#7D93A9', fontSize: '13px', margin: '6px 0 0' }}>
                   {mode === 'me' ? t('home.myWorkIntro') : role ? t(`nav.roleDesc.${role}`) : ''}
                 </p>
               </div>
@@ -253,7 +255,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
           {[['list', <List key="i" size={15} />, t('dash.viewList')], ['calendar', <CalendarDays key="i" size={15} />, t('dash.viewCalendar')]].map(([v, icon, labelText]) => (
             <button key={v} onClick={() => setView(v)} aria-pressed={view === v} aria-label={labelText} title={labelText} style={{
               padding: '6px 9px', borderRadius: '7px', border: 'none', cursor: 'pointer', display: 'flex',
-              background: view === v ? 'rgba(30,200,120,0.15)' : 'transparent', color: view === v ? '#1EC878' : '#4A6070'
+              background: view === v ? 'rgba(30,200,120,0.15)' : 'transparent', color: view === v ? '#1EC878' : '#7D93A9'
             }}>{icon}</button>
           ))}
         </div>
@@ -262,7 +264,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
             <button key={f.value} role="tab" aria-selected={filter === f.value} onClick={() => setFilter(f.value)} style={{
               padding: '6px 12px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
               background: filter === f.value ? 'rgba(30,200,120,0.15)' : 'transparent',
-              color: filter === f.value ? '#1EC878' : '#4A6070'
+              color: filter === f.value ? '#1EC878' : '#7D93A9'
             }}>
               {t(`gigFilter.${f.value}`)} <span style={{ opacity: 0.7 }}>{counts[f.value]}</span>
             </button>
@@ -270,7 +272,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
         </div>}
         <label style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px',
           background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px' }}>
-          <Search size={14} color="#4A6070" />
+          <Search size={14} color="#7D93A9" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('dash.searchPlaceholder')} aria-label={t('dash.searchPlaceholder')}
             style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: '14px', minWidth: 0 }} />
         </label>
@@ -278,7 +280,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
       {view === 'calendar' ? (
         <GigCalendar gigs={filterGigs(gigs, 'all', search).filter(g => g.status !== 'archived')} clashIds={clashIds} onOpen={onOpen} />
       ) : visible.length === 0 ? (
-        <p style={{ color: '#4A6070', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>
+        <p style={{ color: '#7D93A9', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>
           {search ? t('dash.noMatch') : t(`dash.noGigs.${filter}`)}
         </p>
       ) : (
@@ -317,7 +319,7 @@ function GigCard({ gig, onOpen, showCompany, clash }) {
             }}><AlertTriangle size={11} /> {t('clash.doubleBooking')}</span>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '6px 16px', flexWrap: 'wrap', fontSize: '13px', color: '#4A6070' }}>
+        <div style={{ display: 'flex', gap: '6px 16px', flexWrap: 'wrap', fontSize: '13px', color: '#7D93A9' }}>
           {showCompany && (
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#8A9BAE' }}>
               <Building2 size={12} /> {gig.company || t('home.otherCompany')}
@@ -334,7 +336,7 @@ function GigCard({ gig, onOpen, showCompany, clash }) {
           )}
         </div>
       </div>
-      <ChevronRight size={18} color="#2A3A48" />
+      <ChevronRight size={18} color="#7D93A9" />
     </button>
   )
 }
@@ -347,7 +349,7 @@ export function EmptyState({ icon, title, body, action, onAction }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'
       }}>{icon}</div>
       <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>{title}</h3>
-      <p style={{ color: '#4A6070', fontSize: '14px', maxWidth: '380px', margin: '0 auto 24px', lineHeight: '1.6' }}>{body}</p>
+      <p style={{ color: '#7D93A9', fontSize: '14px', maxWidth: '380px', margin: '0 auto 24px', lineHeight: '1.6' }}>{body}</p>
       {action && <button onClick={onAction} style={btnPrimary}><Plus size={15} /> {action}</button>}
     </div>
   )
@@ -365,7 +367,7 @@ function Modal({ title, onClose, children }) {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{title}</h2>
-          <button onClick={onClose} aria-label={t('common.close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4A6070', padding: '4px', display: 'flex' }}>
+          <button onClick={onClose} aria-label={t('common.close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7D93A9', padding: '4px', display: 'flex' }}>
             <X size={18} />
           </button>
         </div>
@@ -378,7 +380,7 @@ function Modal({ title, onClose, children }) {
 function FieldLabel({ label, children }) {
   return (
     <div>
-      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#4A6070', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</label>
+      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#7D93A9', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</label>
       {children}
     </div>
   )

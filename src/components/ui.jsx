@@ -4,7 +4,7 @@ import { X } from 'lucide-react'
 // (Older pages still use inline styles; they move here gradually — see ROADMAP Phase 2b.)
 
 export const colors = {
-  bg: '#080C14', panel: '#0F1520', text: '#fff', muted: '#4A6070', soft: '#8A9BAE',
+  bg: '#080C14', panel: '#0F1520', text: '#fff', muted: '#7D93A9', soft: '#8A9BAE',
   accent: '#1EC878', accentDark: '#0FA85A', danger: '#F87171', border: 'rgba(255,255,255,0.07)',
 }
 
