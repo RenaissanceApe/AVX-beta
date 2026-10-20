@@ -97,8 +97,8 @@ times a month. The app has to explain itself in the moment, in plain words.
 |---|---|---|
 | **H1 · Foundations** | Help content files (PT/EN) and tests; glossary page and tappable terms; ⓘ hints on the first batch of fields; **?** on page headers; accessibility checks (axe) in the browser tests; the "part of done" rule in CONTRIBUTING | 1 PR |
 | **H2 · Guides** | Guide format and side panel; screenshot script; crew and production-manager guides first, then warehouse, office and admin | 2 PRs |
-| **H3 · Comfort** | Text size, comfortable mode, light and high-contrast themes, readable font, colour audit | 1 PR |
-| **H4 · First steps** | Teaching empty states everywhere; first-steps checklists per role; simple mode for crew | 1 PR |
+| **H3 · Comfort** | Colours as theme tokens; light theme (first), then high contrast; text size, comfortable mode, readable font | 1–2 PRs |
+| **H4 · First steps** | Teaching empty states everywhere; first-steps checklists per role; simple mode (automatic for crew-only people, a switch for everyone) | 1 PR |
 | **H5 · Field kit** | Scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on common actions | 1 PR |
 | **H6 · Reach** | Ask for help; more languages; SMS/WhatsApp notifications; short video guides | later, as needed |
 
@@ -141,6 +141,12 @@ A feature's PR also ships:
 ## Open questions
 
 1. ~~Who reviews the wording?~~ The owner reviews the Portuguese wording.
-2. Light theme: worth adding (outdoor readability), or keep AVX dark-only with a high-contrast
-   variant?
-3. Simple mode: automatic for people who are only crew, or something each person switches on?
+2. ~~Light theme or high contrast?~~ **Both** (decided 2026-10-20). H3 first moves every colour
+   into theme tokens (today about 600 colours are written straight into 62 files), then adds a
+   **light theme**, the priority. **High contrast** comes in the same stage only if it stays a
+   small extra palette on top of the tokens; otherwise it is the first follow-up.
+   Theme choice: Account → Appearance (dark, light, high contrast, or follow the device).
+3. ~~Simple mode: automatic or a switch?~~ **Both** (decided 2026-10-20): on automatically for
+   people who are only crew (no organisation role above viewer, never a PM), and a switch in
+   Account for everyone else, who may turn it on for a workflow or because they prefer it. Crew
+   can turn it off too.
