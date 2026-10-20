@@ -1,5 +1,6 @@
 import { Moon, Sun, Contrast, MonitorSmartphone } from 'lucide-react'
-import { useAppearance, THEME_CHOICES, SIZE_CHOICES } from '../lib/appearance'
+import { useAppearance, THEME_CHOICES, SIZE_CHOICES, SIMPLE_CHOICES } from '../lib/appearance'
+import { useSimpleMode } from '../lib/simpleMode'
 import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
 import { label, colors, tint } from './ui'
@@ -11,6 +12,7 @@ const THEME_ICONS = { dark: Moon, light: Sun, contrast: Contrast, system: Monito
 export default function AppearanceSettings() {
   const { t } = useI18n()
   const [a, set] = useAppearance()
+  const { crewOnly, known } = useSimpleMode()
   const change = next => { set(next); track(`appearance:${Object.keys(next)[0]}`) }
 
   const choice = active => ({
@@ -46,6 +48,19 @@ export default function AppearanceSettings() {
             </button>
           ))}
         </div>
+      </div>
+      <div>
+        <span id="appearance-simple" style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>{t('appearance.simple')}</span>
+        <div role="radiogroup" aria-labelledby="appearance-simple" style={{ display: 'flex', gap: '6px' }}>
+          {SIMPLE_CHOICES.map(v => (
+            <button key={v} type="button" role="radio" aria-checked={a.simple === v} onClick={() => change({ simple: v })} style={choice(a.simple === v)}>
+              {t(`appearance.simpleOpt.${v}`)}
+            </button>
+          ))}
+        </div>
+        <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginTop: '6px' }}>
+          {t('appearance.simpleHint')}{a.simple === 'auto' && known ? ` ${t(crewOnly ? 'appearance.simpleAutoOn' : 'appearance.simpleAutoOff')}` : ''}
+        </p>
       </div>
       <label style={check}>
         <input type="checkbox" checked={a.comfort} onChange={e => change({ comfort: e.target.checked })} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />

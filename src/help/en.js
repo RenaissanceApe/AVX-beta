@@ -117,7 +117,7 @@ export default {
       steps: [
         'Open the email from AVX and tap the button in it. Use the phone or computer you will use at work.',
         'Type your full name and choose a password of at least 8 characters. Tap Continue.',
-        'You are in. "My work" lists every gig you are on, at any company. Tap one to open it.',
+        'You are in. "My work" shows your next gig with your call time; "All my gigs" lists every gig you are on, at any company.',
         'Next time, sign in with the same email and password. If you forget it, "Forgot password?" on the sign-in page sends you a link.',
       ],
       mistakes: [
@@ -143,8 +143,8 @@ export default {
       title: 'Find your call time and the call sheet',
       intro: 'Your call time is when you must be there. The call sheet has the day\'s plan and everyone\'s phone number.',
       steps: [
-        'In "My work", tap the gig.',
-        'Your call time is under the gig\'s name, in green.',
+        'In "My work", your next gig is at the top, with your call time in green. "Call sheet" opens it straight away; "Open the gig" shows everything else.',
+        'On the gig, your call time is under the gig\'s name, in green.',
         'Tap Schedule to see the running order. Tap "Call sheet" for the full sheet.',
         'The call sheet shows the schedule and the crew with their phones. You can print it or save it as a PDF.',
       ],
@@ -196,7 +196,7 @@ export default {
       title: 'Report damaged equipment',
       intro: 'Something broke on site? Tell the warehouse straight away, so it is repaired before the next job.',
       steps: [
-        'Open the gig and tap Equipment, then "Report damage".',
+        'In "My work", tap "Report damage" on your next gig. For another gig, open it, tap Equipment, then "Report damage".',
         'Choose the item. For gear with its own label, type the code from the label. For cables and other counted items, say how many.',
         'Say what is wrong and add a photo if you can. Tap Send. The organisation\'s admins are notified.',
       ],
@@ -211,7 +211,7 @@ export default {
       steps: [
         'Tap your initials at the top right to open your account.',
         'Under Appearance, choose the theme: Light for sunlight, High contrast for the strongest difference, or Like the device. Choose the text size too.',
-        'Turn on Comfortable mode for bigger buttons (with gloves, on the move), and the easy-to-read font if letters blur together.',
+        'Turn on Comfortable mode for bigger buttons (with gloves, on the move), and the easy-to-read font if letters blur together. Simple mode shows only your next gig and what you need for it; it is on by itself for crew.',
       ],
       mistakes: [
         'These choices are saved on each device. Set them again on your other phone or computer.',

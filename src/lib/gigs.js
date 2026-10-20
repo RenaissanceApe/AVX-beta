@@ -43,10 +43,11 @@ export function myWorkGigs(memberships, companyNames = {}) {
     if (!m.gigs) continue
     const seen = byGig.get(m.gigs.id)
     if (!seen) {
-      byGig.set(m.gigs.id, { ...m.gigs, myGigRole: m.role, myFunction: m.function_title, company: companyNames[m.gigs.org_id] || null })
+      byGig.set(m.gigs.id, { ...m.gigs, myGigRole: m.role, myFunction: m.function_title, myCallTime: m.call_time || null, company: companyNames[m.gigs.org_id] || null })
       continue
     }
     if ((ROLE_RANK[m.role] ?? 9) < (ROLE_RANK[seen.myGigRole] ?? 9)) seen.myGigRole = m.role
+    if (m.call_time && (!seen.myCallTime || m.call_time < seen.myCallTime)) seen.myCallTime = m.call_time
     const fns = [seen.myFunction, m.function_title].filter(Boolean)
     seen.myFunction = [...new Set(fns)].join(' · ') || null
   }

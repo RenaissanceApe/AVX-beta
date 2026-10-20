@@ -9,6 +9,7 @@ import { useI18n } from '../../i18n'
 import { signedUrl } from '../../lib/storage'
 import { saveFileOffline, removeFileOffline, offlineFileIds } from '../../lib/offline'
 import { Modal, btn, btnPrimary, iconBtn, input, label, colors, tint } from '../ui'
+import EmptyState from '../EmptyState'
 import { ASSET_TYPES, assetType, TabHeader } from './parts'
 
 const EMPTY_FORM = { type: 'patch_list', name: '', file: null }
@@ -88,16 +89,8 @@ export default function AssetsTab({ gigId, assets, canUpload, offline = false, o
         } />
 
       {assets.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '70px 20px' }}>
-          <div style={{
-            width: '56px', height: '56px', borderRadius: '16px', margin: '0 auto 16px',
-            background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 15%, transparent)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}><Upload size={24} color={colors.accentText} /></div>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>{t('assets.emptyTitle')}</h3>
-          <p style={{ color: colors.muted, fontSize: '13px', maxWidth: '300px', margin: '0 auto 20px' }}>{t('assets.emptyBody')}</p>
-          {canUpload && <button onClick={() => setShowUpload(true)} style={btnPrimary}><Upload size={14} /> {t('assets.uploadFirst')}</button>}
-        </div>
+        <EmptyState icon={<Upload size={26} />} title={t('assets.emptyTitle')} body={t('assets.emptyBody')}
+          action={canUpload ? t('assets.uploadFirst') : null} actionIcon={<Upload size={14} />} onAction={() => setShowUpload(true)} guide="crew-offline" />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {assets.map(a => {

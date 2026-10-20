@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Loader2, Search, Weight, Zap, ScanLine, ClipboardList, Shuffle, Wrench, Handshake } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
@@ -11,6 +11,7 @@ import { rangeText } from '../../lib/clashes'
 import { toLocalInput } from './Booking'
 import { t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import EmptyState from '../EmptyState'
 import { TabHeader } from './parts'
 import ReportDamageModal from './ReportDamageModal'
 import { SubrentalModal, GigSubrentals } from '../inventory/SubrentalPanels'
@@ -29,6 +30,15 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   const [picking, setPicking] = useState(false)
   const [editing, setEditing] = useState(null)
   const [reporting, setReporting] = useState(false)
+  // ?report=1 (the simple home's "Report damage") opens the report form once the gear is loaded
+  const [params, setParams] = useSearchParams()
+  useEffect(() => {
+    if (params.get('report') !== '1' || lines === null) return
+    if (lines.length > 0) setReporting(true)
+    const next = new URLSearchParams(params)
+    next.delete('report')
+    setParams(next, { replace: true })
+  }, [lines, params, setParams])
   const [subrenting, setSubrenting] = useState(null) // { itemId, quantity }
   const [subKey, setSubKey] = useState(0)
   const [altFree, setAltFree] = useState({}) // item_id -> availability of alternatives to short lines
@@ -135,10 +145,8 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
       {canAdd && <GigSubrentals gig={gig} org={org} items={Object.values(kits.items)} refreshKey={subKey} onChanged={load} />}
 
       {rows.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '50px 20px' }}>
-          <Package size={28} color={colors.muted} style={{ marginBottom: '10px' }} />
-          <p style={{ color: colors.muted, fontSize: '13px', lineHeight: 1.6, maxWidth: '380px', margin: '0 auto' }}>{canAdd ? t('equip.emptyPlanner') : t('equip.empty')}</p>
-        </div>
+        <EmptyState icon={<Package size={28} />} body={canAdd ? t('equip.emptyPlanner') : t('equip.empty')}
+          action={canAdd ? t('equip.add') : null} onAction={() => setPicking(true)} guide={canAdd ? 'pm-equipment' : null} />
       ) : Object.entries(groups).sort(([a], [b]) => (a === '' ? 1 : b === '' ? -1 : a.localeCompare(b))).map(([category, list]) => (
         <section key={category || '—'} style={{ marginBottom: '14px' }}>
           <h3 style={{ ...label, marginBottom: '6px' }}>{category || t('prices.noCategory')}</h3>

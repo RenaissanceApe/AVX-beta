@@ -14,6 +14,7 @@ import { MaintenanceTab } from '../components/inventory/MaintenancePanels'
 import { SubrentalsTab } from '../components/inventory/SubrentalPanels'
 import ReportsTab from '../components/inventory/ReportsTab'
 import { btn, btnPrimary, iconBtn, input, card, colors } from '../components/ui'
+import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
 
 const TABS = ['catalogue', 'locations', 'movements', 'maintenance', 'subrentals', 'reports']
@@ -117,7 +118,7 @@ function Catalogue({ inv, orgId, goLocations }) {
       </div>
 
       {inv.items.length === 0 ? (
-        <p style={{ color: colors.muted, fontSize: '13px', textAlign: 'center', padding: '40px 20px', lineHeight: 1.6 }}>{t('inv.empty')}</p>
+        <EmptyState icon={<Package size={28} />} body={t('inv.empty')} action={t('inv.import')} actionIcon={<Upload size={14} />} onAction={() => setImporting(true)} guide="wh-import" />
       ) : visible.length === 0 ? (
         <p style={{ color: colors.muted, fontSize: '13px', textAlign: 'center', padding: '30px 20px' }}>{t('inv.noMatch')}</p>
       ) : groups.map(([category, list]) => (
@@ -192,7 +193,7 @@ function Locations({ inv, orgId }) {
         <button onClick={() => setEditing('new')} style={btnPrimary}><Plus size={15} /> {t('inv.addLocation')}</button>
       </div>
       {inv.locations.length === 0 ? (
-        <p style={{ color: colors.muted, fontSize: '13px', textAlign: 'center', padding: '30px 20px' }}>{t('inv.noLocations')}</p>
+        <EmptyState compact icon={<Warehouse size={24} />} body={t('inv.noLocationsYet')} action={t('inv.addLocation')} onAction={() => setEditing('new')} guide="wh-locations" />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {list.map(loc => {

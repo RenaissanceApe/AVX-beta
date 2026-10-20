@@ -7,6 +7,7 @@ import { logger, userMessage } from '../../lib/logger'
 import { groupByDay, shortTime } from '../../lib/schedule'
 import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, card, label, colors } from '../ui'
+import EmptyState from '../EmptyState'
 
 const EMPTY = { day: '', start_time: '', end_time: '', title: '', location: '', notes: '' }
 
@@ -77,10 +78,8 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
       </div>
 
       {groups.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 20px', color: colors.muted }}>
-          <CalendarClock size={28} color={colors.accentText} style={{ marginBottom: '12px' }} />
-          <p style={{ fontSize: '14px' }}>{canManage ? t('schedule.emptyManager') : t('schedule.empty')}</p>
-        </div>
+        <EmptyState icon={<CalendarClock size={28} />} title={t('schedule.empty')} body={canManage ? t('schedule.emptyManager') : t('schedule.emptyCrew')}
+          action={canManage ? t('schedule.add') : null} onAction={() => setEditing('new')} guide={canManage ? 'pm-schedule' : 'crew-call-time'} />
       ) : groups.map(g => (
         <section key={g.day} style={{ marginBottom: '22px' }}>
           <h3 style={{ ...label, marginBottom: '10px' }}>{fmt(g.day, 'EEEE, d MMMM yyyy')}</h3>

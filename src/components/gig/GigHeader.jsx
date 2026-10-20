@@ -7,7 +7,7 @@ import { PageHelp } from '../help/HelpParts'
 
 export const GIG_TABS = ['overview', 'schedule', 'assets', 'crew', 'equipment', 'chat', 'feed', 'activity']
 
-export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, setTab, counts, onBack, onRefresh, onEdit, company, orgRole }) {
+export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, setTab, tabs = GIG_TABS, counts, onBack, onRefresh, onEdit, company, orgRole }) {
   const { t, fmt } = useI18n()
   return (
     <>
@@ -63,7 +63,7 @@ export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, 
           </div>
 
           <div role="tablist" aria-label={gig.name} style={{ display: 'flex', overflowX: 'auto', scrollbarWidth: 'none' }}>
-            {GIG_TABS.map(key => (
+            {tabs.map(key => (
               <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)} style={{
                 padding: '10px 16px', whiteSpace: 'nowrap', flexShrink: 0, border: 'none', background: 'none', cursor: 'pointer',
                 fontSize: '14px', fontWeight: 600, color: tab === key ? colors.accentText : colors.muted,

@@ -6,9 +6,11 @@ import { THEMES } from '../theme/tokens'
 // computer stays dark. Applied as attributes on <html> that the CSS in index.html reads:
 //   data-theme="dark|light|contrast"  data-size="normal|large|xlarge"  data-comfort  data-font="readable"
 const KEY = 'avx.appearance'
-export const DEFAULTS = { theme: 'dark', size: 'normal', comfort: false, font: 'standard' }
+export const DEFAULTS = { theme: 'dark', size: 'normal', comfort: false, font: 'standard', simple: 'auto' }
 export const THEME_CHOICES = ['dark', 'light', 'contrast', 'system']
 export const SIZE_CHOICES = ['normal', 'large', 'xlarge']
+// Simple mode (H4): auto = on for people who are only crew, or on / off by choice
+export const SIMPLE_CHOICES = ['auto', 'on', 'off']
 export const SIZE_ZOOM = { normal: 1, large: 1.15, xlarge: 1.3 }
 
 export function readAppearance() {
@@ -19,6 +21,7 @@ export function readAppearance() {
       size: SIZE_CHOICES.includes(saved.size) ? saved.size : DEFAULTS.size,
       comfort: saved.comfort === true,
       font: saved.font === 'readable' ? 'readable' : 'standard',
+      simple: SIMPLE_CHOICES.includes(saved.simple) ? saved.simple : DEFAULTS.simple,
     }
   } catch {
     return { ...DEFAULTS }

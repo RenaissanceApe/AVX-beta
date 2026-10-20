@@ -43,7 +43,8 @@ const SCENES = {
     return page.locator('form').first()
   } },
   'gig-list': { persona: 'crew', url: '/me', async run(page) {
-    return page.locator('.gig-card').filter({ hasText: 'Marcolino — Natal' }).first()
+    // Crew-only people get simple mode: the next gig is the big card at the top
+    return page.locator('section[aria-labelledby="next-gig"]')
   } },
   'call-time': { persona: 'crew', url: `/gig/${ids.gig}`, async run(page, L) {
     return page.getByText(L('crew.call', { time: '08:00' }), { exact: true }).first().locator('xpath=..')
@@ -256,6 +257,8 @@ async function newPhone(browser, persona, lang) {
   await ctx.addInitScript(([token, user, l, key, theme]) => {
     localStorage.setItem('avx.lang', l)
     localStorage.setItem('avx.appearance', JSON.stringify({ theme }))
+    // The first-steps card would sit above everything in every picture: hide it
+    for (const scope of ['me', '22222222-2222-4222-8222-222222222222']) localStorage.setItem(`avx.firstSteps.${user.id}.${scope}`, '1')
     localStorage.setItem(key, JSON.stringify({ access_token: token, refresh_token: 'r', token_type: 'bearer', expires_in: 3600, expires_at: 4102444800, user }))
   }, [jwt, data.user, lang, `sb-${new URL(SB).hostname.split('.')[0]}-auth-token`, THEME])
   await ctx.route(`${SB}/**`, route => {

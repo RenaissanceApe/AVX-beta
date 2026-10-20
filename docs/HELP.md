@@ -1,6 +1,6 @@
 # Help and inclusion: plan
 
-Status: **H1 built (0.29.0)**, **H2 built (0.30.0, 0.31.0)**, **H3 built (0.32.0)**; H4–H6 planned. A project of its own, built in stages H1–H6, and a
+Status: **H1 built (0.29.0)**, **H2 built (0.30.0, 0.31.0)**, **H3 built (0.32.0)**, **H4 built (0.33.0)**; H5–H6 planned. A project of its own, built in stages H1–H6, and a
 rule for every feature after it.
 
 The aim: anyone who works in events can use AVX without help from a colleague, whatever their
@@ -98,7 +98,7 @@ times a month. The app has to explain itself in the moment, in plain words.
 | **H1 · Foundations** | Help content files (PT/EN) and tests; glossary page and tappable terms; ⓘ hints on the first batch of fields; **?** on page headers; accessibility checks (axe) in the browser tests; the "part of done" rule in CONTRIBUTING | 1 PR |
 | **H2 · Guides** | ✅ H2a (0.30.0): guide format and side panel; screenshot script; crew and production-manager guides. ✅ H2b (0.31.0): warehouse, office and admin | 2 PRs |
 | **H3 · Comfort** | ✅ (0.32.0) Colours as theme tokens; light and high-contrast themes; text size, comfortable mode, readable font | 1 PR |
-| **H4 · First steps** | Teaching empty states everywhere; first-steps checklists per role; simple mode (automatic for crew-only people, a switch for everyone) | 1 PR |
+| **H4 · First steps** | ✅ (0.33.0) Teaching empty states; first-steps checklists per role; simple mode (automatic for crew-only people, a switch for everyone) | 1 PR |
 | **H5 · Field kit** | Scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on common actions; **equipment steps** (below) | 1–2 PRs |
 | **H6 · Reach** | Ask for help; more languages; SMS/WhatsApp notifications; short video guides | later, as needed |
 
@@ -250,6 +250,27 @@ rule the accessibility checks enforce.
   inside the list of tabs.
 - **Guide:** "Make AVX easier to read" (crew). Guide screenshots regenerated in the new look;
   `HELP_THEME=light` renders them in another theme for checking.
+
+## What H4 built (0.33.0)
+
+- **Empty screens that teach** (`src/components/EmptyState.jsx`): what goes there, the first
+  thing to do (a button) and the guide that explains it. On a gig's crew, schedule, files and
+  equipment, the organisation's gigs, My work, the catalogue, locations, quotes and the price list.
+- **First steps** (`src/components/FirstSteps.jsx`) on the home page until they're done or hidden:
+  - admins (in their organisation): company details, equipment, invite the team, first gig;
+  - crew (My work): name and phone, AVX on the phone, notifications (or the email summary on
+    devices that can't show them).
+  Each step ticks itself when done, opens the right place and links to its guide; ✕ hides the
+  card on this device.
+- **Simple mode** (`src/lib/simpleMode.js`, decided 2026-10-20): on automatically for people who
+  are only crew (no organisation role above viewer, not a production manager on any gig); Account
+  → Appearance has Automatic / On / Off for everyone, and says which way Automatic went.
+  - My work shows **the next gig** big: date, venue, the call time, then *Call sheet*, *Chat*,
+    *Open the gig* and *Report damage* (opens the report form), the gigs after it, and *All my
+    gigs* for the full list.
+  - A gig shows five tabs (overview, schedule, files, equipment, chat); a link to another tab,
+    from a notification, still opens it.
+- Crew guides and screenshots updated for simple mode. Screenshots hide the first-steps card.
 
 ## The rule for every new feature (from H1 on)
 

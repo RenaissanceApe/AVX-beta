@@ -20,6 +20,10 @@ import OfflineBanner from '../components/OfflineBanner'
 import { OwnClashWarning } from '../components/gig/Booking'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import { PageHelp } from '../components/help/HelpParts'
+import EmptyState from '../components/EmptyState'
+import FirstSteps from '../components/FirstSteps'
+import SimpleHome from '../components/SimpleHome'
+import { useSimpleMode } from '../lib/simpleMode'
 
 const STATUS_CONFIG = {
   draft:     { color: 'var(--muted)', bg: 'color-mix(in srgb, var(--muted) 15%, transparent)' },
@@ -50,6 +54,8 @@ export default function Dashboard() {
   const [clashIds, setClashIds] = useState(() => new Set()) // My work: gigs that overlap another booking
   const [gigFilter, setGigFilter] = useState('upcoming')
   const [gigSearch, setGigSearch] = useState('')
+  const { simple } = useSimpleMode()
+  const [showAll, setShowAll] = useState(false) // simple mode: the full list instead of the next gig
   const view = params.get('view') === 'calendar' ? 'calendar' : 'list'
   const panel = params.get('panel')
   const setParam = (key, value) => {
@@ -72,7 +78,7 @@ export default function Dashboard() {
     let rows, error
     if (mode === 'me') {
       const [mine, companies, bookings] = await Promise.all([
-        supabase.from('gig_members').select('role, function_title, gigs(*)').eq('user_id', user.id),
+        supabase.from('gig_members').select('role, function_title, call_time, gigs(*)').eq('user_id', user.id),
         supabase.rpc('my_gig_companies'),
         supabase.from('reservations').select('id, gig_id, period, status')
           .eq('resource_type', 'person').eq('resource_id', user.id).neq('status', 'cancelled'),
@@ -136,6 +142,7 @@ export default function Dashboard() {
               )}
             </div>
 
+            {!loadingGigs && !loadingOrgs && (mode === 'me' || (org && role === 'admin')) && <FirstSteps mode={mode} org={org} gigCount={gigs.length} />}
             {mode === 'me' && <AvailabilityRequests />}
 
             {(loadingGigs || loadingOrgs) ? (
@@ -149,13 +156,14 @@ export default function Dashboard() {
                     action={t('dash.createOrg')} onAction={() => navigate('/orgs?new=1')} />
                 ) : (
                   <EmptyState icon={<Briefcase size={32} color="var(--accent-text)" />} title={t('home.noAssignedTitle')} body={t('home.noAssignedBody')}
-                    action={t('home.openOrg', { org: orgs[0].name })} onAction={() => { setWorkspace(orgs[0].id); navigate(homePath(orgs[0].id)) }} />
+                    action={t('home.openOrg', { org: orgs[0].name })} onAction={() => { setWorkspace(orgs[0].id); navigate(homePath(orgs[0].id)) }} guide="crew-unavailable" />
                 )
               ) : (
                 <EmptyState icon={<Calendar size={32} color="var(--accent-text)" />} title={t('dash.emptyGigsTitle')} body={t('dash.emptyGigsBody')}
-                  action={canCreateGig ? t('dash.createFirstGig') : null} onAction={() => setParam('new', 'gig')} />
+                  action={canCreateGig ? t('dash.createFirstGig') : null} onAction={() => setParam('new', 'gig')} guide={canCreateGig ? 'pm-create-gig' : null} />
               )
             ) : (
+              mode === 'me' && simple && !showAll ? <SimpleHome gigs={gigs} onShowAll={() => setShowAll(true)} /> :
               <GigList gigs={gigs} view={view} setView={v => setParam('view', v === 'calendar' ? 'calendar' : null)}
                 filter={gigFilter} setFilter={setGigFilter} search={gigSearch} setSearch={setGigSearch}
                 showCompany={mode === 'me'} clashIds={mode === 'me' ? clashIds : null} onOpen={gig => navigate(`/gig/${gig.id}`)} />
@@ -338,20 +346,6 @@ function GigCard({ gig, onOpen, showCompany, clash }) {
       </div>
       <ChevronRight size={18} color="var(--muted)" />
     </button>
-  )
-}
-
-export function EmptyState({ icon, title, body, action, onAction }) {
-  return (
-    <div style={{ textAlign: 'center', padding: '70px 24px' }}>
-      <div style={{
-        width: '64px', height: '64px', borderRadius: '18px', background: 'color-mix(in srgb, var(--accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'
-      }}>{icon}</div>
-      <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>{title}</h3>
-      <p style={{ color: 'var(--muted)', fontSize: '14px', maxWidth: '380px', margin: '0 auto 24px', lineHeight: '1.6' }}>{body}</p>
-      {action && <button onClick={onAction} style={btnPrimary}><Plus size={15} /> {action}</button>}
-    </div>
   )
 }
 

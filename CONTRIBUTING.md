@@ -49,6 +49,9 @@ refreshed screenshots, and a keyboard and screen-reader pass. Never use colour o
 only signal, and keep text plain.
 
 - Help text lives in `src/help/en.js` and `src/help/pt.js` (`terms`, `hints`, `pages`, `guides`, same ids in both).
+- An empty list or page uses `<EmptyState>` (`src/components/EmptyState.jsx`): what goes there,
+  the first action and the guide (`guide="…"`). Check what a screen shows in simple mode
+  (`useSimpleMode()`) if crew use it.
 - Changed a screen a guide shows (see `GUIDES` in `src/help/index.js`)? Update the guide's steps
   and run `npm run help:screens` (or `npm run help:screens -- call-time,push` for some), look at
   the new pictures in `public/help/shots/` and commit them. New screens or data go in
