@@ -41,37 +41,37 @@ export default function WelcomePage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080C14', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ width: '100%', maxWidth: '400px' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              width: '36px', height: '36px', background: 'linear-gradient(135deg, #1EC878, #0FA85A)',
+              width: '36px', height: '36px', background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
               borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
-              <Zap size={20} color="#fff" fill="#fff" />
+              <Zap size={20} color="var(--on-accent)" fill="var(--on-accent)" />
             </div>
-            <span style={{ fontSize: '28px', fontWeight: 800, color: '#fff' }}>AVX</span>
+            <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text)' }}>AVX</span>
           </div>
         </div>
 
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '20px', padding: '32px' }}>
+        <div style={{ background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)', borderRadius: '20px', padding: '32px' }}>
           {authLoading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-              <Loader2 size={22} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
+              <Loader2 size={22} color="var(--accent-text)" style={{ animation: 'spin 1s linear infinite' }} />
             </div>
           ) : !user ? (
             <>
-              <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>{t('welcome.expiredTitle')}</h1>
-              <p style={{ color: '#7D93A9', fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>
+              <h1 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginBottom: '12px' }}>{t('welcome.expiredTitle')}</h1>
+              <p style={{ color: 'var(--muted)', fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>
                 {t('welcome.expiredBody')}
               </p>
               <button onClick={() => navigate('/auth')} style={btn}>{t('welcome.goToSignIn')}</button>
             </>
           ) : (
             <>
-              <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>{t('welcome.title')}</h1>
-              <p style={{ color: '#7D93A9', fontSize: '14px', lineHeight: 1.6, marginBottom: '20px', wordBreak: 'break-all' }}>
+              <h1 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginBottom: '6px' }}>{t('welcome.title')}</h1>
+              <p style={{ color: 'var(--muted)', fontSize: '14px', lineHeight: 1.6, marginBottom: '20px', wordBreak: 'break-all' }}>
                 {t('welcome.setUpFor', { email: user.email })}
               </p>
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -81,7 +81,7 @@ export default function WelcomePage() {
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                   placeholder={t('welcome.passwordPlaceholder', { min: MIN_PASSWORD_LENGTH })} autoComplete="new-password" style={input} required />
                 {error && (
-                  <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#F87171', fontSize: '13px' }}>
+                  <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'color-mix(in srgb, var(--danger) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)', color: 'var(--danger)', fontSize: '13px' }}>
                     {error}
                   </div>
                 )}
@@ -99,12 +99,12 @@ export default function WelcomePage() {
 }
 
 const input = {
-  width: '100%', padding: '11px 14px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '9px', color: '#fff', fontSize: '14px', outline: 'none',
+  width: '100%', padding: '11px 14px', background: 'color-mix(in srgb, var(--shade) 30%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)',
+  borderRadius: '9px', color: 'var(--text)', fontSize: '14px', outline: 'none',
 }
 
 const btn = {
   width: '100%', padding: '13px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-  background: 'linear-gradient(135deg, #1EC878, #0FA85A)', color: '#fff', fontWeight: 700, fontSize: '15px',
+  background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', color: 'var(--on-accent)', fontWeight: 700, fontSize: '15px',
   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
 }

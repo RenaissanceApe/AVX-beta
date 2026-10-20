@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, CheckCheck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { pageZoom } from '../lib/appearance'
 import { useAuth } from '../lib/AuthContext'
 import { logger } from '../lib/logger'
 import { describeNotification, notificationLink, countsAsUnread } from '../lib/notifications'
@@ -53,7 +54,8 @@ export default function NotificationBell() {
     const r = buttonRef.current.getBoundingClientRect()
     const width = Math.min(360, window.innerWidth - 24)
     const right = Math.max(12, Math.min(window.innerWidth - r.right, window.innerWidth - width - 12))
-    setPlace({ top: r.bottom + 8, right, width })
+    const z = pageZoom() // with a larger text size, the page is zoomed: place in its units
+    setPlace({ top: (r.bottom + 8) / z, right: right / z, width: width / z })
     setOpen(true)
   }
 
@@ -93,12 +95,12 @@ export default function NotificationBell() {
     <div ref={panelRef} style={{ position: 'relative' }}>
       <button ref={buttonRef} onClick={toggle} aria-expanded={open} aria-haspopup="true"
         aria-label={unread ? t('notif.bellUnread', { count: unread }) : t('notif.bell')} title={t('notif.bell')}
-        style={{ ...iconBtn, position: 'relative', color: unread ? '#fff' : colors.muted }}>
+        style={{ ...iconBtn, position: 'relative', color: unread ? 'var(--text)' : colors.muted }}>
         <Bell size={17} />
         {unread > 0 && (
           <span style={{
             position: 'absolute', top: '1px', right: '0', minWidth: '16px', height: '16px', padding: '0 4px', borderRadius: '8px',
-            background: colors.accent, color: '#04110a', fontSize: '10px', fontWeight: 800, lineHeight: '16px', textAlign: 'center',
+            background: colors.accent, color: 'var(--on-accent)', fontSize: '10px', fontWeight: 800, lineHeight: '16px', textAlign: 'center',
           }}>{unread > 9 ? '9+' : unread}</span>
         )}
       </button>
@@ -106,13 +108,13 @@ export default function NotificationBell() {
       {open && place && (
         <div role="dialog" aria-label={t('notif.bell')} style={{
           position: 'fixed', right: `${place.right}px`, top: `${place.top}px`, width: `${place.width}px`, maxHeight: '70vh', overflowY: 'auto',
-          background: colors.panel, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px', boxShadow: '0 12px 32px rgba(0,0,0,0.5)', zIndex: 200,
+          background: colors.panel, border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '14px', boxShadow: '0 12px 32px rgba(0,0,0,0.5)', zIndex: 200,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderBottom: `1px solid ${colors.border}` }}>
             <strong style={{ fontSize: '14px' }}>{t('notif.bell')}</strong>
             {unreadAny && (
               <button onClick={() => markRead(items.filter(n => !n.read_at).map(n => n.id))}
-                style={{ background: 'none', border: 'none', color: colors.accent, fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                style={{ background: 'none', border: 'none', color: colors.accentText, fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <CheckCheck size={14} /> {t('notif.markAllRead')}
               </button>
             )}
@@ -121,8 +123,8 @@ export default function NotificationBell() {
             <p style={{ padding: '24px 14px', color: colors.muted, fontSize: '13px', textAlign: 'center' }}>{t('notif.empty')}</p>
           ) : items.map(n => (
             <button key={n.id} onClick={() => openItem(n)} style={{
-              display: 'flex', gap: '10px', width: '100%', textAlign: 'left', padding: '11px 14px', cursor: 'pointer', color: '#fff',
-              background: n.read_at ? 'transparent' : 'rgba(30,200,120,0.06)', border: 'none', borderBottom: `1px solid ${colors.border}`,
+              display: 'flex', gap: '10px', width: '100%', textAlign: 'left', padding: '11px 14px', cursor: 'pointer', color: 'var(--text)',
+              background: n.read_at ? 'transparent' : 'color-mix(in srgb, var(--accent) 6%, transparent)', border: 'none', borderBottom: `1px solid ${colors.border}`,
             }}>
               <span aria-hidden style={{ width: '7px', height: '7px', borderRadius: '50%', marginTop: '6px', flexShrink: 0, background: n.read_at ? 'transparent' : colors.accent }} />
               <span style={{ flex: 1, minWidth: 0 }}>

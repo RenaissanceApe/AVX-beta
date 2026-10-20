@@ -53,7 +53,7 @@ export default function OrgsPage() {
                 <strong style={{ fontSize: '16px', flex: 1, minWidth: 0, lineHeight: 1.3, overflowWrap: 'anywhere' }}>{o.name}</strong>
                 <RoleChip role={o.myRole} />
               </div>
-              {unreadIn(o.id) > 0 && <p style={{ fontSize: '12px', color: colors.accent, fontWeight: 600 }}>{t('orgs.unread', { count: unreadIn(o.id) })}</p>}
+              {unreadIn(o.id) > 0 && <p style={{ fontSize: '12px', color: colors.accentText, fontWeight: 600 }}>{t('orgs.unread', { count: unreadIn(o.id) })}</p>}
               <p style={{ color: colors.soft, fontSize: '13px', lineHeight: 1.5, minHeight: '40px' }}>{t(`nav.roleDesc.${o.myRole}`)}</p>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '12px' }}>
                 <button onClick={() => open(o.id)} style={btn}><ArrowRight size={14} /> {t('orgs.open')}</button>
@@ -87,9 +87,9 @@ export default function OrgsPage() {
       )}
       <style>{`
         .orgs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-        .org-card { padding: 16px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid ${colors.border}; }
+        .org-card { padding: 16px; border-radius: 16px; background: color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent); border: 1px solid ${colors.border}; }
         .org-card-mark { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;
-          background: linear-gradient(135deg, rgba(167,139,250,0.9), rgba(99,102,241,0.9)); color: #0b0f19; flex-shrink: 0; }
+          background: linear-gradient(135deg, color-mix(in srgb, var(--purple) 90%, transparent), color-mix(in srgb, var(--purple) 90%, transparent)); color: var(--on-accent); flex-shrink: 0; }
       `}</style>
     </AppShell>
   )
@@ -101,10 +101,10 @@ function MuteButton({ orgId, name, muted, setMuted }) {
   const label = muted ? t('mute.unmuteNamed', { name }) : t('mute.muteNamed', { name })
   return (
     <button onClick={() => setMuted(orgId, !muted)} aria-pressed={!!muted} aria-label={label}
-      title={muted ? t('mute.mutedHint') : t('mute.muteHint')} style={{ ...ghost, color: muted ? '#F59E0B' : colors.soft }}>
+      title={muted ? t('mute.mutedHint') : t('mute.muteHint')} style={{ ...ghost, color: muted ? 'var(--warn)' : colors.soft }}>
       {muted ? <BellOff size={14} /> : <Bell size={14} />}
     </button>
   )
 }
 
-const ghost = { ...btn, background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: colors.soft }
+const ghost = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', color: colors.soft }

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.32.0 — Help H3: themes, text size and comfort
+
+### Added
+- **Account → Appearance** (saved on each device):
+  - **theme**: dark, **light** (for sunlight), **high contrast**, or like the device;
+  - **text size**: normal, large or extra large; the whole layout grows with it;
+  - **comfortable mode**: bigger buttons and boxes, at least 44 px to tap;
+  - **easy-to-read font** (Atkinson Hyperlegible).
+- Guide "Make AVX easier to read"
+
+### Changed
+- **New look** from the Lumen and Pixel palette: navy background and the brand's lime green;
+  new fonts (Nunito, and Space Mono for codes and numbers)
+- Every colour now comes from the theme, and the tests check that all text stays readable in
+  every theme
+- On phones, the menu cards show their icon in the section's colour
+
 ## 0.31.0 — Help H2b: guides for the warehouse, office and admins
 
 ### Added

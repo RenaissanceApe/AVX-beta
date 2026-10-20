@@ -104,7 +104,7 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
   return (
     <Modal title={t('plan.title', { gig: gig.name })} onClose={onClose} maxWidth={600}>
       <p style={{ ...small, marginBottom: '14px' }}>{t('plan.intro')}</p>
-      {loading ? <Loader2 size={18} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /> : (
+      {loading ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : (
         <>
           <h3 style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><CalendarClock size={13} /> {t('plan.schedule')}</h3>
           {schedule.length === 0 ? <p style={{ ...small, marginBottom: '14px' }}>{t('plan.noDates')}</p> : (
@@ -113,7 +113,7 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
                 <label key={i.key} style={{ ...row, cursor: 'pointer', fontSize: '13px' }}>
                   <input type="checkbox" checked={i.on} onChange={e => setSchedule(list => list.map(x => (x.key === i.key ? { ...x, on: e.target.checked } : x)))} />
                   <span style={{ width: '92px', flexShrink: 0, color: colors.soft }}>{fmt(i.day, 'EEE d MMM')}</span>
-                  <span style={{ width: '88px', flexShrink: 0, fontFamily: 'monospace' }}>{i.start_time}{i.end_time ? `–${i.end_time}` : ''}</span>
+                  <span style={{ width: '88px', flexShrink: 0, fontFamily: 'var(--font-mono)' }}>{i.start_time}{i.end_time ? `–${i.end_time}` : ''}</span>
                   <span style={{ flex: 1, minWidth: 0 }}>{i.title}{i.exists && <span style={{ ...small, marginLeft: '6px' }}>({t('plan.already')})</span>}</span>
                 </label>
               ))}

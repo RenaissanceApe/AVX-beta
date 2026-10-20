@@ -12,7 +12,7 @@ export default function ActivityTab({ entries, nameOf }) {
       <p style={{ color: colors.muted, fontSize: '13px', marginBottom: '20px' }}>{t('activity.subtitle')}</p>
       {entries.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: colors.muted }}>
-          <History size={28} color={colors.accent} style={{ marginBottom: '12px' }} />
+          <History size={28} color={colors.accentText} style={{ marginBottom: '12px' }} />
           <p style={{ fontSize: '14px' }}>{t('activity.empty')}</p>
         </div>
       ) : (

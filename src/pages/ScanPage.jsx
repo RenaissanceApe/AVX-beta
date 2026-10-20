@@ -36,11 +36,11 @@ export default function ScanPage() {
     <AppShell>
       <div style={{ maxWidth: '440px', margin: '70px auto', padding: '0 16px', textAlign: 'center' }}>
         {!matches ? (
-          <Loader2 size={26} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+          <Loader2 size={26} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
         ) : (
           <>
             <ScanLine size={30} color={colors.soft} style={{ marginBottom: '12px' }} />
-            <h1 style={{ fontSize: '19px', fontWeight: 800, marginBottom: '8px', fontFamily: 'monospace' }}>{code}</h1>
+            <h1 style={{ fontSize: '19px', fontWeight: 800, marginBottom: '8px', fontFamily: 'var(--font-mono)' }}>{code}</h1>
             {matches.length === 0 ? (
               <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6 }}>{t('inv.scanNotFound')}</p>
             ) : (

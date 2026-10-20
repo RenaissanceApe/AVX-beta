@@ -11,13 +11,13 @@ export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, 
   const { t, fmt } = useI18n()
   return (
     <>
-      <div style={{ background: 'linear-gradient(180deg, rgba(30,200,120,0.07) 0%, transparent 100%)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '14px 16px 0' }}>
+      <div style={{ background: 'linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, transparent) 0%, transparent 100%)', borderBottom: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', padding: '14px 16px 0' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           {/* Where this gig belongs and your place in it: the company, and your role there */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
             <button onClick={onBack} style={{
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px',
-              padding: '5px 10px', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px',
+              background: 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)', borderRadius: '8px',
+              padding: '5px 10px', cursor: 'pointer', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px',
             }}><ArrowLeft size={14} /> {t('common.back')}</button>
             {company && (
               <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: colors.soft }}>
@@ -50,13 +50,13 @@ export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, 
               {canEdit && (
                 <button onClick={onEdit} style={{
                   display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 11px', borderRadius: '8px', cursor: 'pointer',
-                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: colors.soft, fontSize: '12px', fontWeight: 600,
+                  background: 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', color: colors.soft, fontSize: '12px', fontWeight: 600,
                 }}><Pencil size={12} /> {t('gig.edit')}</button>
               )}
               {myMembership && (
-                <div style={{ padding: '6px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', border: `1px solid ${colors.border}`, fontSize: '12px', color: colors.muted, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                  <div style={{ fontWeight: 700, color: '#fff', fontSize: '13px' }}>{myMembership.function_title || t(`gigRoleLong.${myMembership.role}`)}</div>
-                  {myMembership.call_time && <div style={{ color: colors.accent, fontWeight: 600, marginTop: '2px' }}>{t('crew.call', { time: shortTime(myMembership.call_time) })}</div>}
+                <div style={{ padding: '6px 12px', borderRadius: '8px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`, fontSize: '12px', color: colors.muted, textAlign: 'center', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '13px' }}>{myMembership.function_title || t(`gigRoleLong.${myMembership.role}`)}</div>
+                  {myMembership.call_time && <div style={{ color: colors.accentText, fontWeight: 600, marginTop: '2px' }}>{t('crew.call', { time: shortTime(myMembership.call_time) })}</div>}
                 </div>
               )}
             </div>
@@ -66,14 +66,14 @@ export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, 
             {GIG_TABS.map(key => (
               <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)} style={{
                 padding: '10px 16px', whiteSpace: 'nowrap', flexShrink: 0, border: 'none', background: 'none', cursor: 'pointer',
-                fontSize: '14px', fontWeight: 600, color: tab === key ? colors.accent : colors.muted,
+                fontSize: '14px', fontWeight: 600, color: tab === key ? colors.accentText : colors.muted,
                 borderBottom: tab === key ? `2px solid ${colors.accent}` : '2px solid transparent', position: 'relative', top: '1px',
               }}>
                 {t(`gig.tab.${key}`)}
                 {counts[key] > 0 && (
                   <span style={{
                     marginLeft: '6px', fontSize: '11px', fontWeight: 700, padding: '1px 6px', borderRadius: '10px',
-                    background: key === 'assets' ? 'rgba(30,200,120,0.2)' : 'rgba(255,255,255,0.08)', color: key === 'assets' ? colors.accent : colors.muted,
+                    background: key === 'assets' ? 'color-mix(in srgb, var(--accent) 20%, transparent)' : 'color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)', color: key === 'assets' ? colors.accentText : colors.muted,
                   }}>{counts[key]}</span>
                 )}
               </button>

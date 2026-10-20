@@ -51,7 +51,7 @@ export default function PushSettings() {
     }
   }
 
-  const hint = { display: 'block', color: '#7D93A9', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }
+  const hint = { display: 'block', color: 'var(--muted)', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }
   if (support !== 'ok') return (
     <div style={{ fontSize: '14px' }}>
       <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}><BellRing size={14} /> {t('push.title')}</span>
@@ -62,7 +62,7 @@ export default function PushSettings() {
     <div>
       <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: busy || on === null ? 'default' : 'pointer', fontSize: '14px' }}>
         <input type="checkbox" checked={!!on} disabled={busy || on === null} onChange={e => toggle(e.target.checked)}
-          style={{ marginTop: '3px', accentColor: '#1EC878' }} />
+          style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
         <span>
           <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
             {t('push.title')} {busy && <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />}
@@ -71,7 +71,7 @@ export default function PushSettings() {
         </span>
       </label>
       {on && (
-        <button type="button" onClick={test} disabled={busy} style={{ marginTop: '8px', marginLeft: '26px', background: 'none', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', color: '#9FB0C0', padding: '5px 10px', fontSize: '12px', cursor: 'pointer' }}>
+        <button type="button" onClick={test} disabled={busy} style={{ marginTop: '8px', marginLeft: '26px', background: 'none', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', borderRadius: '8px', color: 'var(--soft)', padding: '5px 10px', fontSize: '12px', cursor: 'pointer' }}>
           {t('push.test')}
         </button>
       )}

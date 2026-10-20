@@ -1,10 +1,10 @@
 import { t } from '../../i18n'
 
 export const STATUS_COLORS = {
-  draft:    { color: '#8A9BAE', bg: 'rgba(138,155,174,0.12)' },
-  sent:     { color: '#60A5FA', bg: 'rgba(59,130,246,0.15)' },
-  accepted: { color: '#1EC878', bg: 'rgba(30,200,120,0.15)' },
-  declined: { color: '#F87171', bg: 'rgba(248,113,113,0.12)' },
+  draft:    { color: 'var(--soft)', bg: 'color-mix(in srgb, var(--soft) 12%, transparent)' },
+  sent:     { color: 'var(--info)', bg: 'color-mix(in srgb, var(--info) 15%, transparent)' },
+  accepted: { color: 'var(--accent-text)', bg: 'color-mix(in srgb, var(--accent) 15%, transparent)' },
+  declined: { color: 'var(--danger)', bg: 'color-mix(in srgb, var(--danger) 12%, transparent)' },
 }
 
 export function QuoteStatusBadge({ status }) {

@@ -3,31 +3,37 @@ import { X } from 'lucide-react'
 // Shared building blocks and style tokens for new components.
 // (Older pages still use inline styles; they move here gradually — see ROADMAP Phase 2b.)
 
+// Colours are CSS variables set by the theme (src/theme/tokens.js), so they follow the theme the
+// person chose. accent is for fills and borders; accentText for green text and icons.
 export const colors = {
-  bg: '#080C14', panel: '#0F1520', text: '#fff', muted: '#7D93A9', soft: '#8A9BAE',
-  accent: '#1EC878', accentDark: '#0FA85A', danger: '#F87171', border: 'rgba(255,255,255,0.07)',
+  bg: 'var(--bg)', panel: 'var(--panel)', text: 'var(--text)', muted: 'var(--muted)', soft: 'var(--soft)',
+  accent: 'var(--accent)', accentText: 'var(--accent-text)', accentDark: 'var(--accent-2)', onAccent: 'var(--on-accent)', danger: 'var(--danger)',
+  border: 'color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)',
 }
+
+// A see-through version of a colour (any CSS colour, variables included), e.g. tint(colors.accent, 12)
+export const tint = (color, percent) => `color-mix(in srgb, ${color} ${percent}%, transparent)`
 
 export const btn = {
   display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px', borderRadius: '9px',
-  border: '1px solid rgba(30,200,120,0.3)', background: 'rgba(30,200,120,0.12)', color: colors.accent,
+  border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: colors.accentText,
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0,
 }
 export const btnPrimary = {
-  ...btn, border: 'none', color: '#fff', fontWeight: 700, fontSize: '14px', padding: '10px 18px',
-  background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`, boxShadow: '0 4px 16px rgba(30,200,120,0.25)',
+  ...btn, border: 'none', color: 'var(--on-accent)', fontWeight: 700, fontSize: '14px', padding: '10px 18px',
+  background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})`, boxShadow: '0 4px 16px color-mix(in srgb, var(--accent) 25%, transparent)',
 }
-export const btnDanger = { ...btn, background: 'transparent', borderColor: 'rgba(239,68,68,0.3)', color: colors.danger }
+export const btnDanger = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--danger) 30%, transparent)', color: colors.danger }
 export const iconBtn = {
   background: 'none', border: 'none', cursor: 'pointer', color: colors.muted,
   padding: '6px', display: 'flex', alignItems: 'center', flexShrink: 0, borderRadius: '6px',
 }
 export const input = {
-  width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.09)',
-  borderRadius: '9px', color: '#fff', fontSize: '14px', outline: 'none',
+  width: '100%', padding: '10px 12px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)',
+  borderRadius: '9px', color: 'var(--text)', fontSize: '14px', outline: 'none',
 }
 export const card = {
-  background: 'rgba(255,255,255,0.03)', border: `1px solid ${colors.border}`, borderRadius: '14px', padding: '14px 16px',
+  background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`, borderRadius: '14px', padding: '14px 16px',
 }
 export const label = {
   display: 'block', fontSize: '12px', fontWeight: 600, color: colors.muted,
@@ -41,7 +47,7 @@ export function Modal({ title, onClose, children, maxWidth = 480 }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'calc(16px + var(--safe-top)) 16px 16px',
     }}>
       <div role="dialog" aria-modal="true" aria-label={title} style={{
-        background: colors.panel, border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', color: '#fff',
+        background: colors.panel, border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '18px', color: 'var(--text)',
         padding: '22px', width: '100%', maxWidth: `${maxWidth}px`, maxHeight: 'calc(100vh - 32px - var(--safe-top))', overflowY: 'auto',
         animation: 'fadeIn 0.2s ease',
       }}>

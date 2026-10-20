@@ -49,11 +49,11 @@ export default function ContextThread({ type, id, height = '320px', children }) 
   return (
     <div style={{ border: `1px solid ${colors.border}`, borderRadius: '12px', overflow: 'hidden' }}>
       <button type="button" onClick={toggle} aria-expanded={open} style={{
-        display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.02)',
-        border: 'none', color: '#fff', font: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer', textAlign: 'left',
+        display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(2% * var(--line-k))), transparent)',
+        border: 'none', color: 'var(--text)', font: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer', textAlign: 'left',
       }}>
         {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-        <MessagesSquare size={16} color={colors.accent} />
+        <MessagesSquare size={16} color={colors.accentText} />
         <span style={{ flex: 1 }}>{guest ? t(`chat.guest.title.${type}`) : t('chat.context.title')}</span>
         {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
           : count > 0 && <span style={{ fontSize: '12px', fontWeight: 400, color: colors.muted }}>{t('chat.context.count', { count })}</span>}
@@ -61,7 +61,7 @@ export default function ContextThread({ type, id, height = '320px', children }) 
       {open && (guest || children) && (
         <div style={{ padding: '8px 12px 0' }}>
           {guest && (
-            <p style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', fontSize: '12px', color: '#F59E0B', lineHeight: 1.5, marginBottom: children ? '8px' : 0 }}>
+            <p style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', fontSize: '12px', color: 'var(--warn)', lineHeight: 1.5, marginBottom: children ? '8px' : 0 }}>
               <Eye size={13} style={{ flexShrink: 0, marginTop: '2px' }} /> {t(`chat.guest.notice.${type}`)}
             </p>
           )}

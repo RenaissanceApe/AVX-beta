@@ -114,7 +114,7 @@ export default function AssetVersionsModal({ asset, nameOf, onClose }) {
           <div key={v.id} style={{ ...card, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: '160px' }}>
               <div style={{ fontWeight: 700, fontSize: '14px' }}>
-                {t('assets.version', { version: v.version })} {i === 0 && <span style={{ color: colors.accent, fontSize: '12px' }}>· {t('versions.current')}</span>}
+                {t('assets.version', { version: v.version })} {i === 0 && <span style={{ color: colors.accentText, fontSize: '12px' }}>· {t('versions.current')}</span>}
               </div>
               <div style={{ fontSize: '12px', color: colors.muted }}>
                 {fmt(v.created_at, 'd MMM yyyy, HH:mm')}

@@ -41,7 +41,7 @@ export function PriceListTab({ orgId, userId, items, setItems }) {
           <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('prices.search')} aria-label={t('prices.search')} style={{ ...input, paddingLeft: '32px' }} />
         </div>
-        <button onClick={() => setImporting(true)} style={{ ...btn, background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }}><Upload size={14} /> {t('prices.import')}</button>
+        <button onClick={() => setImporting(true)} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }}><Upload size={14} /> {t('prices.import')}</button>
         <button onClick={() => setEditing('new')} style={btn}><Plus size={14} /> {t('prices.add')}</button>
       </div>
 
@@ -181,12 +181,12 @@ function ImportModal({ orgId, userId, onClose, onImported }) {
   return (
     <Modal title={t('prices.import')} onClose={onClose} maxWidth={600}>
       <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, marginBottom: '8px' }}>{t('prices.importHelp')}</p>
-      <pre style={{ fontSize: '12px', background: 'rgba(255,255,255,0.05)', padding: '8px 10px', borderRadius: '8px', marginBottom: '10px', whiteSpace: 'pre-wrap' }}>
+      <pre style={{ fontSize: '12px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)', padding: '8px 10px', borderRadius: '8px', marginBottom: '10px', whiteSpace: 'pre-wrap' }}>
         {t('prices.importExample')}
       </pre>
       <textarea value={text} onChange={e => setText(e.target.value)} rows={10} aria-label={t('prices.import')} autoFocus
-        style={{ ...input, fontFamily: 'monospace', fontSize: '12px', resize: 'vertical' }} />
-      <p role="status" style={{ fontSize: '13px', margin: '8px 0 12px', color: parsed.errors.length ? '#F59E0B' : colors.soft }}>
+        style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '12px', resize: 'vertical' }} />
+      <p role="status" style={{ fontSize: '13px', margin: '8px 0 12px', color: parsed.errors.length ? 'var(--warn)' : colors.soft }}>
         {t('prices.importReady', { count: parsed.items.length })}
         {parsed.errors.length > 0 && ` · ${t('prices.importSkipped', { lines: parsed.errors.join(', ') })}`}
       </p>
@@ -217,7 +217,7 @@ export function PricePickerModal({ items, onPick, onClose }) {
               <div key={category || '—'}>
                 <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: colors.muted, padding: '8px 4px 4px' }}>{category || t('prices.noCategory')}</div>
                 {list.map(item => (
-                  <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: picked.includes(item.id) ? 'rgba(30,200,120,0.1)' : 'transparent' }}>
+                  <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: picked.includes(item.id) ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent' }}>
                     <input type="checkbox" checked={picked.includes(item.id)} onChange={() => toggle(item.id)} style={{ accentColor: colors.accent }} />
                     <span style={{ flex: 1, fontSize: '14px' }}>{item.name}</span>
                     <span style={{ fontSize: '13px', color: colors.soft, whiteSpace: 'nowrap' }}>{formatMoney(item.unit_price, 'EUR', lang)}</span>

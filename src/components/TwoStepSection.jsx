@@ -96,29 +96,29 @@ export default function TwoStepSection({ label, input, smallBtn }) {
     load()
   }
 
-  const hint = { color: '#7D93A9', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }
+  const hint = { color: 'var(--muted)', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}><span style={{ ...label, marginBottom: 0 }}>{t('mfa.title')}</span><Hint id="two-step" label={t('mfa.title')} /></div>
-      {factor === undefined ? <Loader2 size={16} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
+      {factor === undefined ? <Loader2 size={16} color="var(--accent-text)" style={{ animation: 'spin 1s linear infinite' }} />
         : factor ? (
           <>
             <p style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
-              <ShieldCheck size={16} color="#1EC878" /> {t('mfa.on')}
+              <ShieldCheck size={16} color="var(--accent-text)" /> {t('mfa.on')}
             </p>
-            <button onClick={turnOff} disabled={busy} style={{ ...smallBtn, background: 'transparent', borderColor: 'rgba(239,68,68,0.3)', color: '#F87171' }}>
+            <button onClick={turnOff} disabled={busy} style={{ ...smallBtn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--danger) 30%, transparent)', color: 'var(--danger)' }}>
               <ShieldOff size={14} /> {t('mfa.turnOff')}
             </button>
           </>
         ) : enrolling ? (
           <form onSubmit={confirm}>
-            <p style={{ fontSize: '13px', color: '#8A9BAE', lineHeight: 1.6, marginBottom: '10px' }}>{t('mfa.scan')}</p>
+            <p style={{ fontSize: '13px', color: 'var(--soft)', lineHeight: 1.6, marginBottom: '10px' }}>{t('mfa.scan')}</p>
             <img src={enrolling.qr} alt={t('mfa.qrAlt')} width={180} height={180} style={{ background: '#fff', borderRadius: '10px', padding: '8px', display: 'block', marginBottom: '8px' }} />
-            <p style={{ ...hint, marginTop: 0, wordBreak: 'break-all' }}>{t('mfa.manual')} <code style={{ color: '#fff' }}>{enrolling.secret}</code></p>
+            <p style={{ ...hint, marginTop: 0, wordBreak: 'break-all' }}>{t('mfa.manual')} <code style={{ color: 'var(--text)' }}>{enrolling.secret}</code></p>
             <label style={{ ...label, marginTop: '12px' }} htmlFor="mfa-enrol-code">{t('mfa.code')}</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input id="mfa-enrol-code" value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                inputMode="numeric" autoComplete="one-time-code" placeholder="123456" style={{ ...input, fontFamily: 'monospace', letterSpacing: '0.2em' }} />
+                inputMode="numeric" autoComplete="one-time-code" placeholder="123456" style={{ ...input, fontFamily: 'var(--font-mono)', letterSpacing: '0.2em' }} />
               <button type="submit" disabled={busy || code.length !== 6} style={smallBtn}>
                 {busy && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />} {t('mfa.confirm')}
               </button>

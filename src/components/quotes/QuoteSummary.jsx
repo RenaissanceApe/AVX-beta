@@ -23,7 +23,7 @@ export default function QuoteSummary({ quote, body, totals, onOpenPhase }) {
                 <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{range(p) || t('quote.noDates')}</span>
               </span>
               {pt.discount > 0 && <span style={{ fontSize: '12px', color: colors.muted }}>−{money(pt.discount)}</span>}
-              <span style={{ fontWeight: 700, color: p.optional ? colors.muted : '#fff' }}>{money(pt.net)}</span>
+              <span style={{ fontWeight: 700, color: p.optional ? colors.muted : 'var(--text)' }}>{money(pt.net)}</span>
             </button>
           )
         })}
@@ -55,7 +55,7 @@ export default function QuoteSummary({ quote, body, totals, onOpenPhase }) {
 function Line({ label, value, strong, accent, muted }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', fontWeight: strong ? 700 : 400,
-      color: accent ? colors.accent : muted ? colors.muted : '#fff', fontSize: accent ? '16px' : undefined }}>
+      color: accent ? colors.accentText : muted ? colors.muted : 'var(--text)', fontSize: accent ? '16px' : undefined }}>
       <span>{label}</span><span>{value}</span>
     </div>
   )
@@ -64,6 +64,6 @@ function Line({ label, value, strong, accent, muted }) {
 const h3 = { fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: colors.muted, marginBottom: '8px' }
 const row = {
   display: 'flex', alignItems: 'center', gap: '12px', width: '100%', padding: '10px 12px', marginBottom: '6px', borderRadius: '10px',
-  background: 'rgba(255,255,255,0.03)', border: `1px solid ${colors.border}`, color: '#fff', fontSize: '14px', cursor: 'pointer',
+  background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`, color: 'var(--text)', fontSize: '14px', cursor: 'pointer',
 }
-const optionalTag = { marginLeft: '8px', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', background: 'rgba(245,158,11,0.15)', color: '#F59E0B', textTransform: 'uppercase' }
+const optionalTag = { marginLeft: '8px', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', background: 'color-mix(in srgb, var(--warn) 15%, transparent)', color: 'var(--warn)', textTransform: 'uppercase' }

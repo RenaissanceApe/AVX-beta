@@ -182,7 +182,7 @@ export default function QuoteEditorPage() {
   )
   if (!quote) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Loader2 size={26} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+      <Loader2 size={26} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
     </div>
   )
 
@@ -279,13 +279,13 @@ export default function QuoteEditorPage() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', color: '#fff', paddingBottom: '90px' }}>
+    <div style={{ minHeight: '100vh', color: 'var(--text)', paddingBottom: '90px' }}>
       <style>{QUOTE_EDITOR_CSS}</style>
       <header className="q-header" style={{ borderBottom: `1px solid ${colors.border}`, background: colors.bg, zIndex: 40 }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '12px 16px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <button onClick={() => flushThen(() => navigate(`/org/${quote.org_id}/quotes`))} aria-label={t('quote.backToQuotes')} title={t('quote.backToQuotes')} style={iconBtn}><ArrowLeft size={18} /></button>
-            <span style={{ fontFamily: 'monospace', color: colors.soft, fontSize: '13px' }}>{quoteNumber(quote, prefix)}</span>
+            <span style={{ fontFamily: 'var(--font-mono)', color: colors.soft, fontSize: '13px' }}>{quoteNumber(quote, prefix)}</span>
             <input value={quote.title} onChange={e => updateQuote({ title: e.target.value })} aria-label={t('quotes.quoteTitle')} maxLength={200}
               style={{ ...input, flex: '1 1 220px', fontSize: '18px', fontWeight: 800, background: 'transparent', border: '1px solid transparent', padding: '6px 8px' }} />
             <select value={quote.status} onChange={e => updateQuote({ status: e.target.value })} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', padding: '7px 10px', cursor: 'pointer' }}>
@@ -310,25 +310,29 @@ export default function QuoteEditorPage() {
             {canDelete && <button onClick={deleteQuote} style={{ ...btnGhost, color: colors.danger, marginLeft: 'auto' }}><Trash2 size={14} /> {t('common.delete')}</button>}
           </div>
           {saveState === 'conflict' && (
-            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '10px 12px', marginBottom: '10px', borderRadius: '10px', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', color: '#FBBF24', fontSize: '13px' }}>
+            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '10px 12px', marginBottom: '10px', borderRadius: '10px', background: 'color-mix(in srgb, var(--warn) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--warn) 30%, transparent)', color: 'var(--yellow)', fontSize: '13px' }}>
               <AlertTriangle size={15} /> <span style={{ flex: 1 }}>{t('quote.conflict')}</span>
-              <button onClick={() => window.location.reload()} style={{ ...btn, color: '#FBBF24', borderColor: 'rgba(245,158,11,0.4)', background: 'transparent' }}>{t('quote.reload')}</button>
+              <button onClick={() => window.location.reload()} style={{ ...btn, color: 'var(--yellow)', borderColor: 'color-mix(in srgb, var(--warn) 40%, transparent)', background: 'transparent' }}>{t('quote.reload')}</button>
             </div>
           )}
-          <div role="tablist" aria-label={t('quote.phases')} style={{ display: 'flex', alignItems: 'flex-end', overflowX: 'auto', scrollbarWidth: 'thin' }}>
+          {/* The tabs (phases, details, summary) and, between them on screen, the add buttons, which
+              aren't tabs: the tab list takes no box of its own and `order` places the buttons */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', overflowX: 'auto', scrollbarWidth: 'thin' }}>
+            <div role="tablist" aria-label={t('quote.phases')} style={{ display: 'contents' }}>
             {tabs.map(tb => (
               <button key={tb.key} role="tab" aria-selected={tab === tb.key} onClick={() => setTab(tb.key)} style={tabStyle(tab === tb.key)}>
                 <span style={{ fontStyle: tb.optional ? 'italic' : undefined }}>{tb.label}</span>
                 {tb.amount !== undefined && <span style={{ display: 'block', fontSize: '11px', fontWeight: 500, color: colors.muted }}>{formatMoney(tb.amount, quote.currency, lang)}</span>}
               </button>
             ))}
-            <button onClick={addPhase} aria-label={t('quote.addPhase')} title={t('quote.addPhase')} style={{ ...tabStyle(false), color: colors.accent }}><Plus size={15} /></button>
+              <button role="tab" aria-selected={tab === 'summary'} onClick={() => setTab('summary')} style={{ ...tabStyle(tab === 'summary'), marginLeft: 'auto', order: 2 }}>{t('quote.tab.summary')}</button>
+            </div>
+            <button onClick={addPhase} aria-label={t('quote.addPhase')} title={t('quote.addPhase')} style={{ ...tabStyle(false), color: colors.accentText, order: 1 }}><Plus size={15} /></button>
             {templates.length > 0 && (
-              <button onClick={() => setModal({ kind: 'insertTemplate' })} title={t('quote.insertTemplate')} style={{ ...tabStyle(false), color: colors.soft, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <button onClick={() => setModal({ kind: 'insertTemplate' })} title={t('quote.insertTemplate')} style={{ ...tabStyle(false), order: 1, color: colors.soft, display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Download size={13} /> {t('quote.insertTemplateShort')}
               </button>
             )}
-            <button role="tab" aria-selected={tab === 'summary'} onClick={() => setTab('summary')} style={{ ...tabStyle(tab === 'summary'), marginLeft: 'auto' }}>{t('quote.tab.summary')}</button>
           </div>
         </div>
       </header>
@@ -352,12 +356,12 @@ export default function QuoteEditorPage() {
         )}
       </main>
 
-      <footer style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(8,12,20,0.96)', borderTop: `1px solid ${colors.border}`, zIndex: 40 }}>
+      <footer style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'color-mix(in srgb, var(--bg) 96%, transparent)', borderTop: `1px solid ${colors.border}`, zIndex: 40 }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '13px' }}>
           <QuoteStatusBadge status={quote.status} />
           {totals.optional > 0 && <span style={{ color: colors.muted }}>{t('quote.optionsNotIncluded')}: {formatMoney(totals.optional, quote.currency, lang)}</span>}
-          <span style={{ marginLeft: 'auto', color: colors.soft }}>{t('quote.totalExVat')} <strong style={{ color: '#fff', fontSize: '15px' }}>{formatMoney(totals.net, quote.currency, lang)}</strong></span>
-          <span style={{ color: colors.soft }}>{t('quote.totalIncVat')} <strong style={{ color: colors.accent, fontSize: '15px' }}>{formatMoney(totals.total, quote.currency, lang)}</strong></span>
+          <span style={{ marginLeft: 'auto', color: colors.soft }}>{t('quote.totalExVat')} <strong style={{ color: 'var(--text)', fontSize: '15px' }}>{formatMoney(totals.net, quote.currency, lang)}</strong></span>
+          <span style={{ color: colors.soft }}>{t('quote.totalIncVat')} <strong style={{ color: colors.accentText, fontSize: '15px' }}>{formatMoney(totals.total, quote.currency, lang)}</strong></span>
         </div>
       </footer>
 
@@ -388,7 +392,7 @@ export default function QuoteEditorPage() {
               <button key={tpl.id} onClick={() => insertTemplate(tpl)} style={{ ...btnGhost, justifyContent: 'flex-start', padding: '10px 12px', textAlign: 'left' }}>
                 <LayoutTemplate size={14} />
                 <span style={{ flex: 1 }}>
-                  <span style={{ display: 'block', color: '#fff' }}>{tpl.name}</span>
+                  <span style={{ display: 'block', color: 'var(--text)' }}>{tpl.name}</span>
                   <span style={{ display: 'block', fontSize: '12px', color: colors.muted, fontWeight: 400 }}>
                     {[tpl.description, t('quotes.phaseCount', { count: tpl.body?.phases?.length || 0 })].filter(Boolean).join(' · ')}
                   </span>
@@ -409,13 +413,13 @@ function SaveIndicator({ state, onRetry }) {
     dirty: [Loader2, colors.muted, t('quote.unsaved')],
     saving: [Loader2, colors.muted, t('quote.saving')],
     error: [CloudOff, colors.danger, t('quote.saveFailed')],
-    conflict: [AlertTriangle, '#FBBF24', t('quote.notSaved')],
+    conflict: [AlertTriangle, 'var(--yellow)', t('quote.notSaved')],
   }
   const [Icon, color, text] = map[state]
   return (
     <span role="status" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color, whiteSpace: 'nowrap' }}>
       <Icon size={13} style={state === 'saving' ? { animation: 'spin 1s linear infinite' } : undefined} /> {text}
-      {state === 'error' && <button onClick={onRetry} style={{ ...iconBtn, color: colors.accent, fontSize: '12px', padding: '2px 4px' }}>{t('quote.retry')}</button>}
+      {state === 'error' && <button onClick={onRetry} style={{ ...iconBtn, color: colors.accentText, fontSize: '12px', padding: '2px 4px' }}>{t('quote.retry')}</button>}
     </span>
   )
 }
@@ -463,9 +467,9 @@ function SaveTemplateModal({ orgId, userId, body, defaultName, onClose, onSaved 
   )
 }
 
-const btnGhost = { ...btn, background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: colors.soft }
+const btnGhost = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', color: colors.soft }
 const tabStyle = active => ({
   padding: '8px 14px', whiteSpace: 'nowrap', flexShrink: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left',
-  fontSize: '14px', fontWeight: 600, color: active ? colors.accent : colors.soft,
+  fontSize: '14px', fontWeight: 600, color: active ? colors.accentText : colors.soft,
   borderBottom: active ? `2px solid ${colors.accent}` : '2px solid transparent',
 })

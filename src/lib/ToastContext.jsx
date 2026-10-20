@@ -6,9 +6,9 @@ import { t } from '../i18n'
 const ToastContext = createContext({ notify: () => {} })
 
 const KIND = {
-  success: { icon: CheckCircle, color: '#1EC878', border: 'rgba(30,200,120,0.35)' },
-  error:   { icon: AlertCircle, color: '#F87171', border: 'rgba(239,68,68,0.35)' },
-  info:    { icon: Info,        color: '#60A5FA', border: 'rgba(59,130,246,0.35)' },
+  success: { icon: CheckCircle, color: 'var(--accent-text)', border: 'color-mix(in srgb, var(--accent) 35%, transparent)' },
+  error:   { icon: AlertCircle, color: 'var(--danger)', border: 'color-mix(in srgb, var(--danger) 35%, transparent)' },
+  info:    { icon: Info,        color: 'var(--info)', border: 'color-mix(in srgb, var(--info) 35%, transparent)' },
 }
 
 export function ToastProvider({ children }) {
@@ -38,14 +38,14 @@ export function ToastProvider({ children }) {
           return (
             <div key={toast.id} role={toast.kind === 'error' ? 'alert' : 'status'} style={{
               pointerEvents: 'auto', display: 'flex', alignItems: 'flex-start', gap: '10px',
-              background: '#0F1520', border: `1px solid ${cfg.border}`, borderRadius: '12px',
-              padding: '12px 14px', color: '#fff', fontSize: '14px', lineHeight: '1.5',
+              background: 'var(--panel)', border: `1px solid ${cfg.border}`, borderRadius: '12px',
+              padding: '12px 14px', color: 'var(--text)', fontSize: '14px', lineHeight: '1.5',
               boxShadow: '0 8px 24px rgba(0,0,0,0.4)', whiteSpace: 'pre-line', wordBreak: 'break-word'
             }}>
               <Icon size={18} color={cfg.color} style={{ flexShrink: 0, marginTop: '1px' }} />
               <div style={{ flex: 1 }}>{toast.message}</div>
               <button onClick={() => dismiss(toast.id)} aria-label={t('common.dismiss')} style={{
-                background: 'none', border: 'none', color: '#7D93A9', cursor: 'pointer', padding: 0, display: 'flex'
+                background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: 0, display: 'flex'
               }}>
                 <X size={15} />
               </button>

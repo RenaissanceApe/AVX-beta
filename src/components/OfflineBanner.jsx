@@ -10,7 +10,7 @@ export default function OfflineBanner({ savedAt = null }) {
   return (
     <div role="status" style={{
       position: 'sticky', top: 'var(--safe-top)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-      padding: '7px 12px', background: '#3A2A08', color: '#FBBF24', fontSize: '13px', fontWeight: 600, textAlign: 'center',
+      padding: '7px 12px', background: 'color-mix(in srgb, var(--yellow) 18%, var(--bg))', color: 'var(--yellow)', fontSize: '13px', fontWeight: 600, textAlign: 'center',
     }}>
       <WifiOff size={14} />
       <span>

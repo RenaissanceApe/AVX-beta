@@ -11,10 +11,10 @@ import { track } from '../lib/usage'
 import { codeFromScan, dispatchProgress } from '../lib/inventory'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
-import { btn, btnPrimary, input, label, card, colors } from '../components/ui'
+import { btn, btnPrimary, input, label, card, colors, tint } from '../components/ui'
 import { Hint } from '../components/help/HelpParts'
 
-const AMBER = '#F59E0B'
+const AMBER = 'var(--warn)'
 const REPEAT_MS = 2500 // the same code seen again within this time is the same scan
 
 // Scan equipment out to a gig and back in: with the phone camera (QR labels), a USB/Bluetooth
@@ -101,7 +101,7 @@ export default function DispatchPage() {
     loadProgress()
   }
 
-  if (gig === null || allowed === null) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (gig === null || allowed === null) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
   if (!gig || !allowed) return (
     <AppShell>
       <div style={{ maxWidth: '420px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
@@ -116,8 +116,8 @@ export default function DispatchPage() {
     <AppShell>
       <div style={{ maxWidth: '760px', margin: '0 auto', padding: '16px 16px 60px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <button onClick={() => navigate(`/gig/${id}?tab=equipment`)} style={{ ...btn, background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft, padding: '6px 10px' }}><ArrowLeft size={14} /> {gig.name}</button>
-          <button onClick={() => navigate(`/gig/${id}/packing`)} style={{ ...btn, background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft, padding: '6px 10px', marginLeft: 'auto' }}><ClipboardList size={14} /> {t('dispatch.packingList')}</button>
+          <button onClick={() => navigate(`/gig/${id}?tab=equipment`)} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft, padding: '6px 10px' }}><ArrowLeft size={14} /> {gig.name}</button>
+          <button onClick={() => navigate(`/gig/${id}/packing`)} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft, padding: '6px 10px', marginLeft: 'auto' }}><ClipboardList size={14} /> {t('dispatch.packingList')}</button>
         </div>
         <h1 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '12px' }}>{t('dispatch.title')}</h1>
 
@@ -125,9 +125,9 @@ export default function DispatchPage() {
           {['out', 'in'].map(d => (
             <button key={d} role="radio" aria-checked={direction === d} onClick={() => { setDirection(d); inputRef.current?.focus() }} style={{
               padding: '14px', borderRadius: '12px', fontSize: '15px', fontWeight: 800, cursor: 'pointer',
-              border: `2px solid ${direction === d ? (d === 'out' ? colors.accent : '#38BDF8') : colors.border}`,
-              background: direction === d ? (d === 'out' ? 'rgba(30,200,120,0.12)' : 'rgba(56,189,248,0.12)') : 'transparent',
-              color: direction === d ? '#fff' : colors.soft,
+              border: `2px solid ${direction === d ? (d === 'out' ? colors.accent : 'var(--sky)') : colors.border}`,
+              background: direction === d ? (d === 'out' ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'color-mix(in srgb, var(--sky) 12%, transparent)') : 'transparent',
+              color: direction === d ? 'var(--text)' : colors.soft,
             }}>{t(`dispatch.dir.${d}`)}</button>
           ))}
         </div>
@@ -138,7 +138,7 @@ export default function DispatchPage() {
             <div style={{ flex: '1 1 200px' }}>
               <label style={label} htmlFor="scan-code">{t('dispatch.code')}</label>
               <input id="scan-code" ref={inputRef} value={code} onChange={e => setCode(e.target.value)} autoFocus autoComplete="off" autoCapitalize="characters"
-                placeholder={t('dispatch.codePlaceholder')} style={{ ...input, fontFamily: 'monospace', fontSize: '16px' }} />
+                placeholder={t('dispatch.codePlaceholder')} style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '16px' }} />
             </div>
             <div style={{ width: '90px' }}>
               <label style={label} htmlFor="scan-qty">{t('dispatch.qty')}</label>
@@ -167,8 +167,8 @@ export default function DispatchPage() {
           <h2 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <PackageCheck size={16} /> {direction === 'out' ? t('dispatch.packed', { done: progress.out, total: progress.planned }) : t('dispatch.returned', { done: progress.back, total: progress.outTotal })}
           </h2>
-          <div style={{ height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.08)', overflow: 'hidden', marginBottom: '10px' }}>
-            <div style={{ height: '100%', background: direction === 'out' ? colors.accent : '#38BDF8',
+          <div style={{ height: '6px', borderRadius: '3px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)', overflow: 'hidden', marginBottom: '10px' }}>
+            <div style={{ height: '100%', background: direction === 'out' ? colors.accent : 'var(--sky)',
               width: `${Math.min(100, 100 * (direction === 'out' ? progress.out / Math.max(1, progress.planned) : progress.back / Math.max(1, progress.outTotal)))}%` }} />
           </div>
           {summary.length === 0 ? <p style={{ fontSize: '13px', color: colors.muted }}>{t('dispatch.nothingPlanned')}</p> : (
@@ -179,9 +179,9 @@ export default function DispatchPage() {
                 const complete = target > 0 && done >= target
                 return (
                   <div key={r.item_id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
-                    <span style={{ width: '18px', color: complete ? colors.accent : done > target && target > 0 ? AMBER : colors.muted }}>{complete ? <Check size={14} /> : null}</span>
+                    <span style={{ width: '18px', color: complete ? colors.accentText : done > target && target > 0 ? AMBER : colors.muted }}>{complete ? <Check size={14} /> : null}</span>
                     <span style={{ flex: 1, minWidth: 0 }}>{r.item_name}{!r.planned && <span style={{ color: AMBER, fontSize: '11px' }}> · {t('dispatch.notPlannedShort')}</span>}</span>
-                    <strong style={{ fontVariantNumeric: 'tabular-nums', color: done > target && target > 0 ? AMBER : '#fff' }}>{done} / {target}</strong>
+                    <strong style={{ fontVariantNumeric: 'tabular-nums', color: done > target && target > 0 ? AMBER : 'var(--text)' }}>{done} / {target}</strong>
                   </div>
                 )
               })}
@@ -193,10 +193,10 @@ export default function DispatchPage() {
           <section style={{ ...card }}>
             <h2 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>{t('dispatch.unitsOut', { count: unitsOut.length })}</h2>
             <div style={{ fontSize: '12px', color: colors.soft, lineHeight: 1.8, marginBottom: '10px' }}>
-              {unitsOut.map(u => <div key={u.unit_id}><span style={{ fontFamily: 'monospace' }}>{u.code}</span> · {u.item_name}{u.serial ? ` · ${u.serial}` : ''} · {ago(u.out_since)}</div>)}
+              {unitsOut.map(u => <div key={u.unit_id}><span style={{ fontFamily: 'var(--font-mono)' }}>{u.code}</span> · {u.item_name}{u.serial ? ` · ${u.serial}` : ''} · {ago(u.out_since)}</div>)}
             </div>
             {direction === 'in' && (
-              <button onClick={markLost} style={{ ...btn, background: 'transparent', borderColor: 'rgba(239,68,68,0.35)', color: colors.danger }}>
+              <button onClick={markLost} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--danger) 35%, transparent)', color: colors.danger }}>
                 <X size={14} /> {t('dispatch.markLost', { count: unitsOut.length })}
               </button>
             )}
@@ -220,7 +220,7 @@ function FeedRow({ entry }) {
     : r.kind === 'bulk' ? t(`dispatch.okBulk.${entry.direction}`, { count: r.quantity }) : t(`dispatch.ok.${entry.direction}`)
   return (
     <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', padding: '8px 10px', borderRadius: '10px', marginBottom: '4px',
-      background: `${colour}14`, border: `1px solid ${colour}55`, fontSize: '13px' }}>
+      background: tint(colour, 8), border: `1px solid ${tint(colour, 33)}`, fontSize: '13px' }}>
       <Icon size={15} color={colour} style={{ flexShrink: 0, marginTop: '1px' }} />
       <span style={{ flex: 1, minWidth: 0 }}>
         {what && <strong style={{ display: 'block' }}>{what}</strong>}

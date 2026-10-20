@@ -113,13 +113,13 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
             </select>
           </Field>
           <Field id="it-code" text={t('inv.code')}>
-            <input id="it-code" value={form.code} onChange={set('code')} maxLength={40} placeholder={t('inv.codeAuto')} style={{ ...input, fontFamily: 'monospace' }} />
+            <input id="it-code" value={form.code} onChange={set('code')} maxLength={40} placeholder={t('inv.codeAuto')} style={{ ...input, fontFamily: 'var(--font-mono)' }} />
           </Field>
           <Field id="it-min" text={t('inv.minStock')} hint="min-stock">
             <input id="it-min" type="number" min={0} value={form.min_stock} onChange={set('min_stock')} style={input} />
           </Field>
         </div>
-        <p style={{ fontSize: '12px', color: hasStock ? '#F59E0B' : colors.muted, lineHeight: 1.5, marginTop: '-4px' }}>
+        <p style={{ fontSize: '12px', color: hasStock ? 'var(--warn)' : colors.muted, lineHeight: 1.5, marginTop: '-4px' }}>
           {form.kit_type ? t(`kit.typeHint.${form.kit_type}`) : hasStock ? t('inv.trackingLocked') : t(`inv.trackingHint.${form.tracking}`)}
           {!codeOk && <span style={{ color: colors.danger, display: 'block' }}>{t('inv.codeInvalid')}</span>}
         </p>
@@ -271,7 +271,7 @@ export function AddUnitsModal({ item, locations, onClose, onSaved }) {
       <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <Field id="un-serials" text={t('inv.serials')}>
           <textarea id="un-serials" value={serials} onChange={e => setSerials(e.target.value)} rows={4} placeholder={t('inv.serialsPlaceholder')}
-            style={{ ...input, fontFamily: 'monospace', fontSize: '13px', resize: 'vertical' }} autoFocus />
+            style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '13px', resize: 'vertical' }} autoFocus />
         </Field>
         <div style={grid}>
           {!list.length && (
@@ -327,7 +327,7 @@ export function UnitModal({ unit, locations, onClose, onSaved }) {
     <Modal title={`${t('inv.unit')} ${unit.code}`} onClose={onClose}>
       <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={grid}>
-          <Field id="u-serial" text={t('inv.serial')}><input id="u-serial" value={form.serial} onChange={set('serial')} maxLength={80} style={{ ...input, fontFamily: 'monospace' }} /></Field>
+          <Field id="u-serial" text={t('inv.serial')}><input id="u-serial" value={form.serial} onChange={set('serial')} maxLength={80} style={{ ...input, fontFamily: 'var(--font-mono)' }} /></Field>
           <Field id="u-status" text={t('inv.status')} hint="unit-status">
             <select id="u-status" value={form.status} onChange={set('status')} style={select}>
               {UNIT_STATUSES.map(s => <option key={s} value={s}>{t(`inv.unitStatus.${s}`)}</option>)}
@@ -345,7 +345,7 @@ export function UnitModal({ unit, locations, onClose, onSaved }) {
         </div>
         <Field id="u-notes" text={t('inv.note')}><input id="u-notes" value={form.notes} onChange={set('notes')} maxLength={500} style={input} /></Field>
         {(form.status === 'lost' || form.status === 'retired') && form.status !== unit.status && (
-          <p role="alert" style={{ fontSize: '12px', color: '#F59E0B' }}>{t('inv.statusWarning')}</p>
+          <p role="alert" style={{ fontSize: '12px', color: 'var(--warn)' }}>{t('inv.statusWarning')}</p>
         )}
         <SaveButton saving={saving}>{t('common.save')}</SaveButton>
       </form>
@@ -457,11 +457,11 @@ export function ImportStockModal({ orgId, userId, items, locations, onClose, onI
   return (
     <Modal title={t('inv.import')} onClose={onClose} maxWidth={640}>
       <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, marginBottom: '8px' }}>{t('inv.importHelp')}</p>
-      <pre style={{ fontSize: '12px', background: 'rgba(255,255,255,0.05)', padding: '8px 10px', borderRadius: '8px', marginBottom: '10px', whiteSpace: 'pre-wrap' }}>
+      <pre style={{ fontSize: '12px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)', padding: '8px 10px', borderRadius: '8px', marginBottom: '10px', whiteSpace: 'pre-wrap' }}>
         {t('inv.importExample')}
       </pre>
       <textarea value={text} onChange={e => setText(e.target.value)} rows={9} aria-label={t('inv.import')} autoFocus
-        style={{ ...input, fontFamily: 'monospace', fontSize: '12px', resize: 'vertical' }} lang={lang} />
+        style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '12px', resize: 'vertical' }} lang={lang} />
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', margin: '10px 0' }}>
         <label htmlFor="im-loc" style={{ fontSize: '13px', color: colors.soft }}>{t('inv.importDefaultLocation')}</label>
         <select id="im-loc" value={defaultLocation} onChange={e => setDefaultLocation(e.target.value)} style={{ ...select, width: 'auto' }}>
@@ -471,7 +471,7 @@ export function ImportStockModal({ orgId, userId, items, locations, onClose, onI
       </div>
       <div role="status" style={{ fontSize: '13px', marginBottom: '12px', lineHeight: 1.6, color: colors.soft }}>
         {t('inv.importReady', { count: parsed.rows.length })}
-        {parsed.errors.length > 0 && <div style={{ color: '#F59E0B' }}>{t('prices.importSkipped', { lines: parsed.errors.join(', ') })}</div>}
+        {parsed.errors.length > 0 && <div style={{ color: 'var(--warn)' }}>{t('prices.importSkipped', { lines: parsed.errors.join(', ') })}</div>}
         {unknownLocations.length > 0 && <div style={{ color: colors.danger }}>{t('inv.importUnknownLocations', { names: unknownLocations.join(', ') })}</div>}
         {needsLocation && !unknownLocations.length && <div style={{ color: colors.danger }}>{t('inv.importNeedsLocation')}</div>}
         {serialRows.length > 0 && <div style={{ color: colors.danger }}>{t('inv.importSerial', { names: serialRows.map(r => r.name).join(', ') })}</div>}

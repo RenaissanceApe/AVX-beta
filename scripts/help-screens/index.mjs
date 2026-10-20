@@ -7,6 +7,7 @@
 //
 //   npm run help:screens               every picture, both languages
 //   npm run help:screens -- call-time,push  only the pictures whose names contain these words
+//   HELP_THEME=light HELP_OUT=/tmp/x npm run help:screens   another theme, saved elsewhere (to check it)
 //
 // Needs Chromium for Playwright (in CI images it is at /opt/pw-browsers/chromium; set
 // PW_CHROMIUM_PATH to use another).
@@ -24,6 +25,8 @@ const outDir = path.join(root, 'node_modules/.help-screens')
 const PORT = 4179
 const STRINGS = { en, pt }
 const only = (process.argv[2] || '').split(',')
+const THEME = process.env.HELP_THEME || 'dark'
+const SHOTS = process.env.HELP_OUT ? path.resolve(process.env.HELP_OUT) : null
 
 // The label the app shows, so the script finds buttons the way a person would
 const label = (lang, key, vars = {}) => {
@@ -68,6 +71,9 @@ const SCENES = {
   } },
   requests: { persona: 'crew', url: '/me', async run(page, L) {
     return page.getByText(L('requests.title.one', { count: 1 })).locator('xpath=..')
+  } },
+  appearance: { persona: 'crew', url: '/me?panel=account', async run(page, L) {
+    return page.getByText(L('appearance.title'), { exact: true }).locator('xpath=..')
   } },
   'chat-availability': { persona: 'crew', url: `/messages/${ids.direct}`, async run(page, L) {
     return page.getByRole('button', { name: L('requests.available'), exact: true }).last().locator('xpath=ancestor::div[2]')
@@ -247,10 +253,11 @@ async function newPhone(browser, persona, lang) {
   })
   const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url')
   const jwt = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: data.me, exp: 4102444800, role: 'authenticated' })}.sig`
-  await ctx.addInitScript(([token, user, l, key]) => {
+  await ctx.addInitScript(([token, user, l, key, theme]) => {
     localStorage.setItem('avx.lang', l)
+    localStorage.setItem('avx.appearance', JSON.stringify({ theme }))
     localStorage.setItem(key, JSON.stringify({ access_token: token, refresh_token: 'r', token_type: 'bearer', expires_in: 3600, expires_at: 4102444800, user }))
-  }, [jwt, data.user, lang, `sb-${new URL(SB).hostname.split('.')[0]}-auth-token`])
+  }, [jwt, data.user, lang, `sb-${new URL(SB).hostname.split('.')[0]}-auth-token`, THEME])
   await ctx.route(`${SB}/**`, route => {
     const req = route.request()
     const url = new URL(req.url())
@@ -308,7 +315,7 @@ for (const lang of ['pt', 'en']) {
   const locale = lang === 'pt' ? 'pt_PT' : 'en_GB'
   const browser = await chromium.launch({ executablePath, args: [`--lang=${locale.replace('_', '-')}`], env: { ...process.env, LANG: `${locale}.UTF-8`, LANGUAGE: locale } })
   try {
-    fs.mkdirSync(path.join(root, 'public/help/shots', lang), { recursive: true })
+    fs.mkdirSync(path.join(SHOTS || path.join(root, 'public/help/shots'), lang), { recursive: true })
     for (const shot of wanted) {
       const scene = SCENES[shot]
       const { ctx } = await newPhone(browser, scene.persona, lang)
@@ -323,7 +330,7 @@ for (const lang of ['pt', 'en']) {
         const target = await scene.run(page, (k, v) => label(lang, k, v), ctx)
         if (target) await outline(page, target)
         await page.waitForTimeout(200)
-        await page.screenshot({ path: path.join(root, 'public/help/shots', lang, `${shot}.jpg`), type: 'jpeg', quality: 72 })
+        await page.screenshot({ path: path.join(SHOTS || path.join(root, 'public/help/shots'), lang, `${shot}.jpg`), type: 'jpeg', quality: 72 })
         console.log(`  ${lang}/${shot}.jpg${errors.length ? `  (page errors: ${errors.join(' | ')})` : ''}`)
       } catch (err) {
         // What the screen looked like when it failed, to see why

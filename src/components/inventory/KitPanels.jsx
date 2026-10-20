@@ -78,12 +78,12 @@ function PartList({ orgId, item, kits, kind }) {
 
   return (
     <div style={card}>
-      <h2 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}><Icon size={15} color={colors.accent} /> {t(`kit.section.${kind}`)}</h2>
+      <h2 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}><Icon size={15} color={colors.accentText} /> {t(`kit.section.${kind}`)}</h2>
       <p style={{ ...small, marginBottom: '8px' }}>{t(`kit.sectionHint.${kind === 'content' ? item.kit_type : kind}`)}</p>
       {rows.length === 0 && <p style={{ ...small, marginBottom: '8px' }}>{t('kit.none')}</p>}
       {rows.map(r => (
         <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 0', borderTop: `1px solid ${colors.border}` }}>
-          <Link to={`/org/${orgId}/inventory/${r.child_id}`} style={{ flex: 1, minWidth: 0, fontSize: '13px', color: '#fff', overflowWrap: 'anywhere' }}>
+          <Link to={`/org/${orgId}/inventory/${r.child_id}`} style={{ flex: 1, minWidth: 0, fontSize: '13px', color: 'var(--text)', overflowWrap: 'anywhere' }}>
             {name(r.child_id)}{kits.items[r.child_id]?.kit_type === 'set' && <span style={small}> · {t('kit.typeOpt.set')}</span>}
           </Link>
           {kind !== 'alternative' && (
@@ -152,7 +152,7 @@ export function CaseContentsModal({ caseUnit, kits, onClose, onSaved }) {
   return (
     <Modal title={t('kit.caseContents', { code: caseUnit.code })} onClose={onClose}>
       <p style={{ ...small, marginBottom: '12px' }}>{t('kit.caseContentsHint')}</p>
-      {!units ? <Loader2 size={18} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /> : units.length === 0 ? (
+      {!units ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : units.length === 0 ? (
         <p style={{ ...small, marginBottom: '12px' }}>{contentIds.length ? t('kit.noUnitsToPack') : t('kit.noSerialContents')}</p>
       ) : Object.entries(byItem).map(([itemId, list]) => {
         const want = kits.parts.find(p => p.parent_id === caseUnit.item_id && p.child_id === itemId && p.kind === 'content')?.quantity
@@ -160,13 +160,13 @@ export function CaseContentsModal({ caseUnit, kits, onClose, onSaved }) {
         return (
           <div key={itemId} style={{ marginBottom: '12px' }}>
             <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>
-              {kits.items[itemId]?.name} <span style={{ color: have === want ? colors.accent : '#F59E0B', fontWeight: 600 }}>{t('kit.packedOf', { count: have, want })}</span>
+              {kits.items[itemId]?.name} <span style={{ color: have === want ? colors.accentText : 'var(--warn)', fontWeight: 600 }}>{t('kit.packedOf', { count: have, want })}</span>
             </div>
             {list.map(u => (
               <label key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontSize: '13px', cursor: 'pointer' }}>
                 <input type="checkbox" checked={packed.has(u.id)} style={{ accentColor: colors.accent }}
                   onChange={() => setPacked(s => { const n = new Set(s); if (n.has(u.id)) n.delete(u.id); else n.add(u.id); return n })} />
-                <span style={{ fontFamily: 'monospace' }}>{u.code}</span>
+                <span style={{ fontFamily: 'var(--font-mono)' }}>{u.code}</span>
                 <span style={small}>{[u.serial, u.status !== 'available' && t(`inv.unitStatus.${u.status}`), u.case_unit_id && u.case_unit_id !== caseUnit.id && t('kit.inCase', { code: u.in_case?.code || '…' })].filter(Boolean).join(' · ')}</span>
               </label>
             ))}

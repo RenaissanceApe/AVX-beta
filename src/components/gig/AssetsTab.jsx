@@ -8,7 +8,7 @@ import { MAX_UPLOAD_BYTES, storagePath, findAssetToSupersede, formatBytes } from
 import { useI18n } from '../../i18n'
 import { signedUrl } from '../../lib/storage'
 import { saveFileOffline, removeFileOffline, offlineFileIds } from '../../lib/offline'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, tint } from '../ui'
 import { ASSET_TYPES, assetType, TabHeader } from './parts'
 
 const EMPTY_FORM = { type: 'patch_list', name: '', file: null }
@@ -91,9 +91,9 @@ export default function AssetsTab({ gigId, assets, canUpload, offline = false, o
         <div style={{ textAlign: 'center', padding: '70px 20px' }}>
           <div style={{
             width: '56px', height: '56px', borderRadius: '16px', margin: '0 auto 16px',
-            background: 'rgba(30,200,120,0.08)', border: '1px solid rgba(30,200,120,0.15)',
+            background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 15%, transparent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}><Upload size={24} color={colors.accent} /></div>
+          }}><Upload size={24} color={colors.accentText} /></div>
           <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>{t('assets.emptyTitle')}</h3>
           <p style={{ color: colors.muted, fontSize: '13px', maxWidth: '300px', margin: '0 auto 20px' }}>{t('assets.emptyBody')}</p>
           {canUpload && <button onClick={() => setShowUpload(true)} style={btnPrimary}><Upload size={14} /> {t('assets.uploadFirst')}</button>}
@@ -105,12 +105,12 @@ export default function AssetsTab({ gigId, assets, canUpload, offline = false, o
             const Icon = cfg.icon
             return (
               <div key={a.id} style={{
-                background: 'rgba(255,255,255,0.03)', border: `1px solid ${colors.border}`, borderRadius: '14px',
+                background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`, borderRadius: '14px',
                 padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', animation: 'fadeIn 0.3s ease',
               }}>
                 <div style={{
                   width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0,
-                  background: `${cfg.color}18`, border: `1px solid ${cfg.color}30`,
+                  background: tint(cfg.color, 9), border: `1px solid ${tint(cfg.color, 19)}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}><Icon size={20} color={cfg.color} /></div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -119,25 +119,25 @@ export default function AssetsTab({ gigId, assets, canUpload, offline = false, o
                     <span style={{ color: cfg.color, fontWeight: 600 }}>{t(`assetType.${a.type}`)}</span>
                     <span style={{ color: colors.muted }}>{t('assets.version', { version: a.version })}</span>
                     {a.file_size ? <span style={{ color: colors.muted }}>{formatBytes(a.file_size)}</span> : null}
-                    <span style={{ color: '#7D93A9' }}>{ago(a.created_at)}</span>
+                    <span style={{ color: 'var(--muted)' }}>{ago(a.created_at)}</span>
                   </div>
                 </div>
                 <button onClick={() => onOpen(a)} style={{
                   display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', flexShrink: 0,
-                  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', color: '#fff',
+                  background: 'color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)', color: 'var(--text)',
                   fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                 }}>
                   <Eye size={13} /> {a.version > 1 ? t('assets.openHistory') : t('common.open')}
                 </button>
                 {!offline && (
-                  <button onClick={() => toggleOffline(a)} disabled={savingId === a.id} style={{ ...iconBtn, color: savedIds.has(a.id) ? colors.accent : colors.muted }}
+                  <button onClick={() => toggleOffline(a)} disabled={savingId === a.id} style={{ ...iconBtn, color: savedIds.has(a.id) ? colors.accentText : colors.muted }}
                     aria-pressed={savedIds.has(a.id)} title={savedIds.has(a.id) ? t('offline.remove') : t('offline.keep')}
                     aria-label={savedIds.has(a.id) ? t('offline.remove') : t('offline.keep')}>
                     {savingId === a.id ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
                       : savedIds.has(a.id) ? <CloudOff size={15} /> : <DownloadCloud size={15} />}
                   </button>
                 )}
-                {offline && savedIds.has(a.id) && <span title={t('offline.kept')} style={{ color: colors.accent, display: 'flex' }}><CheckCircle size={15} /></span>}
+                {offline && savedIds.has(a.id) && <span title={t('offline.kept')} style={{ color: colors.accentText, display: 'flex' }}><CheckCircle size={15} /></span>}
                 {canUpload && !offline && (
                   <button onClick={() => deleteAsset(a)} aria-label={t('assets.deleteNamed', { name: a.name })} title={t('common.delete')} style={iconBtn}>
                     <Trash2 size={15} />
@@ -219,8 +219,8 @@ function UploadModal({ gigId, assets, onClose, onUploaded }) {
               return (
                 <button key={at.value} type="button" aria-pressed={sel} onClick={() => setForm(f => ({ ...f, type: at.value }))} style={{
                   padding: '10px 8px', borderRadius: '10px', cursor: 'pointer', fontSize: '12px', fontWeight: 600,
-                  background: sel ? `${at.color}18` : 'rgba(255,255,255,0.04)',
-                  border: sel ? `1px solid ${at.color}50` : `1px solid ${colors.border}`,
+                  background: sel ? tint(at.color, 9) : 'color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent)',
+                  border: sel ? `1px solid ${tint(at.color, 31)}` : `1px solid ${colors.border}`,
                   color: sel ? at.color : colors.muted,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
                 }}><Icon size={16} />{t(`assetType.${at.value}`)}</button>
@@ -233,7 +233,7 @@ function UploadModal({ gigId, assets, onClose, onUploaded }) {
           <label style={label} htmlFor="asset-name">{t('assets.name')} *</label>
           <input id="asset-name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
             placeholder={t('assets.namePlaceholder')} maxLength={200} style={input} autoFocus />
-          <p style={{ fontSize: '12px', color: existing ? colors.accent : colors.muted, marginTop: '6px', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '12px', color: existing ? colors.accentText : colors.muted, marginTop: '6px', lineHeight: 1.5 }}>
             {existing ? t('assets.willBeVersion', { version: (existing.version || 1) + 1, name: existing.name }) : t('assets.versionTip')}
           </p>
         </div>
@@ -247,22 +247,22 @@ function UploadModal({ gigId, assets, onClose, onUploaded }) {
             onClick={() => fileInputRef.current?.click()}
             onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && fileInputRef.current?.click()}
             style={{
-              border: `2px dashed ${dragOver ? colors.accent : form.file ? 'rgba(30,200,120,0.4)' : 'rgba(255,255,255,0.1)'}`,
+              border: `2px dashed ${dragOver ? colors.accent : form.file ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)'}`,
               borderRadius: '12px', padding: '24px', textAlign: 'center', cursor: 'pointer',
-              background: dragOver ? 'rgba(30,200,120,0.05)' : form.file ? 'rgba(30,200,120,0.04)' : 'rgba(0,0,0,0.2)',
+              background: dragOver ? 'color-mix(in srgb, var(--accent) 5%, transparent)' : form.file ? 'color-mix(in srgb, var(--accent) 4%, transparent)' : 'color-mix(in srgb, var(--shade) 20%, transparent)',
             }}>
             <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={e => pickFile(e.target.files[0])} />
             {form.file ? (
               <div>
-                <CheckCircle size={24} color={colors.accent} style={{ marginBottom: '6px' }} />
-                <div style={{ color: colors.accent, fontWeight: 600, fontSize: '13px', wordBreak: 'break-all' }}>{form.file.name}</div>
+                <CheckCircle size={24} color={colors.accentText} style={{ marginBottom: '6px' }} />
+                <div style={{ color: colors.accentText, fontWeight: 600, fontSize: '13px', wordBreak: 'break-all' }}>{form.file.name}</div>
                 <div style={{ color: colors.muted, fontSize: '12px', marginTop: '2px' }}>{formatBytes(form.file.size)}</div>
               </div>
             ) : (
               <div>
-                <Upload size={24} color="#7D93A9" style={{ marginBottom: '8px' }} />
+                <Upload size={24} color="var(--muted)" style={{ marginBottom: '8px' }} />
                 <div style={{ color: colors.muted, fontSize: '13px' }}>{t('assets.drop')}</div>
-                <div style={{ color: '#7D93A9', fontSize: '12px', marginTop: '4px' }}>{t('assets.dropHint')}</div>
+                <div style={{ color: 'var(--muted)', fontSize: '12px', marginTop: '4px' }}>{t('assets.dropHint')}</div>
               </div>
             )}
           </div>

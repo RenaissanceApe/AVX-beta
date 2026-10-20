@@ -15,7 +15,7 @@ import Conversation from '../components/messages/Conversation'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
 import { PageHelp } from '../components/help/HelpParts'
 
-const spinner = <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}><Loader2 size={22} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} /></div>
+const spinner = <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}><Loader2 size={22} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
 const KIND_ICONS = { direct: MessageCircle, gig: Hash, department: Users, org: Megaphone, context: Package }
 
 function useNarrow() {
@@ -114,10 +114,10 @@ function ConversationList({ conversations, openId }) {
           : `${c.last_author === user.id ? `${t('chat.you')}: ` : ''}${c.last_body || ''}`
         return (
           <Link key={c.id} to={`/messages/${c.id}`} aria-current={c.id === openId ? 'page' : undefined} style={{
-            display: 'flex', gap: '10px', alignItems: 'center', padding: '10px', borderRadius: '10px', textDecoration: 'none', color: '#fff',
-            background: c.id === openId ? 'rgba(30,200,120,0.1)' : 'transparent', opacity: c.archived ? 0.55 : 1,
+            display: 'flex', gap: '10px', alignItems: 'center', padding: '10px', borderRadius: '10px', textDecoration: 'none', color: 'var(--text)',
+            background: c.id === openId ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent', opacity: c.archived ? 0.55 : 1,
           }}>
-            <Icon size={16} color={c.unread ? colors.accent : colors.muted} style={{ flexShrink: 0 }} />
+            <Icon size={16} color={c.unread ? colors.accentText : colors.muted} style={{ flexShrink: 0 }} />
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
                 <span style={{ flex: 1, minWidth: 0, fontSize: '14px', fontWeight: c.unread ? 800 : 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -128,7 +128,7 @@ function ConversationList({ conversations, openId }) {
               <span style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <span style={{ flex: 1, minWidth: 0, fontSize: '12px', color: c.unread ? colors.soft : colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preview}</span>
                 {c.muted && <BellOff size={12} color={colors.muted} aria-label={t('chat.muted')} />}
-                {c.unread > 0 && <span style={{ minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '9px', background: colors.accent, color: '#04110a', fontSize: '11px', fontWeight: 800, lineHeight: '18px', textAlign: 'center' }}>{c.unread > 98 ? '99+' : c.unread}</span>}
+                {c.unread > 0 && <span style={{ minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '9px', background: colors.accent, color: 'var(--on-accent)', fontSize: '11px', fontWeight: 800, lineHeight: '18px', textAlign: 'center' }}>{c.unread > 98 ? '99+' : c.unread}</span>}
               </span>
             </span>
           </Link>
@@ -143,7 +143,7 @@ function ResultRow({ m, conversations, names }) {
   const { fmt } = useI18n()
   const c = conversations?.find(x => x.id === m.conversation_id)
   return (
-    <Link to={`/messages/${m.conversation_id}?m=${m.id}`} style={{ display: 'block', padding: '9px 10px', borderRadius: '10px', textDecoration: 'none', color: '#fff' }}>
+    <Link to={`/messages/${m.conversation_id}?m=${m.id}`} style={{ display: 'block', padding: '9px 10px', borderRadius: '10px', textDecoration: 'none', color: 'var(--text)' }}>
       <span style={{ display: 'flex', gap: '8px', fontSize: '12px', color: colors.muted }}>
         <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, color: colors.soft }}>{c ? conversationTitle(c, t) : '…'}</span>
         <span>{fmt(m.created_at, 'd MMM')}</span>
@@ -325,7 +325,7 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
     <section aria-label={info.title} style={{ ...card, padding: '10px 12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: `1px solid ${colors.border}` }}>
         {back && <Link to="/messages" aria-label={t('chat.back')} title={t('chat.back')} style={{ ...iconBtn, color: colors.soft }}><ArrowLeft size={16} /></Link>}
-        <Icon size={16} color={colors.accent} />
+        <Icon size={16} color={colors.accentText} />
         <span style={{ flex: 1, minWidth: 0 }}>
           <strong style={{ display: 'block', fontSize: '15px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.title}</strong>
           {info.kind === 'context' && (
@@ -337,14 +337,14 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
             </span>
           )}
         </span>
-        {info.kind === 'context' && contextLink(info) && <Link to={contextLink(info)} style={{ fontSize: '12px', color: colors.accent, whiteSpace: 'nowrap' }}>{t(`chat.context.open.${info.context_type}`)}</Link>}
-        {(info.kind === 'gig' || info.kind === 'department') && <Link to={`/gig/${info.gig_id}?tab=chat`} style={{ fontSize: '12px', color: colors.accent, whiteSpace: 'nowrap' }}>{t('chat.openGig')}</Link>}
+        {info.kind === 'context' && contextLink(info) && <Link to={contextLink(info)} style={{ fontSize: '12px', color: colors.accentText, whiteSpace: 'nowrap' }}>{t(`chat.context.open.${info.context_type}`)}</Link>}
+        {(info.kind === 'gig' || info.kind === 'department') && <Link to={`/gig/${info.gig_id}?tab=chat`} style={{ fontSize: '12px', color: colors.accentText, whiteSpace: 'nowrap' }}>{t('chat.openGig')}</Link>}
         {info.isAdmin && <button onClick={() => setEditing(true)} aria-label={t('chat.channelSettings')} title={t('chat.channelSettings')} style={{ ...iconBtn, color: colors.soft }}><Settings size={16} /></button>}
         <button onClick={toggleMute} aria-pressed={muted} aria-label={muted ? t('chat.unmute') : t('chat.mute')} title={muted ? t('chat.unmute') : t('chat.mute')}
           style={{ ...iconBtn, color: muted ? colors.muted : colors.soft }}>{muted ? <BellOff size={16} /> : <Bell size={16} />}</button>
       </div>
       {info.kind === 'context' && (info.context_type === 'quote' || info.context_type === 'supplier') && (
-        <p style={{ fontSize: '12px', color: '#F59E0B', padding: '6px 2px', display: 'flex', gap: '6px', alignItems: 'center' }}><Eye size={13} /> {t(`chat.guest.notice.${info.context_type}`)}</p>
+        <p style={{ fontSize: '12px', color: 'var(--warn)', padding: '6px 2px', display: 'flex', gap: '6px', alignItems: 'center' }}><Eye size={13} /> {t(`chat.guest.notice.${info.context_type}`)}</p>
       )}
       {info.archived_at && (
         <p style={{ fontSize: '12px', color: colors.muted, padding: '6px 2px', display: 'flex', gap: '6px', alignItems: 'center' }}><Archive size={13} /> {t('chat.archivedNote')}</p>

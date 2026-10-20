@@ -72,9 +72,9 @@ export default function PhaseEditor({ phase, index, count, currency, priceItems 
       </button>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '18px', flexWrap: 'wrap', fontSize: '13px', color: colors.soft, marginTop: '14px' }}>
-        <span>{t('quote.phaseSubtotal')}: <strong style={{ color: '#fff' }}>{formatMoney(totals.gross, currency, lang)}</strong></span>
-        {totals.discount > 0 && <span>{t('quote.discount')}: <strong style={{ color: '#fff' }}>−{formatMoney(totals.discount, currency, lang)}</strong></span>}
-        <span>{t('quote.phaseTotal')}: <strong style={{ color: colors.accent }}>{formatMoney(totals.net, currency, lang)}</strong></span>
+        <span>{t('quote.phaseSubtotal')}: <strong style={{ color: 'var(--text)' }}>{formatMoney(totals.gross, currency, lang)}</strong></span>
+        {totals.discount > 0 && <span>{t('quote.discount')}: <strong style={{ color: 'var(--text)' }}>−{formatMoney(totals.discount, currency, lang)}</strong></span>}
+        <span>{t('quote.phaseTotal')}: <strong style={{ color: colors.accentText }}>{formatMoney(totals.net, currency, lang)}</strong></span>
       </div>
     </div>
   )
@@ -99,7 +99,7 @@ function SectionEditor({ section, currency, priceItems, first, last, onChange, o
       </div>
 
       {section.lines.length > 0 && (
-        <div className="q-line q-line-head" aria-hidden="true">
+        <div className="q-line q-line-head">
           <span className="q-kind">{t('quote.col.kind')}</span>
           <span className="q-desc">{t('quote.col.description')}</span>
           <span className="q-qty">{t('quote.col.qty')}</span>
@@ -125,7 +125,7 @@ function SectionEditor({ section, currency, priceItems, first, last, onChange, o
             <Plus size={12} /> {t(`lineKind.${kind}`)}
           </button>
         ))}
-        <button onClick={() => setPicking(true)} className="q-add-line" style={{ color: colors.accent, borderColor: 'rgba(30,200,120,0.35)' }}>
+        <button onClick={() => setPicking(true)} className="q-add-line" style={{ color: colors.accentText, borderColor: 'color-mix(in srgb, var(--accent) 35%, transparent)' }}>
           <ListPlus size={12} /> {t('prices.fromList')}
         </button>
       </div>
@@ -180,7 +180,7 @@ function LineEditor({ line, currency, first, last, onChange, onMove, onDuplicate
           </>
         )}
         <span className="q-actions" style={{ display: 'flex' }}>
-          <button onClick={() => setShowDetails(s => !s)} aria-label={t('quote.lineDetails')} title={t('quote.lineDetails')} aria-pressed={showDetails} style={{ ...iconBtn, color: line.details ? colors.accent : colors.muted }}><AlignLeft size={14} /></button>
+          <button onClick={() => setShowDetails(s => !s)} aria-label={t('quote.lineDetails')} title={t('quote.lineDetails')} aria-pressed={showDetails} style={{ ...iconBtn, color: line.details ? colors.accentText : colors.muted }}><AlignLeft size={14} /></button>
           <LineMenu first={first} last={last} onMove={onMove} onDuplicate={onDuplicate} onRemove={onRemove} />
         </span>
       </div>
@@ -226,16 +226,16 @@ export const QUOTE_EDITOR_CSS = `
   .q-cell { min-width: 0; }
   .q-cell-label { display: none; }
   .q-phase-head { display: flex; gap: 10px; flex-wrap: wrap; }
-  .q-section { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+  .q-section { background: color-mix(in srgb, var(--fg) min(100%, calc(2.5% * var(--line-k))), transparent); border: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
   .q-line { display: grid; grid-template-columns: 112px minmax(140px,1fr) 64px 82px 58px 92px 58px 96px auto; gap: 6px; align-items: center; }
   .q-line.q-comment { grid-template-columns: 112px 1fr auto; }
-  .q-line-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #7D93A9; padding: 0 2px 4px; }
+  .q-line-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 0 2px 4px; }
   .q-line-head .q-total, .q-line-head .q-qty, .q-line-head .q-factor, .q-line-head .q-price, .q-line-head .q-disc { text-align: right; }
-  .q-line-wrap { padding: 4px 0; border-top: 1px solid rgba(255,255,255,0.04); }
+  .q-line-wrap { padding: 4px 0; border-top: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent); }
   .q-add-line, .q-add-section { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
-    background: transparent; color: #8A9BAE; border: 1px dashed rgba(255,255,255,0.14); }
+    background: transparent; color: var(--soft); border: 1px dashed color-mix(in srgb, var(--fg) min(100%, calc(14% * var(--line-k))), transparent); }
   .q-add-section { padding: 9px 14px; font-size: 13px; width: 100%; justify-content: center; }
-  .q-add-line:hover, .q-add-section:hover { color: #1EC878; border-color: rgba(30,200,120,0.4); }
+  .q-add-line:hover, .q-add-section:hover { color: var(--accent-text); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
   /* Tablets and phones in landscape: tighter columns, no up/down buttons (lines still move on desktop) */
   @media (min-width: 761px) and (max-width: 1060px) {
     .q-line { grid-template-columns: 100px minmax(100px,1fr) 50px 70px 48px 74px 48px 82px auto; gap: 4px; }
@@ -252,7 +252,7 @@ export const QUOTE_EDITOR_CSS = `
     .q-hide-narrow { display: none !important; }
     .q-line-wrap { padding: 10px 0; }
     .q-line { row-gap: 8px; align-items: end; }
-    .q-cell-label { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #7D93A9; margin: 0 0 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .q-cell-label { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .q-total .q-cell-label { text-align: right; }
   }
 `

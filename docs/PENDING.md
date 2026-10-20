@@ -58,6 +58,7 @@ Use your second email address as a crew member. Each line is a few minutes. New 
 | T19 | **Help H1:** on your phone tap a few ⓘ (organisation settings, a quote, an item) and the ? next to page titles; open Help from More, search a word, tap a dotted word in the booking window. Review the Portuguese wording of the glossary (`src/help/pt.js`) | H1 (0.29.0) |
 | T20 | **Help H2a:** on your phone open Help and read two crew guides and two production-manager guides; on a gig tap ? and open a guide there (then go back). Review the Portuguese wording of the guides (`guides` in `src/help/pt.js`) and say if any picture shows the wrong thing | H2a (0.30.0) |
 | T21 | **Help H2b:** open Help and read a few warehouse, office and admin guides (on a computer too); check the pictures show the right screens. Review the Portuguese wording of the new guides (`guides` in `src/help/pt.js`) | H2b (0.31.0) |
+| T22 | **Help H3:** on your phone open Account → Appearance: try Light outside in daylight, High contrast, Extra large text, Comfortable mode and the easy-to-read font; walk through a gig, Messages and a quote in each. Say if anything is hard to read or out of place (and whether you like the new navy and lime) | H3 (0.32.0) |
 
 ## 3. Decisions still open
 

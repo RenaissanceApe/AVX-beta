@@ -65,7 +65,7 @@ export function CrewCallModal({ gigId, preset = {}, onClose, onSent }) {
           {people.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
               {people.map(p => (
-                <span key={p.user_id} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 4px 4px 10px', borderRadius: '999px', background: 'rgba(30,200,120,0.1)', border: '1px solid rgba(30,200,120,0.3)', fontSize: '13px' }}>
+                <span key={p.user_id} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 4px 4px 10px', borderRadius: '999px', background: 'color-mix(in srgb, var(--accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', fontSize: '13px' }}>
                   {p.full_name || t('common.someone')}
                   <button type="button" onClick={() => setPeople(list => list.filter(x => x.user_id !== p.user_id))}
                     aria-label={t('crewCall.removeNamed', { name: p.full_name || t('common.someone') })} style={{ ...iconBtn, padding: '2px' }}><X size={13} /></button>
@@ -119,19 +119,19 @@ export function CrewCallList({ gigId, nameOf, refreshKey }) {
           const taken = c.answers.filter(a => a.answer === 'accepted').length
           const by = answer => c.answers.filter(a => a.answer === answer).map(a => nameFor(a.user_id)).join(', ')
           return (
-            <div key={c.id} style={{ padding: '9px 12px', borderRadius: '10px', border: `1px solid ${colors.border}`, background: 'rgba(255,255,255,0.02)' }}>
+            <div key={c.id} style={{ padding: '9px 12px', borderRadius: '10px', border: `1px solid ${colors.border}`, background: 'color-mix(in srgb, var(--fg) min(100%, calc(2% * var(--line-k))), transparent)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '14px' }}>{c.title}</div>
                   <div style={{ fontSize: '12px', color: colors.muted }}>{t('crewCall.asked', { count: c.answers.length, when: ago(c.created_at) })}</div>
                 </div>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: taken >= c.quantity ? colors.accent : '#F59E0B', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: taken >= c.quantity ? colors.accentText : 'var(--warn)', whiteSpace: 'nowrap' }}>
                   {c.closed_at ? t('chat.ev.closedFilled', { taken, quantity: c.quantity }) : t('chat.ev.filled', { taken, quantity: c.quantity })}
                 </span>
                 {!c.closed_at && <button onClick={() => close(c)} style={{ ...btn, padding: '5px 10px', fontSize: '12px' }}>{t('chat.ev.closeCall')}</button>}
               </div>
               {['accepted', 'declined', 'invited'].map(answer => by(answer) && (
-                <div key={answer} style={{ fontSize: '12px', color: answer === 'accepted' ? colors.accent : colors.muted, marginTop: '4px' }}>
+                <div key={answer} style={{ fontSize: '12px', color: answer === 'accepted' ? colors.accentText : colors.muted, marginTop: '4px' }}>
                   {t(`crewCall.answer.${answer}`)}: {by(answer)}
                 </div>
               ))}

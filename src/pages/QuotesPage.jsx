@@ -86,7 +86,7 @@ export default function QuotesPage() {
 
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Loader2 size={26} color={colors.accent} style={{ animation: 'spin 1s linear infinite' }} />
+      <Loader2 size={26} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
     </div>
   )
   if (!org || !['admin', 'member'].includes(role)) return (
@@ -117,7 +117,7 @@ export default function QuotesPage() {
           {[['quotes', <FileText key="i" size={14} />, quotes.length], ['templates', <LayoutTemplate key="i" size={14} />, templates.length], ['prices', <Tags key="i" size={14} />, priceItems.length]].map(([key, icon, count]) => (
             <button key={key} role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
               padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600,
-              color: view === key ? colors.accent : colors.muted, borderBottom: view === key ? `2px solid ${colors.accent}` : '2px solid transparent',
+              color: view === key ? colors.accentText : colors.muted, borderBottom: view === key ? `2px solid ${colors.accent}` : '2px solid transparent',
               display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', flexShrink: 0,
             }}>
               {icon} {t(`quotes.tab.${key}`)} <span style={{ fontSize: '11px', opacity: 0.7 }}>{count}</span>
@@ -141,7 +141,7 @@ export default function QuotesPage() {
 
             {quotes.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <FileText size={30} color={colors.accent} />
+                <FileText size={30} color={colors.accentText} />
                 <h2 style={{ fontWeight: 700, margin: '12px 0 8px', fontSize: '17px' }}>{t('quotes.emptyTitle')}</h2>
                 <p style={{ color: colors.muted, fontSize: '13px', marginBottom: '20px', lineHeight: 1.6 }}>{t('quotes.emptyBody')}</p>
                 <button onClick={() => setShowNew(true)} style={btnPrimary}><Plus size={15} /> {t('quotes.new')}</button>
@@ -152,9 +152,9 @@ export default function QuotesPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {visible.map(q => (
                   <button key={q.id} onClick={() => navigate(`/quote/${q.id}`)} style={{
-                    ...card, textAlign: 'left', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
+                    ...card, textAlign: 'left', cursor: 'pointer', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
                   }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: '13px', color: colors.soft }}>{quoteNumber(q, org.quote_number_prefix ?? 'Q')}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: colors.soft }}>{quoteNumber(q, org.quote_number_prefix ?? 'Q')}</span>
                     <span style={{ flex: '1 1 200px', minWidth: 0 }}>
                       <span style={{ display: 'block', fontWeight: 700, fontSize: '15px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.title}</span>
                       <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
@@ -175,7 +175,7 @@ export default function QuotesPage() {
         {view === 'templates' && (
           templates.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <LayoutTemplate size={30} color={colors.accent} />
+              <LayoutTemplate size={30} color={colors.accentText} />
               <h2 style={{ fontWeight: 700, margin: '12px 0 8px', fontSize: '17px' }}>{t('quotes.noTemplatesTitle')}</h2>
               <p style={{ color: colors.muted, fontSize: '13px', lineHeight: 1.6, maxWidth: '420px', margin: '0 auto' }}>{t('quotes.noTemplatesBody')}</p>
             </div>
@@ -183,7 +183,7 @@ export default function QuotesPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {templates.map(tpl => (
                 <div key={tpl.id} style={{ ...card, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <LayoutTemplate size={16} color={colors.accent} />
+                  <LayoutTemplate size={16} color={colors.accentText} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700 }}>{tpl.name}</div>
                     <div style={{ fontSize: '12px', color: colors.muted }}>
