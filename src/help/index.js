@@ -56,6 +56,7 @@ export const GUIDES = {
   'wh-locations': { role: 'warehouse', pages: ['inventory'], terms: ['location', 'stock-movement'], shots: ['inv-locations', null, null] },
   'wh-units-labels': { role: 'warehouse', pages: ['inventory-item', 'inventory'], terms: ['serial-item', 'unit', 'depreciation'], shots: ['item-units', null, 'labels'] },
   'wh-scan': { role: 'warehouse', pages: ['gig', 'inventory'], terms: ['packing-list', 'scan-out-in', 'scan-mode', 'case', 'unit'], shots: [null, 'dispatch-out', null, 'scan-mode'] },
+  'wh-steps': { role: 'warehouse', pages: ['gig', 'inventory', 'orgs'], terms: ['equipment-steps', 'scan-out-in', 'packing-list'], shots: ['step-picker', 'step-bars', 'packing-steps', 'org-steps'] },
   'wh-returns': { role: 'warehouse', pages: ['gig', 'inventory'], terms: ['scan-out-in', 'damage', 'mark-lost', 'repair'], shots: ['dispatch-in', null, null] },
   'wh-repairs': { role: 'warehouse', pages: ['inventory', 'inventory-item'], terms: ['repair', 'inspection', 'write-off', 'damage'], shots: ['maintenance', null, null] },
   'wh-subrentals': { role: 'warehouse', pages: ['inventory'], terms: ['subrental', 'supplier', 'cross-hire-code'], shots: [null, 'sub-form', null, null] },

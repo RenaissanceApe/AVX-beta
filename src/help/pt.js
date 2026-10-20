@@ -46,6 +46,7 @@ export default {
     'prep-return-days': { term: 'Dias de preparação e de devolução', definition: 'Dias antes e depois de um evento em que o equipamento continua reservado, para carregar, testar e conferir.', example: '1 dia de preparação: o material fica ocupado desde a véspera.', where: 'Definições da organização, equipamento do evento' },
     'packing-list': { term: 'Lista de carga', definition: 'O que tem de sair do armazém para um evento, com quantidades.', example: 'Impressa para o armazém na véspera.', where: 'Evento → Equipamento → Lista de carga' },
     'scan-out-in': { term: 'Registar saída / entrada', definition: 'Ler as etiquetas QR quando o equipamento sai para um evento e quando volta.', example: 'Registar 40 unidades à entrada do camião.', where: 'Evento → Equipamento → Ler' },
+    'equipment-steps': { term: 'Etapas do equipamento', definition: 'Onde está o equipamento de um evento entre o armazém e o regresso: preparado, saída, no local, carregado no regresso, entrada, verificado.', example: '60 de 69 preparados, 40 saíram.', where: 'Evento → Equipamento, Saída / entrada, lista de carga' },
     'scan-mode': { term: 'Modo de leitura', definition: 'Uma forma de ler etiquetas em ecrã inteiro, com botões grandes, sons, vibração e lanterna, para luvas, barulho e escuro.', example: 'Carregar a carrinha à noite só com uma mão livre.', where: 'Evento → Equipamento → Saída / entrada' },
     'mark-lost': { term: 'Marcar como perdido', definition: 'As unidades que não voltaram são registadas como perdidas, para que o stock e os relatórios estejam certos.', example: 'Dois cabos em falta depois do festival.', where: 'Evento → Ler' },
     damage: { term: 'Relatório de dano', definition: 'Uma nota, com fotografias, de que algo se partiu. A unidade pode ficar fora de uso.', example: 'Lente rachada, reportada no local.', where: 'Evento → Equipamento, Inventário → Manutenção' },
@@ -361,6 +362,20 @@ export default {
         'Removeu algo por engano? A maior parte das remoções mostra "Anular" durante uns segundos antes de apagar.',
         'O AVX avisa quando algo não está previsto para o evento ou passa do previsto. Regista na mesma, por isso leia o aviso.',
         'Um leitor de códigos USB ou Bluetooth também funciona: escreve o código e carrega em Enter por si.',
+      ],
+    },
+    'wh-steps': {
+      title: 'Seguir o equipamento etapa a etapa',
+      intro: 'Entre o armazém e o regresso, o equipamento passa por etapas: preparado, saída (carregado), no local, carregado no regresso, entrada e verificado. Cada leitura avança uma etapa, para toda a gente saber onde está o material.',
+      steps: [
+        'Em "Saída / entrada", escolha a etapa em cima e depois leia. "Saída (carregado)" e "Entrada" são a saída e a entrada; as outras só registam a etapa. Um flight case leva tudo o que vai dentro dele.',
+        'O separador Equipamento do evento mostra uma barra por etapa ("66 de 69 saída").',
+        'A lista de carga mostra até onde chegou cada linha, na coluna Etapa.',
+        'Um administrador escolhe as etapas que a empresa usa nas definições da organização. Uma equipa pequena pode usar só a saída e a entrada.',
+      ],
+      mistakes: [
+        'Leu a coisa errada? Carregue em Anular nessa leitura. Funciona nas suas leituras durante 15 minutos, e não numa entrada danificada (essa abriu uma reparação).',
+        'Uma etapa que salte é preenchida pelas seguintes: uma unidade que deu entrada conta como tendo saído.',
       ],
     },
     'wh-returns': {

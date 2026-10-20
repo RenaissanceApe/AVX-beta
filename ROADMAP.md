@@ -158,7 +158,7 @@ acknowledgement, crew calls, client and supplier threads, push, moderation (stag
 | ✅ H3 · Comfort (0.32.0) | Light and high-contrast themes from the L&P palette, text size, comfortable mode, readable font, new fonts |
 | ✅ H4 · First steps (0.33.0) | Teaching empty states, first-steps checklists, simple mode (automatic for crew-only, a switch for everyone) |
 | ✅ H5a · Field kit (0.34.0) | Scan mode (big buttons, sounds, vibration, torch), read aloud, large-print call sheet, undo on removals |
-| H5b · Equipment steps | Steps per gig (prepped → loaded → on site → returned → checked in) and undo of the last scan |
+| ✅ H5b · Equipment steps (0.35.0) | Steps per gig (prepped → out → on site → loaded back → back in → checked in), chosen per organisation; undo a scan |
 
 Glossary, ⓘ hints on ambiguous fields, how-to guides with screenshots per role, text size,
 comfortable and high-contrast modes, simple mode for crew, a field kit for scanning, and a rule

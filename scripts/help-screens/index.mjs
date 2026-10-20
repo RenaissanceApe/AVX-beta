@@ -185,8 +185,24 @@ const SCENES = {
     await page.getByPlaceholder(L('scanMode.typeCode')).press('Enter')
     return page.locator('section[aria-live]')
   } },
+  'step-picker': { persona: 'pm', url: `/gig/${ids.gig}/scan`, async run(page, L) {
+    await page.getByRole('radio', { name: L('steps.name.prepped') }).click()
+    return page.getByRole('radiogroup', { name: L('steps.picker') })
+  } },
+  'step-bars': { persona: 'pm', url: `/gig/${ids.gig}?tab=equipment`, async run(page, L) {
+    await page.getByText(L('steps.name.checked_in')).first().waitFor()
+    return page.locator('section[aria-labelledby="step-bars"]')
+  } },
+  'packing-steps': { persona: 'pm', url: `/gig/${ids.gig}/packing`, async run(page, L) {
+    return page.getByRole('columnheader', { name: L('packing.step') }).first()
+  } },
+  'org-steps': { persona: 'pm', url: `/org/${ids.org}?panel=settings`, async run(page, L) {
+    const section = page.locator('section[aria-labelledby="org-steps"]')
+    await section.scrollIntoViewIfNeeded()
+    return section
+  } },
   'dispatch-in': { persona: 'pm', url: `/gig/${ids.gig}/scan`, async run(page, L) {
-    await page.getByRole('radio', { name: L('dispatch.dir.in') }).click()
+    await page.getByRole('radio', { name: L('steps.name.returned') }).click()
     return page.getByText(L('dispatch.damaged')).first()
   } },
   maintenance: { persona: 'pm', url: `/org/${ids.org}/inventory?tab=maintenance`, async run(page, L) {

@@ -76,8 +76,9 @@ Functions: `equipment_availability(org, items, from, until, exclude_gig)`, `gig_
 | Progress | Planned / out / back per item on the scan page and in the Equipment tab; units still out are listed with their codes |
 | Missing | After the gig, **Mark lost** marks every unit still out as lost (with a warning first); if it turns up later, scanning it in brings it back |
 | Units | The item page shows which gig a unit is out on. Only scanning moves a unit out or in |
+| Steps and undo | Since 0.35.0 (docs/HELP.md, H5b): steps between out and back (prepped, on site, loaded back, checked in), chosen per organisation, and Undo on your own scans for 15 minutes. Undone rows stay in the log, marked |
 
-Every scan is a row in `gig_dispatch`, a log that is only added to (no one can edit or remove it).
+Every scan is a row in `gig_dispatch`, a log that is only added to (no one can edit or remove it; an undone scan is marked, not removed).
 Functions: `dispatch_scan(gig, code, direction, quantity, condition, note)`,
 `gig_dispatch_summary(gig)`, `gig_units_out(gig)`, `mark_units_lost(gig)`. Camera scanning uses the
 browser's barcode reader where there is one and a built-in reader elsewhere; the site allows the

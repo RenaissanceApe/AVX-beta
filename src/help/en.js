@@ -49,6 +49,7 @@ export default {
     'prep-return-days': { term: 'Prep and return days', definition: 'Days before and after a gig when its equipment is still booked, for loading, testing and checking in.', example: '1 prep day: the gear is busy from the day before.', where: 'Organisation settings, gig equipment' },
     'packing-list': { term: 'Packing list', definition: 'What must leave the warehouse for a gig, with quantities.', example: 'Printed for the warehouse team on the day before.', where: 'Gig → Equipment → Packing list' },
     'scan-out-in': { term: 'Scan out / scan in', definition: 'Reading QR labels when equipment leaves for a gig and when it comes back.', example: 'Scanning 40 units into the truck.', where: 'Gig → Equipment → Scan' },
+    'equipment-steps': { term: 'Equipment steps', definition: 'Where a gig\'s equipment is between the warehouse and back: prepped, out, on site, loaded back, back in, checked in.', example: '60 of 69 prepped, 40 out.', where: 'Gig → Equipment, Scan out / in, packing list' },
     'scan-mode': { term: 'Scan mode', definition: 'A full-screen way to scan, with big buttons, sounds, vibration and a torch, for gloves, noise and the dark.', example: 'Loading the van at night with one hand free.', where: 'Gig → Equipment → Scan out / in' },
     'mark-lost': { term: 'Mark as lost', definition: 'Units that did not come back are recorded as lost, so stock and reports are right.', example: 'Two cables missing after the festival.', where: 'Gig → Scan' },
     damage: { term: 'Damage report', definition: 'A note, with photos, that something broke. The unit can be taken out of use.', example: 'Cracked lens reported from site.', where: 'Gig → Equipment, Inventory → Maintenance' },
@@ -364,6 +365,20 @@ export default {
         'Removed something by mistake? Most removals show "Undo" for a few seconds before anything is deleted.',
         'AVX warns when something isn\'t planned for the gig or is more than planned. It still records it, so check the warning.',
         'A USB or Bluetooth barcode scanner works too: it types the code and presses Enter for you.',
+      ],
+    },
+    'wh-steps': {
+      title: 'Follow equipment step by step',
+      intro: 'Between the warehouse and back, equipment goes through steps: prepped, out (loaded), on site, loaded back, back in and checked in. Each scan moves it one step on, so everyone can see where the gear is.',
+      steps: [
+        'In "Scan out / in", choose the step at the top, then scan. "Out (loaded)" and "Back in" are the scans out and in; the others only record the step. A case brings everything packed in it.',
+        'The gig\'s Equipment tab shows a bar per step ("66 of 69 out").',
+        'The packing list shows how far each line has got, in the Step column.',
+        'An admin chooses the steps the company uses in the organisation\'s settings. A small team may only use out and back in.',
+      ],
+      mistakes: [
+        'Scanned the wrong thing? Press Undo on that scan. It works for your own scans for 15 minutes, and not for a damaged return (that one opened a repair).',
+        'A step you skip is filled in by the later ones: a unit scanned back in counts as having been out.',
       ],
     },
     'wh-returns': {

@@ -15,6 +15,7 @@ import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../
 import EmptyState from '../EmptyState'
 import { TabHeader } from './parts'
 import ReportDamageModal from './ReportDamageModal'
+import StepBars from './StepBars'
 import { SubrentalModal, GigSubrentals } from '../inventory/SubrentalPanels'
 
 const AMBER = 'var(--warn)'
@@ -131,6 +132,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
           <button onClick={() => setReporting(true)} style={{ ...ghostLink }}><Wrench size={14} /> {t('report.title')}</button>
         </div>
       )}
+      {rows.length > 0 && <StepBars gig={gig} />}
       {canEdit && rows.length > 0 && (
         <div style={{ display: 'flex', gap: '8px 16px', flexWrap: 'wrap', fontSize: '13px', color: colors.soft, marginBottom: '12px' }}>
           {weight > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Weight size={13} /> {t('equip.weight', { kg: Math.round(weight) })}</span>}

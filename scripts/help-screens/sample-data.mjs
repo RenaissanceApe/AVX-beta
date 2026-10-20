@@ -54,7 +54,7 @@ export function sampleData(persona, lang) {
   if (persona === 'new') names[carla] = ''
   const phones = { [carla]: '+351 912 345 678', [ricardo]: '+351 913 222 111', [duarte]: '+351 914 555 000', [ana]: '+351 915 000 999' }
   const org = {
-    id: orgId, name: 'Lumen and Pixel', equipment_prep_days: 1, equipment_return_days: 1, created_at: '2026-01-10T10:00:00Z',
+    id: orgId, name: 'Lumen and Pixel', equipment_prep_days: 1, equipment_return_days: 1, equipment_steps: ['prepped', 'loaded', 'on_site', 'loaded_back', 'returned', 'checked_in'], created_at: '2026-01-10T10:00:00Z',
     legal_name: 'Lumen and Pixel, Lda', tax_id: '500 000 000', address: 'Rua da Cozinha Económica 30\n1300-149 Lisboa', email: 'info@example.com',
     phone: '+351 210 000 000', website: 'example.com', default_vat_rate: 23, quote_validity_days: 30, quote_number_prefix: 'Q',
     quote_terms: lang === 'pt' ? '50% na adjudicação, 50% até 30 dias após o evento.' : '50% on acceptance, 50% within 30 days of the event.',
@@ -243,7 +243,15 @@ export function sampleData(persona, lang) {
         { item_id: XLR, item_name: w.cables, category: w.cab, tracking: 'bulk', planned: 60, out_qty: 60, back_qty: 0, packing_note: null },
         { item_id: QL1, item_name: w.desk, category: w.sys, tracking: 'serial', planned: 1, out_qty: 0, back_qty: 0, packing_note: null },
       ],
-      dispatch_scan: { ok: true, kind: 'unit', item_name: w.speaker, unit_code: 'U-7KQ2M9XG', serial: units[0].serial, planned: 8, out: 7, back: 0 },
+      dispatch_scan: { ok: true, kind: 'unit', item_name: w.speaker, unit_code: 'U-7KQ2M9XG', serial: units[0].serial, planned: 8, out: 7, back: 0, batch: 'b1' },
+      step_scan: { ok: true, kind: 'unit', step: 'prepped', item_name: w.speaker, unit_code: 'U-7KQ2M9XG', serial: units[0].serial, done: 8, planned: 8, batch: 'b2' },
+      undo_scan: { ok: true, rows: 1 },
+      // Where the gear is: everything prepped, most of it out, nothing back yet
+      gig_step_summary: [
+        ...['prepped', 'loaded', 'on_site', 'loaded_back', 'returned', 'checked_in'].map((step, i) => ({ item_id: SPK, step, done: [8, 6, 6, 0, 0, 0][i] })),
+        ...['prepped', 'loaded', 'on_site', 'loaded_back', 'returned', 'checked_in'].map((step, i) => ({ item_id: XLR, step, done: [60, 60, 40, 0, 0, 0][i] })),
+        ...['prepped', 'loaded', 'on_site', 'loaded_back', 'returned', 'checked_in'].map((step, i) => ({ item_id: QL1, step, done: [1, 0, 0, 0, 0, 0][i] })),
+      ],
       gig_units_out: units.slice(0, 2).map(u => ({ unit_id: u.id, item_id: SPK, item_name: w.speaker, code: u.code, serial: u.serial, out_since: ago(10) })),
       maintenance_due: due,
       incoming_hire_requests: [],
