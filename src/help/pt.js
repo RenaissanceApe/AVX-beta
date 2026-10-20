@@ -296,5 +296,233 @@ export default {
         'Mudar as datas do evento muda também a reserva do equipamento. Volte a ver o separador Equipamento depois.',
       ],
     },
+    'wh-import': {
+      title: 'Importar o catálogo de uma folha de cálculo',
+      intro: 'Traga a sua lista de equipamento para o AVX de uma vez, em vez de a escrever artigo a artigo.',
+      steps: [
+        'Primeiro, adicione o armazém em Inventário → Locais, para o stock ter onde ficar.',
+        'Em Inventário → Catálogo, toque em Importar. Copie as linhas da folha de cálculo e cole-as: nome; categoria; código; quantidade; preço; local. Escolha um local para as linhas que não o tenham.',
+        'Confirme a contagem que o AVX mostra e toque em Importar. Os artigos registados unidade a unidade (com número de série) recebem as unidades depois, na página de cada um.',
+      ],
+      mistakes: [
+        'O nome do local na lista tem de ser igual ao do AVX. Adicione primeiro os locais em falta ou corrija os nomes.',
+        'Importar a mesma lista duas vezes duplica o stock. Na dúvida, veja os Movimentos; os erros corrigem-se com uma contagem.',
+      ],
+    },
+    'wh-locations': {
+      title: 'Configurar os locais',
+      intro: 'Os locais são onde o equipamento fica: armazéns, carrinhas, recintos. O stock conta-se sempre por local.',
+      steps: [
+        'Abra Inventário → Locais e toque em "Adicionar local".',
+        'Escreva o nome, escolha o tipo (armazém, veículo, local / recinto, outro) e junte a morada, se for útil.',
+        'Para passar stock de um local para outro, abra o artigo e use Mover. Todas as alterações ficam registadas em Movimentos.',
+      ],
+      mistakes: [
+        'Os locais são arquivados, não apagados, para o histórico ficar completo. Arquive um local só quando já nada ficar lá.',
+      ],
+    },
+    'wh-units-labels': {
+      title: 'Adicionar unidades e imprimir etiquetas QR',
+      intro: 'No equipamento registado um a um, cada unidade tem o seu número de série, código QR e estado.',
+      steps: [
+        'Abra o artigo no catálogo e toque em "Adicionar unidades". Cole os números de série, um por linha, e junte os dados de compra se os tiver.',
+        'Marque as unidades para as quais quer etiquetas, ou abra Inventário → Etiquetas QR para tudo.',
+        'Escolha o tamanho da etiqueta e toque em Imprimir. Cole cada etiqueta na sua unidade; ao lê-la mais tarde, a unidade abre no AVX.',
+      ],
+      mistakes: [
+        'Os artigos contados a granel (cabos, grampos) têm uma etiqueta para o artigo, não uma por peça.',
+        'Imprima primeiro uma página de teste em papel normal e veja se as etiquetas acertam com as suas folhas.',
+      ],
+    },
+    'wh-scan': {
+      title: 'Dar saída de equipamento para um evento',
+      intro: 'Ler as saídas regista exatamente o que saiu do armazém para cada evento, para nada ficar esquecido no regresso.',
+      steps: [
+        'Abra o evento, toque em Equipamento e depois em "Lista de carga" para preparar tudo o que está previsto.',
+        'Toque em "Saída / entrada" e escolha "Saída para o evento". Leia cada etiqueta com a câmara, ou escreva o código. Nos artigos a granel, indique primeiro a quantidade.',
+        'Acompanhe o progresso ("Carregado 32 de 40"). Um flight case lê tudo o que vai dentro dele.',
+      ],
+      mistakes: [
+        'O AVX avisa quando algo não está previsto para o evento ou passa do previsto. Regista na mesma, por isso leia o aviso.',
+        'Um leitor de códigos USB ou Bluetooth também funciona: escreve o código e carrega em Enter por si.',
+      ],
+    },
+    'wh-returns': {
+      title: 'Dar entrada do equipamento no regresso',
+      intro: 'Quando o evento regressa, ler as entradas mostra o que voltou, o que falta e o que voltou danificado.',
+      steps: [
+        'Abra "Saída / entrada" do evento, escolha "Entrada (regresso)" e leia tudo o que voltou.',
+        'Se algo voltou danificado, marque "Voltou danificado" antes de o ler. Vai para reparação e o armazém é avisado.',
+        'As unidades que continuam fora aparecem no fim. Se se perderam mesmo, marque-as como perdidas.',
+      ],
+      mistakes: [
+        'Não marque unidades como perdidas no primeiro dia: podem estar ainda numa carrinha. Se uma aparecer mais tarde, dar-lhe entrada devolve-a ao stock.',
+      ],
+    },
+    'wh-repairs': {
+      title: 'Reparações e inspeções',
+      intro: 'Saiba o que está avariado, o que está a ser reparado e que unidades precisam de inspeção (elétrica, rigging).',
+      steps: [
+        'Abra Inventário → Manutenção. Aqui estão as reparações abertas, os danos reportados pela equipa e as inspeções em atraso.',
+        'Toque em "Nova reparação" para registar uma avaria. Acompanhe-a de reportado a em reparação e feche-a como reparado ou abatido, com o custo.',
+        'Para uma inspeção, toque em "Registar inspeção" na unidade e escolha Aprovado ou Reprovado.',
+      ],
+      mistakes: [
+        'Uma inspeção reprovada abre uma reparação e tira a unidade de uso até ser reparada.',
+        'Abater uma unidade é definitivo no seu histórico. Faça-o só quando a unidade nunca mais voltar.',
+      ],
+    },
+    'wh-subrentals': {
+      title: 'Alugar equipamento fora (sub-alugueres)',
+      intro: 'Quando falta material, alugue-o a outra empresa e o AVX conta-o como stock nessas datas.',
+      steps: [
+        'Abra Inventário → Sub-alugueres e toque em "Novo sub-aluguer".',
+        'Escolha o fornecedor (ou crie um novo), o evento e as datas. Em "O que está a alugar", junte as linhas, ligadas aos artigos do seu catálogo.',
+        'Passe-o de rascunho a pedido e depois a confirmado à medida que o fornecedor responde.',
+        'Se o fornecedor também usa o AVX, ligue-o com o código de cross-hire dele e envie-lhe o pedido diretamente.',
+      ],
+      mistakes: [
+        'Um sub-aluguer só conta como stock nas datas que cobre por inteiro.',
+        'As linhas não ligadas a um artigo do catálogo não contam na disponibilidade.',
+      ],
+    },
+    'wh-reports': {
+      title: 'Ler os relatórios do inventário',
+      intro: 'Veja que equipamento compensa: uso, receita, custos de reparação e valor contabilístico por artigo.',
+      steps: [
+        'Abra Inventário → Relatórios e escolha o período.',
+        'Os quadros no topo resumem receita, valor contabilístico, reparações, perdas e custos de aluguer fora. A tabela mostra cada artigo.',
+        '"Sem uso neste período" lista artigos a vender, alugar ou deixar de comprar. "Descarregar CSV" abre-o numa folha de cálculo.',
+      ],
+      mistakes: [
+        'O uso conta só eventos confirmados. A receita vem dos orçamentos aceites; veja "Como se conta" no fim.',
+      ],
+    },
+    'of-company': {
+      title: 'Configurar os dados da empresa',
+      intro: 'Os seus dados aparecem no topo de cada orçamento. Configure-os uma vez; os novos orçamentos usam-nos.',
+      steps: [
+        'Abra Orçamentos → Dados da empresa (só os administradores os podem alterar).',
+        'Preencha o nome legal, o NIF, a morada, o telefone e o site, o IVA predefinido e a validade dos orçamentos.',
+        'Escreva os seus termos e condições habituais e guarde.',
+      ],
+      mistakes: [
+        'As alterações aplicam-se aos novos orçamentos. Os que já enviou mantêm os dados com que foram enviados.',
+      ],
+    },
+    'of-price-list': {
+      title: 'Criar a tabela de preços',
+      intro: 'A tabela de preços guarda o que orçamenta muitas vezes (equipamento, equipa, transporte) com o preço habitual.',
+      steps: [
+        'Abra Orçamentos → Tabela de preços e toque em "Adicionar item", ou em "Importar lista" para colar muitos de uma vez de uma folha de cálculo.',
+        'Dê a cada um nome, preço sem IVA, categoria, tipo e unidade (dia, hora, km).',
+        'Num orçamento, "Da tabela de preços" junta como linhas os itens que marcar.',
+      ],
+      mistakes: [
+        'Mudar um preço só afeta linhas novas. Os orçamentos que já usam o item mantêm o preço.',
+      ],
+    },
+    'of-build-quote': {
+      title: 'Fazer um orçamento por fases',
+      intro: 'Divida o orçamento em fases (carga, dias de espetáculo, desmontagem), cada uma com secções e linhas com preço.',
+      steps: [
+        'Abra Orçamentos, toque em "Novo orçamento", escreva o título e o cliente e comece em branco ou a partir de um modelo.',
+        'Dê nome à primeira fase e defina as datas. Junte secções (Som, Luz, Equipa) e linhas, da tabela de preços ou escritas à mão.',
+        'Use o fator para dias ou horas (3 dias = fator 3) e um desconto por linha, por fase ou no total.',
+        'Em Detalhes, confirme o cliente, o IVA e a validade. "Pré-visualizar e imprimir" mostra o que o cliente vai ver.',
+      ],
+      mistakes: [
+        'Uma fase opcional tem preço à parte e fica fora do total. Use-a para extras que o cliente possa querer.',
+        'O orçamento guarda-se sozinho. Se outra pessoa o editar ao mesmo tempo, o AVX pede-lhe para recarregar.',
+      ],
+    },
+    'of-versions': {
+      title: 'Guardar versões de um orçamento',
+      intro: 'Uma versão é uma cópia fixa do orçamento tal como o cliente o veria. Pode voltar a ela quando quiser.',
+      steps: [
+        'Antes de uma grande alteração, abra o orçamento e toque em Versões.',
+        'Escreva uma nota (por exemplo "Antes de cortar o ecrã LED") e toque em "Guardar versão". Cada orçamento enviado também fica guardado como versão.',
+        'Para voltar atrás, abra uma versão com Ver e depois Repor. O que tem agora é guardado primeiro como nova versão.',
+      ],
+      mistakes: [
+        'Repor substitui o orçamento todo, não uma linha. Copie as linhas que quer manter antes de repor.',
+      ],
+    },
+    'of-send-quote': {
+      title: 'Enviar um orçamento ao cliente',
+      intro: 'O cliente recebe um link privado para o orçamento, onde o pode imprimir e aceitar ou recusar.',
+      steps: [
+        'Confirme o orçamento em "Pré-visualizar e imprimir".',
+        'Toque em "Enviar ao cliente", escreva o email e toque em "Enviar orçamento". Para enviar o link por si, desmarque o email e toque em "Criar link".',
+        'É avisado quando o cliente aceita ou recusa. O cliente também lhe pode escrever a partir da página do orçamento.',
+      ],
+      mistakes: [
+        'O link só aparece uma vez. Se o perder, envie o orçamento outra vez; isso substitui o link antigo.',
+        'O cliente vê o orçamento como estava quando o enviou. Depois de alterações, envie-o outra vez.',
+      ],
+    },
+    'of-quote-to-gig': {
+      title: 'Do orçamento aceite ao evento',
+      intro: 'Quando o cliente aceita, transforme o orçamento num evento com horário, funções e equipamento.',
+      steps: [
+        'Abra o orçamento aceite e toque em "Criar evento". O evento recebe o título do orçamento, as datas e o nome do cliente, e fica ligado ao orçamento.',
+        'O AVX propõe logo preencher o evento (mais tarde: "Preencher evento a partir do orçamento"). Desmarque o que não quer, ou mude títulos e números.',
+        'Toque em "Adicionar ao evento": as fases passam a itens do horário, as linhas de equipa a funções por preencher e as linhas do catálogo a equipamento previsto.',
+      ],
+      mistakes: [
+        'As fases opcionais que o cliente não escolheu ficam de fora. Junte-as à mão se forem aceites mais tarde.',
+      ],
+    },
+    'ad-members': {
+      title: 'Membros e funções da organização',
+      intro: 'Os membros veem todos os eventos da organização. A equipa adicionada a um só evento não precisa de ser membro.',
+      steps: [
+        'Abra Membros (no telemóvel, em Mais).',
+        'Escreva um email, escolha a função e toque em Convidar. Administrador: tudo, incluindo membros e definições. Membro: eventos, ficheiros e orçamentos. Leitor: vê os eventos, sem orçamentos nem preços.',
+        'Mude a função na lista ao lado de cada pessoa, ou retire-a com ×.',
+      ],
+      mistakes: [
+        'Tenha pelo menos dois administradores, para a empresa nunca ficar sem acesso se um sair.',
+        'Os leitores nunca veem preços. Use Leitor para clientes ou parceiros que só precisam do horário.',
+      ],
+    },
+    'ad-mute': {
+      title: 'Silenciar uma organização ou uma conversa',
+      intro: 'Trabalha para várias empresas? Silencie as que não precisa de acompanhar de perto.',
+      steps: [
+        'Abra Organizações e toque no sino ao lado de uma empresa para a silenciar: sem contador de não lidas nem resumo por email dela.',
+        'Para silenciar só uma conversa, abra-a e toque no sino no topo ("Silenciar esta conversa").',
+        'As perguntas enviadas a si (disponibilidade, chamadas de equipa) continuam a chegar mesmo em silêncio.',
+      ],
+      mistakes: [
+        'Silenciar é só para si. Toda a gente na organização continua a receber as suas notificações.',
+      ],
+    },
+    'ad-delete': {
+      title: 'Apagar com segurança',
+      intro: 'Apagar no AVX é definitivo: não há lixo. Na maior parte das vezes, arquivar é a melhor escolha.',
+      steps: [
+        'Para um evento que já terminou, mude o estado para Arquivado: sai das listas e mantém o histórico.',
+        'Para apagar mesmo um evento, abra "Editar evento" e depois a Zona de perigo. Para uma organização, abra as Definições dela.',
+        'Leia a lista do que vai ser apagado e marque que compreende.',
+        'Espere alguns segundos, escreva o nome exato e toque em "Eliminar definitivamente".',
+      ],
+      mistakes: [
+        'Descarregue primeiro o que precisa (mensagens, relatórios, orçamentos em PDF). Depois nada pode ser recuperado.',
+        'Só os administradores da organização podem apagar. A equipa perde o acesso e é avisada.',
+      ],
+    },
+    'ad-export': {
+      title: 'Descarregar os seus dados',
+      intro: 'Pode descarregar os seus próprios dados e, como administrador, as mensagens e os relatórios da organização.',
+      steps: [
+        'Os seus dados: toque nas suas iniciais e depois em "Exportar os meus dados", em "Os seus dados".',
+        'As mensagens da organização: abra Definições → Mensagens e toque em "Descarregar todas as mensagens". É aqui também que escolhe durante quanto tempo as mensagens são guardadas.',
+        'Números do inventário: Inventário → Relatórios → "Descarregar CSV". Orçamentos: abra um e use "Pré-visualizar e imprimir" para guardar um PDF.',
+      ],
+      mistakes: [
+        'Os ficheiros ficam no seu dispositivo. Guarde-os num sítio seguro: têm nomes e mensagens de outras pessoas.',
+      ],
+    },
   },
 }

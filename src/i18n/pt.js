@@ -1849,4 +1849,7 @@ export default {
   "help.guideMissing": "Este guia não existe. Veja todos os guias na página de Ajuda.",
   "help.backToPage": "Voltar à ajuda desta página",
   "crew.emailPlaceholder": "tecnico@empresa.pt",
+  "help.role.warehouse": "Para o armazém",
+  "help.role.office": "Para o escritório e vendas",
+  "help.role.admin": "Para administradores",
 }

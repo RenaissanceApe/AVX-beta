@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.31.0 — Help H2b: guides for the warehouse, office and admins
+
+### Added
+- **18 more guides** in Portuguese and English, with pictures of each screen:
+  - for the warehouse: import the catalogue; locations; units and QR labels; scan out to a gig;
+    check equipment back in; repairs and inspections; subrentals; inventory reports;
+  - for the office and sales: company details; the price list; build a quote in phases;
+    versions; send a quote; from accepted quote to gig;
+  - for admins: members and roles; muting; deleting safely; downloading your data.
+- Help and the ? panel group the guides by who they're for (five groups)
+
+### Plans
+- **Field tools** (docs/FIELD_TOOLS.md): a Tools tab on each gig for stage plots, input lists,
+  patches, light plots and a sound system calculator that share their data
+- **Equipment steps** with H5 (prepped → loaded → on site → returned)
+- Fonts decided for H3: Nunito and Space Mono, with Atkinson Hyperlegible as the readable option
+
 ## 0.30.0 — Help H2a: how-to guides for crew and production managers
 
 ### Added

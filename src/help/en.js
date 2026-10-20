@@ -299,5 +299,233 @@ export default {
         'Changing the gig\'s dates changes the equipment booking too. Check the Equipment tab again afterwards.',
       ],
     },
+    'wh-import': {
+      title: 'Import your catalogue from a spreadsheet',
+      intro: 'Bring your equipment list into AVX in one go instead of typing it item by item.',
+      steps: [
+        'Add your warehouse first under Inventory → Locations, so the stock has somewhere to be.',
+        'In Inventory → Catalogue, tap Import. Copy the rows from your spreadsheet and paste them: name; category; code; quantity; price; location. Choose a location for rows without one.',
+        'Check the count AVX shows, then tap Import. Items you track unit by unit (with serial numbers) get their units on their own page afterwards.',
+      ],
+      mistakes: [
+        'A location name in the list must match one in AVX exactly. Add missing locations first or fix the names.',
+        'Importing the same list twice adds the stock twice. Check Movements if in doubt; mistakes are fixed with a count.',
+      ],
+    },
+    'wh-locations': {
+      title: 'Set up locations',
+      intro: 'Locations are where equipment is kept: warehouses, vans, venues. Stock is always counted per location.',
+      steps: [
+        'Open Inventory → Locations and tap "Add location".',
+        'Type the name, choose the kind (warehouse, vehicle, site / venue, other) and add the address if useful.',
+        'To move stock between locations, open the item and use Move. Every change is recorded in Movements.',
+      ],
+      mistakes: [
+        'Locations are archived, not deleted, so their history stays complete. Archive one only when nothing is kept there any more.',
+      ],
+    },
+    'wh-units-labels': {
+      title: 'Add units and print QR labels',
+      intro: 'For equipment tracked one by one, each unit has its own serial number, QR code and status.',
+      steps: [
+        'Open the item in the catalogue and tap "Add units". Paste the serial numbers, one per line, and add purchase details if you have them.',
+        'Tick the units you want labels for, or open Inventory → QR labels for everything.',
+        'Choose the label size and tap Print. Stick each label on its unit; scanning it later opens the unit in AVX.',
+      ],
+      mistakes: [
+        'Items counted in bulk (cables, clamps) have one label for the item, not one per piece.',
+        'Print a test page on plain paper first and check that the labels line up with your sheets.',
+      ],
+    },
+    'wh-scan': {
+      title: 'Scan equipment out to a gig',
+      intro: 'Scanning out records exactly what left the warehouse for each gig, so nothing is forgotten on the way back.',
+      steps: [
+        'Open the gig, tap Equipment, then "Packing list" to prepare everything planned.',
+        'Tap "Scan out / in" and choose "Out to the gig". Scan each label with the camera, or type the code. For bulk items, set the quantity first.',
+        'Watch the progress ("Packed 32 of 40"). A case scans everything packed inside it.',
+      ],
+      mistakes: [
+        'AVX warns when something isn\'t planned for the gig or is more than planned. It still records it, so check the warning.',
+        'A USB or Bluetooth barcode scanner works too: it types the code and presses Enter for you.',
+      ],
+    },
+    'wh-returns': {
+      title: 'Check equipment back in',
+      intro: 'When the gig comes back, scanning in shows what returned, what is missing and what came back damaged.',
+      steps: [
+        'Open the gig\'s "Scan out / in", choose "Back in" and scan everything that returned.',
+        'If something came back damaged, tick "Came back damaged" before scanning it. It goes to repair and the warehouse is notified.',
+        'Units still out are listed at the end. If they are really gone, mark them as lost.',
+      ],
+      mistakes: [
+        'Don\'t mark units as lost on the first day: they may still be in a van. If one turns up later, scanning it in puts it back in stock.',
+      ],
+    },
+    'wh-repairs': {
+      title: 'Repairs and inspections',
+      intro: 'Keep track of what is broken, what is being fixed and which units are due for an inspection (PAT, rigging).',
+      steps: [
+        'Open Inventory → Maintenance. Open repairs, damage reports from crew and inspections due are all here.',
+        'Tap "New repair" to record a fault. Follow it from reported to in repair, and close it as repaired or written off, with the cost.',
+        'For an inspection, tap "Record inspection" on the unit and choose Pass or Fail.',
+      ],
+      mistakes: [
+        'A failed inspection opens a repair and takes the unit out of use until it is repaired.',
+        'Writing off a unit is permanent for its history. Use it only when the unit will never come back.',
+      ],
+    },
+    'wh-subrentals': {
+      title: 'Hire in equipment (subrentals)',
+      intro: 'When you are short, hire equipment from another company and AVX counts it as stock for those dates.',
+      steps: [
+        'Open Inventory → Subrentals and tap "New subrental".',
+        'Choose the supplier (or add a new one), the gig and the dates. Under "What you\'re hiring", add the lines, linked to your catalogue items.',
+        'Move it from draft to requested and then confirmed as the supplier answers.',
+        'If the supplier also uses AVX, link them with their cross-hire code and send the request straight to them.',
+      ],
+      mistakes: [
+        'A subrental counts as stock only for the dates it covers completely.',
+        'Lines not linked to a catalogue item don\'t count in availability.',
+      ],
+    },
+    'wh-reports': {
+      title: 'Read the inventory reports',
+      intro: 'See which equipment earns its keep: use, revenue, repair costs and book value per item.',
+      steps: [
+        'Open Inventory → Reports and choose the period.',
+        'The tiles at the top sum up revenue, book value, repairs, losses and hire-in costs. The table shows each item.',
+        '"Not used in this period" lists items to sell, rent out or stop buying. "Download CSV" opens it in a spreadsheet.',
+      ],
+      mistakes: [
+        'Use counts only confirmed gigs. Revenue comes from accepted quotes; check "How it\'s counted" at the bottom.',
+      ],
+    },
+    'of-company': {
+      title: 'Set up your company details',
+      intro: 'Your details are printed at the top of every quote. Set them once; new quotes use them.',
+      steps: [
+        'Open Quotes → Company details (only admins can change them).',
+        'Fill in the legal name, VAT number, address, phone and website, the default VAT and how long quotes are valid.',
+        'Write your default terms and conditions, then save.',
+      ],
+      mistakes: [
+        'Changes apply to new quotes. Quotes you already sent keep the details they were sent with.',
+      ],
+    },
+    'of-price-list': {
+      title: 'Build your price list',
+      intro: 'The price list holds what you quote often (equipment, crew rates, transport) with its usual price.',
+      steps: [
+        'Open Quotes → Price list and tap "Add item", or "Import list" to paste many at once from a spreadsheet.',
+        'Give each one a name, a price without VAT, a category, a type and a unit (day, hour, km).',
+        'In a quote, "From price list" adds the items you tick as lines.',
+      ],
+      mistakes: [
+        'Changing a price affects new lines only. Quotes that already use the item keep their price.',
+      ],
+    },
+    'of-build-quote': {
+      title: 'Build a quote in phases',
+      intro: 'Split a quote into phases (load-in, show days, breakdown), each with sections and priced lines.',
+      steps: [
+        'Open Quotes, tap "New quote", type the title and the client, and start blank or from a template.',
+        'Name the first phase and set its dates. Add sections (Audio, Lighting, Crew) and lines, from the price list or typed.',
+        'Use the factor for days or hours (3 days = factor 3) and a discount per line, per phase or on the total.',
+        'In Details, check the client, the VAT and the validity. "Preview & print" shows what the client will see.',
+      ],
+      mistakes: [
+        'An optional phase is priced separately and is not in the total. Use it for extras the client may add.',
+        'The quote saves by itself. If someone else edits it at the same time, AVX asks you to reload.',
+      ],
+    },
+    'of-versions': {
+      title: 'Keep versions of a quote',
+      intro: 'A version is a frozen copy of the quote as the client would see it. Go back to one at any time.',
+      steps: [
+        'Before a big change, open the quote and tap Versions.',
+        'Add a note (for example "Before cutting the LED wall") and tap "Save version". Every quote you send is saved as a version too.',
+        'To go back, open a version with View, then Restore. What you have now is saved as a new version first.',
+      ],
+      mistakes: [
+        'Restoring replaces the whole quote, not one line. Copy the lines you want to keep before restoring.',
+      ],
+    },
+    'of-send-quote': {
+      title: 'Send a quote to the client',
+      intro: 'The client gets a private link to the quote, where they can print it and accept or decline.',
+      steps: [
+        'Check the quote with "Preview & print".',
+        'Tap "Send to client", type their email and tap "Send quote". To send the link yourself, untick the email and tap "Create link".',
+        'You are notified when the client accepts or declines. The client can also write to you from the quote\'s page.',
+      ],
+      mistakes: [
+        'The link is shown only once. If you lose it, send the quote again; that replaces the old link.',
+        'The client sees the quote as it was when you sent it. After changes, send it again.',
+      ],
+    },
+    'of-quote-to-gig': {
+      title: 'From accepted quote to gig',
+      intro: 'Once the client accepts, turn the quote into a gig with its schedule, crew positions and equipment.',
+      steps: [
+        'Open the accepted quote and tap "Create gig". The gig gets the quote\'s title, its dates and the client\'s name, and stays linked to the quote.',
+        'AVX then offers to fill the gig (later: "Fill gig from quote"). Untick anything you don\'t want, or change titles and numbers.',
+        'Tap "Add to the gig": the phases become schedule items, the crew lines become positions to fill and the catalogue lines become planned equipment.',
+      ],
+      mistakes: [
+        'Optional phases the client didn\'t take are left out. Add them by hand if they were accepted later.',
+      ],
+    },
+    'ad-members': {
+      title: 'Organisation members and roles',
+      intro: 'Members see all the organisation\'s gigs. Crew added to a single gig don\'t need to be members.',
+      steps: [
+        'Open Members (on a phone, under More).',
+        'Type an email, choose the role and tap Invite. Admin: everything, including members and settings. Member: gigs, files and quotes. Viewer: sees the gigs, no quotes or prices.',
+        'Change a role with the list next to each person, or remove them with ×.',
+      ],
+      mistakes: [
+        'Keep at least two admins, so the company is never locked out if one leaves.',
+        'Viewers never see prices. Use Viewer for clients or partners who only need the schedule.',
+      ],
+    },
+    'ad-mute': {
+      title: 'Mute an organisation or a conversation',
+      intro: 'Work for several companies? Mute the ones you don\'t need to follow closely.',
+      steps: [
+        'Open Organisations and tap the bell next to a company to mute it: no unread badge and no email summary for it.',
+        'To quiet one conversation instead, open it and tap the bell at the top ("Mute this conversation").',
+        'Questions sent to you (availability, crew calls) still come through when muted.',
+      ],
+      mistakes: [
+        'Muting is only for you. Everyone else in the organisation still gets their notifications.',
+      ],
+    },
+    'ad-delete': {
+      title: 'Delete safely',
+      intro: 'Deleting in AVX is permanent: there is no trash. Most of the time, archiving is the better choice.',
+      steps: [
+        'For a gig that is over, set its status to Archived instead: it leaves the lists and keeps its history.',
+        'To really delete a gig, open "Edit gig", then the Danger zone. For an organisation, open its Settings.',
+        'Read the list of what will be deleted and tick that you understand.',
+        'Wait a few seconds, type the exact name and tap "Delete permanently".',
+      ],
+      mistakes: [
+        'Download what you need first (messages, reports, quotes as PDF). Nothing can be restored afterwards.',
+        'Only organisation admins can delete. Crew lose access and are notified.',
+      ],
+    },
+    'ad-export': {
+      title: 'Download your data',
+      intro: 'You can download your own data and, as an admin, the organisation\'s messages and reports.',
+      steps: [
+        'Your own data: tap your initials, then "Export my data" under "Your data".',
+        'The organisation\'s messages: open Settings → Messages and tap "Download all messages". Here you also choose how long messages are kept.',
+        'Inventory figures: Inventory → Reports → "Download CSV". Quotes: open one and use "Preview & print" to save a PDF.',
+      ],
+      mistakes: [
+        'The downloads are files on your device. Keep them somewhere safe: they contain other people\'s names and messages.',
+      ],
+    },
   },
 }
