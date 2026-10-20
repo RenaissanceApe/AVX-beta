@@ -130,10 +130,10 @@ rule the accessibility checks enforce.
   theme; in the light theme the lime is only a fill and olive (`green-700`) carries green text.
 - **High contrast** (after light): gray-100 on blue-900, lime accents, no greys below gray-300,
   thicker borders and focus rings.
-- **Fonts:** the brand uses Nunito (body) and Space Mono (labels, data). AVX uses DM Sans today;
-  Nunito for the interface and Space Mono for codes, serials and numbers in tables fit AVX well.
-  Both are free and would be self-hosted like DM Sans (no Google requests). To decide in H3, with
-  the readable-font option (Atkinson Hyperlegible) next to them.
+- **Fonts (decided 2026-10-20):** **Nunito** for the interface and **Space Mono** for codes,
+  serials and numbers in tables (the brand's pair), replacing DM Sans. **Atkinson Hyperlegible**
+  is the "readable font" option in Account → Appearance. All three self-hosted (no Google
+  requests). Built in H3.
 
 ## What H1 built (0.29.0)
 
