@@ -102,6 +102,39 @@ times a month. The app has to explain itself in the moment, in plain words.
 | **H5 · Field kit** | Scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on common actions | 1 PR |
 | **H6 · Reach** | Ask for help; more languages; SMS/WhatsApp notifications; short video guides | later, as needed |
 
+## Colours for H3: based on the Lumen and Pixel palette
+
+AVX is a Lumen and Pixel product, so its themes follow the L&P brand tokens (v2, from the L&P
+website) as a guide, not to the letter: the website's choices are for a marketing page, the app's
+for long working sessions, small text and sunlight. Contrast ratios checked against the 4.5:1
+rule the accessibility checks enforce.
+
+| L&P token | Hex | Dark theme (AVX) | Light theme (AVX) |
+|---|---|---|---|
+| blue-700 ★ | `#021829` | page background (today `#080C14`) | main text, top bar text |
+| blue-900 | `#00080E` | deepest layer, top bar | — |
+| blue-500 | `#16598C` | raised cards only with white text (6.5:1); **not** behind grey text (gray-300 3.9:1, gray-500 1.6:1) | links, focus ring (6.5:1 on gray-100) |
+| blue-300 | `#82B2D7` | borders, secondary accents (8:1) | borders |
+| blue-100 | `#DFE9F0` | — | top bar and panels |
+| green-500 ★ | `#33FB31` | accent, buttons, active states (12.9:1); button text in blue-700 | **fills only** (buttons with blue-700 text); never as text (1.4:1 on white) |
+| green-300 | `#7EF67D` | hover | — |
+| green-700 | `#576E20` | — | accent text and outlines (5.1–5.7:1) |
+| green-100 / green-900 | `#DCF8DC` / `#273012` | tags (green-900 on green-100, 12:1) | tags |
+| gray-100 | `#F0F1F3` | main text (16:1) | page background |
+| gray-300 | `#B8BEC8` | **muted small text** (9.6:1; replaces today's `#7D93A9`) | — |
+| gray-500 | `#6B7485` | large text and icons only (3.8:1) | muted text **only on gray-100** (4.2:1 — borderline: darken a step for small text) |
+| gray-700 | `#2E3441` | dividers, table borders | — |
+| gray-900 | `#0F141C` | — | main text alternative (16:1) |
+
+- **The green changes** from today's `#1EC878` to the brand's electric lime `#33FB31` in the dark
+  theme; in the light theme the lime is only a fill and olive (`green-700`) carries green text.
+- **High contrast** (after light): gray-100 on blue-900, lime accents, no greys below gray-300,
+  thicker borders and focus rings.
+- **Fonts:** the brand uses Nunito (body) and Space Mono (labels, data). AVX uses DM Sans today;
+  Nunito for the interface and Space Mono for codes, serials and numbers in tables fit AVX well.
+  Both are free and would be self-hosted like DM Sans (no Google requests). To decide in H3, with
+  the readable-font option (Atkinson Hyperlegible) next to them.
+
 ## What H1 built (0.29.0)
 
 - **Help content** in `src/help/en.js` and `src/help/pt.js` (the same ids in both): 64 glossary
