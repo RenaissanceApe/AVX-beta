@@ -145,7 +145,7 @@ acknowledgement, crew calls, client and supplier threads, push, moderation (stag
 | ✅ M4b · Clients and suppliers (0.25.0) | Conversations with a quote's client (on the quote's page) and a subrental's supplier (through a link made for them), without an account |
 | ✅ M5a · Push and offline (0.26.0) | Push notifications on phones and computers, messages written offline are sent when the connection is back |
 | ✅ M6a · Safety (0.27.0) | Report a message, moderators remove messages, block a person, rate limits |
-| M6b · Care | Retention per organisation, organisation export of conversations, usage counts |
+| ✅ M6b · Care (0.28.0) | Retention per organisation (nightly deletion), download of the organisation's conversations, usage counts |
 | M5b · Email replies | Reply by email to the summary; email clients and suppliers when you answer (needs inbound email on the domain) |
 | M6 · Safety | Moderation, retention, export, rate limits |
 

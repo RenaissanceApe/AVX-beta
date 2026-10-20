@@ -14,7 +14,8 @@ export const normalizeForConfirm = s => String(s || '').normalize('NFKD').replac
 // Two-step confirmation for irreversible deletions.
 // Step 1 lists what will be destroyed and needs an explicit "I understand".
 // Step 2 needs the exact name typed, and the button only unlocks after a few seconds.
-export function DangerConfirmModal({ title, name, loadImpact, onConfirm, onClose }) {
+// intro and confirmLabel replace the default wording ("Deleting … also deletes:", "Delete permanently").
+export function DangerConfirmModal({ title, name, loadImpact, onConfirm, onClose, intro, confirmLabel }) {
   const { t } = useI18n()
   const [step, setStep] = useState(1)
   const [impact, setImpact] = useState(null)
@@ -59,7 +60,7 @@ export function DangerConfirmModal({ title, name, loadImpact, onConfirm, onClose
 
       {step === 1 && (
         <>
-          <p style={{ fontSize: '13px', color: colors.soft, marginBottom: '8px' }}>{t('danger.willDelete', { name })}</p>
+          <p style={{ fontSize: '13px', color: colors.soft, marginBottom: '8px' }}>{intro || t('danger.willDelete', { name })}</p>
           {impact === null ? (
             <Loader2 size={16} color={colors.muted} style={{ animation: 'spin 1s linear infinite' }} />
           ) : (
@@ -90,7 +91,7 @@ export function DangerConfirmModal({ title, name, loadImpact, onConfirm, onClose
             <button onClick={onClose} disabled={busy} style={{ ...btn, background: 'transparent', borderColor: 'rgba(255,255,255,0.12)', color: colors.soft }}>{t('danger.cancel')}</button>
             <button onClick={confirm} disabled={!matches || wait > 0 || busy} style={{ ...dangerBtn, opacity: matches && wait <= 0 ? 1 : 0.4 }}>
               {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />}
-              {wait > 0 ? t('danger.waitSeconds', { count: wait }) : t('danger.deleteForever')}
+              {wait > 0 ? t('danger.waitSeconds', { count: wait }) : confirmLabel || t('danger.deleteForever')}
             </button>
           </div>
         </>

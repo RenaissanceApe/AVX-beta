@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.28.0 — Messaging M6b: how long messages are kept, export and usage
+
+### Added
+- **Organisation settings → Messages** (admins):
+  - how much the organisation's conversations are used (messages, people writing, files);
+  - **how long to keep messages**: for ever (the default), 90 days, 6 months, 1 year or 2 years.
+    Older messages and their files are deleted every night. A shorter period shows what goes
+    tonight and asks you to type the organisation's name. Direct conversations are never deleted;
+  - **download all messages** of the organisation's conversations as a file
+- Privacy notice (EN/PT): how long organisation conversations are kept, and the download
+
 ## 0.27.2 — iPhone home-screen app: top bar under the status bar
 
 ### Fixed

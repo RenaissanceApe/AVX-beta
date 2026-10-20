@@ -58,6 +58,7 @@ function Privacy() {
 
       <h2>How long we keep it</h2>
       <p>For as long as your account exists. When you delete your account we delete your profile and memberships immediately; updates and files you added to a shared gig stay with that gig, no longer linked to you. Encrypted backups are kept for up to 30 days.</p>
+      <p><strong>Messages in an organisation's conversations</strong> (its channels, its gigs' chats and its conversations about equipment, quotes and subrentals, including what clients and suppliers write there) are kept for as long as that organisation's admins choose: for ever, or 90 days, 6 months, 1 year or 2 years, after which they and their files are deleted every night. Those admins can also download the organisation's conversations. Direct conversations between two people aren't affected by either.</p>
 
       <h2>Your rights</h2>
       <p>You can access and download your data (Account → Export my data), correct your name, and delete your account (Account → Delete account) at any time. You can also ask us to restrict or object to processing. If you're unhappy with how we handle your data you can complain to the Portuguese data protection authority, the <a href="https://www.cnpd.pt" target="_blank" rel="noopener noreferrer" style={{ color: '#1EC878' }}>CNPD</a>.</p>
