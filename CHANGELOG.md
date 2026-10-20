@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.36.0 — Field tools F1a: Tools tab and input list
+
+### Added
+- **Tools tab** on every gig (docs/FIELD_TOOLS.md): only the tools the gig uses, plus "Add a tool"
+  for its production managers and the organisation's admins and members. Crew see the tab once
+  the gig uses a tool, and read it on their phone, also offline.
+- **Input list**: one line per mixer channel with the source, mic or DI, stand, 48V, stage box
+  and notes. Reorder with the arrows (channels renumber), tick lines as they're checked on site,
+  print it, and link mics and DIs to the catalogue so "Add mics and DIs to equipment" plans
+  them on the gig. Removing a line has Undo.
+- **Organisation settings → Field tools**: choose the tools the company uses
+- Guide "Make the input list"; glossary words input list, 48V, stage box, line check, field tools
+
+### Changed
+- **Feed** and **Activity** are now one **Updates** tab (Posts / History), so the gig keeps eight
+  tabs. Old links still open the right half.
+
+### Database
+- Migration `20261110000000_field_tools.sql` (no manual steps): `organisations.field_tools`,
+  `gig_tools`, `gig_show` (the shared show model), `gig_inputs` and `order_inputs`. Checks in
+  `supabase/tests/field_tools.sql`.
+
 ## 0.35.0 — Help H5b: equipment steps and undoing a scan
 
 ### Added

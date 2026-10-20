@@ -47,6 +47,11 @@ export default {
     'packing-list': { term: 'Lista de carga', definition: 'O que tem de sair do armazém para um evento, com quantidades.', example: 'Impressa para o armazém na véspera.', where: 'Evento → Equipamento → Lista de carga' },
     'scan-out-in': { term: 'Registar saída / entrada', definition: 'Ler as etiquetas QR quando o equipamento sai para um evento e quando volta.', example: 'Registar 40 unidades à entrada do camião.', where: 'Evento → Equipamento → Ler' },
     'equipment-steps': { term: 'Etapas do equipamento', definition: 'Onde está o equipamento de um evento entre o armazém e o regresso: preparado, saída, no local, carregado no regresso, entrada, verificado.', example: '60 de 69 preparados, 40 saíram.', where: 'Evento → Equipamento, Saída / entrada, lista de carga' },
+    'input-list': { term: 'Lista de inputs', definition: 'A lista de tudo o que entra na mesa de som, uma linha por canal: fonte, microfone ou DI, tripé, 48V.', example: 'Can 1 Bombo dentro, Beta 91A, 48V.', where: 'Evento → Ferramentas' },
+    'phantom-power': { term: '48V (alimentação phantom)', definition: 'Corrente que a mesa envia pelo cabo do microfone para microfones de condensador e DIs ativas.', example: 'Os overheads e as DIs precisam de 48V; um SM58 dinâmico não.', where: 'Evento → Ferramentas → Lista de inputs' },
+    'stage-box': { term: 'Stage box', definition: 'Uma caixa em palco com muitas entradas que as envia para a mesa por um só cabo.', example: 'SB1-03: stage box 1, entrada 3.', where: 'Evento → Ferramentas → Lista de inputs' },
+    'line-check': { term: 'Line check', definition: 'Testar cada canal antes do soundcheck: algo ligado, sinal na mesa. Marque cada linha à medida que avança.', example: 'As 24 linhas verificadas até às 15:00.', where: 'Evento → Ferramentas → Lista de inputs' },
+    'field-tools': { term: 'Ferramentas técnicas', definition: 'Ferramentas técnicas opcionais de um evento (lista de inputs e, em breve, stage plot, patch, plano de luz), no separador Ferramentas.', example: 'A lista de inputs da gala.', where: 'Evento → Ferramentas; definições da organização' },
     'scan-mode': { term: 'Modo de leitura', definition: 'Uma forma de ler etiquetas em ecrã inteiro, com botões grandes, sons, vibração e lanterna, para luvas, barulho e escuro.', example: 'Carregar a carrinha à noite só com uma mão livre.', where: 'Evento → Equipamento → Saída / entrada' },
     'mark-lost': { term: 'Marcar como perdido', definition: 'As unidades que não voltaram são registadas como perdidas, para que o stock e os relatórios estejam certos.', example: 'Dois cabos em falta depois do festival.', where: 'Evento → Ler' },
     damage: { term: 'Relatório de dano', definition: 'Uma nota, com fotografias, de que algo se partiu. A unidade pode ficar fora de uso.', example: 'Lente rachada, reportada no local.', where: 'Evento → Equipamento, Inventário → Manutenção' },
@@ -94,6 +99,8 @@ export default {
     findable: 'Quem o pode encontrar pelo nome ao formar uma equipa. Só pessoas com quem já trabalhou, nunca toda a gente no AVX.',
     'email-summary': 'Um email por dia com o que ainda não leu na aplicação. Não é enviado nada se estiver em dia.',
     'two-step': 'Para entrar, será também pedido um código de 6 dígitos de uma aplicação no telemóvel. Recomendado para administradores.',
+    'input-item': 'Ligue o microfone ou DI a um artigo do catálogo. "Juntar microfones e DIs ao equipamento" passa a prevê-los no evento, para serem reservados, carregados e lidos.',
+    'stage-box': 'Em que entrada da stage box entra a linha, ex.: SB1-03 (caixa 1, entrada 3). Ajuda a equipa de palco a ligar.',
     'mark-lost': 'Regista como perdidas as unidades que não voltaram. O stock e os relatórios mudam. Se alguma aparecer mais tarde, volte a pôr o estado em Disponível.',
   },
 
@@ -296,6 +303,20 @@ export default {
       mistakes: [
         'Perguntar não marca ninguém. Adicione a pessoa ao evento quando ela disser que sim.',
         'Sem horas de marcação, a pessoa conta como marcada durante todo o dia de cada dia do evento.',
+      ],
+    },
+    'pm-input-list': {
+      title: 'Fazer a lista de inputs',
+      intro: 'A lista de inputs diz à equipa de som o que entra em cada canal da mesa. Toda a gente no evento a pode ler no telemóvel, mesmo sem rede.',
+      steps: [
+        'Abra o evento, toque em Ferramentas, depois em "Adicionar ferramenta" e escolha Lista de inputs.',
+        'Toque em "Adicionar input" para cada canal: a fonte (Bombo dentro, Voz principal), o microfone ou DI, o tripé, a entrada da stage box, e marque 48V se precisar de alimentação phantom.',
+        'Use as setas para mudar a ordem; os canais são renumerados por si. Imprima-a para a mesa e para o palco.',
+        'No local, marque cada linha à medida que é verificada. Se os microfones vêm do catálogo, "Juntar microfones e DIs ao equipamento" prevê-os no evento.',
+      ],
+      mistakes: [
+        'Duas linhas não podem partilhar um canal. Mova uma primeiro, ou escolha um número livre.',
+        'A equipa pode ler a lista mas não a alterar: fale com o diretor de produção.',
       ],
     },
     'pm-equipment': {

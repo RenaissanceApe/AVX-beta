@@ -185,6 +185,17 @@ const SCENES = {
     await page.getByPlaceholder(L('scanMode.typeCode')).press('Enter')
     return page.locator('section[aria-live]')
   } },
+  'tools-add': { persona: 'pm', url: `/gig/${ids.gig}`, async run(page, L) {
+    return page.getByRole('tab', { name: L('gig.tab.tools') })
+  } },
+  'input-form': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=input_list`, async run(page, L) {
+    await page.getByRole('button', { name: L('inputs.add') }).first().click()
+    return page.getByRole('dialog')
+  } },
+  'input-list': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=input_list`, async run(page, L) {
+    await page.getByText('Beta 91A').first().waitFor()
+    return page.locator('section[aria-labelledby="input-list-title"] ol > li').first()
+  } },
   'step-picker': { persona: 'pm', url: `/gig/${ids.gig}/scan`, async run(page, L) {
     await page.getByRole('radio', { name: L('steps.name.prepped') }).click()
     return page.getByRole('radiogroup', { name: L('steps.picker') })

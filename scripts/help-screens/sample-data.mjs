@@ -54,7 +54,7 @@ export function sampleData(persona, lang) {
   if (persona === 'new') names[carla] = ''
   const phones = { [carla]: '+351 912 345 678', [ricardo]: '+351 913 222 111', [duarte]: '+351 914 555 000', [ana]: '+351 915 000 999' }
   const org = {
-    id: orgId, name: 'Lumen and Pixel', equipment_prep_days: 1, equipment_return_days: 1, equipment_steps: ['prepped', 'loaded', 'on_site', 'loaded_back', 'returned', 'checked_in'], created_at: '2026-01-10T10:00:00Z',
+    id: orgId, name: 'Lumen and Pixel', equipment_prep_days: 1, equipment_return_days: 1, equipment_steps: ['prepped', 'loaded', 'on_site', 'loaded_back', 'returned', 'checked_in'], field_tools: ['stage_plot', 'input_list'], created_at: '2026-01-10T10:00:00Z',
     legal_name: 'Lumen and Pixel, Lda', tax_id: '500 000 000', address: 'Rua da Cozinha Económica 30\n1300-149 Lisboa', email: 'info@example.com',
     phone: '+351 210 000 000', website: 'example.com', default_vat_rate: 23, quote_validity_days: 30, quote_number_prefix: 'Q',
     quote_terms: lang === 'pt' ? '50% na adjudicação, 50% até 30 dias após o evento.' : '50% on acceptance, 50% within 30 days of the event.',
@@ -197,6 +197,17 @@ export function sampleData(persona, lang) {
       crew_unavailability: persona === 'pm' ? [] : [{ id: 'u1', user_id: carla, start_date: day(50), end_date: day(57), note: w.holiday, created_at: ago(100) }],
       notifications: persona === 'pm' ? [] : [{ id: 1, user_id: carla, org_id: orgId, gig_id: gigId, actor_id: ricardo, kind: 'availability_request', details: { gig_name: gig.name, from: `${day(24)}T00:00:00Z`, until: `${day(26)}T00:00:00Z` }, read_at: null, created_at: ago(3) }],
       gig_equipment: gear,
+      gig_tools: [{ gig_id: gigId, tool: 'input_list', created_at: ago(300) }],
+      gig_inputs: [
+        [tx('Bombo dentro', 'Kick in'), 'Beta 91A', null, true, 'SB1-01'],
+        [tx('Bombo fora', 'Kick out'), 'D6', tx('girafa curta', 'short boom'), false, 'SB1-02'],
+        [tx('Tarola cima', 'Snare top'), 'SM57', tx('girafa curta', 'short boom'), false, 'SB1-03'],
+        ['Hi-hat', 'KM184', tx('girafa', 'boom'), true, 'SB1-04'],
+        [tx('Overhead esq.', 'Overhead L'), 'KM184', tx('girafa alta', 'tall boom'), true, 'SB1-05'],
+        [tx('Overhead dir.', 'Overhead R'), 'KM184', tx('girafa alta', 'tall boom'), true, 'SB1-06'],
+        [tx('Baixo DI', 'Bass DI'), 'BSS AR-133', null, true, 'SB1-07'],
+        [tx('Voz principal', 'Lead vocal'), 'SM58', tx('reto', 'straight'), false, 'SB2-01'],
+      ].map(([source, mic, stand, phantom, box], n) => ({ id: `in${n + 1}`, gig_id: gigId, channel: n + 1, source, mic, stand, phantom, stage_box: box, notes: n === 7 ? tx('Sem fios de reserva no SB2-02', 'Spare wireless on SB2-02') : null, item_id: null, plot_ref: null, checked: n < 3 })),
       price_items: items.concat(priceList),
       stock_locations: locations,
       stock_units: units,

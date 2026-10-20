@@ -103,7 +103,7 @@ export default function OverviewTab({ gig, assets, members, posts, schedule, can
       <div style={{ ...panel, gridColumn: '1 / -1' }}>
         <div style={header}>
           <SectionTitle icon={<MessageSquare size={14} />} title={t('overview.recentUpdates')} />
-          <SmallBtn onClick={() => setTab('feed')} icon={<ArrowRight size={12} />} label={t('overview.fullFeed')} />
+          <SmallBtn onClick={() => setTab('updates')} icon={<ArrowRight size={12} />} label={t('overview.fullFeed')} />
         </div>
         {posts.length === 0 ? <EmptyMini text={t('overview.noUpdates')} /> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
