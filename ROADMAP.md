@@ -148,12 +148,13 @@ acknowledgement, crew calls, client and supplier threads, push, moderation (stag
 | ✅ M6b · Care (0.28.0) | Retention per organisation (nightly deletion), download of the organisation's conversations, usage counts |
 | M5b · Email replies | Reply by email to the summary; email clients and suppliers when you answer (needs inbound email on the domain) |
 
-## Help and inclusion (H1 built in 0.29.0)
+## Help and inclusion (H1 built in 0.29.0, H2a in 0.30.0)
 
 | Stage | Scope |
 |---|---|
 | ✅ H1 · Foundations (0.29.0) | Glossary (Help) with tappable words, ⓘ hints on the first fields, ? on page headers, accessibility checks in the browser tests, contrast fixes |
-| H2 · Guides | How-to guides per role with generated screenshots |
+| ✅ H2a · Guides (0.30.0) | 14 how-to guides for crew and production managers, with screenshots generated from the real screens in both languages; in Help and in the ? panel |
+| H2b · Guides | Warehouse, office and admin guides |
 | H3 · Comfort | Text size, comfortable mode, themes, readable font |
 | H4 · First steps | Teaching empty states, first-steps checklists, simple mode for crew |
 | H5 · Field kit | Scan mode, read aloud, large-print call sheet, undo |

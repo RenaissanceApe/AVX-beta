@@ -81,7 +81,7 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
           <label style={label} htmlFor="eg-venue">{t('gigForm.venue')}</label>
           <input id="eg-venue" value={form.venue} onChange={set('venue')} placeholder={t('gigForm.venuePlaceholder')} maxLength={300} style={input} />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
           <div>
             <label style={label} htmlFor="eg-start">{t('gigForm.start')}</label>
             <input id="eg-start" type="date" value={form.start_date} onChange={set('start_date')} style={input} />

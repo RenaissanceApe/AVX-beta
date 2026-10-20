@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
-const PAGES = ['/auth', '/welcome', '/reset-password', '/privacy', '/terms', '/help']
+const PAGES = ['/auth', '/welcome', '/reset-password', '/privacy', '/terms', '/help', '/help/guide/crew-call-time']
 
 for (const path of PAGES) {
   test(`no serious accessibility problems on ${path}`, async ({ page }) => {
@@ -29,4 +29,16 @@ test('the glossary opens at a word and its search works', async ({ page }) => {
   await page.getByRole('searchbox').fill('flight case')
   await expect(page.locator('#term-case')).toBeVisible()
   await expect(page.getByRole('status')).toHaveText('1 word')
+})
+
+test('the Help page lists the guides and opens one with its pictures', async ({ page }) => {
+  await page.goto('/help')
+  await page.getByRole('link', { name: 'Find your call time and the call sheet' }).click()
+  await expect(page).toHaveURL(/\/help\/guide\/crew-call-time$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'Find your call time and the call sheet' })).toBeVisible()
+  await expect(page.getByRole('listitem').filter({ hasText: 'Your call time is under' }).locator('img')).toHaveAttribute('src', '/help/shots/en/call-time.jpg')
+  const loaded = await page.locator('article img').first().evaluate(img => img.decode().then(() => img.naturalWidth > 0, () => false))
+  expect(loaded).toBe(true)
+  await page.getByRole('link', { name: /All help/ }).click()
+  await expect(page).toHaveURL(/\/help$/)
 })

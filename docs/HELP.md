@@ -1,6 +1,6 @@
 # Help and inclusion: plan
 
-Status: **H1 built (0.29.0)**; H2–H6 planned. A project of its own, built in stages H1–H6, and a
+Status: **H1 built (0.29.0)**, **H2a built (0.30.0)**; H2b–H6 planned. A project of its own, built in stages H1–H6, and a
 rule for every feature after it.
 
 The aim: anyone who works in events can use AVX without help from a colleague, whatever their
@@ -96,11 +96,44 @@ times a month. The app has to explain itself in the moment, in plain words.
 | Stage | Scope | Roughly |
 |---|---|---|
 | **H1 · Foundations** | Help content files (PT/EN) and tests; glossary page and tappable terms; ⓘ hints on the first batch of fields; **?** on page headers; accessibility checks (axe) in the browser tests; the "part of done" rule in CONTRIBUTING | 1 PR |
-| **H2 · Guides** | Guide format and side panel; screenshot script; crew and production-manager guides first, then warehouse, office and admin | 2 PRs |
+| **H2 · Guides** | ✅ H2a (0.30.0): guide format and side panel; screenshot script; crew and production-manager guides. H2b: warehouse, office and admin | 2 PRs |
 | **H3 · Comfort** | Colours as theme tokens; light theme (first), then high contrast; text size, comfortable mode, readable font | 1–2 PRs |
 | **H4 · First steps** | Teaching empty states everywhere; first-steps checklists per role; simple mode (automatic for crew-only people, a switch for everyone) | 1 PR |
 | **H5 · Field kit** | Scan mode (big buttons, sound, vibration, torch); read aloud; large-print call sheet; undo on common actions | 1 PR |
 | **H6 · Reach** | Ask for help; more languages; SMS/WhatsApp notifications; short video guides | later, as needed |
+
+## Colours for H3: based on the Lumen and Pixel palette
+
+AVX is a Lumen and Pixel product, so its themes follow the L&P brand tokens (v2, from the L&P
+website) as a guide, not to the letter: the website's choices are for a marketing page, the app's
+for long working sessions, small text and sunlight. Contrast ratios checked against the 4.5:1
+rule the accessibility checks enforce.
+
+| L&P token | Hex | Dark theme (AVX) | Light theme (AVX) |
+|---|---|---|---|
+| blue-700 ★ | `#021829` | page background (today `#080C14`) | main text, top bar text |
+| blue-900 | `#00080E` | deepest layer, top bar | — |
+| blue-500 | `#16598C` | raised cards only with white text (6.5:1); **not** behind grey text (gray-300 3.9:1, gray-500 1.6:1) | links, focus ring (6.5:1 on gray-100) |
+| blue-300 | `#82B2D7` | borders, secondary accents (8:1) | borders |
+| blue-100 | `#DFE9F0` | — | top bar and panels |
+| green-500 ★ | `#33FB31` | accent, buttons, active states (12.9:1); button text in blue-700 | **fills only** (buttons with blue-700 text); never as text (1.4:1 on white) |
+| green-300 | `#7EF67D` | hover | — |
+| green-700 | `#576E20` | — | accent text and outlines (5.1–5.7:1) |
+| green-100 / green-900 | `#DCF8DC` / `#273012` | tags (green-900 on green-100, 12:1) | tags |
+| gray-100 | `#F0F1F3` | main text (16:1) | page background |
+| gray-300 | `#B8BEC8` | **muted small text** (9.6:1; replaces today's `#7D93A9`) | — |
+| gray-500 | `#6B7485` | large text and icons only (3.8:1) | muted text **only on gray-100** (4.2:1 — borderline: darken a step for small text) |
+| gray-700 | `#2E3441` | dividers, table borders | — |
+| gray-900 | `#0F141C` | — | main text alternative (16:1) |
+
+- **The green changes** from today's `#1EC878` to the brand's electric lime `#33FB31` in the dark
+  theme; in the light theme the lime is only a fill and olive (`green-700`) carries green text.
+- **High contrast** (after light): gray-100 on blue-900, lime accents, no greys below gray-300,
+  thicker borders and focus rings.
+- **Fonts:** the brand uses Nunito (body) and Space Mono (labels, data). AVX uses DM Sans today;
+  Nunito for the interface and Space Mono for codes, serials and numbers in tables fit AVX well.
+  Both are free and would be self-hosted like DM Sans (no Google requests). To decide in H3, with
+  the readable-font option (Atkinson Hyperlegible) next to them.
 
 ## What H1 built (0.29.0)
 
@@ -128,6 +161,36 @@ times a month. The app has to explain itself in the moment, in plain words.
   lightened; the logo, account and company buttons are now named by what they show (voice
   control).
 - Not yet (H2): guides with screenshots; hints on the remaining fields.
+
+## What H2a built (0.30.0)
+
+- **Guide format** (`src/help/index.js` → `GUIDES`): for each guide, who it's for (`crew`, `pm`),
+  the pages whose **?** lists it, the glossary words it links to and one screenshot name per step
+  (or none). The words (`title`, `intro`, `steps`, `mistakes`) are in `src/help/en.js` and
+  `pt.js` under `guides`. `help.test.js` fails if a language is missing a guide, the step counts
+  differ, a word or page doesn't exist, or a screenshot is missing in either language.
+- **14 guides.** Crew: accept an invitation and set a password; install AVX on your phone; find
+  your call time and the call sheet; mark the dates you can't work; answer an availability
+  question; chat with the team; report damaged equipment; use AVX without signal. Production
+  managers: create a gig; invite crew; build the schedule; prepare and send the call sheet; avoid
+  double bookings; plan the equipment. ("The gig chat" from the plan is covered by the crew chat
+  guide.)
+- **Where they show:** Help (`/help`) lists them by role above the glossary; each has its own
+  address (`/help/guide/crew-call-time`). The **?** on a page header lists that page's guides,
+  grouped by role, and opens them inside the panel, so you don't lose your place.
+- **Screenshots** (`npm run help:screens`, in `scripts/help-screens/`): builds the app against a
+  pretend database address, answers every call with sample data (`sample-data.mjs`: Carla, crew
+  only, and Ricardo, admin and production manager; dates counted from today), opens each screen
+  on a 390 px phone, outlines in yellow what to tap and saves a JPEG per language in
+  `public/help/shots/<pt|en>/` (21 per language, about 4 MB in all; not cached for offline use).
+  Date and time fields follow each language. A failed scene saves what the screen looked like in
+  `node_modules/.help-screens-failed/`. The pictures have no alt text on purpose: each step's
+  text says everything, the picture only shows where.
+- **Found while taking them, fixed:** on a phone, the "Add schedule item" and "New gig" forms
+  were wider than the screen (date and time fields side by side); the "New gig" labels weren't
+  linked to their fields (screen readers read them without a name); the invite form's email
+  example was in English in Portuguese.
+- Not yet (H2b): guides for the warehouse, office and admins.
 
 ## The rule for every new feature (from H1 on)
 

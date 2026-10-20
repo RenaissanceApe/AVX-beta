@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import en from './en'
 import pt from './pt'
-import { PAGE_TERMS, searchTerms, term, hint } from './index'
+import { PAGE_TERMS, GUIDES, GUIDE_ROLES, searchTerms, term, hint, guide, guidesFor, shotUrl } from './index'
 import { setCurrentLanguage } from '../i18n'
 
 afterEach(() => setCurrentLanguage('en'))
@@ -61,5 +61,43 @@ describe('help content', () => {
     expect(hint('vat')).toMatch(/IVA/)
     expect(searchTerms('reparacao').map(x => x.id)).toContain('repair')
     expect(searchTerms('').length).toBe(Object.keys(pt.terms).length)
+  })
+
+  it('has every guide in both languages, with the same number of steps and a picture slot per step', () => {
+    expect(sameKeys(en.guides, pt.guides)).toEqual({ missingInPt: [], extraInPt: [] })
+    expect(Object.keys(GUIDES).sort()).toEqual(Object.keys(en.guides).sort())
+    const wrong = []
+    for (const [id, meta] of Object.entries(GUIDES)) {
+      if (!GUIDE_ROLES.includes(meta.role)) wrong.push(`${id}: role ${meta.role}`)
+      for (const [lang, c] of [['en', en], ['pt', pt]]) {
+        const g = c.guides[id]
+        for (const f of ['title', 'intro']) if (!g[f]?.trim()) wrong.push(`${lang} ${id}.${f} empty`)
+        if (g.steps.length !== meta.shots.length) wrong.push(`${lang} ${id}: ${g.steps.length} steps, ${meta.shots.length} shots`)
+        if (g.mistakes.length !== en.guides[id].mistakes.length) wrong.push(`${lang} ${id}: mistakes differ`)
+        for (const x of [...g.steps, ...g.mistakes]) if (!x?.trim()) wrong.push(`${lang} ${id}: empty step or mistake`)
+      }
+      for (const t of meta.terms) if (!(t in en.terms)) wrong.push(`${id}: no term ${t}`)
+      for (const p of meta.pages) if (!(p in en.pages)) wrong.push(`${id}: no page ${p}`)
+    }
+    expect(wrong).toEqual([])
+  })
+
+  it('has a screenshot in both languages for every guide step that shows one', () => {
+    const shots = new Set(Object.values(GUIDES).flatMap(g => g.shots).filter(Boolean))
+    const missing = []
+    for (const lang of ['en', 'pt']) for (const s of shots) {
+      if (!fs.existsSync(path.resolve(__dirname, `../../public/help/shots/${lang}/${s}.jpg`))) missing.push(`${lang}/${s}.jpg`)
+    }
+    expect(missing).toEqual([])
+  })
+
+  it('reads guides in the interface language and lists them per page', () => {
+    expect(guide('crew-join').title).toMatch(/password/)
+    expect(guidesFor('gig')).toContain('crew-call-time')
+    expect(shotUrl('welcome')).toBe('/help/shots/en/welcome.jpg')
+    setCurrentLanguage('pt')
+    expect(guide('crew-join').title).toMatch(/palavra-passe/)
+    expect(shotUrl('welcome')).toBe('/help/shots/pt/welcome.jpg')
+    expect(guide('nope')).toBe(null)
   })
 })

@@ -102,7 +102,7 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
               <input id="co-web" value={form.website} onChange={e => set('website', e.target.value)} maxLength={200} style={input} />
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
             <div>
               <HintLabel htmlFor="co-vat" hint="vat">{t('company.defaultVat')}</HintLabel>
               <input id="co-vat" type="number" min="0" max="100" step="0.01" value={form.default_vat_rate} onChange={e => set('default_vat_rate', e.target.value)} style={input} />

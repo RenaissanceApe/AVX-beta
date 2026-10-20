@@ -121,7 +121,7 @@ function PriceItemModal({ orgId, userId, item, categories, onClose, onSaved }) {
           <label style={label} htmlFor="pi-name">{t('prices.name')} *</label>
           <input id="pi-name" value={form.name} onChange={e => set('name', e.target.value)} maxLength={200} style={input} autoFocus required />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
           <div>
             <label style={label} htmlFor="pi-price">{t('prices.price')} *</label>
             <input id="pi-price" inputMode="decimal" value={form.unit_price} onChange={e => set('unit_price', e.target.value)} style={input} required />

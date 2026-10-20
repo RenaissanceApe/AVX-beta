@@ -6,7 +6,8 @@
 | Browser smoke tests (no account needed) | `npm run build && npm run test:e2e` | always (`e2e` job) |
 | Signed-in journeys (test project) | see below | when `E2E_AUTH_ENABLED` is `true` (`e2e-auth` job) |
 | Accessibility (axe) | part of both browser test runs (`e2e/a11y.spec.js`, and `expectAccessible` in the signed-in journey) | always |
-| Help content (both languages, every id used exists) | part of `npm test` (`src/help/help.test.js`) | always |
+| Help content (both languages, every id used exists, guides line up with their screenshots) | part of `npm test` (`src/help/help.test.js`) | always |
+| Guide screenshots (sample data, phone, both languages) | `npm run help:screens`, then commit `public/help/shots/` | when a screen a guide shows changes |
 
 ## The test project
 

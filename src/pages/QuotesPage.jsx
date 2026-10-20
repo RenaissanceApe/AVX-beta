@@ -252,7 +252,7 @@ function NewQuoteModal({ org, templates, onClose, onCreated }) {
           <input id="nq-title" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             placeholder={t('quotes.quoteTitlePlaceholder')} maxLength={200} style={input} autoFocus required />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
           <div>
             <label style={label} htmlFor="nq-company">{t('quotes.clientCompany')}</label>
             <input id="nq-company" value={form.client_company} onChange={e => setForm(f => ({ ...f, client_company: e.target.value }))} maxLength={200} style={input} />
