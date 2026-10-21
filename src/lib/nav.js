@@ -20,6 +20,7 @@ export function navSections({ workspace, role }) {
         { key: 'myGigs', icon: 'list', to: '/me' },
         { key: 'myCalendar', icon: 'calendar', to: '/me?view=calendar' },
         { key: 'availability', icon: 'calendarOff', to: '/me?panel=account' },
+        { key: 'jobs', icon: 'handshake', to: '/jobs' },
       ] },
       { key: 'organisations', icon: 'building', items: [
         { key: 'allOrgs', icon: 'building', to: '/orgs' },
@@ -55,7 +56,7 @@ export function navSections({ workspace, role }) {
   }
   sections.push({ key: 'organisation', icon: 'users', items: [
     { key: 'members', icon: 'users', to: `${base}?panel=members` },
-    ...(canQuote(role) ? [{ key: 'findCrew', icon: 'search', to: `${base}/crew` }] : []),
+    ...(canQuote(role) ? [{ key: 'findCrew', icon: 'search', to: `${base}/crew` }, { key: 'orgJobs', icon: 'handshake', to: `${base}/jobs` }] : []),
     ...(role === 'admin' ? [{ key: 'orgSettings', icon: 'settings', to: `${base}?panel=settings` }] : []),
     { key: 'allOrgs', icon: 'building', to: '/orgs', minor: true },
   ] })

@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.50.0 — Crew network N3: the job board
+
+### Added
+- **Post a job** (a gig's Crew tab, or Organisation → Job posts): title or one of the gig's crew
+  positions, function, how many, dates (the gig's), town, languages, a certificate, a description,
+  and pay: "ask for their day rate" or a stated fee (fixed or a range, per day, job or hour, in a
+  chosen currency). Posting needs two-step sign-in switched on; organisations not verified yet can
+  have 3 open posts. The post shows the organisation's name, never the gig's name or client.
+- **Jobs** (My work → Jobs), for freelancers with their crew profile on: "For you" (their
+  functions within their travel range), "All open jobs", and "My applications". **Apply** with a
+  message, the day rate when asked (it goes only to that company), and a tick that they're free.
+- Applications start a conversation with the person who posted, and notify them and the
+  organisation's admins. **Job posts → Applicants** shows each applicant's crew profile, message and
+  rate: shortlist, decline (a polite note goes in the messages) or **offer the place** (a crew call;
+  accepting adds them to the gig, marks the application accepted and fills the post when every
+  place is taken). Posts can be closed, marked filled or reopened, and close on their last day.
+- Notifications (in the app, by push and in the e-mail summary) for a new application and a
+  declined one. Help: "Find work on the job board" and "Post a job and choose who to take".
+  The privacy page describes the job board.
+
+### Database
+- Migration `20261124000000_job_board.sql` (no manual steps): `job_posts`, `job_applications`,
+  `organisations.verified_at` (set in N4), `publish_job()`, `close_job()`, `list_jobs()`,
+  `apply_job()`, `withdraw_application()`, `answer_application()`, `my_job_applications()`,
+  `job_applicants()`. Checks in `supabase/tests/job_board.sql`.
+- `send-push` and `send-digest` redeployed with the new notification wording.
+
 ## 0.49.0 — Crew network N2: crew search
 
 ### Added

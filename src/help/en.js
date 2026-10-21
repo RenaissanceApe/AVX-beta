@@ -134,6 +134,8 @@ export default {
     messages: { title: 'Messages', summary: 'Your conversations: direct messages, gig chats, department channels and the organisation’s channels. Unread ones are at the top. Use the menu on a message to reply, react, save or report it.' },
     inventory: { title: 'Inventory', summary: 'Your equipment: the catalogue, where it is kept, its stock and movements, maintenance and subrentals.' },
     'inventory-item': { title: 'An equipment item', summary: 'One catalogue item: its details, stock per location, units with their labels, kit contents, maintenance and history.' },
+    jobs: { title: 'Jobs', summary: 'Open positions from companies on AVX: the ones for your functions and travel range, or all of them, and your applications. Your day rate goes only to the company you apply to.' },
+    'org-jobs': { title: 'Job posts', summary: 'The positions your organisation posted to the job board and who applied. Shortlist, decline or offer the place; close a post or mark it filled.' },
     'crew-search': { title: 'Find crew', summary: 'Freelancers on AVX who switched on their crew profile and let companies see it. Search by function, place, dates and language, then ask about a gig or offer a place. Their contact details stay private until they join.' },
     'crew-profile': { title: 'Crew profile', summary: 'Let companies on AVX find you for work. Off until you switch it on; you choose who sees it (companies only, or companies and crew) and can change, switch off or remove it at any time. No rates on it.' },
     contacts: { title: 'Contacts', summary: 'Your clients and suppliers, kept once. Quotes pick their client from here and subrentals their supplier. Import them from a spreadsheet, or add the clients typed on older quotes in one go.' },
@@ -198,6 +200,19 @@ export default {
       mistakes: [
         'The link is private: anyone who has it sees your gigs\' names, dates and venues. If you shared it by mistake, tap "New link"; the old one stops working.',
         'Changes made in AVX can take an hour or more to show in your calendar. For the latest call time, open the gig in AVX.',
+      ],
+    },
+    'crew-jobs': {
+      title: 'Find work on the job board',
+      intro: 'Companies on AVX post open positions. Those that fit what you do and how far you travel show up for you.',
+      steps: [
+        'Switch on your crew profile first (functions, town, travel range). Then open Jobs from the menu.',
+        '"For you" shows open jobs that match; "All open jobs" shows every one. Each says the dates, the town, the pay or "Send your day rate".',
+        'Tap Apply, write a short message, give your day rate if asked and confirm you\'re free. The company answers in your messages; if they offer the place and you accept, you\'re on the gig.',
+      ],
+      mistakes: [
+        'Your day rate goes only to that company, never on your profile. "My applications" shows where each one stands; you can withdraw while it\'s open.',
+        'If nothing shows "For you", widen your travel range or add functions in your crew profile.',
       ],
     },
     'crew-profile': {
@@ -302,6 +317,19 @@ export default {
       mistakes: [
         'Without dates, AVX can\'t warn about double bookings or check whether there is enough equipment.',
         'If the client accepted a quote, open the gig and use "Fill gig from quote" to add the schedule, positions and equipment in one go.',
+      ],
+    },
+    'pm-post-job': {
+      title: 'Post a job and choose who to take',
+      intro: 'Need people you don\'t know yet? Post the position: freelancers on AVX who fit it see it and apply.',
+      steps: [
+        'On the gig\'s Crew tab, tap "Post a job" (or Organisation → Job posts). Pick the crew position or write a title, the function, the town and the pay ("Ask for their day rate" or a stated fee). You need two-step sign-in on.',
+        'Applications arrive in your messages and in Job posts → Applicants, with each person\'s crew profile, message and rate.',
+        'Shortlist, decline (with a polite note) or "Offer the place": if they accept, they join the gig with that function and the post closes when every place is taken.',
+      ],
+      mistakes: [
+        'The post doesn\'t show the gig\'s name or client, only your organisation, the dates and the town. Close it if plans change.',
+        'Until your organisation is verified it can have 3 open posts at a time.',
       ],
     },
     'pm-find-crew': {

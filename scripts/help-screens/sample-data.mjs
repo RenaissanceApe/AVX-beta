@@ -267,6 +267,10 @@ export function sampleData(persona, lang) {
         functions: ['foh_engineer', 'monitor_engineer', 'system_tech'], other_functions: null, bio: null, base_place: 'Lisboa, Portugal', base_country: 'PT', base_lat: 38.72, base_lng: -9.14,
         travel_scope: 'europe', travel_km: null, languages: ['en', 'es', 'pt'], experience_years: 12, links: ['https://example.com/carla'],
         certificates: [{ name: 'IPAF 3a', issuer: 'IPAF', expires_on: '2027-05-01' }, { name: tx('Primeiros socorros', 'First aid'), expires_on: '2026-03-01' }] }],
+      job_posts: persona === 'pm' ? [
+        { id: 'jpo1', org_id: orgId, gig_id: gigId, title: 'Rigger', function_key: 'rigger', quantity: 2, starts_on: day(24), ends_on: day(25), place: 'Lisboa, Portugal', country: 'PT',
+          languages: ['pt'], certificate: 'IPAF 3a', description: null, pay_mode: 'ask_rate', pay_amount: null, pay_max: null, pay_per: 'day', currency: 'EUR', status: 'open', created_at: ago(30), gigs: { name: 'Marcolino — Natal' } },
+      ] : [],
       held_invites: persona === 'pm' ? [
         { id: 'h1', org_id: orgId, email: 'pedro.alves@example.com', full_name: 'Pedro Alves', phone: '+351 914 000 000', functions: tx('Técnico de som', 'Sound engineer'), role: 'viewer', status: 'held', import_file: 'rentman-crew.xlsx' },
         { id: 'h2', org_id: orgId, email: 'sofia.m@example.com', full_name: 'Sofia Martins', phone: null, functions: tx('Luz, rigging', 'Lighting, rigging'), role: 'viewer', status: 'held', import_file: 'rentman-crew.xlsx' },
@@ -289,6 +293,20 @@ export function sampleData(persona, lang) {
       my_availability_requests: persona === 'pm' ? [] : [request],
       my_unread_counts: [],
       calendar_feed: '7c1e9a4b'.repeat(8),
+      list_jobs: { needs_profile: false, total: 2, more: false, results: [
+        { id: 'jp1', org_name: 'Palco Norte, Lda', verified: true, title: tx('Rigger', 'Rigger'), function_key: 'rigger', quantity: 2, starts_on: day(30), ends_on: day(31),
+          place: 'Porto, Portugal', country: 'PT', km: 4, languages: ['pt'], certificate: 'IPAF 3a', description: tx('Montagem de truss num festival ao ar livre. Entrada às 8:00.', 'Truss build at an open-air festival. Call 8:00.'),
+          pay_mode: 'fixed', pay_amount: 180, pay_max: null, pay_per: 'day', currency: 'EUR', my_status: null },
+        { id: 'jp2', org_name: 'Lumen and Pixel', verified: false, title: tx('Técnico de monitores', 'Monitor engineer'), function_key: 'monitor_engineer', quantity: 1, starts_on: day(45), ends_on: day(45),
+          place: 'Braga, Portugal', country: 'PT', km: 49, languages: ['en', 'pt'], certificate: null, description: null,
+          pay_mode: 'ask_rate', pay_amount: null, pay_max: null, pay_per: 'day', currency: 'EUR', my_status: 'applied' },
+      ] },
+      my_job_applications: [],
+      job_applicants: [
+        { id: 'ja1', user_id: 'cp1', status: 'applied', message: tx('IPAF 3a, nove anos de festivais. Posso chegar na véspera.', 'IPAF 3a, nine years of festivals. I can arrive the day before.'),
+          day_rate: 180, currency: 'EUR', name: 'Rui Teixeira', profile: { headline: tx('Rigger e técnico de palco, festivais', 'Rigger and stagehand, festivals'), functions: ['rigger', 'stagehand'],
+          base_place: 'Porto, Portugal', base_country: 'PT', travel_scope: 'km', travel_km: 250, languages: ['en', 'pt'], experience_years: 9, certificates: [{ name: 'IPAF 3a', expires_on: '2027-05-01' }], links: [] } },
+      ],
       search_crew: { total: 2, more: false, results: [
         { user_id: 'cp1', name: 'Rui Teixeira', headline: tx('Rigger e técnico de palco, festivais', 'Rigger and stagehand, festivals'), functions: ['rigger', 'stagehand'], base_place: 'Porto, Portugal', base_country: 'PT',
           travel_scope: 'km', travel_km: 250, languages: ['en', 'pt'], experience_years: 9, certificates: [{ name: 'IPAF 3a', issuer: 'IPAF', expires_on: '2027-05-01' }], links: [], km: 4, worked_with: 0, free: true },

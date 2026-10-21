@@ -17,6 +17,7 @@ import { Avatar, RoleBadge, TabHeader } from './parts'
 import { ClashBox, AskAvailabilityModal, ShiftModal, shiftText, AMBER } from './Booking'
 import { NetworkPicker, PickedPerson, addFromNetwork } from '../NetworkPicker'
 import { CrewCallModal, CrewCallList } from './CrewCalls'
+import PostJobModal from '../jobs/PostJobModal'
 import { useUndoRemove } from '../../lib/undo'
 
 // Latest request per person: { user_id: request }
@@ -38,6 +39,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
   const [inviteFor, setInviteFor] = useState('') // function title to prefill when inviting for a position
   const [callFor, setCallFor] = useState(null) // { title, quantity } for a new crew call
   const [callsKey, setCallsKey] = useState(0)
+  const [postingJob, setPostingJob] = useState(false)
   const isOrgAdmin = orgRole === 'admin'
   const orgName = orgs.find(o => o.id === gig.org_id)?.name || ''
   const bookingKey = members.map(m => `${m.user_id}:${m.booked_from}:${m.booked_until}`).join('|')
@@ -114,6 +116,9 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
             <button onClick={() => setCallFor({})} style={btn} title={t('crewCall.hint')}><Megaphone size={14} /> {t('crewCall.button')}</button>
             {gig.org_id && (orgRole === 'admin' || orgRole === 'member') && (
               <Link to={`/org/${gig.org_id}/crew?gig=${gigId}`} style={{ ...btn, textDecoration: 'none' }}><Search size={14} /> {t('crewSearch.findForGig')}</Link>
+            )}
+            {gig.org_id && (orgRole === 'admin' || orgRole === 'member') && (
+              <button onClick={() => setPostingJob(true)} style={btn}><Send size={14} /> {t('jobs.postButton')}</button>
             )}
             <button onClick={() => setShowInvite(true)} style={btnPrimary}><UserPlus size={14} /> {t('crew.invite')}</button>
           </div>
@@ -232,6 +237,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
       `}</style>
       {showInvite && <InviteModal gigId={gigId} functionTitle={inviteFor} onClose={() => { setShowInvite(false); setInviteFor('') }} onInvited={onChanged} />}
       {callFor && <CrewCallModal gigId={gigId} preset={callFor} onClose={() => setCallFor(null)} onSent={() => setCallsKey(k => k + 1)} />}
+      {postingJob && <PostJobModal gig={gig} onClose={() => setPostingJob(false)} onPosted={() => setPostingJob(false)} />}
       {asking && (
         <AskAvailabilityModal gigId={gigId} personId={asking.user_id} name={nameOf(asking.user_id)} clashes={clashes[asking.user_id] || []}
           onClose={() => setAsking(null)} onSent={loadBookingState} />

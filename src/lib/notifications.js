@@ -29,6 +29,8 @@ export function describeNotification(n, nameOf) {
     case 'hire_request':      return t('notif.hireRequest', { org: d.from_org || '', range: d.starts_at && d.ends_at ? rangeText(d.starts_at, d.ends_at) : '—' })
     case 'crew_call':         return t('notif.crewCall', { actor, title: d.title || '', gig, range: d.start_date ? dayRange(d.start_date, d.end_date, fmt) : '—' })
     case 'crew_call_answer':  return t(`notif.crewCall.${d.answer === 'accepted' ? 'accepted' : 'declined'}`, { actor, title: d.title || '', gig })
+    case 'job_application':   return t('notif.jobApplication', { actor, title: d.title || '', gig })
+    case 'job_declined':      return t('notif.jobDeclined', { actor, title: d.title || '' })
     case 'guest_message':     return t(Number(d.count) > 1 ? 'notif.guestMany' : 'notif.guest', {
       guest: d.guest_name || t('common.someone'), about: d.about || t(`chat.context.kind.${d.about_kind || 'quote'}`), count: d.count || 1, excerpt: d.excerpt || '' })
     case 'message_report':    return t('notif.messageReport', { where: d.where || gig || '', reason: t(`chat.report.reason.${d.reason || 'other'}`) })
@@ -48,7 +50,7 @@ export function describeNotification(n, nameOf) {
 }
 
 // Kinds that are a direct question to you: they still count when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined'])
 export const countsAsUnread = (n, mutedOrgIds) => !n.read_at && (!n.org_id || !mutedOrgIds?.has(n.org_id) || DIRECT_KINDS.has(n.kind))
 
 export function notificationLink(n) {
@@ -56,6 +58,8 @@ export function notificationLink(n) {
   if (n.kind === 'announcement' && n.details?.conversation_id) return `/messages/${n.details.conversation_id}?m=${n.details.message_id}`
   if (n.kind === 'message_report' && n.details?.conversation_id) return `/messages/${n.details.conversation_id}?m=${n.details.message_id}`
   if (n.kind === 'message_removed' && n.details?.conversation_id) return `/messages/${n.details.conversation_id}`
+  if (n.kind === 'job_application' && n.org_id) return `/org/${n.org_id}/jobs`
+  if (n.kind === 'job_declined') return '/jobs'
   if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `/org/${n.org_id}/inventory?tab=maintenance`
   if ((n.kind === 'hire_request' || n.kind === 'hire_answered') && n.org_id) return `/org/${n.org_id}/inventory?tab=subrentals`
