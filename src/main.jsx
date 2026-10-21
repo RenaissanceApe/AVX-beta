@@ -23,9 +23,20 @@ themeStyle.textContent = themeCss()
 document.head.appendChild(themeStyle)
 applyAppearance()
 
-// Service worker (production builds only): lets the app open without a connection
+// Service worker (production builds only): lets the app open without a connection.
+// A new version is looked for when the app starts and each time it comes back to the screen
+// (an installed app or a tab left open is often never restarted); once found, the page
+// reloads into it. Not while it's on screen, so nobody is interrupted mid-edit.
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true }))
+  import('virtual:pwa-register').then(({ registerSW }) => registerSW({
+    immediate: true,
+    onRegisteredSW(_url, registration) {
+      if (!registration) return
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && navigator.onLine) registration.update().catch(() => {})
+      })
+    },
+  }))
 }
 
 const root = document.getElementById('root')

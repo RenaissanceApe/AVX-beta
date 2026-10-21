@@ -1,6 +1,6 @@
 # Switching to AVX: plan
 
-Status: **S1, S2 and S3a built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0), crew as held invitations (S3a, 0.44.0). Next: S3b (upcoming jobs → gigs, open quotes → drafts), then S4–S5.
+Status: **S1, S2 and S3 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0), crew as held invitations (S3a, 0.44.0), upcoming jobs, their equipment and open quotes (S3b, 0.45.0). Next: S4 (Rentman preset, switching checklist, calendar feed), then S5.
 
 The aim: a company using Rentman, another rental tool or spreadsheets can be fully running on
 AVX within a day, without retyping anything and without risking their data. Making it easy to
@@ -23,8 +23,8 @@ In the order they depend on each other:
 | 4 | Sets, cases, accessories | Kit contents | Often a separate export, or listed per item |
 | 5 | Clients and suppliers | **Contacts directory** (Contacts: clients and suppliers) | Built in S2 (0.43.0) |
 | 6 | Crew | Invitations, **held until you press send** | Built in S3a (0.44.0): nobody gets emailed by surprise |
-| 7 | Upcoming jobs | Gigs with dates, venue, status and equipment lines (which book the gear) | Past jobs stay in the old tool's export, kept as an archive file |
-| 8 | Open quotes | Draft quotes | Optional |
+| 7 | Upcoming jobs | Gigs with dates, venue, status and equipment lines (which book the gear) | Built in S3b (0.45.0). Past jobs stay in the old tool's export, kept as an archive file |
+| 8 | Open quotes | Draft quotes | Built in S3b (0.45.0) |
 
 Not migrated: invoices and accounting, full history of past jobs, time sheets.
 
@@ -130,6 +130,19 @@ Checks: `supabase/tests/contacts.sql`; after the hand-run file, `supabase/tests/
 | Why not batches | Crew aren't kept in `import_batches` (no presets or history for them), so no import-table check had to be widened by hand |
 
 Checks: `supabase/tests/held_invites.sql`.
+
+## How S3b works (0.45.0)
+
+| Piece | How it works |
+|---|---|
+| Kinds | **Upcoming jobs**, **Equipment on jobs** and **Open quotes** in the import wizard (admins and members), grouped under "People and work" with crew |
+| Jobs | One row per job: number, name, start and end dates, venue, status, client, notes. Each becomes a gig (status read from words like "Bevestigd"/"Confirmado" → confirmed, "Optie"/"Concept" → draft); the client and notes go in its description; the importer becomes its manager. Past jobs (ended before today) and cancelled ones are left out with a note; a new job needs a start date |
+| Equipment | One row per line: the job (number or name), the item (code or name), how many. Lines go on the gig's Equipment tab and book the gear for the gig's dates; the same item again changes its quantity. Only items kept in stock can be planned (sets through their contents, as in the app) |
+| Quotes | One row per quote line, with the quote's number (or title), client, dates, section, description, item code, quantity, days, price, discount. Rows with the same number make one **draft** quote, its lines in sections; a line with a catalogue item keeps the item (so availability can be checked) and its price when the file has none. A client whose name is in Contacts is linked with their details |
+| Re-importing | Gigs and quotes keep the old tool's number (`import_ref`) and are matched by it (gigs also by name and start date), so they're updated, not doubled. A quote already sent from AVX is left as it is |
+| No batches | Like crew, these aren't kept in `import_batches` (no presets, history or undo, and no hand-run change): a gig or a quote is deleted the usual way, an equipment line taken off |
+
+Checks: `supabase/tests/import_jobs.sql`.
 
 ## Decided (2026-10-19)
 

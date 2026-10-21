@@ -247,3 +247,57 @@ describe('import wizard: crew', () => {
     expect(dryRun(rows, 'crew', existing).plan.map(p => p.action)).toEqual(['match', 'match', 'match', 'create', 'match'])
   })
 })
+
+describe('import wizard: jobs, their equipment and open quotes', () => {
+  const future = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10) }
+
+  it('guesses job columns from a Rentman-style export', () => {
+    expect(guessMapping(['Projectnummer', 'Projectnaam', 'Startdatum', 'Einddatum', 'Locatie', 'Status', 'Klant'], 'gigs')).toEqual({
+      Projectnummer: 'ref', Projectnaam: 'name', Startdatum: 'start_date', Einddatum: 'end_date', Locatie: 'venue', Status: 'status', Klant: 'client',
+    })
+    expect(guessMapping(['Projectnummer', 'Artikelcode', 'Aantal'], 'gig_equipment')).toEqual({ Projectnummer: 'gig_ref', Artikelcode: 'item_code', Aantal: 'quantity' })
+    expect(guessMapping(['Offertenummer', 'Klant', 'Groep', 'Omschrijving', 'Aantal', 'Dagen', 'Prijs', 'Korting'], 'quotes')).toEqual({
+      Offertenummer: 'quote_ref', Klant: 'client', Groep: 'section', Omschrijving: 'description', Aantal: 'quantity', Dagen: 'factor', Prijs: 'unit_price', Korting: 'discount_pct',
+    })
+    expect(missingFields({ A: 'venue' }, 'gigs')).toEqual(['name'])
+    expect(missingFields({ A: 'gig_ref' }, 'gig_equipment')).toEqual(['item'])
+    expect(missingFields({ A: 'quote_ref' }, 'quotes')).toEqual(['description'])
+    expect(parseChoice('Bevestigd', 'gigStatus')).toBe('confirmed')
+    expect(parseChoice('Optie', 'gigStatus')).toBe('draft')
+  })
+
+  it('leaves out past and cancelled jobs and finds jobs by number or name', () => {
+    const existing = { gigs: [{ id: 'g1', name: 'Summer Festival', start_date: future(10), import_ref: 'P-101' }], items: [
+      { id: 'i1', name: 'XLR', code: 'XLR10', tracking: 'bulk' }, { id: 'i2', name: 'Crew', code: 'SE', tracking: 'none' },
+    ], lines: [{ gig_id: 'g1', item_id: 'i1' }] }
+    const jobs = [
+      { _row: 2, ref: 'p-101', name: 'Summer Festival', _errors: [] },
+      { _row: 3, name: 'New show', start_date: future(5), _errors: [] },
+      { _row: 4, name: 'Old show', start_date: '2020-01-01', _errors: [] },
+      { _row: 5, name: 'Off', start_date: future(5), status: 'cancelled', _errors: [] },
+      { _row: 6, name: 'No date', _errors: [] },
+    ]
+    expect(dryRun(jobs, 'gigs', existing).plan.map(p => p.action + (p.reason ? `:${p.reason}` : ''))).toEqual([
+      'match', 'create', 'skip:pastJob', 'skip:cancelledJob', 'skip:noStart',
+    ])
+    const lines = [
+      { _row: 2, gig_ref: 'P-101', item_code: 'XLR10', quantity: 4, _errors: [] },
+      { _row: 3, gig: 'Summer Festival', item_code: 'SE', _errors: [] },
+      { _row: 4, gig_ref: 'P-999', item_code: 'XLR10', _errors: [] },
+    ]
+    expect(dryRun(lines, 'gig_equipment', existing).plan.map(p => p.action + (p.reason ? `:${p.reason}` : ''))).toEqual([
+      'match', 'skip:notTracked', 'skip:unknownJob',
+    ])
+  })
+
+  it('groups quote lines by quote and flags dates in the wrong order', () => {
+    const rows = [
+      { _row: 2, quote_ref: 'Q-7', description: 'A', _errors: [] },
+      { _row: 3, quote_ref: 'Q-7', description: 'B', _errors: [] },
+      { _row: 4, quote_ref: 'Q-8', description: 'C', _errors: [] },
+    ]
+    expect(dryRun(rows, 'quotes', { quotes: [{ import_ref: 'q-8', status: 'draft' }] }).plan.map(p => p.action)).toEqual(['create', 'match', 'match'])
+    const built = buildRows({ headers: ['Name', 'Start', 'End'], rows: [['Show', '2030-05-02', '2030-05-01']] }, { Name: 'name', Start: 'start_date', End: 'end_date' }, 'gigs')
+    expect(built[0]._errors).toEqual([{ field: 'end_date', error: 'dates' }])
+  })
+})

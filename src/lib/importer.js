@@ -3,11 +3,13 @@
 // runs in the database (run_import), which checks everything again.
 import { parsePrice } from './quotes'
 
-export const KINDS = ['locations', 'items', 'units', 'kits', 'clients', 'suppliers', 'crew']
+export const KINDS = ['locations', 'items', 'units', 'kits', 'clients', 'suppliers', 'crew', 'gigs', 'gig_equipment', 'quotes']
 // Kinds that go to the contacts directory (S2), not the inventory
 export const CONTACT_KINDS = ['clients', 'suppliers']
 // Kinds kept outside the import batches: crew become invitations held until an admin sends them (S3a)
 export const HELD_KINDS = ['crew']
+// Upcoming jobs, their equipment and open quotes (S3b): also outside the batches, imported by import_jobs
+export const JOB_KINDS = ['gigs', 'gig_equipment', 'quotes']
 export const MAX_ROWS = 5000
 const CODE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/
 
@@ -51,6 +53,13 @@ const WORDS = {
     admin: ['admin', 'administrator', 'beheerder', 'administrador', 'owner', 'eigenaar', 'dono'],
     member: ['member', 'membro', 'staff', 'employee', 'medewerker', 'werknemer', 'funcionario', 'office', 'kantoor', 'escritorio', 'planner', 'manager'],
     viewer: ['viewer', 'crew', 'freelancer', 'freelance', 'zzp', 'zzp er', 'technician', 'technicus', 'tecnico', 'equipa', 'observador', 'leitor', 'lezer'],
+  },
+  gigStatus: {
+    confirmed: ['confirmed', 'bevestigd', 'confirmado', 'booked', 'geboekt', 'reservado', 'definitive', 'definitief', 'definitivo'],
+    draft: ['draft', 'concept', 'option', 'optie', 'opcao', 'request', 'aanvraag', 'pedido', 'pending', 'in afwachting', 'pendente', 'rascunho', 'quote', 'offerte', 'orcamento', 'tentative'],
+    active: ['active', 'in progress', 'lopend', 'em curso', 'on site'],
+    completed: ['completed', 'finished', 'done', 'closed', 'afgerond', 'voltooid', 'gesloten', 'concluido', 'terminado', 'fechado'],
+    cancelled: ['cancelled', 'canceled', 'geannuleerd', 'cancelado', 'anulado', 'lost', 'verloren', 'perdido'],
   },
   unitStatus: {
     available: ['available', 'beschikbaar', 'disponivel', 'ok', 'in stock', 'active', 'actief', 'ativo'],
@@ -128,6 +137,38 @@ export const FIELDS = {
   ],
   clients: CONTACT_FIELDS,
   suppliers: CONTACT_FIELDS,
+  gigs: [
+    { key: 'ref', type: 'text', max: 80, names: ['number', 'nummer', 'project number', 'projectnummer', 'job number', 'ref', 'reference', 'referentie', 'referencia', 'numero', 'id'] },
+    { key: 'name', type: 'text', max: 200, names: ['name', 'naam', 'project', 'project name', 'projectnaam', 'job', 'job name', 'event', 'evento', 'nome', 'title', 'titel', 'titulo'] },
+    { key: 'start_date', type: 'date', names: ['start', 'start date', 'startdatum', 'begin', 'begindatum', 'from', 'van', 'data de inicio', 'inicio', 'period start', 'planperiode start', 'usage period start'] },
+    { key: 'end_date', type: 'date', names: ['end', 'end date', 'einddatum', 'eind', 'to', 'tot', 'data de fim', 'fim', 'period end', 'planperiode eind', 'usage period end'] },
+    { key: 'venue', type: 'text', max: 300, names: ['venue', 'location', 'locatie', 'local', 'recinto', 'address', 'adres', 'morada'] },
+    { key: 'status', type: 'enum', words: 'gigStatus', names: ['status', 'state', 'estado', 'project status', 'projectstatus'] },
+    { key: 'client', type: 'text', max: 200, names: ['client', 'customer', 'klant', 'opdrachtgever', 'cliente', 'contact', 'relation', 'relatie'] },
+    { key: 'notes', type: 'text', max: 4000, names: ['notes', 'note', 'description', 'omschrijving', 'opmerkingen', 'remarks', 'notas', 'descricao', 'observacoes'] },
+  ],
+  gig_equipment: [
+    { key: 'gig_ref', type: 'text', max: 80, names: ['project number', 'projectnummer', 'job number', 'number', 'nummer', 'ref', 'reference', 'referencia', 'numero do projeto'] },
+    { key: 'gig', type: 'text', max: 200, names: ['project', 'project name', 'projectnaam', 'job', 'job name', 'event', 'evento', 'projeto'] },
+    { key: 'item', type: 'text', max: 200, names: ['item', 'equipment', 'name', 'naam', 'artikel', 'artigo', 'equipamento', 'product', 'produto', 'nome'] },
+    { key: 'item_code', type: 'code', names: ['item code', 'code', 'equipment code', 'artikelcode', 'artikelnummer', 'codigo', 'article number'] },
+    { key: 'quantity', type: 'int', max: 100000, names: ['quantity', 'qty', 'aantal', 'quantidade', 'count', 'planned', 'gepland'] },
+    { key: 'notes', type: 'text', max: 500, names: ['notes', 'note', 'remark', 'opmerking', 'opmerkingen', 'notas'] },
+  ],
+  quotes: [
+    { key: 'quote_ref', type: 'text', max: 80, names: ['quote number', 'offertenummer', 'number', 'nummer', 'ref', 'reference', 'referentie', 'numero', 'numero do orcamento', 'quote'] },
+    { key: 'title', type: 'text', max: 200, names: ['title', 'titel', 'titulo', 'name', 'naam', 'nome', 'project', 'subject', 'onderwerp', 'assunto'] },
+    { key: 'client', type: 'text', max: 200, names: ['client', 'customer', 'klant', 'opdrachtgever', 'cliente', 'contact', 'relation', 'relatie'] },
+    { key: 'issue_date', type: 'date', names: ['date', 'datum', 'quote date', 'offertedatum', 'data', 'issue date', 'data do orcamento'] },
+    { key: 'valid_until', type: 'date', names: ['valid until', 'geldig tot', 'expiry', 'expires', 'validade', 'valido ate', 'expiry date', 'vervaldatum'] },
+    { key: 'section', type: 'text', max: 120, names: ['section', 'group', 'groep', 'category', 'categorie', 'categoria', 'seccao', 'secao', 'grupo'] },
+    { key: 'description', type: 'text', max: 500, names: ['description', 'omschrijving', 'line', 'regel', 'descricao', 'text', 'tekst', 'texto', 'item', 'artikel', 'artigo'] },
+    { key: 'item_code', type: 'code', names: ['item code', 'code', 'artikelcode', 'artikelnummer', 'codigo', 'equipment code'] },
+    { key: 'quantity', type: 'number', names: ['quantity', 'qty', 'aantal', 'quantidade'] },
+    { key: 'factor', type: 'number', names: ['days', 'dagen', 'dias', 'factor', 'periods', 'periode', 'period', 'periodo'] },
+    { key: 'unit_price', type: 'money', names: ['price', 'unit price', 'prijs', 'stukprijs', 'eenheidsprijs', 'preco', 'preco unitario', 'rate', 'tarief'] },
+    { key: 'discount_pct', type: 'number', names: ['discount', 'discount pct', 'korting', 'desconto', 'percentage'] },
+  ],
   crew: [
     { key: 'email', type: 'email', required: true, names: ['email', 'e mail', 'mail', 'email address', 'e mailadres', 'emailadres', 'correio electronico', 'correio eletronico'] },
     { key: 'full_name', type: 'text', max: 120, names: ['name', 'full name', 'naam', 'volledige naam', 'nome', 'nome completo', 'displayname', 'display name', 'crew member', 'crewlid'] },
@@ -230,6 +271,9 @@ export function missingFields(mapping, kind) {
   if (kind === 'kits') return [...(used.has('kit') || used.has('kit_code') ? [] : ['kit']), ...(used.has('item') || used.has('item_code') ? [] : ['item'])]
   if (kind === 'items') return used.has('name') || used.has('code') ? [] : ['name']
   if (kind === 'crew') return used.has('email') ? [] : ['email']
+  if (kind === 'gigs') return used.has('name') || used.has('ref') ? [] : ['name']
+  if (kind === 'gig_equipment') return [...(used.has('gig') || used.has('gig_ref') ? [] : ['gig']), ...(used.has('item') || used.has('item_code') ? [] : ['item'])]
+  if (kind === 'quotes') return [...(used.has('title') || used.has('quote_ref') ? [] : ['title']), ...(used.has('description') || used.has('item_code') ? [] : ['description'])]
   return (FIELDS[kind] || []).filter(f => f.required && !used.has(f.key)).map(f => f.key)
 }
 
@@ -308,6 +352,13 @@ export function buildRows(table, mapping, kind, { headerRow = true } = {}) {
     if (!any) return
     if (CONTACT_KINDS.includes(kind)) joinAddress(row)
     if (kind === 'crew') joinName(row)
+    if (kind === 'gigs' && !row.name && !row.ref) row._errors.push({ field: 'name', error: 'missing' })
+    if (kind === 'gigs' && row.start_date && row.end_date && row.end_date < row.start_date) row._errors.push({ field: 'end_date', error: 'dates' })
+    if (kind === 'gig_equipment' && !row.gig && !row.gig_ref) row._errors.push({ field: 'gig', error: 'missing' })
+    if (kind === 'gig_equipment' && !row.item && !row.item_code) row._errors.push({ field: 'item', error: 'missing' })
+    if (kind === 'gig_equipment' && row.quantity === 0) row._errors.push({ field: 'quantity', error: 'whole' })
+    if (kind === 'quotes' && !row.title && !row.quote_ref) row._errors.push({ field: 'title', error: 'missing' })
+    if (kind === 'quotes' && !row.description && !row.item_code) row._errors.push({ field: 'description', error: 'missing' })
     if (kind === 'crew' && !row.email && !row._errors.some(e => e.field === 'email')) row._errors.push({ field: 'email', error: 'missing' })
     if ((kind === 'locations' || CONTACT_KINDS.includes(kind)) && !row.name) row._errors.push({ field: 'name', error: 'missing' })
     if (kind === 'items' && !row.name && !row.code) row._errors.push({ field: 'name', error: 'missing' })
@@ -339,6 +390,23 @@ function joinName(row) {
   if (!row.full_name && joined) row.full_name = joined.slice(0, 120)
 }
 
+const today = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// A gig by its old number, then by name (and start date when given), as the database finds it
+function findGig(gigs = [], ref, name, start) {
+  const lower = s => String(s || '').toLowerCase()
+  if (ref) {
+    const byRef = gigs.find(g => g.import_ref && lower(g.import_ref) === lower(ref))
+    if (byRef) return byRef
+  }
+  if (!name) return null
+  const named = gigs.filter(g => lower(g.name) === lower(name) && (!start || g.start_date === start))
+  return named.length === 1 ? named[0] : null
+}
+
 // A tax number compared without spaces, dots, dashes or capitals (as the database does)
 export const taxKey = s => String(s || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase()
 
@@ -367,6 +435,33 @@ export function dryRun(rows, kind, existing) {
       if (!row.code && row.name && (itemsByName.get(lower(row.name))?.length || 0) > 1) return { action: 'skip', reason: 'sameName', value: row.name }
       const key = row.code ? `#${row.code.toUpperCase()}` : lower(row.name)
       const action = findItem(row.code, row.name) || seen.has(key) ? 'match' : 'create'
+      seen.add(key)
+      return { action }
+    }
+    if (kind === 'gigs') {
+      if (row.status === 'cancelled') return { action: 'skip', reason: 'cancelledJob', value: row.name || row.ref }
+      if ((row.end_date || row.start_date) && (row.end_date || row.start_date) < today()) return { action: 'skip', reason: 'pastJob', value: row.name || row.ref }
+      const found = findGig(existing.gigs, row.ref, row.name, row.start_date)
+      if (!found && !row.start_date) return { action: 'skip', reason: 'noStart', field: 'start_date' }
+      const key = row.ref ? `#${lower(row.ref)}` : `${lower(row.name)}|${row.start_date}`
+      const action = found || seen.has(key) ? 'match' : 'create'
+      seen.add(key)
+      return { action }
+    }
+    if (kind === 'gig_equipment') {
+      const gig = findGig(existing.gigs, row.gig_ref, row.gig, null)
+      if (!gig) return { action: 'skip', reason: 'unknownJob', value: row.gig_ref || row.gig }
+      const item = findItem(row.item_code, row.item)
+      if (!item) return { action: 'skip', reason: 'unknownItem', value: row.item_code || row.item }
+      if (item.tracking === 'none') return { action: 'skip', reason: 'notTracked', value: item.name }
+      const key = `${gig.id}>${item.id}`
+      const action = (existing.lines || []).some(l => l.gig_id === gig.id && l.item_id === item.id) || seen.has(key) ? 'match' : 'create'
+      seen.add(key)
+      return { action }
+    }
+    if (kind === 'quotes') {
+      const key = lower(row.quote_ref || row.title)
+      const action = (row.quote_ref && (existing.quotes || []).some(q => lower(q.import_ref) === lower(row.quote_ref))) || seen.has(key) ? 'match' : 'create'
       seen.add(key)
       return { action }
     }
@@ -459,6 +554,18 @@ const SERVER = [
   [/^Unknown role: (.+)$/, 'unknownRole'],
   [/^Already a member: (.+)$/, 'alreadyMember'],
   [/^Already invited: (.+)$/, 'alreadyInvited'],
+  [/^Unknown status: (.+)$/, 'unknownStatus'],
+  [/^Cancelled job left out: (.+)$/, 'cancelledJob'],
+  [/^Past job left out: (.+)$/, 'pastJob'],
+  [/^The job ends before it starts/, 'dates'],
+  [/^The start date is missing/, 'noStart'],
+  [/^Several gigs are called (.+?): add the job numbers/, 'sameGig'],
+  [/^Unknown job: (.+)$/, 'unknownJob'],
+  [/^Only stock-tracked items can be planned/, 'notTracked'],
+  [/^The quantity must be 1 to 100000/, 'gigQuantity'],
+  [/^The quote has no title or number/, 'noTitle'],
+  [/^A line has no description or item/, 'noDescription'],
+  [/^Quote already sent, left as it is: (.+)$/, 'quoteSent'],
 ]
 export function serverMessage(message) {
   for (const [re, key] of SERVER) {

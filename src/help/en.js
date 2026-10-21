@@ -584,6 +584,20 @@ export default {
         'Two contacts with the same name are told apart by their tax number or e-mail when importing. Add the tax number to avoid doubles.',
       ],
     },
+    'of-import-jobs': {
+      title: 'Bring over your upcoming jobs and open quotes',
+      intro: 'Import the jobs you still have to do, the equipment planned on them and the quotes you are waiting on, from your old tool\'s exports. Past jobs stay in the old tool\'s export as an archive.',
+      steps: [
+        'Import your equipment catalogue first (Inventory → Import). Then, in the same place, choose Upcoming jobs and the jobs export: each job becomes a gig with its dates, venue and status.',
+        'The check shows which jobs are new, which match gigs already in AVX (by the job number) and which are left out: past jobs, cancelled ones, or ones without a start date.',
+        'Next, Equipment on jobs: one row per line, with the job number and the item code. It books the gear for the gig\'s dates. Then check each gig\'s Equipment tab for anything double-booked.',
+        'Open quotes: one row per quote line with the quote number. Each becomes a draft quote; open it to check the client, prices and dates before sending.',
+      ],
+      mistakes: [
+        'Import the same file again after changes in your old tool: gigs and quotes are matched by their number, so they are updated, not doubled. A quote already sent from AVX is left as it is.',
+        'Sets aren\'t planned on a gig directly: plan their contents, as AVX does when you add a set by hand.',
+      ],
+    },
     'of-build-quote': {
       title: 'Build a quote in phases',
       intro: 'Split a quote into phases (load-in, show days, breakdown), each with sections and priced lines.',

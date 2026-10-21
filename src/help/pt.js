@@ -581,6 +581,20 @@ export default {
         'Ao importar, dois contactos com o mesmo nome distinguem-se pelo NIF ou pelo e-mail. Junte o NIF para evitar duplicados.',
       ],
     },
+    'of-import-jobs': {
+      title: 'Traga os próximos trabalhos e os orçamentos em aberto',
+      intro: 'Importe os trabalhos que ainda tem por fazer, o equipamento planeado neles e os orçamentos à espera de resposta, a partir das exportações da ferramenta antiga. Os trabalhos passados ficam na exportação da ferramenta antiga, como arquivo.',
+      steps: [
+        'Importe primeiro o catálogo de equipamento (Inventário → Importar). Depois, no mesmo sítio, escolha Próximos trabalhos e a exportação dos trabalhos: cada trabalho passa a evento, com datas, local e estado.',
+        'A verificação mostra que trabalhos são novos, quais correspondem a eventos já no AVX (pelo número do trabalho) e quais ficam de fora: passados, cancelados ou sem data de início.',
+        'A seguir, Equipamento nos trabalhos: uma linha por item, com o número do trabalho e o código do artigo. Reserva o material para as datas do evento. Depois veja no separador Equipamento de cada evento se algo está reservado em duplicado.',
+        'Orçamentos em aberto: uma linha por linha de orçamento, com o número do orçamento. Cada um fica em rascunho; abra-o para verificar o cliente, os preços e as datas antes de enviar.',
+      ],
+      mistakes: [
+        'Volte a importar o mesmo ficheiro depois de mudanças na ferramenta antiga: eventos e orçamentos correspondem pelo número, por isso são atualizados, não duplicados. Um orçamento já enviado do AVX fica como está.',
+        'Os conjuntos não se planeiam diretamente num evento: planeie o conteúdo, como o AVX faz quando adiciona um conjunto à mão.',
+      ],
+    },
     'of-build-quote': {
       title: 'Fazer um orçamento por fases',
       intro: 'Divida o orçamento em fases (carga, dias de espetáculo, desmontagem), cada uma com secções e linhas com preço.',

@@ -71,6 +71,7 @@ export const GUIDES = {
   'of-company': { role: 'office', pages: ['quotes'], terms: ['vat', 'validity'], shots: [null, 'company-details', null] },
   'of-price-list': { role: 'office', pages: ['quotes', 'quote'], terms: ['price-list', 'catalogue-item'], shots: ['price-list', null, null] },
   'of-contacts': { role: 'office', pages: ['contacts', 'quotes', 'quote'], terms: ['client', 'supplier'], shots: ['contacts', null, 'quote-client', null] },
+  'of-import-jobs': { role: 'office', pages: ['inventory', 'quotes', 'home'], terms: ['gig', 'gig-status', 'quote'], shots: [null, 'imp-jobs', null, null] },
   'of-build-quote': { role: 'office', pages: ['quotes', 'quote'], terms: ['quote', 'phase', 'factor', 'vat', 'price-list'], shots: [null, 'quote-phases', null, null] },
   'of-versions': { role: 'office', pages: ['quote'], terms: ['quote-version', 'quote'], shots: [null, 'quote-versions', null] },
   'of-send-quote': { role: 'office', pages: ['quote'], terms: ['client-link', 'quote-version', 'validity'], shots: [null, 'send-quote', null] },
