@@ -327,6 +327,11 @@ const SCENES = {
     await dialog.getByLabel(L('common.email'), { exact: true }).fill('marco@example.com')
     return dialog.getByRole('button', { name: L('common.invite'), exact: true }).locator('xpath=..')
   } },
+  'held-invites': { persona: 'pm', url: `/org/${ids.org}?panel=members`, async run(page, L) {
+    const box = page.locator('section[aria-labelledby="held-title"]')
+    await box.getByRole('checkbox').first().check()
+    return box
+  } },
   'orgs-mute': { persona: 'pm', url: '/orgs', async run(page, L) {
     return page.getByRole('button', { name: L('mute.muteNamed', { name: 'Lumen and Pixel' }) }).first()
   } },

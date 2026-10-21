@@ -263,6 +263,11 @@ export function sampleData(persona, lang) {
       quote_shares: [{ id: 'sh1', status: 'accepted', sent_to: 'marta@example.com', emailed: true, created_at: ago(48), expires_at: `${day(28)}T00:00:00Z`, viewed_at: ago(40), responded_at: ago(30), responder_name: 'Marta Lopes', responder_note: null, quote_versions: { version_no: 2 } }],
       quote_templates: [],
       org_branding: [{ org_id: orgId, legal_name: 'Lumen and Pixel, Lda', tax_id: '500000000', address: 'Lisboa', phone: '+351 210 000 000', website: 'lumenandpixel.com', default_vat: 23, validity_days: 30, default_terms: null, brand_color: '#33FB31' }],
+      held_invites: persona === 'pm' ? [
+        { id: 'h1', org_id: orgId, email: 'pedro.alves@example.com', full_name: 'Pedro Alves', phone: '+351 914 000 000', functions: tx('Técnico de som', 'Sound engineer'), role: 'viewer', status: 'held', import_file: 'rentman-crew.xlsx' },
+        { id: 'h2', org_id: orgId, email: 'sofia.m@example.com', full_name: 'Sofia Martins', phone: null, functions: tx('Luz, rigging', 'Lighting, rigging'), role: 'viewer', status: 'held', import_file: 'rentman-crew.xlsx' },
+        { id: 'h3', org_id: orgId, email: 'tiago@example.com', full_name: 'Tiago Rocha', phone: null, functions: tx('Planeamento', 'Planning'), role: 'member', status: 'held', import_file: 'rentman-crew.xlsx' },
+      ] : [],
       org_invites: persona === 'pm' ? [{ id: 'oi1', org_id: orgId, email: 'joana.r@example.com', role: 'member', created_at: ago(5) }] : [],
       org_mutes: [],
       reservations: [],

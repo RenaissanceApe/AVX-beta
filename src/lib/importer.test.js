@@ -222,3 +222,28 @@ describe('import wizard: clients and suppliers', () => {
     ])
   })
 })
+
+describe('import wizard: crew', () => {
+  it('guesses crew columns and puts first and last names together', () => {
+    const headers = ['Voornaam', 'Achternaam', 'E-mailadres', 'Telefoon', 'Functies', 'Rol']
+    const mapping = guessMapping(headers, 'crew')
+    expect(mapping).toEqual({ Voornaam: 'first_name', Achternaam: 'last_name', 'E-mailadres': 'email', Telefoon: 'phone', Functies: 'functions', Rol: 'role' })
+    expect(missingFields({ Voornaam: 'first_name' }, 'crew')).toEqual(['email'])
+    const rows = buildRows({ headers, rows: [
+      ['Rui', 'Costa', 'rui@example.com', '+351 912', 'Sound engineer', 'Freelancer'],
+      ['Ana', '', '', '', '', 'Medewerker'],
+      ['Bea', '', 'bea@example.com', '', '', 'Astronaut'],
+    ] }, mapping, 'crew')
+    expect(rows[0]).toMatchObject({ full_name: 'Rui Costa', email: 'rui@example.com', role: 'viewer', _errors: [] })
+    expect(rows[0].first_name).toBeUndefined()
+    expect(rows[1]._errors).toEqual([{ field: 'email', error: 'missing' }])
+    expect(rows[2]._errors).toEqual([{ field: 'role', error: 'choice' }])
+  })
+
+  it('counts people already in, invited or held as matched', () => {
+    const existing = { members: ['Ana@example.com'], invites: ['pending@example.com'], held: ['held@example.com'] }
+    const rows = ['ana@example.com', 'pending@example.com', 'held@example.com', 'new@example.com', 'NEW@example.com']
+      .map((email, i) => ({ _row: i + 2, email, _errors: [] }))
+    expect(dryRun(rows, 'crew', existing).plan.map(p => p.action)).toEqual(['match', 'match', 'match', 'create', 'match'])
+  })
+})
