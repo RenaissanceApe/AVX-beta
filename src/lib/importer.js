@@ -153,8 +153,8 @@ export const FIELDS = {
     { key: 'notes', type: 'text', max: 4000, names: ['notes', 'note', 'description', 'omschrijving', 'opmerkingen', 'remarks', 'notas', 'descricao', 'observacoes'] },
   ],
   gig_equipment: [
-    { key: 'gig_ref', type: 'text', max: 80, names: ['project number', 'projectnummer', 'job number', 'number', 'nummer', 'ref', 'reference', 'referencia', 'numero do projeto'] },
-    { key: 'gig', type: 'text', max: 200, names: ['project', 'project name', 'projectnaam', 'job', 'job name', 'event', 'evento', 'projeto'] },
+    { key: 'gig_ref', type: 'text', max: 80, names: ['gig ref', 'project number', 'projectnummer', 'job number', 'number', 'nummer', 'ref', 'reference', 'referencia', 'numero do projeto'] },
+    { key: 'gig', type: 'text', max: 200, names: ['gig', 'gig name', 'project', 'project name', 'projectnaam', 'job', 'job name', 'event', 'evento', 'projeto'] },
     { key: 'item', type: 'text', max: 200, names: ['item', 'equipment', 'name', 'naam', 'artikel', 'artigo', 'equipamento', 'product', 'produto', 'nome'] },
     { key: 'item_code', type: 'code', names: ['item code', 'code', 'equipment code', 'artikelcode', 'artikelnummer', 'codigo', 'article number'] },
     { key: 'quantity', type: 'int', max: 100000, names: ['quantity', 'qty', 'aantal', 'quantidade', 'count', 'planned', 'gepland'] },

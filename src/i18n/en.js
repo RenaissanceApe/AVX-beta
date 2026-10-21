@@ -2614,4 +2614,13 @@ export default {
   "imp.switch.count": "{count} in AVX",
   "imp.switch.todo": "not yet",
   "imp.err.inactive": "marked inactive in the old tool: not invited",
+  "orgExport.title": "Your organisation's data",
+  "orgExport.hint": "Download everything this organisation holds as one zip of spreadsheet (CSV) files: catalogue, stock and units, kit contents, contacts, members, gigs with their equipment, crew and schedule, quotes line by line, subrentals, repairs and inspections, plus the messages. Use it as a backup or to move to another tool: the files import straight back into AVX.",
+  "orgExport.button": "Download everything (zip)",
+  "orgExport.progress": "Preparing {done} of {total}…",
+  "orgExport.wait": "This can take a minute for a large organisation. Keep this window open.",
+  "orgExport.keepSafe": "Keep the file safe: it holds your clients' and team's details. Uploaded files (riders, photos) are listed, not included.",
+  "orgExport.done": "Downloaded. Records: {rows} · messages: {messages}",
+  "orgExport.failed": "Couldn’t prepare the download: {reason}",
+  "orgExport.readme": "{org}: everything from AVX, {date}\n\nOne CSV file per kind of record, numbered in the order another tool would need them (locations and items before units, clients before quotes).\nThe files use semicolons between columns and commas for decimals, like spreadsheets set to Portuguese. Dates are written 2026-10-21; times with a date are in UTC.\nNames are used instead of internal numbers: a unit names its item and its location, a gig line names its gig and its item.\n\nTo bring them into AVX again: Inventory → Import, choose the kind and the file; the columns are recognised.\nmessages.json holds the conversations (newest 50,000 messages).\nUploaded files (riders, plans, photos) are listed in the gig files list but not included: download them from each gig.\n\nThis file holds personal details of your team and clients. Keep it safe and delete it when you no longer need it.\n",
 }

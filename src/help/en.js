@@ -688,6 +688,19 @@ export default {
         'People who are already members or already invited are left out. An invitation that couldn\'t be sent stays in the list to try again.',
       ],
     },
+    'ad-org-export': {
+      title: 'Download all your organisation\'s data',
+      intro: 'Keep a copy of everything, or take it to another tool. Nothing locks you in.',
+      steps: [
+        'Open the organisation\'s settings and scroll to "Your organisation\'s data". Only admins see it.',
+        'Tap "Download everything (zip)". It gathers each kind of record in turn; keep the window open until the zip downloads.',
+        'Open the zip: one spreadsheet (CSV) file per kind of record, numbered in the order another tool needs them, plus the messages and a README that explains the files.',
+      ],
+      mistakes: [
+        'The files hold your clients\' and team\'s personal details. Keep them somewhere safe and delete them when you no longer need them.',
+        'Uploaded files such as riders and photos are listed, not included. Download those from each gig.',
+      ],
+    },
     'ad-mute': {
       title: 'Mute an organisation or a conversation',
       intro: 'Work for several companies? Mute the ones you don\'t need to follow closely.',

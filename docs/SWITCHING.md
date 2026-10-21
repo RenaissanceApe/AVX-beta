@@ -1,6 +1,6 @@
 # Switching to AVX: plan
 
-Status: **S1–S4 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0), crew as held invitations (S3a, 0.44.0), upcoming jobs, their equipment and open quotes (S3b, 0.45.0), Rentman exports, the switching checklist and the calendar feed (S4, 0.46.0). Next: S5 (organisation export).
+Status: **S1–S5 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0), crew as held invitations (S3a, 0.44.0), upcoming jobs, their equipment and open quotes (S3b, 0.45.0), Rentman exports, the switching checklist and the calendar feed (S4, 0.46.0), the organisation export (S5, 0.47.0). Switching is complete; next on the roadmap: crew network and job board.
 
 The aim: a company using Rentman, another rental tool or spreadsheets can be fully running on
 AVX within a day, without retyping anything and without risking their data. Making it easy to
@@ -160,6 +160,19 @@ leave its quantity out of the equipment file. Converting it automatically needs 
 movement removed, which is a hand-run change for later.
 
 Checks: `supabase/tests/calendar_feed.sql`; the feed's text in `src/lib/ics.test.js`.
+
+## How S5 works (0.47.0)
+
+| Piece | How it works |
+|---|---|
+| Where | Organisation settings → "Your organisation's data" → "Download everything (zip)". The settings are admins-only, and so is the database function |
+| Server | `export_org_part(org, part, offset)` returns one file's rows as JSON, 5000 at a time, with names in place of ids (a unit's item and location, a gig line's gig and item, a quote's client). Admins only, two-step sign-in, reads only. Quote numbers as the app shows them (Q0042) |
+| Files | `src/lib/orgExport.js` asks for each part in turn (page by page), writes semicolon-separated CSV with decimal commas and a byte-order mark (like the app's other CSV files), adds `messages.json` (the Messages download) and a README in the admin's language, and zips them in the browser with `fflate` (loaded only for this) |
+| Parts | organisation, members (name, e-mail, role), crew not invited yet, locations, items, stock per location, units, kit contents, stock movements, clients, suppliers, gigs, gig equipment, gig crew (names, not e-mails), gig schedule, gig files (the list, not the files), quotes, quote lines (one row per line, with phase, section and line total), subrentals and their lines, repairs, inspections |
+| Round trip | The headings are the import wizard's own words, so equipment, units, kit contents, clients, suppliers, gigs (the `ref` column keeps the link), gig equipment and quote lines import straight back; `src/lib/orgExport.test.js` checks it |
+| Not included | Uploaded files (riders, plans, photos, repair photos): listed, downloaded from each gig. Activity history, notifications and import logs |
+
+Checks: `supabase/tests/org_export.sql`; the files in `src/lib/orgExport.test.js`.
 
 ## Decided (2026-10-19)
 
