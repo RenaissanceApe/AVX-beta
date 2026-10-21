@@ -1,6 +1,6 @@
 # Switching to AVX: plan
 
-Status: **S1 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0). Next: S2 (contacts), then S3–S5.
+Status: **S1 and S2 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0). Next: S3 (crew and jobs), then S4–S5.
 
 The aim: a company using Rentman, another rental tool or spreadsheets can be fully running on
 AVX within a day, without retyping anything and without risking their data. Making it easy to
@@ -21,7 +21,7 @@ In the order they depend on each other:
 | 2 | Equipment list | Catalogue items (category, code, brand, model, price, weight, power, replacement value) | The core. Most tools export it to Excel/CSV |
 | 3 | Serial numbers | Units (serial, purchase date and cost, location, status) | Existing barcodes can be kept as the unit's code, so old labels keep working |
 | 4 | Sets, cases, accessories | Kit contents | Often a separate export, or listed per item |
-| 5 | Clients and suppliers | **Contacts directory** (doesn't exist yet: quotes store a client's name and email only) | Prerequisite built in S2 |
+| 5 | Clients and suppliers | **Contacts directory** (Contacts: clients and suppliers) | Built in S2 (0.43.0) |
 | 6 | Crew | Invitations, **held until you press send** | Nobody gets emailed by surprise |
 | 7 | Upcoming jobs | Gigs with dates, venue, status and equipment lines (which book the gear) | Past jobs stay in the old tool's export, kept as an archive file |
 | 8 | Open quotes | Draft quotes | Optional |
@@ -87,7 +87,7 @@ integrations is a later, separate decision.
 | Check | Before importing: how many rows are new, how many match what's already in AVX (items by code then name, units by code then serial, locations by name), and which rows have problems (left out), with a preview |
 | Import | `run_import(org, kind, rows)` in one call: each row is matched and updated (only the cells that are filled; a name or code that only differs in capitals is kept) or created; a row the database refuses is skipped with its reason, the others go in. Equipment with a quantity gets that opening stock at its location (once: re-importing doesn't add it again). Units can keep their old barcodes; an untracked item becomes serial-numbered when units are imported for it. Every created or changed record is logged in `import_changes` |
 | Report | Counts (added, updated, unchanged, skipped) and each skipped row or note with its line, translated; downloadable as CSV |
-| Undo | "Earlier imports" lists each batch. **Undo** (with a warning and a confirmation) removes what the batch created and puts back what it changed, unless it has been changed again since. It's refused if anything it added is already in use (stock moved, on a gig, scanned, in a kit or a case, on a plot or patch). `undo_import` is in `20261116000001_import_undo.sql`, **run by hand** because it removes records; until then the app says undo isn't switched on yet |
+| Undo | "Earlier imports" lists each batch. **Undo** (with a warning and a confirmation) removes what the batch created and puts back what it changed, unless it has been changed again since. It's refused if anything it added is already in use (stock moved, on a gig, scanned, in a kit or a case, on a plot or patch). `undo_import` is in `20261117000001_import_undo.sql`, **run by hand** because it removes records; until then the app says undo isn't switched on yet |
 | Re-importing | The same file again updates instead of doubling, so a company can import, keep working in the old tool, and import again before switching |
 
 Checks: `supabase/tests/import_wizard.sql`, and `supabase/tests/import_undo.sql` after the hand-run file.
@@ -99,9 +99,24 @@ Checks: `supabase/tests/import_wizard.sql`, and `supabase/tests/import_undo.sql`
 | Excel | An `.xlsx` file is read in the browser (`src/lib/xlsx.js`, on the small `fflate` unzip library, loaded only when an Excel file is chosen): the first sheet, with text, numbers, booleans and dates (by the cell's date format) as they show. It then goes through the same matching as a CSV file. Old `.xls`, `.ods` and Numbers files are asked to be saved as `.xlsx` or CSV |
 | Kit contents | A fourth kind of import: one row per part, naming the kit (a set, a case, or an item with accessories) and what goes in it, by code or name, with how many and optionally "contents"/"accessory" and "set"/"case" (also in Dutch and Portuguese). A kit given contents becomes a set if it isn't kept in stock and a case if it is, unless the file says. Re-importing changes the quantity of a part already there |
 | Storage | `run_import(org, 'kits', rows)` keeps the batch as an equipment import with `subject = 'kits'` (presets too), so no existing rule had to be replaced; the parts it adds or changes are logged in `import_part_changes` |
-| Undo | `undo_import` (in `20261116000001_import_undo.sql`, still **run by hand**; renamed from `20261115000001` so it runs after the kits migration it now relies on) also removes the parts a kits import added and puts back changed quantities |
+| Undo | `undo_import` (in `20261117000001_import_undo.sql`, still **run by hand**; renamed from `20261115000001`, then again for S2, so it runs after the migrations it relies on) also removes the parts a kits import added and puts back changed quantities |
 
 Checks: `supabase/tests/import_kits.sql`; `supabase/tests/import_undo.sql` covers kits too.
+
+## How S2 works (0.43.0)
+
+| Piece | How it works |
+|---|---|
+| Where | **Contacts** in the Quotes menu (`/org/:id/contacts`, `?tab=suppliers`), for organisation admins and members. Clients and suppliers each have a tab with search, archive (never delete) and a dialog per contact |
+| Clients | `clients`: company or name, contact person, e-mail, phone, tax number, address, notes. Same access rules as quotes (`can_quote`); crew and viewers don't see them |
+| Suppliers | The existing `suppliers` (subrentals pick from them, 0.36) get an address and a tax number. They're managed in Contacts as well as in Inventory → Subrentals, where linking a supplier that is on AVX stays |
+| Quotes | `quotes.client_id` links a quote to its client. "Client from contacts" (quote Details, and the new-quote form) fills in the client fields; the quote keeps its **own copy**, so a contact changed later doesn't change a quote already sent, and versions keep what was sent. A client typed by hand is kept with "Save to contacts". A client page lists their quotes |
+| From quotes | `clients_from_quotes(org)`: each client typed on unlinked quotes (by company, or by name without a company) becomes a contact with the details of its latest quote, or is matched to a contact of that name; those quotes are linked. Offered on the Clients tab while any quote has an unlinked client |
+| Import | Two more kinds in the wizard: **Clients** and **Suppliers**. Matched by tax number (spaces, dots and capitals ignored), then by name, with the e-mail address telling apart two of the same name (otherwise the row is skipped, asking for the tax number). The address comes whole or as street, postcode, city and country (put together on separate lines). Headings guessed in English, Dutch and Portuguese |
+| Switching it on | The import tables only allowed the S1 kinds; widening their checks replaces constraints, so it's in the **hand-run** `20261117000001_import_undo.sql` with undo. Until it runs, `run_import` refuses contacts with a clear message (the app shows it); adding contacts by hand works |
+| Undo | Removes the clients and suppliers an import added unless a quote or a subrental uses them, and puts back changed details |
+
+Checks: `supabase/tests/contacts.sql`; after the hand-run file, `supabase/tests/contacts_import.sql` (and `import_undo.sql`).
 
 ## Decided (2026-10-19)
 

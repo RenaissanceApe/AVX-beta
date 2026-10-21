@@ -178,3 +178,47 @@ describe('import wizard: kit contents', () => {
     ])
   })
 })
+
+describe('import wizard: clients and suppliers', () => {
+  it('guesses contact columns in Dutch, English and Portuguese', () => {
+    expect(guessMapping(['Bedrijfsnaam', 'Contactpersoon', 'E-mailadres', 'Telefoon', 'Straat', 'Postcode', 'Plaats', 'Land', 'BTW-nummer'], 'clients')).toEqual({
+      Bedrijfsnaam: 'name', Contactpersoon: 'contact_name', 'E-mailadres': 'email', Telefoon: 'phone', Straat: 'street',
+      Postcode: 'postcode', Plaats: 'city', Land: 'country', 'BTW-nummer': 'tax_id',
+    })
+    expect(guessMapping(['Nome', 'Email', 'NIF', 'Morada'], 'suppliers')).toEqual({ Nome: 'name', Email: 'email', NIF: 'tax_id', Morada: 'address' })
+    expect(missingFields({ A: 'email' }, 'clients')).toEqual(['name'])
+  })
+
+  it('puts the address together and checks e-mail addresses', () => {
+    const table = { headers: ['Name', 'Street', 'Postcode', 'City', 'Country', 'Email'], rows: [
+      ['Festival Lda', 'Rua Augusta 1', '1100-048', 'Lisboa', 'Portugal', 'ana@fest.pt'],
+      ['No mail', '', '', 'Porto', '', 'not an address'],
+      ['', '', '', '', '', 'x@y.pt'],
+    ] }
+    const mapping = { Name: 'name', Street: 'street', Postcode: 'postcode', City: 'city', Country: 'country', Email: 'email' }
+    const rows = buildRows(table, mapping, 'clients')
+    expect(rows[0]).toMatchObject({ name: 'Festival Lda', address: 'Rua Augusta 1\n1100-048 Lisboa\nPortugal', email: 'ana@fest.pt', _errors: [] })
+    expect(rows[0].city).toBeUndefined()
+    expect(rows[1]._errors).toEqual([{ field: 'email', error: 'email' }])
+    expect(rows[1].address).toBe('Porto')
+    expect(rows[2]._errors).toEqual([{ field: 'name', error: 'missing' }])
+  })
+
+  it('matches by tax number, then by name (e-mail tells twins apart)', () => {
+    const existing = { contacts: [
+      { name: 'Festival Lda', tax_id: 'PT 501 234 567' },
+      { name: 'Twin', email: 'one@twin.pt' },
+      { name: 'Twin', email: 'two@twin.pt' },
+    ] }
+    const rows = [
+      { _row: 2, name: 'Festival Produções', tax_id: 'pt501234567', _errors: [] },
+      { _row: 3, name: 'twin', email: 'TWO@twin.pt', _errors: [] },
+      { _row: 4, name: 'Twin', _errors: [] },
+      { _row: 5, name: 'New Co', _errors: [] },
+      { _row: 6, name: 'new co', _errors: [] },
+    ]
+    expect(dryRun(rows, 'clients', existing).plan.map(p => p.action + (p.reason ? `:${p.reason}` : ''))).toEqual([
+      'match', 'match', 'skip:sameContact', 'create', 'match',
+    ])
+  })
+})

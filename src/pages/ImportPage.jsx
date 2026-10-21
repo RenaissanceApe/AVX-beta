@@ -1,27 +1,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Upload, Loader2, MapPin, Package, Barcode, Boxes, AlertTriangle, Check, Download, Undo2, Save, FileText } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Upload, Loader2, MapPin, Package, Barcode, Boxes, AlertTriangle, Check, Download, Undo2, Save, FileText, Building2, Truck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useWorkspace } from '../lib/WorkspaceContext'
-import { KINDS, FIELDS, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, buildRows, dryRun, toPayload, reportCsv, serverMessage } from '../lib/importer'
+import { KINDS, CONTACT_KINDS, FIELDS, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, buildRows, dryRun, toPayload, reportCsv, serverMessage } from '../lib/importer'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors, tint } from '../components/ui'
 
 const STEPS = ['choose', 'match', 'check', 'done']
-const KIND_ICONS = { locations: MapPin, items: Package, units: Barcode, kits: Boxes }
+const KIND_ICONS = { locations: MapPin, items: Package, units: Barcode, kits: Boxes, clients: Building2, suppliers: Truck }
 // Kit contents are kept as equipment imports with subject 'kits' (presets and history too)
 const stored = kind => (kind === 'kits' ? { kind: 'items', subject: 'kits' } : { kind, subject: null })
 const MAX_FILE = 5 * 1024 * 1024
+const isContacts = kind => CONTACT_KINDS.includes(kind)
+// Importing contacts needs the hand-run file (docs/SWITCHING.md, S2); until then the database says so
+const contactsOff = (error, kind) => isContacts(kind) && (error?.code === '0A000' || error?.code === '23514')
 
 // The import wizard (docs/SWITCHING.md, S1): choose what to import and drop a CSV file (or paste
 // from a spreadsheet), match its columns to AVX's fields (saved as presets), check what will
 // happen, import in one batch, and read the report. Earlier imports can be undone while nothing
 // has used what they added.
-//   /org/:orgId/inventory/import (?kind=locations|items|units)
+//   /org/:orgId/inventory/import (?kind=locations|items|units|kits|clients|suppliers)
 export default function ImportPage() {
   const { orgId } = useParams()
   const [params] = useSearchParams()
@@ -47,8 +50,9 @@ export default function ImportPage() {
   return (
     <AppShell>
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 60px' }}>
-        <Link to={`/org/${orgId}/inventory`} style={{ ...btn, background: 'transparent', color: colors.soft, padding: '6px 10px', textDecoration: 'none', marginBottom: '12px' }}>
-          <ArrowLeft size={14} /> {t('inv.title')}
+        <Link to={isContacts(kind) ? `/org/${orgId}/contacts${kind === 'suppliers' ? '?tab=suppliers' : ''}` : `/org/${orgId}/inventory`}
+          style={{ ...btn, background: 'transparent', color: colors.soft, padding: '6px 10px', textDecoration: 'none', marginBottom: '12px' }}>
+          <ArrowLeft size={14} /> {t(isContacts(kind) ? 'contacts.title' : 'inv.title')}
         </Link>
         <div style={{ fontSize: '12px', color: colors.muted }}>{org?.name}</div>
         <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px', marginBottom: '4px' }}>{t('imp.title')}</h1>
@@ -119,11 +123,12 @@ function ChooseStep({ kind, setKind, source, setSource, headerRow, setHeaderRow,
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px' }}>
           {KINDS.map((k, i) => {
             const Icon = KIND_ICONS[k]
+            // Inventory kinds are numbered in the order they depend on each other
             return (
               <label key={k} style={{ ...card, display: 'flex', gap: '10px', alignItems: 'flex-start', cursor: 'pointer', borderColor: kind === k ? colors.accent : undefined }}>
                 <input type="radio" name="imp-kind" value={k} checked={kind === k} onChange={() => setKind(k)} style={{ accentColor: 'var(--accent)', marginTop: '3px' }} />
                 <span>
-                  <strong style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '14px' }}><Icon size={15} color={colors.accentText} aria-hidden="true" /> {i + 1}. {t(`imp.kind.${k}`)}</strong>
+                  <strong style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '14px' }}><Icon size={15} color={colors.accentText} aria-hidden="true" /> {isContacts(k) ? '' : `${i + 1}. `}{t(`imp.kind.${k}`)}</strong>
                   <span style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t(`imp.kindAbout.${k}`)}</span>
                 </span>
               </label>
@@ -199,7 +204,7 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
       ? await supabase.from('import_presets').update({ mapping, updated_at: new Date().toISOString() }).eq('id', existing.id)
       : await supabase.from('import_presets').insert({ org_id: orgId, ...stored(kind), name, mapping })
     setSaving(false)
-    if (error) return notify(userMessage(error), 'error')
+    if (error) return notify(contactsOff(error, kind) ? t('imp.contactsOff') : userMessage(error), 'error')
     notify(t('imp.presetSaved', { name }), 'success')
     setPresetName(name)
     setSaveName('')
@@ -264,6 +269,11 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, fileName, presetNam
   const rows = useMemo(() => buildRows(table, mapping, kind, { headerRow }), [table, mapping, kind, headerRow])
 
   useEffect(() => {
+    if (isContacts(kind)) {
+      supabase.from(kind).select('name, email, tax_id, archived_at').eq('org_id', orgId)
+        .then(({ data }) => setExisting({ contacts: data || [] }))
+      return
+    }
     Promise.all([
       supabase.from('stock_locations').select('name, archived_at').eq('org_id', orgId),
       supabase.from('price_items').select('id, name, code, tracking, kit_type, archived_at').eq('org_id', orgId),
@@ -282,7 +292,7 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, fileName, presetNam
     setBusy(true)
     const { data, error } = await supabase.rpc('run_import', { p_org: orgId, p_kind: kind, p_rows: sendable, p_file: fileName, p_preset: presetName })
     setBusy(false)
-    if (error) { logger.error('import', error, { step: 'run', kind }); return notify(userMessage(error), 'error') }
+    if (error) { logger.error('import', error, { step: 'run', kind }); return notify(contactsOff(error, kind) ? t('imp.contactsOff') : userMessage(error), 'error') }
     track(`import:${kind}`)
     onDone(data)
   }
@@ -385,7 +395,8 @@ function DoneStep({ orgId, kind, result, onAgain }) {
         {problems.length > 0 && <button type="button" onClick={download} style={btn}><Download size={14} /> {t('imp.download')}</button>}
         <button type="button" onClick={() => onAgain()} style={btn}><Upload size={14} /> {t('imp.another')}</button>
         {next && <button type="button" onClick={() => onAgain(next)} style={btnPrimary}>{t('imp.nextKind', { kind: t(`imp.kind.${next}`) })} <ArrowRight size={14} /></button>}
-        <Link to={`/org/${orgId}/inventory${kind === 'locations' ? '?tab=locations' : ''}`} style={{ ...btn, textDecoration: 'none' }}>{t('imp.see')}</Link>
+        <Link to={isContacts(kind) ? `/org/${orgId}/contacts${kind === 'suppliers' ? '?tab=suppliers' : ''}` : `/org/${orgId}/inventory${kind === 'locations' ? '?tab=locations' : ''}`}
+          style={{ ...btn, textDecoration: 'none' }}>{t('imp.see')}</Link>
       </div>
     </div>
   )

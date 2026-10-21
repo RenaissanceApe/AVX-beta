@@ -294,6 +294,14 @@ const SCENES = {
   'price-list': { persona: 'pm', url: `/org/${ids.org}/quotes?tab=prices`, async run(page, L) {
     return page.getByRole('button', { name: L('prices.add') }).first()
   } },
+  contacts: { persona: 'pm', url: `/org/${ids.org}/contacts`, async run(page, L) {
+    return page.getByRole('list').filter({ hasText: 'Marcolino' }).first()
+  } },
+  'quote-client': { persona: 'pm', url: '/quote/q1', async run(page, L) {
+    await page.getByRole('tab', { name: L('quote.tab.details') }).first().click()
+    await page.locator('#qd-client').evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('fieldset').first()
+  } },
   'quote-phases': { persona: 'pm', url: '/quote/q1', async run(page, L) {
     return page.getByRole('button', { name: L('quote.addPhase') }).first()
   } },

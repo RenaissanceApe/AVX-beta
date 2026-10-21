@@ -1,10 +1,33 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { UserPlus, Loader2, Check } from 'lucide-react'
 import { useI18n } from '../../i18n'
-import { input, label, colors } from '../ui'
+import { input, label, colors, btn } from '../ui'
 import { HintLabel } from '../help/HelpParts'
 
-// Client, dates, money settings and texts of a quote.
-export default function QuoteDetails({ quote, gigs, onChange }) {
+// A client from the contacts directory as the quote's client fields. The quote keeps its own
+// copy, so changing the contact later doesn't change a quote already sent.
+export const clientFields = c => ({
+  client_id: c.id, client_company: c.name, client_name: c.contact_name || '', client_email: c.email || '',
+  client_address: c.address || '', client_tax_id: c.tax_id || '',
+})
+
+// Client, dates, money settings and texts of a quote. clients: the organisation's contacts
+// directory; onSaveClient: adds the client typed here to it (and links the quote).
+export default function QuoteDetails({ quote, gigs, clients = [], onChange, onSaveClient }) {
   const { t } = useI18n()
+  const [savingClient, setSavingClient] = useState(false)
+  const linked = clients.find(c => c.id === quote.client_id)
+  const typed = (quote.client_company || '').trim() || (quote.client_name || '').trim()
+  function pick(id) {
+    const c = clients.find(x => x.id === id)
+    onChange(c ? clientFields(c) : { client_id: null })
+  }
+  async function saveClient() {
+    setSavingClient(true)
+    await onSaveClient()
+    setSavingClient(false)
+  }
   const set = (k, v) => onChange({ [k]: v })
   const field = (key, labelKey, props = {}) => (
     <div style={props.wide ? { gridColumn: '1 / -1' } : undefined}>
@@ -18,6 +41,27 @@ export default function QuoteDetails({ quote, gigs, onChange }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', animation: 'fadeIn 0.2s ease' }}>
       <fieldset style={box}>
         <legend style={legend}>{t('quote.client')}</legend>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <div style={{ flex: '1 1 240px', minWidth: 0 }}>
+            <HintLabel htmlFor="qd-client" hint="quote-client">{t('contacts.pick')}</HintLabel>
+            <select id="qd-client" value={quote.client_id || ''} onChange={e => pick(e.target.value)} style={{ ...input, cursor: 'pointer' }}>
+              <option value="">{t('contacts.pickNone')}</option>
+              {clients.filter(c => !c.archived_at || c.id === quote.client_id).map(c => (
+                <option key={c.id} value={c.id}>{c.name}{c.contact_name ? ` · ${c.contact_name}` : ''}</option>
+              ))}
+            </select>
+          </div>
+          {!linked && typed && onSaveClient && (
+            <button type="button" onClick={saveClient} disabled={savingClient} style={btn}>
+              {savingClient ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <UserPlus size={14} />} {t('contacts.saveToContacts')}
+            </button>
+          )}
+          {linked && (
+            <Link to={`/org/${linked.org_id}/contacts`} style={{ fontSize: '12px', color: colors.accentText, display: 'flex', alignItems: 'center', gap: '4px', paddingBottom: '10px' }}>
+              <Check size={13} aria-hidden="true" /> {t('contacts.inContacts')}
+            </Link>
+          )}
+        </div>
         <div style={grid}>
           {field('client_company', 'quotes.clientCompany')}
           {field('client_name', 'quotes.clientName')}

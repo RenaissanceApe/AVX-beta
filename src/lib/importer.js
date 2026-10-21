@@ -3,7 +3,9 @@
 // runs in the database (run_import), which checks everything again.
 import { parsePrice } from './quotes'
 
-export const KINDS = ['locations', 'items', 'units', 'kits']
+export const KINDS = ['locations', 'items', 'units', 'kits', 'clients', 'suppliers']
+// Kinds that go to the contacts directory (S2), not the inventory
+export const CONTACT_KINDS = ['clients', 'suppliers']
 export const MAX_ROWS = 5000
 const CODE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/
 
@@ -50,6 +52,22 @@ const WORDS = {
     retired: ['retired', 'sold', 'written off', 'afgeschreven', 'verkocht', 'abatido', 'vendido', 'inactive', 'inactief'],
   },
 }
+
+// Clients and suppliers (S2). The address can come whole or in parts (street, postcode, city,
+// country), which are put together on separate lines.
+const CONTACT_FIELDS = [
+  { key: 'name', type: 'text', max: 200, required: true, names: ['name', 'naam', 'nome', 'company', 'company name', 'bedrijf', 'bedrijfsnaam', 'empresa', 'client', 'customer', 'klant', 'cliente', 'supplier', 'leverancier', 'fornecedor', 'contact', 'organisation', 'organization', 'displayname', 'display name'] },
+  { key: 'contact_name', type: 'text', max: 120, names: ['contact person', 'contact name', 'contactpersoon', 'pessoa de contacto', 'contacto', 'attention', 'attn', 'person'] },
+  { key: 'email', type: 'email', names: ['email', 'e mail', 'mail', 'email address', 'e mailadres', 'emailadres', 'correio electronico', 'correio eletronico'] },
+  { key: 'phone', type: 'text', max: 60, names: ['phone', 'telephone', 'tel', 'telefoon', 'telefoonnummer', 'telefone', 'mobile', 'mobiel', 'telemovel', 'phone number'] },
+  { key: 'address', type: 'text', max: 500, names: ['address', 'adres', 'morada', 'endereco', 'full address', 'visiting address', 'bezoekadres'] },
+  { key: 'street', type: 'text', max: 200, names: ['street', 'straat', 'rua', 'street address', 'address line 1', 'address 1', 'straatnaam'] },
+  { key: 'postcode', type: 'text', max: 20, names: ['postcode', 'postal code', 'zip', 'zip code', 'codigo postal', 'cp'] },
+  { key: 'city', type: 'text', max: 100, names: ['city', 'town', 'plaats', 'woonplaats', 'stad', 'cidade', 'localidade'] },
+  { key: 'country', type: 'text', max: 80, names: ['country', 'land', 'pais'] },
+  { key: 'tax_id', type: 'text', max: 40, names: ['tax id', 'tax number', 'vat', 'vat number', 'vat id', 'btw', 'btw nummer', 'btw nr', 'nif', 'nipc', 'contribuinte', 'numero de contribuinte', 'tax'] },
+  { key: 'notes', type: 'text', max: 1000, names: ['notes', 'note', 'remarks', 'opmerkingen', 'opmerking', 'notas', 'observacoes', 'comments'] },
+]
 
 // Each kind's fields: key, type, whether it's required, and the column names it's guessed from
 // (compared without capitals, accents or punctuation). Order matters: a column goes to the
@@ -101,6 +119,8 @@ export const FIELDS = {
     { key: 'part_kind', type: 'enum', words: 'partKind', names: ['kind', 'type', 'soort', 'tipo', 'relation', 'relatie', 'part type'] },
     { key: 'kit_type', type: 'enum', words: 'kitType', names: ['kit type', 'set or case', 'parent type', 'tipo de conjunto'] },
   ],
+  clients: CONTACT_FIELDS,
+  suppliers: CONTACT_FIELDS,
 }
 
 // "Número de Série" → "numero de serie"
@@ -247,6 +267,7 @@ export function cleanValue(raw, field) {
       return v ? { value: v } : { error: 'choice' }
     }
     case 'code': return CODE_RE.test(s) ? { value: s } : { error: 'code' }
+    case 'email': return /^[^@\s]+@[^@\s]+$/.test(s) && s.length <= 200 ? { value: s } : { error: 'email' }
     default: return s.length <= (field.max || 200) ? { value: s } : { error: 'long' }
   }
 }
@@ -267,7 +288,8 @@ export function buildRows(table, mapping, kind, { headerRow = true } = {}) {
       else if (error) any = true
     }
     if (!any) return
-    if (kind === 'locations' && !row.name) row._errors.push({ field: 'name', error: 'missing' })
+    if (CONTACT_KINDS.includes(kind)) joinAddress(row)
+    if ((kind === 'locations' || CONTACT_KINDS.includes(kind)) && !row.name) row._errors.push({ field: 'name', error: 'missing' })
     if (kind === 'items' && !row.name && !row.code) row._errors.push({ field: 'name', error: 'missing' })
     if (kind === 'units' && !row.item && !row.item_code) row._errors.push({ field: 'item', error: 'missing' })
     if (kind === 'kits' && !row.kit && !row.kit_code) row._errors.push({ field: 'kit', error: 'missing' })
@@ -278,6 +300,19 @@ export function buildRows(table, mapping, kind, { headerRow = true } = {}) {
   })
   return out
 }
+
+// Street, postcode, city and country → the address, on separate lines (after a whole address
+// if the file has one too)
+function joinAddress(row) {
+  const place = [row.postcode, row.city].filter(Boolean).join(' ')
+  const lines = [row.address, row.street, place, row.country].filter(Boolean)
+  for (const k of ['street', 'postcode', 'city', 'country']) delete row[k]
+  if (lines.length) row.address = lines.join('\n')
+  if (row.address?.length > 500) row._errors.push({ field: 'address', error: 'long' })
+}
+
+// A tax number compared without spaces, dots, dashes or capitals (as the database does)
+export const taxKey = s => String(s || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase()
 
 // What sending these rows will do, predicted from what exists: each row gets
 // { action: 'create' | 'match' | 'skip', reason } (the database has the final word)
@@ -304,6 +339,21 @@ export function dryRun(rows, kind, existing) {
       if (!row.code && row.name && (itemsByName.get(lower(row.name))?.length || 0) > 1) return { action: 'skip', reason: 'sameName', value: row.name }
       const key = row.code ? `#${row.code.toUpperCase()}` : lower(row.name)
       const action = findItem(row.code, row.name) || seen.has(key) ? 'match' : 'create'
+      seen.add(key)
+      return { action }
+    }
+    if (CONTACT_KINDS.includes(kind)) {
+      const contacts = (existing.contacts || [])
+      const byTax = row.tax_id && contacts.find(c => taxKey(c.tax_id) && taxKey(c.tax_id) === taxKey(row.tax_id))
+      let match = byTax
+      if (!match) {
+        const named = contacts.filter(c => !c.archived_at && lower(c.name) === lower(row.name))
+        const narrowed = named.length > 1 && row.email ? named.filter(c => lower(c.email) === lower(row.email)) : named
+        if (narrowed.length > 1) return { action: 'skip', reason: 'sameContact', value: row.name }
+        match = narrowed[0]
+      }
+      const key = row.tax_id ? `#${taxKey(row.tax_id)}` : lower(row.name)
+      const action = match || seen.has(key) ? 'match' : 'create'
       seen.add(key)
       return { action }
     }
@@ -368,6 +418,8 @@ const SERVER = [
   [/^An item can't contain itself/, 'selfKit'],
   [/violates check constraint "price_items_kit_check"/, 'kitType'],
   [/^Stock tracking can't change/, 'trackingLocked'],
+  [/^Not an e-mail address: (.+)$/, 'email'],
+  [/^Several contacts are called (.+?): add their tax numbers/, 'sameContact'],
 ]
 export function serverMessage(message) {
   for (const [re, key] of SERVER) {

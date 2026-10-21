@@ -28,7 +28,7 @@ import {
 const EDITABLE = [
   'title', 'status', 'language', 'currency', 'client_name', 'client_company', 'client_email', 'client_address', 'client_tax_id',
   'issue_date', 'valid_until', 'intro', 'terms', 'vat_rate', 'discount_pct', 'show_line_prices', 'gig_id',
-  'payment_terms', 'manager_name',
+  'payment_terms', 'manager_name', 'client_id',
 ]
 const SAVE_DELAY = 1000
 
@@ -47,6 +47,7 @@ export default function QuoteEditorPage() {
   const [templates, setTemplates] = useState([])
   const [prefix, setPrefix] = useState('Q')
   const [priceItems, setPriceItems] = useState([])
+  const [clients, setClients] = useState([])
   const [notFound, setNotFound] = useState(false)
   const [tab, setTab] = useState('details')
   const [saveState, setSaveState] = useState('saved') // saved | dirty | saving | error | conflict
@@ -69,12 +70,13 @@ export default function QuoteEditorPage() {
         if (error) logger.error('quote', error, { step: 'load', quoteId: id })
         return setNotFound(true)
       }
-      const [roleRes, gigsRes, tplRes, orgRes, pricesRes] = await Promise.all([
+      const [roleRes, gigsRes, tplRes, orgRes, pricesRes, clientsRes] = await Promise.all([
         supabase.from('org_members').select('role').eq('org_id', q.org_id).eq('user_id', user.id).maybeSingle(),
         supabase.from('gigs').select('id, name, start_date, org_id').eq('org_id', q.org_id).order('start_date', { ascending: false, nullsFirst: false }),
         supabase.from('quote_templates').select('id, name, description, body').eq('org_id', q.org_id).order('name'),
         supabase.from('organisations').select('quote_number_prefix').eq('id', q.org_id).maybeSingle(),
         supabase.from('price_items').select('*').eq('org_id', q.org_id).is('archived_at', null).order('name'),
+        supabase.from('clients').select('id, org_id, name, contact_name, email, address, tax_id, archived_at').eq('org_id', q.org_id).order('name'),
       ])
       if (cancelled) return
       const b = normalizeBody(q.body)
@@ -87,6 +89,7 @@ export default function QuoteEditorPage() {
       setTemplates(tplRes.data || [])
       setPrefix(orgRes.data?.quote_number_prefix ?? 'Q')
       setPriceItems(pricesRes.data || [])
+      setClients(clientsRes.data || [])
       setTab(b.phases[0] ? `phase:${b.phases[0].id}` : 'details')
     }
     load()
@@ -221,6 +224,21 @@ export default function QuoteEditorPage() {
     notify(t('quote.templateInserted', { name: tpl.name, count: added.length }), 'success')
   }
 
+  // The client typed on this quote, added to the contacts directory and linked
+  async function saveClientToContacts() {
+    const trimmed = v => (v || '').trim() || null
+    const company = trimmed(quote.client_company)
+    const { data, error } = await supabase.from('clients').insert({
+      org_id: quote.org_id, name: (company || trimmed(quote.client_name)).slice(0, 200),
+      contact_name: company ? trimmed(quote.client_name)?.slice(0, 120) || null : null,
+      email: trimmed(quote.client_email), address: trimmed(quote.client_address), tax_id: trimmed(quote.client_tax_id),
+    }).select('id, org_id, name, contact_name, email, address, tax_id, archived_at').single()
+    if (error) return notify(userMessage(error), 'error')
+    setClients(list => [...list, data].sort((a, b) => a.name.localeCompare(b.name)))
+    updateQuote({ client_id: data.id })
+    notify(t('contacts.savedToContacts', { name: data.name }), 'success')
+  }
+
   async function duplicateQuote() {
     await flushThen(async () => {
       const copy = Object.fromEntries(EDITABLE.map(k => [k, quote[k]]))
@@ -338,7 +356,7 @@ export default function QuoteEditorPage() {
       </header>
 
       <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 16px' }}>
-        {tab === 'details' && <QuoteDetails quote={quote} gigs={gigs} onChange={updateQuote} />}
+        {tab === 'details' && <QuoteDetails quote={quote} gigs={gigs} clients={clients} onChange={updateQuote} onSaveClient={saveClientToContacts} />}
         {tab === 'summary' && <QuoteSummary quote={quote} body={body} totals={totals} onOpenPhase={i => setTab(`phase:${body.phases[i].id}`)} />}
         {tab === 'summary' && <div style={{ marginTop: '18px' }}><ContextThread type="quote" id={quote.id} /></div>}
         {phase && (

@@ -72,7 +72,8 @@ export default {
     'replacement-value': { term: 'Replacement value', definition: 'What it would cost to buy the item again today.', example: '€1,200 for a moving head.', where: 'Inventory → item' },
     depreciation: { term: 'Book value and depreciation', definition: 'What equipment is worth on paper: its price minus wear over the months you choose.', example: '€6,000 over 60 months is worth €3,000 after 30 months.', where: 'Inventory → Reports' },
     subrental: { term: 'Subrental', definition: 'Equipment you hire from another company for a gig.', example: 'Renting 4 extra speakers for the festival.', where: 'Inventory → Subrentals' },
-    supplier: { term: 'Supplier', definition: 'The company you hire equipment from.', example: 'A rental house in Porto.', where: 'Inventory → Subrentals' },
+    supplier: { term: 'Supplier', definition: 'The company you hire equipment from.', example: 'A rental house in Porto.', where: 'Contacts → Suppliers' },
+    client: { term: 'Client', definition: 'A company or person you quote for, kept once in Contacts and picked on each quote.', example: 'Festival Lda, contact Ana, with their tax number and address.', where: 'Contacts → Clients' },
     'cross-hire-code': { term: 'Cross-hire code', definition: 'A code that links two companies on AVX, so hire requests go straight to the other company.', example: 'P-7K2Q.', where: 'Inventory → Subrentals' },
     quote: { term: 'Quote', definition: 'A priced proposal for a client, built from your price list.', example: 'Quote 2026-014 for the gala dinner.', where: 'Quotes' },
     'quote-version': { term: 'Quote version', definition: 'A saved copy of a quote as it was sent. Changes after that make a new version.', example: 'v1 sent, client asked for less, v2 sent.', where: 'Quote → Versions' },
@@ -124,6 +125,7 @@ export default {
     'input-item': 'Link the mic or DI to an item in your catalogue. "Add mics and DIs to equipment" then plans them on the gig, so they are booked, packed and scanned.',
     'stage-box': 'Which stage box input the line goes into, e.g. SB1-03 (box 1, input 3). Helps the stage crew patch it.',
     'mark-lost': 'Records the units that did not come back as lost. Stock and reports change. If one turns up later, set its status back to Available.',
+    'quote-client': 'Picking a client fills in their details from Contacts. The quote keeps its own copy, so you can still change them here for this quote only.',
   },
 
   pages: {
@@ -132,6 +134,7 @@ export default {
     messages: { title: 'Messages', summary: 'Your conversations: direct messages, gig chats, department channels and the organisation’s channels. Unread ones are at the top. Use the menu on a message to reply, react, save or report it.' },
     inventory: { title: 'Inventory', summary: 'Your equipment: the catalogue, where it is kept, its stock and movements, maintenance and subrentals.' },
     'inventory-item': { title: 'An equipment item', summary: 'One catalogue item: its details, stock per location, units with their labels, kit contents, maintenance and history.' },
+    contacts: { title: 'Contacts', summary: 'Your clients and suppliers, kept once. Quotes pick their client from here and subrentals their supplier. Import them from a spreadsheet, or add the clients typed on older quotes in one go.' },
     quotes: { title: 'Quotes', summary: 'Your company’s quotes, newest first. Open one to edit it, send it to the client or turn an accepted quote into a gig.' },
     quote: { title: 'A quote', summary: 'Build the quote in phases with lines from your price list. Each send saves a version. The client reads and accepts it through a private link.' },
     orgs: { title: 'Organisations', summary: 'The companies you belong to and your role in each. Admins open the members and settings from here.' },
@@ -565,6 +568,20 @@ export default {
       ],
       mistakes: [
         'Changing a price affects new lines only. Quotes that already use the item keep their price.',
+      ],
+    },
+    'of-contacts': {
+      title: 'Keep your clients and suppliers in Contacts',
+      intro: 'Type a client once and pick them on every quote. Suppliers live here too, for subrentals.',
+      steps: [
+        'Open Contacts (in the Quotes menu). Clients and Suppliers each have a tab. Tap "New client" to add one: the company or name, the contact person, e-mail, phone, tax number and address.',
+        'Moving from another tool or a spreadsheet? Tap Import and bring them in from the export. Already have quotes? "Add them to contacts" turns the clients typed on them into contacts and links those quotes.',
+        'On a quote, in Details, pick the client from "Client from contacts": their details are filled in. A client typed by hand can be kept with "Save to contacts".',
+        'Open a client to see their quotes. Archive the ones you no longer work with: they stay on old quotes but leave the lists.',
+      ],
+      mistakes: [
+        'Changing a client in Contacts doesn\'t change quotes already made: each quote keeps the details it was sent with. Pick the client again on a draft to refresh them.',
+        'Two contacts with the same name are told apart by their tax number or e-mail when importing. Add the tax number to avoid doubles.',
       ],
     },
     'of-build-quote': {

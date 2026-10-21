@@ -69,7 +69,8 @@ export default {
     'replacement-value': { term: 'Valor de substituição', definition: 'Quanto custaria comprar o artigo de novo hoje.', example: '1200 € por uma cabeça móvel.', where: 'Inventário → artigo' },
     depreciation: { term: 'Valor contabilístico e amortização', definition: 'Quanto vale o equipamento no papel: o preço menos o desgaste ao longo dos meses que escolher.', example: '6000 € em 60 meses valem 3000 € ao fim de 30 meses.', where: 'Inventário → Relatórios' },
     subrental: { term: 'Aluguer externo', definition: 'Equipamento que aluga a outra empresa para um evento.', example: 'Alugar mais 4 colunas para o festival.', where: 'Inventário → Alugueres externos' },
-    supplier: { term: 'Fornecedor', definition: 'A empresa a quem aluga o equipamento.', example: 'Uma empresa de aluguer no Porto.', where: 'Inventário → Alugueres externos' },
+    supplier: { term: 'Fornecedor', definition: 'A empresa a quem aluga o equipamento.', example: 'Uma empresa de aluguer no Porto.', where: 'Contactos → Fornecedores' },
+    client: { term: 'Cliente', definition: 'Uma empresa ou pessoa para quem faz orçamentos, guardada uma vez nos Contactos e escolhida em cada orçamento.', example: 'Festival Lda, contacto Ana, com NIF e morada.', where: 'Contactos → Clientes' },
     'cross-hire-code': { term: 'Código de cross-hire', definition: 'Um código que liga duas empresas no AVX, para que os pedidos de aluguer cheguem diretamente à outra empresa.', example: 'P-7K2Q.', where: 'Inventário → Alugueres externos' },
     quote: { term: 'Orçamento', definition: 'Uma proposta com preços para um cliente, feita a partir da sua tabela de preços.', example: 'Orçamento 2026-014 para o jantar de gala.', where: 'Orçamentos' },
     'quote-version': { term: 'Versão do orçamento', definition: 'Uma cópia guardada do orçamento tal como foi enviado. Alterações depois disso criam uma nova versão.', example: 'v1 enviada, o cliente pediu menos, v2 enviada.', where: 'Orçamento → Versões' },
@@ -121,6 +122,7 @@ export default {
     'input-item': 'Ligue o microfone ou DI a um artigo do catálogo. "Juntar microfones e DIs ao equipamento" passa a prevê-los no evento, para serem reservados, carregados e lidos.',
     'stage-box': 'Em que entrada da stage box entra a linha, ex.: SB1-03 (caixa 1, entrada 3). Ajuda a equipa de palco a ligar.',
     'mark-lost': 'Regista como perdidas as unidades que não voltaram. O stock e os relatórios mudam. Se alguma aparecer mais tarde, volte a pôr o estado em Disponível.',
+    'quote-client': 'Escolher um cliente preenche os dados dele a partir dos Contactos. O orçamento guarda a sua própria cópia, por isso ainda pode alterá-los aqui só para este orçamento.',
   },
 
   pages: {
@@ -129,6 +131,7 @@ export default {
     messages: { title: 'Mensagens', summary: 'As suas conversas: mensagens diretas, conversas de eventos, canais de departamento e da organização. As que têm mensagens por ler aparecem primeiro. Use o menu de uma mensagem para responder, reagir, guardar ou denunciar.' },
     inventory: { title: 'Inventário', summary: 'O seu equipamento: o catálogo, onde está guardado, o stock e os movimentos, a manutenção e os alugueres externos.' },
     'inventory-item': { title: 'Um artigo de equipamento', summary: 'Um artigo do catálogo: detalhes, stock por local, unidades com etiquetas, conteúdo do kit, manutenção e histórico.' },
+    contacts: { title: 'Contactos', summary: 'Os seus clientes e fornecedores, guardados uma vez. Os orçamentos escolhem daqui o cliente e os sub-alugueres o fornecedor. Importe-os de uma folha de cálculo, ou adicione de uma vez os clientes escritos em orçamentos antigos.' },
     quotes: { title: 'Orçamentos', summary: 'Os orçamentos da sua empresa, os mais recentes primeiro. Abra um para o editar, enviar ao cliente ou transformar um orçamento aceite num evento.' },
     quote: { title: 'Um orçamento', summary: 'Construa o orçamento em fases, com linhas da sua tabela de preços. Cada envio guarda uma versão. O cliente lê e aceita através de uma ligação privada.' },
     orgs: { title: 'Organizações', summary: 'As empresas a que pertence e o seu papel em cada uma. Os administradores abrem daqui os membros e as definições.' },
@@ -562,6 +565,20 @@ export default {
       ],
       mistakes: [
         'Mudar um preço só afeta linhas novas. Os orçamentos que já usam o item mantêm o preço.',
+      ],
+    },
+    'of-contacts': {
+      title: 'Guarde os clientes e fornecedores nos Contactos',
+      intro: 'Escreva um cliente uma vez e escolha-o em cada orçamento. Os fornecedores também estão aqui, para os sub-alugueres.',
+      steps: [
+        'Abra Contactos (no menu Orçamentos). Clientes e Fornecedores têm cada um o seu separador. Toque em "Novo cliente" para adicionar um: empresa ou nome, pessoa de contacto, e-mail, telefone, NIF e morada.',
+        'Vem de outra ferramenta ou de uma folha de cálculo? Toque em Importar e traga-os da exportação. Já tem orçamentos? "Adicionar aos contactos" transforma os clientes escritos neles em contactos e liga esses orçamentos.',
+        'Num orçamento, em Detalhes, escolha o cliente em "Cliente dos contactos": os dados dele são preenchidos. Um cliente escrito à mão pode ser guardado com "Guardar nos contactos".',
+        'Abra um cliente para ver os orçamentos dele. Arquive os que já não trabalham consigo: ficam nos orçamentos antigos mas saem das listas.',
+      ],
+      mistakes: [
+        'Alterar um cliente nos Contactos não altera orçamentos já feitos: cada orçamento guarda os dados com que foi enviado. Escolha de novo o cliente num rascunho para os atualizar.',
+        'Ao importar, dois contactos com o mesmo nome distinguem-se pelo NIF ou pelo e-mail. Junte o NIF para evitar duplicados.',
       ],
     },
     'of-build-quote': {

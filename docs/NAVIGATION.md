@@ -29,6 +29,7 @@ The button next to the logo picks the workspace:
 | `/me` (`?view=calendar`) | My work |
 | `/org/:id` (`?view=calendar`, `?new=gig`, `?panel=members`, `?panel=settings`) | Organisation home, new gig, members, settings |
 | `/org/:id/quotes` (`?tab=templates`, `?tab=prices`, `?company=1`) | Quotes, templates, price list, company details |
+| `/org/:id/contacts` (`?tab=suppliers`) | Contacts: clients and suppliers |
 | `/orgs` (`?new=1`) | Organisations: yours with your role in each, companies you work for as crew, create one |
 | `/dashboard` | Opens the current workspace (used by sign-in and old links) |
 | `/me?panel=account` | Account (also from the avatar) |

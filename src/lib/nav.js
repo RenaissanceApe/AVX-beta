@@ -38,6 +38,7 @@ export function navSections({ workspace, role }) {
   if (canQuote(role)) {
     sections.push({ key: 'quotes', icon: 'fileText', items: [
       { key: 'quotes', icon: 'fileText', to: `${base}/quotes` },
+      { key: 'contacts', icon: 'contact', to: `${base}/contacts` },
       { key: 'priceList', icon: 'tags', to: `${base}/quotes?tab=prices` },
       { key: 'templates', icon: 'layoutTemplate', to: `${base}/quotes?tab=templates` },
       { key: 'company', icon: 'building', to: `${base}/quotes?company=1`, minor: true },
