@@ -425,16 +425,17 @@ export default {
       ],
     },
     'wh-import': {
-      title: 'Import your catalogue from a spreadsheet',
-      intro: 'Bring your equipment list into AVX in one go instead of typing it item by item.',
+      title: 'Import your equipment from a spreadsheet or another tool',
+      intro: 'Bring your locations, catalogue and serial numbers into AVX in one go, from a CSV export (Rentman, another rental tool or a spreadsheet), instead of typing them in.',
       steps: [
-        'Add your warehouse first under Inventory → Locations, so the stock has somewhere to be.',
-        'In Inventory → Catalogue, tap Import. Copy the rows from your spreadsheet and paste them: name; category; code; quantity; price; location. Choose a location for rows without one.',
-        'Check the count AVX shows, then tap Import. Items you track unit by unit (with serial numbers) get their units on their own page afterwards.',
+        'In Inventory, tap Import. Import in this order: locations, then equipment, then units (serial numbers), because each one refers to the one before.',
+        'Choose what you are importing, then choose the CSV file or paste the rows from your spreadsheet (with their headings).',
+        'AVX guesses what each column is, also from Dutch or Portuguese headings. Check the guesses and change any that are wrong. Save the matching with a name ("Rentman equipment export") so the next file needs none.',
+        'The check shows what will be new, what matches what is already in AVX, and which rows have problems (they are left out). Import, then read the report. Fix the skipped rows in the file and import it again: what is already in AVX is matched, not doubled.',
       ],
       mistakes: [
-        'A location name in the list must match one in AVX exactly. Add missing locations first or fix the names.',
-        'Importing the same list twice adds the stock twice. Check Movements if in doubt; mistakes are fixed with a count.',
+        'Excel files have to be saved as CSV first (File → Save as → CSV), or copy the rows and paste them.',
+        'An import can be undone from "Earlier imports" only while nothing has used what it added (a gig, a scan, a kit). Undoing removes what it added for good.',
       ],
     },
     'wh-locations': {

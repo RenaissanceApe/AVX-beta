@@ -1,6 +1,6 @@
 # Switching to AVX: plan
 
-Status: **planned**, stages S1–S5.
+Status: **S1a built** (0.41.0): the import wizard for locations, equipment and units. Next: S1b (kit contents, Excel files), then S2–S5.
 
 The aim: a company using Rentman, another rental tool or spreadsheets can be fully running on
 AVX within a day, without retyping anything and without risking their data. Making it easy to
@@ -75,6 +75,22 @@ week, and import again before switching for good.
 
 Live integrations (syncing both ways with another tool) stay out of scope. A public API for
 integrations is a later, separate decision.
+
+## How S1a works (0.41.0)
+
+| Piece | How it works |
+|---|---|
+| Where | Inventory → Import (`/org/:id/inventory/import`), for organisation admins and members |
+| File | A CSV or tab-separated file (up to 5 MB, 5000 rows), or rows pasted from a spreadsheet. The separator (`;` `,` tab `\|`) and quoted cells are read automatically; a first row of headings is assumed (can be switched off). Excel files are saved as CSV first for now (S1b reads them) |
+| Matching | `src/lib/importer.js` guesses each column from its heading in English, Dutch (Rentman) or Portuguese ("Naam", "Verhuurprijs", "Gewicht", "Magazijn"…). Each field comes from one column. The matching can be saved as a **preset** (`import_presets`, per organisation and kind) and picked for the next file |
+| Values | Prices and numbers written either way ("1.234,50" or "1,234.50"), dates as 2024-03-01, 01-03-2024 or 1/3/2024, choices in the three languages ("Verhuur", "Aluguer" → rental). Bad cells are flagged per row |
+| Check | Before importing: how many rows are new, how many match what's already in AVX (items by code then name, units by code then serial, locations by name), and which rows have problems (left out), with a preview |
+| Import | `run_import(org, kind, rows)` in one call: each row is matched and updated (only the cells that are filled; a name or code that only differs in capitals is kept) or created; a row the database refuses is skipped with its reason, the others go in. Equipment with a quantity gets that opening stock at its location (once: re-importing doesn't add it again). Units can keep their old barcodes; an untracked item becomes serial-numbered when units are imported for it. Every created or changed record is logged in `import_changes` |
+| Report | Counts (added, updated, unchanged, skipped) and each skipped row or note with its line, translated; downloadable as CSV |
+| Undo | "Earlier imports" lists each batch. **Undo** (with a warning and a confirmation) removes what the batch created and puts back what it changed, unless it has been changed again since. It's refused if anything it added is already in use (stock moved, on a gig, scanned, in a kit or a case, on a plot or patch). `undo_import` is in `20261115000001_import_undo.sql`, **run by hand** because it removes records; until then the app says undo isn't switched on yet |
+| Re-importing | The same file again updates instead of doubling, so a company can import, keep working in the old tool, and import again before switching |
+
+Checks: `supabase/tests/import_wizard.sql`, and `supabase/tests/import_undo.sql` after the hand-run file.
 
 ## Decided (2026-10-19)
 

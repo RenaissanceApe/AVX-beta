@@ -422,16 +422,17 @@ export default {
       ],
     },
     'wh-import': {
-      title: 'Importar o catálogo de uma folha de cálculo',
-      intro: 'Traga a sua lista de equipamento para o AVX de uma vez, em vez de a escrever artigo a artigo.',
+      title: 'Importar o equipamento de uma folha de cálculo ou de outra ferramenta',
+      intro: 'Traga os locais, o catálogo e os números de série para o AVX de uma vez, a partir de uma exportação CSV (Rentman, outra ferramenta de aluguer ou uma folha de cálculo), em vez de os escrever.',
       steps: [
-        'Primeiro, adicione o armazém em Inventário → Locais, para o stock ter onde ficar.',
-        'Em Inventário → Catálogo, toque em Importar. Copie as linhas da folha de cálculo e cole-as: nome; categoria; código; quantidade; preço; local. Escolha um local para as linhas que não o tenham.',
-        'Confirme a contagem que o AVX mostra e toque em Importar. Os artigos registados unidade a unidade (com número de série) recebem as unidades depois, na página de cada um.',
+        'Em Inventário, toque em Importar. Importe por esta ordem: locais, depois equipamento, depois unidades (números de série), porque cada um se refere ao anterior.',
+        'Escolha o que vai importar e depois o ficheiro CSV, ou cole as linhas da folha de cálculo (com os títulos).',
+        'O AVX adivinha o que é cada coluna, também a partir de títulos em neerlandês ou inglês. Confirme e corrija o que estiver errado. Guarde a correspondência com um nome ("Exportação de equipamento do Rentman") para o próximo ficheiro não precisar de nada.',
+        'A verificação mostra o que é novo, o que corresponde ao que já está no AVX e que linhas têm problemas (ficam de fora). Importe e leia o relatório. Corrija as linhas ignoradas no ficheiro e importe-o de novo: o que já está no AVX é reconhecido, não duplicado.',
       ],
       mistakes: [
-        'O nome do local na lista tem de ser igual ao do AVX. Adicione primeiro os locais em falta ou corrija os nomes.',
-        'Importar a mesma lista duas vezes duplica o stock. Na dúvida, veja os Movimentos; os erros corrigem-se com uma contagem.',
+        'Os ficheiros do Excel têm de ser guardados primeiro como CSV (Ficheiro → Guardar como → CSV), ou copie as linhas e cole-as.',
+        'Uma importação pode ser anulada em "Importações anteriores" só enquanto nada tiver usado o que ela adicionou (um evento, uma leitura, um kit). Anular remove de vez o que ela adicionou.',
       ],
     },
     'wh-locations': {

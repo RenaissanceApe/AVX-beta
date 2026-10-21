@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { levelsByItem, isLowStock, countCorrection, bookValue, parseStockImport, matchItem, scanUrl, expandPlan, kitsFree, alternativesOf, dueState, isOpenRepair, repairPhotoPath, subrentalTotal, isOpenSubrental, STEPS, activeSteps, stepTarget, lineStep, stepCounts, stepTotals } from './inventory'
+import { levelsByItem, isLowStock, countCorrection, bookValue, scanUrl, expandPlan, kitsFree, alternativesOf, dueState, isOpenRepair, repairPhotoPath, subrentalTotal, isOpenSubrental, STEPS, activeSteps, stepTarget, lineStep, stepCounts, stepTotals } from './inventory'
 
 describe('stock levels', () => {
   it('adds up per item and location', () => {
@@ -40,30 +40,7 @@ describe('book value', () => {
   })
 })
 
-describe('import', () => {
-  it('reads pasted rows and reports bad lines', () => {
-    const { rows, errors } = parseStockImport([
-      '# name; category; code; qty; price; location',
-      'XLR 10m;Cables;XLR10;50;2,50;Warehouse',
-      'Shure SM58\tMics\t\t12',
-      'DI box',
-      ';no name',
-      'Bad qty;;;-3',
-      'Bad code;;has space;1',
-    ].join('\n'))
-    expect(rows).toEqual([
-      { name: 'XLR 10m', category: 'Cables', code: 'XLR10', quantity: 50, unit_price: 2.5, location: 'Warehouse' },
-      { name: 'Shure SM58', category: 'Mics', code: null, quantity: 12, unit_price: null, location: null },
-      { name: 'DI box', category: null, code: null, quantity: 0, unit_price: null, location: null },
-    ])
-    expect(errors).toEqual([5, 6, 7])
-  })
-  it('matches existing items by code, then by name', () => {
-    const items = [{ id: '1', name: 'XLR 10m', code: 'C-1' }, { id: '2', name: 'DI box', code: null }]
-    expect(matchItem(items, { name: 'Other', code: 'c-1' }).id).toBe('1')
-    expect(matchItem(items, { name: 'di BOX', code: null }).id).toBe('2')
-    expect(matchItem(items, { name: 'New', code: 'X' })).toBeNull()
-  })
+describe('labels', () => {
   it('builds the address a label opens', () => {
     expect(scanUrl('https://avx.app/', 'U-7KQ2M9XA')).toBe('https://avx.app/scan/U-7KQ2M9XA')
   })

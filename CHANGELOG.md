@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.41.0 — Switching S1a: the import wizard
+
+### Added
+- **Import** in Inventory, a wizard for bringing in **locations, equipment and units** (serial
+  numbers) from a CSV file or rows pasted from a spreadsheet: choose → match columns → check →
+  import → report.
+- Columns are guessed from English, Dutch (Rentman) and Portuguese headings; the matching can be
+  saved as a preset for the next file. Prices, numbers and dates are read whichever way they are
+  written; problems are shown per row before importing.
+- The check shows what is new, what matches what is already in AVX, and what will be skipped.
+  Importing the same file again updates instead of doubling. Units keep their old barcodes.
+- A report of skipped rows and notes, downloadable as CSV.
+- **Earlier imports**, each with **Undo** (with a warning and confirmation): removes what it
+  added and puts back what it changed, unless something already uses it.
+
+### Changed
+- The old paste-only import in the catalogue is replaced by the wizard; the guide "Import your
+  equipment" is rewritten for it.
+
+### Database
+- Migration `20261115000000_import_wizard.sql` (no manual steps): `import_batches`,
+  `import_changes`, `import_presets`, `run_import`. Checks in `supabase/tests/import_wizard.sql`.
+- Migration `20261115000001_import_undo.sql` (**run by hand**: it removes records): `undo_import`.
+  Checks in `supabase/tests/import_undo.sql`.
+
 ## 0.40.0 — Field tools F4: sound system calculator
 
 ### Added

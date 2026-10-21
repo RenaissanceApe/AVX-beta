@@ -243,6 +243,8 @@ export function sampleData(persona, lang) {
       ].map(([source, mic, stand, phantom, box], n) => ({ id: `in${n + 1}`, gig_id: gigId, channel: n + 1, source, mic, stand, phantom, stage_box: box, notes: n === 7 ? tx('Sem fios de reserva no SB2-02', 'Spare wireless on SB2-02') : null, item_id: null, plot_ref: null, checked: n < 3 })),
       price_items: items.concat(priceList),
       stock_locations: locations,
+      import_presets: [],
+      import_batches: [{ id: 'imp1', org_id: orgId, kind: 'locations', file_name: 'rentman-warehouses.csv', preset: null, created: 2, updated: 0, unchanged: 0, skipped: 0, created_at: ago(72), undone_at: null }],
       stock_units: units,
       stock_movements: movements,
       repairs,

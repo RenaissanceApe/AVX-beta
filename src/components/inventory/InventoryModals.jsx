@@ -1,12 +1,12 @@
-import { useMemo, useState } from 'react'
-import { Check, Loader2, Upload } from 'lucide-react'
+import { useState } from 'react'
+import { Check, Loader2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { UNITS, parsePrice } from '../../lib/quotes'
-import { TRACKING, KIT_TYPES, STOCK_KINDS, LOCATION_KINDS, UNIT_STATUSES, MOVEMENT_SHAPES, countCorrection, parseStockImport, matchItem } from '../../lib/inventory'
-import { useI18n, t } from '../../i18n'
+import { TRACKING, KIT_TYPES, STOCK_KINDS, LOCATION_KINDS, UNIT_STATUSES, MOVEMENT_SHAPES, countCorrection } from '../../lib/inventory'
+import { t } from '../../i18n'
 import { Modal, btnPrimary, input, label, colors } from '../ui'
 import { HintLabel } from '../help/HelpParts'
 
@@ -391,95 +391,6 @@ export function LocationModal({ orgId, location, onClose, onSaved }) {
         <Field id="lo-notes" text={t('inv.note')}><input id="lo-notes" value={form.notes} onChange={set('notes')} maxLength={500} style={input} /></Field>
         <SaveButton saving={saving} disabled={!form.name.trim()}>{t('common.save')}</SaveButton>
       </form>
-    </Modal>
-  )
-}
-
-// Paste from a spreadsheet: new items are created (counted in bulk), quantities are
-// added as purchases at the row's location (or the chosen default location)
-export function ImportStockModal({ orgId, userId, items, locations, onClose, onImported }) {
-  const { notify } = useToast()
-  const { lang } = useI18n()
-  const [text, setText] = useState('')
-  const [defaultLocation, setDefaultLocation] = useState(locations[0]?.id || '')
-  const [saving, setSaving] = useState(false)
-  const parsed = useMemo(() => parseStockImport(text), [text])
-  const locationFor = row => (row.location
-    ? locations.find(l => l.name.toLowerCase() === row.location.toLowerCase())?.id
-    : defaultLocation) || null
-  const unknownLocations = [...new Set(parsed.rows.filter(r => r.location && !locationFor(r)).map(r => r.location))]
-  const serialRows = parsed.rows.filter(r => r.quantity && matchItem(items, r)?.tracking === 'serial')
-  const needsLocation = parsed.rows.some(r => r.quantity && !locationFor(r))
-
-  async function submit() {
-    if (!parsed.rows.length || unknownLocations.length || needsLocation || serialRows.length) return
-    setSaving(true)
-    let created = 0
-    let moved = 0
-    try {
-      const known = [...items]
-      for (const row of parsed.rows) {
-        let item = matchItem(known, row)
-        if (!item) {
-          const { data, error } = await supabase.from('price_items').insert({
-            org_id: orgId, created_by: userId, name: row.name, category: row.category, code: row.code,
-            unit_price: row.unit_price ?? 0, kind: 'rental', unit: 'day', tracking: 'bulk',
-          }).select().single()
-          if (error) throw error
-          item = data
-          known.push(item)
-          created++
-        } else if (item.tracking === 'none' && row.quantity) {
-          const { data, error } = await supabase.from('price_items').update({ tracking: 'bulk' }).eq('id', item.id).select().single()
-          if (error) throw error
-          Object.assign(item, data)
-        }
-        if (row.quantity) {
-          const { error } = await supabase.from('stock_movements').insert({
-            org_id: orgId, item_id: item.id, kind: 'purchase', quantity: row.quantity, to_location_id: locationFor(row), note: t('inv.importNote'),
-          })
-          if (error) throw error
-          moved++
-        }
-      }
-      track('inventory:imported')
-      notify(t('inv.imported', { items: created, moves: moved }), 'success')
-    } catch (error) {
-      logger.error('inventory', error, { step: 'import' })
-      notify(`${userMessage(error)} · ${t('inv.importPartial', { items: created, moves: moved })}`, 'error')
-    } finally {
-      setSaving(false)
-      onImported()
-    }
-    onClose()
-  }
-
-  return (
-    <Modal title={t('inv.import')} onClose={onClose} maxWidth={640}>
-      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, marginBottom: '8px' }}>{t('inv.importHelp')}</p>
-      <pre style={{ fontSize: '12px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)', padding: '8px 10px', borderRadius: '8px', marginBottom: '10px', whiteSpace: 'pre-wrap' }}>
-        {t('inv.importExample')}
-      </pre>
-      <textarea value={text} onChange={e => setText(e.target.value)} rows={9} aria-label={t('inv.import')} autoFocus
-        style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '12px', resize: 'vertical' }} lang={lang} />
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', margin: '10px 0' }}>
-        <label htmlFor="im-loc" style={{ fontSize: '13px', color: colors.soft }}>{t('inv.importDefaultLocation')}</label>
-        <select id="im-loc" value={defaultLocation} onChange={e => setDefaultLocation(e.target.value)} style={{ ...select, width: 'auto' }}>
-          <option value="">—</option>
-          {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-        </select>
-      </div>
-      <div role="status" style={{ fontSize: '13px', marginBottom: '12px', lineHeight: 1.6, color: colors.soft }}>
-        {t('inv.importReady', { count: parsed.rows.length })}
-        {parsed.errors.length > 0 && <div style={{ color: 'var(--warn)' }}>{t('prices.importSkipped', { lines: parsed.errors.join(', ') })}</div>}
-        {unknownLocations.length > 0 && <div style={{ color: colors.danger }}>{t('inv.importUnknownLocations', { names: unknownLocations.join(', ') })}</div>}
-        {needsLocation && !unknownLocations.length && <div style={{ color: colors.danger }}>{t('inv.importNeedsLocation')}</div>}
-        {serialRows.length > 0 && <div style={{ color: colors.danger }}>{t('inv.importSerial', { names: serialRows.map(r => r.name).join(', ') })}</div>}
-      </div>
-      <button onClick={submit} disabled={saving || !parsed.rows.length || unknownLocations.length > 0 || needsLocation || serialRows.length > 0}
-        style={{ ...btnPrimary, justifyContent: 'center', width: '100%' }}>
-        {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Upload size={15} />} {t('inv.importButton', { count: parsed.rows.length })}
-      </button>
     </Modal>
   )
 }
