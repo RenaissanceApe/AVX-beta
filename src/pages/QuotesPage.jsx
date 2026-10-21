@@ -31,6 +31,7 @@ export default function QuotesPage() {
   const [quotes, setQuotes] = useState([])
   const [templates, setTemplates] = useState([])
   const [priceItems, setPriceItems] = useState([])
+  const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
   const [params, setParams] = useSearchParams()
   const { setWorkspace } = useWorkspace()
@@ -52,13 +53,14 @@ export default function QuotesPage() {
   const [showNew, setShowNew] = useState(false)
 
   async function load() {
-    const [orgRes, roleRes, quotesRes, templatesRes, pricesRes] = await Promise.all([
+    const [orgRes, roleRes, quotesRes, templatesRes, pricesRes, clientsRes] = await Promise.all([
       supabase.from('organisations').select('*').eq('id', orgId).maybeSingle(),
       supabase.from('org_members').select('role').eq('org_id', orgId).eq('user_id', user.id).maybeSingle(),
       supabase.from('quotes').select('id, number, title, status, client_name, client_company, issue_date, valid_until, total_net, currency, gig_id, updated_at')
         .eq('org_id', orgId).order('number', { ascending: false }),
       supabase.from('quote_templates').select('id, name, description, body, created_by, updated_at').eq('org_id', orgId).order('name'),
       supabase.from('price_items').select('*').eq('org_id', orgId).is('archived_at', null).order('name'),
+      supabase.from('clients').select('id, name, contact_name, email, address, tax_id').eq('org_id', orgId).is('archived_at', null).order('name'),
     ])
     for (const [step, res] of Object.entries({ orgRes, quotesRes, templatesRes })) {
       if (res.error) logger.error('quotes', res.error, { step })
@@ -68,6 +70,7 @@ export default function QuotesPage() {
     setQuotes(quotesRes.data || [])
     setTemplates(templatesRes.data || [])
     setPriceItems(pricesRes.data || [])
+    setClients(clientsRes.data || [])
     setLoading(false)
   }
   useEffect(() => { load() }, [orgId]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -199,17 +202,23 @@ export default function QuotesPage() {
         )}
       </main>
 
-      {showNew && <NewQuoteModal org={org} templates={templates} onClose={() => setShowNew(false)} onCreated={id => navigate(`/quote/${id}`)} />}
+      {showNew && <NewQuoteModal org={org} templates={templates} clients={clients} onClose={() => setShowNew(false)} onCreated={id => navigate(`/quote/${id}`)} />}
       {showCompany && <CompanyDetailsModal org={org} canEdit={role === 'admin'} onClose={() => setShowCompany(false)} onSaved={next => setOrg(next)} />}
     </AppShell>
   )
 }
 
-function NewQuoteModal({ org, templates, onClose, onCreated }) {
+function NewQuoteModal({ org, templates, clients = [], onClose, onCreated }) {
   const { t, lang } = useI18n()
   const { profile } = useAuth()
   const { notify } = useToast()
   const [form, setForm] = useState({ title: '', client_company: '', client_name: '', template: '', language: lang })
+  const [client, setClient] = useState(null) // picked from contacts
+  function pickClient(id) {
+    const c = clients.find(x => x.id === id) || null
+    setClient(c)
+    if (c) setForm(f => ({ ...f, client_company: c.name, client_name: c.contact_name || '' }))
+  }
   const [saving, setSaving] = useState(false)
 
   async function create(e) {
@@ -224,6 +233,7 @@ function NewQuoteModal({ org, templates, onClose, onCreated }) {
       title: form.title.trim(),
       client_company: form.client_company.trim() || null,
       client_name: form.client_name.trim() || null,
+      ...(client ? { client_id: client.id, client_email: client.email, client_address: client.address, client_tax_id: client.tax_id } : {}),
       language: form.language,
       manager_name: profile?.full_name || null,
       issue_date: today,
@@ -249,6 +259,15 @@ function NewQuoteModal({ org, templates, onClose, onCreated }) {
           <input id="nq-title" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             placeholder={t('quotes.quoteTitlePlaceholder')} maxLength={200} style={input} autoFocus required />
         </div>
+        {clients.length > 0 && (
+          <div>
+            <label style={label} htmlFor="nq-client">{t('contacts.pick')}</label>
+            <select id="nq-client" value={client?.id || ''} onChange={e => pickClient(e.target.value)} style={{ ...input, cursor: 'pointer' }}>
+              <option value="">{t('contacts.pickNone')}</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.name}{c.contact_name ? ` · ${c.contact_name}` : ''}</option>)}
+            </select>
+          </div>
+        )}
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
           <div>
             <label style={label} htmlFor="nq-company">{t('quotes.clientCompany')}</label>

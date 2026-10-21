@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.43.0 — Switching S2: contacts
+
+### Added
+- **Contacts** (Quotes menu, `/org/:id/contacts`): a directory of **clients** and **suppliers**
+  with search, archiving and a dialog per contact (company or name, contact person, e-mail,
+  phone, tax number, address, notes). A client shows the quotes made for them.
+- On a quote, **"Client from contacts"** fills in the client's details; a client typed by hand
+  can be kept with **"Save to contacts"**. The new-quote form can pick a client too. A quote
+  keeps its own copy of the details, so changing a contact doesn't change a quote already sent.
+- **"Add them to contacts"** turns the clients typed on existing quotes into contacts (one per
+  company, or per name when there's no company) and links those quotes.
+- The import wizard imports **clients and suppliers** (CSV or Excel), matched by tax number, then
+  by name (an e-mail address tells apart two of the same name). The address can come whole or as
+  street, postcode, city and country. Headings are guessed in English, Dutch and Portuguese.
+- Suppliers have an address and a tax number.
+- The privacy page says what Contacts keeps about clients and suppliers.
+- Help: the "Keep your clients and suppliers in Contacts" guide, a Contacts page note, the
+  "Client" term and a hint on the quote's client picker.
+
+### Changed
+- The undo migration to run by hand is renamed again, to `20261117000001_import_undo.sql`, and
+  now also switches on the contacts import (it replaces the import tables' checks, which needs a
+  person to confirm) and undoes contacts imports. It still hadn't been run anywhere. Until it
+  runs, importing contacts says so; adding them by hand works.
+
+### Database
+- Migration `20261117000000_contacts.sql` (no manual steps): `clients`, `quotes.client_id`,
+  suppliers' `address` and `tax_id`, `clients_from_quotes`, contacts in `run_import`. Checks in
+  `supabase/tests/contacts.sql`; after the hand-run file, `supabase/tests/contacts_import.sql`.
+
 ## 0.42.0 — Switching S1b: Excel files and kit contents
 
 ### Added

@@ -19,6 +19,7 @@ export const PAGE_TERMS = {
   inventory: ['catalogue-item', 'bulk-item', 'serial-item', 'location', 'stock-movement', 'subrental', 'inspection', 'repair'],
   'inventory-item': ['unit', 'set', 'case', 'accessory', 'alternative', 'replacement-value', 'depreciation', 'inspection', 'write-off'],
   quotes: ['quote', 'quote-version', 'client-link', 'price-list', 'validity'],
+  contacts: ['client', 'supplier', 'subrental', 'quote'],
   quote: ['phase', 'factor', 'vat', 'quote-version', 'client-link', 'price-list'],
   orgs: ['organisation', 'org-admin', 'org-member', 'viewer', 'retention'],
 }
@@ -69,6 +70,7 @@ export const GUIDES = {
   'wh-reports': { role: 'warehouse', pages: ['inventory'], terms: ['replacement-value', 'depreciation', 'write-off'], shots: ['reports', null, null] },
   'of-company': { role: 'office', pages: ['quotes'], terms: ['vat', 'validity'], shots: [null, 'company-details', null] },
   'of-price-list': { role: 'office', pages: ['quotes', 'quote'], terms: ['price-list', 'catalogue-item'], shots: ['price-list', null, null] },
+  'of-contacts': { role: 'office', pages: ['contacts', 'quotes', 'quote'], terms: ['client', 'supplier'], shots: ['contacts', null, 'quote-client', null] },
   'of-build-quote': { role: 'office', pages: ['quotes', 'quote'], terms: ['quote', 'phase', 'factor', 'vat', 'price-list'], shots: [null, 'quote-phases', null, null] },
   'of-versions': { role: 'office', pages: ['quote'], terms: ['quote-version', 'quote'], shots: [null, 'quote-versions', null] },
   'of-send-quote': { role: 'office', pages: ['quote'], terms: ['client-link', 'quote-version', 'validity'], shots: [null, 'send-quote', null] },

@@ -4,13 +4,27 @@
 -- while nothing has used the new records (stock moved, a gig, a scan, a repair, a kit, a case, a
 -- plot or a patch); fields changed again since the import are left as they are. Kit parts a
 -- kits import added (20261116000000_import_kits.sql) are removed, and changed quantities put back.
--- Checks: supabase/tests/import_undo.sql (after this file has run).
+-- It also switches on importing contacts (20261117000000_contacts.sql): the import tables' checks
+-- are replaced to allow 'clients' and 'suppliers'; undoing a contacts import removes the clients
+-- and suppliers it added unless a quote or a subrental uses them.
+-- Checks: supabase/tests/import_undo.sql and supabase/tests/contacts_import.sql (after this file
+-- has run).
+
+alter table public.import_batches drop constraint if exists import_batches_kind_check;
+alter table public.import_batches add constraint import_batches_kind_check
+  check (kind in ('locations', 'items', 'units', 'clients', 'suppliers'));
+alter table public.import_presets drop constraint if exists import_presets_kind_check;
+alter table public.import_presets add constraint import_presets_kind_check
+  check (kind in ('locations', 'items', 'units', 'clients', 'suppliers'));
+alter table public.import_changes drop constraint if exists import_changes_tbl_check;
+alter table public.import_changes add constraint import_changes_tbl_check
+  check (tbl in ('stock_locations', 'price_items', 'stock_units', 'stock_movements', 'clients', 'suppliers'));
 
 create or replace function public.undo_import(p_batch uuid) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
   b public.import_batches; c record; v_cur jsonb; v_set text;
-  v_items uuid[]; v_units uuid[]; v_locs uuid[]; v_moves bigint[]; v_parts uuid[]; v_qty integer;
+  v_items uuid[]; v_units uuid[]; v_locs uuid[]; v_moves bigint[]; v_parts uuid[]; v_clients uuid[]; v_suppliers uuid[]; v_qty integer;
   n_removed integer := 0; n_restored integer := 0; n_kept integer := 0; v_count integer;
 begin
   perform private.require_mfa();
@@ -21,12 +35,15 @@ begin
   select coalesce(array_agg(row_id::uuid) filter (where tbl = 'price_items'), '{}'),
          coalesce(array_agg(row_id::uuid) filter (where tbl = 'stock_units'), '{}'),
          coalesce(array_agg(row_id::uuid) filter (where tbl = 'stock_locations'), '{}'),
-         coalesce(array_agg(row_id::bigint) filter (where tbl = 'stock_movements'), '{}')
-    into v_items, v_units, v_locs, v_moves
+         coalesce(array_agg(row_id::bigint) filter (where tbl = 'stock_movements'), '{}'),
+         coalesce(array_agg(row_id::uuid) filter (where tbl = 'clients'), '{}'),
+         coalesce(array_agg(row_id::uuid) filter (where tbl = 'suppliers'), '{}')
+    into v_items, v_units, v_locs, v_moves, v_clients, v_suppliers
   from public.import_changes where batch_id = p_batch and action = 'created';
   select coalesce(array_agg(part_id), '{}') into v_parts from public.import_part_changes where batch_id = p_batch and action = 'created';
 
-  -- Anything used since? Stock moved, put in a kit or a case, drawn on a plot or a patch…
+  -- Anything used since? Stock moved, put in a kit or a case, drawn on a plot or a patch, a
+  -- client on a quote, a supplier on a subrental…
   if exists (select 1 from public.stock_movements m
              where (m.item_id = any(v_items) or m.unit_id = any(v_units) or m.to_location_id = any(v_locs) or m.from_location_id = any(v_locs))
                and not (m.id = any(v_moves)))
@@ -35,7 +52,9 @@ begin
      or exists (select 1 from public.gig_inputs x where x.item_id = any(v_items))
      or exists (select 1 from public.gig_plot_items x where x.item_id = any(v_items))
      or exists (select 1 from public.gig_fixtures x where x.item_id = any(v_items))
-     or exists (select 1 from public.stock_units u where u.case_unit_id = any(v_units)) then
+     or exists (select 1 from public.stock_units u where u.case_unit_id = any(v_units))
+     or exists (select 1 from public.quotes q where q.client_id = any(v_clients))
+     or exists (select 1 from public.subrentals s where s.supplier_id = any(v_suppliers)) then
     raise exception 'Some of what this import added is already in use, so it can''t be undone' using errcode = '23503';
   end if;
 
@@ -49,6 +68,10 @@ begin
     delete from public.price_items where id = any(v_items);
     get diagnostics v_count = row_count; n_removed := n_removed + v_count;
     delete from public.stock_locations where id = any(v_locs);
+    get diagnostics v_count = row_count; n_removed := n_removed + v_count;
+    delete from public.clients where id = any(v_clients);
+    get diagnostics v_count = row_count; n_removed := n_removed + v_count;
+    delete from public.suppliers where id = any(v_suppliers);
     get diagnostics v_count = row_count; n_removed := n_removed + v_count;
   exception when foreign_key_violation then
     raise exception 'Some of what this import added is already in use, so it can''t be undone' using errcode = '23503';

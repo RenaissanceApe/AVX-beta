@@ -151,6 +151,12 @@ export function sampleData(persona, lang) {
   const suppliers = [
     { id: 'sp1', org_id: orgId, name: 'Audiomatic', contact_name: 'Rui Costa', phone: '+351 912 000 000', email: 'rui@example.com', partner_org_id: null, archived_at: null },
   ]
+  const clients = [
+    { id: 'c1', org_id: orgId, name: 'Marcolino Produções', contact_name: 'Marta Lopes', email: 'marta@example.com', phone: '+351 913 000 000', address: null, tax_id: null, notes: null, archived_at: null },
+    { id: 'c2', org_id: orgId, name: tx('Câmara Municipal de Sintra', 'Sintra Town Council'), contact_name: tx('Paulo Reis', 'Paulo Reis'), email: 'eventos@example.com', phone: '+351 219 000 000', address: null, tax_id: 'PT 505 000 002', notes: null, archived_at: null },
+    { id: 'c3', org_id: orgId, name: 'Festival Lumière', contact_name: 'Inês Duarte', email: 'ines@example.com', phone: null, address: 'Porto', tax_id: null, notes: null, archived_at: null },
+    { id: 'c4', org_id: orgId, name: 'Joana Silva', contact_name: null, email: 'joana.s@example.com', phone: '+351 936 000 000', address: null, tax_id: null, notes: tx('Casamento em junho', 'Wedding in June'), archived_at: null },
+  ]
   const subrentals = [
     { id: 'sb1', org_id: orgId, supplier_id: 'sp1', supplier: { name: 'Audiomatic', partner_org_id: null }, gig_id: gigId, gig: { name: gig.name }, status: 'requested', starts_at: span[0], ends_at: span[1], reference: 'PO-118', notes: null,
       lines: [{ id: 'x1', item_id: SPK, description: w.speaker, quantity: 2, unit_cost: 40, position: 0 }] },
@@ -158,7 +164,7 @@ export function sampleData(persona, lang) {
   const Lq = (id, kind, description, qty, unit, factor, unit_price, item_id) => ({ id, kind, description, details: '', qty, unit, factor, unit_price, discount_pct: 0, ...(item_id ? { item_id } : {}) })
   const quote = {
     id: 'q1', org_id: orgId, gig_id: gigId, number: 143, title: gig.name, status: 'accepted', language: lang, currency: 'EUR',
-    client_company: 'Marcolino Produções', client_name: 'Marta Lopes', client_email: 'marta@example.com', client_address: null, client_tax_id: null,
+    client_id: 'c1', client_company: 'Marcolino Produções', client_name: 'Marta Lopes', client_email: 'marta@example.com', client_address: null, client_tax_id: null,
     issue_date: day(-10), valid_until: day(20), intro: null, terms: null, payment_terms: null, manager_name: 'Ricardo Bedulho',
     vat_rate: 23, discount_pct: 0, show_line_prices: true, version: 3, created_by: ricardo, total_net: 4280, created_at: ago(240), updated_at: ago(30),
     body: { phases: [
@@ -250,6 +256,7 @@ export function sampleData(persona, lang) {
       repairs,
       inspections: [],
       suppliers,
+      clients,
       subrentals,
       quotes: [{ ...quote, organisations: org }],
       quote_versions: versions,

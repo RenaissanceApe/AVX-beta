@@ -199,7 +199,7 @@ export function SupplierModal({ orgId, supplier, onClose, onSaved }) {
   const { notify } = useToast()
   const [form, setForm] = useState({
     name: supplier?.name || '', contact_name: supplier?.contact_name || '', email: supplier?.email || '',
-    phone: supplier?.phone || '', notes: supplier?.notes || '',
+    phone: supplier?.phone || '', tax_id: supplier?.tax_id || '', address: supplier?.address || '', notes: supplier?.notes || '',
   })
   const [code, setCode] = useState('')
   const [linked, setLinked] = useState(supplier?.partner_org_id ? '' : null) // '' = linked (name unknown), text = just linked
@@ -243,7 +243,9 @@ export function SupplierModal({ orgId, supplier, onClose, onSaved }) {
           <Field id="sp-contact" text={t('sub.contact')}><input id="sp-contact" value={form.contact_name} onChange={set('contact_name')} maxLength={120} style={input} /></Field>
           <Field id="sp-email" text={t('sub.email')}><input id="sp-email" type="email" value={form.email} onChange={set('email')} maxLength={200} style={input} /></Field>
           <Field id="sp-phone" text={t('sub.phone')}><input id="sp-phone" type="tel" value={form.phone} onChange={set('phone')} maxLength={60} style={input} /></Field>
+          <Field id="sp-tax" text={t('contacts.taxId')}><input id="sp-tax" value={form.tax_id} onChange={set('tax_id')} maxLength={40} style={input} /></Field>
         </div>
+        <Field id="sp-address" text={t('contacts.address')}><textarea id="sp-address" value={form.address} onChange={set('address')} rows={2} maxLength={500} style={{ ...input, resize: 'vertical' }} /></Field>
         <Field id="sp-notes" text={t('inv.note')}><input id="sp-notes" value={form.notes} onChange={set('notes')} maxLength={1000} style={input} /></Field>
         {supplier && (
           <div style={{ ...card, padding: '10px 12px' }}>
@@ -427,6 +429,7 @@ export function SubrentalsTab({ orgId, inv }) {
       <section style={{ marginTop: '18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
           <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '7px' }}><Truck size={16} color={colors.accentText} /> {t('sub.suppliers')}</h2>
+          <Link to={`/org/${orgId}/contacts?tab=suppliers`} style={{ fontSize: '12px', color: colors.accentText }}>{t('contacts.allSuppliers')}</Link>
           {suppliers.some(s => s.archived_at) && <button onClick={() => setShowArchived(v => !v)} style={{ ...btn, padding: '5px 10px', fontSize: '12px' }}>{showArchived ? t('inv.hideArchived') : t('inv.showArchived')}</button>}
           <button onClick={() => setSupplier({})} style={btn}><Plus size={14} /> {t('sub.newSupplier')}</button>
         </div>
