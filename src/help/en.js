@@ -185,6 +185,19 @@ export default {
         'Times can change. Look again the day before; changes to the schedule are also posted in the gig\'s chat.',
       ],
     },
+    'crew-calendar': {
+      title: 'See your gigs in your phone\'s calendar',
+      intro: 'Your gigs can show up in the calendar you already use (Apple, Google or Outlook), next to everything else, without opening AVX.',
+      steps: [
+        'Open your account (your initials at the top) and find "Your gigs in your phone\'s calendar".',
+        'Tap "Get my calendar link", then "Add to Apple / Outlook" on an iPhone or Mac, or "Add to Google Calendar" on Android. Your calendar asks to subscribe: say yes.',
+        'From then on the gigs you\'re on appear with their venue, your role and call time, and update by themselves (most calendars check every hour or so).',
+      ],
+      mistakes: [
+        'The link is private: anyone who has it sees your gigs\' names, dates and venues. If you shared it by mistake, tap "New link"; the old one stops working.',
+        'Changes made in AVX can take an hour or more to show in your calendar. For the latest call time, open the gig in AVX.',
+      ],
+    },
     'crew-unavailable': {
       title: 'Mark the dates you can\'t work',
       intro: 'Holidays, another job, a doctor\'s appointment: mark them once and production managers are warned before booking you.',

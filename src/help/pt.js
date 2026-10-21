@@ -182,6 +182,19 @@ export default {
         'As horas podem mudar. Volte a ver na véspera; as alterações ao horário também aparecem na conversa do evento.',
       ],
     },
+    'crew-calendar': {
+      title: 'Veja os seus eventos no calendário do telemóvel',
+      intro: 'Os seus eventos podem aparecer no calendário que já usa (Apple, Google ou Outlook), junto com tudo o resto, sem abrir o AVX.',
+      steps: [
+        'Abra a sua conta (as suas iniciais no topo) e procure "Os seus eventos no calendário do telemóvel".',
+        'Toque em "Obter a ligação do calendário" e depois em "Adicionar à Apple / Outlook" num iPhone ou Mac, ou "Adicionar ao Google Calendar" no Android. O calendário pergunta se quer subscrever: diga que sim.',
+        'A partir daí os eventos em que está aparecem com o local, o seu papel e a hora de chamada, e atualizam-se sozinhos (a maioria dos calendários verifica mais ou menos de hora a hora).',
+      ],
+      mistakes: [
+        'A ligação é privada: quem a tiver vê os nomes, datas e locais dos seus eventos. Se a partilhou por engano, toque em "Nova ligação"; a antiga deixa de funcionar.',
+        'As alterações feitas no AVX podem demorar uma hora ou mais a aparecer no calendário. Para a hora de chamada mais recente, abra o evento no AVX.',
+      ],
+    },
     'crew-unavailable': {
       title: 'Marcar as datas em que não pode trabalhar',
       intro: 'Férias, outro trabalho, uma consulta: marque-as uma vez e os diretores de produção são avisados antes de o marcarem.',

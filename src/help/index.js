@@ -41,6 +41,7 @@ export const GUIDES = {
   'crew-join': { role: 'crew', pages: ['home'], terms: ['gig', 'my-work', 'workspace'], shots: [null, 'welcome', 'gig-list', null] },
   'crew-install': { role: 'crew', pages: ['home'], terms: ['push-notifications', 'offline-copy'], shots: [null, null, null, 'push'] },
   'crew-call-time': { role: 'crew', pages: ['home', 'gig'], terms: ['call-time', 'schedule', 'call-sheet'], shots: ['gig-list', 'call-time', 'schedule-callsheet', 'call-sheet', 'call-sheet-large'] },
+  'crew-calendar': { role: 'crew', pages: ['home'], terms: ['gig', 'call-time'], shots: [null, 'calendar-feed', null] },
   'crew-unavailable': { role: 'crew', pages: ['home'], terms: ['unavailable-dates', 'double-booking'], shots: ['more-availability', 'unavailable', null] },
   'crew-availability': { role: 'crew', pages: ['home', 'messages'], terms: ['availability-request', 'crew-call'], shots: [null, 'requests', 'chat-availability'] },
   'crew-chat': { role: 'crew', pages: ['gig', 'messages'], terms: ['chat', 'direct-message', 'mute', 'report'], shots: ['inbox', 'chat-compose', null, null] },

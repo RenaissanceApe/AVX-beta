@@ -284,6 +284,7 @@ export function sampleData(persona, lang) {
       my_gig_companies: persona === 'pm' ? [{ org_id: orgId, name: 'Lumen and Pixel' }] : [{ org_id: orgId, name: 'Lumen and Pixel' }, { org_id: otherOrg, name: 'SoundWorks Lisboa' }],
       my_availability_requests: persona === 'pm' ? [] : [request],
       my_unread_counts: [],
+      calendar_feed: '7c1e9a4b'.repeat(8),
       my_clashes: [],
       gig_clashes: persona === 'pm' ? [{ user_id: duarte, kind: 'booked', status: 'confirmed', starts_at: `${day(24)}T00:00:00Z`, ends_at: `${day(25)}T00:00:00Z`, gig_id: null, label: null, company: null, role_label: null }] : [],
       email_clashes: [],

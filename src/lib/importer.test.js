@@ -301,3 +301,31 @@ describe('import wizard: jobs, their equipment and open quotes', () => {
     expect(built[0]._errors).toEqual([{ field: 'end_date', error: 'dates' }])
   })
 })
+
+describe('import wizard: Rentman exports', () => {
+  it('matches Rentman’s own column names and recognises the export', async () => {
+    const { looksLikeRentman } = await import('./importer')
+    const equipment = ['id', 'name', 'code', 'folder', 'price', 'rental_sales', 'stock_management', 'type', 'unit', 'weight', 'current_quantity', 'list_price', 'critical_stock_level']
+    expect(guessMapping(equipment, 'items')).toEqual({
+      name: 'name', code: 'code', folder: 'category', price: 'unit_price', rental_sales: 'kind', stock_management: 'tracking', weight: 'weight_kg',
+      current_quantity: 'quantity', list_price: 'replacement_value', critical_stock_level: 'min_stock',
+    })
+    expect(looksLikeRentman(equipment)).toBe(true)
+    expect(parseChoice('Track stock', 'tracking')).toBe('bulk')
+    expect(parseChoice('Exclude from stock tracking', 'tracking')).toBe('none')
+    const contacts = ['code', 'name', 'email_1', 'phone_1', 'visit_street', 'visit_number', 'visit_postalcode', 'visit_city', 'country', 'VAT_code']
+    const cmap = guessMapping(contacts, 'clients')
+    expect(cmap).toEqual({ name: 'name', email_1: 'email', phone_1: 'phone', visit_street: 'street', visit_number: 'house_number', visit_postalcode: 'postcode', visit_city: 'city', country: 'country', VAT_code: 'tax_id' })
+    const rows = buildRows({ headers: contacts, rows: [['00000001', 'Highlite', '', '', 'Westgate Street', '1-7', 'E8 3RL', 'London', 'GB', '']] }, cmap, 'clients')
+    expect(rows[0].address).toBe('Westgate Street 1-7\nE8 3RL London\nGB')
+    expect(guessMapping(['number', 'reference', 'name', 'planperiod_start', 'planperiod_end', 'customer', 'location'], 'gigs')).toEqual({
+      number: 'ref', name: 'name', planperiod_start: 'start_date', planperiod_end: 'end_date', customer: 'client', location: 'venue',
+    })
+    const crew = ['firstname', 'lastname', 'email', 'phone', 'active']
+    const crewRows = buildRows({ headers: crew, rows: [['Mike', 'Sander', 'mike@example.com', '', 'false'], ['Ana', 'Lopes', 'ana@example.com', '', 'true']] }, guessMapping(crew, 'crew'), 'crew')
+    expect(crewRows[0]._errors).toEqual([{ field: 'active', error: 'inactive' }])
+    expect(crewRows[1]).toEqual({ _row: 3, _errors: [], full_name: 'Ana Lopes', email: 'ana@example.com' })
+    expect(looksLikeRentman(['Naam', 'Prijs'])).toBe(false)
+    expect(parseDate('2026-10-14T00:00:00+01:00')).toBe('2026-10-14')
+  })
+})

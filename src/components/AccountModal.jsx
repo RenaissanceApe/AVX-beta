@@ -9,6 +9,7 @@ import { useI18n, LANGUAGES } from '../i18n'
 import AvailabilitySection from './AvailabilitySection'
 import AppearanceSettings from './AppearanceSettings'
 import TwoStepSection from './TwoStepSection'
+import CalendarFeedSection from './CalendarFeedSection'
 import { supabase } from '../lib/supabase'
 import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -252,6 +253,10 @@ export default function AccountModal({ onClose }) {
 
         <div style={section}>
           <PushSettings />
+        </div>
+
+        <div style={section}>
+          <CalendarFeedSection label={label} input={input} smallBtn={smallBtn} />
         </div>
 
         <BlockedPeople style={section} />
