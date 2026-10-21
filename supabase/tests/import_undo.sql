@@ -1,4 +1,4 @@
--- Checks for migration 20261115000001 (switching S1a: undoing an import). Run in the TEST
+-- Checks for migration 20261116000001 (switching S1a: undoing an import). Run in the TEST
 -- project's SQL editor AFTER that migration has been run by hand. Rolls itself back; ends with
 --   "ALL IMPORT UNDO CHECKS PASSED"  → good
 do $$
@@ -74,6 +74,19 @@ begin
     perform undo_import(b_loc);
     raise exception 'CHECK FAILED: undo of locations in use';
   exception when foreign_key_violation then null; end;
+  reset role;
+
+  -- Kit contents: undoing removes the parts it added, puts back a changed quantity, and the
+  -- kit is a plain item again
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  perform run_import(org_a, 'items', '[{"name": "Speaker case", "code": "CASE", "tracking": "serial"}, {"name": "Clamp", "code": "CLAMP", "quantity": 4, "location": "Warehouse"}]');
+  perform run_import(org_a, 'kits', '[{"kit_code": "CASE", "item_code": "CLAMP", "quantity": 2}]');
+  res := run_import(org_a, 'kits', '[{"kit_code": "CASE", "item_code": "CLAMP", "quantity": 3}, {"kit_code": "CASE", "item_code": "AURA"}]');
+  res := undo_import((res ->> 'batch')::uuid);
+  if (res ->> 'removed')::int <> 1 or (res ->> 'restored')::int <> 1 then raise exception 'CHECK FAILED: undo kits %', res; end if;
+  select p.quantity into n from item_parts p join price_items i on i.id = p.parent_id where i.code = 'CASE' and p.org_id = org_a;
+  if n <> 2 then raise exception 'CHECK FAILED: kit quantity not put back (%)', n; end if;
   reset role;
 
   raise exception 'ALL IMPORT UNDO CHECKS PASSED';

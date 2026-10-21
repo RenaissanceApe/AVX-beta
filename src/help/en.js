@@ -426,15 +426,15 @@ export default {
     },
     'wh-import': {
       title: 'Import your equipment from a spreadsheet or another tool',
-      intro: 'Bring your locations, catalogue and serial numbers into AVX in one go, from a CSV export (Rentman, another rental tool or a spreadsheet), instead of typing them in.',
+      intro: 'Bring your locations, catalogue, serial numbers and kits into AVX in one go, from an Excel or CSV export (Rentman, another rental tool or a spreadsheet), instead of typing them in.',
       steps: [
-        'In Inventory, tap Import. Import in this order: locations, then equipment, then units (serial numbers), because each one refers to the one before.',
-        'Choose what you are importing, then choose the CSV file or paste the rows from your spreadsheet (with their headings).',
+        'In Inventory, tap Import. Import in this order: locations, then equipment, then units (serial numbers), then kit contents, because each one refers to the ones before.',
+        'Choose what you are importing, then choose the file (Excel .xlsx or CSV; from Excel the first sheet is read) or paste the rows from your spreadsheet (with their headings).',
         'AVX guesses what each column is, also from Dutch or Portuguese headings. Check the guesses and change any that are wrong. Save the matching with a name ("Rentman equipment export") so the next file needs none.',
         'The check shows what will be new, what matches what is already in AVX, and which rows have problems (they are left out). Import, then read the report. Fix the skipped rows in the file and import it again: what is already in AVX is matched, not doubled.',
       ],
       mistakes: [
-        'Excel files have to be saved as CSV first (File → Save as → CSV), or copy the rows and paste them.',
+        'Old Excel files (.xls) and other spreadsheet formats have to be saved as .xlsx or CSV first, or copy the rows and paste them.',
         'An import can be undone from "Earlier imports" only while nothing has used what it added (a gig, a scan, a kit). Undoing removes what it added for good.',
       ],
     },

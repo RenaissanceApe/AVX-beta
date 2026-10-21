@@ -143,3 +143,38 @@ describe('import wizard: the database’s reasons', () => {
     expect(serverMessage('Something else')).toBe(null)
   })
 })
+
+describe('import wizard: kit contents', () => {
+  it('guesses kit columns and says what is missing', () => {
+    expect(guessMapping(['Case', 'Case code', 'Inhoud', 'Code', 'Aantal', 'Soort'], 'kits')).toEqual({
+      Case: 'kit', 'Case code': 'kit_code', Inhoud: 'item', Code: 'item_code', Aantal: 'quantity', Soort: 'part_kind',
+    })
+    expect(missingFields({ A: 'kit' }, 'kits')).toEqual(['item'])
+    expect(missingFields({ A: 'item_code' }, 'kits')).toEqual(['kit'])
+    expect(missingFields({ A: 'kit_code', B: 'item' }, 'kits')).toEqual([])
+    expect(parseChoice('Toebehoren', 'partKind')).toBe('accessory')
+    expect(parseChoice('Flightcase', 'kitType')).toBe('case')
+  })
+
+  it('predicts parts to add, ones already there and ones that can’t be', () => {
+    const existing = {
+      items: [
+        { id: 'c', name: 'Speaker case', code: 'CASE', tracking: 'serial', kit_type: 'case' },
+        { id: 's', name: 'Speaker', code: 'SPK', tracking: 'serial', kit_type: null },
+        { id: 'p', name: 'Powercon', code: 'PWC', tracking: 'bulk', kit_type: null },
+      ],
+      parts: [{ parent_id: 'c', child_id: 's', kind: 'content' }],
+    }
+    const rows = [
+      { _row: 2, kit_code: 'CASE', item_code: 'SPK', quantity: 2, _errors: [] },
+      { _row: 3, kit: 'Speaker', item: 'Powercon', _errors: [] },
+      { _row: 4, kit_code: 'NOPE', item_code: 'SPK', _errors: [] },
+      { _row: 5, kit_code: 'CASE', item: 'Nothing', _errors: [] },
+      { _row: 6, kit_code: 'CASE', item_code: 'CASE', _errors: [] },
+      { _row: 7, kit: 'Speaker', item: 'Powercon', _errors: [] },
+    ]
+    expect(dryRun(rows, 'kits', existing).plan.map(p => p.action + (p.reason ? `:${p.reason}` : ''))).toEqual([
+      'match', 'create', 'skip:unknownKit', 'skip:unknownItem', 'skip:selfKit', 'match',
+    ])
+  })
+})

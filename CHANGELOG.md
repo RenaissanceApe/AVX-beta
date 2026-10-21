@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.42.0 — Switching S1b: Excel files and kit contents
+
+### Added
+- The import wizard reads **Excel files (.xlsx)** directly (the first sheet), as well as CSV.
+- **Kit contents** import: what goes in each set or case and the accessories that come with an
+  item, one row per part, by code or name, with quantities. A kit becomes a set or a case as
+  needed; importing again updates quantities. Column names are guessed in English, Dutch and
+  Portuguese, and the matching can be saved as a preset.
+- Undo also removes kit parts an import added and puts back changed quantities.
+
+### Changed
+- The undo migration to run by hand is renamed `20261116000001_import_undo.sql` (it now runs after
+  the kits migration). It had not been run yet; nothing else changes for it.
+- The import guide covers Excel and kits.
+
+### Database
+- Migration `20261116000000_import_kits.sql` (no manual steps): `subject` on import batches and
+  presets, `import_part_changes`, kits in `run_import`. Checks in `supabase/tests/import_kits.sql`.
+
 ## 0.41.0 — Switching S1a: the import wizard
 
 ### Added
