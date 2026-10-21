@@ -342,6 +342,20 @@ const SCENES = {
     await dialog.getByLabel(L('common.email'), { exact: true }).fill('marco@example.com')
     return dialog.getByRole('button', { name: L('common.invite'), exact: true }).locator('xpath=..')
   } },
+  'jobs-board': { persona: 'crew', url: '/jobs', async run(page, L) {
+    const first = page.locator('#jobs-found').locator('xpath=following-sibling::div[1]/div[1]')
+    await first.waitFor()
+    await first.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
+    return first
+  } },
+  'org-jobs': { persona: 'pm', url: `/org/${ids.org}/jobs`, async run(page, L) {
+    await page.getByRole('button', { name: L('jobs.applicants') }).first().click()
+    const list = page.getByRole('list', { name: L('jobs.applicants') })
+    await list.waitFor()
+    const first = list.locator('li').first()
+    await first.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
+    return first
+  } },
   'crew-search': { persona: 'pm', url: `/org/${ids.org}/crew?gig=${ids.gig}`, async run(page, L) {
     await page.getByRole('button', { name: L('crewSearch.search'), exact: true }).click()
     const first = page.locator('#cs-results').locator('xpath=following-sibling::div[1]/div[1]')

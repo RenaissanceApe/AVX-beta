@@ -131,6 +131,8 @@ export default {
     messages: { title: 'Mensagens', summary: 'As suas conversas: mensagens diretas, conversas de eventos, canais de departamento e da organização. As que têm mensagens por ler aparecem primeiro. Use o menu de uma mensagem para responder, reagir, guardar ou denunciar.' },
     inventory: { title: 'Inventário', summary: 'O seu equipamento: o catálogo, onde está guardado, o stock e os movimentos, a manutenção e os alugueres externos.' },
     'inventory-item': { title: 'Um artigo de equipamento', summary: 'Um artigo do catálogo: detalhes, stock por local, unidades com etiquetas, conteúdo do kit, manutenção e histórico.' },
+    jobs: { title: 'Trabalhos', summary: 'Vagas abertas de empresas no AVX: as das suas funções e distância, ou todas, e as suas candidaturas. O seu preço por dia só vai para a empresa a que se candidata.' },
+    'org-jobs': { title: 'Vagas publicadas', summary: 'As vagas que a vossa organização publicou e quem se candidatou. Ponha na lista final, recuse ou ofereça o lugar; feche uma vaga ou marque-a como preenchida.' },
     'crew-search': { title: 'Procurar técnicos', summary: 'Freelancers no AVX que ligaram o seu perfil profissional e deixam que as empresas o vejam. Pesquise por função, local, datas e língua, e depois pergunte por um evento ou ofereça um lugar. Os contactos ficam privados até a pessoa entrar.' },
     'crew-profile': { title: 'Perfil profissional', summary: 'Deixe que as empresas no AVX o encontrem para trabalhar. Desligado até o ligar; escolhe quem o vê (só empresas, ou empresas e técnicos) e pode mudá-lo, desligá-lo ou removê-lo a qualquer momento. Sem preços.' },
     contacts: { title: 'Contactos', summary: 'Os seus clientes e fornecedores, guardados uma vez. Os orçamentos escolhem daqui o cliente e os sub-alugueres o fornecedor. Importe-os de uma folha de cálculo, ou adicione de uma vez os clientes escritos em orçamentos antigos.' },
@@ -195,6 +197,19 @@ export default {
       mistakes: [
         'A ligação é privada: quem a tiver vê os nomes, datas e locais dos seus eventos. Se a partilhou por engano, toque em "Nova ligação"; a antiga deixa de funcionar.',
         'As alterações feitas no AVX podem demorar uma hora ou mais a aparecer no calendário. Para a hora de chamada mais recente, abra o evento no AVX.',
+      ],
+    },
+    'crew-jobs': {
+      title: 'Encontrar trabalho nas vagas',
+      intro: 'As empresas no AVX publicam vagas abertas. As que encaixam no que faz e na distância a que se desloca aparecem para si.',
+      steps: [
+        'Ligue primeiro o seu perfil profissional (funções, localidade, distância). Depois abra Trabalhos no menu.',
+        '"Para si" mostra as vagas que encaixam; "Todas as vagas" mostra todas. Cada uma diz as datas, a localidade, o pagamento ou "Envie o seu preço por dia".',
+        'Toque em Candidatar-me, escreva uma mensagem curta, indique o seu preço por dia se for pedido e confirme que está livre. A empresa responde nas suas mensagens; se lhe oferecer o lugar e aceitar, entra no evento.',
+      ],
+      mistakes: [
+        'O seu preço por dia só vai para essa empresa, nunca para o perfil. "As minhas candidaturas" mostra o ponto de cada uma; pode retirar enquanto estiver aberta.',
+        'Se nada aparece "Para si", alargue a distância ou acrescente funções no seu perfil profissional.',
       ],
     },
     'crew-profile': {
@@ -299,6 +314,19 @@ export default {
       mistakes: [
         'Sem datas, o AVX não consegue avisar de marcações duplas nem ver se há equipamento suficiente.',
         'Se o cliente aceitou um orçamento, abra o evento e use "Preencher evento a partir do orçamento" para juntar horário, posições e equipamento de uma vez.',
+      ],
+    },
+    'pm-post-job': {
+      title: 'Publicar uma vaga e escolher quem levar',
+      intro: 'Precisa de pessoas que ainda não conhece? Publique a vaga: os freelancers no AVX que encaixam veem-na e candidatam-se.',
+      steps: [
+        'No separador Equipa do evento, toque em "Publicar uma vaga" (ou Organização → Vagas publicadas). Escolha a posição da equipa ou escreva um título, a função, a localidade e o pagamento ("Pedir o preço por dia" ou um valor indicado). Precisa do início de sessão em dois passos ligado.',
+        'As candidaturas chegam às suas mensagens e a Vagas publicadas → Candidatos, com o perfil profissional, a mensagem e o preço de cada pessoa.',
+        'Ponha na lista final, recuse (com uma nota simpática) ou "Ofereça o lugar": se aceitar, entra no evento com essa função e a vaga fecha quando todos os lugares estiverem ocupados.',
+      ],
+      mistakes: [
+        'A vaga não mostra o nome do evento nem o cliente, só a vossa organização, as datas e a localidade. Feche-a se os planos mudarem.',
+        'Enquanto a organização não estiver verificada, pode ter 3 vagas abertas de cada vez.',
       ],
     },
     'pm-find-crew': {

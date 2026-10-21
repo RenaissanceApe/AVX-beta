@@ -14,7 +14,7 @@ export type Notification = {
 }
 
 // Kinds that are a direct question to the person: sent even when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined'])
 
 export const STRINGS: Record<Lang, Record<string, string>> = {
   en: {
@@ -62,6 +62,8 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     crewCall: '{actor} offers you a place as {title} on {gig} ({range})',
     crewCallAccepted: '{actor} accepted the place as {title} on {gig}',
     crewCallDeclined: '{actor} declined the place as {title} on {gig}',
+    jobApplication: '{actor} applied for {title} on {gig}',
+    jobDeclined: '{actor} answered your application for {title}: the place has gone to someone else',
     guestOne: '{guest} wrote about {about}: “{excerpt}”',
     guestMany: '{guest} wrote {count} messages about {about}, latest: “{excerpt}”',
     'about.quote': 'a quote', 'about.supplier': 'a subrental',
@@ -119,6 +121,8 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     crewCall: '{actor} oferece-lhe um lugar como {title} em {gig} ({range})',
     crewCallAccepted: '{actor} aceitou o lugar como {title} em {gig}',
     crewCallDeclined: '{actor} recusou o lugar como {title} em {gig}',
+    jobApplication: '{actor} candidatou-se a {title} em {gig}',
+    jobDeclined: '{actor} respondeu à sua candidatura a {title}: o lugar ficou para outra pessoa',
     guestOne: '{guest} escreveu sobre {about}: “{excerpt}”',
     guestMany: '{guest} escreveu {count} mensagens sobre {about}, a última: “{excerpt}”',
     'about.quote': 'um orçamento', 'about.supplier': 'um aluguer externo',
@@ -197,6 +201,8 @@ export function describe(n: Notification, lang: Lang, actorName: string | undefi
     case 'hire_answered': return fill(d.answer === 'confirmed' ? s.hireConfirmed : s.hireDeclined, { supplier: d.supplier ?? '' })
     case 'crew_call': return fill(s.crewCall, { actor, title: d.title ?? '', gig, range: dayText(d.start_date, d.end_date, lang) })
     case 'crew_call_answer': return fill(d.answer === 'accepted' ? s.crewCallAccepted : s.crewCallDeclined, { actor, title: d.title ?? '', gig })
+    case 'job_application': return fill(s.jobApplication, { actor, title: d.title ?? '', gig })
+    case 'job_declined': return fill(s.jobDeclined, { actor, title: d.title ?? '' })
     case 'guest_message': return fill(Number(d.count ?? 1) > 1 ? s.guestMany : s.guestOne, {
       guest: d.guest_name ?? s.someone, about: d.about || s[`about.${d.about_kind ?? 'quote'}`], count: d.count ?? 1, excerpt: d.excerpt ?? '' })
     case 'message_report': return fill(s.messageReport, { where: d.where ?? gig, reason: s[`reason.${d.reason ?? 'other'}`] ?? '' })
@@ -217,6 +223,8 @@ export function linkFor(n: Notification, appUrl: string) {
   if ((n.kind === 'message' || n.kind === 'crew_call' || n.kind === 'guest_message') && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}`
   if ((n.kind === 'announcement' || n.kind === 'message_report') && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}?m=${n.details.message_id}`
   if (n.kind === 'message_removed' && n.details?.conversation_id) return `${appUrl}/messages/${n.details.conversation_id}`
+  if (n.kind === 'job_application' && n.org_id) return `${appUrl}/org/${n.org_id}/jobs`
+  if (n.kind === 'job_declined') return `${appUrl}/jobs`
   if (n.details?.quote_id) return `${appUrl}/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=maintenance`
   if ((n.kind === 'hire_request' || n.kind === 'hire_answered') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=subrentals`

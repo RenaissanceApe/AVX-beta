@@ -1,6 +1,6 @@
 # Crew network and job board (Phase 7)
 
-Status: **N1–N2 built** (crew profiles 0.48.0, crew search 0.49.0). Next: N3 (job board). Decisions taken 2026-10-21 (below).
+Status: **N1–N3 built** (crew profiles 0.48.0, crew search 0.49.0, job board 0.50.0). Next: N4 (trust). Decisions taken 2026-10-21 (below).
 
 The aim: a production company that needs a lighting tech in Porto next Saturday can find one, and
 a freelancer can find work, without leaving AVX and without anyone's details being exposed to
@@ -135,3 +135,15 @@ Checks: `supabase/tests/crew_profiles.sql`; the lists and checks in `src/lib/cre
 | Two-step sign-in | Both tables have the `mfa_required` rule and both functions call `require_mfa()` |
 
 Checks: `supabase/tests/crew_search.sql`; the filters in `src/lib/crewSearch.test.js`.
+
+## How N3 works (0.50.0)
+
+| Piece | How it works |
+|---|---|
+| Posting | Crew tab → "Post a job", or Organisation → Job posts → "Post a job" (choose the gig). `publish_job(gig, job)`: the caller manages the gig and is an admin or member; **two-step sign-in must be switched on** (a verified factor); an organisation without `verified_at` can have 3 open posts. Dates default to the gig's; the town comes from the shared town finder (coordinates rounded). The post never carries the gig's name or client |
+| Seeing posts | `list_jobs(all)`: only for people whose crew profile is on. Default: posts for their functions (or with no function) within their travel range from their base (km, country, Europe, world); "all" shows every open post. Open = status open and the last day not passed. Blocks hide posts both ways. The organisation reads its own posts through the table |
+| Applying | `apply_job(post, message, rate)`: needs the profile on, not already on the gig, not blocked, and the day rate when the post asks for it. One application per post; 20 a day per person. It posts a "job_application" message in a direct conversation with whoever posted (rate included, for the two of them) and notifies that person and the organisation's admins (`job_application`). `can_message` lets applicant and poster write to each other |
+| Answering | `job_applicants(post)` (the organisation) returns each application with the applicant's crew profile if it's on. `answer_application(id, shortlist / decline / offer)`: decline posts a "job_declined" message with an optional note and notifies the applicant (`job_declined`); offer sends a crew call for one (M4a). Joining the gig (a trigger on `gig_members`) marks the application accepted, and the post filled when the accepted count reaches its quantity. `withdraw_application` for the applicant; `close_job` to close, fill or reopen |
+| Notifications | In the app, by push and in the e-mail summary (`_shared/notification-text.ts`): both kinds count as a direct question, so they still show when the organisation is muted |
+
+Checks: `supabase/tests/job_board.sql`; the form and pay wording in `src/lib/jobs.test.js`.

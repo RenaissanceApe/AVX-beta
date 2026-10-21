@@ -14,7 +14,8 @@ import { isNetworkError } from '../../lib/offline'
 import { later, cancel, UNDO_MS } from '../../lib/undo'
 import { canSpeak, speak } from '../../lib/fieldKit'
 import { OUTBOX_CHANGED, readOutbox, queueMessage, dropQueued, flushOutbox } from '../../lib/outbox'
-import { useI18n, t, fmt as fmtDate } from '../../i18n'
+import { useI18n, t, fmt as fmtDate, getLanguage } from '../../i18n'
+import { money } from '../../lib/jobs'
 import { Attachments, CardView, CardPicker, ReactionBar, HistoryModal, AckStatusModal, EventCard, ReportModal } from './MessageParts'
 import { colors } from '../ui'
 
@@ -47,6 +48,11 @@ function systemText(m, name) {
     return p.note ? `${line} · “${p.note}”` : line
   }
   if (p.event === 'crew_call_answer') return t(`chat.sys.crewCall.${p.answer}`, { actor, title: p.title })
+  if (p.event === 'job_application') {
+    const rate = p.rate != null ? ` · ${t('jobs.theirRate', { rate: money(Number(p.rate), p.currency || 'EUR', getLanguage()) })}` : ''
+    return t('chat.sys.jobApplication', { actor, title: p.title }) + rate + (p.note ? ` · “${p.note}”` : '')
+  }
+  if (p.event === 'job_declined') return t('chat.sys.jobDeclined', { actor, title: p.title }) + (p.note ? ` · “${p.note}”` : '')
   if (p.event === 'schedule') {
     const items = (p.items || []).slice(0, 3).join(', ') + ((p.items || []).length > 3 ? ', …' : '')
     return t('chat.sys.schedule', { actor, count: p.count || 1, items })
