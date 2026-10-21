@@ -95,6 +95,7 @@ Recommended while you're in Auth settings:
   calls it; it checks the user's token itself for the app's requests). It makes its own keys the
   first time someone turns notifications on. It shares `supabase/functions/_shared/` with
   send-digest, so deploy with the CLI (or include that file).
+- Crew profile town search: deploy `supabase/functions/geocode` (with `supabase/functions/_shared/`) with "Verify JWT" **on**. It needs no keys: it asks OpenStreetMap's free place search.
 - Calendar feed: deploy `supabase/functions/calendar-feed` (with `supabase/functions/_shared/`) with "Verify JWT" **off**: phone calendars can't sign in; the long key in each person's link is the only key.
 - Message retention: deploy `supabase/functions/message-retention` with "Verify JWT" **off**, then
   tell the nightly job where it is (SQL editor):

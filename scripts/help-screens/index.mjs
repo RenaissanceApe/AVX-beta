@@ -342,6 +342,11 @@ const SCENES = {
     await dialog.getByLabel(L('common.email'), { exact: true }).fill('marco@example.com')
     return dialog.getByRole('button', { name: L('common.invite'), exact: true }).locator('xpath=..')
   } },
+  'crew-profile': { persona: 'crew', url: '/me/profile', async run(page, L) {
+    const preview = page.locator('section[aria-labelledby="cp-preview"]')
+    await preview.scrollIntoViewIfNeeded()
+    return preview
+  } },
   'org-export': { persona: 'pm', url: `/org/${ids.org}?panel=settings`, async run(page, L) {
     const section = page.locator('section[aria-labelledby="org-export-title"]')
     await section.scrollIntoViewIfNeeded()

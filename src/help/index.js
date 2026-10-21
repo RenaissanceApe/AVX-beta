@@ -20,6 +20,7 @@ export const PAGE_TERMS = {
   'inventory-item': ['unit', 'set', 'case', 'accessory', 'alternative', 'replacement-value', 'depreciation', 'inspection', 'write-off'],
   quotes: ['quote', 'quote-version', 'client-link', 'price-list', 'validity'],
   contacts: ['client', 'supplier', 'subrental', 'quote'],
+  'crew-profile': ['unavailable-dates', 'block'],
   quote: ['phase', 'factor', 'vat', 'quote-version', 'client-link', 'price-list'],
   orgs: ['organisation', 'org-admin', 'org-member', 'viewer', 'retention'],
 }
@@ -42,6 +43,7 @@ export const GUIDES = {
   'crew-install': { role: 'crew', pages: ['home'], terms: ['push-notifications', 'offline-copy'], shots: [null, null, null, 'push'] },
   'crew-call-time': { role: 'crew', pages: ['home', 'gig'], terms: ['call-time', 'schedule', 'call-sheet'], shots: ['gig-list', 'call-time', 'schedule-callsheet', 'call-sheet', 'call-sheet-large'] },
   'crew-calendar': { role: 'crew', pages: ['home'], terms: ['gig', 'call-time'], shots: [null, 'calendar-feed', null] },
+  'crew-profile': { role: 'crew', pages: ['crew-profile', 'home'], terms: ['unavailable-dates'], shots: [null, 'crew-profile', null] },
   'crew-unavailable': { role: 'crew', pages: ['home'], terms: ['unavailable-dates', 'double-booking'], shots: ['more-availability', 'unavailable', null] },
   'crew-availability': { role: 'crew', pages: ['home', 'messages'], terms: ['availability-request', 'crew-call'], shots: [null, 'requests', 'chat-availability'] },
   'crew-chat': { role: 'crew', pages: ['gig', 'messages'], terms: ['chat', 'direct-message', 'mute', 'report'], shots: ['inbox', 'chat-compose', null, null] },

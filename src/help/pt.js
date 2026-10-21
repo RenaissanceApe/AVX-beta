@@ -131,6 +131,7 @@ export default {
     messages: { title: 'Mensagens', summary: 'As suas conversas: mensagens diretas, conversas de eventos, canais de departamento e da organização. As que têm mensagens por ler aparecem primeiro. Use o menu de uma mensagem para responder, reagir, guardar ou denunciar.' },
     inventory: { title: 'Inventário', summary: 'O seu equipamento: o catálogo, onde está guardado, o stock e os movimentos, a manutenção e os alugueres externos.' },
     'inventory-item': { title: 'Um artigo de equipamento', summary: 'Um artigo do catálogo: detalhes, stock por local, unidades com etiquetas, conteúdo do kit, manutenção e histórico.' },
+    'crew-profile': { title: 'Perfil profissional', summary: 'Deixe que as empresas no AVX o encontrem para trabalhar. Desligado até o ligar; escolhe quem o vê (só empresas, ou empresas e técnicos) e pode mudá-lo, desligá-lo ou removê-lo a qualquer momento. Sem preços.' },
     contacts: { title: 'Contactos', summary: 'Os seus clientes e fornecedores, guardados uma vez. Os orçamentos escolhem daqui o cliente e os sub-alugueres o fornecedor. Importe-os de uma folha de cálculo, ou adicione de uma vez os clientes escritos em orçamentos antigos.' },
     quotes: { title: 'Orçamentos', summary: 'Os orçamentos da sua empresa, os mais recentes primeiro. Abra um para o editar, enviar ao cliente ou transformar um orçamento aceite num evento.' },
     quote: { title: 'Um orçamento', summary: 'Construa o orçamento em fases, com linhas da sua tabela de preços. Cada envio guarda uma versão. O cliente lê e aceita através de uma ligação privada.' },
@@ -193,6 +194,19 @@ export default {
       mistakes: [
         'A ligação é privada: quem a tiver vê os nomes, datas e locais dos seus eventos. Se a partilhou por engano, toque em "Nova ligação"; a antiga deixa de funcionar.',
         'As alterações feitas no AVX podem demorar uma hora ou mais a aparecer no calendário. Para a hora de chamada mais recente, abra o evento no AVX.',
+      ],
+    },
+    'crew-profile': {
+      title: 'Seja encontrado para trabalhar com o seu perfil profissional',
+      intro: 'As empresas no AVX podem encontrá-lo pelo que faz, onde está e as línguas que fala. Fica desligado até o ligar.',
+      steps: [
+        'Abra a sua conta (as suas iniciais no topo) e toque em "Abrir o seu perfil profissional".',
+        'Escolha o que faz, escreva a sua localidade e toque em Procurar para a escolher, e depois diga até onde se desloca e em que línguas trabalha. Acrescente certificados e ligações, se quiser.',
+        'Escolha quem o pode ver (só empresas, ou empresas e técnicos), marque "Deixar que encontrem o meu perfil" e guarde. A pré-visualização no fim mostra o que vão ver.',
+      ],
+      mistakes: [
+        'Não ponha preços no perfil: só indica o seu preço por dia quando responde a uma empresa.',
+        'Só se guarda a sua localidade, não a morada. Para o esconder outra vez, desmarque e guarde; "Remover o meu perfil profissional" apaga-o por completo.',
       ],
     },
     'crew-unavailable': {
