@@ -1,6 +1,6 @@
 # Switching to AVX: plan
 
-Status: **S1 and S2 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0). Next: S3 (crew and jobs), then S4–S5.
+Status: **S1, S2 and S3a built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0), crew as held invitations (S3a, 0.44.0). Next: S3b (upcoming jobs → gigs, open quotes → drafts), then S4–S5.
 
 The aim: a company using Rentman, another rental tool or spreadsheets can be fully running on
 AVX within a day, without retyping anything and without risking their data. Making it easy to
@@ -22,7 +22,7 @@ In the order they depend on each other:
 | 3 | Serial numbers | Units (serial, purchase date and cost, location, status) | Existing barcodes can be kept as the unit's code, so old labels keep working |
 | 4 | Sets, cases, accessories | Kit contents | Often a separate export, or listed per item |
 | 5 | Clients and suppliers | **Contacts directory** (Contacts: clients and suppliers) | Built in S2 (0.43.0) |
-| 6 | Crew | Invitations, **held until you press send** | Nobody gets emailed by surprise |
+| 6 | Crew | Invitations, **held until you press send** | Built in S3a (0.44.0): nobody gets emailed by surprise |
 | 7 | Upcoming jobs | Gigs with dates, venue, status and equipment lines (which book the gear) | Past jobs stay in the old tool's export, kept as an archive file |
 | 8 | Open quotes | Draft quotes | Optional |
 
@@ -117,6 +117,19 @@ Checks: `supabase/tests/import_kits.sql`; `supabase/tests/import_undo.sql` cover
 | Undo | Removes the clients and suppliers an import added unless a quote or a subrental uses them, and puts back changed details |
 
 Checks: `supabase/tests/contacts.sql`; after the hand-run file, `supabase/tests/contacts_import.sql` (and `import_undo.sql`).
+
+## How S3a works (0.44.0)
+
+| Piece | How it works |
+|---|---|
+| Where | The import wizard's **Crew** kind (organisation admins only, as inviting people is), also reached from Members → "Import your crew from a file" |
+| File | One row per person: e-mail (required), name or first and last name, phone, functions, role, notes. Headings guessed in English, Dutch and Portuguese. Roles: admin, member or viewer, also read from words like "Freelancer"/"ZZP"/"Crew" (viewer), "Medewerker"/"Employee"/"Staff" (member), "Beheerder"/"Owner" (admin); viewer when the file doesn't say |
+| Held | `import_crew(org, rows, file)` writes `held_invites`, not invitations: nobody is e-mailed and nobody joins. Re-importing updates the held ones by e-mail; people already in the organisation or already invited are left out with a note |
+| Sending | Members shows "N people imported, not invited yet": check each role, select, **Send**. Each goes through the normal invitation (`send-invite`: added at once if they have an account, otherwise e-mailed), one at a time; the held invitation is then marked sent with the outcome. One that fails stays held to try again |
+| Discarding | Marks them discarded (nothing is removed), so a wrong import needs no undo |
+| Why not batches | Crew aren't kept in `import_batches` (no presets or history for them), so no import-table check had to be widened by hand |
+
+Checks: `supabase/tests/held_invites.sql`.
 
 ## Decided (2026-10-19)
 

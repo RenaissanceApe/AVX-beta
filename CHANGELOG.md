@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.44.0 — Switching S3a: crew as held invitations
+
+### Added
+- **Crew import**: in the import wizard (admins only) or from Members → "Import your crew from a
+  file", one row per person with e-mail, name (or first and last name), phone, functions and
+  role. Roles are read in English, Dutch and Portuguese ("Freelancer" → viewer, "Medewerker" →
+  member…); viewer if the file doesn't say.
+- Imported people are **held**: nobody is e-mailed. In Members, a "not invited yet" list lets an
+  admin check each role, select people and **send** the invitations (through the normal
+  invitation, one at a time; one that fails stays held), or **discard** them.
+- Re-importing updates the held ones instead of doubling; people already in the organisation or
+  already invited are left out with a note.
+- Help: the "Bring your crew over from another tool" guide. The privacy page mentions the details
+  kept for held invitations.
+
+### Changed
+- The Members dialog scrolls when it's taller than the screen.
+
+### Database
+- Migration `20261118000000_held_invites.sql` (no manual steps): `held_invites` (never removed:
+  sent or discarded instead), `import_crew`. Checks in `supabase/tests/held_invites.sql`.
+
 ## 0.43.0 — Switching S2: contacts
 
 ### Added

@@ -7,6 +7,7 @@ import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { sendInvite, inviteMessage } from '../lib/invites'
 import { NetworkPicker, addFromNetwork } from './NetworkPicker'
+import HeldInvites from './HeldInvites'
 import { useI18n } from '../i18n'
 import { Hint } from './help/HelpParts'
 
@@ -128,6 +129,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
           {t('org.intro')}
         </p>
 
+        {isAdmin && <HeldInvites org={org} onSent={() => { load(); onChanged?.() }} />}
         {isAdmin && (
           <div style={{ marginBottom: '10px' }}>
             <NetworkPicker orgId={org.id} key={members.length} onPick={addPicked} />
@@ -145,6 +147,11 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
               {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('common.invite')}
             </button>
           </form>
+        )}
+        {isAdmin && (
+          <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '-8px 0 16px' }}>
+            {t('held.importHint')} <Link to={`/org/${org.id}/inventory/import?kind=crew`} onClick={onClose} style={{ color: 'var(--accent-text)', fontWeight: 600 }}>{t('held.importLink')}</Link>
+          </p>
         )}
 
         {loading ? (
@@ -208,7 +215,8 @@ const overlay = {
 }
 const panel = {
   background: 'var(--panel)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '18px',
-  padding: '24px', width: '100%', maxWidth: '520px', animation: 'fadeIn 0.2s ease', color: 'var(--text)'
+  padding: '24px', width: '100%', maxWidth: '520px', animation: 'fadeIn 0.2s ease', color: 'var(--text)',
+  maxHeight: 'calc(100dvh - 32px - var(--safe-top))', overflowY: 'auto',
 }
 const row = {
   display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',

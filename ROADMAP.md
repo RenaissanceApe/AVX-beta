@@ -173,7 +173,7 @@ After H5, before switching. **F1 built:** Tools tab, input list, Updates tab (0.
 
 ## Switching to AVX (in progress)
 
-**S1a built (0.41.0):** the import wizard for locations, equipment and units (CSV or paste, column matching with saved presets, check, report, undo). **S1b built (0.42.0):** Excel files and kit contents. **S2 built (0.43.0):** Contacts, a directory of clients and suppliers that quotes pick from, filled from existing quotes or imported. Next: S3 crew and jobs.
+**S1a built (0.41.0):** the import wizard for locations, equipment and units (CSV or paste, column matching with saved presets, check, report, undo). **S1b built (0.42.0):** Excel files and kit contents. **S2 built (0.43.0):** Contacts, a directory of clients and suppliers that quotes pick from, filled from existing quotes or imported. **S3a built (0.44.0):** crew imported as invitations held until an admin sends them. Next: S3b upcoming jobs and open quotes.
 
 
 Import wizard (CSV/Excel, column matching with saved presets, preview, dry run, undo), contacts

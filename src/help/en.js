@@ -648,6 +648,19 @@ export default {
         'Viewers never see prices. Use Viewer for clients or partners who only need the schedule.',
       ],
     },
+    'ad-import-crew': {
+      title: 'Bring your crew over from another tool',
+      intro: 'Import your people from a spreadsheet or another tool\'s export. They wait as invitations until you send them, so nobody is e-mailed by surprise.',
+      steps: [
+        'In Members, tap "Import your crew from a file" (or Inventory → Import → Crew). Choose the file: one row per person, with at least an e-mail address.',
+        'Check the guessed columns: name (or first and last name), phone, functions and role. Roles are read as admin, member or viewer; freelancers and crew become viewers.',
+        'Back in Members, the imported people are listed as not invited yet. Check each role, select who to invite and tap Send. Discard anyone you don\'t want.',
+      ],
+      mistakes: [
+        'A viewer sees all the company\'s gigs. For a freelancer you only book now and then, discard the import and add them to a gig by e-mail instead.',
+        'People who are already members or already invited are left out. An invitation that couldn\'t be sent stays in the list to try again.',
+      ],
+    },
     'ad-mute': {
       title: 'Mute an organisation or a conversation',
       intro: 'Work for several companies? Mute the ones you don\'t need to follow closely.',

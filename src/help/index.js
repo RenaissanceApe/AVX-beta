@@ -76,6 +76,7 @@ export const GUIDES = {
   'of-send-quote': { role: 'office', pages: ['quote'], terms: ['client-link', 'quote-version', 'validity'], shots: [null, 'send-quote', null] },
   'of-quote-to-gig': { role: 'office', pages: ['quote', 'gig'], terms: ['quote', 'gig', 'phase'], shots: [null, 'quote-gig', null] },
   'ad-members': { role: 'admin', pages: ['orgs', 'home'], terms: ['organisation', 'org-admin', 'org-member', 'viewer'], shots: [null, 'members', null] },
+  'ad-import-crew': { role: 'admin', pages: ['orgs', 'home'], terms: ['organisation', 'viewer', 'org-member'], shots: [null, null, 'held-invites'] },
   'ad-mute': { role: 'admin', pages: ['orgs', 'messages'], terms: ['mute', 'email-summary', 'push-notifications'], shots: ['orgs-mute', null, null] },
   'ad-delete': { role: 'admin', pages: ['gig', 'orgs'], terms: ['gig-status', 'organisation'], shots: [null, null, 'gig-danger', null] },
   'ad-export': { role: 'admin', pages: ['orgs'], terms: ['retention', 'organisation'], shots: ['export-account', null, null] },

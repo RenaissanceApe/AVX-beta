@@ -645,6 +645,19 @@ export default {
         'Os leitores nunca veem preços. Use Leitor para clientes ou parceiros que só precisam do horário.',
       ],
     },
+    'ad-import-crew': {
+      title: 'Traga a sua equipa de outra ferramenta',
+      intro: 'Importe as suas pessoas de uma folha de cálculo ou da exportação de outra ferramenta. Ficam como convites em espera até os enviar, por isso ninguém recebe e-mails de surpresa.',
+      steps: [
+        'Em Membros, toque em "Importe a sua equipa de um ficheiro" (ou Inventário → Importar → Equipa). Escolha o ficheiro: uma linha por pessoa, com pelo menos um endereço de e-mail.',
+        'Verifique as colunas adivinhadas: nome (ou primeiro nome e apelido), telefone, funções e papel. Os papéis são lidos como administrador, membro ou leitor; freelancers e técnicos ficam leitores.',
+        'De volta a Membros, as pessoas importadas aparecem como ainda não convidadas. Verifique cada papel, selecione quem convidar e toque em Enviar. Descarte quem não quiser.',
+      ],
+      mistakes: [
+        'Um leitor vê todos os eventos da empresa. Para um freelancer que só contrata de vez em quando, descarte a importação e adicione-o a um evento por e-mail.',
+        'Quem já é membro ou já foi convidado fica de fora. Um convite que não pôde ser enviado fica na lista para tentar de novo.',
+      ],
+    },
     'ad-mute': {
       title: 'Silenciar uma organização ou uma conversa',
       intro: 'Trabalha para várias empresas? Silencie as que não precisa de acompanhar de perto.',

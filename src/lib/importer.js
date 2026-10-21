@@ -3,9 +3,11 @@
 // runs in the database (run_import), which checks everything again.
 import { parsePrice } from './quotes'
 
-export const KINDS = ['locations', 'items', 'units', 'kits', 'clients', 'suppliers']
+export const KINDS = ['locations', 'items', 'units', 'kits', 'clients', 'suppliers', 'crew']
 // Kinds that go to the contacts directory (S2), not the inventory
 export const CONTACT_KINDS = ['clients', 'suppliers']
+// Kinds kept outside the import batches: crew become invitations held until an admin sends them (S3a)
+export const HELD_KINDS = ['crew']
 export const MAX_ROWS = 5000
 const CODE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/
 
@@ -44,6 +46,11 @@ const WORDS = {
   kitType: {
     set: ['set', 'conjunto', 'kit', 'package', 'pakket', 'pacote'],
     case: ['case', 'flightcase', 'flight case', 'koffer', 'kist', 'caixa', 'mala', 'rack'],
+  },
+  orgRole: {
+    admin: ['admin', 'administrator', 'beheerder', 'administrador', 'owner', 'eigenaar', 'dono'],
+    member: ['member', 'membro', 'staff', 'employee', 'medewerker', 'werknemer', 'funcionario', 'office', 'kantoor', 'escritorio', 'planner', 'manager'],
+    viewer: ['viewer', 'crew', 'freelancer', 'freelance', 'zzp', 'zzp er', 'technician', 'technicus', 'tecnico', 'equipa', 'observador', 'leitor', 'lezer'],
   },
   unitStatus: {
     available: ['available', 'beschikbaar', 'disponivel', 'ok', 'in stock', 'active', 'actief', 'ativo'],
@@ -121,6 +128,16 @@ export const FIELDS = {
   ],
   clients: CONTACT_FIELDS,
   suppliers: CONTACT_FIELDS,
+  crew: [
+    { key: 'email', type: 'email', required: true, names: ['email', 'e mail', 'mail', 'email address', 'e mailadres', 'emailadres', 'correio electronico', 'correio eletronico'] },
+    { key: 'full_name', type: 'text', max: 120, names: ['name', 'full name', 'naam', 'volledige naam', 'nome', 'nome completo', 'displayname', 'display name', 'crew member', 'crewlid'] },
+    { key: 'first_name', type: 'text', max: 60, names: ['first name', 'firstname', 'voornaam', 'primeiro nome', 'given name'] },
+    { key: 'last_name', type: 'text', max: 60, names: ['last name', 'lastname', 'surname', 'achternaam', 'apelido', 'sobrenome', 'family name'] },
+    { key: 'phone', type: 'text', max: 60, names: ['phone', 'telephone', 'tel', 'telefoon', 'telefoonnummer', 'telefone', 'mobile', 'mobiel', 'telemovel', 'phone number'] },
+    { key: 'functions', type: 'text', max: 200, names: ['function', 'functions', 'functie', 'functies', 'funcao', 'funcoes', 'skills', 'vaardigheden', 'competencias', 'job title', 'role description', 'specialty'] },
+    { key: 'role', type: 'enum', words: 'orgRole', names: ['role', 'rol', 'papel', 'type', 'soort', 'tipo', 'access', 'contract', 'employment'] },
+    { key: 'notes', type: 'text', max: 500, names: ['notes', 'note', 'remarks', 'opmerkingen', 'opmerking', 'notas', 'observacoes', 'comments'] },
+  ],
 }
 
 // "Número de Série" → "numero de serie"
@@ -212,6 +229,7 @@ export function missingFields(mapping, kind) {
   if (kind === 'units') return used.has('item') || used.has('item_code') ? [] : ['item']
   if (kind === 'kits') return [...(used.has('kit') || used.has('kit_code') ? [] : ['kit']), ...(used.has('item') || used.has('item_code') ? [] : ['item'])]
   if (kind === 'items') return used.has('name') || used.has('code') ? [] : ['name']
+  if (kind === 'crew') return used.has('email') ? [] : ['email']
   return (FIELDS[kind] || []).filter(f => f.required && !used.has(f.key)).map(f => f.key)
 }
 
@@ -289,6 +307,8 @@ export function buildRows(table, mapping, kind, { headerRow = true } = {}) {
     }
     if (!any) return
     if (CONTACT_KINDS.includes(kind)) joinAddress(row)
+    if (kind === 'crew') joinName(row)
+    if (kind === 'crew' && !row.email && !row._errors.some(e => e.field === 'email')) row._errors.push({ field: 'email', error: 'missing' })
     if ((kind === 'locations' || CONTACT_KINDS.includes(kind)) && !row.name) row._errors.push({ field: 'name', error: 'missing' })
     if (kind === 'items' && !row.name && !row.code) row._errors.push({ field: 'name', error: 'missing' })
     if (kind === 'units' && !row.item && !row.item_code) row._errors.push({ field: 'item', error: 'missing' })
@@ -309,6 +329,14 @@ function joinAddress(row) {
   for (const k of ['street', 'postcode', 'city', 'country']) delete row[k]
   if (lines.length) row.address = lines.join('\n')
   if (row.address?.length > 500) row._errors.push({ field: 'address', error: 'long' })
+}
+
+// First and last name → the full name (unless the file has one)
+function joinName(row) {
+  const joined = [row.first_name, row.last_name].filter(Boolean).join(' ')
+  delete row.first_name
+  delete row.last_name
+  if (!row.full_name && joined) row.full_name = joined.slice(0, 120)
 }
 
 // A tax number compared without spaces, dots, dashes or capitals (as the database does)
@@ -340,6 +368,13 @@ export function dryRun(rows, kind, existing) {
       const key = row.code ? `#${row.code.toUpperCase()}` : lower(row.name)
       const action = findItem(row.code, row.name) || seen.has(key) ? 'match' : 'create'
       seen.add(key)
+      return { action }
+    }
+    if (kind === 'crew') {
+      const email = lower(row.email)
+      const known = new Set([...(existing.members || []), ...(existing.invites || []), ...(existing.held || [])].map(lower))
+      const action = known.has(email) || seen.has(email) ? 'match' : 'create'
+      seen.add(email)
       return { action }
     }
     if (CONTACT_KINDS.includes(kind)) {
@@ -420,6 +455,10 @@ const SERVER = [
   [/^Stock tracking can't change/, 'trackingLocked'],
   [/^Not an e-mail address: (.+)$/, 'email'],
   [/^Several contacts are called (.+?): add their tax numbers/, 'sameContact'],
+  [/^The e-mail address is missing/, 'emailMissing'],
+  [/^Unknown role: (.+)$/, 'unknownRole'],
+  [/^Already a member: (.+)$/, 'alreadyMember'],
+  [/^Already invited: (.+)$/, 'alreadyInvited'],
 ]
 export function serverMessage(message) {
   for (const [re, key] of SERVER) {
