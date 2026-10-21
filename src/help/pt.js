@@ -47,6 +47,7 @@ export default {
     'packing-list': { term: 'Lista de carga', definition: 'O que tem de sair do armazém para um evento, com quantidades.', example: 'Impressa para o armazém na véspera.', where: 'Evento → Equipamento → Lista de carga' },
     'scan-out-in': { term: 'Registar saída / entrada', definition: 'Ler as etiquetas QR quando o equipamento sai para um evento e quando volta.', example: 'Registar 40 unidades à entrada do camião.', where: 'Evento → Equipamento → Ler' },
     'equipment-steps': { term: 'Etapas do equipamento', definition: 'Onde está o equipamento de um evento entre o armazém e o regresso: preparado, saída, no local, carregado no regresso, entrada, verificado.', example: '60 de 69 preparados, 40 saíram.', where: 'Evento → Equipamento, Saída / entrada, lista de carga' },
+    'stage-plot': { term: 'Stage plot', definition: 'Um desenho do palco visto de cima com o lugar de cada coisa: bateria, microfones, amplificadores, monitores, estrados.', example: 'O plot da banda com o estrado da bateria ao fundo, ao centro.', where: 'Evento → Ferramentas' },
     'input-list': { term: 'Lista de inputs', definition: 'A lista de tudo o que entra na mesa de som, uma linha por canal: fonte, microfone ou DI, tripé, 48V.', example: 'Can 1 Bombo dentro, Beta 91A, 48V.', where: 'Evento → Ferramentas' },
     'phantom-power': { term: '48V (alimentação phantom)', definition: 'Corrente que a mesa envia pelo cabo do microfone para microfones de condensador e DIs ativas.', example: 'Os overheads e as DIs precisam de 48V; um SM58 dinâmico não.', where: 'Evento → Ferramentas → Lista de inputs' },
     'stage-box': { term: 'Stage box', definition: 'Uma caixa em palco com muitas entradas que as envia para a mesa por um só cabo.', example: 'SB1-03: stage box 1, entrada 3.', where: 'Evento → Ferramentas → Lista de inputs' },
@@ -303,6 +304,20 @@ export default {
       mistakes: [
         'Perguntar não marca ninguém. Adicione a pessoa ao evento quando ela disser que sim.',
         'Sem horas de marcação, a pessoa conta como marcada durante todo o dia de cada dia do evento.',
+      ],
+    },
+    'pm-stage-plot': {
+      title: 'Desenhar o stage plot',
+      intro: 'O stage plot mostra onde fica cada coisa em palco. A bateria, os microfones, os amplificadores e as DIs que colocar passam a ser os canais da lista de inputs.',
+      steps: [
+        'Abra o evento, toque em Ferramentas, "Adicionar ferramenta" e escolha Stage plot. Indique a largura e a profundidade do palco.',
+        'Em "Adicionar ao palco", toque no que precisa: bateria, microfone de voz, amplificadores, teclado, monitores, um estrado. Arraste cada um para o lugar, ou selecione-o e use os botões de setas; Rodar vira-o.',
+        'Dê nomes às coisas ("Ana", "Solista") para a equipa saber de quem é cada uma. A lista por baixo do desenho diz onde está cada uma.',
+        'Toque em "Enviar para a lista de inputs": cada canal de que o plot precisa é adicionado, numerado a seguir aos que já lá estão. Imprima o plot para o palco e para a sala.',
+      ],
+      mistakes: [
+        'O público está em baixo no desenho, como na maioria dos riders: "esquerda" é a esquerda do palco vista pelo público.',
+        'Enviar outra vez só adiciona os canais novos; nunca altera os que já estão na lista de inputs.',
       ],
     },
     'pm-input-list': {

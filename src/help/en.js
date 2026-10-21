@@ -50,6 +50,7 @@ export default {
     'packing-list': { term: 'Packing list', definition: 'What must leave the warehouse for a gig, with quantities.', example: 'Printed for the warehouse team on the day before.', where: 'Gig → Equipment → Packing list' },
     'scan-out-in': { term: 'Scan out / scan in', definition: 'Reading QR labels when equipment leaves for a gig and when it comes back.', example: 'Scanning 40 units into the truck.', where: 'Gig → Equipment → Scan' },
     'equipment-steps': { term: 'Equipment steps', definition: 'Where a gig\'s equipment is between the warehouse and back: prepped, out, on site, loaded back, back in, checked in.', example: '60 of 69 prepped, 40 out.', where: 'Gig → Equipment, Scan out / in, packing list' },
+    'stage-plot': { term: 'Stage plot', definition: 'A drawing of the stage from above showing where everything goes: drums, mics, amps, monitors, risers.', example: 'The band\'s plot with the drum riser upstage centre.', where: 'Gig → Tools' },
     'input-list': { term: 'Input list', definition: 'The list of everything plugged into the sound desk, one line per channel: source, mic or DI, stand, 48V.', example: 'Ch 1 Kick in, Beta 91A, 48V.', where: 'Gig → Tools' },
     'phantom-power': { term: '48V (phantom power)', definition: 'Power the desk sends down the mic cable for condenser mics and active DIs.', example: 'Overheads and DI boxes need 48V; a dynamic SM58 doesn\'t.', where: 'Gig → Tools → Input list' },
     'stage-box': { term: 'Stage box', definition: 'A box on stage with many inputs that sends them to the desk over one cable.', example: 'SB1-03: stage box 1, input 3.', where: 'Gig → Tools → Input list' },
@@ -306,6 +307,20 @@ export default {
       mistakes: [
         'Asking doesn\'t book anyone. Add them to the gig when they say yes.',
         'Without booking times, a person counts as booked for the whole of each gig day.',
+      ],
+    },
+    'pm-stage-plot': {
+      title: 'Draw the stage plot',
+      intro: 'The stage plot shows where everything goes on stage. The drums, mics, amps and DIs you place become the channels of the input list.',
+      steps: [
+        'Open the gig, tap Tools, "Add a tool" and choose Stage plot. Set the stage\'s width and depth.',
+        'Under "Add to the stage", tap what you need: drum kit, vocal mic, amps, keyboard, monitors, a riser. Drag each one into place, or select it and use the arrow buttons; Rotate turns it.',
+        'Give things a name ("Ana", "Lead") so the crew know whose is whose. The list under the drawing says where each one is.',
+        'Tap "Send to the input list": every channel the plot needs is added, numbered after the ones already there. Print the plot for the stage and the venue.',
+      ],
+      mistakes: [
+        'The audience is at the bottom of the drawing, as on most riders: "left" is stage left as the audience sees it.',
+        'Sending again only adds channels that are new; it never changes the ones already on the input list.',
       ],
     },
     'pm-input-list': {

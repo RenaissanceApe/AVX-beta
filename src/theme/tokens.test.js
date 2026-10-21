@@ -59,7 +59,7 @@ describe('screens use theme colours', () => {
   it('has no raw colours outside the theme', async () => {
     const fs = await import('node:fs')
     const path = await import('node:path')
-    const PAPER = /QuoteDocument|QuotePublicPage|GuestThread|SupplierLinkPage|CallSheetPage|QuotePrintPage|PackingListPage|InputListPage|LabelsPage/
+    const PAPER = /QuoteDocument|QuotePublicPage|GuestThread|SupplierLinkPage|CallSheetPage|QuotePrintPage|PackingListPage|InputListPage|StagePlotPage|StagePlotSvg|LabelsPage/
     const ALLOWED = [/background: '#fff'/, /background: '#000'/, /brand_color: '#1EC878'/, /rgba\(0,\s*0,\s*0,/]
     const found = []
     const walk = dir => fs.readdirSync(dir, { withFileTypes: true }).forEach(e => {

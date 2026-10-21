@@ -197,7 +197,13 @@ export function sampleData(persona, lang) {
       crew_unavailability: persona === 'pm' ? [] : [{ id: 'u1', user_id: carla, start_date: day(50), end_date: day(57), note: w.holiday, created_at: ago(100) }],
       notifications: persona === 'pm' ? [] : [{ id: 1, user_id: carla, org_id: orgId, gig_id: gigId, actor_id: ricardo, kind: 'availability_request', details: { gig_name: gig.name, from: `${day(24)}T00:00:00Z`, until: `${day(26)}T00:00:00Z` }, read_at: null, created_at: ago(3) }],
       gig_equipment: gear,
-      gig_tools: [{ gig_id: gigId, tool: 'input_list', created_at: ago(300) }],
+      gig_tools: [{ gig_id: gigId, tool: 'input_list', created_at: ago(300) }, { gig_id: gigId, tool: 'stage_plot', created_at: ago(310) }],
+      gig_show: [{ gig_id: gigId, stage: { width_m: 10, depth_m: 6 } }],
+      gig_plot_items: [
+        ['riser', null, 5, 4.5, 0], ['drum_kit', null, 5, 4.5, 0], ['bass_amp', 'Rui', 2.5, 4.25, 0], ['guitar_amp', 'Marta', 7.5, 4.25, 0],
+        ['keyboard', null, 8.25, 2.5, 90], ['vocal_mic', 'Ana', 5, 1.5, 0], ['vocal_mic', 'Marta', 7, 1.75, 0],
+        ['wedge', null, 5, 0.5, 180], ['wedge', null, 7, 0.75, 180], ['power', null, 0.5, 5.5, 0],
+      ].map(([kind, label, x, y, rotation], n) => ({ id: `pl${n + 1}`, gig_id: gigId, kind, label, x, y, rotation, item_id: null, notes: null, created_at: ago(300 - n) })),
       gig_inputs: [
         [tx('Bombo dentro', 'Kick in'), 'Beta 91A', null, true, 'SB1-01'],
         [tx('Bombo fora', 'Kick out'), 'D6', tx('girafa curta', 'short boom'), false, 'SB1-02'],

@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.37.0 — Field tools F1b: stage plot
+
+### Added
+- **Stage plot** in a gig's Tools: the stage from above (audience at the bottom, 1 m grid) with
+  its width and depth, and a library of things to place: drum kit, vocal mic, amps, keyboard,
+  acoustic guitar, DI, monitor wedge, musician, riser, power drop, text. Drag them, or select one
+  and use the arrow keys or buttons; rotate, name and remove them (with Undo).
+- **Send to the input list**: the drums, mics, amps, keys and DIs on the plot become channels on
+  the input list (only the new ones, numbered after the last)
+- Things linked to the catalogue can be added to the gig's **equipment**
+- An "On stage" list under the drawing, a **print** page (landscape) and an offline copy; crew
+  read it on their phone
+- Guide "Draw the stage plot" and the glossary word "Stage plot"
+
+### Database
+- Migration `20261111000000_stage_plot.sql` (no manual steps): `gig_plot_items`. Checks in
+  `supabase/tests/stage_plot.sql`.
+
 ## 0.36.0 — Field tools F1a: Tools tab and input list
 
 ### Added

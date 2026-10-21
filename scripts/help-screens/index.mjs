@@ -185,6 +185,16 @@ const SCENES = {
     await page.getByPlaceholder(L('scanMode.typeCode')).press('Enter')
     return page.locator('section[aria-live]')
   } },
+  'plot-drawing': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=stage_plot`, async run(page, L) {
+    await page.locator('section[aria-labelledby="stage-plot-title"] svg').first().waitFor()
+    return page.locator('section[aria-labelledby="stage-plot-title"] svg').first()
+  } },
+  'plot-list': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=stage_plot`, async run(page, L) {
+    return page.locator('section[aria-labelledby="on-stage"]')
+  } },
+  'plot-to-inputs': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=stage_plot`, async run(page, L) {
+    return page.getByRole('button', { name: L('plot.toInputs') })
+  } },
   'tools-add': { persona: 'pm', url: `/gig/${ids.gig}`, async run(page, L) {
     return page.getByRole('tab', { name: L('gig.tab.tools') })
   } },

@@ -11,6 +11,7 @@ import { Modal, btn, btnPrimary, card, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import { TabHeader } from './parts'
 import InputListTool from '../tools/InputListTool'
+import StagePlotTool from '../tools/StagePlotTool'
 
 export const TOOL_ICONS = { listOrdered: ListOrdered, layoutGrid: LayoutGrid }
 const iconOf = id => TOOL_ICONS[TOOLS.find(x => x.id === id)?.icon] || Wrench
@@ -56,6 +57,10 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
         <ArrowLeft size={14} /> {t('gig.tab.tools')}
       </button>
       {open === 'input_list' && <InputListTool gig={gig} canEdit={canEdit && !offline} canPlanEquipment={canPlanEquipment && !offline} />}
+      {open === 'stage_plot' && (
+        <StagePlotTool gig={gig} canEdit={canEdit && !offline} canPlanEquipment={canPlanEquipment && !offline}
+          hasInputList={tools.includes('input_list')} onToolsChanged={onChanged} />
+      )}
       {canEdit && !offline && (
         <button type="button" onClick={() => remove(open)} style={{ ...btn, background: 'transparent', color: colors.muted, fontSize: '12px', marginTop: '24px' }}>
           {t('tools.removeFromGig')}
