@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.40.0 — Field tools F4: sound system calculator
+
+### Added
+- **Sound system calculator** in a gig's Tools: the PA's mains, subs, delays and fills, and the
+  listening positions (FOH first). It estimates each source's delay (delays and fills follow
+  their nearest main plus a Haas offset; subs are lined up with the mains at FOH), the level at
+  each position, whether a delay arrives too early or as an echo, and how wide each box covers.
+  Temperature changes the speed of sound. Everything is clearly labelled as an estimate.
+- A plan of the system (stage, boxes with their angles, listening positions)
+- Print page `/gig/:id/system`; offline copies; read-only for crew
+- Guide "Work out the PA delays"; glossary words Haas effect and SPL
+
+### Changed
+- The calculator is on by default; organisations that never changed their tools get it too.
+  All four field tools (F1–F4) are now built; switching (S1) comes next.
+
+### Database
+- Migration `20261114000000_system_calc.sql` (no manual steps): `gig_show.system` and the new
+  default tools. Checks in `supabase/tests/system_calc.sql`.
+
 ## 0.39.0 — Field tools F3: light plot
 
 ### Added

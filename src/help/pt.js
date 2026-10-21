@@ -50,6 +50,8 @@ export default {
     'dmx-universe': { term: 'Universo DMX', definition: 'Uma linha de 512 canais de controlo de luz. Um projetor usa alguns deles, a partir do endereço inicial.', example: 'Universo 1 para as cabeças móveis, universo 2 para as barras LED.', where: 'Evento → Ferramentas → Patch DMX' },
     'dmx-address': { term: 'Endereço DMX', definition: 'O primeiro canal que um projetor ouve no seu universo. Usa esse e os seguintes, tantos quantos os seus canais.', example: 'Um spot de 14 canais no endereço 15 usa os canais 15 a 28.', where: 'Evento → Ferramentas → Patch DMX' },
     split: { term: 'Split', definition: 'Enviar as mesmas entradas de palco para duas mesas, normalmente a de sala e a de monitores.', example: 'A SB1 tem split para a mesa de monitores.', where: 'Evento → Ferramentas → Patch' },
+    haas: { term: 'Efeito Haas', definition: 'Ouvimos o som como vindo de onde nos chega primeiro. Atrasar uma torre de delay uns milissegundos para lá da principal faz o som continuar a parecer vir do palco.', example: 'Torre de delay acertada 10 ms depois do som das principais.', where: 'Evento → Ferramentas → Calculadora de sistema de som' },
+    spl: { term: 'SPL', definition: 'Nível de pressão sonora: o volume, em decibéis. Desce cerca de 6 dB cada vez que a distância duplica.', example: '136 dB a 1 m são cerca de 106 dB a 32 m.', where: 'Evento → Ferramentas → Calculadora de sistema de som' },
     truss: { term: 'Truss', definition: 'Uma estrutura metálica onde se pendura a luz, suspensa sobre o palco ou assente no chão.', example: 'Truss 1 a 7 m com oito spots.', where: 'Evento → Ferramentas → Plano de luz' },
     'power-phase': { term: 'Fase elétrica', definition: 'Um dos condutores com tensão de uma alimentação. Uma alimentação trifásica tem três, cada uma com o seu limite em amperes; a carga deve ser repartida por elas.', example: 'Uma alimentação trifásica de 32 A dá 32 A em cada uma de L1, L2 e L3.', where: 'Evento → Ferramentas → Plano de luz' },
     'stage-plot': { term: 'Stage plot', definition: 'Um desenho do palco visto de cima com o lugar de cada coisa: bateria, microfones, amplificadores, monitores, estrados.', example: 'O plot da banda com o estrado da bateria ao fundo, ao centro.', where: 'Evento → Ferramentas' },
@@ -107,6 +109,11 @@ export default {
     'two-step': 'Para entrar, será também pedido um código de 6 dígitos de uma aplicação no telemóvel. Recomendado para administradores.',
     'dmx-footprint': 'Quantos canais DMX um projetor usa no seu modo, segundo o manual (ex.: 14 para um MAC Aura em Extended).',
     'dmx-universe': 'Uma linha DMX de 512 canais. Rigs grandes usam vários; cada projetor está num.',
+    'sys-temp': 'O som viaja mais depressa no ar quente. Use a temperatura prevista durante o espetáculo.',
+    'sys-haas': 'Quanto mais tarde que a principal deve chegar um delay ou fill, para o som continuar a parecer vir do palco. O habitual é 5–15 ms.',
+    'sys-y': 'Metros a partir da frente do palco: negativos para o público (p. ex. −25 para uma posição a 25 m), positivos para o fundo.',
+    'sys-spl': 'O máximo que uma caixa dá a 1 m, da ficha técnica (SPL máximo).',
+    'sys-angle': 'Quão largo a caixa espalha o som da esquerda para a direita, da ficha técnica (p. ex. 90° ou 110°).',
     'light-trim': 'A que altura fica a vara, do chão do palco até à vara, em metros.',
     'light-phase': 'Que fase da alimentação alimenta esta posição. Deixe repartida e a carga é dividida por igual pelas fases.',
     'light-power': 'A potência do projetor, do manual ou da etiqueta. Vem do artigo do catálogo quando existe.',
@@ -343,6 +350,20 @@ export default {
       mistakes: [
         '"Reendereçar por ordem" dá novos endereços a um universo inteiro: use-o só antes de os projetores estarem configurados.',
         'O número de canais depende do modo: confirme no manual do projetor.',
+      ],
+    },
+    'pm-system-calc': {
+      title: 'Calcular os delays do PA',
+      intro: 'A calculadora de sistema de som estima o delay de cada torre de delay, fill e sub, o nível em cada posição de escuta e a largura que cada fonte cobre, a partir de onde está cada coisa.',
+      steps: [
+        'Em Ferramentas, "Adicionar ferramenta" → Calculadora de sistema de som. Indique a temperatura do ar e a margem Haas.',
+        'Adicione as fontes: principais, subs, delays e fills. Para cada uma indique o sítio (lateral, frente/fundo, altura), o SPL máximo e o ângulo horizontal da ficha técnica, e quantas caixas.',
+        'Adicione as posições de escuta, primeiro a régie: é a referência para alinhar os subs. Depois o fundo da sala e onde tiver dúvidas.',
+        'Leia o delay de cada fonte e as verificações em cada posição: um delay que chega antes da principal, ou mais de 30 ms depois, fica assinalado. Imprima para o técnico de sistema e depois meça no local.',
+      ],
+      mistakes: [
+        'São estimativas sem reflexões, com todas as caixas apontadas de frente para o público: confirme sempre com um sistema de medição.',
+        'Frente/fundo é negativo para o lado do público: uma torre de delay a 30 m está em −30.',
       ],
     },
     'pm-light-plot': {
