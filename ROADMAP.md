@@ -169,7 +169,7 @@ that every new feature ships its hints and guide. Stages H1–H6 in [docs/HELP.m
 A **Tools** tab on each gig (decided 2026-10-20) with optional tools that share their data: stage
 plot and input list, patch and DMX patch, light plot, sound system calculator. The organisation
 turns on only the tools it uses; what is drawn from the catalogue becomes the gig's equipment.
-After H5, before switching. **F1 built:** Tools tab, input list, Updates tab (0.36.0); stage plot (0.37.0). Stages F1–F4 in [docs/FIELD_TOOLS.md](docs/FIELD_TOOLS.md).
+After H5, before switching. **F1 built:** Tools tab, input list, Updates tab (0.36.0); stage plot (0.37.0). **F2 built (0.38.0):** patch and DMX patch. **Decided 2026-10-21:** all field tools (F1–F4) before switching. Stages F1–F4 in [docs/FIELD_TOOLS.md](docs/FIELD_TOOLS.md).
 
 ## Switching to AVX (planned)
 

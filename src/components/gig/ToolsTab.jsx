@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ListOrdered, LayoutGrid, Plus, ChevronRight, ArrowLeft, Wrench } from 'lucide-react'
+import { ListOrdered, LayoutGrid, Cable, Lightbulb, Plus, ChevronRight, ArrowLeft, Wrench } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -12,8 +12,10 @@ import EmptyState from '../EmptyState'
 import { TabHeader } from './parts'
 import InputListTool from '../tools/InputListTool'
 import StagePlotTool from '../tools/StagePlotTool'
+import PatchTool from '../tools/PatchTool'
+import DmxPatchTool from '../tools/DmxPatchTool'
 
-export const TOOL_ICONS = { listOrdered: ListOrdered, layoutGrid: LayoutGrid }
+export const TOOL_ICONS = { listOrdered: ListOrdered, layoutGrid: LayoutGrid, cable: Cable, lightbulb: Lightbulb }
 const iconOf = id => TOOL_ICONS[TOOLS.find(x => x.id === id)?.icon] || Wrench
 
 // A gig's Tools tab (docs/FIELD_TOOLS.md): only the tools this gig uses, plus "Add a tool" for
@@ -61,6 +63,8 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
         <StagePlotTool gig={gig} canEdit={canEdit && !offline} canPlanEquipment={canPlanEquipment && !offline}
           hasInputList={tools.includes('input_list')} onToolsChanged={onChanged} />
       )}
+      {open === 'patch' && <PatchTool gig={gig} canEdit={canEdit && !offline} />}
+      {open === 'dmx_patch' && <DmxPatchTool gig={gig} canEdit={canEdit && !offline} canPlanEquipment={canPlanEquipment && !offline} />}
       {canEdit && !offline && (
         <button type="button" onClick={() => remove(open)} style={{ ...btn, background: 'transparent', color: colors.muted, fontSize: '12px', marginTop: '24px' }}>
           {t('tools.removeFromGig')}

@@ -5,6 +5,8 @@
 export const TOOLS = [
   { id: 'input_list', icon: 'listOrdered', ready: true },
   { id: 'stage_plot', icon: 'layoutGrid', ready: true },
+  { id: 'patch', icon: 'cable', ready: true },
+  { id: 'dmx_patch', icon: 'lightbulb', ready: true },
 ]
 export const ALL_TOOL_IDS = ['stage_plot', 'input_list', 'patch', 'dmx_patch', 'light_plot', 'system_calc']
 

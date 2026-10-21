@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.38.0 — Field tools F2: patch and DMX patch
+
+### Added
+- **Patch** in a gig's Tools: the stage boxes (name, number of inputs, split to monitors), socket
+  by socket, with the input line in each. Choose the line for a socket, or "Fill the free
+  sockets" in channel order. Two lines in one socket are flagged. The socket is the input
+  line's "Stage box", so the input list and the patch always match.
+- **DMX patch**: every fixture with its universe, address, channels, mode and position. "Add
+  fixtures" adds several of a type, each on the next free address; overlaps are flagged;
+  "Readdress in order" repacks a universe. Linked fixtures can be added to the equipment.
+- Print pages for both (`/gig/:id/patch`, `/gig/:id/dmx`), offline copies, read-only for crew
+- Guides "Patch the stage boxes" and "Make the DMX patch"; glossary words DMX universe, DMX
+  address and split
+
+### Changed
+- The new tools are on by default; organisations that never changed their tools get them too
+- Organisation decision recorded: all field tools (F1–F4) come before switching (S1)
+
+### Database
+- Migration `20261112000000_patch_dmx.sql` (no manual steps): `gig_show.audio`, `gig_fixtures`,
+  new default tools. Checks in `supabase/tests/patch_dmx.sql`.
+
 ## 0.37.0 — Field tools F1b: stage plot
 
 ### Added

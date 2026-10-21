@@ -1,6 +1,6 @@
 # Field tools: plan
 
-Status: **F1 built**: F1a (0.36.0) Tools tab, organisation switches, shared show model, input list, Updates tab; F1b (0.37.0) stage plot. F2 (patch, DMX patch) next. Decided 2026-10-20. Optional tools for the technical side of a gig (stage
+Status: **F1 and F2 built**: F1a (0.36.0) Tools tab, organisation switches, shared show model, input list, Updates tab; F1b (0.37.0) stage plot; F2 (0.38.0) patch and DMX patch. F3 (light plot) next. Decided 2026-10-20. Optional tools for the technical side of a gig (stage
 plot, input list, patch, light plot, DMX patch, sound system calculator) that share their data,
 so a stage plot can produce a channel list and a light plot a DMX patch. An ever-growing set,
 added one tool at a time, without making AVX harder to use.
@@ -47,7 +47,7 @@ venue or the artist through a private link (like quotes), and can be saved as a 
 |---|---|
 | **F1a** ✅ (0.36.0) | Tools tab, organisation switches, the shared show model (table), **input list** (print, offline, line check, mics to equipment); Feed + Activity become Updates |
 | **F1b** ✅ (0.37.0) | **Stage plot** (grid and symbols) that fills the input list and the show model's stage size |
-| **F2** | Patch (stage boxes, splits) and **DMX patch** |
+| **F2** ✅ (0.38.0) | Patch (stage boxes, splits) and **DMX patch** |
 | **F3** | **Light plot** (truss, positions, fixtures from the catalogue, power) |
 | **F4** | **Sound system calculator** (delays, time alignment, coverage), clearly labelled as estimates |
 | later | More tools as they are asked for (rigging weights, power distribution, RF plan…) |
@@ -83,8 +83,21 @@ Checks: `supabase/tests/field_tools.sql`.
 
 Checks: `supabase/tests/stage_plot.sql`.
 
+## How F2 works (patch and DMX patch)
+
+| Piece | How it works |
+|---|---|
+| Stage boxes | Kept in the show model (`gig_show.audio.boxes`: name, number of inputs 1–128, split to monitors). Added, renamed, resized and removed in the Patch tool |
+| Sockets | The socket stays on the input line (`gig_inputs.stage_box`, "SB1-03"), so the input list and the patch always agree. Each socket picks its line; "Fill the free sockets" places the lines without one in channel order. Two lines in a socket are flagged; removing a box leaves its lines "without a socket" |
+| Fixtures | `gig_fixtures`: name, type, mode, footprint (channels), universe 1–256, address 1–512 (or none yet), position, optional catalogue item, notes; up to 1000 per gig. The database refuses a fixture that runs past channel 512 |
+| Addressing | "Add fixtures" adds several of a type, numbered, each on the next free address (on the next universe when one is full). Overlapping channels are a warning, not an error. "Readdress in order" repacks a universe from 1 (with a warning first) |
+| Prints | `/gig/:id/patch` (box by box, socket by socket, 48V shown) and `/gig/:id/dmx` (universe by universe), black on white, also offline |
+| Defaults | The two tools join the default tools; organisations that never changed theirs get them too |
+
+Checks: `supabase/tests/patch_dmx.sql`.
+
 ## Open questions
 
-1. **When:** after H5 (field kit) and before switching (S1); started 2026-10-20 (the owner may move it).
+1. **When:** after H5 (field kit) and before switching (S1); started 2026-10-20. **Decided 2026-10-21: all field tools (F1–F4) first, then switching.**
 2. Drawing on screen: a simple grid-and-symbols editor first (no free drawing), symbols from a
    small built-in library plus the catalogue.

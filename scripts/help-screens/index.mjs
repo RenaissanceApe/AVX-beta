@@ -185,6 +185,19 @@ const SCENES = {
     await page.getByPlaceholder(L('scanMode.typeCode')).press('Enter')
     return page.locator('section[aria-live]')
   } },
+  'patch-boxes': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=patch`, async run(page, L) {
+    return page.locator('section[aria-labelledby="box-0"]')
+  } },
+  'patch-fill': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=patch`, async run(page, L) {
+    return page.getByRole('button', { name: L('patch.fill') })
+  } },
+  'dmx-form': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=dmx_patch`, async run(page, L) {
+    await page.getByRole('button', { name: L('dmx.add') }).first().click()
+    return page.getByRole('dialog')
+  } },
+  'dmx-list': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=dmx_patch`, async run(page, L) {
+    return page.locator('#universe-1').locator('..')
+  } },
   'plot-drawing': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=stage_plot`, async run(page, L) {
     await page.locator('section[aria-labelledby="stage-plot-title"] svg').first().waitFor()
     return page.locator('section[aria-labelledby="stage-plot-title"] svg').first()
