@@ -1,6 +1,5 @@
 // Inventory helpers (pure, unit tested). The database keeps the ledger and works out
 // stock_levels; these turn that into what the screens show. See docs/INVENTORY.md.
-import { parsePrice } from './quotes'
 
 export const TRACKING = ['none', 'bulk', 'serial']
 export const STOCK_KINDS = ['rental', 'sale'] // price list kinds that can have stock
@@ -51,39 +50,6 @@ export function bookValue(unit, on = new Date()) {
   const life = unit.depreciation_months || DEFAULT_DEPRECIATION_MONTHS
   const left = Math.min(1, Math.max(0, 1 - Math.max(0, months) / life))
   return Math.round(cost * left * 100) / 100
-}
-
-// Lines pasted from a spreadsheet: name; category; code; quantity; price; location
-// (tab or ; separated; only the name is required). Lines starting with # are skipped.
-export function parseStockImport(text) {
-  const rows = []
-  const errors = []
-  String(text || '').split(/\r?\n/).forEach((raw, i) => {
-    const line = raw.trim()
-    if (!line || line.startsWith('#')) return
-    const [name, category, code, qty, price, location] = line.split(/\t|;/).map(p => p.trim())
-    const quantity = qty ? Number(qty.replace(/\s/g, '')) : 0
-    const unitPrice = price ? parsePrice(price) : null
-    const codeOk = !code || /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/.test(code)
-    if (!name || !Number.isInteger(quantity) || quantity < 0 || quantity > 100000 || !codeOk
-        || (unitPrice != null && (!Number.isFinite(unitPrice) || unitPrice < 0))) return errors.push(i + 1)
-    rows.push({
-      name: name.slice(0, 200), category: category ? category.slice(0, 80) : null, code: code || null,
-      quantity, unit_price: unitPrice, location: location ? location.slice(0, 100) : null,
-    })
-  })
-  return { rows, errors }
-}
-
-// Match an import row to an existing item: by code first, then by name (case-insensitive)
-export function matchItem(items, row) {
-  const code = row.code?.toUpperCase()
-  if (code) {
-    const byCode = items.find(i => (i.code || '').toUpperCase() === code)
-    if (byCode) return byCode
-  }
-  const name = row.name.toLowerCase()
-  return items.find(i => i.name.toLowerCase() === name) || null
 }
 
 // What a label's QR code opens: the scan page, which finds the item or unit

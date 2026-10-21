@@ -20,6 +20,8 @@ import { SB, sampleData, applyFilters, ids } from './sample-data.mjs'
 import en from '../../src/i18n/en.js'
 import pt from '../../src/i18n/pt.js'
 
+// A Rentman-style equipment export (Dutch headings), with two rows that have problems
+const IMPORT_SAMPLE = 'Naam;Code;Categorie;Verhuurprijs;Gewicht;Aantal;Magazijn\nMAC Aura XB;AURA;Licht;80;13,5;;\nRobe Pointe;POINTE;Licht;95;15,2;;\nXLR 10 m;XLR10;Kabels;2,50;0,6;120;\nDMX 5-pin 5 m;DMX5;Kabels;2;0,4;60;Opslag Oost\nShure SM58;SM58;Microfoons;8;0,3;;\nDI Radial J48;J48;Microfoons;6;1,1;;'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const outDir = path.join(root, 'node_modules/.help-screens')
 const PORT = 4179
@@ -160,12 +162,22 @@ const SCENES = {
   } },
 
   // Warehouse
-  'inv-import': { persona: 'pm', url: `/org/${ids.org}/inventory`, async run(page, L) {
-    await page.getByRole('button', { name: L('inv.import'), exact: true }).first().click()
-    const dialog = page.getByRole('dialog')
-    await dialog.locator('textarea').first().fill(L('inv.importExample'))
-    await page.waitForTimeout(300)
-    return dialog.getByRole('button', { name: new RegExp(`^${L('inv.import')} `) })
+  'imp-choose': { persona: 'pm', url: `/org/${ids.org}/inventory/import`, async run(page, L) {
+    await page.locator('#imp-paste').fill(IMPORT_SAMPLE)
+    await page.locator('#imp-paste').evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('#imp-paste')
+  } },
+  'imp-match': { persona: 'pm', url: `/org/${ids.org}/inventory/import`, async run(page, L) {
+    await page.locator('#imp-paste').fill(IMPORT_SAMPLE)
+    await page.getByRole('button', { name: L('imp.next') }).click()
+    return page.getByRole('list', { name: L('imp.step.match') })
+  } },
+  'imp-check': { persona: 'pm', url: `/org/${ids.org}/inventory/import`, async run(page, L) {
+    await page.locator('#imp-paste').fill(IMPORT_SAMPLE)
+    await page.getByRole('button', { name: L('imp.next') }).click()
+    await page.getByRole('button', { name: L('imp.next') }).click()
+    await page.locator('#imp-problems').waitFor()
+    return page.locator('section[aria-labelledby="imp-problems"]')
   } },
   'inv-locations': { persona: 'pm', url: `/org/${ids.org}/inventory?tab=locations`, async run(page, L) {
     return page.getByRole('button', { name: L('inv.addLocation') }).first()

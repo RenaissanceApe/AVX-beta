@@ -171,7 +171,10 @@ plot and input list, patch and DMX patch, light plot, sound system calculator. T
 turns on only the tools it uses; what is drawn from the catalogue becomes the gig's equipment.
 After H5, before switching. **F1 built:** Tools tab, input list, Updates tab (0.36.0); stage plot (0.37.0). **F2 built (0.38.0):** patch and DMX patch. **F3 built (0.39.0):** light plot. **F4 built (0.40.0):** sound system calculator: all field tools are built; switching (S1) is next. **Decided 2026-10-21:** all field tools (F1–F4) before switching. Stages F1–F4 in [docs/FIELD_TOOLS.md](docs/FIELD_TOOLS.md).
 
-## Switching to AVX (planned)
+## Switching to AVX (in progress)
+
+**S1a built (0.41.0):** the import wizard for locations, equipment and units (CSV or paste, column matching with saved presets, check, report, undo).
+
 
 Import wizard (CSV/Excel, column matching with saved presets, preview, dry run, undo), contacts
 directory, crew and upcoming jobs, a Rentman preset built from real exports, and an organisation

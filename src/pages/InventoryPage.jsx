@@ -9,7 +9,7 @@ import { useInventory } from '../lib/useInventory'
 import { isLowStock } from '../lib/inventory'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
-import { ItemModal, LocationModal, ImportStockModal } from '../components/inventory/InventoryModals'
+import { ItemModal, LocationModal } from '../components/inventory/InventoryModals'
 import { MaintenanceTab } from '../components/inventory/MaintenancePanels'
 import { SubrentalsTab } from '../components/inventory/SubrentalPanels'
 import ReportsTab from '../components/inventory/ReportsTab'
@@ -75,7 +75,6 @@ function Catalogue({ inv, orgId, goLocations }) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all') // all | tracked | low | archived
   const [adding, setAdding] = useState(false)
-  const [importing, setImporting] = useState(false)
   const q = search.trim().toLowerCase()
   const visible = useMemo(() => inv.items.filter(i => {
     if (filter === 'archived' ? !i.archived_at : i.archived_at) return false
@@ -104,7 +103,7 @@ function Catalogue({ inv, orgId, goLocations }) {
           <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('inv.search')} aria-label={t('inv.search')} style={{ ...input, paddingLeft: '32px' }} />
         </div>
-        <button onClick={() => setImporting(true)} style={ghost}><Upload size={14} /> {t('inv.import')}</button>
+        <Link to={`/org/${orgId}/inventory/import`} style={{ ...ghost, textDecoration: 'none' }}><Upload size={14} /> {t('inv.import')}</Link>
         <button onClick={() => setAdding(true)} style={btnPrimary}><Plus size={15} /> {t('inv.addItem')}</button>
       </div>
       <div role="group" aria-label={t('inv.filter')} style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '14px' }}>
@@ -118,7 +117,7 @@ function Catalogue({ inv, orgId, goLocations }) {
       </div>
 
       {inv.items.length === 0 ? (
-        <EmptyState icon={<Package size={28} />} body={t('inv.empty')} action={t('inv.import')} actionIcon={<Upload size={14} />} onAction={() => setImporting(true)} guide="wh-import" />
+        <EmptyState icon={<Package size={28} />} body={t('inv.empty')} action={t('inv.import')} actionIcon={<Upload size={14} />} onAction={() => navigate(`/org/${orgId}/inventory/import`)} guide="wh-import" />
       ) : visible.length === 0 ? (
         <p style={{ color: colors.muted, fontSize: '13px', textAlign: 'center', padding: '30px 20px' }}>{t('inv.noMatch')}</p>
       ) : groups.map(([category, list]) => (
@@ -163,10 +162,6 @@ function Catalogue({ inv, orgId, goLocations }) {
         <ItemModal orgId={orgId} userId={user.id} item={null} hasStock={false}
           categories={[...new Set(inv.items.map(i => i.category).filter(Boolean))]}
           onClose={() => setAdding(false)} onSaved={saved => { inv.reload(); navigate(`/org/${orgId}/inventory/${saved.id}`) }} />
-      )}
-      {importing && (
-        <ImportStockModal orgId={orgId} userId={user.id} items={inv.items} locations={inv.activeLocations}
-          onClose={() => setImporting(false)} onImported={inv.reload} />
       )}
     </div>
   )
