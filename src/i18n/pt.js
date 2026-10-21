@@ -2613,4 +2613,13 @@ export default {
   "imp.switch.count": "{count} no AVX",
   "imp.switch.todo": "ainda não",
   "imp.err.inactive": "marcado como inativo na ferramenta antiga: não é convidado",
+  "orgExport.title": "Os dados da sua organização",
+  "orgExport.hint": "Descarregue tudo o que esta organização tem num único zip de folhas de cálculo (CSV): catálogo, stock e unidades, conteúdo de conjuntos, contactos, membros, eventos com o seu equipamento, equipa e programa, orçamentos linha a linha, subalugueres, reparações e inspeções, e ainda as mensagens. Sirva-se dele como cópia de segurança ou para mudar para outra ferramenta: os ficheiros voltam a entrar no AVX tal como estão.",
+  "orgExport.button": "Descarregar tudo (zip)",
+  "orgExport.progress": "A preparar {done} de {total}…",
+  "orgExport.wait": "Numa organização grande pode demorar um minuto. Mantenha esta janela aberta.",
+  "orgExport.keepSafe": "Guarde o ficheiro em segurança: tem dados dos seus clientes e da sua equipa. Os ficheiros carregados (riders, fotografias) aparecem listados, mas não vão incluídos.",
+  "orgExport.done": "Descarregado. Registos: {rows} · mensagens: {messages}",
+  "orgExport.failed": "Não foi possível preparar a transferência: {reason}",
+  "orgExport.readme": "{org}: tudo o que está no AVX, {date}\n\nUm ficheiro CSV por tipo de registo, numerados pela ordem de que outra ferramenta precisa (locais e artigos antes das unidades, clientes antes dos orçamentos).\nOs ficheiros usam ponto e vírgula entre colunas e vírgula nas casas decimais, como as folhas de cálculo em português. As datas estão escritas 2026-10-21; as horas com data estão em UTC.\nUsam-se nomes em vez de números internos: cada unidade indica o seu artigo e o seu local, cada linha de um evento indica o evento e o artigo.\n\nPara voltar a trazê-los para o AVX: Inventário → Importar, escolha o tipo e o ficheiro; as colunas são reconhecidas.\nO messages.json tem as conversas (as 50 000 mensagens mais recentes).\nOs ficheiros carregados (riders, plantas, fotografias) aparecem na lista de ficheiros dos eventos, mas não vão incluídos: descarregue-os em cada evento.\n\nEste ficheiro tem dados pessoais da sua equipa e dos seus clientes. Guarde-o em segurança e apague-o quando já não precisar dele.\n",
 }

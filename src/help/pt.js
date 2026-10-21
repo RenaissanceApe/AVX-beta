@@ -685,6 +685,19 @@ export default {
         'Quem já é membro ou já foi convidado fica de fora. Um convite que não pôde ser enviado fica na lista para tentar de novo.',
       ],
     },
+    'ad-org-export': {
+      title: 'Descarregar todos os dados da organização',
+      intro: 'Guarde uma cópia de tudo, ou leve-a para outra ferramenta. Nada o prende.',
+      steps: [
+        'Abra as definições da organização e desça até "Os dados da sua organização". Só os administradores a veem.',
+        'Toque em "Descarregar tudo (zip)". Reúne cada tipo de registo à vez; mantenha a janela aberta até o zip descarregar.',
+        'Abra o zip: um ficheiro de folha de cálculo (CSV) por tipo de registo, numerados pela ordem de que outra ferramenta precisa, mais as mensagens e um README que explica os ficheiros.',
+      ],
+      mistakes: [
+        'Os ficheiros têm dados pessoais dos seus clientes e da sua equipa. Guarde-os num sítio seguro e apague-os quando já não precisar deles.',
+        'Os ficheiros carregados, como riders e fotografias, aparecem listados mas não vão incluídos. Descarregue-os em cada evento.',
+      ],
+    },
     'ad-mute': {
       title: 'Silenciar uma organização ou uma conversa',
       intro: 'Trabalha para várias empresas? Silencie as que não precisa de acompanhar de perto.',

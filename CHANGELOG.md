@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.47.0 — Switching S5: organisation export
+
+### Added
+- **Download everything**: organisation settings → "Your organisation's data" (admins) gives one
+  zip with a CSV file per kind of record: the organisation's details, members, crew waiting to be
+  invited, locations, equipment, stock per location, units, kit contents, stock movements,
+  clients, suppliers, gigs, their equipment, crew, schedule and files list, quotes and their lines,
+  subrentals and their lines, repairs and inspections, plus the messages (`messages.json`) and a
+  README. Names are used instead of internal numbers, and the files are numbered in the order
+  another tool would need them.
+- The files import straight back into AVX: their headings are the words the import wizard
+  recognises (equipment, units, kit contents, contacts, gigs, gig equipment, quote lines).
+- Help: "Download all your organisation's data". The privacy page says what admins can download.
+
+### Changed
+- The import wizard recognises "gig" and "gig ref" as the gig columns of a gig equipment file.
+
+### Database
+- Migration `20261121000000_org_export.sql` (no manual steps): `export_org_part()`, admins only,
+  with two-step sign-in; reads only. Checks in `supabase/tests/org_export.sql`.
+
 ## 0.46.0 — Switching S4: Rentman exports, the switching checklist and the calendar feed
 
 ### Added

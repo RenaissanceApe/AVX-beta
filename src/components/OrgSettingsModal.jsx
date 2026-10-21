@@ -8,6 +8,7 @@ import { useI18n } from '../i18n'
 import { Modal, btnPrimary, input, label, colors } from './ui'
 import { DangerZone, DangerConfirmModal } from './DangerConfirm'
 import OrgMessagesSettings from './OrgMessagesSettings'
+import OrgExportSettings from './OrgExportSettings'
 import OrgStepsSettings from './OrgStepsSettings'
 import OrgToolsSettings from './OrgToolsSettings'
 import { HintLabel } from './help/HelpParts'
@@ -100,6 +101,7 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
       <OrgStepsSettings org={org} />
       <OrgToolsSettings org={org} />
       <OrgMessagesSettings org={org} />
+      <OrgExportSettings org={org} />
       <DangerZone description={t('danger.orgZoneText')} actionLabel={t('org.delete')} onAction={() => setConfirmDelete(true)} />
     </Modal>
   )
