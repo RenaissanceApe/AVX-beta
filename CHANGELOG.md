@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.39.0 — Field tools F3: light plot
+
+### Added
+- **Light plot** in a gig's Tools: trusses, pipes, ladders and floor positions drawn over the
+  stage, with the DMX patch's fixtures hanging on them (spaced evenly, or dragged into place;
+  dropped near a position, a fixture hangs on it). Each fixture shows its symbol and
+  universe/address. Positions have a length, trim height and phase.
+- "Add fixtures here" on a position (adds them to the DMX patch on free addresses); fixtures
+  not on the plot can be hung from a list
+- **Power estimate**: watts, amps and weight per position and per phase against the supply
+  (single or three phase), with warnings above 80% and 100%. Power and weight come from the
+  catalogue item when not typed.
+- Print page `/gig/:id/lights` with a legend; offline copies; read-only for crew
+- Guide "Draw the light plot"; glossary words truss and power phase
+
+### Fixed
+- Stage plot: Enter or Space on a thing in the drawing now selects it (keyboard users)
+- Help screenshot of the stage plot drawing showed the Print button instead of the drawing
+
+### Changed
+- The light plot is on by default; organisations that never changed their tools get it too
+
+### Database
+- Migration `20261113000000_light_plot.sql` (no manual steps): `gig_show.lighting`;
+  `gig_fixtures.plot_x`, `plot_y`, `symbol`, `power_w`, `weight_kg`; power and weight from the
+  catalogue; new default tools. Checks in `supabase/tests/light_plot.sql`.
+
 ## 0.38.0 — Field tools F2: patch and DMX patch
 
 ### Added

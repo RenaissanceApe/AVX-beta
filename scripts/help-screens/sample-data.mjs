@@ -197,12 +197,20 @@ export function sampleData(persona, lang) {
       crew_unavailability: persona === 'pm' ? [] : [{ id: 'u1', user_id: carla, start_date: day(50), end_date: day(57), note: w.holiday, created_at: ago(100) }],
       notifications: persona === 'pm' ? [] : [{ id: 1, user_id: carla, org_id: orgId, gig_id: gigId, actor_id: ricardo, kind: 'availability_request', details: { gig_name: gig.name, from: `${day(24)}T00:00:00Z`, until: `${day(26)}T00:00:00Z` }, read_at: null, created_at: ago(3) }],
       gig_equipment: gear,
-      gig_tools: [{ gig_id: gigId, tool: 'input_list', created_at: ago(300) }, { gig_id: gigId, tool: 'stage_plot', created_at: ago(310) }, { gig_id: gigId, tool: 'patch', created_at: ago(320) }, { gig_id: gigId, tool: 'dmx_patch', created_at: ago(330) }],
-      gig_show: [{ gig_id: gigId, stage: { width_m: 10, depth_m: 6 }, audio: { boxes: [{ name: 'SB1', inputs: 8, split: true }, { name: 'SB2', inputs: 4, split: false }] } }],
+      gig_tools: [{ gig_id: gigId, tool: 'input_list', created_at: ago(300) }, { gig_id: gigId, tool: 'stage_plot', created_at: ago(310) }, { gig_id: gigId, tool: 'patch', created_at: ago(320) }, { gig_id: gigId, tool: 'dmx_patch', created_at: ago(330) }, { gig_id: gigId, tool: 'light_plot', created_at: ago(340) }],
+      gig_show: [{ gig_id: gigId, stage: { width_m: 10, depth_m: 6 }, audio: { boxes: [{ name: 'SB1', inputs: 8, split: true }, { name: 'SB2', inputs: 4, split: false }] },
+        lighting: {
+          supply: { volts: 230, phases: 3, amps: 16 },
+          bars: [
+            { id: 'bar1', name: tx('Truss frontal', 'Front truss'), kind: 'truss', x: 5, y: -1.5, length: 10, rotation: 0, height: 6.5, phase: 1 },
+            { id: 'bar2', name: tx('Fundo do palco', 'Upstage'), kind: 'pipe', x: 5, y: 5.5, length: 8, rotation: 0, height: 5, phase: 2 },
+            { id: 'bar3', name: tx('Chão', 'Floor'), kind: 'floor', x: 5, y: 0.5, length: 6, rotation: 0, height: 0, phase: 3 },
+          ],
+        } }],
       gig_fixtures: [
-        ...[1, 2, 3, 4, 5, 6].map(n => ({ id: `fx${n}`, gig_id: gigId, name: `Spot ${n}`, fixture_type: 'MAC Aura XB', mode: 'Extended', footprint: 14, universe: 1, address: 1 + (n - 1) * 14, position: tx('Truss frontal', 'Front truss'), item_id: null, notes: null, sort: n })),
-        ...[1, 2, 3, 4].map(n => ({ id: `fw${n}`, gig_id: gigId, name: `Wash ${n}`, fixture_type: 'LED par', mode: '7ch', footprint: 7, universe: 1, address: n === 4 ? 99 : 85 + (n - 1) * 7, position: tx('Chão', 'Floor'), item_id: null, notes: null, sort: 10 + n })),
-        { id: 'fh1', gig_id: gigId, name: 'Haze', fixture_type: 'Hazer', mode: null, footprint: 2, universe: 2, address: 1, position: tx('Fundo do palco', 'Upstage'), item_id: null, notes: null, sort: 20 },
+        ...[1, 2, 3, 4, 5, 6].map(n => ({ id: `fx${n}`, gig_id: gigId, name: `Spot ${n}`, fixture_type: 'MAC Encore Performance', mode: 'Extended', footprint: 14, universe: 1, address: 1 + (n - 1) * 14, position: tx('Truss frontal', 'Front truss'), item_id: null, notes: null, sort: n, power_w: 470, weight_kg: 13.5, symbol: null, plot_x: null, plot_y: null })),
+        ...[1, 2, 3, 4].map(n => ({ id: `fw${n}`, gig_id: gigId, name: `Wash ${n}`, fixture_type: 'LED par', mode: '7ch', footprint: 7, universe: 1, address: n === 4 ? 99 : 85 + (n - 1) * 7, position: tx('Chão', 'Floor'), item_id: null, notes: null, sort: 10 + n, power_w: 180, weight_kg: 4, symbol: null, plot_x: null, plot_y: null })),
+        { id: 'fh1', gig_id: gigId, name: 'Haze', fixture_type: 'Hazer', mode: null, footprint: 2, universe: 2, address: 1, position: tx('Fundo do palco', 'Upstage'), item_id: null, notes: null, sort: 20, power_w: 1200, weight_kg: 20, symbol: null, plot_x: null, plot_y: null },
       ],
       gig_plot_items: [
         ['riser', null, 5, 4.5, 0], ['drum_kit', null, 5, 4.5, 0], ['bass_amp', 'Rui', 2.5, 4.25, 0], ['guitar_amp', 'Marta', 7.5, 4.25, 0],

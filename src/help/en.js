@@ -53,6 +53,8 @@ export default {
     'dmx-universe': { term: 'DMX universe', definition: 'One line of 512 lighting control channels. A fixture takes some of them, from its start address.', example: 'Universe 1 for the moving heads, universe 2 for the LED bars.', where: 'Gig → Tools → DMX patch' },
     'dmx-address': { term: 'DMX address', definition: 'The first channel a fixture listens to on its universe. It uses that one and the next ones, as many as its footprint.', example: 'A 14-channel spot on address 15 uses channels 15 to 28.', where: 'Gig → Tools → DMX patch' },
     split: { term: 'Split', definition: 'Sending the same stage inputs to two desks, usually front of house and monitors.', example: 'SB1 is split to the monitor desk.', where: 'Gig → Tools → Patch' },
+    truss: { term: 'Truss', definition: 'A metal frame that lighting hangs from, flown above the stage or standing on the floor.', example: 'Truss 1 at 7 m with eight spots.', where: 'Gig → Tools → Light plot' },
+    'power-phase': { term: 'Power phase', definition: 'One of the live wires of a power supply. A three-phase supply has three, each with its own limit in amps; the load should be shared between them.', example: 'A 32 A three-phase supply gives 32 A on each of L1, L2 and L3.', where: 'Gig → Tools → Light plot' },
     'stage-plot': { term: 'Stage plot', definition: 'A drawing of the stage from above showing where everything goes: drums, mics, amps, monitors, risers.', example: 'The band\'s plot with the drum riser upstage centre.', where: 'Gig → Tools' },
     'input-list': { term: 'Input list', definition: 'The list of everything plugged into the sound desk, one line per channel: source, mic or DI, stand, 48V.', example: 'Ch 1 Kick in, Beta 91A, 48V.', where: 'Gig → Tools' },
     'phantom-power': { term: '48V (phantom power)', definition: 'Power the desk sends down the mic cable for condenser mics and active DIs.', example: 'Overheads and DI boxes need 48V; a dynamic SM58 doesn\'t.', where: 'Gig → Tools → Input list' },
@@ -108,6 +110,10 @@ export default {
     'two-step': 'Signing in will also ask for a 6-digit code from an app on your phone. Recommended for admins.',
     'dmx-footprint': 'How many DMX channels one fixture takes in its mode, from its manual (e.g. 14 for a MAC Aura in Extended).',
     'dmx-universe': 'A DMX line of 512 channels. Big rigs use several; each fixture is on one.',
+    'light-trim': 'How high the bar hangs, from the stage floor to the bar, in metres.',
+    'light-phase': 'Which phase of the supply feeds this position. Leave it shared and its load is spread evenly over the phases.',
+    'light-power': 'The fixture\'s power from its manual or label. It comes from the catalogue item when there is one.',
+    'light-supply': 'The limit of the power supply on each phase, e.g. 32 for a 32 A outlet. The plot warns above 80%.',
     'input-item': 'Link the mic or DI to an item in your catalogue. "Add mics and DIs to equipment" then plans them on the gig, so they are booked, packed and scanned.',
     'stage-box': 'Which stage box input the line goes into, e.g. SB1-03 (box 1, input 3). Helps the stage crew patch it.',
     'mark-lost': 'Records the units that did not come back as lost. Stock and reports change. If one turns up later, set its status back to Available.',
@@ -340,6 +346,20 @@ export default {
       mistakes: [
         '"Readdress in order" gives new addresses to a whole universe: only use it before the fixtures are set up.',
         'The number of channels depends on the mode: check the fixture\'s manual.',
+      ],
+    },
+    'pm-light-plot': {
+      title: 'Draw the light plot',
+      intro: 'The light plot shows the trusses, pipes and floor positions over the stage, with each fixture from the DMX patch hanging on them, and adds up the power per phase.',
+      steps: [
+        'In Tools, "Add a tool" → Light plot. Under "Add a position", add a truss or pipe for each bar; drag it into place and set its name, length and trim height.',
+        'Select a bar and tap "Add fixtures here": they go into the DMX patch on free addresses and hang on that bar, spaced evenly. Fixtures already in the DMX patch can be hung from the "not on the plot" list.',
+        'Drag a fixture to move it along its bar, or onto another bar. Each one shows its universe/address underneath.',
+        'Set the supply (phases and amps) and give each bar a phase: the power section shows the load on each phase, as an estimate. Print the plot for the crew.',
+      ],
+      mistakes: [
+        'Power is an estimate from the fixtures\' figures: fixtures without one count as 0 W. Check the real supply with the electrician.',
+        'Removing a position doesn\'t delete its fixtures: they go to "not on the plot" (and stay in the DMX patch).',
       ],
     },
     'pm-stage-plot': {

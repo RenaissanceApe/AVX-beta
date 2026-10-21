@@ -50,6 +50,8 @@ export default {
     'dmx-universe': { term: 'Universo DMX', definition: 'Uma linha de 512 canais de controlo de luz. Um projetor usa alguns deles, a partir do endereço inicial.', example: 'Universo 1 para as cabeças móveis, universo 2 para as barras LED.', where: 'Evento → Ferramentas → Patch DMX' },
     'dmx-address': { term: 'Endereço DMX', definition: 'O primeiro canal que um projetor ouve no seu universo. Usa esse e os seguintes, tantos quantos os seus canais.', example: 'Um spot de 14 canais no endereço 15 usa os canais 15 a 28.', where: 'Evento → Ferramentas → Patch DMX' },
     split: { term: 'Split', definition: 'Enviar as mesmas entradas de palco para duas mesas, normalmente a de sala e a de monitores.', example: 'A SB1 tem split para a mesa de monitores.', where: 'Evento → Ferramentas → Patch' },
+    truss: { term: 'Truss', definition: 'Uma estrutura metálica onde se pendura a luz, suspensa sobre o palco ou assente no chão.', example: 'Truss 1 a 7 m com oito spots.', where: 'Evento → Ferramentas → Plano de luz' },
+    'power-phase': { term: 'Fase elétrica', definition: 'Um dos condutores com tensão de uma alimentação. Uma alimentação trifásica tem três, cada uma com o seu limite em amperes; a carga deve ser repartida por elas.', example: 'Uma alimentação trifásica de 32 A dá 32 A em cada uma de L1, L2 e L3.', where: 'Evento → Ferramentas → Plano de luz' },
     'stage-plot': { term: 'Stage plot', definition: 'Um desenho do palco visto de cima com o lugar de cada coisa: bateria, microfones, amplificadores, monitores, estrados.', example: 'O plot da banda com o estrado da bateria ao fundo, ao centro.', where: 'Evento → Ferramentas' },
     'input-list': { term: 'Lista de inputs', definition: 'A lista de tudo o que entra na mesa de som, uma linha por canal: fonte, microfone ou DI, tripé, 48V.', example: 'Can 1 Bombo dentro, Beta 91A, 48V.', where: 'Evento → Ferramentas' },
     'phantom-power': { term: '48V (alimentação phantom)', definition: 'Corrente que a mesa envia pelo cabo do microfone para microfones de condensador e DIs ativas.', example: 'Os overheads e as DIs precisam de 48V; um SM58 dinâmico não.', where: 'Evento → Ferramentas → Lista de inputs' },
@@ -105,6 +107,10 @@ export default {
     'two-step': 'Para entrar, será também pedido um código de 6 dígitos de uma aplicação no telemóvel. Recomendado para administradores.',
     'dmx-footprint': 'Quantos canais DMX um projetor usa no seu modo, segundo o manual (ex.: 14 para um MAC Aura em Extended).',
     'dmx-universe': 'Uma linha DMX de 512 canais. Rigs grandes usam vários; cada projetor está num.',
+    'light-trim': 'A que altura fica a vara, do chão do palco até à vara, em metros.',
+    'light-phase': 'Que fase da alimentação alimenta esta posição. Deixe repartida e a carga é dividida por igual pelas fases.',
+    'light-power': 'A potência do projetor, do manual ou da etiqueta. Vem do artigo do catálogo quando existe.',
+    'light-supply': 'O limite da alimentação em cada fase, p. ex. 32 para uma tomada de 32 A. O plano avisa acima de 80%.',
     'input-item': 'Ligue o microfone ou DI a um artigo do catálogo. "Juntar microfones e DIs ao equipamento" passa a prevê-los no evento, para serem reservados, carregados e lidos.',
     'stage-box': 'Em que entrada da stage box entra a linha, ex.: SB1-03 (caixa 1, entrada 3). Ajuda a equipa de palco a ligar.',
     'mark-lost': 'Regista como perdidas as unidades que não voltaram. O stock e os relatórios mudam. Se alguma aparecer mais tarde, volte a pôr o estado em Disponível.',
@@ -337,6 +343,20 @@ export default {
       mistakes: [
         '"Reendereçar por ordem" dá novos endereços a um universo inteiro: use-o só antes de os projetores estarem configurados.',
         'O número de canais depende do modo: confirme no manual do projetor.',
+      ],
+    },
+    'pm-light-plot': {
+      title: 'Desenhar o plano de luz',
+      intro: 'O plano de luz mostra as truss, varas e posições de chão sobre o palco, com cada projetor do patch DMX pendurado nelas, e soma a potência por fase.',
+      steps: [
+        'Em Ferramentas, "Adicionar ferramenta" → Plano de luz. Em "Adicionar uma posição", junte uma truss ou vara por cada vara; arraste-a para o lugar e indique o nome, o comprimento e a altura.',
+        'Selecione uma vara e toque em "Adicionar projetores aqui": entram no patch DMX em endereços livres e ficam pendurados nessa vara, distribuídos por igual. Os projetores que já estão no patch DMX podem ser pendurados a partir da lista "fora do plano".',
+        'Arraste um projetor para o mover ao longo da vara, ou para outra vara. Cada um mostra por baixo o universo/endereço.',
+        'Indique a alimentação (fases e amperes) e dê uma fase a cada vara: a secção de potência mostra a carga em cada fase, como estimativa. Imprima o plano para a equipa.',
+      ],
+      mistakes: [
+        'A potência é uma estimativa a partir dos valores dos projetores: os que não têm valor contam como 0 W. Confirme a alimentação real com o eletricista.',
+        'Remover uma posição não apaga os projetores: passam para "fora do plano" (e continuam no patch DMX).',
       ],
     },
     'pm-stage-plot': {
