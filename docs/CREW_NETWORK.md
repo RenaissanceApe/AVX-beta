@@ -1,6 +1,6 @@
 # Crew network and job board (Phase 7)
 
-Status: **N1 built** (crew profiles, 0.48.0). Next: N2 (crew search). Decisions taken 2026-10-21 (below).
+Status: **N1–N2 built** (crew profiles 0.48.0, crew search 0.49.0). Next: N3 (job board). Decisions taken 2026-10-21 (below).
 
 The aim: a production company that needs a lighting tech in Porto next Saturday can find one, and
 a freelancer can find work, without leaving AVX and without anyone's details being exposed to
@@ -123,3 +123,15 @@ people they didn't choose. It builds on what exists:
 | Two-step sign-in | The table has the `mfa_required` rule and both functions call `require_mfa()`, like everything else. The same migration adds them to the calendar link, which had missed them in S4 |
 
 Checks: `supabase/tests/crew_profiles.sql`; the lists and checks in `src/lib/crewProfile.test.js`.
+
+## How N2 works (0.49.0)
+
+| Piece | How it works |
+|---|---|
+| Where | Organisation menu → Find crew (`/org/:id/crew`), and "Find crew" on a gig's Crew tab (`?gig=…`, which picks the gig: its dates are searched and its venue is offered as the place). Admins and members only |
+| Search | `search_crew()` returns 20 at a time (and the total) of the switched-on profiles the caller may see (`can_see_crew_profile`: the person's choice and blocks). Filters: one function, words (name, headline, other functions, bio), a language spoken, a certificate still valid on the last date, a place with a distance, dates and "only free". Distance is great-circle km between rounded coordinates; someone further than the distance is still listed when their own travel range covers it (km, their country, Europe, world). Free/busy: a gig they're on (not archived) or unavailable dates overlapping the dates; which gig is never shown. Order: free first, nearest, worked with you most, recently updated |
+| Contact | `contact_crew(gig, person, kind)` from a gig the caller manages: `availability` adds an availability question (5a), `offer` a crew call for one (M4a, accepting adds them to the gig). The first contact is kept in `crew_contacts` (company, who, when, gig), and `can_message` lets the two write to each other from then on. Refused for someone who blocked the caller (or was blocked), whose profile is off, who's already on the gig, or who was already asked about it |
+| Limits | 200 searches a day per organisation (`crew_search_log`) and 25 new people contacted a day per organisation; both answer "try again tomorrow" |
+| Two-step sign-in | Both tables have the `mfa_required` rule and both functions call `require_mfa()` |
+
+Checks: `supabase/tests/crew_search.sql`; the filters in `src/lib/crewSearch.test.js`.

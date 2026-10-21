@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.49.0 — Crew network N2: crew search
+
+### Added
+- **Find crew** (Organisation menu, and "Find crew" on a gig's Crew tab), for admins and members:
+  search the freelancers who switched on their crew profile and let companies (or crew) see it, by
+  function, name or words, language, certificate (still valid on the dates), distance from a town
+  or the gig's venue, and dates. Results show how far away they are, whether they're free on the
+  dates (never which gigs), and how often they've worked for you. People who travel further than
+  the distance searched are included when they say they go that far.
+- From a result, **Ask if free** (an availability question, as from the gig) or **Offer a place**
+  (a crew call for one): it arrives in their messages, and the two can write to each other from
+  then on. Contact details stay private until they join the gig.
+- Limits against misuse: 200 searches and 25 new people contacted per organisation per day.
+- Help: "Find crew you haven't worked with yet". The privacy page describes the search.
+
+### Changed
+- The town search is shared by the crew profile and Find crew; in Portuguese its button now says
+  "Localizar", so it isn't confused with "Procurar".
+
+### Database
+- Migration `20261123000000_crew_search.sql` (no manual steps): `search_crew()`, `contact_crew()`,
+  `crew_contacts`, `crew_search_log`; people a company contacted can message each other.
+  Checks in `supabase/tests/crew_search.sql`.
+
 ## 0.48.0 — Crew network N1: crew profiles
 
 ### Added

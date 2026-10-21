@@ -34,7 +34,7 @@ export default {
     'push-notifications': { term: 'Notifications on this device', definition: 'Alerts on your phone or computer, like any app. Each device is turned on separately.', example: 'Your phone buzzes when someone mentions you.', where: 'Account' },
     'two-step': { term: 'Two-step sign-in', definition: 'Signing in asks for your password and a 6-digit code from an app on your phone.', example: 'Google Authenticator shows 482 913.', where: 'Account' },
     'offline-copy': { term: 'Offline copy', definition: 'The last version of your gigs saved on your device, readable without signal.', example: 'Reading the call sheet in a basement with no network.', where: 'Gigs, gig page, call sheet' },
-    network: { term: 'Your network', definition: 'People you have worked with on a gig or in an organisation. Only they can be found by name.', example: 'Inviting a technician you worked with last year.', where: 'Gig → Crew → Invite' },
+    network: { term: 'Your network', definition: 'People you have worked with on a gig or in an organisation; they can be found by name. Freelancers who switch on a crew profile can also be found by companies in Find crew.', example: 'Inviting a technician you worked with last year.', where: 'Gig → Crew → Invite' },
     findable: { term: 'Who can find you', definition: 'Who can find you by name when adding crew: only managers and admins, or other crew too.', example: 'A freelance PM can find you if you allow "other crew".', where: 'Account' },
     'catalogue-item': { term: 'Catalogue item', definition: 'A kind of equipment you own or hire out, with its price and stock.', example: 'Shure SM58 microphone.', where: 'Inventory → Catalogue' },
     'bulk-item': { term: 'Counted in bulk', definition: 'Stock kept as a number per location, not one by one.', example: '120 XLR cables in the warehouse.', where: 'Inventory → item' },
@@ -134,6 +134,7 @@ export default {
     messages: { title: 'Messages', summary: 'Your conversations: direct messages, gig chats, department channels and the organisation’s channels. Unread ones are at the top. Use the menu on a message to reply, react, save or report it.' },
     inventory: { title: 'Inventory', summary: 'Your equipment: the catalogue, where it is kept, its stock and movements, maintenance and subrentals.' },
     'inventory-item': { title: 'An equipment item', summary: 'One catalogue item: its details, stock per location, units with their labels, kit contents, maintenance and history.' },
+    'crew-search': { title: 'Find crew', summary: 'Freelancers on AVX who switched on their crew profile and let companies see it. Search by function, place, dates and language, then ask about a gig or offer a place. Their contact details stay private until they join.' },
     'crew-profile': { title: 'Crew profile', summary: 'Let companies on AVX find you for work. Off until you switch it on; you choose who sees it (companies only, or companies and crew) and can change, switch off or remove it at any time. No rates on it.' },
     contacts: { title: 'Contacts', summary: 'Your clients and suppliers, kept once. Quotes pick their client from here and subrentals their supplier. Import them from a spreadsheet, or add the clients typed on older quotes in one go.' },
     quotes: { title: 'Quotes', summary: 'Your company’s quotes, newest first. Open one to edit it, send it to the client or turn an accepted quote into a gig.' },
@@ -301,6 +302,19 @@ export default {
       mistakes: [
         'Without dates, AVX can\'t warn about double bookings or check whether there is enough equipment.',
         'If the client accepted a quote, open the gig and use "Fill gig from quote" to add the schedule, positions and equipment in one go.',
+      ],
+    },
+    'pm-find-crew': {
+      title: 'Find crew you haven\'t worked with yet',
+      intro: 'Short of a rigger in Porto next Saturday? Search the freelancers on AVX who made their profile visible to companies.',
+      steps: [
+        'Open the gig\'s Crew tab and tap "Find crew" (or Organisation → Find crew). The gig\'s dates are filled in.',
+        'Choose a function, type the venue\'s town and tap Find, pick the distance and tick "Only people free on these dates" if you like. Tap Search.',
+        'On a result, tap "Ask if free" to check their dates, or "Offer a place" to offer them the job. The answer arrives in your messages; if they accept an offer, they join the gig.',
+      ],
+      mistakes: [
+        'Rates aren\'t on profiles: agree the fee in the messages. Their e-mail and phone are shared only once they join your gig.',
+        'Searches and first contacts are limited each day to stop misuse. People you\'ve worked with before are always easy to reach from the gig\'s invite form.',
       ],
     },
     'pm-invite-crew': {

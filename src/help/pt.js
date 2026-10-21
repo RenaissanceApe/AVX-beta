@@ -31,7 +31,7 @@ export default {
     'push-notifications': { term: 'Notificações neste dispositivo', definition: 'Alertas no telemóvel ou no computador, como em qualquer aplicação. Cada dispositivo é ativado à parte.', example: 'O telemóvel vibra quando alguém o menciona.', where: 'Conta' },
     'two-step': { term: 'Início de sessão em dois passos', definition: 'Para entrar, além da palavra-passe, é pedido um código de 6 dígitos de uma aplicação no telemóvel.', example: 'O Google Authenticator mostra 482 913.', where: 'Conta' },
     'offline-copy': { term: 'Cópia sem rede', definition: 'A última versão dos seus eventos guardada no dispositivo, que pode ler sem rede.', example: 'Ler a folha de serviço numa cave sem rede.', where: 'Eventos, página do evento, folha de serviço' },
-    network: { term: 'A sua rede', definition: 'As pessoas com quem já trabalhou num evento ou numa organização. Só essas podem ser encontradas pelo nome.', example: 'Convidar um técnico com quem trabalhou no ano passado.', where: 'Evento → Equipa → Convidar' },
+    network: { term: 'A sua rede', definition: 'As pessoas com quem já trabalhou num evento ou numa organização; podem ser encontradas pelo nome. Os freelancers que ligam o perfil profissional também podem ser encontrados pelas empresas em Procurar técnicos.', example: 'Convidar um técnico com quem trabalhou no ano passado.', where: 'Evento → Equipa → Convidar' },
     findable: { term: 'Quem o pode encontrar', definition: 'Quem o pode encontrar pelo nome ao formar uma equipa: só quem gere e administra, ou também outros técnicos.', example: 'Um diretor de produção freelancer encontra-o se permitir "outros técnicos".', where: 'Conta' },
     'catalogue-item': { term: 'Artigo do catálogo', definition: 'Um tipo de equipamento que tem ou aluga, com preço e stock.', example: 'Microfone Shure SM58.', where: 'Inventário → Catálogo' },
     'bulk-item': { term: 'Contado a granel', definition: 'Stock guardado como um número por local, e não um a um.', example: '120 cabos XLR no armazém.', where: 'Inventário → artigo' },
@@ -131,6 +131,7 @@ export default {
     messages: { title: 'Mensagens', summary: 'As suas conversas: mensagens diretas, conversas de eventos, canais de departamento e da organização. As que têm mensagens por ler aparecem primeiro. Use o menu de uma mensagem para responder, reagir, guardar ou denunciar.' },
     inventory: { title: 'Inventário', summary: 'O seu equipamento: o catálogo, onde está guardado, o stock e os movimentos, a manutenção e os alugueres externos.' },
     'inventory-item': { title: 'Um artigo de equipamento', summary: 'Um artigo do catálogo: detalhes, stock por local, unidades com etiquetas, conteúdo do kit, manutenção e histórico.' },
+    'crew-search': { title: 'Procurar técnicos', summary: 'Freelancers no AVX que ligaram o seu perfil profissional e deixam que as empresas o vejam. Pesquise por função, local, datas e língua, e depois pergunte por um evento ou ofereça um lugar. Os contactos ficam privados até a pessoa entrar.' },
     'crew-profile': { title: 'Perfil profissional', summary: 'Deixe que as empresas no AVX o encontrem para trabalhar. Desligado até o ligar; escolhe quem o vê (só empresas, ou empresas e técnicos) e pode mudá-lo, desligá-lo ou removê-lo a qualquer momento. Sem preços.' },
     contacts: { title: 'Contactos', summary: 'Os seus clientes e fornecedores, guardados uma vez. Os orçamentos escolhem daqui o cliente e os sub-alugueres o fornecedor. Importe-os de uma folha de cálculo, ou adicione de uma vez os clientes escritos em orçamentos antigos.' },
     quotes: { title: 'Orçamentos', summary: 'Os orçamentos da sua empresa, os mais recentes primeiro. Abra um para o editar, enviar ao cliente ou transformar um orçamento aceite num evento.' },
@@ -201,7 +202,7 @@ export default {
       intro: 'As empresas no AVX podem encontrá-lo pelo que faz, onde está e as línguas que fala. Fica desligado até o ligar.',
       steps: [
         'Abra a sua conta (as suas iniciais no topo) e toque em "Abrir o seu perfil profissional".',
-        'Escolha o que faz, escreva a sua localidade e toque em Procurar para a escolher, e depois diga até onde se desloca e em que línguas trabalha. Acrescente certificados e ligações, se quiser.',
+        'Escolha o que faz, escreva a sua localidade e toque em Localizar para a escolher, e depois diga até onde se desloca e em que línguas trabalha. Acrescente certificados e ligações, se quiser.',
         'Escolha quem o pode ver (só empresas, ou empresas e técnicos), marque "Deixar que encontrem o meu perfil" e guarde. A pré-visualização no fim mostra o que vão ver.',
       ],
       mistakes: [
@@ -298,6 +299,19 @@ export default {
       mistakes: [
         'Sem datas, o AVX não consegue avisar de marcações duplas nem ver se há equipamento suficiente.',
         'Se o cliente aceitou um orçamento, abra o evento e use "Preencher evento a partir do orçamento" para juntar horário, posições e equipamento de uma vez.',
+      ],
+    },
+    'pm-find-crew': {
+      title: 'Encontrar técnicos com quem ainda não trabalhou',
+      intro: 'Falta um rigger no Porto no próximo sábado? Pesquise os freelancers no AVX que deixaram o perfil visível para empresas.',
+      steps: [
+        'Abra o separador Equipa do evento e toque em "Procurar técnicos" (ou Organização → Procurar técnicos). As datas do evento ficam preenchidas.',
+        'Escolha uma função, escreva a localidade do local e toque em Localizar, escolha a distância e marque "Só pessoas livres nestas datas", se quiser. Toque em Procurar.',
+        'Num resultado, toque em "Perguntar se está livre" para confirmar as datas, ou em "Oferecer um lugar" para lhe oferecer o trabalho. A resposta chega às suas mensagens; se aceitar uma oferta, entra no evento.',
+      ],
+      mistakes: [
+        'Os perfis não têm preços: combine o valor nas mensagens. O e-mail e o telefone só são partilhados quando a pessoa entra no evento.',
+        'As pesquisas e os primeiros contactos têm um limite diário para evitar abusos. As pessoas com quem já trabalhou continuam fáceis de chamar no formulário de convite do evento.',
       ],
     },
     'pm-invite-crew': {

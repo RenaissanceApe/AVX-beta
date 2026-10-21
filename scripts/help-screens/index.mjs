@@ -342,6 +342,13 @@ const SCENES = {
     await dialog.getByLabel(L('common.email'), { exact: true }).fill('marco@example.com')
     return dialog.getByRole('button', { name: L('common.invite'), exact: true }).locator('xpath=..')
   } },
+  'crew-search': { persona: 'pm', url: `/org/${ids.org}/crew?gig=${ids.gig}`, async run(page, L) {
+    await page.getByRole('button', { name: L('crewSearch.search'), exact: true }).click()
+    const first = page.locator('#cs-results').locator('xpath=following-sibling::div[1]/div[1]')
+    await first.waitFor()
+    await first.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
+    return first
+  } },
   'crew-profile': { persona: 'crew', url: '/me/profile', async run(page, L) {
     const preview = page.locator('section[aria-labelledby="cp-preview"]')
     await preview.scrollIntoViewIfNeeded()

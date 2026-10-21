@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Search, Plus, X, CheckCircle, MapPin, Eye } from 'lucide-react'
+import { Loader2, Plus, X, CheckCircle, MapPin, Eye } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -11,6 +11,7 @@ import { btn, btnPrimary, btnDanger, iconBtn, input, label, card, colors, tint }
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import CrewProfileCard from '../components/CrewProfileCard'
+import PlaceFinder from '../components/PlaceFinder'
 
 const EMPTY = { enabled: false, visibility: 'companies', headline: '', functions: [], other_functions: '', bio: '', base_place: null, base_country: null, base_lat: null, base_lng: null, travel_scope: 'km', travel_km: 100, languages: [], experience_years: '', links: ['', '', ''], certificates: [] }
 const section = { ...card, padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }
@@ -33,9 +34,6 @@ export default function CrewProfilePage() {
   const [form, setForm] = useState(null)
   const [saved, setSaved] = useState(null)
   const [saving, setSaving] = useState(false)
-  const [query, setQuery] = useState('')
-  const [places, setPlaces] = useState(null)
-  const [finding, setFinding] = useState(false)
   const [addLang, setAddLang] = useState('')
 
   useEffect(() => {
@@ -49,20 +47,6 @@ export default function CrewProfilePage() {
 
   const set = patch => setForm(f => ({ ...f, ...patch }))
   const toggleFn = key => set({ functions: form.functions.includes(key) ? form.functions.filter(f => f !== key) : [...form.functions, key].slice(0, MAX.functions) })
-
-  async function findPlace(e) {
-    e?.preventDefault()
-    if (query.trim().length < 2) return
-    setFinding(true)
-    const { data, error } = await supabase.functions.invoke('geocode', { body: { q: query.trim(), lang } })
-    setFinding(false)
-    if (error) { logger.error('crewProfile', error, { step: 'geocode' }); return notify(t('crewProfile.placeFailed'), 'error') }
-    setPlaces(data?.places || [])
-  }
-  function choosePlace(p) {
-    set({ base_place: p.place, base_country: p.country, base_lat: p.lat, base_lng: p.lng })
-    setPlaces(null); setQuery('')
-  }
 
   async function save(e) {
     e?.preventDefault()
@@ -154,23 +138,8 @@ export default function CrewProfilePage() {
           {form.base_place && (
             <p style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}><MapPin size={14} aria-hidden="true" /> <strong>{form.base_place}</strong></p>
           )}
-          <div>
-            <label style={label} htmlFor="cp-place">{form.base_place ? t('crewProfile.changeBase') : t('crewProfile.base')}</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input id="cp-place" value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') findPlace(e) }} placeholder={t('crewProfile.basePlaceholder')} style={{ ...input, flex: 1, minWidth: 0 }} />
-              <button type="button" onClick={findPlace} disabled={finding || query.trim().length < 2} style={btn}>
-                {finding ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={14} />} {t('crewProfile.find')}
-              </button>
-            </div>
-            <p style={{ ...hint, marginTop: '6px' }}>{t('crewProfile.baseHint')}</p>
-          </div>
-          {places && (
-            places.length ? (
-              <ul aria-label={t('crewProfile.places')} style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {places.map(p => <li key={p.label}><button type="button" onClick={() => choosePlace(p)} style={{ ...btn, width: '100%', justifyContent: 'flex-start', textAlign: 'left' }}><MapPin size={14} /> {p.label}</button></li>)}
-              </ul>
-            ) : <p role="status" style={hint}>{t('crewProfile.noPlaces')}</p>
-          )}
+          <PlaceFinder id="cp-place" label={form.base_place ? t('crewProfile.changeBase') : t('crewProfile.base')} hint={t('crewProfile.baseHint')}
+            onChoose={p => set({ base_place: p.place, base_country: p.country, base_lat: p.lat, base_lng: p.lng })} />
           <div style={{ maxWidth: '320px' }}>
             <label style={label} htmlFor="cp-travel">{t('crewProfile.travelLabel')}</label>
             <select id="cp-travel" value={travelKey(form)} onChange={e => set(fromTravelKey(e.target.value))} style={{ ...input, cursor: 'pointer' }}>
