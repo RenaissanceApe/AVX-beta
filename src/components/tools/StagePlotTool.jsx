@@ -141,6 +141,7 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
   }
   function onKeyDownItem(e, item) {
     if (!canEdit) return
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); return setSelected(item.id) }
     const step = e.shiftKey ? 1 : STEP_M
     const moves = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }
     if (moves[e.key]) { e.preventDefault(); setSelected(item.id); nudge(item, ...moves[e.key]) }

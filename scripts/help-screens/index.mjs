@@ -198,9 +198,24 @@ const SCENES = {
   'dmx-list': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=dmx_patch`, async run(page, L) {
     return page.locator('#universe-1').locator('..')
   } },
+  'light-bar': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=light_plot`, async run(page, L) {
+    await page.locator('#light-bars').locator('..').getByRole('button').first().click()
+    return page.getByRole('group').filter({ has: page.locator('#bar-name') })
+  } },
+  'light-plot': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=light_plot`, async run(page, L) {
+    const drawing = page.locator('section[aria-labelledby="light-plot-title"] svg[role="group"]')
+    await drawing.waitFor()
+    await drawing.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return drawing
+  } },
+  'light-power': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=light_plot`, async run(page, L) {
+    return page.locator('section[aria-labelledby="light-power"]')
+  } },
   'plot-drawing': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=stage_plot`, async run(page, L) {
-    await page.locator('section[aria-labelledby="stage-plot-title"] svg').first().waitFor()
-    return page.locator('section[aria-labelledby="stage-plot-title"] svg').first()
+    const drawing = page.locator('section[aria-labelledby="stage-plot-title"] svg[role="group"]')
+    await drawing.waitFor()
+    await drawing.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return drawing
   } },
   'plot-list': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=stage_plot`, async run(page, L) {
     return page.locator('section[aria-labelledby="on-stage"]')

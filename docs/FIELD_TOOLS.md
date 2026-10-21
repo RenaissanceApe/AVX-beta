@@ -1,6 +1,6 @@
 # Field tools: plan
 
-Status: **F1 and F2 built**: F1a (0.36.0) Tools tab, organisation switches, shared show model, input list, Updates tab; F1b (0.37.0) stage plot; F2 (0.38.0) patch and DMX patch. F3 (light plot) next. Decided 2026-10-20. Optional tools for the technical side of a gig (stage
+Status: **F1 and F2 built**: F1a (0.36.0) Tools tab, organisation switches, shared show model, input list, Updates tab; F1b (0.37.0) stage plot; F2 (0.38.0) patch and DMX patch; F3 (0.39.0) light plot. F4 (sound system calculator) next. Decided 2026-10-20. Optional tools for the technical side of a gig (stage
 plot, input list, patch, light plot, DMX patch, sound system calculator) that share their data,
 so a stage plot can produce a channel list and a light plot a DMX patch. An ever-growing set,
 added one tool at a time, without making AVX harder to use.
@@ -48,7 +48,7 @@ venue or the artist through a private link (like quotes), and can be saved as a 
 | **F1a** ✅ (0.36.0) | Tools tab, organisation switches, the shared show model (table), **input list** (print, offline, line check, mics to equipment); Feed + Activity become Updates |
 | **F1b** ✅ (0.37.0) | **Stage plot** (grid and symbols) that fills the input list and the show model's stage size |
 | **F2** ✅ (0.38.0) | Patch (stage boxes, splits) and **DMX patch** |
-| **F3** | **Light plot** (truss, positions, fixtures from the catalogue, power) |
+| **F3** ✅ (0.39.0) | **Light plot** (truss, positions, fixtures from the DMX patch and the catalogue, power) |
 | **F4** | **Sound system calculator** (delays, time alignment, coverage), clearly labelled as estimates |
 | later | More tools as they are asked for (rigging weights, power distribution, RF plan…) |
 
@@ -95,6 +95,20 @@ Checks: `supabase/tests/stage_plot.sql`.
 | Defaults | The two tools join the default tools; organisations that never changed theirs get them too |
 
 Checks: `supabase/tests/patch_dmx.sql`.
+
+## How F3 works (light plot)
+
+| Piece | How it works |
+|---|---|
+| Positions | Kept in the show model (`gig_show.lighting.bars`): name, kind (truss, pipe, ladder, floor), centre in metres (same axes as the stage plot; negative y is over the audience), length, across or up-and-down, trim height, phase. The drawing shows the stage and everything on it with 1.5 m around |
+| Fixtures | The DMX patch's fixtures. One hangs on a position when its "Position" is the position's name (renaming a position renames it on its fixtures). Without a place of its own it is spaced evenly along its position, in DMX order; dragged, it keeps `plot_x`/`plot_y`. Dropped within 75 cm of a position it hangs there. Each shows its universe/address |
+| Symbols | spot, wash, beam, profile, par, blinder, strobe, batten, haze, other. Guessed from the fixture type unless chosen (`gig_fixtures.symbol`); the print has a legend |
+| Adding | "Add fixtures here" on a position opens the DMX patch's form with the position filled in (and adds the DMX patch to the gig if needed). Fixtures already in the patch are hung from the "not on the plot" list |
+| Power | `gig_fixtures.power_w` and `weight_kg`, copied from the catalogue item when not typed (also when the item changes). Per position: fixtures, watts, amps, kg. Supply in `gig_show.lighting.supply` (single or three phase, amps per phase, volts). Positions with a phase load it; the rest is shared evenly. Warning above 80% and above 100%; labelled as an estimate, fixtures without a figure count as 0 W |
+| Removing | Removing a position (with Undo) leaves its fixtures in the DMX patch, off the plot |
+| Print | `/gig/:id/lights` (landscape, black on white): drawing, legend, fixtures per position, power per phase. Offline copies like the other tools |
+
+Checks: `supabase/tests/light_plot.sql`.
 
 ## Open questions
 

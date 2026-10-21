@@ -168,13 +168,14 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
   )
 }
 
-function FixtureForm({ gig, fixture, existing, catalogue, onClose, onSaved }) {
+// Also used by the light plot to add fixtures to a bar (defaults: { position })
+export function FixtureForm({ gig, fixture, existing, catalogue, defaults, onClose, onSaved }) {
   const { notify } = useToast()
   const isNew = !fixture
   const [form, setForm] = useState(() => (fixture
     ? { name: fixture.name, fixture_type: fixture.fixture_type, mode: fixture.mode || '', footprint: String(fixture.footprint), universe: String(fixture.universe),
         address: fixture.address ? String(fixture.address) : '', position: fixture.position || '', item_id: fixture.item_id || '', notes: fixture.notes || '', count: '1' }
-    : { name: '', fixture_type: '', mode: '', footprint: '', universe: '1', address: '', position: '', item_id: '', notes: '', count: '1' }))
+    : { name: '', fixture_type: '', mode: '', footprint: '', universe: '1', address: '', position: defaults?.position || '', item_id: '', notes: '', count: '1' }))
   const [saving, setSaving] = useState(false)
   const set = patch => setForm(f => ({ ...f, ...patch }))
   const num = (v, min, max) => { const n = Math.round(Number(v)); return n >= min && n <= max ? n : null }
