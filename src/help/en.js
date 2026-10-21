@@ -134,6 +134,7 @@ export default {
     messages: { title: 'Messages', summary: 'Your conversations: direct messages, gig chats, department channels and the organisation’s channels. Unread ones are at the top. Use the menu on a message to reply, react, save or report it.' },
     inventory: { title: 'Inventory', summary: 'Your equipment: the catalogue, where it is kept, its stock and movements, maintenance and subrentals.' },
     'inventory-item': { title: 'An equipment item', summary: 'One catalogue item: its details, stock per location, units with their labels, kit contents, maintenance and history.' },
+    'crew-profile': { title: 'Crew profile', summary: 'Let companies on AVX find you for work. Off until you switch it on; you choose who sees it (companies only, or companies and crew) and can change, switch off or remove it at any time. No rates on it.' },
     contacts: { title: 'Contacts', summary: 'Your clients and suppliers, kept once. Quotes pick their client from here and subrentals their supplier. Import them from a spreadsheet, or add the clients typed on older quotes in one go.' },
     quotes: { title: 'Quotes', summary: 'Your company’s quotes, newest first. Open one to edit it, send it to the client or turn an accepted quote into a gig.' },
     quote: { title: 'A quote', summary: 'Build the quote in phases with lines from your price list. Each send saves a version. The client reads and accepts it through a private link.' },
@@ -196,6 +197,19 @@ export default {
       mistakes: [
         'The link is private: anyone who has it sees your gigs\' names, dates and venues. If you shared it by mistake, tap "New link"; the old one stops working.',
         'Changes made in AVX can take an hour or more to show in your calendar. For the latest call time, open the gig in AVX.',
+      ],
+    },
+    'crew-profile': {
+      title: 'Get found for work with your crew profile',
+      intro: 'Companies on AVX can find you by what you do, where you are and the languages you speak. It stays off until you switch it on.',
+      steps: [
+        'Open your account (your initials at the top) and tap "Open your crew profile".',
+        'Pick what you do, type your town and tap Find to choose it, then say how far you travel and which languages you work in. Add certificates and links if you like.',
+        'Choose who can see it (companies only, or companies and crew), tick "Let people find my profile" and save. The preview at the bottom shows what they\'ll see.',
+      ],
+      mistakes: [
+        'Don\'t put rates on your profile: you give a day rate only when you answer a company.',
+        'Only your town is kept, not your address. To hide your profile again, untick it and save; "Remove my crew profile" clears it completely.',
       ],
     },
     'crew-unavailable': {

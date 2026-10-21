@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Loader2, LogOut, CheckCircle, Download, Trash2 } from 'lucide-react'
+import { X, Loader2, LogOut, CheckCircle, Download, Trash2, Contact } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { removeGigFiles } from '../lib/storage'
 import PushSettings from './PushSettings'
@@ -222,6 +222,12 @@ export default function AccountModal({ onClose }) {
 
         <div style={section}>
           <AppearanceSettings />
+        </div>
+
+        <div style={section}>
+          <span style={label} id="account-crew-profile">{t('crewProfile.title')}</span>
+          <p style={{ color: 'var(--muted)', fontSize: '12px', lineHeight: 1.5, marginBottom: '10px' }}>{t('crewProfile.accountHint')}</p>
+          <button type="button" aria-describedby="account-crew-profile" onClick={() => { onClose(); navigate('/me/profile') }} style={smallBtn}><Contact size={14} /> {t('crewProfile.open')}</button>
         </div>
 
         <div style={section}>

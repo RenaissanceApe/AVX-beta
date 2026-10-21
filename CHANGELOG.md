@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.48.0 — Crew network N1: crew profiles
+
+### Added
+- **Crew profile** (Account → "Open your crew profile", `/me/profile`): what you do (a shared list
+  of functions plus your own), your town, how far you travel, languages, years of experience,
+  certificates (self-declared, with an expiry date), a short text and up to three links. It's **off
+  until you switch it on**, and you choose who sees it, at any time: **companies only** (admins and
+  members of AVX organisations) or **companies and crew** (also other people on AVX). Never the
+  public web; people you've blocked never see it. No rates. A preview shows what others see;
+  "Remove my crew profile" clears it.
+- Your town is found by name (OpenStreetMap, through the new `geocode` function, for signed-in
+  people only) and kept to about 1 km.
+- The plan for the crew network and job board, with the decisions taken: `docs/CREW_NETWORK.md`.
+- Help: "Get found for work with your crew profile". The privacy page describes the profile.
+
+### Fixed
+- The calendar link (S4) now asks for two-step sign-in like everything else, for people who use it.
+
+### Database
+- Migration `20261122000000_crew_profiles.sql` (no manual steps): `crew_profiles`,
+  `crew_profile()`, `clear_crew_profile()`. Checks in `supabase/tests/crew_profiles.sql`.
+- New Edge Function `geocode` (Verify JWT **on**), sharing `_shared/places.ts`.
+
 ## 0.47.0 — Switching S5: organisation export
 
 ### Added

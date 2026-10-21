@@ -173,7 +173,7 @@ After H5, before switching. **F1 built:** Tools tab, input list, Updates tab (0.
 
 ## Switching to AVX (built)
 
-**S1a built (0.41.0):** the import wizard for locations, equipment and units (CSV or paste, column matching with saved presets, check, report, undo). **S1b built (0.42.0):** Excel files and kit contents. **S2 built (0.43.0):** Contacts, a directory of clients and suppliers that quotes pick from, filled from existing quotes or imported. **S3a built (0.44.0):** crew imported as invitations held until an admin sends them. **S3b built (0.45.0):** upcoming jobs as gigs with their equipment, open quotes as drafts. **S4 built (0.46.0):** Rentman exports recognised, switching checklist, calendar feed for each person's phone. **S5 built (0.47.0):** an admin downloads everything the organisation holds as a zip of CSV files that import straight back. Switching is complete; next: crew network and job board.
+**S1a built (0.41.0):** the import wizard for locations, equipment and units (CSV or paste, column matching with saved presets, check, report, undo). **S1b built (0.42.0):** Excel files and kit contents. **S2 built (0.43.0):** Contacts, a directory of clients and suppliers that quotes pick from, filled from existing quotes or imported. **S3a built (0.44.0):** crew imported as invitations held until an admin sends them. **S3b built (0.45.0):** upcoming jobs as gigs with their equipment, open quotes as drafts. **S4 built (0.46.0):** Rentman exports recognised, switching checklist, calendar feed for each person's phone. **S5 built (0.47.0):** an admin downloads everything the organisation holds as a zip of CSV files that import straight back. Switching is complete.
 
 
 Import wizard (CSV/Excel, column matching with saved presets, preview, dry run, undo), contacts
@@ -185,13 +185,13 @@ export. File import only, no live integration. Stages S1–S5 in [docs/SWITCHING
 made for this) → crew network and job board. Final testing happens once, at the end, from
 [docs/PENDING.md](docs/PENDING.md).
 
-## Phase 7 — Crew network and job board (after messaging)
+## Phase 7 — Crew network and job board (in progress)
 
 Opt-in freelancer profiles (functions, region, languages, certificates) and open positions posted
 by companies to that pool, with the availability check built in; applications become conversations.
 **International from the start.** **Day rates are shared only when a freelancer applies**, never
 shown on a profile. Needs opt-in, abuse protection, reporting and ideally verified profiles; the
-privacy notice and terms need a full section on it. To be written up in detail before building.
+privacy notice and terms need a full section on it. Plan and decisions (2026-10-21) in [docs/CREW_NETWORK.md](docs/CREW_NETWORK.md), stages N1–N5. **N1 built (0.48.0):** opt-in crew profiles; each person chooses who sees theirs (companies only, or companies and crew). Next: N2 crew search.
 
 ## End of the build
 
