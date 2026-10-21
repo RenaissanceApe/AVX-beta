@@ -11,7 +11,7 @@ describe('field tools', () => {
     expect(toolsToAdd(['patch', 'dmx_patch'], ['patch'])).toEqual(['dmx_patch'])
     expect(toolsToAdd(['input_list'], ['input_list'])).toEqual([])
     expect(toolsToAdd(['stage_plot'], ['stage_plot'])).toEqual([])
-    expect(toolsToAdd(null, ['input_list', 'patch'])).toEqual(['stage_plot', 'dmx_patch', 'light_plot'])
+    expect(toolsToAdd(null, ['input_list', 'patch'])).toEqual(['stage_plot', 'dmx_patch', 'light_plot', 'system_calc'])
   })
 
   it('numbers new channels after the last one and spots gaps', () => {

@@ -1,6 +1,6 @@
 # Field tools: plan
 
-Status: **F1 and F2 built**: F1a (0.36.0) Tools tab, organisation switches, shared show model, input list, Updates tab; F1b (0.37.0) stage plot; F2 (0.38.0) patch and DMX patch; F3 (0.39.0) light plot. F4 (sound system calculator) next. Decided 2026-10-20. Optional tools for the technical side of a gig (stage
+Status: **F1–F4 built**: F1a (0.36.0) Tools tab, organisation switches, shared show model, input list, Updates tab; F1b (0.37.0) stage plot; F2 (0.38.0) patch and DMX patch; F3 (0.39.0) light plot; F4 (0.40.0) sound system calculator. All four stages built; more tools as they are asked for. Decided 2026-10-20. Optional tools for the technical side of a gig (stage
 plot, input list, patch, light plot, DMX patch, sound system calculator) that share their data,
 so a stage plot can produce a channel list and a light plot a DMX patch. An ever-growing set,
 added one tool at a time, without making AVX harder to use.
@@ -49,7 +49,7 @@ venue or the artist through a private link (like quotes), and can be saved as a 
 | **F1b** ✅ (0.37.0) | **Stage plot** (grid and symbols) that fills the input list and the show model's stage size |
 | **F2** ✅ (0.38.0) | Patch (stage boxes, splits) and **DMX patch** |
 | **F3** ✅ (0.39.0) | **Light plot** (truss, positions, fixtures from the DMX patch and the catalogue, power) |
-| **F4** | **Sound system calculator** (delays, time alignment, coverage), clearly labelled as estimates |
+| **F4** ✅ (0.40.0) | **Sound system calculator** (delays, time alignment, coverage), clearly labelled as estimates |
 | later | More tools as they are asked for (rigging weights, power distribution, RF plan…) |
 
 Each stage ships its glossary words, hints and a guide with screenshots (the help rule).
@@ -110,8 +110,22 @@ Checks: `supabase/tests/patch_dmx.sql`.
 
 Checks: `supabase/tests/light_plot.sql`.
 
+## How F4 works (sound system calculator)
+
+| Piece | How it works |
+|---|---|
+| Data | The show model's `gig_show.system`: air temperature, Haas offset, ear height; sources (name, kind main/sub/delay/fill, place across/front-back/height in the stage plot's metres, maximum SPL at 1 m, horizontal angle, number of boxes, extra delay typed by hand); listening positions (name, place). The first listening position is the reference (usually FOH). Results are worked out in the app (`src/lib/systemCalc.js`), nothing is stored |
+| Delays | Mains 0. Delays and fills follow their nearest main: travel time from it (speed of sound from the temperature) plus the Haas offset. Subs are lined up with their nearest main at the reference position; when the subs arrive later, it says to delay the main instead. Any extra typed delay is added |
+| Levels | Per listening position and source: −6 dB per doubling of distance from the 1 m rating, +10·log10(boxes), −12 dB outside the box's angle, −20 dB behind it (subs spread all round); the total and the mains' level added as power |
+| Checks | At each position, a delay or fill within 10 dB of its main is checked: arriving before it ("the sound will seem to come from the delay"), or more than 30 ms after it ("heard as an echo") |
+| Coverage | How wide each box covers at the farthest listening position in front of it (not for subs or boxes wider than 160°) |
+| Estimates | Every screen and the print say they are estimates (straight lines, open air, no reflections, boxes aimed straight at the audience), to plan with and then measure on site |
+| Print | `/gig/:id/system` with the plan, sources and listening positions. Offline copies like the other tools; crew read it |
+
+Checks: `supabase/tests/system_calc.sql`.
+
 ## Open questions
 
-1. **When:** after H5 (field kit) and before switching (S1); started 2026-10-20. **Decided 2026-10-21: all field tools (F1–F4) first, then switching.**
+1. **When:** after H5 (field kit) and before switching (S1); started 2026-10-20. **Decided 2026-10-21: all field tools (F1–F4) first, then switching.** Done: F1–F4 built by 0.40.0.
 2. Drawing on screen: a simple grid-and-symbols editor first (no free drawing), symbols from a
    small built-in library plus the catalogue.

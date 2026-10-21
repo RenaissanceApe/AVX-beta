@@ -197,7 +197,7 @@ export function sampleData(persona, lang) {
       crew_unavailability: persona === 'pm' ? [] : [{ id: 'u1', user_id: carla, start_date: day(50), end_date: day(57), note: w.holiday, created_at: ago(100) }],
       notifications: persona === 'pm' ? [] : [{ id: 1, user_id: carla, org_id: orgId, gig_id: gigId, actor_id: ricardo, kind: 'availability_request', details: { gig_name: gig.name, from: `${day(24)}T00:00:00Z`, until: `${day(26)}T00:00:00Z` }, read_at: null, created_at: ago(3) }],
       gig_equipment: gear,
-      gig_tools: [{ gig_id: gigId, tool: 'input_list', created_at: ago(300) }, { gig_id: gigId, tool: 'stage_plot', created_at: ago(310) }, { gig_id: gigId, tool: 'patch', created_at: ago(320) }, { gig_id: gigId, tool: 'dmx_patch', created_at: ago(330) }, { gig_id: gigId, tool: 'light_plot', created_at: ago(340) }],
+      gig_tools: [{ gig_id: gigId, tool: 'input_list', created_at: ago(300) }, { gig_id: gigId, tool: 'stage_plot', created_at: ago(310) }, { gig_id: gigId, tool: 'patch', created_at: ago(320) }, { gig_id: gigId, tool: 'dmx_patch', created_at: ago(330) }, { gig_id: gigId, tool: 'light_plot', created_at: ago(340) }, { gig_id: gigId, tool: 'system_calc', created_at: ago(350) }],
       gig_show: [{ gig_id: gigId, stage: { width_m: 10, depth_m: 6 }, audio: { boxes: [{ name: 'SB1', inputs: 8, split: true }, { name: 'SB2', inputs: 4, split: false }] },
         lighting: {
           supply: { volts: 230, phases: 3, amps: 16 },
@@ -205,6 +205,20 @@ export function sampleData(persona, lang) {
             { id: 'bar1', name: tx('Truss frontal', 'Front truss'), kind: 'truss', x: 5, y: -1.5, length: 10, rotation: 0, height: 6.5, phase: 1 },
             { id: 'bar2', name: tx('Fundo do palco', 'Upstage'), kind: 'pipe', x: 5, y: 5.5, length: 8, rotation: 0, height: 5, phase: 2 },
             { id: 'bar3', name: tx('Chão', 'Floor'), kind: 'floor', x: 5, y: 0.5, length: 6, rotation: 0, height: 0, phase: 3 },
+          ],
+        },
+        system: {
+          temp_c: 18, haas_ms: 10, ear_m: 1.2,
+          sources: [
+            { id: 'src1', name: tx('Principal E', 'Main L'), kind: 'main', x: -1, y: 0, height: 7, spl: 140, angle: 100, count: 8 },
+            { id: 'src2', name: tx('Principal D', 'Main R'), kind: 'main', x: 11, y: 0, height: 7, spl: 140, angle: 100, count: 8 },
+            { id: 'src3', name: 'Subs', kind: 'sub', x: 5, y: -0.5, height: 0.5, spl: 137, angle: 180, count: 6 },
+            { id: 'src4', name: tx('Delay E', 'Delay L'), kind: 'delay', x: 1, y: -32, height: 5, spl: 132, angle: 90, count: 4 },
+            { id: 'src5', name: tx('Delay D', 'Delay R'), kind: 'delay', x: 9, y: -32, height: 5, spl: 132, angle: 90, count: 4 },
+          ],
+          listeners: [
+            { id: 'lis1', name: tx('Régie', 'FOH'), x: 5, y: -22 },
+            { id: 'lis2', name: tx('Fundo da sala', 'Back of the room'), x: 5, y: -45 },
           ],
         } }],
       gig_fixtures: [

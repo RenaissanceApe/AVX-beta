@@ -198,6 +198,14 @@ const SCENES = {
   'dmx-list': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=dmx_patch`, async run(page, L) {
     return page.locator('#universe-1').locator('..')
   } },
+  'system-sources': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=system_calc`, async run(page, L) {
+    const card = page.locator('section[aria-labelledby="sys-sources"] li').nth(3)
+    await card.waitFor()
+    return card
+  } },
+  'system-listeners': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=system_calc`, async run(page, L) {
+    return page.locator('section[aria-labelledby="sys-listeners"]')
+  } },
   'light-bar': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=light_plot`, async run(page, L) {
     await page.locator('#light-bars').locator('..').getByRole('button').first().click()
     return page.getByRole('group').filter({ has: page.locator('#bar-name') })

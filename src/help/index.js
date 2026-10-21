@@ -53,6 +53,7 @@ export const GUIDES = {
   'pm-double-booking': { role: 'pm', pages: ['gig', 'home'], terms: ['double-booking', 'booking-times', 'availability-request', 'unavailable-dates'], shots: ['crew-clash', 'ask-form', null, null] },
   'pm-patch': { role: 'pm', pages: ['gig'], terms: ['stage-box', 'split', 'input-list'], shots: [null, 'patch-boxes', 'patch-fill', null] },
   'pm-dmx': { role: 'pm', pages: ['gig'], terms: ['dmx-universe', 'dmx-address', 'field-tools'], shots: [null, 'dmx-form', 'dmx-list', null] },
+  'pm-system-calc': { role: 'pm', pages: ['gig'], terms: ['haas', 'spl', 'field-tools'], shots: [null, 'system-sources', 'system-listeners', null] },
   'pm-light-plot': { role: 'pm', pages: ['gig'], terms: ['truss', 'power-phase', 'dmx-address'], shots: [null, 'light-bar', 'light-plot', 'light-power'] },
   'pm-stage-plot': { role: 'pm', pages: ['gig'], terms: ['stage-plot', 'input-list', 'field-tools'], shots: [null, 'plot-drawing', 'plot-list', 'plot-to-inputs'] },
   'pm-input-list': { role: 'pm', pages: ['gig'], terms: ['input-list', 'phantom-power', 'stage-box', 'line-check', 'field-tools'], shots: ['tools-add', 'input-form', 'input-list', null] },
