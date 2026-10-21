@@ -1,4 +1,4 @@
--- Checks for migration 20261116000001 (switching S1a: undoing an import). Run in the TEST
+-- Checks for migration 20261117000001 (switching S1a: undoing an import). Run in the TEST
 -- project's SQL editor AFTER that migration has been run by hand. Rolls itself back; ends with
 --   "ALL IMPORT UNDO CHECKS PASSED"  → good
 do $$
