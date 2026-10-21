@@ -22,6 +22,9 @@ import pt from '../../src/i18n/pt.js'
 
 // A Rentman-style equipment export (Dutch headings), with two rows that have problems
 const IMPORT_SAMPLE = 'Naam;Code;Categorie;Verhuurprijs;Gewicht;Aantal;Magazijn\nMAC Aura XB;AURA;Licht;80;13,5;;\nRobe Pointe;POINTE;Licht;95;15,2;;\nXLR 10 m;XLR10;Kabels;2,50;0,6;120;\nDMX 5-pin 5 m;DMX5;Kabels;2;0,4;60;Opslag Oost\nShure SM58;SM58;Microfoons;8;0,3;;\nDI Radial J48;J48;Microfoons;6;1,1;;'
+// Upcoming jobs as Rentman exports them (dates are made relative to today when the script runs)
+const day = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10) }
+const JOBS_SAMPLE = `Projectnummer;Projectnaam;Startdatum;Einddatum;Locatie;Status;Klant\nP-2101;Festival Lumière;${day(20)};${day(22)};Porto;Bevestigd;Festival Lumière\nP-2102;Gala Sintra;${day(35)};${day(35)};Sintra;Optie;Sintra Town Council\nP-1988;Congress 2025;2025-03-10;2025-03-12;Lisboa;Afgerond;\nP-2103;Product launch;${day(41)};${day(41)};Lisboa;Geannuleerd;`
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const outDir = path.join(root, 'node_modules/.help-screens')
 const PORT = 4179
@@ -178,6 +181,13 @@ const SCENES = {
     await page.getByRole('button', { name: L('imp.next') }).click()
     await page.locator('#imp-problems').waitFor()
     return page.locator('section[aria-labelledby="imp-problems"]')
+  } },
+  'imp-jobs': { persona: 'pm', url: `/org/${ids.org}/inventory/import?kind=gigs`, async run(page, L) {
+    await page.locator('#imp-paste').fill(JOBS_SAMPLE)
+    await page.getByRole('button', { name: L('imp.next') }).click()
+    await page.getByRole('button', { name: L('imp.next') }).click()
+    await page.locator('#imp-problems').waitFor()
+    return page.locator('div[role=status]').first().locator('xpath=..')
   } },
   'inv-locations': { persona: 'pm', url: `/org/${ids.org}/inventory?tab=locations`, async run(page, L) {
     return page.getByRole('button', { name: L('inv.addLocation') }).first()

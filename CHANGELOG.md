@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.45.0 — Switching S3b: upcoming jobs, their equipment and open quotes
+
+### Added
+- Three more kinds in the import wizard (admins and members):
+  - **Upcoming jobs** → gigs with name, dates, venue and status ("Bevestigd" → confirmed,
+    "Optie" → draft…); the client and notes go in the gig's description. Past and cancelled jobs
+    are left out (they stay in the old tool's export). The importer becomes the gigs' manager.
+  - **Equipment on jobs** → planned equipment on each gig (by job number or name, item by code or
+    name), which books the gear for the gig's dates.
+  - **Open quotes** → draft quotes, one per quote number, with their lines grouped by section;
+    lines from the catalogue keep their item and price, and a client whose name is in Contacts is
+    linked.
+- Gigs and quotes keep the old tool's number, so importing again updates them instead of
+  doubling; a quote already sent is left as it is.
+- The wizard's first step groups the kinds: inventory, contacts, people and work.
+- Help: the "Bring over your upcoming jobs and open quotes" guide.
+
+### Fixed
+- An installed app (or a tab left open) now looks for a new version each time it comes back to
+  the screen and reloads into it, instead of only when it's started.
+
+### Database
+- Migration `20261119000000_import_jobs.sql` (no manual steps): `import_ref` on gigs and quotes,
+  `import_jobs`. Checks in `supabase/tests/import_jobs.sql`.
+
 ## 0.44.0 — Switching S3a: crew as held invitations
 
 ### Added

@@ -1,27 +1,39 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Upload, Loader2, MapPin, Package, Barcode, Boxes, AlertTriangle, Check, Download, Undo2, Save, FileText, Building2, Truck, Users } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Upload, Loader2, MapPin, Package, Barcode, Boxes, AlertTriangle, Check, Download, Undo2, Save, FileText, Building2, Truck, Users, CalendarDays, PackageCheck, Receipt } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useWorkspace } from '../lib/WorkspaceContext'
-import { KINDS, CONTACT_KINDS, HELD_KINDS, FIELDS, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, buildRows, dryRun, toPayload, reportCsv, serverMessage } from '../lib/importer'
+import { KINDS, CONTACT_KINDS, HELD_KINDS, JOB_KINDS, FIELDS, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, buildRows, dryRun, toPayload, reportCsv, serverMessage } from '../lib/importer'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors, tint } from '../components/ui'
 
 const STEPS = ['choose', 'match', 'check', 'done']
-const KIND_ICONS = { locations: MapPin, items: Package, units: Barcode, kits: Boxes, clients: Building2, suppliers: Truck, crew: Users }
+const KIND_ICONS = { locations: MapPin, items: Package, units: Barcode, kits: Boxes, clients: Building2, suppliers: Truck, crew: Users, gigs: CalendarDays, gig_equipment: PackageCheck, quotes: Receipt }
 // Kit contents are kept as equipment imports with subject 'kits' (presets and history too)
 const stored = kind => (kind === 'kits' ? { kind: 'items', subject: 'kits' } : { kind, subject: null })
 const MAX_FILE = 5 * 1024 * 1024
+// The kinds on the first step, in groups. Inventory kinds are numbered in the order they depend on
+// each other, and so are jobs (their equipment needs the jobs and the catalogue first).
+const KIND_GROUPS = [
+  { key: 'inventory', kinds: ['locations', 'items', 'units', 'kits'], numbered: true, note: 'imp.order' },
+  { key: 'contacts', kinds: ['clients', 'suppliers'] },
+  { key: 'work', kinds: ['crew', 'gigs', 'gig_equipment', 'quotes'], note: 'imp.orderWork' },
+]
 const isContacts = kind => CONTACT_KINDS.includes(kind)
 // Crew aren't kept in import batches (no presets or history): they become held invitations
 const isHeld = kind => HELD_KINDS.includes(kind)
+// Jobs, their equipment and quotes aren't either: what they add is removed the usual way
+const isJob = kind => JOB_KINDS.includes(kind)
+const unbatched = kind => isHeld(kind) || isJob(kind)
 // Where each kind's records are looked at: [path, label key]
 function homeOf(orgId, kind) {
   if (isHeld(kind)) return [`/org/${orgId}?panel=members`, 'nav.members']
+  if (kind === 'quotes') return [`/org/${orgId}/quotes`, 'nav.quotes']
+  if (isJob(kind)) return [`/org/${orgId}`, 'nav.orgGigs']
   if (isContacts(kind)) return [`/org/${orgId}/contacts${kind === 'suppliers' ? '?tab=suppliers' : ''}`, 'contacts.title']
   return [`/org/${orgId}/inventory${kind === 'locations' ? '?tab=locations' : ''}`, 'inv.title']
 }
@@ -130,22 +142,30 @@ function ChooseStep({ kinds, kind, setKind, source, setSource, headerRow, setHea
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
         <legend style={{ ...label, marginBottom: '8px' }}>{t('imp.what')}</legend>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px' }}>
-          {kinds.map((k, i) => {
-            const Icon = KIND_ICONS[k]
-            // Inventory kinds are numbered in the order they depend on each other
-            return (
-              <label key={k} style={{ ...card, display: 'flex', gap: '10px', alignItems: 'flex-start', cursor: 'pointer', borderColor: kind === k ? colors.accent : undefined }}>
-                <input type="radio" name="imp-kind" value={k} checked={kind === k} onChange={() => setKind(k)} style={{ accentColor: 'var(--accent)', marginTop: '3px' }} />
-                <span>
-                  <strong style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '14px' }}><Icon size={15} color={colors.accentText} aria-hidden="true" /> {isContacts(k) || isHeld(k) ? '' : `${i + 1}. `}{t(`imp.kind.${k}`)}</strong>
-                  <span style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t(`imp.kindAbout.${k}`)}</span>
-                </span>
-              </label>
-            )
-          })}
-        </div>
-        <p style={{ fontSize: '12px', color: colors.muted, marginTop: '6px' }}>{t('imp.order')}</p>
+        {KIND_GROUPS.map(group => {
+          const inGroup = group.kinds.filter(k => kinds.includes(k))
+          if (!inGroup.length) return null
+          return (
+            <div key={group.key} style={{ marginBottom: '12px' }}>
+              <p style={{ fontSize: '13px', fontWeight: 700, color: colors.soft, margin: '0 0 6px' }}>{t(`imp.group.${group.key}`)}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px' }}>
+                {inGroup.map((k, i) => {
+                  const Icon = KIND_ICONS[k]
+                  return (
+                    <label key={k} style={{ ...card, display: 'flex', gap: '10px', alignItems: 'flex-start', cursor: 'pointer', borderColor: kind === k ? colors.accent : undefined }}>
+                      <input type="radio" name="imp-kind" value={k} checked={kind === k} onChange={() => setKind(k)} style={{ accentColor: 'var(--accent)', marginTop: '3px' }} />
+                      <span>
+                        <strong style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '14px' }}><Icon size={15} color={colors.accentText} aria-hidden="true" /> {group.numbered ? `${i + 1}. ` : ''}{t(`imp.kind.${k}`)}</strong>
+                        <span style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t(`imp.kindAbout.${k}`)}</span>
+                      </span>
+                    </label>
+                  )
+                })}
+              </div>
+              {group.note && <p style={{ fontSize: '12px', color: colors.muted, marginTop: '6px' }}>{t(group.note)}</p>}
+            </div>
+          )
+        })}
       </fieldset>
 
       <div>
@@ -185,7 +205,7 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
   const fields = FIELDS[kind]
 
   const loadPresets = useCallback(async () => {
-    if (isHeld(kind)) return setPresets([])
+    if (unbatched(kind)) return setPresets([])
     const where = stored(kind)
     let q = supabase.from('import_presets').select('id, name, mapping').eq('org_id', orgId).eq('kind', where.kind)
     q = where.subject ? q.eq('subject', where.subject) : q.is('subject', null)
@@ -258,7 +278,7 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
           <AlertTriangle size={14} aria-hidden="true" /> {t(`imp.missing.${kind}`)}
         </p>
       )}
-      {!isHeld(kind) && <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+      {!unbatched(kind) && <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <div style={{ flex: '0 1 260px' }}>
           <label style={label} htmlFor="imp-save">{t('imp.saveAs')}</label>
           <input id="imp-save" maxLength={80} value={saveName} onChange={e => setSaveName(e.target.value)} placeholder={t('imp.saveAsPlaceholder')} style={input} />
@@ -288,6 +308,15 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, fileName, presetNam
       ]).then(([m, i, h]) => setExisting({ members: (m.data || []).map(x => x.email), invites: (i.data || []).map(x => x.email), held: (h.data || []).map(x => x.email) }))
       return
     }
+    if (isJob(kind)) {
+      Promise.all([
+        supabase.from('gigs').select('id, name, start_date, import_ref').eq('org_id', orgId),
+        kind === 'gig_equipment' ? supabase.from('price_items').select('id, name, code, tracking, kit_type, archived_at').eq('org_id', orgId) : Promise.resolve({ data: [] }),
+        kind === 'gig_equipment' ? supabase.from('gig_equipment').select('gig_id, item_id').eq('org_id', orgId) : Promise.resolve({ data: [] }),
+        kind === 'quotes' ? supabase.from('quotes').select('import_ref, status').eq('org_id', orgId).not('import_ref', 'is', null) : Promise.resolve({ data: [] }),
+      ]).then(([g, i, l, q]) => setExisting({ gigs: g.data || [], items: i.data || [], lines: l.data || [], quotes: q.data || [] }))
+      return
+    }
     if (isContacts(kind)) {
       supabase.from(kind).select('name, email, tax_id, archived_at').eq('org_id', orgId)
         .then(({ data }) => setExisting({ contacts: data || [] }))
@@ -311,6 +340,7 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, fileName, presetNam
     setBusy(true)
     const { data, error } = isHeld(kind)
       ? await supabase.rpc('import_crew', { p_org: orgId, p_rows: sendable, p_file: fileName })
+      : isJob(kind) ? await supabase.rpc('import_jobs', { p_org: orgId, p_kind: kind, p_rows: sendable, p_file: fileName })
       : await supabase.rpc('run_import', { p_org: orgId, p_kind: kind, p_rows: sendable, p_file: fileName, p_preset: presetName })
     setBusy(false)
     if (error) { logger.error('import', error, { step: 'run', kind }); return notify(contactsOff(error, kind) ? t('imp.contactsOff') : userMessage(error), 'error') }
@@ -384,7 +414,7 @@ function Count({ label: text, value, hint, warn }) {
 
 function DoneStep({ orgId, kind, result, onAgain }) {
   const problems = result.problems || []
-  const next = { locations: 'items', items: 'units', units: 'kits' }[kind]
+  const next = { locations: 'items', items: 'units', units: 'kits', gigs: 'gig_equipment' }[kind]
   const message = p => { const s = serverMessage(p.message); return s ? t(`imp.srv.${s.key}`, { name: s.name }) : p.message }
   function download() {
     const csv = reportCsv(problems.map(p => ({ ...p, message: message(p) })), { row: t('imp.lineShort'), level: t('imp.result'), message: t('imp.message'), skip: t('imp.action.skip'), note: t('imp.note') })
@@ -401,6 +431,7 @@ function DoneStep({ orgId, kind, result, onAgain }) {
         <Check size={16} color={colors.accentText} aria-hidden="true" /> {t('imp.doneSummary', { created: result.created, updated: result.updated, unchanged: result.unchanged, skipped: result.skipped })}
       </p>
       {isHeld(kind) && <p style={{ fontSize: '14px', color: colors.soft, lineHeight: 1.6 }}>{t('imp.heldNote')}</p>}
+      {isJob(kind) && <p style={{ fontSize: '14px', color: colors.soft, lineHeight: 1.6 }}>{t(`imp.jobNote.${kind}`)}</p>}
       {problems.length > 0 && (
         <section aria-labelledby="imp-report">
           <h2 id="imp-report" style={{ ...label, marginBottom: '6px' }}>{t('imp.report')}</h2>
