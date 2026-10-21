@@ -50,6 +50,9 @@ export default {
     'packing-list': { term: 'Packing list', definition: 'What must leave the warehouse for a gig, with quantities.', example: 'Printed for the warehouse team on the day before.', where: 'Gig → Equipment → Packing list' },
     'scan-out-in': { term: 'Scan out / scan in', definition: 'Reading QR labels when equipment leaves for a gig and when it comes back.', example: 'Scanning 40 units into the truck.', where: 'Gig → Equipment → Scan' },
     'equipment-steps': { term: 'Equipment steps', definition: 'Where a gig\'s equipment is between the warehouse and back: prepped, out, on site, loaded back, back in, checked in.', example: '60 of 69 prepped, 40 out.', where: 'Gig → Equipment, Scan out / in, packing list' },
+    'dmx-universe': { term: 'DMX universe', definition: 'One line of 512 lighting control channels. A fixture takes some of them, from its start address.', example: 'Universe 1 for the moving heads, universe 2 for the LED bars.', where: 'Gig → Tools → DMX patch' },
+    'dmx-address': { term: 'DMX address', definition: 'The first channel a fixture listens to on its universe. It uses that one and the next ones, as many as its footprint.', example: 'A 14-channel spot on address 15 uses channels 15 to 28.', where: 'Gig → Tools → DMX patch' },
+    split: { term: 'Split', definition: 'Sending the same stage inputs to two desks, usually front of house and monitors.', example: 'SB1 is split to the monitor desk.', where: 'Gig → Tools → Patch' },
     'stage-plot': { term: 'Stage plot', definition: 'A drawing of the stage from above showing where everything goes: drums, mics, amps, monitors, risers.', example: 'The band\'s plot with the drum riser upstage centre.', where: 'Gig → Tools' },
     'input-list': { term: 'Input list', definition: 'The list of everything plugged into the sound desk, one line per channel: source, mic or DI, stand, 48V.', example: 'Ch 1 Kick in, Beta 91A, 48V.', where: 'Gig → Tools' },
     'phantom-power': { term: '48V (phantom power)', definition: 'Power the desk sends down the mic cable for condenser mics and active DIs.', example: 'Overheads and DI boxes need 48V; a dynamic SM58 doesn\'t.', where: 'Gig → Tools → Input list' },
@@ -103,6 +106,8 @@ export default {
     findable: 'Who can find you by name when building a crew. Only people you already worked with, never everyone on AVX.',
     'email-summary': 'One email a day with what you haven’t read in the app. Nothing is sent when you are up to date.',
     'two-step': 'Signing in will also ask for a 6-digit code from an app on your phone. Recommended for admins.',
+    'dmx-footprint': 'How many DMX channels one fixture takes in its mode, from its manual (e.g. 14 for a MAC Aura in Extended).',
+    'dmx-universe': 'A DMX line of 512 channels. Big rigs use several; each fixture is on one.',
     'input-item': 'Link the mic or DI to an item in your catalogue. "Add mics and DIs to equipment" then plans them on the gig, so they are booked, packed and scanned.',
     'stage-box': 'Which stage box input the line goes into, e.g. SB1-03 (box 1, input 3). Helps the stage crew patch it.',
     'mark-lost': 'Records the units that did not come back as lost. Stock and reports change. If one turns up later, set its status back to Available.',
@@ -307,6 +312,34 @@ export default {
       mistakes: [
         'Asking doesn\'t book anyone. Add them to the gig when they say yes.',
         'Without booking times, a person counts as booked for the whole of each gig day.',
+      ],
+    },
+    'pm-patch': {
+      title: 'Patch the stage boxes',
+      intro: 'The patch says which stage box socket each input line goes into, so the stage crew can plug in and the desk gets the right channel.',
+      steps: [
+        'Make the input list first. Then in Tools, "Add a tool" → Patch.',
+        'Tap "Add stage box" for each box (SB1, SB2…), set its number of inputs, and tick "Split to monitors" if it also feeds the monitor desk.',
+        'For each socket, choose the line that goes there, or tap "Fill the free sockets" to place the remaining lines in channel order.',
+        'Print the patch for the stage. The socket also shows on the input list, in the Stage box column.',
+      ],
+      mistakes: [
+        'Two lines in one socket are flagged in orange: choose one of them for that socket.',
+        'Removing a stage box doesn\'t delete lines: they go back to "without a socket".',
+      ],
+    },
+    'pm-dmx': {
+      title: 'Make the DMX patch',
+      intro: 'The DMX patch gives every lighting fixture a universe and an address, so each one answers the desk without clashing with another.',
+      steps: [
+        'In Tools, "Add a tool" → DMX patch, then "Add fixtures".',
+        'Choose the type (or an item from your catalogue), its mode and how many channels it takes, how many you have, and the universe. Each one gets the next free address.',
+        'Check the list per universe: the range on the left is the channels each fixture uses. Overlaps are flagged in orange.',
+        'Print it for the lighting crew, who set each fixture\'s address on site. "Add to equipment" plans the linked fixtures on the gig.',
+      ],
+      mistakes: [
+        '"Readdress in order" gives new addresses to a whole universe: only use it before the fixtures are set up.',
+        'The number of channels depends on the mode: check the fixture\'s manual.',
       ],
     },
     'pm-stage-plot': {

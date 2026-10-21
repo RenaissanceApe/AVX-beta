@@ -8,9 +8,10 @@ describe('field tools', () => {
 
   it('offers ready tools the organisation uses and the gig doesn\'t have', () => {
     expect(toolsToAdd(['input_list', 'stage_plot'], [])).toEqual(['input_list', 'stage_plot'])
+    expect(toolsToAdd(['patch', 'dmx_patch'], ['patch'])).toEqual(['dmx_patch'])
     expect(toolsToAdd(['input_list'], ['input_list'])).toEqual([])
     expect(toolsToAdd(['stage_plot'], ['stage_plot'])).toEqual([])
-    expect(toolsToAdd(null, ['input_list'])).toEqual(['stage_plot'])
+    expect(toolsToAdd(null, ['input_list', 'patch'])).toEqual(['stage_plot', 'dmx_patch'])
   })
 
   it('numbers new channels after the last one and spots gaps', () => {

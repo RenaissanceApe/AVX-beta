@@ -47,6 +47,9 @@ export default {
     'packing-list': { term: 'Lista de carga', definition: 'O que tem de sair do armazém para um evento, com quantidades.', example: 'Impressa para o armazém na véspera.', where: 'Evento → Equipamento → Lista de carga' },
     'scan-out-in': { term: 'Registar saída / entrada', definition: 'Ler as etiquetas QR quando o equipamento sai para um evento e quando volta.', example: 'Registar 40 unidades à entrada do camião.', where: 'Evento → Equipamento → Ler' },
     'equipment-steps': { term: 'Etapas do equipamento', definition: 'Onde está o equipamento de um evento entre o armazém e o regresso: preparado, saída, no local, carregado no regresso, entrada, verificado.', example: '60 de 69 preparados, 40 saíram.', where: 'Evento → Equipamento, Saída / entrada, lista de carga' },
+    'dmx-universe': { term: 'Universo DMX', definition: 'Uma linha de 512 canais de controlo de luz. Um projetor usa alguns deles, a partir do endereço inicial.', example: 'Universo 1 para as cabeças móveis, universo 2 para as barras LED.', where: 'Evento → Ferramentas → Patch DMX' },
+    'dmx-address': { term: 'Endereço DMX', definition: 'O primeiro canal que um projetor ouve no seu universo. Usa esse e os seguintes, tantos quantos os seus canais.', example: 'Um spot de 14 canais no endereço 15 usa os canais 15 a 28.', where: 'Evento → Ferramentas → Patch DMX' },
+    split: { term: 'Split', definition: 'Enviar as mesmas entradas de palco para duas mesas, normalmente a de sala e a de monitores.', example: 'A SB1 tem split para a mesa de monitores.', where: 'Evento → Ferramentas → Patch' },
     'stage-plot': { term: 'Stage plot', definition: 'Um desenho do palco visto de cima com o lugar de cada coisa: bateria, microfones, amplificadores, monitores, estrados.', example: 'O plot da banda com o estrado da bateria ao fundo, ao centro.', where: 'Evento → Ferramentas' },
     'input-list': { term: 'Lista de inputs', definition: 'A lista de tudo o que entra na mesa de som, uma linha por canal: fonte, microfone ou DI, tripé, 48V.', example: 'Can 1 Bombo dentro, Beta 91A, 48V.', where: 'Evento → Ferramentas' },
     'phantom-power': { term: '48V (alimentação phantom)', definition: 'Corrente que a mesa envia pelo cabo do microfone para microfones de condensador e DIs ativas.', example: 'Os overheads e as DIs precisam de 48V; um SM58 dinâmico não.', where: 'Evento → Ferramentas → Lista de inputs' },
@@ -100,6 +103,8 @@ export default {
     findable: 'Quem o pode encontrar pelo nome ao formar uma equipa. Só pessoas com quem já trabalhou, nunca toda a gente no AVX.',
     'email-summary': 'Um email por dia com o que ainda não leu na aplicação. Não é enviado nada se estiver em dia.',
     'two-step': 'Para entrar, será também pedido um código de 6 dígitos de uma aplicação no telemóvel. Recomendado para administradores.',
+    'dmx-footprint': 'Quantos canais DMX um projetor usa no seu modo, segundo o manual (ex.: 14 para um MAC Aura em Extended).',
+    'dmx-universe': 'Uma linha DMX de 512 canais. Rigs grandes usam vários; cada projetor está num.',
     'input-item': 'Ligue o microfone ou DI a um artigo do catálogo. "Juntar microfones e DIs ao equipamento" passa a prevê-los no evento, para serem reservados, carregados e lidos.',
     'stage-box': 'Em que entrada da stage box entra a linha, ex.: SB1-03 (caixa 1, entrada 3). Ajuda a equipa de palco a ligar.',
     'mark-lost': 'Regista como perdidas as unidades que não voltaram. O stock e os relatórios mudam. Se alguma aparecer mais tarde, volte a pôr o estado em Disponível.',
@@ -304,6 +309,34 @@ export default {
       mistakes: [
         'Perguntar não marca ninguém. Adicione a pessoa ao evento quando ela disser que sim.',
         'Sem horas de marcação, a pessoa conta como marcada durante todo o dia de cada dia do evento.',
+      ],
+    },
+    'pm-patch': {
+      title: 'Fazer o patch das stage boxes',
+      intro: 'O patch diz em que entrada de stage box vai cada linha de input, para a equipa de palco ligar e a mesa receber o canal certo.',
+      steps: [
+        'Faça primeiro a lista de inputs. Depois, em Ferramentas, "Adicionar ferramenta" → Patch.',
+        'Toque em "Adicionar stage box" para cada caixa (SB1, SB2…), indique o número de entradas e marque "Split para monitores" se também alimenta a mesa de monitores.',
+        'Para cada entrada, escolha a linha que lá vai, ou toque em "Preencher as entradas livres" para pôr as linhas que faltam por ordem de canal.',
+        'Imprima o patch para o palco. A entrada também aparece na lista de inputs, na coluna Stage box.',
+      ],
+      mistakes: [
+        'Duas linhas na mesma entrada ficam marcadas a laranja: escolha uma delas para essa entrada.',
+        'Remover uma stage box não apaga linhas: voltam a ficar "sem entrada".',
+      ],
+    },
+    'pm-dmx': {
+      title: 'Fazer o patch DMX',
+      intro: 'O patch DMX dá a cada projetor um universo e um endereço, para cada um responder à mesa sem chocar com outro.',
+      steps: [
+        'Em Ferramentas, "Adicionar ferramenta" → Patch DMX, e depois "Adicionar projetores".',
+        'Escolha o tipo (ou um artigo do catálogo), o modo e quantos canais usa, quantos tem e o universo. Cada um recebe o próximo endereço livre.',
+        'Veja a lista por universo: o intervalo à esquerda são os canais de cada projetor. As sobreposições ficam marcadas a laranja.',
+        'Imprima-o para a equipa de luz, que configura o endereço de cada projetor no local. "Juntar ao equipamento" prevê no evento os projetores ligados ao catálogo.',
+      ],
+      mistakes: [
+        '"Reendereçar por ordem" dá novos endereços a um universo inteiro: use-o só antes de os projetores estarem configurados.',
+        'O número de canais depende do modo: confirme no manual do projetor.',
       ],
     },
     'pm-stage-plot': {
