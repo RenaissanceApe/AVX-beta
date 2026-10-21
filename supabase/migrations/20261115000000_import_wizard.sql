@@ -7,7 +7,7 @@
 --    row is matched to an existing record (items by code then name, units by code then serial,
 --    locations by name) and updated, or created. A row that can't be imported is skipped with
 --    the reason; the others go in.
--- 5. Undoing a batch is in the next migration (20261115000001_import_undo.sql, run by hand: it
+-- 5. Undoing a batch is in 20261116000001_import_undo.sql (run by hand: it
 --    removes records).
 -- Admins and members (who manage inventory) import and undo. Written without destructive
 -- statements so it applies without manual confirmation.

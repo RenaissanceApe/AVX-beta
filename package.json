@@ -1,7 +1,7 @@
 {
   "name": "avx-beta",
   "private": true,
-  "version": "0.41.0",
+  "version": "0.42.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,6 +21,7 @@
     "@sentry/react": "^11.7.0",
     "@supabase/supabase-js": "^2.43.4",
     "date-fns": "^3.6.0",
+    "fflate": "0.8.2",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.9",
     "jsqr": "^1.4.0",

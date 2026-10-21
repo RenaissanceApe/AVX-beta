@@ -1,6 +1,6 @@
 # Switching to AVX: plan
 
-Status: **S1a built** (0.41.0): the import wizard for locations, equipment and units. Next: S1b (kit contents, Excel files), then S2–S5.
+Status: **S1 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0). Next: S2 (contacts), then S3–S5.
 
 The aim: a company using Rentman, another rental tool or spreadsheets can be fully running on
 AVX within a day, without retyping anything and without risking their data. Making it easy to
@@ -87,10 +87,21 @@ integrations is a later, separate decision.
 | Check | Before importing: how many rows are new, how many match what's already in AVX (items by code then name, units by code then serial, locations by name), and which rows have problems (left out), with a preview |
 | Import | `run_import(org, kind, rows)` in one call: each row is matched and updated (only the cells that are filled; a name or code that only differs in capitals is kept) or created; a row the database refuses is skipped with its reason, the others go in. Equipment with a quantity gets that opening stock at its location (once: re-importing doesn't add it again). Units can keep their old barcodes; an untracked item becomes serial-numbered when units are imported for it. Every created or changed record is logged in `import_changes` |
 | Report | Counts (added, updated, unchanged, skipped) and each skipped row or note with its line, translated; downloadable as CSV |
-| Undo | "Earlier imports" lists each batch. **Undo** (with a warning and a confirmation) removes what the batch created and puts back what it changed, unless it has been changed again since. It's refused if anything it added is already in use (stock moved, on a gig, scanned, in a kit or a case, on a plot or patch). `undo_import` is in `20261115000001_import_undo.sql`, **run by hand** because it removes records; until then the app says undo isn't switched on yet |
+| Undo | "Earlier imports" lists each batch. **Undo** (with a warning and a confirmation) removes what the batch created and puts back what it changed, unless it has been changed again since. It's refused if anything it added is already in use (stock moved, on a gig, scanned, in a kit or a case, on a plot or patch). `undo_import` is in `20261116000001_import_undo.sql`, **run by hand** because it removes records; until then the app says undo isn't switched on yet |
 | Re-importing | The same file again updates instead of doubling, so a company can import, keep working in the old tool, and import again before switching |
 
 Checks: `supabase/tests/import_wizard.sql`, and `supabase/tests/import_undo.sql` after the hand-run file.
+
+## How S1b works (0.42.0)
+
+| Piece | How it works |
+|---|---|
+| Excel | An `.xlsx` file is read in the browser (`src/lib/xlsx.js`, on the small `fflate` unzip library, loaded only when an Excel file is chosen): the first sheet, with text, numbers, booleans and dates (by the cell's date format) as they show. It then goes through the same matching as a CSV file. Old `.xls`, `.ods` and Numbers files are asked to be saved as `.xlsx` or CSV |
+| Kit contents | A fourth kind of import: one row per part, naming the kit (a set, a case, or an item with accessories) and what goes in it, by code or name, with how many and optionally "contents"/"accessory" and "set"/"case" (also in Dutch and Portuguese). A kit given contents becomes a set if it isn't kept in stock and a case if it is, unless the file says. Re-importing changes the quantity of a part already there |
+| Storage | `run_import(org, 'kits', rows)` keeps the batch as an equipment import with `subject = 'kits'` (presets too), so no existing rule had to be replaced; the parts it adds or changes are logged in `import_part_changes` |
+| Undo | `undo_import` (in `20261116000001_import_undo.sql`, still **run by hand**; renamed from `20261115000001` so it runs after the kits migration it now relies on) also removes the parts a kits import added and puts back changed quantities |
+
+Checks: `supabase/tests/import_kits.sql`; `supabase/tests/import_undo.sql` covers kits too.
 
 ## Decided (2026-10-19)
 

@@ -59,7 +59,7 @@ In your Supabase dashboard, go to **SQL Editor → New query** and run these two
 37. `supabase/migrations/20261108000001_message_retention_delete.sql` — the nightly deletion step (**run by hand**)
 
 Later files run the same way, in order. Ones to **run by hand** in the SQL editor:
-- `supabase/migrations/20261115000001_import_undo.sql` — undoing an import (it removes records); check with `supabase/tests/import_undo.sql`
+- `supabase/migrations/20261116000001_import_undo.sql` — undoing an import (it removes records); check with `supabase/tests/import_undo.sql`
 
 (Run every file in `supabase/migrations/` in filename order — new ones get added over time.)
 The second file creates the storage bucket and its policies too, so there is no manual Storage step.

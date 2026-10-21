@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Upload, Loader2, MapPin, Package, Barcode, AlertTriangle, Check, Download, Undo2, Save, FileText } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Upload, Loader2, MapPin, Package, Barcode, Boxes, AlertTriangle, Check, Download, Undo2, Save, FileText } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
@@ -12,7 +12,9 @@ import AppShell from '../components/shell/AppShell'
 import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors, tint } from '../components/ui'
 
 const STEPS = ['choose', 'match', 'check', 'done']
-const KIND_ICONS = { locations: MapPin, items: Package, units: Barcode }
+const KIND_ICONS = { locations: MapPin, items: Package, units: Barcode, kits: Boxes }
+// Kit contents are kept as equipment imports with subject 'kits' (presets and history too)
+const stored = kind => (kind === 'kits' ? { kind: 'items', subject: 'kits' } : { kind, subject: null })
 const MAX_FILE = 5 * 1024 * 1024
 
 // The import wizard (docs/SWITCHING.md, S1): choose what to import and drop a CSV file (or paste
@@ -88,10 +90,22 @@ export default function ImportPage() {
 function ChooseStep({ kind, setKind, source, setSource, headerRow, setHeaderRow, table, onNext }) {
   const { notify } = useToast()
   const fileRef = useRef(null)
-  function readFile(file) {
+  async function readFile(file) {
     if (!file) return
     if (file.size > MAX_FILE) return notify(t('imp.tooBig'), 'error')
-    if (/\.(xlsx?|ods|numbers)$/i.test(file.name)) return notify(t('imp.notCsv'), 'error')
+    // Excel workbooks: the first sheet, read here (the reader is only loaded when needed)
+    if (/\.xlsx$/i.test(file.name)) {
+      try {
+        const { readXlsx, rowsToText } = await import('../lib/xlsx')
+        const { rows } = readXlsx(await file.arrayBuffer())
+        setSource({ text: rowsToText(rows), fileName: file.name })
+      } catch (error) {
+        logger.error('import', error, { step: 'xlsx' })
+        notify(t('imp.xlsxError'), 'error')
+      }
+      return
+    }
+    if (/\.(xls|xlsm|ods|numbers)$/i.test(file.name)) return notify(t('imp.notCsv'), 'error')
     const reader = new FileReader()
     reader.onload = () => setSource({ text: String(reader.result || ''), fileName: file.name })
     reader.onerror = () => notify(t('imp.readError'), 'error')
@@ -123,7 +137,7 @@ function ChooseStep({ kind, setKind, source, setSource, headerRow, setHeaderRow,
         <span style={{ ...label, marginBottom: '6px', display: 'block' }}>{t('imp.file')}</span>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '8px' }}>
           <button type="button" onClick={() => fileRef.current?.click()} style={btn}><Upload size={14} /> {t('imp.chooseFile')}</button>
-          <input ref={fileRef} type="file" accept=".csv,.tsv,.txt,text/csv,text/plain,text/tab-separated-values" hidden onChange={e => { readFile(e.target.files?.[0]); e.target.value = '' }} />
+          <input ref={fileRef} type="file" accept=".csv,.tsv,.txt,.xlsx,text/csv,text/plain,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden onChange={e => { readFile(e.target.files?.[0]); e.target.value = '' }} />
           {source.fileName && <span style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center' }}><FileText size={14} aria-hidden="true" /> {source.fileName}</span>}
           <span style={{ fontSize: '12px', color: colors.muted }}>{t('imp.fileHint')}</span>
         </div>
@@ -156,7 +170,10 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
   const fields = FIELDS[kind]
 
   const loadPresets = useCallback(async () => {
-    const { data, error } = await supabase.from('import_presets').select('id, name, mapping').eq('org_id', orgId).eq('kind', kind).order('name')
+    const where = stored(kind)
+    let q = supabase.from('import_presets').select('id, name, mapping').eq('org_id', orgId).eq('kind', where.kind)
+    q = where.subject ? q.eq('subject', where.subject) : q.is('subject', null)
+    const { data, error } = await q.order('name')
     if (error) logger.error('import', error, { step: 'presets' })
     setPresets(data || [])
   }, [orgId, kind])
@@ -180,7 +197,7 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
     const existing = presets.find(p => p.name.toLowerCase() === name.toLowerCase())
     const { error } = existing
       ? await supabase.from('import_presets').update({ mapping, updated_at: new Date().toISOString() }).eq('id', existing.id)
-      : await supabase.from('import_presets').insert({ org_id: orgId, kind, name, mapping })
+      : await supabase.from('import_presets').insert({ org_id: orgId, ...stored(kind), name, mapping })
     setSaving(false)
     if (error) return notify(userMessage(error), 'error')
     notify(t('imp.presetSaved', { name }), 'success')
@@ -249,9 +266,10 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, fileName, presetNam
   useEffect(() => {
     Promise.all([
       supabase.from('stock_locations').select('name, archived_at').eq('org_id', orgId),
-      supabase.from('price_items').select('id, name, code, tracking, archived_at').eq('org_id', orgId),
+      supabase.from('price_items').select('id, name, code, tracking, kit_type, archived_at').eq('org_id', orgId),
       kind === 'units' ? supabase.from('stock_units').select('code').eq('org_id', orgId) : Promise.resolve({ data: [] }),
-    ]).then(([l, i, u]) => setExisting({ locations: l.data || [], items: i.data || [], units: u.data || [] }))
+      kind === 'kits' ? supabase.from('item_parts').select('parent_id, child_id, kind').eq('org_id', orgId) : Promise.resolve({ data: [] }),
+    ]).then(([l, i, u, p]) => setExisting({ locations: l.data || [], items: i.data || [], units: u.data || [], parts: p.data || [] }))
   }, [orgId, kind])
 
   const run = useMemo(() => (existing ? dryRun(rows, kind, existing) : null), [rows, kind, existing])
@@ -290,7 +308,7 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, fileName, presetNam
       )}
       <div role="region" aria-label={t('imp.preview')} tabIndex={0} style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-          <caption style={{ textAlign: 'left', ...label, marginBottom: '6px' }}>{t('imp.preview')}</caption>
+          <caption style={{ ...label, display: 'table-caption', captionSide: 'top', textAlign: 'left', paddingBottom: '6px', marginBottom: 0 }}>{t('imp.preview')}</caption>
           <thead>
             <tr style={{ textAlign: 'left', color: colors.muted }}>
               <th style={{ padding: '4px 6px' }}>{t('imp.lineShort')}</th>
@@ -335,7 +353,7 @@ function Count({ label: text, value, hint, warn }) {
 
 function DoneStep({ orgId, kind, result, onAgain }) {
   const problems = result.problems || []
-  const next = { locations: 'items', items: 'units' }[kind]
+  const next = { locations: 'items', items: 'units', units: 'kits' }[kind]
   const message = p => { const s = serverMessage(p.message); return s ? t(`imp.srv.${s.key}`, { name: s.name }) : p.message }
   function download() {
     const csv = reportCsv(problems.map(p => ({ ...p, message: message(p) })), { row: t('imp.lineShort'), level: t('imp.result'), message: t('imp.message'), skip: t('imp.action.skip'), note: t('imp.note') })
@@ -379,7 +397,7 @@ function History({ orgId }) {
   const [batches, setBatches] = useState(null)
   const [undoing, setUndoing] = useState(null)
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from('import_batches').select('id, kind, file_name, preset, created, updated, unchanged, skipped, created_at, undone_at')
+    const { data, error } = await supabase.from('import_batches').select('id, kind, subject, file_name, preset, created, updated, unchanged, skipped, created_at, undone_at')
       .eq('org_id', orgId).order('created_at', { ascending: false }).limit(30)
     if (error) logger.error('import', error, { step: 'history' })
     setBatches(data || [])
@@ -393,7 +411,7 @@ function History({ orgId }) {
         {batches.map(b => (
           <li key={b.id} style={{ ...card, padding: '8px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', opacity: b.undone_at ? 0.75 : 1 }}>
             <span style={{ flex: '1 1 240px', minWidth: 0 }}>
-              <strong style={{ fontSize: '14px' }}>{t(`imp.kind.${b.kind}`)}</strong>
+              <strong style={{ fontSize: '14px' }}>{t(`imp.kind.${b.subject || b.kind}`)}</strong>
               <span style={{ fontSize: '12px', color: colors.muted }}> · {fmt(b.created_at, 'd MMM yyyy, HH:mm')}{b.file_name ? ` · ${b.file_name}` : ''}{b.preset ? ` · ${b.preset}` : ''}</span>
               <span style={{ display: 'block', fontSize: '12px', color: colors.soft }}>{t('imp.doneSummary', { created: b.created, updated: b.updated, unchanged: b.unchanged, skipped: b.skipped })}</span>
             </span>

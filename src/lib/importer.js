@@ -3,7 +3,7 @@
 // runs in the database (run_import), which checks everything again.
 import { parsePrice } from './quotes'
 
-export const KINDS = ['locations', 'items', 'units']
+export const KINDS = ['locations', 'items', 'units', 'kits']
 export const MAX_ROWS = 5000
 const CODE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/
 
@@ -34,6 +34,14 @@ const WORDS = {
     none: ['none', 'no', 'nee', 'nao', 'not tracked', 'geen'],
     bulk: ['bulk', 'quantity', 'count', 'counted', 'aantal', 'quantidade', 'ja', 'yes', 'sim'],
     serial: ['serial', 'serials', 'serial numbers', 'serienummer', 'serienummers', 'serie', 'numero de serie', 'individual', 'unit'],
+  },
+  partKind: {
+    content: ['content', 'contents', 'inhoud', 'conteudo', 'in case', 'in set', 'packed', 'case content', 'set content'],
+    accessory: ['accessory', 'accessories', 'accessoire', 'accessoires', 'toebehoren', 'acessorio', 'acessorios', 'extra', 'with'],
+  },
+  kitType: {
+    set: ['set', 'conjunto', 'kit', 'package', 'pakket', 'pacote'],
+    case: ['case', 'flightcase', 'flight case', 'koffer', 'kist', 'caixa', 'mala', 'rack'],
   },
   unitStatus: {
     available: ['available', 'beschikbaar', 'disponivel', 'ok', 'in stock', 'active', 'actief', 'ativo'],
@@ -83,6 +91,15 @@ export const FIELDS = {
     { key: 'purchase_date', type: 'date', names: ['purchase date', 'bought', 'aankoopdatum', 'data de compra', 'purchased', 'date purchased', 'in use since'] },
     { key: 'purchase_cost', type: 'money', names: ['purchase price', 'purchase cost', 'cost', 'aankoopprijs', 'inkoopprijs', 'custo', 'preco de compra', 'valor de compra'] },
     { key: 'notes', type: 'text', max: 500, names: ['notes', 'remarks', 'opmerkingen', 'notas', 'observacoes', 'comment', 'comments'] },
+  ],
+  kits: [
+    { key: 'kit', type: 'text', max: 200, names: ['kit', 'set', 'case', 'parent', 'kit name', 'set name', 'case name', 'parent name', 'hoofdartikel', 'samengesteld artikel', 'conjunto', 'caixa', 'artigo principal'] },
+    { key: 'kit_code', type: 'code', names: ['kit code', 'set code', 'case code', 'parent code', 'parent number', 'codigo do conjunto', 'codigo da caixa'] },
+    { key: 'item', type: 'text', max: 200, names: ['item', 'content', 'contents', 'part', 'child', 'component', 'onderdeel', 'inhoud', 'artikel', 'componente', 'conteudo', 'equipment', 'name', 'naam', 'nome'] },
+    { key: 'item_code', type: 'code', names: ['item code', 'part code', 'child code', 'component code', 'code', 'artikelcode', 'artikelnummer', 'codigo'] },
+    { key: 'quantity', type: 'int', max: 1000, names: ['quantity', 'qty', 'aantal', 'quantidade', 'number', 'count'] },
+    { key: 'part_kind', type: 'enum', words: 'partKind', names: ['kind', 'type', 'soort', 'tipo', 'relation', 'relatie', 'part type'] },
+    { key: 'kit_type', type: 'enum', words: 'kitType', names: ['kit type', 'set or case', 'parent type', 'tipo de conjunto'] },
   ],
 }
 
@@ -173,6 +190,7 @@ export const applyPreset = (headers, preset) => Object.fromEntries(headers.filte
 export function missingFields(mapping, kind) {
   const used = new Set(Object.values(mapping))
   if (kind === 'units') return used.has('item') || used.has('item_code') ? [] : ['item']
+  if (kind === 'kits') return [...(used.has('kit') || used.has('kit_code') ? [] : ['kit']), ...(used.has('item') || used.has('item_code') ? [] : ['item'])]
   if (kind === 'items') return used.has('name') || used.has('code') ? [] : ['name']
   return (FIELDS[kind] || []).filter(f => f.required && !used.has(f.key)).map(f => f.key)
 }
@@ -252,6 +270,9 @@ export function buildRows(table, mapping, kind, { headerRow = true } = {}) {
     if (kind === 'locations' && !row.name) row._errors.push({ field: 'name', error: 'missing' })
     if (kind === 'items' && !row.name && !row.code) row._errors.push({ field: 'name', error: 'missing' })
     if (kind === 'units' && !row.item && !row.item_code) row._errors.push({ field: 'item', error: 'missing' })
+    if (kind === 'kits' && !row.kit && !row.kit_code) row._errors.push({ field: 'kit', error: 'missing' })
+    if (kind === 'kits' && !row.item && !row.item_code) row._errors.push({ field: 'item', error: 'missing' })
+    if (kind === 'kits' && row.quantity === 0) row._errors.push({ field: 'quantity', error: 'whole' })
     if (kind === 'items' && row.quantity > 0 && !row.location) row._errors.push({ field: 'location', error: 'needLocation' })
     out.push(row)
   })
@@ -283,6 +304,18 @@ export function dryRun(rows, kind, existing) {
       if (!row.code && row.name && (itemsByName.get(lower(row.name))?.length || 0) > 1) return { action: 'skip', reason: 'sameName', value: row.name }
       const key = row.code ? `#${row.code.toUpperCase()}` : lower(row.name)
       const action = findItem(row.code, row.name) || seen.has(key) ? 'match' : 'create'
+      seen.add(key)
+      return { action }
+    }
+    if (kind === 'kits') {
+      const kit = findItem(row.kit_code, row.kit)
+      if (!kit) return { action: 'skip', reason: 'unknownKit', value: row.kit_code || row.kit }
+      const item = findItem(row.item_code, row.item)
+      if (!item) return { action: 'skip', reason: 'unknownItem', value: row.item_code || row.item }
+      if (kit.id === item.id) return { action: 'skip', reason: 'selfKit', value: kit.name }
+      const partKind = row.part_kind || (!kit.kit_type && kit.tracking !== 'none' && !row.kit_type ? 'accessory' : 'content')
+      const key = `${kit.id}>${item.id}>${partKind}`
+      const action = (existing.parts || []).some(p => p.parent_id === kit.id && p.child_id === item.id && p.kind === partKind) || seen.has(key) ? 'match' : 'create'
       seen.add(key)
       return { action }
     }
@@ -327,6 +360,13 @@ const SERVER = [
   [/^Quantity not added/, 'quantityKept'],
   [/^duplicate key value/, 'duplicate'],
   [/^Only rental or sale items can have stock/, 'notStock'],
+  [/^Unknown kit: (.+)$/, 'unknownKit'],
+  [/^The quantity must be 1 to 1000/, 'kitQuantity'],
+  [/^Only sets and cases have contents/, 'notKit'],
+  [/^Accessories belong to stock-tracked items/, 'accessoryUntracked'],
+  [/^Only stock-tracked items can be part of a kit/, 'partUntracked'],
+  [/^An item can't contain itself/, 'selfKit'],
+  [/violates check constraint "price_items_kit_check"/, 'kitType'],
   [/^Stock tracking can't change/, 'trackingLocked'],
 ]
 export function serverMessage(message) {
