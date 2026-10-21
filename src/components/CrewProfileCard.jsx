@@ -7,8 +7,9 @@ const chip = { display: 'inline-block', padding: '3px 9px', borderRadius: '999px
 const row = { display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: colors.soft, lineHeight: 1.5, marginTop: '8px' }
 
 // A crew profile as companies (or crew, if the person allows it) see it (docs/CREW_NETWORK.md).
-// Used for the preview on the person's own profile page; the crew search (N2) shows the same.
-export default function CrewProfileCard({ profile: p, name }) {
+// Used for the preview on the person's own profile page and in the crew search (N2), where
+// children add the distance, availability and contact buttons below the profile.
+export default function CrewProfileCard({ profile: p, name, children }) {
   const { t, lang, fmt } = useI18n()
   const travel = p.travel_scope === 'km' ? (p.travel_km ? t('crewProfile.reach.km', { km: p.travel_km }) : null) : t(`crewProfile.reach.${p.travel_scope}`)
   const date = d => fmt(d, 'd MMM yyyy')
@@ -54,6 +55,7 @@ export default function CrewProfileCard({ profile: p, name }) {
             {p.links.map(l => <a key={l} href={l} target="_blank" rel="noopener noreferrer nofollow" style={{ color: colors.accentText, overflowWrap: 'anywhere' }}>{l.replace(/^https?:\/\//, '')}</a>)}
           </span></div>
       )}
+      {children}
     </div>
   )
 }

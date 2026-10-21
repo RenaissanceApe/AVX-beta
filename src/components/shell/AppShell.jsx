@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Zap, ChevronDown, Check, Briefcase, List, CalendarDays, CalendarOff, Building2, Plus, FileText, Tags,
-  LayoutTemplate, Users, Settings, MoreHorizontal, X, LogOut, BellOff, Package, MapPin, History, QrCode, Wrench, Handshake, BarChart3, HelpCircle, Contact,
+  LayoutTemplate, Users, Settings, MoreHorizontal, X, LogOut, BellOff, Package, MapPin, History, QrCode, Wrench, Handshake, BarChart3, HelpCircle, Contact, Search,
 } from 'lucide-react'
 import { useAuth } from '../../lib/AuthContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
@@ -16,7 +16,7 @@ import { colors, iconBtn } from '../ui'
 export const ICONS = {
   briefcase: Briefcase, list: List, calendar: CalendarDays, calendarOff: CalendarOff, building: Building2, plus: Plus,
   fileText: FileText, tags: Tags, layoutTemplate: LayoutTemplate, users: Users, settings: Settings,
-  package: Package, mapPin: MapPin, history: History, qrCode: QrCode, wrench: Wrench, handshake: Handshake, barChart: BarChart3, contact: Contact,
+  package: Package, mapPin: MapPin, history: History, qrCode: QrCode, wrench: Wrench, handshake: Handshake, barChart: BarChart3, contact: Contact, search: Search,
 }
 // Each section has its own tint so the menus are easy to tell apart at a glance
 const TINTS = { work: 'var(--accent-text)', gigs: 'var(--accent-text)', quotes: 'var(--sky)', inventory: 'var(--orange)', organisation: 'var(--purple)', organisations: 'var(--yellow)' }

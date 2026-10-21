@@ -191,7 +191,7 @@ Opt-in freelancer profiles (functions, region, languages, certificates) and open
 by companies to that pool, with the availability check built in; applications become conversations.
 **International from the start.** **Day rates are shared only when a freelancer applies**, never
 shown on a profile. Needs opt-in, abuse protection, reporting and ideally verified profiles; the
-privacy notice and terms need a full section on it. Plan and decisions (2026-10-21) in [docs/CREW_NETWORK.md](docs/CREW_NETWORK.md), stages N1–N5. **N1 built (0.48.0):** opt-in crew profiles; each person chooses who sees theirs (companies only, or companies and crew). Next: N2 crew search.
+privacy notice and terms need a full section on it. Plan and decisions (2026-10-21) in [docs/CREW_NETWORK.md](docs/CREW_NETWORK.md), stages N1–N5. **N1 built (0.48.0):** opt-in crew profiles; each person chooses who sees theirs (companies only, or companies and crew). **N2 built (0.49.0):** Find crew: search by function, place, dates and language, then ask about a gig or offer a place. Next: N3 job board.
 
 ## End of the build
 

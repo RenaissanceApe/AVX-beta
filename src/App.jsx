@@ -29,6 +29,7 @@ const LabelsPage = lazy(() => import('./pages/LabelsPage'))
 const ImportPage = lazy(() => import('./pages/ImportPage'))
 const ContactsPage = lazy(() => import('./pages/ContactsPage'))
 const CrewProfilePage = lazy(() => import('./pages/CrewProfilePage'))
+const CrewSearchPage = lazy(() => import('./pages/CrewSearchPage'))
 const ScanPage = lazy(() => import('./pages/ScanPage'))
 const DispatchPage = lazy(() => import('./pages/DispatchPage'))
 const PackingListPage = lazy(() => import('./pages/PackingListPage'))
@@ -125,6 +126,7 @@ function AppRoutes() {
       <Route path="/gig/:id/callsheet" element={<ProtectedRoute><CallSheetPage /></ProtectedRoute>} />
       <Route path="/org/:orgId/quotes" element={<ProtectedRoute><Suspense fallback={<Spinner />}><QuotesPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/contacts" element={<ProtectedRoute><Suspense fallback={<Spinner />}><ContactsPage /></Suspense></ProtectedRoute>} />
+      <Route path="/org/:orgId/crew" element={<ProtectedRoute><Suspense fallback={<Spinner />}><CrewSearchPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/inventory" element={<ProtectedRoute><Suspense fallback={<Spinner />}><InventoryPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/inventory/import" element={<ProtectedRoute><Suspense fallback={<Spinner />}><ImportPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/inventory/labels" element={<ProtectedRoute><Suspense fallback={<Spinner />}><LabelsPage /></Suspense></ProtectedRoute>} />

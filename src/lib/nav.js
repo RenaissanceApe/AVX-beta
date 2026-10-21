@@ -55,6 +55,7 @@ export function navSections({ workspace, role }) {
   }
   sections.push({ key: 'organisation', icon: 'users', items: [
     { key: 'members', icon: 'users', to: `${base}?panel=members` },
+    ...(canQuote(role) ? [{ key: 'findCrew', icon: 'search', to: `${base}/crew` }] : []),
     ...(role === 'admin' ? [{ key: 'orgSettings', icon: 'settings', to: `${base}?panel=settings` }] : []),
     { key: 'allOrgs', icon: 'building', to: '/orgs', minor: true },
   ] })

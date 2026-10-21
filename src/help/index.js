@@ -21,6 +21,7 @@ export const PAGE_TERMS = {
   quotes: ['quote', 'quote-version', 'client-link', 'price-list', 'validity'],
   contacts: ['client', 'supplier', 'subrental', 'quote'],
   'crew-profile': ['unavailable-dates', 'block'],
+  'crew-search': ['crew-call', 'availability-request', 'network', 'block'],
   quote: ['phase', 'factor', 'vat', 'quote-version', 'client-link', 'price-list'],
   orgs: ['organisation', 'org-admin', 'org-member', 'viewer', 'retention'],
 }
@@ -51,6 +52,7 @@ export const GUIDES = {
   'crew-appearance': { role: 'crew', pages: ['home'], terms: ['offline-copy'], shots: [null, 'appearance', null] },
   'crew-offline': { role: 'crew', pages: ['gig', 'home'], terms: ['offline-copy', 'files'], shots: [null, 'files-offline', 'offline-banner', null] },
   'pm-create-gig': { role: 'pm', pages: ['home'], terms: ['gig', 'gig-status', 'workspace'], shots: [null, 'gig-form', null] },
+  'pm-find-crew': { role: 'pm', pages: ['crew-search', 'gig'], terms: ['crew-call', 'availability-request'], shots: [null, 'crew-search', null] },
   'pm-invite-crew': { role: 'pm', pages: ['gig'], terms: ['pm', 'crew', 'viewer', 'network', 'call-time', 'crew-call'], shots: ['crew-invite', 'invite-form', null, null] },
   'pm-schedule': { role: 'pm', pages: ['gig'], terms: ['schedule', 'call-time', 'feed'], shots: ['schedule-add', 'schedule-form', null] },
   'pm-call-sheet': { role: 'pm', pages: ['gig'], terms: ['call-sheet', 'schedule', 'call-time'], shots: [null, 'schedule-callsheet', 'call-sheet-send', null] },

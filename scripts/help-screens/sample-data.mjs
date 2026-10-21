@@ -289,6 +289,12 @@ export function sampleData(persona, lang) {
       my_availability_requests: persona === 'pm' ? [] : [request],
       my_unread_counts: [],
       calendar_feed: '7c1e9a4b'.repeat(8),
+      search_crew: { total: 2, more: false, results: [
+        { user_id: 'cp1', name: 'Rui Teixeira', headline: tx('Rigger e técnico de palco, festivais', 'Rigger and stagehand, festivals'), functions: ['rigger', 'stagehand'], base_place: 'Porto, Portugal', base_country: 'PT',
+          travel_scope: 'km', travel_km: 250, languages: ['en', 'pt'], experience_years: 9, certificates: [{ name: 'IPAF 3a', issuer: 'IPAF', expires_on: '2027-05-01' }], links: [], km: 4, worked_with: 0, free: true },
+        { user_id: 'cp2', name: 'Inês Lopes', headline: tx('Operadora de luz, grandMA3', 'Lighting operator, grandMA3'), functions: ['lighting_op', 'rigger'], base_place: 'Braga, Portugal', base_country: 'PT',
+          travel_scope: 'country', travel_km: null, languages: ['en', 'es', 'pt'], experience_years: 6, certificates: [], links: [], km: 49, worked_with: 2, free: false },
+      ] },
       my_clashes: [],
       gig_clashes: persona === 'pm' ? [{ user_id: duarte, kind: 'booked', status: 'confirmed', starts_at: `${day(24)}T00:00:00Z`, ends_at: `${day(25)}T00:00:00Z`, gig_id: null, label: null, company: null, role_label: null }] : [],
       email_clashes: [],

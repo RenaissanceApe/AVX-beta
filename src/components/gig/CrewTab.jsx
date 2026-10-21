@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { UserPlus, X, Clock, Phone, Loader2, Send, AlertTriangle, Plus, Briefcase, Trash2, CalendarClock, UserCheck, MessageCircle, Megaphone } from 'lucide-react'
+import { UserPlus, X, Clock, Phone, Loader2, Send, AlertTriangle, Plus, Briefcase, Trash2, CalendarClock, UserCheck, MessageCircle, Megaphone, Search } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
@@ -112,6 +112,9 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
         action={isPM && (
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button onClick={() => setCallFor({})} style={btn} title={t('crewCall.hint')}><Megaphone size={14} /> {t('crewCall.button')}</button>
+            {gig.org_id && (orgRole === 'admin' || orgRole === 'member') && (
+              <Link to={`/org/${gig.org_id}/crew?gig=${gigId}`} style={{ ...btn, textDecoration: 'none' }}><Search size={14} /> {t('crewSearch.findForGig')}</Link>
+            )}
             <button onClick={() => setShowInvite(true)} style={btnPrimary}><UserPlus size={14} /> {t('crew.invite')}</button>
           </div>
         )} />
