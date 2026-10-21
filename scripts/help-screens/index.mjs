@@ -76,6 +76,11 @@ const SCENES = {
     await page.getByLabel(L('availability.from'), { exact: true }).fill(dayFromNow(60))
     return page.getByText(L('availability.title'), { exact: true }).locator('xpath=..')
   } },
+  'calendar-feed': { persona: 'crew', url: '/me?panel=account', async run(page, L) {
+    await page.getByRole('button', { name: L('calFeed.show') }).click()
+    await page.getByRole('link', { name: L('calFeed.google') }).waitFor()
+    return page.locator('#feed-title').locator('xpath=..')
+  } },
   push: { persona: 'crew', url: '/me?panel=account', async run(page, L) {
     return page.getByText(L('push.title'), { exact: true }).first().locator('xpath=ancestor::div[1]')
   } },

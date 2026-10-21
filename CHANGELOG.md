@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.46.0 — Switching S4: Rentman exports, the switching checklist and the calendar feed
+
+### Added
+- **Rentman exports** are recognised: their own column names (`rental_sales`, `current_quantity`,
+  `email_1`, `visit_street`, `planperiod_start`, `firstname`…, from the mock Rentman account) are
+  matched automatically for equipment, units, contacts, crew and jobs, and the wizard says
+  "Recognised as a Rentman export". Rentman's values are read too ("Track stock", "Exclude from
+  stock tracking", date-times), the address is put together from street, number, postcode and
+  city, and crew marked inactive aren't invited.
+- When equipment has quantities but no location column, the wizard asks which location the stock
+  is in.
+- **Switching checklist** on the Import page: the steps in order (locations → equipment → units →
+  kits → clients → suppliers → crew → jobs → their equipment → quotes), each ticked with what's
+  already in AVX; tap one to choose it.
+- **Calendar feed**: in the account panel, "Your gigs in your phone's calendar" gives a private
+  link to subscribe to in Apple, Google or Outlook calendar. Each gig shows its dates (or your own
+  booking times), venue, role and call time, and updates by itself; drafts show as tentative.
+  "New link" replaces it if it was shared by mistake.
+- Help: "See your gigs in your phone's calendar". The privacy page mentions the feed.
+
+### Changed
+- A column called just "unit" is no longer taken as what a price is charged per (Rentman's "unit"
+  is a counting unit like "Piece"), and "type" no longer as rental/sale (Rentman's is item/set/case).
+
+### Database
+- Migration `20261120000000_calendar_feed.sql` (no manual steps): `calendar_feeds`,
+  `calendar_feed()`. Checks in `supabase/tests/calendar_feed.sql`.
+- New Edge Function `calendar-feed` (Verify JWT **off**), sharing `_shared/ics.ts`.
+
 ## 0.45.0 — Switching S3b: upcoming jobs, their equipment and open quotes
 
 ### Added

@@ -1,6 +1,6 @@
 # Switching to AVX: plan
 
-Status: **S1, S2 and S3 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0), crew as held invitations (S3a, 0.44.0), upcoming jobs, their equipment and open quotes (S3b, 0.45.0). Next: S4 (Rentman preset, switching checklist, calendar feed), then S5.
+Status: **S1–S4 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0), crew as held invitations (S3a, 0.44.0), upcoming jobs, their equipment and open quotes (S3b, 0.45.0), Rentman exports, the switching checklist and the calendar feed (S4, 0.46.0). Next: S5 (organisation export).
 
 The aim: a company using Rentman, another rental tool or spreadsheets can be fully running on
 AVX within a day, without retyping anything and without risking their data. Making it easy to
@@ -143,6 +143,23 @@ Checks: `supabase/tests/held_invites.sql`.
 | No batches | Like crew, these aren't kept in `import_batches` (no presets, history or undo, and no hand-run change): a gig or a quote is deleted the usual way, an equipment line taken off |
 
 Checks: `supabase/tests/import_jobs.sql`.
+
+## How S4 works (0.46.0)
+
+| Piece | How it works |
+|---|---|
+| Rentman | Built from the mock Rentman account: its exports use the API's field names, so those are added to the column guesses (`displayname`, `folder`, `price`, `rental_sales`, `stock_management`, `current_quantity`, `list_price`, `critical_stock_level`, `internal_remark`; `ref`, `serial`, `purchasedate`, `purchase_costs`, `remark`; `email_1`, `phone_1`, `visit_street`, `visit_number`, `visit_postalcode`, `visit_city`, `country`, `VAT_code`; `firstname`, `lastname`, `email`, `phone`, `active`; `number`, `name`, `planperiod_start/end`, `customer`, `location`). `looksLikeRentman` recognises a file with two or more of the Rentman-only names and the wizard says so. No stored preset is needed: the guesses are the preset |
+| Values | "Track stock" → counted in bulk, "Exclude from stock tracking" → not kept in stock; date-times like `2026-10-14T00:00:00+01:00` read as dates; crew with `active` false are left out. Rentman's `unit` (Piece, Can) and `type` (item/set/case) are no longer guessed as AVX's "charged per" and "rental/sale" |
+| Default location | Equipment with quantities and no location column (Rentman's export): the match step asks which location the stock is in |
+| Checklist | Import page, first step: the order (locations → equipment → units → kits → clients → suppliers → crew → jobs → their equipment → quotes), each ticked once something of that kind is in the organisation (jobs and quotes: imported ones), with the count; tapping one chooses it. Can be folded away (remembered on the device) |
+| Calendar feed | Account panel → "Your gigs in your phone's calendar": `calendar_feed()` gives the person's private key (64 hex characters, `calendar_feeds`), shown as a link to the `calendar-feed` Edge Function (Verify JWT off). The function returns an iCalendar of the gigs the person is on, from 60 days ago: all-day over the gig's days, or the person's own booking times; venue, role, call time, a link to the gig; drafts as tentative, archived left out; in the person's language. "New link" replaces the key. Apple/Outlook subscribe through `webcal://`, Google through its "add by URL" link |
+
+Known limitation: an item imported with a bulk quantity can't take serial numbers afterwards (the
+units import refuses bulk items). For gear kept per serial number, import the units file first or
+leave its quantity out of the equipment file. Converting it automatically needs the opening stock
+movement removed, which is a hand-run change for later.
+
+Checks: `supabase/tests/calendar_feed.sql`; the feed's text in `src/lib/ics.test.js`.
 
 ## Decided (2026-10-19)
 

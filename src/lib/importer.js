@@ -37,8 +37,8 @@ const WORDS = {
     lump: ['lump', 'lump sum', 'fixed', 'vast', 'fixo', 'forfait'],
   },
   tracking: {
-    none: ['none', 'no', 'nee', 'nao', 'not tracked', 'geen'],
-    bulk: ['bulk', 'quantity', 'count', 'counted', 'aantal', 'quantidade', 'ja', 'yes', 'sim'],
+    none: ['none', 'no', 'nee', 'nao', 'not tracked', 'geen', 'exclude from stock tracking', 'niet bijhouden', 'nao controlar'],
+    bulk: ['bulk', 'quantity', 'count', 'counted', 'aantal', 'quantidade', 'ja', 'yes', 'sim', 'track stock', 'voorraad bijhouden', 'controlar stock'],
     serial: ['serial', 'serials', 'serial numbers', 'serienummer', 'serienummers', 'serie', 'numero de serie', 'individual', 'unit'],
   },
   partKind: {
@@ -48,6 +48,10 @@ const WORDS = {
   kitType: {
     set: ['set', 'conjunto', 'kit', 'package', 'pakket', 'pacote'],
     case: ['case', 'flightcase', 'flight case', 'koffer', 'kist', 'caixa', 'mala', 'rack'],
+  },
+  yesNo: {
+    yes: ['yes', 'true', '1', 'y', 'ja', 'sim', 'active', 'actief', 'ativo', 'x'],
+    no: ['no', 'false', '0', 'n', 'nee', 'nao', 'inactive', 'inactief', 'inativo'],
   },
   orgRole: {
     admin: ['admin', 'administrator', 'beheerder', 'administrador', 'owner', 'eigenaar', 'dono'],
@@ -74,14 +78,15 @@ const WORDS = {
 const CONTACT_FIELDS = [
   { key: 'name', type: 'text', max: 200, required: true, names: ['name', 'naam', 'nome', 'company', 'company name', 'bedrijf', 'bedrijfsnaam', 'empresa', 'client', 'customer', 'klant', 'cliente', 'supplier', 'leverancier', 'fornecedor', 'contact', 'organisation', 'organization', 'displayname', 'display name'] },
   { key: 'contact_name', type: 'text', max: 120, names: ['contact person', 'contact name', 'contactpersoon', 'pessoa de contacto', 'contacto', 'attention', 'attn', 'person'] },
-  { key: 'email', type: 'email', names: ['email', 'e mail', 'mail', 'email address', 'e mailadres', 'emailadres', 'correio electronico', 'correio eletronico'] },
-  { key: 'phone', type: 'text', max: 60, names: ['phone', 'telephone', 'tel', 'telefoon', 'telefoonnummer', 'telefone', 'mobile', 'mobiel', 'telemovel', 'phone number'] },
+  { key: 'email', type: 'email', names: ['email', 'e mail', 'mail', 'email address', 'e mailadres', 'emailadres', 'correio electronico', 'correio eletronico', 'email 1'] },
+  { key: 'phone', type: 'text', max: 60, names: ['phone', 'telephone', 'tel', 'telefoon', 'telefoonnummer', 'telefone', 'mobile', 'mobiel', 'telemovel', 'phone number', 'phone 1'] },
   { key: 'address', type: 'text', max: 500, names: ['address', 'adres', 'morada', 'endereco', 'full address', 'visiting address', 'bezoekadres'] },
-  { key: 'street', type: 'text', max: 200, names: ['street', 'straat', 'rua', 'street address', 'address line 1', 'address 1', 'straatnaam'] },
-  { key: 'postcode', type: 'text', max: 20, names: ['postcode', 'postal code', 'zip', 'zip code', 'codigo postal', 'cp'] },
-  { key: 'city', type: 'text', max: 100, names: ['city', 'town', 'plaats', 'woonplaats', 'stad', 'cidade', 'localidade'] },
+  { key: 'street', type: 'text', max: 200, names: ['street', 'straat', 'rua', 'street address', 'address line 1', 'address 1', 'straatnaam', 'visit street'] },
+  { key: 'house_number', type: 'text', max: 20, names: ['house number', 'huisnummer', 'number', 'nummer', 'numero', 'no', 'nr', 'visit number'] },
+  { key: 'postcode', type: 'text', max: 20, names: ['postcode', 'postal code', 'zip', 'zip code', 'codigo postal', 'cp', 'postalcode', 'visit postalcode'] },
+  { key: 'city', type: 'text', max: 100, names: ['city', 'town', 'plaats', 'woonplaats', 'stad', 'cidade', 'localidade', 'visit city'] },
   { key: 'country', type: 'text', max: 80, names: ['country', 'land', 'pais'] },
-  { key: 'tax_id', type: 'text', max: 40, names: ['tax id', 'tax number', 'vat', 'vat number', 'vat id', 'btw', 'btw nummer', 'btw nr', 'nif', 'nipc', 'contribuinte', 'numero de contribuinte', 'tax'] },
+  { key: 'tax_id', type: 'text', max: 40, names: ['tax id', 'tax number', 'vat', 'vat number', 'vat id', 'btw', 'btw nummer', 'btw nr', 'nif', 'nipc', 'contribuinte', 'numero de contribuinte', 'tax', 'vat code'] },
   { key: 'notes', type: 'text', max: 1000, names: ['notes', 'note', 'remarks', 'opmerkingen', 'opmerking', 'notas', 'observacoes', 'comments'] },
 ]
 
@@ -102,29 +107,29 @@ export const FIELDS = {
     { key: 'brand', type: 'text', max: 80, names: ['brand', 'merk', 'marca', 'manufacturer', 'fabrikant', 'fabricante', 'make'] },
     { key: 'model', type: 'text', max: 80, names: ['model', 'modelo'] },
     { key: 'unit_price', type: 'money', names: ['price', 'rental price', 'prijs', 'verhuurprijs', 'preco', 'price per day', 'dagprijs', 'day price', 'rate', 'tarief', 'unit price', 'preco unitario', 'preco de aluguer'] },
-    { key: 'kind', type: 'enum', words: 'itemKind', names: ['kind', 'type', 'soort', 'tipo', 'item type'] },
-    { key: 'unit', type: 'enum', words: 'unit', names: ['unit', 'eenheid', 'unidade', 'per', 'charged per'] },
+    { key: 'kind', type: 'enum', words: 'itemKind', names: ['kind', 'rental sales', 'rental or sale', 'verhuur verkoop', 'aluguer venda', 'item type'] },
+    { key: 'unit', type: 'enum', words: 'unit', names: ['charged per', 'price per', 'per', 'prijs per', 'preco por', 'cobrado por'] },
     { key: 'tracking', type: 'enum', words: 'tracking', names: ['tracking', 'stock tracking', 'serials', 'serial numbers', 'serienummers', 'stock management', 'voorraadbeheer', 'controlo de stock'] },
-    { key: 'quantity', type: 'int', max: 100000, names: ['quantity', 'qty', 'stock', 'aantal', 'voorraad', 'quantidade', 'in stock', 'current stock', 'stock quantity', 'existencias'] },
+    { key: 'quantity', type: 'int', max: 100000, names: ['quantity', 'qty', 'stock', 'aantal', 'voorraad', 'quantidade', 'in stock', 'current stock', 'stock quantity', 'existencias', 'current quantity'] },
     { key: 'location', type: 'text', max: 100, names: ['location', 'warehouse', 'magazijn', 'locatie', 'local', 'armazem', 'stock location'] },
     { key: 'weight_kg', type: 'number', names: ['weight', 'weight kg', 'gewicht', 'peso', 'kg'] },
     { key: 'power_w', type: 'int', max: 1000000, names: ['power', 'power w', 'vermogen', 'potencia', 'watt', 'watts', 'w'] },
     { key: 'dimensions', type: 'text', max: 80, names: ['dimensions', 'size', 'afmetingen', 'dimensoes', 'measurements'] },
-    { key: 'replacement_value', type: 'money', names: ['replacement value', 'vervangingswaarde', 'new price', 'nieuwprijs', 'valor de reposicao', 'value', 'waarde', 'insured value'] },
-    { key: 'min_stock', type: 'int', max: 100000, names: ['minimum stock', 'min stock', 'minimale voorraad', 'stock minimo'] },
-    { key: 'packing_note', type: 'text', max: 500, names: ['packing note', 'pakbon opmerking', 'nota de embalagem'] },
-    { key: 'details', type: 'text', max: 2000, names: ['details', 'description', 'omschrijving', 'beschrijving', 'descricao', 'notes', 'remarks', 'opmerkingen', 'notas'] },
+    { key: 'replacement_value', type: 'money', names: ['list price', 'replacement value', 'vervangingswaarde', 'new price', 'nieuwprijs', 'valor de reposicao', 'value', 'waarde', 'insured value'] },
+    { key: 'min_stock', type: 'int', max: 100000, names: ['critical stock level', 'minimum stock', 'min stock', 'minimale voorraad', 'stock minimo'] },
+    { key: 'packing_note', type: 'text', max: 500, names: ['internal remark', 'packing note', 'pakbon opmerking', 'nota de embalagem'] },
+    { key: 'details', type: 'text', max: 2000, names: ['external remark', 'details', 'description', 'omschrijving', 'beschrijving', 'descricao', 'notes', 'remarks', 'opmerkingen', 'notas'] },
   ],
   units: [
     { key: 'item', type: 'text', max: 200, names: ['item', 'equipment', 'item name', 'equipment name', 'naam', 'name', 'artigo', 'equipamento', 'nome', 'artikel'] },
     { key: 'item_code', type: 'code', names: ['item code', 'equipment code', 'equipment number', 'artikelcode', 'artikelnummer', 'codigo do artigo', 'article number'] },
-    { key: 'code', type: 'code', names: ['barcode', 'code', 'label', 'asset', 'asset tag', 'asset number', 'qr', 'qr code', 'codigo de barras', 'etiqueta', 'streepjescode', 'id'] },
+    { key: 'code', type: 'code', names: ['barcode', 'code', 'label', 'asset', 'asset tag', 'asset number', 'qr', 'qr code', 'codigo de barras', 'etiqueta', 'streepjescode', 'id', 'ref', 'reference', 'internal reference'] },
     { key: 'serial', type: 'text', max: 80, names: ['serial', 'serial number', 'serienummer', 'numero de serie', 'sn', 's n', 'serial no'] },
-    { key: 'location', type: 'text', max: 100, names: ['location', 'warehouse', 'magazijn', 'locatie', 'local', 'armazem', 'current location'] },
+    { key: 'location', type: 'text', max: 100, names: ['location', 'warehouse', 'magazijn', 'locatie', 'local', 'armazem', 'current location', 'asset location'] },
     { key: 'status', type: 'enum', words: 'unitStatus', names: ['status', 'state', 'estado', 'conditie', 'condition'] },
-    { key: 'purchase_date', type: 'date', names: ['purchase date', 'bought', 'aankoopdatum', 'data de compra', 'purchased', 'date purchased', 'in use since'] },
-    { key: 'purchase_cost', type: 'money', names: ['purchase price', 'purchase cost', 'cost', 'aankoopprijs', 'inkoopprijs', 'custo', 'preco de compra', 'valor de compra'] },
-    { key: 'notes', type: 'text', max: 500, names: ['notes', 'remarks', 'opmerkingen', 'notas', 'observacoes', 'comment', 'comments'] },
+    { key: 'purchase_date', type: 'date', names: ['purchase date', 'bought', 'aankoopdatum', 'data de compra', 'purchased', 'date purchased', 'in use since', 'purchasedate'] },
+    { key: 'purchase_cost', type: 'money', names: ['purchase price', 'purchase cost', 'cost', 'aankoopprijs', 'inkoopprijs', 'custo', 'preco de compra', 'valor de compra', 'purchase costs'] },
+    { key: 'notes', type: 'text', max: 500, names: ['notes', 'remarks', 'remark', 'opmerkingen', 'notas', 'observacoes', 'comment', 'comments'] },
   ],
   kits: [
     { key: 'kit', type: 'text', max: 200, names: ['kit', 'set', 'case', 'parent', 'kit name', 'set name', 'case name', 'parent name', 'hoofdartikel', 'samengesteld artikel', 'conjunto', 'caixa', 'artigo principal'] },
@@ -139,9 +144,9 @@ export const FIELDS = {
   suppliers: CONTACT_FIELDS,
   gigs: [
     { key: 'ref', type: 'text', max: 80, names: ['number', 'nummer', 'project number', 'projectnummer', 'job number', 'ref', 'reference', 'referentie', 'referencia', 'numero', 'id'] },
-    { key: 'name', type: 'text', max: 200, names: ['name', 'naam', 'project', 'project name', 'projectnaam', 'job', 'job name', 'event', 'evento', 'nome', 'title', 'titel', 'titulo'] },
-    { key: 'start_date', type: 'date', names: ['start', 'start date', 'startdatum', 'begin', 'begindatum', 'from', 'van', 'data de inicio', 'inicio', 'period start', 'planperiode start', 'usage period start'] },
-    { key: 'end_date', type: 'date', names: ['end', 'end date', 'einddatum', 'eind', 'to', 'tot', 'data de fim', 'fim', 'period end', 'planperiode eind', 'usage period end'] },
+    { key: 'name', type: 'text', max: 200, names: ['name', 'naam', 'project', 'project name', 'projectnaam', 'job', 'job name', 'event', 'evento', 'nome', 'title', 'titel', 'titulo', 'displayname', 'display name'] },
+    { key: 'start_date', type: 'date', names: ['start', 'start date', 'startdatum', 'begin', 'begindatum', 'from', 'van', 'data de inicio', 'inicio', 'period start', 'planperiode start', 'usage period start', 'planperiod start', 'usageperiod start'] },
+    { key: 'end_date', type: 'date', names: ['end', 'end date', 'einddatum', 'eind', 'to', 'tot', 'data de fim', 'fim', 'period end', 'planperiode eind', 'usage period end', 'planperiod end', 'usageperiod end'] },
     { key: 'venue', type: 'text', max: 300, names: ['venue', 'location', 'locatie', 'local', 'recinto', 'address', 'adres', 'morada'] },
     { key: 'status', type: 'enum', words: 'gigStatus', names: ['status', 'state', 'estado', 'project status', 'projectstatus'] },
     { key: 'client', type: 'text', max: 200, names: ['client', 'customer', 'klant', 'opdrachtgever', 'cliente', 'contact', 'relation', 'relatie'] },
@@ -178,6 +183,7 @@ export const FIELDS = {
     { key: 'functions', type: 'text', max: 200, names: ['function', 'functions', 'functie', 'functies', 'funcao', 'funcoes', 'skills', 'vaardigheden', 'competencias', 'job title', 'role description', 'specialty'] },
     { key: 'role', type: 'enum', words: 'orgRole', names: ['role', 'rol', 'papel', 'type', 'soort', 'tipo', 'access', 'contract', 'employment'] },
     { key: 'notes', type: 'text', max: 500, names: ['notes', 'note', 'remarks', 'opmerkingen', 'opmerking', 'notas', 'observacoes', 'comments'] },
+    { key: 'active', type: 'enum', words: 'yesNo', names: ['active', 'actief', 'ativo', 'enabled', 'in service', 'in dienst'] },
   ],
 }
 
@@ -264,6 +270,13 @@ export function guessMapping(headers, kind) {
 // A saved preset applied to this file: only the columns that exist
 export const applyPreset = (headers, preset) => Object.fromEntries(headers.filter(h => preset?.[h]).map(h => [h, preset[h]]))
 
+// Column names only Rentman's exports use (its API field names): a file with a few of them is
+// recognised as a Rentman export, whose columns the guesses above already cover
+const RENTMAN_HEADERS = new Set(['displayname', 'rental sales', 'stock management', 'current quantity', 'critical stock level', 'list price',
+  'internal remark', 'external remark', 'email 1', 'phone 1', 'visit street', 'visit number', 'visit postalcode', 'visit city', 'vat code',
+  'planperiod start', 'planperiod end', 'usageperiod start', 'usageperiod end', 'purchasedate', 'purchase costs', 'asset location', 'firstname', 'lastname'])
+export const looksLikeRentman = headers => headers.filter(h => RENTMAN_HEADERS.has(normalise(h))).length >= 2
+
 // Required fields not matched to any column
 export function missingFields(mapping, kind) {
   const used = new Set(Object.values(mapping))
@@ -336,7 +349,9 @@ export function cleanValue(raw, field) {
 
 // The file's rows as AVX rows: [{ _row (line in the file), field: value, …, _errors: [{ field, error }] }].
 // Rows with nothing in the matched columns are left out.
-export function buildRows(table, mapping, kind, { headerRow = true } = {}) {
+// defaultLocation: where quantities go when the file has no location column (Rentman's equipment
+// export, a single warehouse)
+export function buildRows(table, mapping, kind, { headerRow = true, defaultLocation = null } = {}) {
   const fields = FIELDS[kind] || []
   const cols = table.headers.map((h, i) => ({ i, field: fields.find(f => f.key === mapping[h]) })).filter(c => c.field)
   const out = []
@@ -352,6 +367,9 @@ export function buildRows(table, mapping, kind, { headerRow = true } = {}) {
     if (!any) return
     if (CONTACT_KINDS.includes(kind)) joinAddress(row)
     if (kind === 'crew') joinName(row)
+    // People marked inactive in the old tool aren't invited
+    if (kind === 'crew' && row.active === 'no') row._errors.push({ field: 'active', error: 'inactive' })
+    if (kind === 'crew') delete row.active
     if (kind === 'gigs' && !row.name && !row.ref) row._errors.push({ field: 'name', error: 'missing' })
     if (kind === 'gigs' && row.start_date && row.end_date && row.end_date < row.start_date) row._errors.push({ field: 'end_date', error: 'dates' })
     if (kind === 'gig_equipment' && !row.gig && !row.gig_ref) row._errors.push({ field: 'gig', error: 'missing' })
@@ -366,6 +384,7 @@ export function buildRows(table, mapping, kind, { headerRow = true } = {}) {
     if (kind === 'kits' && !row.kit && !row.kit_code) row._errors.push({ field: 'kit', error: 'missing' })
     if (kind === 'kits' && !row.item && !row.item_code) row._errors.push({ field: 'item', error: 'missing' })
     if (kind === 'kits' && row.quantity === 0) row._errors.push({ field: 'quantity', error: 'whole' })
+    if (kind === 'items' && row.quantity > 0 && !row.location && defaultLocation) row.location = defaultLocation
     if (kind === 'items' && row.quantity > 0 && !row.location) row._errors.push({ field: 'location', error: 'needLocation' })
     out.push(row)
   })
@@ -376,8 +395,9 @@ export function buildRows(table, mapping, kind, { headerRow = true } = {}) {
 // if the file has one too)
 function joinAddress(row) {
   const place = [row.postcode, row.city].filter(Boolean).join(' ')
-  const lines = [row.address, row.street, place, row.country].filter(Boolean)
-  for (const k of ['street', 'postcode', 'city', 'country']) delete row[k]
+  const street = [row.street, row.house_number].filter(Boolean).join(' ')
+  const lines = [row.address, street, place, row.country].filter(Boolean)
+  for (const k of ['street', 'house_number', 'postcode', 'city', 'country']) delete row[k]
   if (lines.length) row.address = lines.join('\n')
   if (row.address?.length > 500) row._errors.push({ field: 'address', error: 'long' })
 }

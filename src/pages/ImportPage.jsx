@@ -6,7 +6,7 @@ import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useWorkspace } from '../lib/WorkspaceContext'
-import { KINDS, CONTACT_KINDS, HELD_KINDS, JOB_KINDS, FIELDS, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, buildRows, dryRun, toPayload, reportCsv, serverMessage } from '../lib/importer'
+import { KINDS, CONTACT_KINDS, HELD_KINDS, JOB_KINDS, FIELDS, looksLikeRentman, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, buildRows, dryRun, toPayload, reportCsv, serverMessage } from '../lib/importer'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors, tint } from '../components/ui'
@@ -61,6 +61,7 @@ export default function ImportPage() {
   const [headerRow, setHeaderRow] = useState(true)
   const [mapping, setMapping] = useState({})
   const [presetName, setPresetName] = useState(null)
+  const [defaultLocation, setDefaultLocation] = useState('')
   const [result, setResult] = useState(null)
   const [historyKey, setHistoryKey] = useState(0)
 
@@ -93,15 +94,19 @@ export default function ImportPage() {
         </ol>
 
         {step === 'choose' && (
-          <ChooseStep kinds={kinds} kind={kind} setKind={setKind} source={source} setSource={setSource} headerRow={headerRow} setHeaderRow={setHeaderRow} table={table}
-            onNext={() => { setMapping(guessMapping(table.headers, kind)); setPresetName(null); setStep('match') }} />
+          <>
+            <SwitchChecklist orgId={orgId} kinds={kinds} kind={kind} onPick={setKind} />
+            <ChooseStep kinds={kinds} kind={kind} setKind={setKind} source={source} setSource={setSource} headerRow={headerRow} setHeaderRow={setHeaderRow} table={table}
+              onNext={() => { setMapping(guessMapping(table.headers, kind)); setPresetName(null); setStep('match') }} />
+          </>
         )}
         {step === 'match' && (
           <MatchStep orgId={orgId} kind={kind} table={table} mapping={mapping} setMapping={setMapping} presetName={presetName} setPresetName={setPresetName}
+            defaultLocation={defaultLocation} setDefaultLocation={setDefaultLocation}
             onBack={() => setStep('choose')} onNext={() => setStep('check')} />
         )}
         {step === 'check' && (
-          <CheckStep orgId={orgId} kind={kind} table={table} mapping={mapping} headerRow={headerRow} fileName={source.fileName} presetName={presetName}
+          <CheckStep orgId={orgId} kind={kind} table={table} mapping={mapping} headerRow={headerRow} defaultLocation={defaultLocation} fileName={source.fileName} presetName={presetName}
             onBack={() => setStep('match')} onDone={res => { setResult(res); setStep('done'); setHistoryKey(k => k + 1) }} />
         )}
         {step === 'done' && result && <DoneStep orgId={orgId} kind={kind} result={result} onAgain={restart} />}
@@ -110,6 +115,68 @@ export default function ImportPage() {
       </div>
       <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </AppShell>
+  )
+}
+
+// The move from another tool, in order, with what's already in AVX for each step
+// (docs/SWITCHING.md, S4). A step is ticked once something of its kind is in the organisation.
+const CHECKLIST = [
+  { kind: 'locations', table: 'stock_locations' },
+  { kind: 'items', table: 'price_items' },
+  { kind: 'units', table: 'stock_units' },
+  { kind: 'kits', table: 'item_parts' },
+  { kind: 'clients', table: 'clients' },
+  { kind: 'suppliers', table: 'suppliers' },
+  { kind: 'crew', table: 'held_invites' },
+  { kind: 'gigs', table: 'gigs', imported: true },
+  { kind: 'gig_equipment', table: 'gig_equipment' },
+  { kind: 'quotes', table: 'quotes', imported: true },
+]
+function SwitchChecklist({ orgId, kinds, kind, onPick }) {
+  const [counts, setCounts] = useState(null)
+  const [open, setOpen] = useState(() => { try { return localStorage.getItem('avx.switchChecklist') !== 'closed' } catch { return true } })
+  useEffect(() => {
+    Promise.all(CHECKLIST.map(c => {
+      let q = supabase.from(c.table).select('*', { count: 'exact', head: true }).eq('org_id', orgId)
+      if (c.imported) q = q.not('import_ref', 'is', null)
+      return q.then(({ count }) => [c.kind, count || 0])
+    })).then(list => setCounts(Object.fromEntries(list)))
+  }, [orgId])
+  function toggle() {
+    setOpen(o => { try { localStorage.setItem('avx.switchChecklist', o ? 'closed' : 'open') } catch { /* private mode */ } return !o })
+  }
+  if (!counts) return null
+  const steps = CHECKLIST.filter(c => kinds.includes(c.kind))
+  const done = steps.filter(c => counts[c.kind] > 0).length
+  return (
+    <section aria-labelledby="switch-title" style={{ ...card, marginBottom: '18px' }}>
+      <button type="button" onClick={toggle} aria-expanded={open} style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '8px', background: 'none', border: 'none', padding: 0, color: 'var(--text)', font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
+        <h2 id="switch-title" style={{ fontSize: '15px', fontWeight: 800, flex: 1 }}>{t('imp.switch.title')}</h2>
+        <span style={{ fontSize: '12px', color: colors.soft }}>{t('imp.switch.progress', { done, total: steps.length })}</span>
+      </button>
+      {open && (
+        <>
+          <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, margin: '4px 0 8px' }}>{t('imp.switch.intro')}</p>
+          <ol style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {steps.map((c, i) => {
+              const n = counts[c.kind]
+              return (
+                <li key={c.kind}>
+                  <button type="button" onClick={() => onPick(c.kind)} aria-pressed={kind === c.kind} style={{
+                    display: 'flex', width: '100%', alignItems: 'center', gap: '8px', padding: '5px 6px', borderRadius: '8px', border: 'none', cursor: 'pointer', font: 'inherit', textAlign: 'left',
+                    background: kind === c.kind ? tint(colors.accent, 12) : 'none', color: 'var(--text)', fontSize: '13px',
+                  }}>
+                    <span aria-hidden="true" style={{ width: '18px', textAlign: 'center', color: n ? colors.accentText : colors.muted, fontWeight: 700 }}>{n ? '✓' : i + 1}</span>
+                    <span style={{ flex: 1 }}>{t(`imp.kind.${c.kind}`)}</span>
+                    <span style={{ fontSize: '12px', color: colors.muted }}>{n ? t('imp.switch.count', { count: n }) : t('imp.switch.todo')}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ol>
+        </>
+      )}
+    </section>
   )
 }
 
@@ -197,7 +264,7 @@ function ChooseStep({ kinds, kind, setKind, source, setSource, headerRow, setHea
   )
 }
 
-function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPresetName, onBack, onNext }) {
+function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPresetName, defaultLocation, setDefaultLocation, onBack, onNext }) {
   const { notify } = useToast()
   const [presets, setPresets] = useState([])
   const [saveName, setSaveName] = useState('')
@@ -214,6 +281,16 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
     setPresets(data || [])
   }, [orgId, kind])
   useEffect(() => { loadPresets() }, [loadPresets])
+
+  // Quantities without a location column (Rentman's equipment export): one warehouse for them all
+  const used = Object.values(mapping)
+  const needsLocation = kind === 'items' && used.includes('quantity') && !used.includes('location')
+  const [locations, setLocations] = useState([])
+  useEffect(() => {
+    if (!needsLocation) return
+    supabase.from('stock_locations').select('name').eq('org_id', orgId).is('archived_at', null).order('name')
+      .then(({ data }) => setLocations(data || []))
+  }, [needsLocation, orgId])
 
   const missing = missingFields(mapping, kind)
   const samples = i => table.rows.map(r => r[i]).filter(Boolean).slice(0, 3).join(' · ')
@@ -256,6 +333,11 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
           </div>
         </div>
       )}
+      {looksLikeRentman(table.headers) && (
+        <p role="status" style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center', color: colors.accentText }}>
+          <Check size={14} aria-hidden="true" /> {t('imp.rentman')}
+        </p>
+      )}
       <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>{t('imp.matchHelp')}</p>
       <ul aria-label={t('imp.step.match')} style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {table.headers.map((h, i) => (
@@ -273,6 +355,16 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
           </li>
         ))}
       </ul>
+      {needsLocation && (
+        <div style={{ maxWidth: '360px' }}>
+          <label style={label} htmlFor="imp-default-loc">{t('imp.defaultLocation')}</label>
+          <select id="imp-default-loc" value={defaultLocation} onChange={e => setDefaultLocation(e.target.value)} style={{ ...input, appearance: 'auto' }}>
+            <option value="">{t('imp.defaultLocationNone')}</option>
+            {locations.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
+          </select>
+          <p style={{ fontSize: '12px', color: colors.muted, marginTop: '4px' }}>{t('imp.defaultLocationHint')}</p>
+        </div>
+      )}
       {missing.length > 0 && (
         <p role="status" style={{ fontSize: '13px', color: 'var(--warn)', display: 'flex', gap: '6px', alignItems: 'center' }}>
           <AlertTriangle size={14} aria-hidden="true" /> {t(`imp.missing.${kind}`)}
@@ -293,11 +385,11 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
   )
 }
 
-function CheckStep({ orgId, kind, table, mapping, headerRow, fileName, presetName, onBack, onDone }) {
+function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fileName, presetName, onBack, onDone }) {
   const { notify } = useToast()
   const [existing, setExisting] = useState(null)
   const [busy, setBusy] = useState(false)
-  const rows = useMemo(() => buildRows(table, mapping, kind, { headerRow }), [table, mapping, kind, headerRow])
+  const rows = useMemo(() => buildRows(table, mapping, kind, { headerRow, defaultLocation: defaultLocation || null }), [table, mapping, kind, headerRow, defaultLocation])
 
   useEffect(() => {
     if (isHeld(kind)) {
