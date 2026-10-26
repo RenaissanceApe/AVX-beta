@@ -80,6 +80,8 @@ Settings (see Decided above).
 
 ## 2. Rehearsal companion
 
+**R1 built (0.54.0).** How it works is under "How R1 works" at the end of this section.
+
 A shared, time-stamped notebook for rehearsals. Everyone on the gig (sound, lights, video, stage,
 SM, PM) writes notes at the same time against the same clock. Afterwards each department gets its
 list. Designed to bridge to your standalone timecode cueing app later.
@@ -137,6 +139,21 @@ it if it drifts.
 the shared export format). R3 ships the file format first; the live link follows the public API.
 
 ---
+
+### How R1 works (0.54.0)
+
+| Piece | How it works |
+|---|---|
+| Sessions | `rehearsal_sessions` (gig, name, fps, `frame_count` ndf/df, clock, `running`, `anchor_at`, `anchor_ms`). The clock is an anchor: at server time `anchor_at` it read `anchor_ms`; while running it advances with real time. Phones measure their offset to the server (`server_now()`) and draw the timecode every frame. Changing the reading, running or clock makes the server stamp `anchor_at` and `clock_set_by`, so every phone shows the same time |
+| Timecode | `src/lib/rehearsal.js`: frames are counted at the actual rate (23.976, 29.97) and labelled at the nominal one (24, 30); drop-frame skips frame numbers 0 and 1 each minute except every tenth. Notes keep milliseconds (`tc_ms`), so the label can be redrawn at any rate |
+| Notes | `rehearsal_notes`: department (sound, lighting, video, stage, SM, production, other), priority, cue, body, photo, assignee (must be on the gig), open/done (the server stamps who and when). `client_id` is made on the phone, so a note sent twice is kept once. The author changes what it says; anyone writing on the gig ticks it or reassigns it; the author or the gig's managers remove it (marked only) |
+| Who | Read: everyone on the gig (`can_access_gig`). Write: the gig's PMs and crew, its creator, and the organisation's admins and members (`can_note_gig`); viewers only read |
+| Live and offline | Both tables are in the realtime publication; the tool listens per session. Notes written offline wait in `localStorage` (`avx.rehearsalOutbox.<user>`) and go out when the connection is back |
+| Photos | Private bucket `rehearsal-photos`, `<gig>/<session>/<note>.jpg`, made smaller on the phone (long side 1600 px) |
+| Outputs | `/gig/:id/rehearsal/:session` (print per department), CSV, JSON (`format: avx-rehearsal`, version 1: timecode, frames, ms, department, priority, cue, text, status) |
+| Not yet | Shared marker on a note's time (later), notifications to assignees (with tasks), camera and LTC sync (R2), cue lists and the live bridge (R3) |
+
+Checks: `supabase/tests/rehearsals.sql`; `src/lib/rehearsal.test.js` (timecode, drop-frame, clock, filters, CSV, export).
 
 ## 3. DMX calculator and dipswitch converter (small, do early)
 
@@ -298,7 +315,7 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 
 | # | What | Needs | When built, also connect |
 |---|---|---|---|
-| 1 | **R1** rehearsal companion | gig, schedule, members | Updates feed, gig files (reports) |
+| 1 | **R1** rehearsal companion ✅ 0.54.0 | gig, schedule, members | Department from the gig function; reports printable |
 | 2 | **R2** camera and LTC sync | R1 | — |
 | 3 | **D1** DMX calculator and dipswitches | DMX patch | DMX patch column, light plot fixture view |
 | 4 | **On-site mode** and Tools split (Plan / On site), personal auto setting | R1, D1, field kit | Call sheet, scan mode, equipment steps, settings |

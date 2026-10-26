@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ListOrdered, LayoutGrid, Cable, Lightbulb, LampCeiling, Speaker, Plus, ChevronRight, ArrowLeft, Wrench } from 'lucide-react'
+import { ListOrdered, LayoutGrid, Cable, Lightbulb, LampCeiling, Speaker, Plus, ChevronRight, ArrowLeft, Wrench, Flag } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -16,13 +16,16 @@ import PatchTool from '../tools/PatchTool'
 import DmxPatchTool from '../tools/DmxPatchTool'
 import LightPlotTool from '../tools/LightPlotTool'
 import SystemCalcTool from '../tools/SystemCalcTool'
+import RehearsalTool from '../tools/RehearsalTool'
 
 export const TOOL_ICONS = { listOrdered: ListOrdered, layoutGrid: LayoutGrid, cable: Cable, lightbulb: Lightbulb, lampCeiling: LampCeiling, speaker: Speaker }
 const iconOf = id => TOOL_ICONS[TOOLS.find(x => x.id === id)?.icon] || Wrench
 
-// A gig's Tools tab (docs/FIELD_TOOLS.md): only the tools this gig uses, plus "Add a tool" for
-// the people who edit them. ?tool=input_list opens one.
-export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgTools, offline, onChanged }) {
+// A gig's Tools tab (docs/FIELD_TOOLS.md, docs/TOOLS_PLAN.md §1), in two groups:
+// - Plan: only the tools this gig uses, plus "Add a tool" for the people who edit them;
+// - On site: tools for the day itself, there on every gig (the rehearsal companion).
+// ?tool=input_list opens one.
+export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgTools, offline, onChanged, members, nameOf, userId, canNote, canManage }) {
   const { notify } = useToast()
   const [params, setParams] = useSearchParams()
   const [adding, setAdding] = useState(false)
@@ -55,6 +58,17 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
     onChanged()
   }
 
+  if (open === 'rehearsal') return (
+    <div style={{ animation: 'fadeIn 0.3s ease' }}>
+      {!params.get('session') && (
+        <button type="button" onClick={() => setOpen(null)} style={{ ...btn, background: 'transparent', color: colors.soft, padding: '6px 10px', marginBottom: '14px' }}>
+          <ArrowLeft size={14} /> {t('gig.tab.tools')}
+        </button>
+      )}
+      <RehearsalTool gig={gig} members={members} nameOf={nameOf} userId={userId} canNote={canNote} canManage={canManage} offline={offline} />
+    </div>
+  )
+
   if (open && tools.includes(open)) return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
       <button type="button" onClick={() => setOpen(null)} style={{ ...btn, background: 'transparent', color: colors.soft, padding: '6px 10px', marginBottom: '14px' }}>
@@ -82,6 +96,14 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
       <TabHeader title={t('gig.tab.tools')} subtitle={t('tools.subtitle')}
         action={canEdit && !offline && available.length > 0 && <button type="button" onClick={() => setAdding(true)} style={btnPrimary}><Plus size={14} /> {t('tools.add')}</button>} />
 
+      <h3 style={groupHead}>{t('tools.group.onSite')}</h3>
+      <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '22px' }}>
+        <li>
+          <ToolButton icon={Flag} name={t('tools.name.rehearsal')} about={t('tools.about.rehearsal')} onClick={() => setOpen('rehearsal')} />
+        </li>
+      </ul>
+
+      <h3 style={groupHead}>{t('tools.group.plan')}</h3>
       {tools.length === 0 ? (
         <EmptyState icon={<Wrench size={28} />} title={t('tools.emptyTitle')} body={canEdit ? t('tools.emptyEditor') : t('tools.emptyReader')}
           action={canEdit && !offline && available.length > 0 ? t('tools.add') : null} onAction={() => setAdding(true)} guide={canEdit ? 'pm-input-list' : null} />
@@ -91,14 +113,7 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
             const Icon = iconOf(x.id)
             return (
               <li key={x.id}>
-                <button type="button" onClick={() => setOpen(x.id)} style={{ ...card, width: '100%', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', color: 'var(--text)', font: 'inherit', minHeight: '64px' }}>
-                  <Icon size={22} color={colors.accentText} aria-hidden="true" />
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <strong style={{ display: 'block', fontSize: '15px' }}>{t(`tools.name.${x.id}`)}</strong>
-                    <span style={{ fontSize: '13px', color: colors.muted }}>{t(`tools.about.${x.id}`)}</span>
-                  </span>
-                  <ChevronRight size={18} color={colors.muted} aria-hidden="true" />
-                </button>
+                <ToolButton icon={Icon} name={t(`tools.name.${x.id}`)} about={t(`tools.about.${x.id}`)} onClick={() => setOpen(x.id)} />
               </li>
             )
           })}
@@ -127,5 +142,21 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
         </Modal>
       )}
     </div>
+  )
+}
+
+const groupHead = { fontSize: '12px', fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }
+
+function ToolButton({ icon, name, about, onClick }) {
+  const Icon = icon
+  return (
+    <button type="button" onClick={onClick} style={{ ...card, width: '100%', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', color: 'var(--text)', font: 'inherit', minHeight: '64px' }}>
+      <Icon size={22} color={colors.accentText} aria-hidden="true" />
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <strong style={{ display: 'block', fontSize: '15px' }}>{name}</strong>
+        <span style={{ fontSize: '13px', color: colors.muted }}>{about}</span>
+      </span>
+      <ChevronRight size={18} color={colors.muted} aria-hidden="true" />
+    </button>
   )
 }

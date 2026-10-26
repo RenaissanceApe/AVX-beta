@@ -13,6 +13,7 @@ export default {
     'org-admin': { term: 'Administrador', definition: 'Papel na organização que pode fazer tudo: membros, orçamentos, definições e eliminar.', example: 'O dono da empresa.', where: 'Organização → Membros' },
     'org-member': { term: 'Membro', definition: 'Papel na organização que trabalha em eventos, ficheiros e orçamentos, mas não em membros nem definições.', example: 'Um produtor do escritório.', where: 'Organização → Membros' },
     'call-time': { term: 'Hora de chamada', definition: 'A hora a que a pessoa tem de chegar ao evento.', example: 'Chamada às 08:00 no cais de carga.', where: 'Evento → Equipa, folha de serviço' },
+    'timecode': { term: 'Timecode', definition: 'Um relógio em horas:minutos:segundos:frames partilhado por câmaras, mesas e controlo de espetáculo. As notas de ensaio são marcadas sobre ele para que todos falem do mesmo momento.', example: '01:02:15:12 é uma hora, dois minutos, quinze segundos e doze frames.', where: 'Evento → Ferramentas → Notas de ensaio' },
     'booking-times': { term: 'Horas marcadas (turno)', definition: 'As horas para que alguém está marcado. Sem elas, conta como ocupado nos dias inteiros do evento.', example: 'Marcado só das 14:00 às 20:00 no primeiro dia.', where: 'Evento → Equipa → Definir horas' },
     'double-booking': { term: 'Marcação sobreposta', definition: 'Uma pessoa ou equipamento marcado em duas coisas à mesma hora. O AVX avisa, mas não impede.', example: 'A Carla está em dois eventos no sábado à tarde.', where: 'Evento → Equipa, equipamento, calendário' },
     'availability-request': { term: 'Pergunta de disponibilidade', definition: 'Uma pergunta a alguém: está livre nestas datas? A pessoa responde sim ou não no telemóvel.', example: '"Pode fazer 13–14 de novembro?" → "Disponível, a partir das 10:00".', where: 'Evento → Equipa, O meu trabalho → Pedidos, mensagens' },
@@ -211,6 +212,20 @@ export default {
         'O seu preço por dia só vai para essa empresa, nunca para o perfil. "As minhas candidaturas" mostra o ponto de cada uma; pode retirar enquanto estiver aberta.',
         'Se nada aparece "Para si", alargue a distância ou acrescente funções no seu perfil profissional.',
         'As vagas novas que lhe servem também chegam como notificação (no máximo 10 por dia). Não as quer? Desmarque "Avisar-me de novos trabalhos que me servem" no seu perfil profissional.',
+      ],
+    },
+    'crew-rehearsal': {
+      title: 'Tirar notas durante um ensaio',
+      intro: 'Toda a gente no evento escreve notas ao mesmo tempo, sobre o mesmo timecode. No fim, cada departamento tem a sua lista.',
+      steps: [
+        'Abra o evento → Ferramentas → Notas de ensaio. Quem começa a passagem toca em "Nova sessão", dá-lhe um nome e escolhe a frame rate e o relógio (hora do dia ou cronómetro).',
+        'Toda a gente vê o mesmo timecode. Quando algo acontece, toque em Marcar: a hora fica registada nesse instante. Escolha o departamento e a prioridade, junte a cue ou a música, escreva ou dite a nota, junte uma foto se ajudar, e guarde.',
+        'As notas aparecem para todos à medida que são escritas. Mostre só um departamento, as suas ("Minhas") ou as que estão em aberto, e marque uma nota quando estiver feita.',
+        'Depois da passagem, Relatório imprime as notas por departamento e CSV abre numa folha de cálculo. As notas em aberto voltam a aparecer na sessão seguinte.',
+      ],
+      mistakes: [
+        'O relógio é partilhado: se alguém o acertar pelo timecode do espetáculo, o de toda a gente acompanha. Acerte-o pelo timecode que o espetáculo realmente usa.',
+        'Sem ligação? As notas ficam no telemóvel e são enviadas quando voltar a ter rede; as fotos precisam de ligação.',
       ],
     },
     'crew-trust': {

@@ -42,6 +42,7 @@ const StagePlotPage = lazy(() => import('./pages/StagePlotPage'))
 const PatchSheetPage = lazy(() => import('./pages/PatchSheetPage'))
 const LightPlotPage = lazy(() => import('./pages/LightPlotPage'))
 const SystemCalcPage = lazy(() => import('./pages/SystemCalcPage'))
+const RehearsalReportPage = lazy(() => import('./pages/RehearsalReportPage'))
 // Public: the page a client opens from a quote link (no account)
 const MessagesPage = lazy(() => import('./pages/MessagesPage'))
 const QuotePublicPage = lazy(() => import('./pages/QuotePublicPage'))
@@ -131,6 +132,7 @@ function AppRoutes() {
       <Route path="/gig/:id/dmx" element={<ProtectedRoute><Suspense fallback={<Spinner />}><PatchSheetPage kind="dmx" /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/lights" element={<ProtectedRoute><Suspense fallback={<Spinner />}><LightPlotPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/system" element={<ProtectedRoute><Suspense fallback={<Spinner />}><SystemCalcPage /></Suspense></ProtectedRoute>} />
+      <Route path="/gig/:id/rehearsal/:session" element={<ProtectedRoute><Suspense fallback={<Spinner />}><RehearsalReportPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/callsheet" element={<ProtectedRoute><CallSheetPage /></ProtectedRoute>} />
       <Route path="/org/:orgId/quotes" element={<ProtectedRoute><Suspense fallback={<Spinner />}><QuotesPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/contacts" element={<ProtectedRoute><Suspense fallback={<Spinner />}><ContactsPage /></Suspense></ProtectedRoute>} />

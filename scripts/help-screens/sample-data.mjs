@@ -203,6 +203,12 @@ export function sampleData(persona, lang) {
       crew_unavailability: persona === 'pm' ? [] : [{ id: 'u1', user_id: carla, start_date: day(50), end_date: day(57), note: w.holiday, created_at: ago(100) }],
       notifications: persona === 'pm' ? [] : [{ id: 1, user_id: carla, org_id: orgId, gig_id: gigId, actor_id: ricardo, kind: 'availability_request', details: { gig_name: gig.name, from: `${day(24)}T00:00:00Z`, until: `${day(26)}T00:00:00Z` }, read_at: null, created_at: ago(3) }],
       gig_equipment: gear,
+      rehearsal_sessions: [{ id: 'rs1', gig_id: gigId, name: tx('Passagem 2', 'Run-through 2'), fps: 25, frame_count: 'ndf', clock: 'stopwatch', running: true, anchor_at: ago(0.4), anchor_ms: 0, clock_set_by: ricardo, created_by: ricardo, created_at: ago(13), ended_at: null, removed_at: null }],
+      rehearsal_notes: [
+        { id: 'rn1', session_id: 'rs1', gig_id: gigId, client_id: 'c1', author_id: ricardo, tc_ms: 95000, department: 'lighting', priority: 'fix', cue: 'Q14', body: tx('Seguidor atrasado na entrada do coro', 'Follow spot late on the chorus entrance'), assignee_id: carla, status: 'open', created_at: ago(10), removed_at: null },
+        { id: 'rn2', session_id: 'rs1', gig_id: gigId, client_id: 'c2', author_id: carla, tc_ms: 212000, department: 'sound', priority: 'urgent', cue: tx('Música 3', 'Song 3'), body: tx('Feedback no monitor 4 no fim do solo', 'Feedback on wedge 4 at the end of the solo'), assignee_id: null, status: 'open', created_at: ago(7), removed_at: null },
+        { id: 'rn3', session_id: 'rs1', gig_id: gigId, client_id: 'c3', author_id: ricardo, tc_ms: 340000, department: 'stage', priority: 'note', cue: null, body: tx('Praticável do baterista 10 cm para a esquerda', 'Move the drum riser 10 cm stage left'), assignee_id: null, status: 'done', done_by: carla, created_at: ago(4), removed_at: null },
+      ],
       gig_tools: [{ gig_id: gigId, tool: 'input_list', created_at: ago(300) }, { gig_id: gigId, tool: 'stage_plot', created_at: ago(310) }, { gig_id: gigId, tool: 'patch', created_at: ago(320) }, { gig_id: gigId, tool: 'dmx_patch', created_at: ago(330) }, { gig_id: gigId, tool: 'light_plot', created_at: ago(340) }, { gig_id: gigId, tool: 'system_calc', created_at: ago(350) }],
       gig_show: [{ gig_id: gigId, stage: { width_m: 10, depth_m: 6 }, audio: { boxes: [{ name: 'SB1', inputs: 8, split: true }, { name: 'SB2', inputs: 4, split: false }] },
         lighting: {

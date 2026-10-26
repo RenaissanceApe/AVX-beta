@@ -14,7 +14,7 @@ export const page = id => content().pages[id] || en.pages[id] || null
 // Terms worth reading for each page (shown under the page note)
 export const PAGE_TERMS = {
   home: ['gig', 'gig-status', 'workspace', 'my-work', 'double-booking', 'offline-copy'],
-  gig: ['pm', 'crew', 'viewer', 'call-time', 'booking-times', 'call-sheet', 'schedule', 'feed', 'files', 'availability-request', 'crew-call', 'field-tools', 'input-list', 'stage-plot', 'dmx-universe', 'truss'],
+  gig: ['pm', 'crew', 'viewer', 'call-time', 'booking-times', 'call-sheet', 'schedule', 'feed', 'files', 'availability-request', 'crew-call', 'field-tools', 'input-list', 'stage-plot', 'dmx-universe', 'truss', 'timecode'],
   messages: ['chat', 'direct-message', 'announcement', 'mute', 'report', 'block', 'push-notifications', 'email-summary'],
   inventory: ['catalogue-item', 'bulk-item', 'serial-item', 'location', 'stock-movement', 'subrental', 'inspection', 'repair'],
   'inventory-item': ['unit', 'set', 'case', 'accessory', 'alternative', 'replacement-value', 'depreciation', 'inspection', 'write-off'],
@@ -47,6 +47,7 @@ export const GUIDES = {
   'crew-call-time': { role: 'crew', pages: ['home', 'gig'], terms: ['call-time', 'schedule', 'call-sheet'], shots: ['gig-list', 'call-time', 'schedule-callsheet', 'call-sheet', 'call-sheet-large'] },
   'crew-calendar': { role: 'crew', pages: ['home'], terms: ['gig', 'call-time'], shots: [null, 'calendar-feed', null] },
   'crew-jobs': { role: 'crew', pages: ['jobs', 'crew-profile'], terms: ['crew-call'], shots: [null, 'jobs-board', null] },
+  'crew-rehearsal': { role: 'crew', pages: ['gig'], terms: ['timecode'], shots: [null, 'rehearsal', null, null] },
   'crew-trust': { role: 'crew', pages: ['crew-profile', 'jobs'], terms: [], shots: [null, null, null] },
   'crew-profile': { role: 'crew', pages: ['crew-profile', 'home'], terms: ['unavailable-dates'], shots: [null, 'crew-profile', null] },
   'crew-unavailable': { role: 'crew', pages: ['home'], terms: ['unavailable-dates', 'double-booking'], shots: ['more-availability', 'unavailable', null] },

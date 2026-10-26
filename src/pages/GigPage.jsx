@@ -78,12 +78,10 @@ export default function GigPage() {
 
   // Simple mode (H4) shows fewer tabs; a link to another tab (from a notification) still opens it
   const { simple } = useSimpleMode()
-  // Tools (FIELD_TOOLS.md, F1): people who only read see the tab once the gig uses a tool
+  // Tools (FIELD_TOOLS.md, F1): who edits the Plan tools. The tab is always there (On site tools)
   const editsTools = !!data?.gig && (data.gig.created_by === user.id || orgRole === 'admin' || orgRole === 'member'
     || (data.members || []).some(m => m.user_id === user.id && m.role === 'pm'))
-  const hideTools = !!data?.gig && !editsTools && !(data.tools || []).length
   const tabs = (simple ? [...SIMPLE_GIG_TABS, ...(GIG_TABS.includes(requestedTab) && !SIMPLE_GIG_TABS.includes(requestedTab) ? [requestedTab] : [])] : GIG_TABS)
-    .filter(key => !(key === 'tools' && hideTools))
   useEffect(() => { if (!tabs.includes(tab)) setTab('overview') }, [tabs.join(), tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Links such as /gig/:id?tab=schedule (from notifications) select a tab
@@ -250,7 +248,9 @@ export default function GigPage() {
         {tab === 'chat' && <ChatTab gigId={id} canPost={isPM || ['pm', 'crew'].includes(myMembership?.role)} />}
         {tab === 'tools' && (
           <ToolsTab gig={gig} tools={tools} canEdit={editsTools} canPlanEquipment={orgRole === 'admin' || orgRole === 'member'}
-            orgTools={orgs.find(o => o.id === gig.org_id)?.field_tools} offline={!!savedAt} onChanged={reload} />
+            orgTools={orgs.find(o => o.id === gig.org_id)?.field_tools} offline={!!savedAt} onChanged={reload}
+            members={members} nameOf={nameOf} userId={user.id} canManage={editsTools}
+            canNote={editsTools || ['pm', 'crew'].includes(myMembership?.role)} />
         )}
         {tab === 'updates' && (
           <UpdatesTab view={updatesView} setView={setUpdatesView}
