@@ -1,6 +1,6 @@
 # Crew network and job board (Phase 7)
 
-Status: **N1–N4 built** (crew profiles 0.48.0, crew search 0.49.0, job board 0.50.0, trust 0.51.0). Next: N5 (notifications and polish). Decisions taken 2026-10-21 (below).
+Status: **N1–N5 built** (crew profiles 0.48.0, crew search 0.49.0, job board 0.50.0, trust 0.51.0, alerts and saved searches 0.53.0). The crew network is complete. Decisions taken 2026-10-21 (below).
 
 The aim: a production company that needs a lighting tech in Porto next Saturday can find one, and
 a freelancer can find work, without leaving AVX and without anyone's details being exposed to
@@ -160,4 +160,14 @@ Checks: `supabase/tests/job_board.sql`; the form and pay wording in `src/lib/job
 | Files from strangers | The message guard refuses files in a direct conversation when the two share no gig or organisation and the other person hasn't written in it yet |
 
 Checks: `supabase/tests/crew_trust.sql`; `src/lib/trust.test.js` (VAT numbers, VIES answers, certificate marks).
+
+## How N5 works (0.53.0)
+
+| Piece | How it works |
+|---|---|
+| Job alerts | `crew_profiles.job_alerts` (default on). The `job_posts_alert` trigger (after insert) adds a `job_match` notification for each switched-on, unsuspended profile that fits (`private.job_fits_profile`: function and travel range, as `list_jobs` "For you"), leaving out the organisation's members, people on the gig, the poster, and blocks either way; at most 10 a day per person. Details: post id, title, organisation name, place, dates (no gig name). Push and the e-mail summary word it from `_shared/notification-text.ts`; it links to `/jobs` |
+| Saved searches | `crew_saved_searches` (org, name 1–80, filters jsonb ≤ 4 kB, alert, `removed_at`). Admins and members (`can_quote`) read and save; only name, filters, alert and `removed_at` can change; removing only marks it (removed ones can't be brought back). 30 per organisation. The app saves the Find crew filters `fn`, `text`, `language`, `certificate`, `place`, `km` (`toSaved` / `fromSaved` in `src/lib/crewSearch.js`) |
+| Search alerts | The `crew_profiles_alert` trigger runs when a profile becomes switched on (or is shown again after a pause), not on edits. For each saved search with the alert on whose saver is still an admin or member, may see the profile (`can_see_crew_profile`) and whose filters it fits (`private.profile_fits_search`: function, language, a valid certificate, words, place within the search distance or the person's own range), a `crew_match` notification goes to the saver (at most 5 a day per search). It opens `/org/:org/crew?search=<id>`, which runs that search |
+
+Checks: `supabase/tests/crew_alerts.sql`; `src/lib/crewSearch.test.js` (saved filters).
 

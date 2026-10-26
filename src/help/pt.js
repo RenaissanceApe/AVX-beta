@@ -210,6 +210,7 @@ export default {
       mistakes: [
         'O seu preço por dia só vai para essa empresa, nunca para o perfil. "As minhas candidaturas" mostra o ponto de cada uma; pode retirar enquanto estiver aberta.',
         'Se nada aparece "Para si", alargue a distância ou acrescente funções no seu perfil profissional.',
+        'As vagas novas que lhe servem também chegam como notificação (no máximo 10 por dia). Não as quer? Desmarque "Avisar-me de novos trabalhos que me servem" no seu perfil profissional.',
       ],
     },
     'crew-trust': {
@@ -353,6 +354,7 @@ export default {
       mistakes: [
         'Os perfis não têm preços: combine o valor nas mensagens. O e-mail e o telefone só são partilhados quando a pessoa entra no evento.',
         'As pesquisas e os primeiros contactos têm um limite diário para evitar abusos. As pessoas com quem já trabalhou continuam fáceis de chamar no formulário de convite do evento.',
+        'Procura muitas vezes o mesmo tipo de pessoa? Toque em "Guardar esta pesquisa" e mantenha o alerta ativo: é avisado quando alguém que se ajusta ativa o perfil. As pesquisas guardadas aparecem acima do formulário para toda a organização.',
       ],
     },
     'pm-invite-crew': {

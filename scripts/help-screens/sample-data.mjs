@@ -267,6 +267,10 @@ export function sampleData(persona, lang) {
         functions: ['foh_engineer', 'monitor_engineer', 'system_tech'], other_functions: null, bio: null, base_place: 'Lisboa, Portugal', base_country: 'PT', base_lat: 38.72, base_lng: -9.14,
         travel_scope: 'europe', travel_km: null, languages: ['en', 'es', 'pt'], experience_years: 12, links: ['https://example.com/carla'],
         certificates: [{ name: 'IPAF 3a', issuer: 'IPAF', expires_on: '2027-05-01' }, { name: tx('Primeiros socorros', 'First aid'), expires_on: '2026-03-01' }] }],
+      crew_saved_searches: persona === 'pm' ? [
+        { id: 'ss1', org_id: orgId, name: tx('Riggers perto do Porto', 'Riggers near Porto'), filters: { fn: 'rigger', km: 50, place: { label: 'Porto, Portugal', place: 'Porto, Portugal', country: 'PT', lat: 41.15, lng: -8.61 } }, alert: true, created_at: ago(900), removed_at: null },
+        { id: 'ss2', org_id: orgId, name: tx('Luz com grandMA3', 'Lighting, grandMA3'), filters: { fn: 'lighting_op', text: 'grandMA3' }, alert: false, created_at: ago(500), removed_at: null },
+      ] : [],
       job_posts: persona === 'pm' ? [
         { id: 'jpo1', org_id: orgId, gig_id: gigId, title: 'Rigger', function_key: 'rigger', quantity: 2, starts_on: day(24), ends_on: day(25), place: 'Lisboa, Portugal', country: 'PT',
           languages: ['pt'], certificate: 'IPAF 3a', description: null, pay_mode: 'ask_rate', pay_amount: null, pay_max: null, pay_per: 'day', currency: 'EUR', status: 'open', created_at: ago(30), gigs: { name: 'Marcolino — Natal' } },

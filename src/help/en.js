@@ -213,6 +213,7 @@ export default {
       mistakes: [
         'Your day rate goes only to that company, never on your profile. "My applications" shows where each one stands; you can withdraw while it\'s open.',
         'If nothing shows "For you", widen your travel range or add functions in your crew profile.',
+        'New jobs that fit you also arrive as a notification (at most 10 a day). Don\'t want them? Untick "Tell me about new jobs that fit me" in your crew profile.',
       ],
     },
     'crew-trust': {
@@ -356,6 +357,7 @@ export default {
       mistakes: [
         'Rates aren\'t on profiles: agree the fee in the messages. Their e-mail and phone are shared only once they join your gig.',
         'Searches and first contacts are limited each day to stop misuse. People you\'ve worked with before are always easy to reach from the gig\'s invite form.',
+        'Looking for the same kind of person often? Tap "Save this search" and keep its alert on: you\'re told when someone who fits switches on their profile. Saved searches show above the form for everyone in the organisation.',
       ],
     },
     'pm-invite-crew': {

@@ -33,6 +33,8 @@ describe('crew profile', () => {
     })
     expect(row.certificates[0]).not.toHaveProperty('verified')
     expect(toRow({}).row.contact_from).toBe('any')
+    expect(toRow({}).row.job_alerts).toBe(true)
+    expect(toRow({ job_alerts: false }).row.job_alerts).toBe(false)
     expect(toRow({ links: ['javascript:x'] }).errors).toEqual(['links'])
     expect(toRow({ experience_years: 99 }).errors).toEqual(['experience'])
     expect(toRow({ visibility: 'public' }).row.visibility).toBe('companies')

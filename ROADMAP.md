@@ -185,13 +185,13 @@ export. File import only, no live integration. Stages S1–S5 in [docs/SWITCHING
 made for this) → crew network and job board. Final testing happens once, at the end, from
 [docs/PENDING.md](docs/PENDING.md).
 
-## Phase 7 — Crew network and job board (in progress)
+## Phase 7 — Crew network and job board (built)
 
 Opt-in freelancer profiles (functions, region, languages, certificates) and open positions posted
 by companies to that pool, with the availability check built in; applications become conversations.
 **International from the start.** **Day rates are shared only when a freelancer applies**, never
 shown on a profile. Needs opt-in, abuse protection, reporting and ideally verified profiles; the
-privacy notice and terms need a full section on it. Plan and decisions (2026-10-21) in [docs/CREW_NETWORK.md](docs/CREW_NETWORK.md), stages N1–N5. **N1 built (0.48.0):** opt-in crew profiles; each person chooses who sees theirs (companies only, or companies and crew). **N2 built (0.49.0):** Find crew: search by function, place, dates and language, then ask about a gig or offer a place. **N3 built (0.50.0):** the job board: companies post positions (two-step sign-in, 3 open posts until verified), freelancers apply with their rate, applications become conversations, offers become crew calls. **N4 built (0.51.0):** trust: verified companies (VIES or a manual check by AVX), certificates confirmed by companies or checked from a proof, reports on profiles and job posts with automatic pauses, contact settings, and an AVX reviews page. Next: N5 notifications and polish.
+privacy notice and terms need a full section on it. Plan and decisions (2026-10-21) in [docs/CREW_NETWORK.md](docs/CREW_NETWORK.md), stages N1–N5. **N1 built (0.48.0):** opt-in crew profiles; each person chooses who sees theirs (companies only, or companies and crew). **N2 built (0.49.0):** Find crew: search by function, place, dates and language, then ask about a gig or offer a place. **N3 built (0.50.0):** the job board: companies post positions (two-step sign-in, 3 open posts until verified), freelancers apply with their rate, applications become conversations, offers become crew calls. **N4 built (0.51.0):** trust: verified companies (VIES or a manual check by AVX), certificates confirmed by companies or checked from a proof, reports on profiles and job posts with automatic pauses, contact settings, and an AVX reviews page. **N5 built (0.53.0):** job alerts for freelancers and saved crew searches with alerts for companies. The crew network is complete.
 
 ## End of the build
 

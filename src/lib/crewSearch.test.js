@@ -28,3 +28,13 @@ describe('crew search', () => {
     expect(crewError({ message: 'boom' })).toBeNull()
   })
 })
+
+describe('saved searches', () => {
+  it('keeps the filters but not the dates, and puts them back', async () => {
+    const { toSaved, fromSaved } = await import('./crewSearch')
+    const saved = toSaved({ ...EMPTY_FILTERS, fn: 'rigger', km: 50, place: { label: 'Porto', lat: 41.15, lng: -8.61, country: 'PT' }, from: '2026-11-01', onlyFree: true })
+    expect(saved).toEqual({ fn: 'rigger', km: 50, place: { label: 'Porto', lat: 41.15, lng: -8.61, country: 'PT' } })
+    const back = fromSaved(saved, { ...EMPTY_FILTERS, from: '2026-12-01', to: '2026-12-02', text: 'old' })
+    expect(back).toMatchObject({ fn: 'rigger', km: 50, text: '', from: '2026-12-01', to: '2026-12-02' })
+  })
+})

@@ -7,7 +7,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { FUNCTIONS, LANGUAGES, languageName } from '../lib/crewProfile'
-import { RADII, EMPTY_FILTERS, searchArgs, gigFilters, crewError } from '../lib/crewSearch'
+import { RADII, EMPTY_FILTERS, searchArgs, gigFilters, crewError, fromSaved } from '../lib/crewSearch'
 import { useI18n } from '../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
@@ -15,6 +15,7 @@ import { PageHelp } from '../components/help/HelpParts'
 import CrewProfileCard from '../components/CrewProfileCard'
 import PlaceFinder from '../components/PlaceFinder'
 import ReportModal from '../components/ReportModal'
+import SavedCrewSearches from '../components/SavedCrewSearches'
 import { trustError } from '../lib/trust'
 
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
@@ -72,10 +73,10 @@ export default function CrewSearchPage() {
 
   const set = patch => setFilters(f => ({ ...f, ...patch }))
 
-  async function search(e, offset = 0) {
+  async function search(e, offset = 0, f = filters) {
     e?.preventDefault()
     setSearching(true)
-    const { data, error } = await supabase.rpc('search_crew', searchArgs(orgId, filters, offset))
+    const { data, error } = await supabase.rpc('search_crew', searchArgs(orgId, f, offset))
     setSearching(false)
     if (error) {
       logger.error('crewSearch', error, { step: 'search' })
@@ -84,6 +85,13 @@ export default function CrewSearchPage() {
     }
     setResult(r => offset && r ? { ...data, results: [...r.results, ...data.results] } : data)
     track('crew:search')
+  }
+
+  // A saved search: its filters (keeping the dates chosen), then search
+  function applySaved(saved) {
+    const next = fromSaved(saved.filters, filters)
+    setFilters(next)
+    search(null, 0, next)
   }
 
   if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
@@ -108,6 +116,7 @@ export default function CrewSearchPage() {
           <p style={{ ...hint, fontSize: '13px', marginTop: '4px' }}>{t('crewSearch.intro')}</p>
         </div>
 
+        <SavedCrewSearches orgId={orgId} filters={filters} onApply={applySaved} openId={params.get('search')} />
         <form onSubmit={search} noValidate style={{ ...card, padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }} aria-label={t('crewSearch.filters')}>
           <div>
             <label style={label} htmlFor="cs-gig">{t('crewSearch.forGig')}</label>
