@@ -356,6 +356,13 @@ const SCENES = {
     await first.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
     return first
   } },
+  'org-verify': { persona: 'pm', url: `/org/${ids.org}?panel=settings`, async run(page) {
+    const box = page.locator('section[aria-labelledby="org-verify-title"]')
+    await box.waitFor()
+    await page.locator('#vies-number').fill('500 000 000')
+    await box.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
+    return box
+  } },
   'crew-search': { persona: 'pm', url: `/org/${ids.org}/crew?gig=${ids.gig}`, async run(page, L) {
     await page.getByRole('button', { name: L('crewSearch.search'), exact: true }).click()
     const first = page.locator('#cs-results').locator('xpath=following-sibling::div[1]/div[1]')

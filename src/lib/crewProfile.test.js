@@ -22,14 +22,17 @@ describe('crew profile', () => {
       enabled: true, visibility: 'crew', headline: '  Lighting op  ', functions: ['rigger', 'rigger', 'astronaut', FUNCTIONS[0]],
       base_place: 'Porto, Portugal', base_country: 'PT', base_lat: 41.15, base_lng: -8.61, travel_scope: 'km', travel_km: 250,
       languages: ['pt', 'en', 'pt', 'EN'], experience_years: '12', links: ['example.com', ''],
-      certificates: [{ name: ' IPAF 3a ', issuer: '', expires_on: '2027-05-01' }, { name: '' }],
+      certificates: [{ id: 'c1', name: ' IPAF 3a ', issuer: '', expires_on: '2027-05-01', verified: true }, { name: '' }],
+      contact_from: 'known',
     })
     expect(errors).toEqual([])
     expect(row).toMatchObject({
       enabled: true, visibility: 'crew', headline: 'Lighting op', functions: ['rigger', FUNCTIONS[0]], travel_scope: 'km', travel_km: 250,
       languages: ['pt', 'en'], experience_years: 12, links: ['https://example.com'],
-      certificates: [{ name: 'IPAF 3a', issuer: undefined, expires_on: '2027-05-01' }],
+      certificates: [{ id: 'c1', name: 'IPAF 3a', issuer: undefined, expires_on: '2027-05-01' }], contact_from: 'known',
     })
+    expect(row.certificates[0]).not.toHaveProperty('verified')
+    expect(toRow({}).row.contact_from).toBe('any')
     expect(toRow({ links: ['javascript:x'] }).errors).toEqual(['links'])
     expect(toRow({ experience_years: 99 }).errors).toEqual(['experience'])
     expect(toRow({ visibility: 'public' }).row.visibility).toBe('companies')

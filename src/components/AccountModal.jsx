@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { X, Loader2, LogOut, CheckCircle, Download, Trash2, Contact } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { X, Loader2, LogOut, CheckCircle, Download, Trash2, Contact, ShieldCheck } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { removeGigFiles } from '../lib/storage'
 import PushSettings from './PushSettings'
@@ -29,6 +29,11 @@ export default function AccountModal({ onClose }) {
   const [exporting, setExporting] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const navigate = useNavigate()
+  // AVX admins (docs/CREW_NETWORK.md, N4): how many reviews wait; null for everyone else
+  const [queue, setQueue] = useState(null)
+  useEffect(() => {
+    supabase.rpc('trust_queue_count').then(({ data, error }) => { if (!error) setQueue(data ?? null) })
+  }, [])
   const { t, lang, setLang } = useI18n()
 
   async function saveName(e) {
@@ -229,6 +234,14 @@ export default function AccountModal({ onClose }) {
           <p style={{ color: 'var(--muted)', fontSize: '12px', lineHeight: 1.5, marginBottom: '10px' }}>{t('crewProfile.accountHint')}</p>
           <button type="button" aria-describedby="account-crew-profile" onClick={() => { onClose(); navigate('/me/profile') }} style={smallBtn}><Contact size={14} /> {t('crewProfile.open')}</button>
         </div>
+
+        {queue != null && (
+          <div style={section}>
+            <span style={label} id="account-trust">{t('trust.admin.title')}</span>
+            <p style={{ color: 'var(--muted)', fontSize: '12px', lineHeight: 1.5, marginBottom: '10px' }}>{t('trust.admin.accountHint', { count: queue })}</p>
+            <button type="button" aria-describedby="account-trust" onClick={() => { onClose(); navigate('/admin/trust') }} style={smallBtn}><ShieldCheck size={14} /> {t('trust.admin.open')}</button>
+          </div>
+        )}
 
         <div style={section}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}><span style={{ ...label, marginBottom: 0 }} id="account-findable">{t('account.findable')}</span><Hint id="findable" label={t('account.findable')} /></div>

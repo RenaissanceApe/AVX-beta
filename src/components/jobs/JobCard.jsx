@@ -21,7 +21,8 @@ export default function JobCard({ job: j, children }) {
       </div>
       {j.org_name && (
         <div style={row}><Building2 size={14} style={icon} aria-hidden="true" />
-          <span>{j.org_name}{j.verified && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginLeft: '6px', color: 'var(--sky)', fontWeight: 600 }}><BadgeCheck size={13} aria-hidden="true" /> {t('jobs.verified')}</span>}</span></div>
+          <span>{j.org_name}{j.verified && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginLeft: '6px', color: 'var(--sky)', fontWeight: 600 }}><BadgeCheck size={13} aria-hidden="true" /> {t('jobs.verified')}</span>}
+            {j.verified && j.verified_name && j.verified_name !== j.org_name && <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{t('trust.verify.registeredAs', { name: j.verified_name })}</span>}</span></div>
       )}
       <div style={row}><CalendarDays size={14} style={icon} aria-hidden="true" /><span>{dates}</span></div>
       {j.place && <div style={row}><MapPin size={14} style={icon} aria-hidden="true" /><span>{j.place}{j.km != null && <> · {t('crewSearch.kmAway', { km: j.km })}</>}</span></div>}

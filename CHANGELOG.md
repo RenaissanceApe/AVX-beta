@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.51.0 — Crew network N4: trust
+
+### Added
+- **Verified companies** (organisation settings → Verification, admins): in the EU, check the
+  VAT number with the EU's VIES service (the new `vies-check` function); a valid number verifies
+  the company at once and the name VIES holds shows next to the badge on its job posts. Outside the
+  EU, or when VIES can't confirm, ask AVX for a manual check. Verified companies have no limit of
+  3 open job posts.
+- **Certificates you can trust**: certificates now have an id. A company that has had the person on
+  one of its gigs can confirm a certificate (Find crew and Job posts → Applicants); the person can
+  upload a proof (photo or PDF, only AVX sees it) for AVX to check. Profiles show "proof checked by
+  AVX", "confirmed by …" or "self-declared". Editing a certificate's name or expiry drops its marks.
+- **Report** a crew profile (Find crew) or a job post (Jobs): it disappears for the reporter at
+  once, the reporter can also block the person, and AVX reviews it. Three people reporting hide a
+  profile, or pause an organisation's posting, until reviewed. Notices on the profile page and on
+  Job posts say so.
+- **Contact settings** on the crew profile: "Any company that finds you" or "Only companies I've
+  worked with"; Find crew shows it, and contact from others is refused.
+- In a direct conversation between strangers (no shared gig or organisation), files can be sent
+  only once the other person has written.
+- **AVX reviews** (`/admin/trust`, from Account for AVX admins with two-step sign-in): manual
+  company checks, certificate proofs and reports to decide; verifications to revoke; suspensions
+  to undo.
+- Help: "Show your certificates are real, and choose who can contact you" and "Verify your
+  company". The privacy page describes all of it.
+
+### Fixed
+- An organisation admin could mark their own organisation verified by editing it directly (the N3
+  column had no guard; nobody had). `verified_at`, `verified_name`, `verified_method` and
+  `posting_suspended_at` are now set only by the database's own functions.
+
+### Database
+- Migration `20261125000000_crew_trust.sql` (no manual steps): `private.avx_admins`,
+  `org_verifications`, `certificate_confirmations`, `certificate_proofs` (+ private bucket
+  `certificate-proofs`), `network_reports`; `crew_profiles.contact_from` and `suspended_at`;
+  `start_vies_check()`, `record_vies_result()` (service role only), `request_manual_verification()`,
+  `decide_verification()`, `revoke_verification()`, `confirm_certificate()`,
+  `submit_certificate_proof()`, `review_certificate_proof()`, `report_network()`,
+  `decide_network_report()`, `lift_suspension()`, `trust_queue()`, `trust_queue_count()`,
+  `am_avx_admin()`; new versions of `search_crew`, `contact_crew`, `publish_job`, `list_jobs`,
+  `job_applicants`, `can_see_crew_profile` and the message guard. Tests:
+  `supabase/tests/crew_trust.sql`.
+- Edge Function `vies-check` (JWT verification on).
+
 ## 0.50.0 — Crew network N3: the job board
 
 ### Added

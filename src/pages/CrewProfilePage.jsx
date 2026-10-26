@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { Loader2, Plus, X, CheckCircle, MapPin, Eye } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Loader2, Plus, X, CheckCircle, MapPin, Eye, Upload, AlertTriangle } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -7,13 +8,14 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
 import { FUNCTIONS, LANGUAGES, TRAVEL, MAX, travelKey, fromTravelKey, languageName, missing, toRow } from '../lib/crewProfile'
+import { certStatus, proofPath, trustError } from '../lib/trust'
 import { btn, btnPrimary, btnDanger, iconBtn, input, label, card, colors, tint } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import CrewProfileCard from '../components/CrewProfileCard'
 import PlaceFinder from '../components/PlaceFinder'
 
-const EMPTY = { enabled: false, visibility: 'companies', headline: '', functions: [], other_functions: '', bio: '', base_place: null, base_country: null, base_lat: null, base_lng: null, travel_scope: 'km', travel_km: 100, languages: [], experience_years: '', links: ['', '', ''], certificates: [] }
+const EMPTY = { enabled: false, visibility: 'companies', contact_from: 'any', headline: '', functions: [], other_functions: '', bio: '', base_place: null, base_country: null, base_lat: null, base_lng: null, travel_scope: 'km', travel_km: 100, languages: [], experience_years: '', links: ['', '', ''], certificates: [] }
 const section = { ...card, padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 const h2 = { fontSize: '15px', fontWeight: 700 }
@@ -36,14 +38,27 @@ export default function CrewProfilePage() {
   const [saving, setSaving] = useState(false)
   const [addLang, setAddLang] = useState('')
 
-  useEffect(() => {
-    if (!user) return
-    supabase.from('crew_profiles').select('*').eq('user_id', user.id).maybeSingle().then(({ data, error }) => {
-      if (error) logger.error('crewProfile', error, { step: 'load' })
-      const f = fromRow(data)
+  const [proofFor, setProofFor] = useState(null) // certificate id being uploaded
+  const fileRef = useRef(null)
+  const [suspended, setSuspended] = useState(false)
+
+  // certsOnly: refresh the certificates' marks without dropping edits not saved yet
+  const load = useCallback(async ({ certsOnly = false } = {}) => {
+    const { data, error } = await supabase.from('crew_profiles').select('*').eq('user_id', user.id).maybeSingle()
+    if (error) logger.error('crewProfile', error, { step: 'load' })
+    const { suspended_at: sus, ...rest } = data || {}
+    const f = fromRow(data ? rest : null)
+    setSuspended(!!sus)
+    if (certsOnly) {
+      const marks = new Map(f.certificates.map(c => [c.id, c]))
+      const same = (a, b) => a.name === b.name && (a.issuer || '') === (b.issuer || '') && (a.expires_on || '') === (b.expires_on || '')
+      setForm(old => ({ ...old, certificates: old.certificates.map(c => marks.get(c.id) && same(marks.get(c.id), c) ? marks.get(c.id) : c) }))
+      setSaved(old => JSON.stringify({ ...JSON.parse(old || '{}'), certificates: f.certificates }))
+    } else {
       setForm(f); setSaved(JSON.stringify(f))
-    })
+    }
   }, [user])
+  useEffect(() => { if (user) load() }, [user, load])
 
   const set = patch => setForm(f => ({ ...f, ...patch }))
   const toggleFn = key => set({ functions: form.functions.includes(key) ? form.functions.filter(f => f !== key) : [...form.functions, key].slice(0, MAX.functions) })
@@ -56,10 +71,25 @@ export default function CrewProfilePage() {
     const { error } = await supabase.from('crew_profiles').upsert({ user_id: user.id, ...row })
     setSaving(false)
     if (error) { logger.error('crewProfile', error, { step: 'save' }); return notify(userMessage(error), 'error') }
-    const f = fromRow(row)
-    setForm(f); setSaved(JSON.stringify(f))
+    await load() // certificates come back with their ids and marks
     notify(row.enabled ? t('crewProfile.savedOn') : t('crewProfile.savedOff'), 'success')
     track(row.enabled ? 'crewProfile:on' : 'crewProfile:save')
+  }
+
+  // A proof for a saved certificate: the file goes to the private bucket, then AVX checks it
+  async function sendProof(file) {
+    const certId = proofFor
+    setProofFor(null)
+    if (!file || !certId) return
+    if (file.size > 10 * 1024 * 1024) return notify(t('trust.proof.tooBig'), 'error')
+    const path = proofPath(user.id, certId, file.name)
+    const up = await supabase.storage.from('certificate-proofs').upload(path, file, { contentType: file.type || undefined })
+    if (up.error) { logger.error('crewProfile', up.error, { step: 'proofUpload' }); return notify(userMessage(up.error), 'error') }
+    const { error } = await supabase.rpc('submit_certificate_proof', { p_cert: certId, p_path: path })
+    if (error) { logger.error('crewProfile', error, { step: 'proof' }); const k = trustError(error); return notify(k ? t(k) : userMessage(error), 'error') }
+    notify(t('trust.proof.sent'), 'success')
+    track('crewProfile:proof')
+    load({ certsOnly: true })
   }
 
   async function remove() {
@@ -74,6 +104,11 @@ export default function CrewProfilePage() {
   if (!form) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
 
   const changed = JSON.stringify(form) !== saved
+  // A certificate as last saved (proofs and marks belong to that version)
+  const savedCert = c => {
+    const was = JSON.parse(saved || '{}').certificates?.find(x => x.id === c.id)
+    return !!was && was.name === c.name && (was.expires_on || '') === (c.expires_on || '') ? was : null
+  }
   const gaps = missing(form)
   const pressed = on => ({ ...btn, padding: '6px 11px', fontSize: '12px', background: on ? tint(colors.accent, 22) : 'transparent', borderColor: on ? colors.accent : tint(colors.accent, 30) })
   return (
@@ -84,6 +119,12 @@ export default function CrewProfilePage() {
           <PageHelp page="crew-profile" />
         </div>
         <p style={{ ...hint, fontSize: '13px' }}>{t('crewProfile.intro')}</p>
+        {suspended && (
+          <p role="alert" style={{ ...card, padding: '12px 14px', display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '14px', lineHeight: 1.5, borderColor: 'var(--warn)' }}>
+            <AlertTriangle size={16} color="var(--warn)" style={{ flexShrink: 0, marginTop: '3px' }} aria-hidden="true" />
+            <span>{t('trust.profileSuspended')} <Link to="/privacy" style={{ color: colors.accentText }}>{t('trust.privacyLink')}</Link></span>
+          </p>
+        )}
 
         <section style={section} aria-labelledby="cp-show">
           <h2 id="cp-show" style={h2}>{t('crewProfile.showTitle')}</h2>
@@ -100,6 +141,16 @@ export default function CrewProfilePage() {
                 <input type="radio" name="cp-visibility" checked={form.visibility === v} onChange={() => set({ visibility: v })} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
                 <span><span style={{ fontWeight: 600 }}>{t(`crewProfile.vis.${v}`)}</span>
                   <span style={{ display: 'block', ...hint, marginTop: '2px' }}>{t(`crewProfile.visHint.${v}`)}</span></span>
+              </label>
+            ))}
+          </div>
+          <div role="radiogroup" aria-labelledby="cp-contact" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <span id="cp-contact" style={{ ...label, marginBottom: 0 }}>{t('trust.contact.who')}</span>
+            {['any', 'known'].map(v => (
+              <label key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+                <input type="radio" name="cp-contact" checked={(form.contact_from || 'any') === v} onChange={() => set({ contact_from: v })} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
+                <span><span style={{ fontWeight: 600 }}>{t(`trust.contact.${v}`)}</span>
+                  <span style={{ display: 'block', ...hint, marginTop: '2px' }}>{t(`trust.contact.${v}Hint`)}</span></span>
               </label>
             ))}
           </div>
@@ -175,9 +226,13 @@ export default function CrewProfilePage() {
                 <div><label style={label} htmlFor={`cp-iss-${i}`}>{t('crewProfile.certIssuer')}</label><input id={`cp-iss-${i}`} value={c.issuer || ''} onChange={e => upd({ issuer: e.target.value })} maxLength={100} style={input} /></div>
                 <div><label style={label} htmlFor={`cp-exp-${i}`}>{t('crewProfile.certExpires')}</label><input id={`cp-exp-${i}`} type="date" value={c.expires_on || ''} onChange={e => upd({ expires_on: e.target.value || undefined })} style={input} /></div>
                 <button type="button" onClick={() => set({ certificates: form.certificates.filter((_, j) => j !== i) })} aria-label={t('crewProfile.removeCert', { name: c.name || '' })} style={{ ...iconBtn, padding: '10px' }}><X size={16} /></button>
+                {c.id && <CertProof c={c} saved={savedCert(c)} onUpload={() => { setProofFor(c.id); fileRef.current?.click() }} />}
               </div>
             )
           })}
+          <input ref={fileRef} type="file" accept="application/pdf,image/*" hidden aria-hidden="true" tabIndex={-1}
+            onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; sendProof(f) }} />
+          <p style={hint}>{t('trust.proof.hint')}</p>
           {form.certificates.length < MAX.certificates && (
             <div><button type="button" onClick={() => set({ certificates: [...form.certificates, { name: '' }] })} style={btn}><Plus size={14} /> {t('crewProfile.addCert')}</button></div>
           )}
@@ -203,7 +258,7 @@ export default function CrewProfilePage() {
         <section aria-labelledby="cp-preview" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <h2 id="cp-preview" style={{ ...h2, display: 'flex', alignItems: 'center', gap: '6px' }}><Eye size={15} aria-hidden="true" /> {t('crewProfile.preview')}</h2>
           <p style={hint}>{t(`crewProfile.previewHint.${form.visibility}`)}</p>
-          <CrewProfileCard profile={toRow(form).row} name={profile?.full_name} />
+          <CrewProfileCard profile={{ ...toRow(form).row, certificates: form.certificates.filter(c => String(c.name || '').trim()) }} name={profile?.full_name} />
         </section>
 
         <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '16px' }}>
@@ -212,5 +267,28 @@ export default function CrewProfilePage() {
         </div>
       </form>
     </AppShell>
+  )
+}
+
+// Under a saved certificate: how it stands, and a button to send a proof to AVX
+function CertProof({ c, saved, onUpload }) {
+  const { t } = useI18n()
+  const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+  if (!saved) return <p style={{ ...hint, gridColumn: '1 / -1' }}>{t('trust.proof.saveFirst')}</p>
+  const status = certStatus(saved)
+  return (
+    <div style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+      <span style={{ ...hint, color: status === 'self' ? colors.muted : colors.accentText, fontWeight: status === 'self' ? 400 : 600 }}>
+        {status === 'verified' ? t('trust.cert.verified')
+          : status === 'confirmed' ? t('trust.cert.confirmedBy', { names: saved.confirmed_by.map(x => x.name).join(', ') })
+          : t('crewProfile.selfDeclared')}
+        {saved.proof_pending && <> · {t('trust.proof.pending')}</>}
+      </span>
+      {status !== 'verified' && (
+        <button type="button" onClick={onUpload} style={{ ...btn, padding: '5px 10px', fontSize: '12px' }} aria-label={t(saved.proof_pending ? 'trust.proof.replaceNamed' : 'trust.proof.uploadNamed', { name: c.name })}>
+          <Upload size={13} /> {saved.proof_pending ? t('trust.proof.replace') : t('trust.proof.upload')}
+        </button>
+      )}
+    </div>
   )
 }

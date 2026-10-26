@@ -127,7 +127,7 @@ begin
   perform set_config('request.jwt.claims', c_aal2, true);
   set local role authenticated;
   res := job_applicants(p_light);
-  if jsonb_array_length(res) <> 1 or res->0->>'status' <> 'declined' or res->0->'profile'->>'base_place' <> 'Braga, Portugal' then raise exception 'CHECK FAILED: applicants %', res; end if;
+  if jsonb_array_length(res) <> 1 or res->0->>'status' <> 'declined' or res->0->'profile'->>'base_place' <> 'Braga, Portugal' or res->0 ? 'worked_with' is not true then raise exception 'CHECK FAILED: applicants %', res; end if;
   reset role;
 
   -- Signed out

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, Send, Contact, MessageCircle } from 'lucide-react'
+import { Loader2, Send, Contact, MessageCircle, Flag } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
@@ -11,6 +11,7 @@ import { Modal, btn, btnPrimary, input, label, card, colors, tint } from '../com
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import JobCard from '../components/jobs/JobCard'
+import ReportModal from '../components/ReportModal'
 
 const TABS = ['forYou', 'all', 'mine']
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
@@ -27,6 +28,7 @@ export default function JobsPage() {
   const [mine, setMine] = useState(null)
   const [loading, setLoading] = useState(false)
   const [applying, setApplying] = useState(null)
+  const [reporting, setReporting] = useState(null)
 
   const loadBoard = useCallback(async (offset = 0) => {
     setLoading(true)
@@ -85,6 +87,10 @@ export default function JobsPage() {
                     ) : (
                       <button type="button" onClick={() => setApplying(j)} style={btnPrimary} aria-label={t('jobs.applyFor', { title: j.title })}><Send size={14} /> {t('jobs.apply')}</button>
                     )}
+                    <button type="button" onClick={() => setReporting(j)} aria-label={t('trust.report.jobNamed', { title: j.title })}
+                      style={{ background: 'none', border: 'none', padding: 0, marginLeft: '12px', font: 'inherit', fontSize: '12px', color: colors.muted, cursor: 'pointer', display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+                      <Flag size={12} aria-hidden="true" /> {t('trust.report.action')}
+                    </button>
                   </div>
                 </JobCard>
               ))}
@@ -115,6 +121,10 @@ export default function JobsPage() {
           </ul>
         ))}
       </div>
+      {reporting && (
+        <ReportModal kind="job" target={reporting.id} name={reporting.title} onClose={() => setReporting(null)}
+          onReported={() => { setBoard(b => ({ ...b, total: b.total - 1, results: b.results.filter(x => x.id !== reporting.id) })); setReporting(null) }} />
+      )}
       {applying && <ApplyModal job={applying} onClose={() => setApplying(null)} onApplied={() => { setApplying(null); loadBoard() }} />}
     </AppShell>
   )

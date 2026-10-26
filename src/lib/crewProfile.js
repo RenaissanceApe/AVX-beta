@@ -60,7 +60,7 @@ export function toRow(p) {
   const cleaned = links.map(cleanLink)
   if (cleaned.some(l => !l)) errors.push('links')
   const certificates = (p.certificates || [])
-    .map(c => ({ name: String(c.name || '').trim(), issuer: String(c.issuer || '').trim() || undefined, expires_on: c.expires_on || undefined }))
+    .map(c => ({ id: c.id || undefined, name: String(c.name || '').trim(), issuer: String(c.issuer || '').trim() || undefined, expires_on: c.expires_on || undefined }))
     .filter(c => c.name)
   const years = p.experience_years === '' || p.experience_years == null ? null : Math.round(Number(p.experience_years))
   if (years != null && !(years >= 0 && years <= 70)) errors.push('experience')
@@ -68,6 +68,7 @@ export function toRow(p) {
   const row = {
     enabled: !!p.enabled,
     visibility: p.visibility === 'crew' ? 'crew' : 'companies',
+    contact_from: p.contact_from === 'known' ? 'known' : 'any',
     headline: (p.headline || '').trim().slice(0, MAX.headline) || null,
     functions: [...new Set((p.functions || []).filter(f => FUNCTIONS.includes(f)))].slice(0, MAX.functions),
     other_functions: (p.other_functions || '').trim().slice(0, MAX.other) || null,

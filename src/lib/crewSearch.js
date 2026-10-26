@@ -38,6 +38,7 @@ export function crewError(error) {
   if (/Already asked/i.test(m)) return 'crewSearch.err.alreadyAsked'
   if (/Already on this gig/i.test(m)) return 'crewSearch.err.alreadyOn'
   if (/Nobody to invite/i.test(m)) return 'crewSearch.err.cantReach'
+  if (/Only takes contact/i.test(m)) return 'trust.err.onlyKnown'
   if (error?.code === '42501' || /Not allowed/i.test(m)) return 'crewSearch.err.notAllowed'
   return null
 }

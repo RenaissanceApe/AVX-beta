@@ -212,6 +212,19 @@ export default {
         'Se nada aparece "Para si", alargue a distância ou acrescente funções no seu perfil profissional.',
       ],
     },
+    'crew-trust': {
+      title: 'Mostre que os seus certificados são reais e escolha quem o contacta',
+      intro: 'As empresas confiam mais num certificado que alguém verificou. E é o próprio que decide que empresas o podem contactar.',
+      steps: [
+        'No seu perfil profissional, guarde os certificados. Por baixo de cada um, "Carregar comprovativo" envia uma foto ou PDF à AVX; depois de verificado, as empresas veem "comprovativo verificado pela AVX". Só a AVX vê o ficheiro.',
+        'Uma empresa que já o teve num dos seus eventos também pode confirmar um certificado: passa a mostrar "confirmado por" essa empresa.',
+        'Em "Quem o pode contactar sobre trabalho", escolha "Só empresas com quem já trabalhei" se não quer que empresas novas lhe escrevam. Pode continuar a candidatar-se às vagas delas.',
+      ],
+      mistakes: [
+        'Mudar o nome ou a validade de um certificado retira as confirmações e verificações: eram para o certificado como estava.',
+        'Viu um perfil falso ou uma vaga duvidosa? Toque em Denunciar por baixo. Deixa de a ver de imediato e a AVX analisa; ninguém sabe quem denunciou.',
+      ],
+    },
     'crew-profile': {
       title: 'Seja encontrado para trabalhar com o seu perfil profissional',
       intro: 'As empresas no AVX podem encontrá-lo pelo que faz, onde está e as línguas que fala. Fica desligado até o ligar.',
@@ -326,7 +339,7 @@ export default {
       ],
       mistakes: [
         'A vaga não mostra o nome do evento nem o cliente, só a vossa organização, as datas e a localidade. Feche-a se os planos mudarem.',
-        'Enquanto a organização não estiver verificada, pode ter 3 vagas abertas de cada vez.',
+        'Enquanto a organização não estiver verificada, pode ter 3 vagas abertas de cada vez. Um administrador verifica-a nas definições da organização → Verificação.',
       ],
     },
     'pm-find-crew': {
@@ -739,6 +752,19 @@ export default {
       mistakes: [
         'Um leitor vê todos os eventos da empresa. Para um freelancer que só contrata de vez em quando, descarte a importação e adicione-o a um evento por e-mail.',
         'Quem já é membro ou já foi convidado fica de fora. Um convite que não pôde ser enviado fica na lista para tentar de novo.',
+      ],
+    },
+    'ad-verify-company': {
+      title: 'Verificar a sua empresa',
+      intro: 'Uma empresa verificada tem um selo nas suas vagas, para que os freelancers saibam que é real, e pode ter mais de 3 abertas ao mesmo tempo.',
+      steps: [
+        'Abra as definições da organização (só administradores) e procure Verificação.',
+        'Na UE: escolha o país, escreva o número de IVA e toque em "Validar no VIES". O serviço da UE responde de imediato; se o número for válido, a empresa fica logo verificada, com o nome que o VIES tem junto ao selo.',
+        'Fora da UE, ou se o VIES não confirmar: escreva como a AVX pode verificar a empresa (número de registo, site) e envie. A resposta aparece no mesmo sítio.',
+      ],
+      mistakes: [
+        'Às vezes o VIES não responde durante algum tempo. Tente mais tarde; pode validar 5 vezes por dia.',
+        'Se várias pessoas denunciarem as suas vagas, as publicações ficam em pausa até a AVX analisar; entretanto as vagas ficam ocultas.',
       ],
     },
     'ad-org-export': {

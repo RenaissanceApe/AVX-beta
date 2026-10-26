@@ -40,6 +40,7 @@ begin
   select count(*) into n from jsonb_array_elements(res->'results') r where (r->>'user_id')::uuid in (f1, f4);
   if (res->>'total')::int <> 2 or n <> 2 then raise exception 'CHECK FAILED: riggers near Porto %', res; end if;
   if (res->'results'->0) ? 'base_lat' then raise exception 'CHECK FAILED: coordinates returned'; end if;
+  if res->'results'->0->>'contact_from' <> 'any' then raise exception 'CHECK FAILED: contact setting in results'; end if;
   -- Anyone near Porto also finds f2, who travels anywhere, 274 km away
   res := search_crew(org_c, '{}', null, '{}', null, 41.15, -8.61, 50, 'PT');
   select count(*) into n from jsonb_array_elements(res->'results') r where (r->>'user_id')::uuid = f2 and (r->>'km')::int between 260 and 290;
