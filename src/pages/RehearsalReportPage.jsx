@@ -22,7 +22,7 @@ export default function RehearsalReportPage() {
   useEffect(() => {
     Promise.all([
       supabase.from('gigs').select('name, venue, start_date, end_date, organisations(name)').eq('id', id).maybeSingle(),
-      supabase.from('rehearsal_sessions').select('id, name, fps, frame_count, created_at, ended_at').eq('id', sessionId).eq('gig_id', id).maybeSingle(),
+      supabase.from('rehearsal_sessions').select('id, name, fps, frame_count, clock, created_at, ended_at').eq('id', sessionId).eq('gig_id', id).maybeSingle(),
       supabase.from('rehearsal_notes').select('id, tc_ms, department, priority, cue, body, author_id, assignee_id, status, done_by, created_at')
         .eq('session_id', sessionId).is('removed_at', null).order('tc_ms'),
     ]).then(async ([gigRes, sessionRes, notesRes]) => {
@@ -95,7 +95,7 @@ export default function RehearsalReportPage() {
       <article className="sheet">
         <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.1em' }}>{t('rehearsal.reportTitle')}</div>
         <h1>{gig.name} · {session.name}</h1>
-        <div>{[gig.venue, fmt(session.created_at, 'd MMM yyyy, HH:mm'), gig.organisations?.name, `${Number(session.fps)} fps${df ? ' DF' : ''}`].filter(Boolean).join(' · ')}</div>
+        <div>{[gig.venue, fmt(session.created_at, 'd MMM yyyy, HH:mm'), gig.organisations?.name, `${Number(session.fps)} fps${df ? ' DF' : ''}`, session.clock && t(`rehearsal.clock.${session.clock}`)].filter(Boolean).join(' · ')}</div>
         <p className="muted" style={{ marginTop: '6px' }}>{t('rehearsal.reportSummary', { count: notes.length, open })}</p>
         {groups.length === 0 && <p style={{ marginTop: '18px' }}>{t('rehearsal.noNotes')}</p>}
         {groups.map(g => (

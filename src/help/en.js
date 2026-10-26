@@ -227,7 +227,7 @@ export default {
         'After the run, Report prints the notes per department, and CSV opens in a spreadsheet. Open notes show again in the next session.',
       ],
       mistakes: [
-        'The clock is shared: if someone sets it to the show\'s timecode, everyone\'s follows. Set it from the timecode the show actually runs on.',
+        'The clock is shared: if someone sets it to the show\'s timecode, everyone\'s follows. Set it from the timecode the show actually runs on: "From camera" reads a timecode display through the phone\'s camera, "From LTC" listens to the LTC signal, or type it with "Set the clock".',
         'No connection? Notes are kept on your phone and sent when you\'re back online; photos need a connection.',
       ],
     },

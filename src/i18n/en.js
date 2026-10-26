@@ -3188,7 +3188,7 @@ export default {
   "rehearsal.cameraStarting": "Starting the camera…",
   "rehearsal.cameraLooking": "Hold the timecode's digits inside the box.",
   "rehearsal.reading": "Reading {tc}… hold still",
-  "rehearsal.readAs": "Read as {tc}. Use it if that's what the display shows.",
+  "rehearsal.readAs": "Reading: {tc}. Use it if it matches the display.",
   "rehearsal.cameraDenied": "The camera isn't available. Allow it for this site in the browser, or type the timecode instead.",
   "rehearsal.cameraHint": "Works best with a lit, running display (an LTC reader, console or monitor) filling most of the box. The picture stays on this phone.",
   "rehearsal.readAgain": "Read again",

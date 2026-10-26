@@ -62,6 +62,14 @@ export function CameraSync({ session, onUse, onType, onClose }) {
     return () => { stopped = true; clearInterval(timer); stream?.getTracks().forEach(tr => tr.stop()) }
   }, [session.fps, df])
 
+  // Once found, the reading keeps running, so it can be compared with the display
+  const [, tick] = useState(0)
+  useEffect(() => {
+    if (state !== 'found') return
+    const id = setInterval(() => tick(n => n + 1), 200)
+    return () => clearInterval(id)
+  }, [state])
+
   const again = () => { last.current = null; setFound(null); setState('looking') }
   const use = () => onUse(found.ms + (performance.now() - found.at), 'camera')
 
@@ -74,7 +82,7 @@ export function CameraSync({ session, onUse, onType, onClose }) {
       <canvas ref={canvas} hidden />
       <p role="status" aria-live="polite" style={{ fontSize: '14px', margin: '12px 0', lineHeight: 1.5 }}>
         {state === 'denied' ? t('rehearsal.cameraDenied')
-          : state === 'found' ? t('rehearsal.readAs', { tc: msToTc(found.ms, session.fps, df) })
+          : state === 'found' ? t('rehearsal.readAs', { tc: msToTc(found.ms + (performance.now() - found.at), session.fps, df) })
             : state === 'starting' ? t('rehearsal.cameraStarting')
               : live ? t('rehearsal.reading', { tc: live }) : t('rehearsal.cameraLooking')}
       </p>

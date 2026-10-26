@@ -3187,7 +3187,7 @@ export default {
   "rehearsal.cameraStarting": "A ligar a câmara…",
   "rehearsal.cameraLooking": "Mantenha os algarismos do timecode dentro da caixa.",
   "rehearsal.reading": "A ler {tc}… mantenha o telemóvel quieto",
-  "rehearsal.readAs": "Lido como {tc}. Use-o se for o que o ecrã mostra.",
+  "rehearsal.readAs": "Leitura: {tc}. Use-a se coincidir com o ecrã.",
   "rehearsal.cameraDenied": "A câmara não está disponível. Permita-a para este site no navegador, ou escreva o timecode.",
   "rehearsal.cameraHint": "Funciona melhor com um ecrã aceso e a correr (leitor de LTC, mesa ou monitor) a ocupar quase toda a caixa. A imagem fica neste telemóvel.",
   "rehearsal.readAgain": "Ler outra vez",

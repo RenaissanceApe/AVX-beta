@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.55.0 — Rehearsal companion R2: camera and LTC sync
+
+### Added
+- **Sync the rehearsal clock from a camera** ("From camera"): point the phone at a timecode display
+  (an LTC reader, console or monitor) with the digits inside the box. The digits are read on the
+  phone a few times a second; a reading is offered only when two of them move on with the clock,
+  and it keeps counting so you can compare it with the display before using it. "Type it" falls
+  back to typing.
+- **Sync from LTC** ("From LTC"): the SMPTE timecode signal is decoded live from the microphone or a
+  line input, with a level meter, the frame rate it measured, and a warning when the LTC's frame
+  rate or drop-frame doesn't match the session.
+- A note under the clock when a camera or LTC sync is more than 20 minutes old, as those clocks
+  drift.
+
+### Changed
+- The shared clock is more exact: the phone sends the server time of its reading (within 5
+  seconds), so network delay is no longer added to every sync, nudge or setting.
+- Privacy notice: the camera and microphone are read on the device; no picture or sound is sent or
+  kept.
+
+### Connected to earlier features
+- Both syncs set the session's clock type ("Camera sync", "LTC"), shown in the session line and the
+  report header.
+
 ## 0.54.0 — Rehearsal companion R1
 
 ### Added
