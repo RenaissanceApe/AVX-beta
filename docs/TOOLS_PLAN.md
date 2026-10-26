@@ -6,7 +6,35 @@ load calculator**, an **electrical load** tool, **sound system calibration / aco
 and a **DMX calculator with dipswitch converter**; plus the question of where prep tools and
 show-time tools should live.
 
-Everything here is a plan. Nothing is decided until you say so; open questions are marked **Q**.
+Everything here is a plan. Answers given on 2026-10-26 are under **Decided** below; questions
+still open are marked **Q**.
+
+## Decided (2026-10-26)
+
+- **On-site mode (Q1):** both. A manual switch on the gig, and an automatic switch on the person's
+  gig days, **on by default**. The automatic part is a personal setting (Settings → Language and
+  appearance: "Switch to On-site mode on gig days"). The first time it switches on its own, a note
+  says why and links to that setting, so everyone knows it can be turned off.
+- **Cueing app (Q2):** a standalone app with its own roadmap (a future build). It connects to AVX
+  through an integration rather than sharing AVX's code or database: "Sign in with AVX", the public
+  API and webhooks (COMPETITOR_RESEARCH #17), and the rehearsal export format (R3). Until the API
+  exists, the two exchange files. Its own roadmap is written when that build starts.
+- **Rigger sign-off (Q4):** recommended, never forced:
+  - Every rigging report has a "Checked by" step: a named rigger, their certificate (from their
+    crew profile, if they have one) and the date.
+  - Until it is signed, the plot and the report carry a visible warning.
+  - If the organisation has no rigger to check it, AVX suggests posting a job on the job board for
+    a certified rigger, with the dates, the function and the certificate already filled in.
+  - If every warning and suggestion is dismissed, the report and the on-site view show a
+    disclaimer: AVX accepts no liability for a rig built without a certified rigger's sign-off.
+    The wording goes into the terms of service too, and should be checked by a lawyer before
+    launch.
+- **Order (Q6):** no preferred order between field tools and business features. Build in
+  dependency order, and when something new is built, go back and connect it to what was built
+  before. See **Build order** at the end.
+
+**Still open:**
+- **Q3, clarified:** which brands and models of truss and hoist get their data entered first.
 
 ---
 
@@ -45,8 +73,8 @@ faces, and add a small pocket kit outside gigs.
    report, patch sheets) is listed under the gig's files and prints. The on-site crew then find
    "the rigging plot" without opening the rigging tool.
 
-**Q1:** Is "On site" mode switched by hand, automatic on gig days, or both? (Suggested: both, with
-the automatic part off by default per organisation.)
+**Decided (Q1):** both; automatic on gig days is on by default and can be switched off in
+Settings (see Decided above).
 
 ---
 
@@ -105,9 +133,8 @@ it if it drifts.
   always confirms.
 - LTC decoding in the browser is proven (libltc to WebAssembly).
 
-**Q2:** Is the cueing app going to share AVX's account and data (same login, same gigs), or be a
-separate product that imports/exports files? It changes R3. (Suggested: same account, its own app,
-talking to AVX through the API in COMPETITOR_RESEARCH #17.)
+**Decided (Q2):** the cueing app is standalone and integrates with AVX (sign in with AVX, the API,
+the shared export format). R3 ships the file format first; the live link follows the public API.
 
 ---
 
@@ -168,8 +195,8 @@ power distribution for the whole gig, from the equipment actually on it.
 | **P2** | Cable runs and voltage drop, cable list → equipment, automatic phase balancing suggestion, inrush groups | 1 PR |
 | **P3** | One-line diagram, views per area and department, on-site checklist (what plugs into what, ticked off) | 1 PR |
 
-LumiStage could not be found online yet (see COMPETITOR_RESEARCH.md); once you share what it does,
-P1–P3 will be compared with it.
+LumiStage: link received (lumistage.online/uygulama), but this environment's network can't open
+it yet, so P1–P3 haven't been compared with it.
 
 ---
 
@@ -216,10 +243,16 @@ Yes, this is viable, because the data is already connected:
 - Once checked, the position shows the result, and it turns back to "not checked" when the fixtures
   change.
 
-**Q3:** Which hoists and trusses do you own or use most? Their tables are entered first. Load tables
-are published by the manufacturers (Prolyte, Eurotruss, Litec, Global Truss…). **Q4:** Do you want
-the RG reports signed off in AVX by a named rigger (a "checked by" step with date), so the plot on
-site shows it was approved?
+**Q3 (open):** which **brands and models** get their data entered first? Each truss model has its
+own load table from its manufacturer, and each hoist model has its WLL, speed and class. Anyone can
+also type in their own model from its datasheet or data plate. Suggested first set, unless you use
+others:
+- truss: Prolyte H30V and H40V, Eurotruss FD34 and HD34, Litec QX30SA, Global Truss F34;
+- hoists: CM Lodestar, Chainmaster BGV-D8+ and C1, Verlinde Stagemaker, Movecat, Liftket.
+
+**Decided (Q4):** a "Checked by" sign-off with warnings, a suggestion to hire a certified rigger
+through the job board, and a liability disclaimer when it is skipped (see Decided above). It is
+part of RG4.
 
 ---
 
@@ -251,28 +284,53 @@ team, the documents):
 | **A3 · Prediction and measurement files** | Attach the real prediction (EASE, ArrayCalc, Soundvision project or export) and measurement files (Smaart/SysTune captures, EQ settings) to the gig's sound system, versioned, with notes; a "system tuning sheet" print: delays, EQ, gains, splay angles, as built | 1 PR |
 | **(Stop)** | Revisit only if a manufacturer offers its data for us to use directly | — |
 
-**Q5:** Agree to stop at A1–A3?
+**Q5 (open, clarified):** A1, A2 and A3 are all to be built as described. The question is only
+whether we **stop there**, i.e. never build a full EASE-style acoustic simulation (an SPL map of
+line arrays from manufacturers' measured data), for the reasons above.
 
 ---
 
-## Suggested order
+## Build order
 
-| # | What | Why here |
-|---|---|---|
-| 1 | Settings layout (asked) | Small, pending UI debt |
-| 2 | Crew network N5 | Finishes the phase in progress |
-| 3 | **R1, R2** rehearsal companion | Asked as the next tool; R2 is the distinctive bit |
-| 4 | **D1** DMX calculator | Small, high daily use, makes the "On site" group real |
-| 5 | **On site mode + Tools split** (section 1) | Once there are enough on-site tools to group |
-| 6 | **A1** speaker library | Needed by power and rigging |
-| 7 | **P1–P2** power | Builds on the light plot's power estimate |
-| 8 | **RG1–RG2** rigging basics | Weights, reactions, hoists, trusses, bridles |
-| 9 | **RG3–RG5** line arrays, plot, suggestions | The heavy part |
-| 10 | R3, P3, A2, A3 | Bridges and polish |
+Built in dependency order: nothing is built before what it needs. Each step lists **what it must
+connect to once built**, so that earlier features pick up the new data. That linking is part of
+the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RESEARCH.md.
 
-Interleaved with the business features ranked in COMPETITOR_RESEARCH.md (crew rates → time
-registration → finance → invoices). **Q6:** Which goes first after the rehearsal companion: field
-tools (4–9) or the business loop?
+| # | What | Needs | When built, also connect |
+|---|---|---|---|
+| 1 | **R1** rehearsal companion | gig, schedule, members | Updates feed, gig files (reports) |
+| 2 | **R2** camera and LTC sync | R1 | — |
+| 3 | **D1** DMX calculator and dipswitches | DMX patch | DMX patch column, light plot fixture view |
+| 4 | **On-site mode** and Tools split (Plan / On site), personal auto setting | R1, D1, field kit | Call sheet, scan mode, equipment steps, settings |
+| 5 | **Tasks** [6] (gig and organisation, checklists) | — | R1 notes → tasks, inventory repairs, on-site checklists |
+| 6 | **Custom statuses and gig types** [10], **custom fields** [12] | — | Gig lists, calendar, filters, export, import |
+| 7 | **Crew rates** [3] | crew, functions | Crew calls and job posts (fee), quotes (labour lines) |
+| 8 | **Time registration** [2] | crew rates, schedule | Gig crew tab, calendar feed, export |
+| 9 | **Leave requests** [5] | availability | Clashes, Find crew "free", time registration |
+| 10 | **Gig finance overview** [4] | 7, 8, quotes, subrentals | Dashboard, reports |
+| 11 | **Invoices** [1] | accepted quotes, 10 | Quotes, contacts, guest threads, client links |
+| 12 | Damage charged to the client [15], **payments** [22] | invoices, repairs | Repairs, quotes, invoices |
+| 13 | **A1** speaker library | catalogue | F4 sound calculator; later P1 and RG3 |
+| 14 | **MVR/GDTF import** [29] | light plot, DMX patch | Fixture weights and power for P1 and RG1 |
+| 15 | **P1–P2** power and cables | light plot, A1, 14 | Light plot power estimate, equipment (distros, cables) |
+| 16 | **E-signature** [16] | — | Quote acceptance, delivery notes, crew contracts, rigger sign-off |
+| 17 | **RG1–RG2** weights, points, hoists, trusses, bridles | light plot, catalogue (Q3) | Light plot "rigging not checked", bridle pocket tool |
+| 18 | **RG3** line arrays | A1, F4, RG1 | Sound system calculator |
+| 19 | **RG4** rigging plot, report, sign-off (Q4) | RG1–RG3, job board, 16 | Gig files, on-site view, job board prefill |
+| 20 | **RG5** suggestions; **P3** one-line and on-site power checklist | RG4, P2 | On-site mode |
+| 21 | **A2** coverage map, **A3** prediction and measurement files | A1, F4 | Gig files, tuning sheet print |
+| 22 | **Shareable rider / advance page** [28] | stage plot, inputs, patch, P, RG | Includes power and rigging summaries |
+| 23 | **Vehicles and transport** [8], **appointments** [9] | reservations, item weights | Packing list (per vehicle), calendar, clashes |
+| 24 | **Reports** [11] | 10, 11, 23 | Dashboard |
+| 25 | **Gig templates** [7] | everything above | Copies schedule, positions, equipment, tools, tasks, custom fields |
+| 26 | **Client portal** [13], **online booking requests** [14] | invoices, quotes | Quote links, guest threads |
+| 27 | Freelancer side: **contracts** [25], **invoicing** [26], **work history** [24] | 7, 8, 16 | Crew profiles, crew calls |
+| 28 | **Public API and webhooks** [17] | stable data model | Cueing app, accounting sync [18], payroll export [23], MCP [19] |
+| 29 | **R3** cueing app bridge (live) | R1, tasks, API | Cueing app roadmap starts here |
+| 30 | Rental network [21], RFID [20] | API, inventory | Subrentals |
+
+Rule for every PR from now on: its description says which earlier features it connected to (or
+why none), and CHANGELOG lists those connections.
 
 ## References
 
