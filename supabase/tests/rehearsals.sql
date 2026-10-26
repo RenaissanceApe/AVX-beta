@@ -1,4 +1,4 @@
--- Checks for migration 20261127000000 (rehearsal companion R1).
+-- Checks for migrations 20261127000000 and 20261128000000 (rehearsal companion R1 and R2).
 -- Run in the TEST project's SQL editor. Rolls itself back; ends with
 --   "ALL REHEARSAL CHECKS PASSED"  → good
 do $$
@@ -73,6 +73,11 @@ begin
   exception when insufficient_privilege then null; end;
   update rehearsal_sessions set anchor_ms = 3600000, clock = 'time_of_day' where id = s1;
   if (select clock_set_by from rehearsal_sessions where id = s1) <> k2 then raise exception 'CHECK FAILED: clock set by'; end if;
+  -- R2: the phone's own time of the reading is kept when it is believable, not otherwise
+  update rehearsal_sessions set anchor_ms = 3700000, anchor_at = now() - interval '2 seconds' where id = s1;
+  if (select anchor_at from rehearsal_sessions where id = s1) <> now() - interval '2 seconds' then raise exception 'CHECK FAILED: phone time kept'; end if;
+  update rehearsal_sessions set anchor_ms = 3800000, anchor_at = now() - interval '1 day' where id = s1;
+  if (select anchor_at from rehearsal_sessions where id = s1) <> now() then raise exception 'CHECK FAILED: odd phone time replaced'; end if;
   begin
     update rehearsal_sessions set removed_at = now() where id = s1;
     raise exception 'CHECK FAILED: crew removed someone else''s session';
