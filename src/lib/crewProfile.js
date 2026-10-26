@@ -69,6 +69,7 @@ export function toRow(p) {
     enabled: !!p.enabled,
     visibility: p.visibility === 'crew' ? 'crew' : 'companies',
     contact_from: p.contact_from === 'known' ? 'known' : 'any',
+    job_alerts: p.job_alerts !== false,
     headline: (p.headline || '').trim().slice(0, MAX.headline) || null,
     functions: [...new Set((p.functions || []).filter(f => FUNCTIONS.includes(f)))].slice(0, MAX.functions),
     other_functions: (p.other_functions || '').trim().slice(0, MAX.other) || null,

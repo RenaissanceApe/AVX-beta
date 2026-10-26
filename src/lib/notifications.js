@@ -31,6 +31,8 @@ export function describeNotification(n, nameOf) {
     case 'crew_call_answer':  return t(`notif.crewCall.${d.answer === 'accepted' ? 'accepted' : 'declined'}`, { actor, title: d.title || '', gig })
     case 'job_application':   return t('notif.jobApplication', { actor, title: d.title || '', gig })
     case 'job_declined':      return t('notif.jobDeclined', { actor, title: d.title || '' })
+    case 'job_match':         return t('notif.jobMatch', { title: d.title || '', org: d.org_name || '', place: d.place || '—', range: d.starts_on ? dayRange(d.starts_on, d.ends_on, fmt) : '—' })
+    case 'crew_match':        return t('notif.crewMatch', { actor, search: d.search_name || '' })
     case 'guest_message':     return t(Number(d.count) > 1 ? 'notif.guestMany' : 'notif.guest', {
       guest: d.guest_name || t('common.someone'), about: d.about || t(`chat.context.kind.${d.about_kind || 'quote'}`), count: d.count || 1, excerpt: d.excerpt || '' })
     case 'message_report':    return t('notif.messageReport', { where: d.where || gig || '', reason: t(`chat.report.reason.${d.reason || 'other'}`) })
@@ -59,7 +61,8 @@ export function notificationLink(n) {
   if (n.kind === 'message_report' && n.details?.conversation_id) return `/messages/${n.details.conversation_id}?m=${n.details.message_id}`
   if (n.kind === 'message_removed' && n.details?.conversation_id) return `/messages/${n.details.conversation_id}`
   if (n.kind === 'job_application' && n.org_id) return `/org/${n.org_id}/jobs`
-  if (n.kind === 'job_declined') return '/jobs'
+  if (n.kind === 'job_declined' || n.kind === 'job_match') return '/jobs'
+  if (n.kind === 'crew_match' && n.org_id) return `/org/${n.org_id}/crew?search=${n.details?.search_id || ''}`
   if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `/org/${n.org_id}/inventory?tab=maintenance`
   if ((n.kind === 'hire_request' || n.kind === 'hire_answered') && n.org_id) return `/org/${n.org_id}/inventory?tab=subrentals`

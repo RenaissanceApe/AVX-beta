@@ -15,7 +15,7 @@ import { PageHelp } from '../components/help/HelpParts'
 import CrewProfileCard from '../components/CrewProfileCard'
 import PlaceFinder from '../components/PlaceFinder'
 
-const EMPTY = { enabled: false, visibility: 'companies', contact_from: 'any', headline: '', functions: [], other_functions: '', bio: '', base_place: null, base_country: null, base_lat: null, base_lng: null, travel_scope: 'km', travel_km: 100, languages: [], experience_years: '', links: ['', '', ''], certificates: [] }
+const EMPTY = { enabled: false, visibility: 'companies', contact_from: 'any', job_alerts: true, headline: '', functions: [], other_functions: '', bio: '', base_place: null, base_country: null, base_lat: null, base_lng: null, travel_scope: 'km', travel_km: 100, languages: [], experience_years: '', links: ['', '', ''], certificates: [] }
 const section = { ...card, padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 const h2 = { fontSize: '15px', fontWeight: 700 }
@@ -154,6 +154,11 @@ export default function CrewProfilePage() {
               </label>
             ))}
           </div>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+            <input type="checkbox" checked={form.job_alerts !== false} onChange={e => set({ job_alerts: e.target.checked })} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
+            <span><span style={{ fontWeight: 600 }}>{t('crewProfile.jobAlerts')}</span>
+              <span style={{ display: 'block', ...hint, marginTop: '2px' }}>{t('crewProfile.jobAlertsHint')}</span></span>
+          </label>
           <p style={hint}>{t('crewProfile.never')}</p>
         </section>
 

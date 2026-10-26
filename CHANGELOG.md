@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.53.0 — Crew network N5: alerts and saved searches
+
+### Added
+- **Job alerts**: when a company posts a job that fits your crew profile (one of your functions,
+  within how far you travel; the same rule as "For you" on the job board), you get a notification
+  in the app, by push and in the e-mail summary. On by default; switch it off on your crew profile
+  ("Tell me about new jobs that fit me"). At most 10 a day; never for the company's own people,
+  people already on the gig, or across a block. The alert names the company, never the gig.
+- **Saved searches** in Find crew: save the current filters under a name (up to 30 per
+  organisation), run one with a tap, switch its alert on or off, or remove it. With the alert on,
+  whoever saved it hears when a crew profile that fits is switched on (at most 5 a day per search),
+  and the notification opens Find crew with that search.
+
+### Changed
+- The e-mail summary's footer points to Settings → Notifications.
+- Privacy notice: alerts and saved searches.
+
 ## 0.52.0 — Settings page
 
 ### Changed

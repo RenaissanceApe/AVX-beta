@@ -42,3 +42,10 @@ export function crewError(error) {
   if (error?.code === '42501' || /Not allowed/i.test(m)) return 'crewSearch.err.notAllowed'
   return null
 }
+
+// The filters a saved search keeps (not dates: a saved search is reused for other gigs)
+export const SAVED_KEYS = ['fn', 'text', 'language', 'certificate', 'place', 'km']
+export const toSaved = f => Object.fromEntries(SAVED_KEYS.filter(k => f[k] !== '' && f[k] != null).map(k => [k, f[k]]))
+// A saved search back onto the page's filters, keeping the dates already chosen
+export const fromSaved = (saved, current) => ({ ...EMPTY_FILTERS, from: current.from, to: current.to, onlyFree: current.onlyFree, ...Object.fromEntries(SAVED_KEYS.filter(k => k in (saved || {})).map(k => [k, saved[k]])) })
+
