@@ -27,12 +27,12 @@ export default {
     'direct-message': { term: 'Mensagem direta', definition: 'Uma conversa privada entre duas pessoas que partilham um evento ou uma organização.', example: 'Perguntar ao diretor de produção onde estacionar.', where: 'Mensagens' },
     announcement: { term: 'Aviso', definition: 'Uma mensagem que pede a todos que confirmem que leram. Quem a envia vê quem confirmou.', example: '"Novas regras de segurança — confirmem, por favor."', where: 'Mensagens' },
     mute: { term: 'Silenciar', definition: 'Deixar de receber notificações de uma conversa ou organização. O que lhe é dirigido continua a chegar.', example: 'Silenciar um canal movimentado durante as férias.', where: 'Mensagens, seletor de empresa' },
-    'email-summary': { term: 'Resumo por email', definition: 'Um email por dia com as notificações que ainda não leu. Não é enviado nada se estiver em dia.', example: 'Todas as manhãs: "3 atualizações por ver".', where: 'Conta' },
-    'push-notifications': { term: 'Notificações neste dispositivo', definition: 'Alertas no telemóvel ou no computador, como em qualquer aplicação. Cada dispositivo é ativado à parte.', example: 'O telemóvel vibra quando alguém o menciona.', where: 'Conta' },
-    'two-step': { term: 'Início de sessão em dois passos', definition: 'Para entrar, além da palavra-passe, é pedido um código de 6 dígitos de uma aplicação no telemóvel.', example: 'O Google Authenticator mostra 482 913.', where: 'Conta' },
+    'email-summary': { term: 'Resumo por email', definition: 'Um email por dia com as notificações que ainda não leu. Não é enviado nada se estiver em dia.', example: 'Todas as manhãs: "3 atualizações por ver".', where: 'Definições → Notificações' },
+    'push-notifications': { term: 'Notificações neste dispositivo', definition: 'Alertas no telemóvel ou no computador, como em qualquer aplicação. Cada dispositivo é ativado à parte.', example: 'O telemóvel vibra quando alguém o menciona.', where: 'Definições → Notificações' },
+    'two-step': { term: 'Início de sessão em dois passos', definition: 'Para entrar, além da palavra-passe, é pedido um código de 6 dígitos de uma aplicação no telemóvel.', example: 'O Google Authenticator mostra 482 913.', where: 'Definições → Início de sessão e segurança' },
     'offline-copy': { term: 'Cópia sem rede', definition: 'A última versão dos seus eventos guardada no dispositivo, que pode ler sem rede.', example: 'Ler a folha de serviço numa cave sem rede.', where: 'Eventos, página do evento, folha de serviço' },
     network: { term: 'A sua rede', definition: 'As pessoas com quem já trabalhou num evento ou numa organização; podem ser encontradas pelo nome. Os freelancers que ligam o perfil profissional também podem ser encontrados pelas empresas em Procurar técnicos.', example: 'Convidar um técnico com quem trabalhou no ano passado.', where: 'Evento → Equipa → Convidar' },
-    findable: { term: 'Quem o pode encontrar', definition: 'Quem o pode encontrar pelo nome ao formar uma equipa: só quem gere e administra, ou também outros técnicos.', example: 'Um diretor de produção freelancer encontra-o se permitir "outros técnicos".', where: 'Conta' },
+    findable: { term: 'Quem o pode encontrar', definition: 'Quem o pode encontrar pelo nome ao formar uma equipa: só quem gere e administra, ou também outros técnicos.', example: 'Um diretor de produção freelancer encontra-o se permitir "outros técnicos".', where: 'Definições → Privacidade e bloqueios' },
     'catalogue-item': { term: 'Artigo do catálogo', definition: 'Um tipo de equipamento que tem ou aluga, com preço e stock.', example: 'Microfone Shure SM58.', where: 'Inventário → Catálogo' },
     'bulk-item': { term: 'Contado a granel', definition: 'Stock guardado como um número por local, e não um a um.', example: '120 cabos XLR no armazém.', where: 'Inventário → artigo' },
     'serial-item': { term: 'Por número de série', definition: 'Cada unidade é registada à parte, com número de série, etiqueta QR e estado.', example: 'Cada uma das 8 cabeças móveis tem o seu registo.', where: 'Inventário → artigo → Unidades' },
@@ -82,7 +82,7 @@ export default {
     'price-list': { term: 'Tabela de preços', definition: 'Os seus preços de equipamento e serviços, usados para fazer orçamentos.', example: 'SM58: 8 € por dia.', where: 'Orçamentos → Tabela de preços' },
     retention: { term: 'Guardar mensagens', definition: 'Durante quanto tempo uma organização guarda as mensagens das suas conversas antes de serem apagadas.', example: 'Guardar durante 1 ano.', where: 'Definições da organização → Mensagens' },
     report: { term: 'Denunciar uma mensagem', definition: 'Avisar quem gere uma conversa de que uma mensagem é spam ou abusiva. Não veem quem a denunciou.', example: 'Denunciar um anúncio publicado na conversa de um evento.', where: 'Mensagens → menu da mensagem' },
-    block: { term: 'Bloquear', definition: 'Impedir alguém de lhe escrever numa conversa direta.', example: 'Bloquear uma pessoa que não para de enviar mensagens.', where: 'Mensagens, Conta' },
+    block: { term: 'Bloquear', definition: 'Impedir alguém de lhe escrever numa conversa direta.', example: 'Bloquear uma pessoa que não para de enviar mensagens.', where: 'Mensagens, Definições → Privacidade e bloqueios' },
   },
 
   hints: {
@@ -164,7 +164,7 @@ export default {
         'iPhone: abra o AVX no Safari. Toque em Partilhar (o quadrado com uma seta) e depois em "Adicionar ao ecrã principal".',
         'Android: abra o AVX no Chrome. Toque no menu (três pontos) e depois em "Instalar app" ou "Adicionar ao ecrã principal".',
         'Abra o AVX a partir do novo ícone no ecrã principal e entre na conta, se lhe for pedido.',
-        'Para receber notificações: toque nas suas iniciais, no canto superior direito, e ligue "Notificações neste dispositivo".',
+        'Para receber notificações: toque nas suas iniciais, no canto superior direito, para abrir as Definições, escolha Notificações e ligue "Notificações neste dispositivo".',
       ],
       mistakes: [
         'No iPhone, as notificações só funcionam com o AVX aberto a partir do ícone do ecrã principal, não no Safari.',
@@ -190,7 +190,7 @@ export default {
       title: 'Veja os seus eventos no calendário do telemóvel',
       intro: 'Os seus eventos podem aparecer no calendário que já usa (Apple, Google ou Outlook), junto com tudo o resto, sem abrir o AVX.',
       steps: [
-        'Abra a sua conta (as suas iniciais no topo) e procure "Os seus eventos no calendário do telemóvel".',
+        'Abra as Definições (as suas iniciais no topo) e escolha "Calendário no telemóvel".',
         'Toque em "Obter a ligação do calendário" e depois em "Adicionar à Apple / Outlook" num iPhone ou Mac, ou "Adicionar ao Google Calendar" no Android. O calendário pergunta se quer subscrever: diga que sim.',
         'A partir daí os eventos em que está aparecem com o local, o seu papel e a hora de chamada, e atualizam-se sozinhos (a maioria dos calendários verifica mais ou menos de hora a hora).',
       ],
@@ -229,7 +229,7 @@ export default {
       title: 'Seja encontrado para trabalhar com o seu perfil profissional',
       intro: 'As empresas no AVX podem encontrá-lo pelo que faz, onde está e as línguas que fala. Fica desligado até o ligar.',
       steps: [
-        'Abra a sua conta (as suas iniciais no topo) e toque em "Abrir o seu perfil profissional".',
+        'Abra as Definições (as suas iniciais no topo), escolha Perfil e toque em "Abrir o seu perfil profissional".',
         'Escolha o que faz, escreva a sua localidade e toque em Localizar para a escolher, e depois diga até onde se desloca e em que línguas trabalha. Acrescente certificados e ligações, se quiser.',
         'Escolha quem o pode ver (só empresas, ou empresas e técnicos), marque "Deixar que encontrem o meu perfil" e guarde. A pré-visualização no fim mostra o que vão ver.',
       ],
@@ -294,7 +294,7 @@ export default {
       title: 'Tornar o AVX mais fácil de ler',
       intro: 'Sol forte, ecrã pequeno, olhos cansados: mude o aspeto do AVX neste telemóvel ou computador.',
       steps: [
-        'Toque nas suas iniciais, no canto superior direito, para abrir a sua conta.',
+        'Toque nas suas iniciais, no canto superior direito, para abrir as Definições, e escolha "Língua e aparência".',
         'Em Aparência, escolha o tema: Claro para o sol, Alto contraste para a maior diferença, ou Como o dispositivo. Escolha também o tamanho do texto.',
         'Ligue o Modo confortável para botões maiores (com luvas, em movimento) e a letra fácil de ler se as letras se confundirem. O Modo simples mostra só o seu próximo evento e o que precisa para ele; liga-se sozinho para a equipa técnica.',
       ],
@@ -810,7 +810,7 @@ export default {
       title: 'Descarregar os seus dados',
       intro: 'Pode descarregar os seus próprios dados e, como administrador, as mensagens e os relatórios da organização.',
       steps: [
-        'Os seus dados: toque nas suas iniciais e depois em "Exportar os meus dados", em "Os seus dados".',
+        'Os seus dados: toque nas suas iniciais para abrir as Definições, escolha "Os seus dados" e toque em "Exportar os meus dados".',
         'As mensagens da organização: abra Definições → Mensagens e toque em "Descarregar todas as mensagens". É aqui também que escolhe durante quanto tempo as mensagens são guardadas.',
         'Números do inventário: Inventário → Relatórios → "Descarregar CSV". Orçamentos: abra um e use "Pré-visualizar e imprimir" para guardar um PDF.',
       ],

@@ -32,7 +32,7 @@ The button next to the logo picks the workspace:
 | `/org/:id/contacts` (`?tab=suppliers`) | Contacts: clients and suppliers |
 | `/orgs` (`?new=1`) | Organisations: yours with your role in each, companies you work for as crew, create one |
 | `/dashboard` | Opens the current workspace (used by sign-in and old links) |
-| `/me?panel=account` | Account (also from the avatar) |
+| `/settings`, `/settings/:section` | Your settings (from the avatar): sections profile, security, availability, notifications, preferences, privacy, calendar, data, and reviews for AVX admins. Wide screens show the list of sections beside the chosen one; phones show the list, then one section with a way back. `/me?panel=account` still opens it |
 | `/messages`, `/messages/:id` | Messages: direct conversations and gig channels (also from the top bar's message button, which shows the unread count) |
 | `/messages?to=<user>` | Start or reopen a direct conversation (the "Message" buttons on crew and members) |
 | `/gig/:id?tab=chat` | A gig's Chat |

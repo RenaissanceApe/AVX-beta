@@ -10,7 +10,6 @@ import { navSections, splitItems, phoneTabs, isActive, homePath, MY_WORK } from 
 import { useI18n } from '../../i18n'
 import NotificationBell from '../NotificationBell'
 import MessagesButton from '../messages/MessagesButton'
-import AccountModal from '../AccountModal'
 import { colors, iconBtn } from '../ui'
 
 export const ICONS = {
@@ -27,13 +26,13 @@ export default function AppShell({ children }) {
   const { user, profile } = useAuth()
   const { workspace, role } = useWorkspace()
   const { t } = useI18n()
-  const [params, setParams] = useSearchParams()
-  const [accountOpen, setAccountOpen] = useState(false)
-  const showAccount = accountOpen || params.get('panel') === 'account'
-  const closeAccount = () => {
-    setAccountOpen(false)
-    if (params.get('panel') === 'account') { params.delete('panel'); setParams(params, { replace: true }) }
-  }
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  // Old links (?panel=account) open the settings page
+  useEffect(() => {
+    if (params.get('panel') === 'account') navigate('/settings', { replace: true })
+  }, [params, navigate])
+  const openSettings = () => navigate('/settings')
 
   const sections = navSections({ workspace, role })
   const displayName = profile?.full_name || user?.email?.split('@')[0] || ''
@@ -56,12 +55,11 @@ export default function AppShell({ children }) {
           <Link to="/help" className="shell-help" aria-label={t('help.title')} title={t('help.title')} style={{ ...iconBtn, color: colors.muted }}><HelpCircle size={17} /></Link>
           <MessagesButton />
           <NotificationBell />
-          <button onClick={() => setAccountOpen(true)} className="shell-avatar" aria-label={`${initials} — ${t('account.title')}`} title={t('account.title')}>{initials}</button>
+          <button onClick={openSettings} className="shell-avatar" aria-label={`${initials} — ${t('account.title')}`} title={t('account.title')}>{initials}</button>
         </div>
       </header>
       <main className="shell-main">{children}</main>
-      <PhoneTabs sections={sections} onAccount={() => setAccountOpen(true)} />
-      {showAccount && <AccountModal onClose={closeAccount} />}
+      <PhoneTabs sections={sections} onAccount={openSettings} />
     </div>
   )
 }

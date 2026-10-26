@@ -61,10 +61,10 @@ export default function FirstSteps({ mode, org, gigCount }) {
     { id: 'people', done: facts.people, to: `/org/${org.id}?panel=members`, guide: 'ad-members' },
     { id: 'gig', done: gigCount > 0, to: `/org/${org.id}?new=gig`, guide: 'pm-create-gig' },
   ] : [
-    { id: 'profile', done: !!(profile?.full_name && profile?.phone), to: '/me?panel=account', guide: 'crew-join' },
+    { id: 'profile', done: !!(profile?.full_name && profile?.phone), to: '/settings/profile', guide: 'crew-join' },
     { id: 'install', done: isInstalled(), guide: 'crew-install' },
     // Where this device can't show notifications, the daily email summary counts instead
-    { id: 'notify', done: facts.push || (pushSupport() !== 'ok' && profile?.email_digest !== false), to: '/me?panel=account', guide: 'crew-install' },
+    { id: 'notify', done: facts.push || (pushSupport() !== 'ok' && profile?.email_digest !== false), to: '/settings/notifications', guide: 'crew-install' },
   ]
   const left = steps.filter(s => !s.done).length
   if (left === 0) return null
