@@ -11,6 +11,7 @@ import OrgMessagesSettings from './OrgMessagesSettings'
 import OrgExportSettings from './OrgExportSettings'
 import OrgStepsSettings from './OrgStepsSettings'
 import OrgToolsSettings from './OrgToolsSettings'
+import OrgVerificationSettings from './OrgVerificationSettings'
 import { HintLabel } from './help/HelpParts'
 
 // What deleting an organisation destroys, as readable lines for the confirmation dialog
@@ -28,7 +29,7 @@ async function orgDeletionImpact(orgId, t) {
   ]
 }
 
-// Organisation settings for admins: name, equipment prep/return days, equipment steps, field tools, messages (retention, export,
+// Organisation settings for admins: name, equipment prep/return days, verification, equipment steps, field tools, messages (retention, export,
 // usage) and (well hidden) deletion.
 export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted }) {
   const { t } = useI18n()
@@ -98,6 +99,7 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
         </button>
         <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('orgSettings.companyHint')}</p>
       </form>
+      <OrgVerificationSettings org={org} onChanged={onChanged} />
       <OrgStepsSettings org={org} />
       <OrgToolsSettings org={org} />
       <OrgMessagesSettings org={org} />

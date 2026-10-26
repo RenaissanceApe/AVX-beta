@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, Search, MapPin, X, CalendarCheck, Megaphone, Handshake, Users } from 'lucide-react'
+import { ArrowLeft, Loader2, Search, MapPin, X, CalendarCheck, Megaphone, Handshake, Users, Flag, Lock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
@@ -14,6 +14,8 @@ import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import CrewProfileCard from '../components/CrewProfileCard'
 import PlaceFinder from '../components/PlaceFinder'
+import ReportModal from '../components/ReportModal'
+import { trustError } from '../lib/trust'
 
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px' }
@@ -38,6 +40,17 @@ export default function CrewSearchPage() {
   const [gigId, setGigId] = useState(params.get('gig') || '')
   const [filters, setFilters] = useState(EMPTY_FILTERS)
   const [result, setResult] = useState(null) // { results, total, more }
+  const [reporting, setReporting] = useState(null)
+
+  // A company that has worked with the person confirms (or withdraws) one of their certificates
+  async function confirmCert(person, cert, on) {
+    const { data, error } = await supabase.rpc('confirm_certificate', { p_org: orgId, p_user: person.user_id, p_cert: cert.id, p_confirm: on })
+    if (error) { logger.error('crewSearch', error, { step: 'confirmCert' }); const k = trustError(error); return notify(k ? t(k) : userMessage(error), 'error') }
+    setResult(r => ({ ...r, results: r.results.map(x => x.user_id !== person.user_id ? x
+      : { ...x, certificates: x.certificates.map(c => c.id === cert.id ? data : c) }) }))
+    notify(t(on ? 'trust.cert.confirmed' : 'trust.cert.unconfirmed', { name: cert.name }), 'success')
+    track(on ? 'trust:confirmCert' : 'trust:unconfirmCert')
+  }
   const [searching, setSearching] = useState(false)
   const [contact, setContact] = useState(null) // { person, kind }
   const [contacted, setContacted] = useState({}) // user_id -> kind
@@ -176,7 +189,7 @@ export default function CrewSearchPage() {
             {result.total === 0 && <p style={hint}>{t('crewSearch.none')}</p>}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '12px' }}>
               {result.results.map(p => (
-                <CrewProfileCard key={p.user_id} profile={p} name={p.name}>
+                <CrewProfileCard key={p.user_id} profile={p} name={p.name} orgId={orgId} onConfirm={p.worked_with > 0 ? (c, on) => confirmCert(p, c, on) : null}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
                     {p.km != null && <span style={badge(colors.soft)}><MapPin size={12} aria-hidden="true" /> {t('crewSearch.kmAway', { km: p.km })}</span>}
                     {p.free === true && <span style={badge(colors.accentText)}><CalendarCheck size={12} aria-hidden="true" /> {t('crewSearch.free')}</span>}
@@ -184,7 +197,9 @@ export default function CrewSearchPage() {
                     {p.worked_with > 0 && <span style={badge('var(--sky)')}><Users size={12} aria-hidden="true" /> {t('crewSearch.workedWith', { count: p.worked_with })}</span>}
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
-                    {contacted[p.user_id] ? (
+                    {p.contact_from === 'known' && !p.worked_with && !contacted[p.user_id] ? (
+                      <span style={{ ...hint, display: 'inline-flex', gap: '6px', alignItems: 'center' }}><Lock size={13} aria-hidden="true" /> {t('trust.contact.onlyKnownShort')}</span>
+                    ) : contacted[p.user_id] ? (
                       <span role="status" style={{ ...hint, color: colors.accentText }}>{t(`crewSearch.sent.${contacted[p.user_id]}`)}</span>
                     ) : (
                       <>
@@ -196,6 +211,10 @@ export default function CrewSearchPage() {
                     )}
                   </div>
                   {!gig && !contacted[p.user_id] && <p style={{ ...hint, marginTop: '6px' }}>{t('crewSearch.chooseGig')}</p>}
+                  <button type="button" onClick={() => setReporting(p)} aria-label={t('trust.report.profileNamed', { name: p.name || '' })}
+                    style={{ background: 'none', border: 'none', padding: 0, marginTop: '10px', font: 'inherit', fontSize: '12px', color: colors.muted, cursor: 'pointer', display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+                    <Flag size={12} aria-hidden="true" /> {t('trust.report.action')}
+                  </button>
                 </CrewProfileCard>
               ))}
             </div>
@@ -208,6 +227,11 @@ export default function CrewSearchPage() {
           </section>
         )}
       </div>
+      {reporting && (
+        <ReportModal kind="profile" target={reporting.user_id} name={reporting.name} blockUser={reporting.user_id}
+          onClose={() => setReporting(null)}
+          onReported={() => { setResult(r => ({ ...r, total: r.total - 1, results: r.results.filter(x => x.user_id !== reporting.user_id) })); setReporting(null) }} />
+      )}
       {contact && gig && (
         <ContactModal gig={gig} person={contact.person} kind={contact.kind} defaultTitle={filters.fn ? t(`crewFn.${filters.fn}`) : ''}
           onClose={() => setContact(null)}

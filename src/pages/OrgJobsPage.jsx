@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, Plus, ChevronDown, ChevronRight, Star, XCircle, Megaphone, Users } from 'lucide-react'
+import { ArrowLeft, Loader2, Plus, ChevronDown, ChevronRight, Star, XCircle, Megaphone, Users, AlertTriangle, BadgeCheck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { jobError, money } from '../lib/jobs'
+import { trustError } from '../lib/trust'
 import { useI18n } from '../i18n'
 import { btn, btnPrimary, card, colors } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
@@ -82,6 +83,15 @@ export default function OrgJobsPage() {
           <button type="button" onClick={() => setPosting(true)} style={btnPrimary}><Plus size={15} /> {t('jobs.postButton')}</button>
         </div>
         <p style={{ ...hint, fontSize: '13px' }}>{t('jobs.orgIntro')}</p>
+        {org?.posting_suspended_at && (
+          <p role="alert" style={{ ...card, padding: '12px 14px', display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '14px', lineHeight: 1.5, borderColor: 'var(--warn)' }}>
+            <AlertTriangle size={16} color="var(--warn)" style={{ flexShrink: 0, marginTop: '3px' }} aria-hidden="true" /> {t('trust.postingSuspended')}
+          </p>
+        )}
+        {org && !org.verified_at && !org.posting_suspended_at && (
+          <p style={hint}>{t('trust.verify.capHint')} {role === 'admin' && <Link to={`/org/${orgId}?panel=settings`} style={{ color: colors.accentText }}>{t('trust.verify.open')}</Link>}</p>
+        )}
+        {org?.verified_at && <p style={{ ...hint, display: 'flex', gap: '6px', alignItems: 'center', color: 'var(--sky)' }}><BadgeCheck size={14} aria-hidden="true" /> {t('trust.verify.isVerified', { name: org.verified_name || org.name })}</p>}
         {posts.length === 0 && <p style={hint}>{t('jobs.noPosts')}</p>}
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {posts.map(p => {
@@ -100,7 +110,7 @@ export default function OrgJobsPage() {
                   <button type="button" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)} style={{ ...btn, marginTop: '10px', background: 'transparent' }}>
                     {open === p.id ? <ChevronDown size={14} /> : <ChevronRight size={14} />} <Users size={14} /> {t('jobs.applicants')}
                   </button>
-                  {open === p.id && <Applicants post={p} />}
+                  {open === p.id && <Applicants post={p} orgId={orgId} />}
                 </JobCard>
               </li>
             )
@@ -112,7 +122,7 @@ export default function OrgJobsPage() {
   )
 }
 
-function Applicants({ post }) {
+function Applicants({ post, orgId }) {
   const { t, lang } = useI18n()
   const { notify } = useToast()
   const [list, setList] = useState(null)
@@ -141,6 +151,13 @@ function Applicants({ post }) {
     load()
   }
 
+  async function confirmCert(a, cert, on) {
+    const { data, error } = await supabase.rpc('confirm_certificate', { p_org: orgId, p_user: a.user_id, p_cert: cert.id, p_confirm: on })
+    if (error) { logger.error('jobs', error, { step: 'confirmCert' }); const k = trustError(error); return notify(k ? t(k) : userMessage(error), 'error') }
+    setList(l => l.map(x => x.id !== a.id ? x : { ...x, profile: { ...x.profile, certificates: x.profile.certificates.map(c => c.id === cert.id ? data : c) } }))
+    notify(t(on ? 'trust.cert.confirmed' : 'trust.cert.unconfirmed', { name: cert.name }), 'success')
+  }
+
   if (!list) return <div style={{ padding: '12px' }}><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /></div>
   if (!list.length) return <p style={{ ...hint, marginTop: '8px' }}>{t('jobs.noApplicants')}</p>
   return (
@@ -149,7 +166,7 @@ function Applicants({ post }) {
         const closed = ['declined', 'accepted', 'withdrawn'].includes(a.status)
         return (
           <li key={a.id}>
-            <CrewProfileCard profile={a.profile || {}} name={a.name}>
+            <CrewProfileCard profile={a.profile || {}} name={a.name} orgId={orgId} onConfirm={a.worked_with && a.profile ? (c, on) => confirmCert(a, c, on) : null}>
               <div style={{ ...card, padding: '10px 12px', marginTop: '10px', background: 'transparent' }}>
                 <div style={{ fontSize: '13px', fontWeight: 700 }}>
                   {t(`jobs.appStatus.${a.status}`)}

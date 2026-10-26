@@ -74,6 +74,7 @@ export function jobError(error) {
   if (/Already on this gig/i.test(m)) return 'jobs.err.onGig'
   if (/Application limit/i.test(m)) return 'jobs.err.applyLimit'
   if (/application is closed/i.test(m)) return 'jobs.err.appClosed'
+  if (/Posting suspended/i.test(m)) return 'trust.err.postingSuspended'
   if (error?.code === '42501' || /Not allowed/i.test(m)) return 'jobs.err.notAllowed'
   return null
 }

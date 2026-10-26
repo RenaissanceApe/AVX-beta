@@ -64,6 +64,7 @@ function systemText(m, name) {
 function sendError(error) {
   if (error?.code === '54000') return t('chat.tooMany')
   if (error?.code === '42501' && error?.message === 'Blocked') return t('chat.block.cantSend')
+  if (error?.message === 'No files before they reply') return t('trust.err.noFilesYet')
   return userMessage(error)
 }
 

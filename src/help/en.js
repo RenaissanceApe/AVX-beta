@@ -215,6 +215,19 @@ export default {
         'If nothing shows "For you", widen your travel range or add functions in your crew profile.',
       ],
     },
+    'crew-trust': {
+      title: 'Show your certificates are real, and choose who can contact you',
+      intro: 'Companies trust a certificate more when someone has checked it. You also decide which companies can reach you.',
+      steps: [
+        'In your crew profile, save your certificates. Under each one, "Upload proof" sends a photo or PDF of it to AVX; once checked, companies see "proof checked by AVX". Only AVX sees the file.',
+        'A company that has had you on one of its gigs can confirm a certificate too: it then shows "confirmed by" that company.',
+        'Under "Who can contact you about work", choose "Only companies I\'ve worked with" if you don\'t want new companies to write to you. You can still apply to their jobs.',
+      ],
+      mistakes: [
+        'Changing a certificate\'s name or expiry date removes its confirmations and checks: they were for the certificate as it was.',
+        'See a fake profile or a dodgy job? Tap Report under it. You stop seeing it at once and AVX looks into it; nobody is told who reported.',
+      ],
+    },
     'crew-profile': {
       title: 'Get found for work with your crew profile',
       intro: 'Companies on AVX can find you by what you do, where you are and the languages you speak. It stays off until you switch it on.',
@@ -329,7 +342,7 @@ export default {
       ],
       mistakes: [
         'The post doesn\'t show the gig\'s name or client, only your organisation, the dates and the town. Close it if plans change.',
-        'Until your organisation is verified it can have 3 open posts at a time.',
+        'Until your organisation is verified it can have 3 open posts at a time. An admin verifies it in the organisation settings → Verification.',
       ],
     },
     'pm-find-crew': {
@@ -742,6 +755,19 @@ export default {
       mistakes: [
         'A viewer sees all the company\'s gigs. For a freelancer you only book now and then, discard the import and add them to a gig by e-mail instead.',
         'People who are already members or already invited are left out. An invitation that couldn\'t be sent stays in the list to try again.',
+      ],
+    },
+    'ad-verify-company': {
+      title: 'Verify your company',
+      intro: 'A verified company gets a badge on its job posts, so freelancers know it\'s real, and can have more than 3 open at a time.',
+      steps: [
+        'Open the organisation\'s settings (admins only) and find Verification.',
+        'In the EU: choose the country, type the VAT number and tap "Check with VIES". The EU\'s service answers at once; if the number is valid the company is verified straight away, with the name VIES holds shown next to the badge.',
+        'Outside the EU, or if VIES can\'t confirm it: write how AVX can check the company (registration number, website) and send it. The answer appears in the same place.',
+      ],
+      mistakes: [
+        'VIES sometimes doesn\'t answer for a while. Try again later; there are 5 checks a day.',
+        'If several people report your job posts, posting pauses until AVX has looked; your posts are hidden meanwhile.',
       ],
     },
     'ad-org-export': {

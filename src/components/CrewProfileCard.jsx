@@ -1,6 +1,7 @@
-import { MapPin, Languages, Award, Link2, Briefcase } from 'lucide-react'
+import { MapPin, Languages, Award, Link2, Briefcase, BadgeCheck, ShieldCheck } from 'lucide-react'
 import { useI18n } from '../i18n'
 import { languageName, isExpired } from '../lib/crewProfile'
+import { certStatus, confirmedByOrg } from '../lib/trust'
 import { card, colors, tint } from './ui'
 
 const chip = { display: 'inline-block', padding: '3px 9px', borderRadius: '999px', fontSize: '12px', fontWeight: 600, background: tint(colors.accent, 14), color: colors.accentText, margin: '0 6px 6px 0' }
@@ -9,7 +10,9 @@ const row = { display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '
 // A crew profile as companies (or crew, if the person allows it) see it (docs/CREW_NETWORK.md).
 // Used for the preview on the person's own profile page and in the crew search (N2), where
 // children add the distance, availability and contact buttons below the profile.
-export default function CrewProfileCard({ profile: p, name, children }) {
+// With onConfirm (a company that has worked with the person, N4), each certificate gets a
+// button to confirm it, or to withdraw the organisation's confirmation.
+export default function CrewProfileCard({ profile: p, name, orgId, onConfirm, children }) {
   const { t, lang, fmt } = useI18n()
   const travel = p.travel_scope === 'km' ? (p.travel_km ? t('crewProfile.reach.km', { km: p.travel_km }) : null) : t(`crewProfile.reach.${p.travel_scope}`)
   const date = d => fmt(d, 'd MMM yyyy')
@@ -42,7 +45,14 @@ export default function CrewProfileCard({ profile: p, name, children }) {
               <li key={i}>
                 {c.name}{c.issuer && <> · {c.issuer}</>}
                 {c.expires_on && <span style={{ color: isExpired(c) ? colors.danger : colors.muted }}> · {isExpired(c) ? t('crewProfile.expired', { date: date(c.expires_on) }) : t('crewProfile.validUntil', { date: date(c.expires_on) })}</span>}
-                <span style={{ color: colors.muted }}> · {t('crewProfile.selfDeclared')}</span>
+                <CertMark c={c} />
+                {onConfirm && c.id && (
+                  <button type="button" onClick={() => onConfirm(c, !confirmedByOrg(c, orgId))}
+                    aria-label={t(confirmedByOrg(c, orgId) ? 'trust.cert.unconfirmNamed' : 'trust.cert.confirmNamed', { name: c.name })}
+                    style={{ background: 'none', border: 'none', padding: '0 0 0 6px', font: 'inherit', fontSize: '12px', fontWeight: 600, color: colors.accentText, cursor: 'pointer', textDecoration: 'underline' }}>
+                    {t(confirmedByOrg(c, orgId) ? 'trust.cert.unconfirm' : 'trust.cert.confirm')}
+                  </button>
+                )}
               </li>
             ))}
           </ul>
@@ -58,4 +68,13 @@ export default function CrewProfileCard({ profile: p, name, children }) {
       {children}
     </div>
   )
+}
+
+// How far a certificate is backed: checked by AVX, confirmed by companies, or only declared
+function CertMark({ c }) {
+  const { t } = useI18n()
+  const status = certStatus(c)
+  if (status === 'verified') return <span style={{ color: 'var(--sky)', fontWeight: 600 }}> · <ShieldCheck size={12} aria-hidden="true" style={{ verticalAlign: '-1px' }} /> {t('trust.cert.verified')}</span>
+  if (status === 'confirmed') return <span style={{ color: colors.accentText, fontWeight: 600 }}> · <BadgeCheck size={12} aria-hidden="true" style={{ verticalAlign: '-1px' }} /> {t('trust.cert.confirmedBy', { names: c.confirmed_by.map(x => x.name).join(', ') })}</span>
+  return <span style={{ color: colors.muted }}> · {t('crewProfile.selfDeclared')}</span>
 }

@@ -1,6 +1,6 @@
 # Crew network and job board (Phase 7)
 
-Status: **N1–N3 built** (crew profiles 0.48.0, crew search 0.49.0, job board 0.50.0). Next: N4 (trust). Decisions taken 2026-10-21 (below).
+Status: **N1–N4 built** (crew profiles 0.48.0, crew search 0.49.0, job board 0.50.0, trust 0.51.0). Next: N5 (notifications and polish). Decisions taken 2026-10-21 (below).
 
 The aim: a production company that needs a lighting tech in Porto next Saturday can find one, and
 a freelancer can find work, without leaving AVX and without anyone's details being exposed to
@@ -147,3 +147,17 @@ Checks: `supabase/tests/crew_search.sql`; the filters in `src/lib/crewSearch.tes
 | Notifications | In the app, by push and in the e-mail summary (`_shared/notification-text.ts`): both kinds count as a direct question, so they still show when the organisation is muted |
 
 Checks: `supabase/tests/job_board.sql`; the form and pay wording in `src/lib/jobs.test.js`.
+
+## How N4 works (0.51.0)
+
+| Piece | How it works |
+|---|---|
+| AVX admins | `private.avx_admins` (no one reads it through the API). Added by hand in each project's SQL editor: `insert into private.avx_admins (user_id) select id from auth.users where lower(email) = lower('…') on conflict do nothing;`. Their functions need two-step sign-in switched on and used (`require_avx_admin`). Account shows them "AVX reviews" (`/admin/trust`) with the count waiting (`trust_queue_count`) |
+| Verified companies | Organisation settings → Verification (admins). EU: the `vies-check` Edge Function calls `start_vies_check` as the admin (cleans the number, 5 a day), asks VIES's REST API, and records the answer with the service role (`record_vies_result`, which no person can run). Valid → `organisations.verified_at`, `verified_method = 'vies'`, `verified_name` (the name VIES holds, shown as "Registered as" on job posts). Otherwise `request_manual_verification(note)` queues a manual check; AVX admins `decide_verification` or `revoke_verification`. History in `org_verifications`. A trigger keeps `verified_*` and `posting_suspended_at` out of the organisation's own reach (it was open in N3; nothing had used it) |
+| Certificates | The profile trigger gives each certificate an id and works out its marks on every save: `confirmed_by` (from `certificate_confirmations`) and `verified` / `proof_pending` (from `certificate_proofs`), each only while the certificate's name and expiry match what was confirmed or checked. `confirm_certificate(org, person, cert)`: an admin or member of an organisation that has had the person on a gig (or as a member). Proofs: the file goes to the private bucket `certificate-proofs` (`<user>/<certificate>/<file>`, read by the person and AVX admins only), then `submit_certificate_proof`; AVX admins `review_certificate_proof` |
+| Reports | `report_network('profile' | 'job', id, reason, note)`, 20 a day, once per thing. The reporter stops seeing it at once (`can_see_crew_profile`, `list_jobs`). Three different people reporting a profile set `crew_profiles.suspended_at` (hidden from everyone); three reporting an organisation's posts set `organisations.posting_suspended_at` (posts hidden, `publish_job` refused). `decide_network_report(remove)`: keep lifts the pause; remove closes the post or keeps the profile hidden. `lift_suspension` undoes either |
+| Contact settings | `crew_profiles.contact_from`: `any` or `known`. `contact_crew` refuses someone set to `known` unless the organisation has worked with them or they can already write to each other; `search_crew` returns it so the buttons give way to a note |
+| Files from strangers | The message guard refuses files in a direct conversation when the two share no gig or organisation and the other person hasn't written in it yet |
+
+Checks: `supabase/tests/crew_trust.sql`; `src/lib/trust.test.js` (VAT numbers, VIES answers, certificate marks).
+
