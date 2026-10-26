@@ -18,11 +18,13 @@ calculators). AVX state: 0.51.0 (crew network N4).
   movements, repairs, subrentals, project requests, project templates, custom fields, files…).
 - **LumiStage**: not found. lumistage.online does not resolve from here and every search result is
   an unrelated anime game of the same name. As it launches this month, it may simply not be indexed
-  yet. **Send me a link, screenshots or a feature list** and I'll add it in the next run.
+  yet. Link received on 2026-10-26 (lumistage.online/uygulama), but this environment's network policy
+  blocks the site; it gets compared once the domain is allowed, or from screenshots or a feature list.
 - **StageKit**: not found under that name. Searches return Stage Kit (virtual-event branding),
   STAGE.KIT (motion capture), StagePro (theatre stage management) and a family of stage-plot/rider
   apps (StageOn, Stagediver, ArtistRider/StageRider). The rider apps are covered below because they
-  overlap with AVX's field tools; **tell me which product you meant**.
+  overlap with AVX's field tools. The product meant is at stagekit.fsnipes.com (link received on
+  2026-10-26); that domain is blocked here too, so it gets compared on the next run.
 - **Crew Booking**: taken to be **Crewbooking** (Brussels/Walhain, crewbooking.io): a marketplace
   and app for audiovisual and event crew ("missions", profiles, skill filters, interim contracting
   and payment).

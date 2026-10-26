@@ -16,6 +16,7 @@ export default {
     'org-admin': { term: 'Admin', definition: 'Organisation role that can do everything: members, quotes, settings and deleting.', example: 'The company owner.', where: 'Organisation → Members' },
     'org-member': { term: 'Member', definition: 'Organisation role that works on gigs, files and quotes, but not on members or settings.', example: 'An office producer.', where: 'Organisation → Members' },
     'call-time': { term: 'Call time', definition: 'When a person must arrive for the gig.', example: 'Call time 08:00 at the venue’s loading dock.', where: 'Gig → Crew, call sheet' },
+    'timecode': { term: 'Timecode', definition: 'A clock shown as hours:minutes:seconds:frames that cameras, consoles and show control share. Rehearsal notes are marked against it so everyone talks about the same moment.', example: '01:02:15:12 is one hour, two minutes, fifteen seconds and twelve frames.', where: 'Gig → Tools → Rehearsal notes' },
     'booking-times': { term: 'Booking times (shift)', definition: 'The hours someone is booked for. Without them, they count as busy for the gig’s whole days.', example: 'Booked only from 14:00 to 20:00 on the first day.', where: 'Gig → Crew → Set times' },
     'double-booking': { term: 'Double booking', definition: 'A person or item booked on two things at the same time. AVX warns you; it does not forbid it.', example: 'Carla is on two gigs on Saturday afternoon.', where: 'Gig → Crew, equipment, calendar' },
     'availability-request': { term: 'Availability question', definition: 'A question to someone: are you free for these dates? They answer yes or no from their phone.', example: '"Can you do 13–14 November?" → "Available, from 10:00".', where: 'Gig → Crew, My work → Requests, messages' },
@@ -214,6 +215,20 @@ export default {
         'Your day rate goes only to that company, never on your profile. "My applications" shows where each one stands; you can withdraw while it\'s open.',
         'If nothing shows "For you", widen your travel range or add functions in your crew profile.',
         'New jobs that fit you also arrive as a notification (at most 10 a day). Don\'t want them? Untick "Tell me about new jobs that fit me" in your crew profile.',
+      ],
+    },
+    'crew-rehearsal': {
+      title: 'Take notes during a rehearsal',
+      intro: 'Everyone on the gig writes notes at the same time, against the same timecode. Afterwards each department has its own list.',
+      steps: [
+        'Open the gig → Tools → Rehearsal notes. Whoever starts the run taps "New session", names it, and chooses the frame rate and the clock (time of day, or a stopwatch).',
+        'Everyone sees the same timecode. When something happens, tap Mark: the time is taken right then. Choose the department and priority, add the cue or song, type or dictate the note, add a photo if it helps, and save.',
+        'Notes appear for everyone as they are written. Show only one department, your own ("Mine") or the open ones, and tick a note when it\'s done.',
+        'After the run, Report prints the notes per department, and CSV opens in a spreadsheet. Open notes show again in the next session.',
+      ],
+      mistakes: [
+        'The clock is shared: if someone sets it to the show\'s timecode, everyone\'s follows. Set it from the timecode the show actually runs on.',
+        'No connection? Notes are kept on your phone and sent when you\'re back online; photos need a connection.',
       ],
     },
     'crew-trust': {

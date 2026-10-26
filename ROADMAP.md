@@ -193,6 +193,14 @@ by companies to that pool, with the availability check built in; applications be
 shown on a profile. Needs opt-in, abuse protection, reporting and ideally verified profiles; the
 privacy notice and terms need a full section on it. Plan and decisions (2026-10-21) in [docs/CREW_NETWORK.md](docs/CREW_NETWORK.md), stages N1–N5. **N1 built (0.48.0):** opt-in crew profiles; each person chooses who sees theirs (companies only, or companies and crew). **N2 built (0.49.0):** Find crew: search by function, place, dates and language, then ask about a gig or offer a place. **N3 built (0.50.0):** the job board: companies post positions (two-step sign-in, 3 open posts until verified), freelancers apply with their rate, applications become conversations, offers become crew calls. **N4 built (0.51.0):** trust: verified companies (VIES or a manual check by AVX), certificates confirmed by companies or checked from a proof, reports on profiles and job posts with automatic pauses, contact settings, and an AVX reviews page. **N5 built (0.53.0):** job alerts for freelancers and saved crew searches with alerts for companies. The crew network is complete.
 
+## Phase 8 — New tools (in progress)
+
+Planned 2026-10-26 in [docs/TOOLS_PLAN.md](docs/TOOLS_PLAN.md): rehearsal companion, DMX calculator,
+On-site mode, power, rigging and sound tools, built in dependency order with the business features
+from [docs/COMPETITOR_RESEARCH.md](docs/COMPETITOR_RESEARCH.md). **R1 built (0.54.0):** rehearsal
+notes with a shared timecode, live for everyone on the gig, offline, with a report per department.
+Next: R2 (camera and LTC sync).
+
 ## End of the build
 
 - **Public site, pricing and help** (planned 2026-10-19): a commercial site with pricing tiers and

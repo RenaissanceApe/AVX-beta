@@ -370,6 +370,12 @@ const SCENES = {
     await first.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
     return first
   } },
+  'rehearsal': { persona: 'crew', url: `/gig/${ids.gig}?tab=tools&tool=rehearsal&session=rs1`, async run(page, L) {
+    const mark = page.getByRole('button', { name: L('rehearsal.mark') })
+    await mark.waitFor()
+    await page.locator('[role="timer"]').evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -190) })
+    return null
+  } },
   'crew-profile': { persona: 'crew', url: '/me/profile', async run(page, L) {
     const preview = page.locator('section[aria-labelledby="cp-preview"]')
     await preview.scrollIntoViewIfNeeded()

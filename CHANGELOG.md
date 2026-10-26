@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.54.0 — Rehearsal companion R1
+
+### Added
+- **Rehearsal notes** (gig → Tools → On site): a shared, time-stamped notebook for rehearsals.
+  - A session per run, with a frame rate (23.976 to 30, drop-frame at 29.97) and a clock that
+    everyone on the gig shares: time of day or a stopwatch. Anyone writing on the gig can run,
+    pause, nudge (±1 frame, ±1 second) or set it to the show's timecode, and every phone follows.
+  - **Mark** takes the time at the tap; then the note gets a department (preset from your function
+    on the gig), priority (note, fix, urgent), cue or song, text (typed, quick words or dictated),
+    an optional photo and who it's for.
+  - Notes appear for everyone as they're written; filter by department, "Mine" or "Open", and tick
+    them done. Open notes from earlier runs show under the next session.
+  - Report per department (print or PDF), CSV, and a JSON file with timecodes and frames for other
+    show software (the start of the cueing app bridge).
+  - Written without a connection, notes stay on the phone and are sent later (photos need a
+    connection).
+  - Crew and PMs write; viewers read. Removing a note or a session only marks it.
+- Help: guide "Take notes during a rehearsal" and the glossary word "timecode".
+
+### Changed
+- The gig's Tools tab has two groups: **On site** (rehearsal notes, on every gig) and **Plan** (the
+  tools the gig uses). The tab is now shown to everyone on the gig.
+
+### Connected to earlier features
+- Departments come from each person's function on the gig; notes can be assigned to anyone on it.
+- Reports open from the tool and print like the other sheets.
+
+### Docs
+- `docs/TOOLS_PLAN.md`: decisions on On-site mode, the cueing app and rigger sign-off; build order
+  by dependencies, with what each step must connect to.
+
 ## 0.53.0 — Crew network N5: alerts and saved searches
 
 ### Added
