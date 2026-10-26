@@ -30,12 +30,12 @@ export default {
     'direct-message': { term: 'Direct message', definition: 'A private conversation between two people who share a gig or an organisation.', example: 'Asking the PM about parking.', where: 'Messages' },
     announcement: { term: 'Announcement', definition: 'A message that asks everyone to confirm they read it. The sender sees who confirmed.', example: '"New safety rules — please confirm."', where: 'Messages' },
     mute: { term: 'Mute', definition: 'Stop notifications from a conversation or an organisation. Things addressed to you still arrive.', example: 'Mute a busy channel during your holidays.', where: 'Messages, company switcher' },
-    'email-summary': { term: 'Email summary', definition: 'One email a day with the notifications you have not read. Nothing is sent when you are up to date.', example: 'Every morning: "3 updates you haven’t seen".', where: 'Account' },
-    'push-notifications': { term: 'Notifications on this device', definition: 'Alerts on your phone or computer, like any app. Each device is turned on separately.', example: 'Your phone buzzes when someone mentions you.', where: 'Account' },
-    'two-step': { term: 'Two-step sign-in', definition: 'Signing in asks for your password and a 6-digit code from an app on your phone.', example: 'Google Authenticator shows 482 913.', where: 'Account' },
+    'email-summary': { term: 'Email summary', definition: 'One email a day with the notifications you have not read. Nothing is sent when you are up to date.', example: 'Every morning: "3 updates you haven’t seen".', where: 'Settings → Notifications' },
+    'push-notifications': { term: 'Notifications on this device', definition: 'Alerts on your phone or computer, like any app. Each device is turned on separately.', example: 'Your phone buzzes when someone mentions you.', where: 'Settings → Notifications' },
+    'two-step': { term: 'Two-step sign-in', definition: 'Signing in asks for your password and a 6-digit code from an app on your phone.', example: 'Google Authenticator shows 482 913.', where: 'Settings → Sign-in and security' },
     'offline-copy': { term: 'Offline copy', definition: 'The last version of your gigs saved on your device, readable without signal.', example: 'Reading the call sheet in a basement with no network.', where: 'Gigs, gig page, call sheet' },
     network: { term: 'Your network', definition: 'People you have worked with on a gig or in an organisation; they can be found by name. Freelancers who switch on a crew profile can also be found by companies in Find crew.', example: 'Inviting a technician you worked with last year.', where: 'Gig → Crew → Invite' },
-    findable: { term: 'Who can find you', definition: 'Who can find you by name when adding crew: only managers and admins, or other crew too.', example: 'A freelance PM can find you if you allow "other crew".', where: 'Account' },
+    findable: { term: 'Who can find you', definition: 'Who can find you by name when adding crew: only managers and admins, or other crew too.', example: 'A freelance PM can find you if you allow "other crew".', where: 'Settings → Privacy and blocking' },
     'catalogue-item': { term: 'Catalogue item', definition: 'A kind of equipment you own or hire out, with its price and stock.', example: 'Shure SM58 microphone.', where: 'Inventory → Catalogue' },
     'bulk-item': { term: 'Counted in bulk', definition: 'Stock kept as a number per location, not one by one.', example: '120 XLR cables in the warehouse.', where: 'Inventory → item' },
     'serial-item': { term: 'By serial number', definition: 'Each unit is recorded on its own, with serial, QR label and status.', example: 'Each of your 8 moving heads has its own record.', where: 'Inventory → item → Units' },
@@ -85,7 +85,7 @@ export default {
     'price-list': { term: 'Price list', definition: 'Your prices for equipment and services, used to build quotes.', example: 'SM58: €8 a day.', where: 'Quotes → Price list' },
     'retention': { term: 'Keeping messages', definition: 'How long an organisation keeps messages in its conversations before they are deleted.', example: 'Keep for 1 year.', where: 'Organisation settings → Messages' },
     report: { term: 'Report a message', definition: 'Telling the people who run a conversation that a message is spam or abusive. They don’t see who reported it.', example: 'Reporting an advert posted in a gig’s chat.', where: 'Messages → message menu' },
-    block: { term: 'Block', definition: 'Stopping someone from writing to you in a direct conversation.', example: 'Blocking a person who keeps sending messages.', where: 'Messages, Account' },
+    block: { term: 'Block', definition: 'Stopping someone from writing to you in a direct conversation.', example: 'Blocking a person who keeps sending messages.', where: 'Messages, Settings → Privacy and blocking' },
   },
 
   hints: {
@@ -167,7 +167,7 @@ export default {
         'iPhone: open AVX in Safari. Tap Share (the square with an arrow), then "Add to Home Screen".',
         'Android: open AVX in Chrome. Tap the menu (three dots), then "Install app" or "Add to home screen".',
         'Open AVX from the new icon on your home screen, and sign in if asked.',
-        'For notifications: tap your initials at the top right, then turn on "Notifications on this device".',
+        'For notifications: tap your initials at the top right to open Settings, choose Notifications and turn on "Notifications on this device".',
       ],
       mistakes: [
         'On iPhone, notifications only work when AVX is opened from the home-screen icon, not from Safari.',
@@ -193,7 +193,7 @@ export default {
       title: 'See your gigs in your phone\'s calendar',
       intro: 'Your gigs can show up in the calendar you already use (Apple, Google or Outlook), next to everything else, without opening AVX.',
       steps: [
-        'Open your account (your initials at the top) and find "Your gigs in your phone\'s calendar".',
+        'Open Settings (your initials at the top) and choose "Calendar feed".',
         'Tap "Get my calendar link", then "Add to Apple / Outlook" on an iPhone or Mac, or "Add to Google Calendar" on Android. Your calendar asks to subscribe: say yes.',
         'From then on the gigs you\'re on appear with their venue, your role and call time, and update by themselves (most calendars check every hour or so).',
       ],
@@ -232,7 +232,7 @@ export default {
       title: 'Get found for work with your crew profile',
       intro: 'Companies on AVX can find you by what you do, where you are and the languages you speak. It stays off until you switch it on.',
       steps: [
-        'Open your account (your initials at the top) and tap "Open your crew profile".',
+        'Open Settings (your initials at the top), choose Profile and tap "Open your crew profile".',
         'Pick what you do, type your town and tap Find to choose it, then say how far you travel and which languages you work in. Add certificates and links if you like.',
         'Choose who can see it (companies only, or companies and crew), tick "Let people find my profile" and save. The preview at the bottom shows what they\'ll see.',
       ],
@@ -297,7 +297,7 @@ export default {
       title: 'Make AVX easier to read',
       intro: 'Bright sun, small screen, tired eyes: change how AVX looks on this phone or computer.',
       steps: [
-        'Tap your initials at the top right to open your account.',
+        'Tap your initials at the top right to open Settings, then choose "Language and appearance".',
         'Under Appearance, choose the theme: Light for sunlight, High contrast for the strongest difference, or Like the device. Choose the text size too.',
         'Turn on Comfortable mode for bigger buttons (with gloves, on the move), and the easy-to-read font if letters blur together. Simple mode shows only your next gig and what you need for it; it is on by itself for crew.',
       ],
@@ -813,7 +813,7 @@ export default {
       title: 'Download your data',
       intro: 'You can download your own data and, as an admin, the organisation\'s messages and reports.',
       steps: [
-        'Your own data: tap your initials, then "Export my data" under "Your data".',
+        'Your own data: tap your initials to open Settings, choose "Your data" and tap "Export my data".',
         'The organisation\'s messages: open Settings → Messages and tap "Download all messages". Here you also choose how long messages are kept.',
         'Inventory figures: Inventory → Reports → "Download CSV". Quotes: open one and use "Preview & print" to save a PDF.',
       ],

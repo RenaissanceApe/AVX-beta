@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.52.0 — Settings page
+
+### Changed
+- **Your settings are a page now** (`/settings`), no longer one long dialog. The avatar (and More →
+  Account on phones) opens it. Sections: Profile, Sign-in and security, Availability,
+  Notifications, Language and appearance, Privacy and blocking, Calendar feed, Your data, and AVX
+  reviews for AVX admins.
+- On wide screens the sections are listed on the left and the chosen one is shown on the right; on
+  phones the list comes first and each section opens on its own, with a way back. Each section has
+  its own address (`/settings/notifications`…), so links from the first-steps checklist, the menu
+  and the help guides open the right one. Old `?panel=account` links still work.
+- Help guides and their screenshots now point to the sections.
+
+### Docs
+- `docs/COMPETITOR_RESEARCH.md` (Rentman, Crewbooking and the rider apps compared, 29 features
+  ranked) and `docs/TOOLS_PLAN.md` (rehearsal companion, DMX calculator, power, rigging and sound
+  tools, and where prep and on-site tools live), merged with 0.51.0.
+
 ## 0.51.0 — Crew network N4: trust
 
 ### Added

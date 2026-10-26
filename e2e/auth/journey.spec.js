@@ -53,6 +53,8 @@ async function expectAccessible(page) {
 async function deleteAccount(page) {
   await page.goto('/dashboard')
   await page.getByRole('button', { name: /— Account$/ }).click()
+  await expect(page).toHaveURL(/\/settings/)
+  await page.getByRole('link', { name: 'Your data' }).click()
   page.once('dialog', dialog => dialog.accept('DELETE'))
   await page.getByRole('button', { name: 'Delete account' }).click()
   await expect(page).toHaveURL(/\/auth$/, { timeout: 15_000 })

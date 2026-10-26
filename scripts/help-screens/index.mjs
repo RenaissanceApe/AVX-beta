@@ -72,22 +72,22 @@ const SCENES = {
     await page.locator('.shell-tabs').getByRole('button', { name: L('nav.more') }).click()
     return page.getByRole('dialog').getByRole('link', { name: new RegExp(L('nav.availability')) })
   } },
-  unavailable: { persona: 'crew', url: '/me?panel=account', async run(page, L) {
+  unavailable: { persona: 'crew', url: '/settings/availability', async run(page, L) {
     await page.getByLabel(L('availability.from'), { exact: true }).fill(dayFromNow(60))
     return page.getByText(L('availability.title'), { exact: true }).locator('xpath=..')
   } },
-  'calendar-feed': { persona: 'crew', url: '/me?panel=account', async run(page, L) {
+  'calendar-feed': { persona: 'crew', url: '/settings/calendar', async run(page, L) {
     await page.getByRole('button', { name: L('calFeed.show') }).click()
     await page.getByRole('link', { name: L('calFeed.google') }).waitFor()
     return page.locator('#feed-title').locator('xpath=..')
   } },
-  push: { persona: 'crew', url: '/me?panel=account', async run(page, L) {
+  push: { persona: 'crew', url: '/settings/notifications', async run(page, L) {
     return page.getByText(L('push.title'), { exact: true }).first().locator('xpath=ancestor::div[1]')
   } },
   requests: { persona: 'crew', url: '/me', async run(page, L) {
     return page.getByText(L('requests.title.one', { count: 1 })).locator('xpath=..')
   } },
-  appearance: { persona: 'crew', url: '/me?panel=account', async run(page, L) {
+  appearance: { persona: 'crew', url: '/settings/preferences', async run(page, L) {
     return page.getByText(L('appearance.title'), { exact: true }).locator('xpath=..')
   } },
   'chat-availability': { persona: 'crew', url: `/messages/${ids.direct}`, async run(page, L) {
@@ -395,7 +395,7 @@ const SCENES = {
     await zone.click()
     return dialog.getByRole('button', { name: L('danger.deleteGig') })
   } },
-  'export-account': { persona: 'pm', url: '/me?panel=account', async run(page, L) {
+  'export-account': { persona: 'pm', url: '/settings/data', async run(page, L) {
     return page.getByRole('button', { name: L('account.export') }).first()
   } },
 }
