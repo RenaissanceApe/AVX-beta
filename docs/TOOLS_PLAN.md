@@ -38,8 +38,8 @@ still open are marked **Q**.
   40 cm square series (Fantek EC30 and EC40; Global Truss F34 and F44; Prolyte H30V/X30V and
   H40V/X40V). See RG2.
 - **Acoustics (Q5, 2026-10-27):** not a copy of EASE, but our own simulator whose detail grows with
-  the detail of the project (2D plan → 3D venue → measured speaker data → room surfaces). Proposed
-  stages A4–A6 in section 6, to be confirmed.
+  the detail of the project (2D plan → 3D venue → measured speaker data → room surfaces). Stages
+  A4–A6 in section 6, **confirmed 2026-10-27**: built after A1–A3.
 
 ---
 
@@ -336,7 +336,7 @@ team, the documents):
 | **A2 · Simple coverage map** | A plan view of the venue with SPL estimates from point sources with nominal dispersion (inverse square and air absorption by frequency band), for fills, delays and small systems. **Labelled as an estimate, not a simulation**; line arrays are shown only as their aim lines and splays, never as a fake SPL map | 1 PR |
 | **A3 · Prediction and measurement files** | Attach the real prediction (EASE, ArrayCalc, Soundvision project or export) and measurement files (Smaart/SysTune captures, EQ settings) to the gig's sound system, versioned, with notes; a "system tuning sheet" print: delays, EQ, gains, splay angles, as built | 1 PR |
 
-### Our own simulator, in levels of detail (proposed 2026-10-27)
+### Our own simulator, in levels of detail (confirmed 2026-10-27)
 
 Your question: with a 3D venue, the rigging points, the arrays (count, position, splays) and the
 speakers' specs, what else is needed, and can the simulation scale with the detail the project
@@ -372,7 +372,8 @@ What makes it hard is not the maths but **data and trust**:
 | **A5 · Measured directivity (L2)** | Import of open directivity data where a manufacturer publishes or allows it; the same engine uses it per cabinet; a validation report against reference systems | 1–2 PRs |
 | **A6 · Room estimate (L3)** | Surface materials, RT60, critical distance, STI estimate, shown as a room summary beside the direct-field map | 1 PR |
 
-**Q5b:** go ahead with A4–A6 after A1–A3 (in the build order after RG3, which supplies the arrays)?
+**Decided (Q5b, 2026-10-27):** yes. A4–A6 come after A1–A3; in the build order they also wait for
+RG3, which supplies the arrays.
 
 
 ---
@@ -406,7 +407,7 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 | 19 | **RG4** rigging plot, report, sign-off (Q4) | RG1–RG3, job board, 16 | Gig files, on-site view, job board prefill |
 | 20 | **RG5** suggestions; **P3** one-line and on-site power checklist | RG4, P2 | On-site mode |
 | 21 | **A2** coverage map, **A3** prediction and measurement files | A1, F4 | Gig files, tuning sheet print |
-| 21b | **A4–A6** own simulator, by level of detail (if Q5b is yes) | A1, RG1, RG3 | A2 map, system calculator, tuning sheet |
+| 21b | **A4–A6** own simulator, by level of detail | A1–A3, RG1, RG3 | A2 map, system calculator, tuning sheet |
 | 22 | **Shareable rider / advance page** [28] | stage plot, inputs, patch, P, RG | Includes power and rigging summaries |
 | 23 | **Vehicles and transport** [8], **appointments** [9] | reservations, item weights | Packing list (per vehicle), calendar, clashes |
 | 24 | **Reports** [11] | 10, 11, 23 | Dashboard |
