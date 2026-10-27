@@ -24,8 +24,9 @@ describe('truss load tables', () => {
     for (const t of TRUSS_TABLES) {
       const problems = tableProblems(t)
       const differs = t.crossCheck?.result === 'differs'
+      const open = (t.questions || []).length > 0
       // The same rules as scripts/truss-data/build.py: a value edited by hand can't sneak through
-      expect(problems.length > 0 || differs, `${t.id}: ${problems.join('; ')}`).toBe(t.status === 'blocked')
+      expect(problems.length > 0 || differs || open, `${t.id}: ${problems.join('; ')}`).toBe(t.status === 'blocked')
       expect(['unchecked', 'blocked', 'checked']).toContain(t.status)
       if (t.status === 'checked') expect(t.checkedBy, t.id).toBeTruthy()
     }

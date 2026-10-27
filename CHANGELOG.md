@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.60.0 — Truss load tables; LumiStage and StageKit compared
+
+### Added
+- **Truss load tables** (`src/data/truss/`, docs/TRUSS_DATA.md): 39 tables of allowable loads, copied
+  from the manufacturers' own documents, for the rigging tools (RG2).
+  - **Fantek:** EC30, EC40, EC29p, EC76.
+  - **Global Truss:** F34, F34P, F34PL, F44, F44P, F43, F54, F14, F23, F24.
+  - **Prolyte:** H30V, X30V, H40V, the triangle, rectangle and ladder types, S36, S52, S66 and
+    B100RV.
+  - **Per table:** UDL and point loads per span, with deflections, the manufacturer's conditions,
+    and the source document with its address, edition and checksum.
+  - **Checks run on every table:**
+    - kg against lbs and mm against inches;
+    - a second copy of the table where one exists (Prolyte's 2022 data sheets, Global Truss's
+      black-finish pages, Fantek's certificates);
+    - plausibility rules: no missing spans, loads falling and deflections rising with span, and
+      beam-theory ratios at long spans.
+  - **Status:** none can be used until a second person has compared it with its source. Four are
+    blocked on questions to the manufacturers.
+- `scripts/truss-data/`: downloads the documents and rebuilds the data byte for byte.
+- `src/lib/trussTables.js` with tests: the plausibility rules fail the tests if a value is edited
+  into an impossible state or a table is marked usable without a named checker.
+
+### Docs
+- **docs/COMPETITOR_RESEARCH.md:** LumiStage (3D stage planning on Windows) and StageKit (a free
+  band rider tool) compared from their own sites.
+- **docs/TOOLS_PLAN.md:**
+  - a generator suggestion in P1;
+  - MVR export;
+  - overloaded positions coloured, in RG;
+  - in the rider page: start from the line-up, plus a readiness check;
+  - proposed, to confirm: venue pages.
+- **docs/PENDING.md:** D12–D14.
+
+### Connected to earlier features
+- None in the app yet: the light plot's weights per position (RG1) and the rigging tools (RG2) will
+  read these tables.
+
 ## 0.59.0 — Tasks (T2): organisation tasks, checklist templates, repairs
 
 ### Added

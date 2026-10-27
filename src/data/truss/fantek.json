@@ -208,10 +208,13 @@
    "family": "EC40",
    "shape": "square",
    "nominalCm": 40,
-   "chords": "50x4 mm",
-   "status": "unchecked",
+   "chords": "50x2 mm",
+   "status": "blocked",
    "checkedBy": null,
    "issues": [],
+   "questions": [
+    "The weight column gives about 5 kg/m (15 kg at 3 m, 90 kg at 18 m), almost the same as EC-30, but the FK40Q product page gives 7.2 kg/m. Which truss is this table for, and does it include the right self-weight? (Ask Fantek.)"
+   ],
    "columns": [
     "span_m",
     "udl_kg_m",

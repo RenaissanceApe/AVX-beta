@@ -244,8 +244,10 @@ power distribution for the whole gig, from the equipment actually on it.
 | **P2** | Cable runs and voltage drop, cable list → equipment, automatic phase balancing suggestion, inrush groups | 1 PR |
 | **P3** | One-line diagram, views per area and department, on-site checklist (what plugs into what, ticked off) | 1 PR |
 
-LumiStage: link received (lumistage.online/uygulama), but this environment's network can't open
-it yet, so P1–P3 haven't been compared with it.
+Compared with LumiStage on 2026-10-27 (docs/COMPETITOR_RESEARCH.md): it groups loads into 16 A
+circuits, balances phases and **suggests a generator size**, and makes a cable list (power, DMX,
+speaker, signal). P1 adds the generator suggestion (from the total and per-phase load, with a
+margin); P2's cable list already covers the rest, joined with the gig's real equipment.
 
 ---
 
@@ -298,8 +300,10 @@ Yes, this is viable, because the data is already connected:
 - the tables come from the manufacturers' own published load tables (PDF), never derived. Each
   table keeps its source (document, edition, date), is entered by one person and checked by a
   second before it can be used, and is versioned, so a report always shows which table it used;
-- the documents themselves are needed first: this environment can't reach the manufacturers'
-  sites, so they have to be shared (the PDFs, or the sites allowed in the environment);
+- **data collected 2026-10-27** (docs/TRUSS_DATA.md, `src/data/truss/`): 39 tables from the
+  manufacturers' documents, with source, edition and checksum. 35 wait for the second person's
+  check; 4 are blocked on questions to the manufacturers (Fantek EC-40's weights, Fantek EC-76,
+  Global Truss F23/F24). Prolyte no longer publishes X40V. RG2 builds the review screen;
 - hoists (not chosen yet): CM Lodestar, Chainmaster BGV-D8+ and C1, Verlinde Stagemaker, Movecat
   and Liftket stay the suggestion; anyone can add a model from its data plate.
 
@@ -378,6 +382,15 @@ RG3, which supplies the arrays.
 
 ---
 
+## Proposed, to confirm (2026-10-27, from LumiStage and StageKit)
+
+- **Venue pages:** one page per venue, shared by the organisations that work there: stage size and
+  capacity, installed equipment, rigging points and their limits, power supply, light plots and
+  documents, contacts by role, access hours for build and rehearsal, photos. A gig at that venue
+  would fill its address, call sheet, power supply (P1) and rigging points (RG1) from it. Would
+  sit after step 22 (rider page).
+- **A/B variants** of a plot or a power plan, compared side by side: later, with gig templates.
+
 ## Build order
 
 Built in dependency order: nothing is built before what it needs. Each step lists **what it must
@@ -399,16 +412,16 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 | 11 | **Invoices** [1] | accepted quotes, 10 | Quotes, contacts, guest threads, client links |
 | 12 | Damage charged to the client [15], **payments** [22] | invoices, repairs | Repairs, quotes, invoices |
 | 13 | **A1** speaker library | catalogue | F4 sound calculator; later P1 and RG3 |
-| 14 | **MVR/GDTF import** [29] | light plot, DMX patch | Fixture weights and power for P1 and RG1 |
+| 14 | **MVR/GDTF import** [29], and **MVR export** (LumiStage has it) | light plot, DMX patch | Fixture weights and power for P1 and RG1 |
 | 15 | **P1–P2** power and cables | light plot, A1, 14 | Light plot power estimate, equipment (distros, cables) |
 | 16 | **E-signature** [16] | — | Quote acceptance, delivery notes, crew contracts, rigger sign-off |
-| 17 | **RG1–RG2** weights, points, hoists, trusses, bridles | light plot, catalogue (Q3) | Light plot "rigging not checked", bridle pocket tool |
+| 17 | **RG1–RG2** weights, points, hoists, trusses, bridles | light plot, catalogue (Q3), truss tables (docs/TRUSS_DATA.md) | Light plot "rigging not checked" and overloaded positions coloured, bridle pocket tool, the second-person check of each truss table |
 | 18 | **RG3** line arrays | A1, F4, RG1 | Sound system calculator |
 | 19 | **RG4** rigging plot, report, sign-off (Q4) | RG1–RG3, job board, 16 | Gig files, on-site view, job board prefill |
 | 20 | **RG5** suggestions; **P3** one-line and on-site power checklist | RG4, P2 | On-site mode |
 | 21 | **A2** coverage map, **A3** prediction and measurement files | A1, F4 | Gig files, tuning sheet print |
 | 21b | **A4–A6** own simulator, by level of detail | A1–A3, RG1, RG3 | A2 map, system calculator, tuning sheet |
-| 22 | **Shareable rider / advance page** [28] | stage plot, inputs, patch, P, RG | Includes power and rigging summaries |
+| 22 | **Shareable rider / advance page** [28] | stage plot, inputs, patch, P, RG | Includes power and rigging summaries; from StageKit: start the input list, mixes and plot **from the line-up**, and a **readiness check** before sending |
 | 23 | **Vehicles and transport** [8], **appointments** [9] | reservations, item weights | Packing list (per vehicle), calendar, clashes |
 | 24 | **Reports** [11] | 10, 11, 23 | Dashboard |
 | 25 | **Gig templates** [7] | everything above | Copies schedule, positions, equipment, tools, tasks, custom fields |

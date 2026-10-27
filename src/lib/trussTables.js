@@ -1,7 +1,8 @@
 // Truss load tables (docs/TRUSS_DATA.md; docs/TOOLS_PLAN.md §5, RG2): the manufacturers' published
 // allowable loads, copied as published from their documents by scripts/truss-data. A table may
 // only be used for a check once a second person has compared it with its source (status
-// 'checked'); 'unchecked' ones are shown as such, 'blocked' ones not offered at all.
+// 'checked'); 'unchecked' ones are shown as such, 'blocked' ones (a problem in the published
+// values, or an open question to the manufacturer) are not offered at all.
 import prolyte from '../data/truss/prolyte.json'
 import globaltruss from '../data/truss/globaltruss.json'
 import fantek from '../data/truss/fantek.json'

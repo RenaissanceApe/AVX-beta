@@ -106,6 +106,9 @@ Each has a default already built; nothing is blocked. Say "keep" or "change".
 | D9 | Lines typed by hand in a quote (not from the catalogue) **aren't checked for availability** | Skipped, and the check says how many | I2 |
 | D10 | Organisation **time zone**: everything is read as Lisbon time; needed once a company abroad joins (the job board is international) | Lisbon only | 5a |
 | D11 | **Phone app** (wrapper around this app vs. the installed web app) | Planned for the end of the build, after T5 shows how scanning behaves | I3 |
+| D12 | **Truss tables, second check:** someone you trust (ideally a certified rigger) compares each table in `src/data/truss/` with its source document (links and checksums in docs/TRUSS_DATA.md) and is recorded as `checkedBy`. Until then no table can be used for a check | 35 tables waiting, 4 blocked | truss data |
+| D13 | **Questions to the manufacturers** (docs/TRUSS_DATA.md, "Blocked"): Fantek about the EC-40 weights and the EC-76 table, Global Truss about F23/F24. Send them yourself, or say so and Claude drafts the e-mails | Tables blocked | truss data |
+| D14 | **Venue pages** (proposed from LumiStage, TOOLS_PLAN.md "Proposed, to confirm"): build them after the rider page? | Not planned yet | competitors |
 
 ## 4. Before a public launch (already in the roadmap)
 

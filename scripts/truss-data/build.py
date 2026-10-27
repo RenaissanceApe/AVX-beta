@@ -186,19 +186,21 @@ def fantek_tables():
     # EC 40: an image, transcribed by hand; checked against its own lbs and inch columns
     ec40 = json.load(open(os.path.join(os.path.dirname(__file__), 'ec40.json')))['rows']
     path = os.path.join(ROOT, 'pdf', 'fantek_Datos_tecnicos_EC_40_FK40Q_1_20240228161825.pdf')
-    tables.append({'id': 'fantek-ec40', 'brand': 'Fantek', 'series': 'EC40', 'family': 'EC40', 'shape': 'square', 'nominalCm': 40, 'chords': '50x4 mm',
+    tables.append({'id': 'fantek-ec40', 'brand': 'Fantek', 'series': 'EC40', 'family': 'EC40', 'shape': 'square', 'nominalCm': 40, 'chords': '50x2 mm',
                    'columns': cols15,
                    'rows': [[r[0], r[1], r[3], r[5], r[7], r[9], r[11], r[13], r[15], r[17], r[19], r[21], r[23], r[25], r[27]] for r in ec40],
                    'conditions': FANTEK_COMMON,
                    'source': {'publisher': 'Fantek Industrial S.L.', 'title': 'Datos técnicos EC 40 FK40Q 1', 'url': FANTEK_URL + 'Datasheet/Datos%20tecnicos%20EC%2040%20FK40Q%201_20240228161825.pdf',
                               'edition': moddate(path), 'retrieved': RETRIEVED, 'sha256': sha(path)},
+                   'questions': ['The weight column gives about 5 kg/m (15 kg at 3 m, 90 kg at 18 m), almost the same as EC-30, but the FK40Q '
+                                 'product page gives 7.2 kg/m. Which truss is this table for, and does it include the right self-weight? (Ask Fantek.)'],
                    'checks': ['Published as an image: transcribed by hand at 200 dpi.', 'Edition: the upload date in the file name (the PDF carries none).', 'Every kg value agrees with its lbs column and every mm value with its inch column.']})
     return tables
 
 def finish(tables):
     for t in tables:
         t['issues'] = validate(t)
-        t['status'] = 'blocked' if t['issues'] or (t.get('crossCheck') or {}).get('result') == 'differs' else 'unchecked'
+        t['status'] = 'blocked' if t['issues'] or t.get('questions') or (t.get('crossCheck') or {}).get('result') == 'differs' else 'unchecked'
         t['checkedBy'] = None
         t['rows'] = [[int(x) if float(x).is_integer() else x for x in r] for r in t['rows']]
         assert all(len(r) == len(t['columns']) for r in t['rows']), t['id']
@@ -208,7 +210,7 @@ def finish(tables):
 os.makedirs(OUT, exist_ok=True)
 for brand, fn in [('prolyte', prolyte_tables), ('globaltruss', gt_tables), ('fantek', fantek_tables)]:
     tables = finish(fn())
-    order = ['id', 'brand', 'series', 'family', 'shape', 'nominalCm', 'chords', 'case', 'status', 'checkedBy', 'issues', 'columns', 'rows', 'conditions', 'checks', 'source', 'crossCheck']
+    order = ['id', 'brand', 'series', 'family', 'shape', 'nominalCm', 'chords', 'case', 'status', 'checkedBy', 'issues', 'questions', 'columns', 'rows', 'conditions', 'checks', 'source', 'crossCheck']
     tables = [{k: t[k] for k in order if k in t} for t in tables]
     # Readable diffs: one table row per line
     body = json.dumps({'brand': tables[0]['brand'], 'tables': tables}, ensure_ascii=False, indent=1)
