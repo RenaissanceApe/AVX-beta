@@ -376,6 +376,14 @@ const SCENES = {
     await page.locator('[role="timer"]').evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -190) })
     return null
   } },
+  'onsite': { persona: 'crew', url: `/gig/${ids.gig}`, async run(page, L) {
+    // The sample gig is 24 days away: set the clock to its afternoon, then open it again
+    await page.clock.setFixedTime(new Date(`${day(24)}T16:20:00`))
+    await page.reload()
+    await page.getByRole('heading', { name: L('onsite.title') }).waitFor()
+    await page.getByRole('heading', { name: L('onsite.title') }).evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -70) })
+    return null
+  } },
   'dmx-calc': { persona: 'crew', url: '/tools', async run(page, L) {
     await page.locator('#calc-address').fill('97')
     const box = page.locator('section[aria-labelledby="calc-dip"]')

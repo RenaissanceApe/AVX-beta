@@ -229,6 +229,19 @@ export default {
         'Sem ligação? As notas ficam no telemóvel e são enviadas quando voltar a ter rede; as fotos precisam de ligação.',
       ],
     },
+    'crew-onsite': {
+      title: 'Usar o modo no local no dia',
+      intro: 'Nos dias de um evento, o evento abre com o que precisa ali e naquele momento, em botões grandes.',
+      steps: [
+        'Num dia de evento, abra o evento: começa sozinho no modo no local. Noutro dia, toque em "Modo no local" no evento para o ligar.',
+        'No topo: a sua hora de chamada e o horário de hoje, com o que está a acontecer agora e a seguir. Por baixo, botões grandes para a folha de serviço, as notas de ensaio, percorrer o rig, a lista de inputs, ler equipamento, ficheiros, conversa e os telefones da equipa.',
+        '"Vista completa do evento" volta ao resumo habitual até ao fim do dia. Os separadores estão sempre lá.',
+      ],
+      mistakes: [
+        'Não quer que ligue sozinho? Desmarque "Passar para o modo no local nos dias de evento" em Definições → Língua e aparência. Fica guardado em cada dispositivo.',
+        'Abra o evento uma vez antes de chegar ao local, para ficar guardado no telemóvel para quando não houver rede.',
+      ],
+    },
     'crew-dmx-calc': {
       title: 'Definir o endereço DMX de um projetor pelos dipswitches',
       intro: 'Muitos projetores recebem o endereço de uma fila de pequenos interruptores. O AVX mostra quais deve mudar.',

@@ -45,6 +45,11 @@ still open are marked **Q**.
 
 ## 1. Prep tools and show tools: where they live
 
+**Built:** the Tools tab's two groups (0.54.0) and On-site mode (0.57.0). On-site mode takes the
+place of the gig's overview on its days (`src/lib/onSite.js`, `OnSiteView`); a switch per gig lasts
+the day; the automatic switch is a device setting, on by default. It keeps the person's own theme
+rather than forcing a dark one: in a bright venue the light or high-contrast theme reads better.
+
 You noticed that the tools serve two different moments:
 
 | | Prepare (office, days before) | Run (on site, during setup and the show) |
@@ -383,7 +388,7 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 | 1 | **R1** rehearsal companion ✅ 0.54.0 | gig, schedule, members | Department from the gig function; reports printable |
 | 2 | **R2** camera and LTC sync ✅ 0.55.0 | R1 | Session clock type shown in the report |
 | 3 | **D1** DMX calculator and dipswitches ✅ 0.56.0 | DMX patch | DMX patch column and walk-through (by light plot position) |
-| 4 | **On-site mode** and Tools split (Plan / On site), personal auto setting | R1, D1, field kit | Call sheet, scan mode, equipment steps, settings |
+| 4 | **On-site mode** and Tools split (Plan / On site), personal auto setting ✅ 0.57.0 | R1, D1, field kit | Call sheet, rehearsal notes, walk-through, input list, scanning, settings |
 | 5 | **Tasks** [6] (gig and organisation, checklists) | — | R1 notes → tasks, inventory repairs, on-site checklists |
 | 6 | **Custom statuses and gig types** [10], **custom fields** [12] | — | Gig lists, calendar, filters, export, import |
 | 7 | **Crew rates** [3] | crew, functions | Crew calls and job posts (fee), quotes (labour lines) |
