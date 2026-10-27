@@ -232,6 +232,19 @@ export default {
         'No connection? Notes are kept on your phone and sent when you\'re back online; photos need a connection.',
       ],
     },
+    'pm-tasks': {
+      title: 'Give out tasks on a gig',
+      intro: 'Who does what by when: one task per job, with a checklist when it has steps.',
+      steps: [
+        'Open the gig → Tasks → "New task". Write what, choose who it\'s for and the due date, and add a checklist with one item per line. The person gets a notification.',
+        'Tap a task to see its notes and checklist. Anyone on the gig can tick the checklist and the task; overdue tasks are marked in red. "Mine" and "Open" filter the list.',
+        'From a rehearsal note, the list icon makes it a task for the same person. Everyone sees their own tasks, from every gig, in My work → My tasks.',
+      ],
+      mistakes: [
+        'Only the gig\'s managers and the organisation\'s admins and members create and change tasks; crew tick them.',
+        'Tasks can only be given to people on the gig. Add them to the crew first.',
+      ],
+    },
     'crew-onsite': {
       title: 'Use On-site mode on the day',
       intro: 'On the days of a gig, the gig opens on what you need there and then, in big buttons.',

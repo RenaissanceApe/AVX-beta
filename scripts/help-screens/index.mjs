@@ -376,6 +376,11 @@ const SCENES = {
     await page.locator('[role="timer"]').evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -190) })
     return null
   } },
+  'gig-tasks': { persona: 'pm', url: `/gig/${ids.gig}?tab=tasks`, async run(page, L) {
+    const first = page.getByRole('button', { name: /Tape the stage|Fita nos cabos/ })
+    await first.click()
+    return null
+  } },
   'onsite': { persona: 'crew', url: `/gig/${ids.gig}`, async run(page, L) {
     // The sample gig is 24 days away: set the clock to its afternoon, then open it again
     await page.clock.setFixedTime(new Date(`${day(24)}T16:20:00`))
