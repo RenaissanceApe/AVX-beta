@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { Moon, Sun, Contrast, MonitorSmartphone } from 'lucide-react'
 import { useAppearance, THEME_CHOICES, SIZE_CHOICES, SIMPLE_CHOICES } from '../lib/appearance'
+import { readOnSite, saveOnSite } from '../lib/onSite'
 import { useSimpleMode } from '../lib/simpleMode'
 import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
@@ -22,6 +24,8 @@ export default function AppearanceSettings() {
     color: active ? colors.text : colors.soft,
   })
   const check = { display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px', lineHeight: 1.45 }
+  const [onSiteAuto, setOnSiteAuto] = useState(() => readOnSite().auto)
+  const changeOnSite = on => { setOnSiteAuto(on); saveOnSite({ ...readOnSite(), auto: on, noteSeen: true }); track(`onsite:auto:${on ? 'on' : 'off'}`) }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -69,6 +73,10 @@ export default function AppearanceSettings() {
       <label style={check}>
         <input type="checkbox" checked={a.font === 'readable'} onChange={e => change({ font: e.target.checked ? 'readable' : 'standard' })} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
         <span><strong>{t('appearance.readable')}</strong><span style={{ display: 'block', color: colors.muted, fontSize: '12px' }}>{t('appearance.readableHint')}</span></span>
+      </label>
+      <label style={check}>
+        <input type="checkbox" checked={onSiteAuto} onChange={e => changeOnSite(e.target.checked)} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
+        <span><strong>{t('onsite.auto')}</strong><span style={{ display: 'block', color: colors.muted, fontSize: '12px' }}>{t('onsite.autoHint')}</span></span>
       </label>
       <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('appearance.thisDevice')}</p>
     </div>

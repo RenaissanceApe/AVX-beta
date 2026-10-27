@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2, HardHat } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { logger } from '../lib/logger'
 import { useI18n } from '../i18n'
 import { useToast } from '../lib/ToastContext'
-import { btnPrimary, colors } from '../components/ui'
+import { btn, btnPrimary, colors } from '../components/ui'
 import GigHeader, { GIG_TABS, TAB_ALIASES } from '../components/gig/GigHeader'
 import { useSimpleMode, SIMPLE_GIG_TABS } from '../lib/simpleMode'
 import OverviewTab from '../components/gig/OverviewTab'
@@ -17,6 +17,8 @@ import EquipmentTab from '../components/gig/EquipmentTab'
 import UpdatesTab from '../components/gig/UpdatesTab'
 import ToolsTab from '../components/gig/ToolsTab'
 import ChatTab from '../components/gig/ChatTab'
+import OnSiteView from '../components/gig/OnSiteView'
+import { readOnSite, saveOnSite, onSiteState, switchOnSite, ONSITE_CHANGED } from '../lib/onSite'
 import AssetVersionsModal from '../components/gig/AssetVersionsModal'
 import EditGigModal from '../components/gig/EditGigModal'
 import AppShell from '../components/shell/AppShell'
@@ -50,6 +52,13 @@ export default function GigPage() {
   const [versionsAsset, setVersionsAsset] = useState(null)
   const [savedAt, setSavedAt] = useState(null) // set when showing the offline copy
   const [company, setCompany] = useState(null)
+  // On-site mode (TOOLS_PLAN §1): kept on this device; follows changes made in Settings
+  const [onSite, setOnSite] = useState(readOnSite)
+  useEffect(() => {
+    const sync = () => setOnSite(readOnSite())
+    window.addEventListener(ONSITE_CHANGED, sync)
+    return () => window.removeEventListener(ONSITE_CHANGED, sync)
+  }, [])
   const { orgs } = useWorkspace()
   const location = useLocation()
   // Back goes where you came from (My work, an organisation, a notification); fresh tabs go home
@@ -213,6 +222,7 @@ export default function GigPage() {
   const isPM = myMembership?.role === 'pm' || gig.created_by === user.id || orgRole === 'admin'
   const canUpload = isPM || !!orgRole
   const reload = () => loadAll({ silent: true })
+  const onSiteWhy = onSiteState(gig, onSite)
 
   return (
     <AppShell>
@@ -223,7 +233,16 @@ export default function GigPage() {
         company={company} orgRole={orgRole} />
 
       <main style={{ maxWidth: '900px', margin: '0 auto', padding: '24px 16px' }}>
-        {tab === 'overview' && (
+        {tab === 'overview' && onSiteWhy && (
+          <OnSiteView gig={gig} schedule={schedule} tools={tools} myMembership={myMembership} canScan={canUpload} why={onSiteWhy}
+            noteSeen={onSite.noteSeen} onDismissNote={() => saveOnSite({ ...readOnSite(), noteSeen: true })}
+            onLeave={() => saveOnSite({ ...switchOnSite(readOnSite(), gig.id, false), noteSeen: true })} setTab={setTab} />
+        )}
+        {tab === 'overview' && !onSiteWhy && (
+          <button type="button" onClick={() => saveOnSite(switchOnSite(readOnSite(), gig.id, true))}
+            style={{ ...btn, background: 'transparent', marginBottom: '12px' }}><HardHat size={14} /> {t('onsite.enter')}</button>
+        )}
+        {tab === 'overview' && !onSiteWhy && (
           <OverviewTab gig={gig} assets={assets} members={members} posts={posts} schedule={schedule}
             canUpload={canUpload} isPM={isPM} nameOf={nameOf} setTab={setTab} onOpenAsset={setVersionsAsset}
             openUpload={() => { setTab('assets'); setShowUpload(true) }}
