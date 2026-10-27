@@ -390,7 +390,7 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 | 2 | **R2** camera and LTC sync ✅ 0.55.0 | R1 | Session clock type shown in the report |
 | 3 | **D1** DMX calculator and dipswitches ✅ 0.56.0 | DMX patch | DMX patch column and walk-through (by light plot position) |
 | 4 | **On-site mode** and Tools split (Plan / On site), personal auto setting ✅ 0.57.0 | R1, D1, field kit | Call sheet, rehearsal notes, walk-through, input list, scanning, settings |
-| 5 | **Tasks** [6] (gig and organisation, checklists) | — | R1 notes → tasks, inventory repairs, on-site checklists |
+| 5 | **Tasks** [6]: **T1** gig tasks, My tasks, R1 notes → tasks, notification ✅ 0.58.0; **T2** organisation tasks, checklist templates | — | R1 notes → tasks ✅; T2: inventory repairs, On-site mode checklists |
 | 6 | **Custom statuses and gig types** [10], **custom fields** [12] | — | Gig lists, calendar, filters, export, import |
 | 7 | **Crew rates** [3] | crew, functions | Crew calls and job posts (fee), quotes (labour lines) |
 | 8 | **Time registration** [2] | crew rates, schedule | Gig crew tab, calendar feed, export |
@@ -420,6 +420,16 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 
 Rule for every PR from now on: its description says which earlier features it connected to (or
 why none), and CHANGELOG lists those connections.
+
+### How Tasks T1 works (0.58.0)
+
+| Piece | How it works |
+|---|---|
+| Data | `tasks` (migration `20261129000000_tasks.sql`): on a gig or for an organisation, title, notes, assignee, due date, checklist (JSON, up to 50 items), open/done with who and when, where it came from (a rehearsal note), soft removal. At most 2000 per gig (or per organisation, for its own tasks) |
+| Who may | Read: the gig's members (or the organisation's, for organisation tasks). Add, edit, remove: production managers and organisation admins. Tick: anyone who writes on the gig and the assignee; the trigger lets them change only the status and checklist ticks |
+| Checks | The assignee must be on the gig (or in the organisation); a note becomes a task on its own gig only, once |
+| Notification | `task_assigned` when someone else gives you a task or changes who it's for; a direct kind, sent even when the organisation is muted |
+| Screens | Gig → Tasks (`TasksTab`), My tasks (`/tasks`), the rehearsal session's "Make a task" button. Pure helpers in `src/lib/tasks.js` with tests; database checks in `supabase/tests/tasks.sql` |
 
 ## References
 

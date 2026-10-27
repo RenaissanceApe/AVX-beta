@@ -235,7 +235,7 @@ export default function GigPage() {
         onBack={goBack} onRefresh={() => loadAll()} onEdit={() => setShowEdit(true)}
         company={company} orgRole={orgRole} />
 
-      <main style={{ maxWidth: '900px', margin: '0 auto', padding: '24px 16px' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '24px 16px' }}>
         {tab === 'overview' && onSiteWhy && (
           <OnSiteView gig={gig} schedule={schedule} tools={tools} myMembership={myMembership} canScan={canUpload} why={onSiteWhy}
             noteSeen={onSite.noteSeen} onDismissNote={() => saveOnSite({ ...readOnSite(), noteSeen: true })}
@@ -283,7 +283,7 @@ export default function GigPage() {
             feed={{ gigId: id, posts, userId: user.id, isPM, nameOf, onChanged: reload }}
             activity={{ entries: activity, nameOf }} />
         )}
-      </main>
+      </div>
 
       {versionsAsset && <AssetVersionsModal asset={versionsAsset} nameOf={nameOf} onClose={() => setVersionsAsset(null)} />}
       {showEdit && (
