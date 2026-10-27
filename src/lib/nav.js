@@ -21,6 +21,7 @@ export function navSections({ workspace, role }) {
         { key: 'myCalendar', icon: 'calendar', to: '/me?view=calendar' },
         { key: 'availability', icon: 'calendarOff', to: '/settings/availability' },
         { key: 'jobs', icon: 'handshake', to: '/jobs' },
+        { key: 'pocketTools', icon: 'wrench', to: '/tools' },
       ] },
       { key: 'organisations', icon: 'building', items: [
         { key: 'allOrgs', icon: 'building', to: '/orgs' },

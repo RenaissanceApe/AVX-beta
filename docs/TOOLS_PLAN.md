@@ -168,6 +168,8 @@ Checks: `supabase/tests/rehearsals.sql`; `src/lib/rehearsal.test.js` (timecode, 
 
 ## 3. DMX calculator and dipswitch converter (small, do early)
 
+**D1 built (0.56.0).** See "How D1 works" at the end of this section.
+
 Modelled on the best parts of DMX Toolbox, DMXRef and DMX Dip Calculator:
 - **Address ↔ dipswitches:** 9 or 10 switches, value of each switch shown, tap switches to build an
   address. Display options: mirrored, upside-down, ON = up or down, switch 1 on the left or right,
@@ -184,6 +186,15 @@ Modelled on the best parts of DMX Toolbox, DMXRef and DMX Dip Calculator:
 | Stage | Scope | Size |
 |---|---|---|
 | **D1** | Calculator, dipswitch view (with display options), block addressing, converters; pocket tool + DMX patch column + on-site walk-through | 1 PR |
+
+### How D1 works (0.56.0)
+
+| Piece | How it works |
+|---|---|
+| Maths | `src/lib/dmxCalc.js`: switch values (LSB or MSB first, a 10th switch worth nothing), address ↔ switches, universe/address ↔ absolute (from 1 or 0), block addressing that never splits a fixture across universes, % / 16-bit / hex conversions. Tests in `dmxCalc.test.js` |
+| Layout | Each person chooses how their fixtures show the switches (count, order, ON direction, side); kept in `localStorage` (`avx.dipLayout`) and shared by the calculator, the patch and the walk-through |
+| Pocket tools | `/tools` (My work → Pocket tools), no gig needed, no network needed |
+| In the gig | DMX patch: "Dipswitches" toggle per fixture; "Walk the rig" opens `/gig/:id/dmx/walk`, fixtures with an address sorted by position, then universe and address; uses the patch's offline copy |
 
 ---
 
@@ -328,7 +339,7 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 |---|---|---|---|
 | 1 | **R1** rehearsal companion ✅ 0.54.0 | gig, schedule, members | Department from the gig function; reports printable |
 | 2 | **R2** camera and LTC sync ✅ 0.55.0 | R1 | Session clock type shown in the report |
-| 3 | **D1** DMX calculator and dipswitches | DMX patch | DMX patch column, light plot fixture view |
+| 3 | **D1** DMX calculator and dipswitches ✅ 0.56.0 | DMX patch | DMX patch column and walk-through (by light plot position) |
 | 4 | **On-site mode** and Tools split (Plan / On site), personal auto setting | R1, D1, field kit | Call sheet, scan mode, equipment steps, settings |
 | 5 | **Tasks** [6] (gig and organisation, checklists) | — | R1 notes → tasks, inventory repairs, on-site checklists |
 | 6 | **Custom statuses and gig types** [10], **custom fields** [12] | — | Gig lists, calendar, filters, export, import |

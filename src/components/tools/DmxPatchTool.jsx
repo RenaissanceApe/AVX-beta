@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Printer, Pencil, Trash2, AlertTriangle, Loader2, PackagePlus, ListRestart } from 'lucide-react'
+import { Plus, Printer, Pencil, Trash2, AlertTriangle, Loader2, PackagePlus, ListRestart, Footprints, ToggleLeft } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -9,6 +9,7 @@ import { useUndoRemove } from '../../lib/undo'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { inputsToEquipment } from '../../lib/tools'
 import { overlaps, packAddresses, bulkFixtures, universeUse, dmxRange, UNIVERSE_SIZE } from '../../lib/dmx'
+import { switchesOn, readDipLayout } from '../../lib/dmxCalc'
 import { t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../ui'
 import EmptyState from '../EmptyState'
@@ -27,6 +28,8 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
   const [catalogue, setCatalogue] = useState([])
   const [editing, setEditing] = useState(null) // null | 'new' | fixture
   const [busy, setBusy] = useState(false)
+  const [showDips, setShowDips] = useState(false)
+  const layout = useMemo(readDipLayout, [showDips])
   const { hidden, remove: removeLater } = useUndoRemove()
 
   const load = useCallback(async () => {
@@ -105,6 +108,10 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {canEdit && <button type="button" onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} /> {t('dmx.add')}</button>}
           {shown.length > 0 && <Link to={`/gig/${gig.id}/dmx`} style={{ ...btn, textDecoration: 'none' }}><Printer size={14} /> {t('inputs.print')}</Link>}
+          {shown.some(f => f.address) && <Link to={`/gig/${gig.id}/dmx/walk`} style={{ ...btn, textDecoration: 'none' }}><Footprints size={14} /> {t('dmxWalk.open')}</Link>}
+          {shown.some(f => f.address) && (
+            <button type="button" aria-pressed={showDips} onClick={() => setShowDips(s => !s)} style={btn}><ToggleLeft size={14} /> {t('dmx.showDips')}</button>
+          )}
         </div>
       </div>
       {savedAt && <p role="status" style={{ fontSize: '12px', color: 'var(--warn)', marginBottom: '10px' }}>{t('dmx.offline')}</p>}
@@ -141,6 +148,11 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
                         {[f.fixture_type, f.mode, t('dmx.channelsShort', { count: f.footprint }), f.position].filter(Boolean).join(' · ')}
                       </span>
                       {clash && <span style={{ display: 'block', fontSize: '12px', color: 'var(--warn)' }}>{t('dmx.overlap')}</span>}
+                      {showDips && f.address && (
+                        <span style={{ display: 'block', fontSize: '12px', fontFamily: 'var(--font-mono)', color: colors.soft }}>
+                          {f.address > 511 ? t('dip.over511') : t('dip.onShort', { list: switchesOn(f.address, layout).join(' ') || '—' })}
+                        </span>
+                      )}
                     </span>
                     {canEdit && (
                       <span style={{ display: 'flex', gap: '2px', marginLeft: 'auto' }}>

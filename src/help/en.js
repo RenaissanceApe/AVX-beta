@@ -130,6 +130,7 @@ export default {
   },
 
   pages: {
+    'pocket-tools': { title: 'Pocket tools', summary: 'Calculators for any venue, with or without a gig in AVX: DMX addresses and dipswitches, a block of fixtures, universes and absolute channels, and value conversions. They work offline.' },
     home: { title: 'Gigs', summary: 'The gigs of the company you chose at the top, or all of yours in "My work". Open one to see its crew, schedule, files and chat. The calendar shows the same gigs by date.' },
     gig: { title: 'A gig', summary: 'Everything about one gig, in tabs: overview, crew, schedule, equipment, files, updates and chat. Managers change things; crew see them and can write in the chat.' },
     messages: { title: 'Messages', summary: 'Your conversations: direct messages, gig chats, department channels and the organisation’s channels. Unread ones are at the top. Use the menu on a message to reply, react, save or report it.' },
@@ -229,6 +230,19 @@ export default {
       mistakes: [
         'The clock is shared: if someone sets it to the show\'s timecode, everyone\'s follows. Set it from the timecode the show actually runs on: "From camera" reads a timecode display through the phone\'s camera, "From LTC" listens to the LTC signal, or type it with "Set the clock".',
         'No connection? Notes are kept on your phone and sent when you\'re back online; photos need a connection.',
+      ],
+    },
+    'crew-dmx-calc': {
+      title: 'Set a fixture\'s DMX address with its dipswitches',
+      intro: 'Many fixtures take their address from a row of small switches. AVX shows which ones to flip.',
+      steps: [
+        'Open My work → Pocket tools (no gig needed), or a gig\'s DMX patch. Under "How my fixtures show the switches", choose what your fixture\'s label shows: which way is ON, and which side switch 1 is on.',
+        'Type the address: the switches to turn ON light up, drawn as the fixture shows them. Tapping switches works the other way round. Below, "Address a row of fixtures" lists every address and its switches for a block of the same fixture.',
+        'On site, in the gig\'s DMX patch tap "Walk the rig": one fixture at a time, grouped by position, with big switches and "Next fixture". It works without a connection.',
+      ],
+      mistakes: [
+        'Dipswitches only reach address 511. Fixtures above it need their menu instead.',
+        'Some fixtures have a 10th switch for a function (not part of the address): choose 10 switches and leave it alone.',
       ],
     },
     'crew-trust': {
