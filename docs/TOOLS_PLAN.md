@@ -390,7 +390,7 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 | 2 | **R2** camera and LTC sync ✅ 0.55.0 | R1 | Session clock type shown in the report |
 | 3 | **D1** DMX calculator and dipswitches ✅ 0.56.0 | DMX patch | DMX patch column and walk-through (by light plot position) |
 | 4 | **On-site mode** and Tools split (Plan / On site), personal auto setting ✅ 0.57.0 | R1, D1, field kit | Call sheet, rehearsal notes, walk-through, input list, scanning, settings |
-| 5 | **Tasks** [6]: **T1** gig tasks, My tasks, R1 notes → tasks, notification ✅ 0.58.0; **T2** organisation tasks, checklist templates | — | R1 notes → tasks ✅; T2: inventory repairs, On-site mode checklists |
+| 5 | **Tasks** [6]: **T1** gig tasks, My tasks, R1 notes → tasks, notification ✅ 0.58.0; **T2** organisation tasks, checklist templates ✅ 0.59.0 | — | R1 notes → tasks ✅, inventory repairs ✅, On-site mode ✅; gig templates (step 25) will copy tasks |
 | 6 | **Custom statuses and gig types** [10], **custom fields** [12] | — | Gig lists, calendar, filters, export, import |
 | 7 | **Crew rates** [3] | crew, functions | Crew calls and job posts (fee), quotes (labour lines) |
 | 8 | **Time registration** [2] | crew rates, schedule | Gig crew tab, calendar feed, export |
@@ -430,6 +430,14 @@ why none), and CHANGELOG lists those connections.
 | Checks | The assignee must be on the gig (or in the organisation); a note becomes a task on its own gig only, once |
 | Notification | `task_assigned` when someone else gives you a task or changes who it's for; a direct kind, sent even when the organisation is muted |
 | Screens | Gig → Tasks (`TasksTab`), My tasks (`/tasks`), the rehearsal session's "Make a task" button. Pure helpers in `src/lib/tasks.js` with tests; database checks in `supabase/tests/tasks.sql` |
+
+### How Tasks T2 works (0.59.0)
+
+| Piece | How it works |
+|---|---|
+| Templates | `task_templates` (migration `20261130000000_tasks_t2.sql`): name, notes, items (texts of up to 200 characters, up to 50). Members of the organisation read them; admins and members manage them; removing only marks them. At most 200 per organisation. Database checks in `supabase/tests/tasks_t2.sql` |
+| Repairs | `tasks.repair_id`: set when the task is made, never changed; the repair must be the organisation's, the task the organisation's own (not a gig's); one live task per repair |
+| Screens | Organisation → Tasks (`OrgTasksPage`, with the templates tab in `TaskTemplates`), "Start from a template" in the task form, "Make a task" in the repair window, the tasks card and tile in On-site mode |
 
 ## References
 

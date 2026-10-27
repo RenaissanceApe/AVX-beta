@@ -199,7 +199,7 @@ Planned 2026-10-26 in [docs/TOOLS_PLAN.md](docs/TOOLS_PLAN.md): rehearsal compan
 On-site mode, power, rigging and sound tools, built in dependency order with the business features
 from [docs/COMPETITOR_RESEARCH.md](docs/COMPETITOR_RESEARCH.md). **R1 built (0.54.0):** rehearsal
 notes with a shared timecode, live for everyone on the gig, offline, with a report per department.
-**R2 built (0.55.0):** the clock syncs from a camera pointed at a timecode display or from LTC audio, read on the phone. **D1 built (0.56.0):** the DMX calculator with dipswitches as a pocket tool, a dipswitch column and a walk-through in the DMX patch. **On-site mode built (0.57.0):** gigs open on the day's essentials on gig days. **Tasks T1 built (0.58.0):** tasks on a gig with checklists, My tasks, rehearsal notes into tasks, a notification for the person given one. Next: T2 (organisation tasks, checklist templates, tasks in On-site mode).
+**R2 built (0.55.0):** the clock syncs from a camera pointed at a timecode display or from LTC audio, read on the phone. **D1 built (0.56.0):** the DMX calculator with dipswitches as a pocket tool, a dipswitch column and a walk-through in the DMX patch. **On-site mode built (0.57.0):** gigs open on the day's essentials on gig days. **Tasks T1 built (0.58.0):** tasks on a gig with checklists, My tasks, rehearsal notes into tasks, a notification for the person given one. **Tasks T2 built (0.59.0):** organisation tasks, checklist templates, repairs as tasks, tasks in On-site mode. Next: custom statuses, gig types and custom fields (build order step 6).
 
 ## End of the build
 

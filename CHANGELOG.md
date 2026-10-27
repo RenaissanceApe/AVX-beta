@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.59.0 — Tasks (T2): organisation tasks, checklist templates, repairs
+
+### Added
+- **Organisation → Tasks** (`/org/:id/tasks`): the organisation's own tasks (office, warehouse,
+  repairs) and those on its gigs that you can see, in one list.
+  - Admins and members add tasks for anyone in the organisation, edit and remove them (removing
+    asks first).
+  - Filters: Mine, Open, Organisation, On gigs.
+  - Gig tasks link to their gig and are edited there; they can be ticked here.
+  - The list updates live and can be read offline.
+  - Viewers of the organisation can read the list.
+- **Checklist templates** (Organisation → Tasks → Checklist templates): a name, a checklist of up
+  to 50 items and notes.
+  - When starting a task, on a gig or for the organisation, "Start from a template" fills in the
+    checklist (added after any lines already typed), and the title and notes if they're empty.
+  - Changing or removing a template doesn't change tasks already made from it.
+- **Repairs as tasks:** in Inventory → Maintenance, an open repair has "Make a task". It creates a
+  task on the organisation with the item, unit and problem, ready to give to someone. A repair
+  has at most one task at a time.
+- **On-site mode:** your open tasks on the gig, most urgent first, with a button to the gig's
+  Tasks tab, and a Tasks tile.
+- Help: guide "Organisation tasks and checklist templates", with a picture. The On-site mode
+  picture is updated.
+
+### Connected to earlier features
+- Tasks T1 (0.58.0): the same lists, task form and notifications. Someone given an organisation
+  task gets "… gave you a task: …", opening My tasks.
+- Inventory maintenance (I5): repairs.
+- On-site mode (0.57.0): the tasks card and tile, also from the gig's offline copy.
+- The organisation menu has a new Tasks item.
+
 ## 0.58.0 — Tasks (T1)
 
 ### Added

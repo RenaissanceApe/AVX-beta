@@ -138,6 +138,7 @@ export default {
     'inventory-item': { title: 'An equipment item', summary: 'One catalogue item: its details, stock per location, units with their labels, kit contents, maintenance and history.' },
     jobs: { title: 'Jobs', summary: 'Open positions from companies on AVX: the ones for your functions and travel range, or all of them, and your applications. Your day rate goes only to the company you apply to.' },
     'org-jobs': { title: 'Job posts', summary: 'The positions your organisation posted to the job board and who applied. Shortlist, decline or offer the place; close a post or mark it filled.' },
+    'org-tasks': { title: 'Tasks', summary: 'The organisation\'s own tasks and those on its gigs, with its checklist templates.' },
     'crew-search': { title: 'Find crew', summary: 'Freelancers on AVX who switched on their crew profile and let companies see it. Search by function, place, dates and language, then ask about a gig or offer a place. Their contact details stay private until they join.' },
     'crew-profile': { title: 'Crew profile', summary: 'Let companies on AVX find you for work. Off until you switch it on; you choose who sees it (companies only, or companies and crew) and can change, switch off or remove it at any time. No rates on it.' },
     contacts: { title: 'Contacts', summary: 'Your clients and suppliers, kept once. Quotes pick their client from here and subrentals their supplier. Import them from a spreadsheet, or add the clients typed on older quotes in one go.' },
@@ -243,6 +244,19 @@ export default {
       mistakes: [
         'Only the gig\'s managers and the organisation\'s admins and members create and change tasks; crew tick them.',
         'Tasks can only be given to people on the gig. Add them to the crew first.',
+      ],
+    },
+    'pm-org-tasks': {
+      title: 'Organisation tasks and checklist templates',
+      intro: 'Office and warehouse jobs, repairs, and checklists you use on every gig.',
+      steps: [
+        'Open Organisation → Tasks. It lists the organisation\'s own tasks and those on its gigs that you can see. "New task" makes one for someone in the organisation; "Organisation" and "On gigs" filter the list.',
+        'Under "Checklist templates", write a checklist once (a van check, a load-out). When you start a task, on a gig or here, "Start from a template" fills in its checklist.',
+        'In Inventory → Maintenance, open a repair and tap "Make a task": the repair becomes a task on the organisation, ready to give to someone.',
+      ],
+      mistakes: [
+        'Changing a template doesn\'t change the tasks already made from it.',
+        'Tasks on a gig are edited on the gig; here you can tick them.',
       ],
     },
     'crew-onsite': {

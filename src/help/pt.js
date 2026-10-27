@@ -135,6 +135,7 @@ export default {
     'inventory-item': { title: 'Um artigo de equipamento', summary: 'Um artigo do catálogo: detalhes, stock por local, unidades com etiquetas, conteúdo do kit, manutenção e histórico.' },
     jobs: { title: 'Trabalhos', summary: 'Vagas abertas de empresas no AVX: as das suas funções e distância, ou todas, e as suas candidaturas. O seu preço por dia só vai para a empresa a que se candidata.' },
     'org-jobs': { title: 'Vagas publicadas', summary: 'As vagas que a vossa organização publicou e quem se candidatou. Ponha na lista final, recuse ou ofereça o lugar; feche uma vaga ou marque-a como preenchida.' },
+    'org-tasks': { title: 'Tarefas', summary: 'As tarefas da própria organização e as dos seus eventos, com os modelos de lista.' },
     'crew-search': { title: 'Procurar técnicos', summary: 'Freelancers no AVX que ligaram o seu perfil profissional e deixam que as empresas o vejam. Pesquise por função, local, datas e língua, e depois pergunte por um evento ou ofereça um lugar. Os contactos ficam privados até a pessoa entrar.' },
     'crew-profile': { title: 'Perfil profissional', summary: 'Deixe que as empresas no AVX o encontrem para trabalhar. Desligado até o ligar; escolhe quem o vê (só empresas, ou empresas e técnicos) e pode mudá-lo, desligá-lo ou removê-lo a qualquer momento. Sem preços.' },
     contacts: { title: 'Contactos', summary: 'Os seus clientes e fornecedores, guardados uma vez. Os orçamentos escolhem daqui o cliente e os sub-alugueres o fornecedor. Importe-os de uma folha de cálculo, ou adicione de uma vez os clientes escritos em orçamentos antigos.' },
@@ -240,6 +241,19 @@ export default {
       mistakes: [
         'Só quem gere o evento e os administradores e membros da organização criam e alteram tarefas; a equipa marca-as.',
         'As tarefas só podem ser dadas a pessoas no evento. Junte-as primeiro à equipa.',
+      ],
+    },
+    'pm-org-tasks': {
+      title: 'Tarefas da organização e modelos de lista',
+      intro: 'Trabalhos de escritório e armazém, reparações e listas que usa em todos os eventos.',
+      steps: [
+        'Abra Organização → Tarefas. Mostra as tarefas da própria organização e as dos eventos que pode ver. "Nova tarefa" cria uma para alguém da organização; "Organização" e "Nos eventos" filtram a lista.',
+        'Em "Modelos de lista", escreva uma lista uma vez (verificação da carrinha, desmontagem). Ao começar uma tarefa, num evento ou aqui, "Começar a partir de um modelo" preenche a lista.',
+        'Em Inventário → Manutenção, abra uma reparação e toque em "Criar tarefa": a reparação passa a ser uma tarefa da organização, pronta a atribuir.',
+      ],
+      mistakes: [
+        'Alterar um modelo não muda as tarefas já criadas a partir dele.',
+        'As tarefas de um evento editam-se no evento; aqui pode marcá-las.',
       ],
     },
     'crew-onsite': {

@@ -63,13 +63,22 @@ export function TaskRow({ task, today, nameOf, canTick, canManage, onToggle, onC
 }
 
 // New or edit: title, who, by when, notes, checklist (one item per line)
-export function TaskForm({ task, people, nameOf, onSave, onClose }) {
+export function TaskForm({ task, people, nameOf, templates = [], onSave, onClose }) {
   const [form, setForm] = useState(() => ({
     title: task?.title || '', assignee_id: task?.assignee_id || '', due_on: task?.due_on || '', notes: task?.notes || '',
     checklistText: (task?.checklist || []).map(i => i.text).join('\n'),
   }))
   const [busy, setBusy] = useState(false)
   const set = patch => setForm(f => ({ ...f, ...patch }))
+  // A template fills what's still empty and adds its checklist below any lines already typed
+  function applyTemplate(id) {
+    const tpl = templates.find(x => x.id === id)
+    if (!tpl) return
+    setForm(f => ({
+      ...f, title: f.title.trim() ? f.title : tpl.name, notes: f.notes.trim() ? f.notes : tpl.notes || '',
+      checklistText: [f.checklistText.trim(), ...(tpl.items || [])].filter(Boolean).join('\n'),
+    }))
+  }
   async function submit(e) {
     e.preventDefault()
     if (!form.title.trim()) return
@@ -83,6 +92,15 @@ export function TaskForm({ task, people, nameOf, onSave, onClose }) {
   return (
     <Modal title={task ? t('tasks.editTitle') : t('tasks.new')} onClose={onClose} maxWidth={520}>
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {!task && templates.length > 0 && (
+          <div>
+            <label htmlFor="task-template" style={label}>{t('tasks.fromTemplate')}</label>
+            <select id="task-template" value="" onChange={e => applyTemplate(e.target.value)} style={input}>
+              <option value="">{t('tasks.pickTemplate')}</option>
+              {templates.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
+            </select>
+          </div>
+        )}
         <div>
           <label htmlFor="task-title" style={label}>{t('tasks.title')}</label>
           <input id="task-title" value={form.title} maxLength={200} required autoFocus onChange={e => set({ title: e.target.value })} style={input} />
