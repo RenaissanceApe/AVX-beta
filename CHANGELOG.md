@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.56.0 — DMX calculator and dipswitches (D1)
+
+### Added
+- **Pocket tools** (My work → Pocket tools, `/tools`): calculators for any venue, with or without a
+  gig in AVX, that work offline. First, the **DMX calculator**:
+  - **Address ↔ dipswitches**: type an address to see which switches go ON, drawn like the
+    fixture's own switches, or tap switches to read the address they set. The layout follows the
+    fixture's label: 9 or 10 switches (the 10th a function switch), switch 1 worth 1 or 256, ON up
+    or down, switch 1 on the left or the right. Kept on the device.
+  - **Address a row of fixtures**: a count of the same fixture from a start address; every
+    fixture's channels and switches, moving to the next universe instead of straddling two.
+  - **Universe ↔ absolute channel**, with universes counted from 1 or from 0 (Art-Net).
+  - **Values**: percent ↔ 0–255, 16-bit ↔ coarse/fine, hex.
+- **DMX patch**: a "Dipswitches" switch shows each fixture's switches next to its address, and
+  **Walk the rig** steps through the fixtures one at a time, grouped by position, with big
+  switches and "Next fixture". Offline from the patch's saved copy.
+- Help: guide "Set a fixture's DMX address with its dipswitches", with pictures.
+
+### Connected to earlier features
+- The walk-through and the dipswitch column read the gig's DMX patch (F2); positions come from the
+  light plot (F3).
+
 ## 0.55.0 — Rehearsal companion R2: camera and LTC sync
 
 ### Added

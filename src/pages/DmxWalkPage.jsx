@@ -45,9 +45,9 @@ export default function DmxWalkPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', padding: 'calc(16px + var(--safe-top)) 16px 24px', display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '640px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
         <button type="button" onClick={back} style={{ ...btn, background: 'transparent' }}><ArrowLeft size={14} /> {t('dmxWalk.back')}</button>
-        <button type="button" onClick={() => setShowLayout(s => !s)} aria-expanded={showLayout} style={{ ...btn, background: 'transparent' }}><Settings2 size={14} /> {t('dip.layout')}</button>
+        <button type="button" onClick={() => setShowLayout(s => !s)} aria-expanded={showLayout} style={{ ...btn, background: 'transparent' }}><Settings2 size={14} /> {t('dmxWalk.layout')}</button>
       </div>
       {showLayout && <div style={card}><DipLayoutForm layout={layout} onChange={changeLayout} idPrefix="walk" /></div>}
       {!f ? (

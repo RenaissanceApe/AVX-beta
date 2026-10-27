@@ -3259,4 +3259,5 @@ export default {
   "dmxWalk.prev": "Previous",
   "dmxWalk.next": "Next fixture",
   "dmxWalk.empty": "No fixtures with an address yet.",
+  "dmxWalk.layout": "Switch layout",
 }

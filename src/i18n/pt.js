@@ -3258,4 +3258,5 @@ export default {
   "dmxWalk.prev": "Anterior",
   "dmxWalk.next": "Projetor seguinte",
   "dmxWalk.empty": "Ainda não há projetores com endereço.",
+  "dmxWalk.layout": "Disposição",
 }

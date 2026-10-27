@@ -376,6 +376,16 @@ const SCENES = {
     await page.locator('[role="timer"]').evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -190) })
     return null
   } },
+  'dmx-calc': { persona: 'crew', url: '/tools', async run(page, L) {
+    await page.locator('#calc-address').fill('97')
+    const box = page.locator('section[aria-labelledby="calc-dip"]')
+    await box.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
+    return null
+  } },
+  'dmx-walk': { persona: 'crew', url: `/gig/${ids.gig}/dmx/walk?n=2`, async run(page, L) {
+    await page.getByRole('button', { name: L('dmxWalk.next') }).waitFor()
+    return page.getByRole('button', { name: L('dmxWalk.next') })
+  } },
   'crew-profile': { persona: 'crew', url: '/me/profile', async run(page, L) {
     const preview = page.locator('section[aria-labelledby="cp-preview"]')
     await preview.scrollIntoViewIfNeeded()
