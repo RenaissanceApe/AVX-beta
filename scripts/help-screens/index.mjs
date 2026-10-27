@@ -381,6 +381,12 @@ const SCENES = {
     await first.click()
     return null
   } },
+  'org-task-templates': { persona: 'pm', url: `/org/${ids.org}/tasks`, async run(page, L) {
+    await page.getByRole('button', { name: L('tasks.new') }).first().click()
+    const pick = page.getByLabel(L('tasks.fromTemplate'))
+    await pick.selectOption({ label: L('taskTpl.namePlaceholder') })
+    return pick
+  } },
   'onsite': { persona: 'crew', url: `/gig/${ids.gig}`, async run(page, L) {
     // The sample gig is 24 days away: set the clock to its afternoon, then open it again
     await page.clock.setFixedTime(new Date(`${day(24)}T16:20:00`))

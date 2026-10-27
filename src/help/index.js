@@ -25,6 +25,7 @@ export const PAGE_TERMS = {
   'crew-search': ['crew-call', 'availability-request', 'network', 'block'],
   jobs: ['crew-call', 'block'],
   'org-jobs': ['crew-call', 'block'],
+  'org-tasks': ['repair'],
   quote: ['phase', 'factor', 'vat', 'quote-version', 'client-link', 'price-list'],
   orgs: ['organisation', 'org-admin', 'org-member', 'viewer', 'retention'],
 }
@@ -50,6 +51,7 @@ export const GUIDES = {
   'crew-jobs': { role: 'crew', pages: ['jobs', 'crew-profile'], terms: ['crew-call'], shots: [null, 'jobs-board', null] },
   'crew-rehearsal': { role: 'crew', pages: ['gig'], terms: ['timecode'], shots: [null, 'rehearsal', null, null] },
   'pm-tasks': { role: 'pm', pages: ['gig'], terms: [], shots: [null, 'gig-tasks', null] },
+  'pm-org-tasks': { role: 'pm', pages: ['org-tasks', 'inventory'], terms: ['repair'], shots: [null, 'org-task-templates', null] },
   'crew-onsite': { role: 'crew', pages: ['gig'], terms: ['call-time', 'schedule'], shots: [null, 'onsite', null] },
   'crew-dmx-calc': { role: 'crew', pages: ['pocket-tools', 'gig'], terms: ['dmx-address', 'dmx-universe'], shots: [null, 'dmx-calc', 'dmx-walk'] },
   'crew-trust': { role: 'crew', pages: ['crew-profile', 'jobs'], terms: [], shots: [null, null, null] },

@@ -104,6 +104,7 @@ export default function OrgTasksPage() {
   if (!role) return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
+        <h1 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px' }}>{t('tasks.orgTitle')}</h1>
         <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>{t('tasks.noAccess')}</p>
         <button type="button" onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
       </div>

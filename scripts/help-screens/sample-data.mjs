@@ -208,6 +208,13 @@ export function sampleData(persona, lang) {
         { id: 't2', gig_id: gigId, org_id: orgId, title: tx('Confirmar gerador com o Coliseu', 'Confirm the generator with the venue'), notes: '', assignee_id: ricardo, due_on: day(-1), checklist: [], status: 'open', source_kind: null, source_id: null, created_by: ricardo, created_at: ago(60), removed_at: null },
         { id: 't3', gig_id: gigId, org_id: orgId, title: tx('Q14 · Seguidor atrasado na entrada do coro', 'Q14 · Follow spot late on the chorus entrance'), notes: '', assignee_id: carla, due_on: null, checklist: [], status: 'open', source_kind: 'rehearsal_note', source_id: 'rn1', created_by: ricardo, created_at: ago(5), removed_at: null },
         { id: 't4', gig_id: gigId, org_id: orgId, title: tx('Imprimir folhas de serviço', 'Print the call sheets'), notes: '', assignee_id: null, due_on: day(20), checklist: [], status: 'done', done_by: ricardo, done_at: ago(2), source_kind: null, source_id: null, created_by: ricardo, created_at: ago(90), removed_at: null },
+        // The organisation's own: an office job and a repair
+        { id: 't5', gig_id: null, org_id: orgId, title: tx('Renovar o seguro da carrinha', 'Renew the van insurance'), notes: '', assignee_id: ricardo, due_on: day(6), checklist: [], status: 'open', source_kind: null, source_id: null, repair_id: null, created_by: ricardo, created_at: ago(200), removed_at: null },
+        { id: 't6', gig_id: null, org_id: orgId, title: tx('XLR 10 m — fichas soltas', 'XLR 10 m — loose connectors'), notes: '', assignee_id: duarte, due_on: day(2), checklist: [], status: 'open', source_kind: null, source_id: null, repair_id: 'r2', created_by: ricardo, created_at: ago(50), removed_at: null },
+      ].map(x => (x.gig_id ? { ...x, gigs: { id: gigId, name: gig.name } } : x)),
+      task_templates: [
+        { id: 'tp1', org_id: orgId, name: tx('Verificação da carrinha', 'Van check'), notes: '', items: tx(['Pneus', 'Cintas', 'Combustível', 'Extintor'], ['Tyres', 'Straps', 'Fuel', 'Fire extinguisher']), updated_at: ago(400) },
+        { id: 'tp2', org_id: orgId, name: tx('Desmontagem', 'Load-out'), notes: '', items: tx(['Cabos enrolados e contados', 'Flight cases fechados', 'Palco limpo', 'Fotografias do local'], ['Cables coiled and counted', 'Flight cases shut', 'Stage swept', 'Photos of the venue']), updated_at: ago(300) },
       ],
       rehearsal_sessions: [{ id: 'rs1', gig_id: gigId, name: tx('Passagem 2', 'Run-through 2'), fps: 25, frame_count: 'ndf', clock: 'stopwatch', running: true, anchor_at: ago(0.4), anchor_ms: 0, clock_set_by: ricardo, created_by: ricardo, created_at: ago(13), ended_at: null, removed_at: null }],
       rehearsal_notes: [
