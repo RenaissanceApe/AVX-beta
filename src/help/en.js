@@ -232,6 +232,19 @@ export default {
         'No connection? Notes are kept on your phone and sent when you\'re back online; photos need a connection.',
       ],
     },
+    'crew-onsite': {
+      title: 'Use On-site mode on the day',
+      intro: 'On the days of a gig, the gig opens on what you need there and then, in big buttons.',
+      steps: [
+        'On a gig day, open the gig: it starts in On-site mode by itself. On any other day, tap "On-site mode" on the gig to switch it on.',
+        'At the top: your call time and today\'s schedule, with what\'s happening now and next. Below, big buttons for the call sheet, rehearsal notes, walking the rig, the input list, scanning equipment, files, chat and the crew\'s phones.',
+        '"Full gig view" goes back to the usual overview for the rest of the day. All the tabs are always there.',
+      ],
+      mistakes: [
+        'Don\'t want it to switch on by itself? Untick "Switch to On-site mode on gig days" in Settings → Language and appearance. It is kept on each device.',
+        'Open the gig once before you get to the venue, so it is saved on your phone for when there is no signal.',
+      ],
+    },
     'crew-dmx-calc': {
       title: 'Set a fixture\'s DMX address with its dipswitches',
       intro: 'Many fixtures take their address from a row of small switches. AVX shows which ones to flip.',

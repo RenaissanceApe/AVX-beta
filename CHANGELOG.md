@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.57.0 — On-site mode
+
+### Added
+- **On-site mode** on every gig: on the gig's days it opens on what's needed there and then, in
+  big buttons:
+  - your call time and function, today's schedule with what's on now and next;
+  - the call sheet, rehearsal notes, walking the rig (with a DMX patch), the input list (when the
+    gig uses it), scanning equipment (for those who may), files, chat, and the crew with their
+    phones.
+- It switches on by itself on gig days (on by default) and can be switched on or off by hand on
+  each gig; a switch by hand lasts for that day. The first time it comes on by itself, a note says
+  why and links to the setting: **Settings → Language and appearance → "Switch to On-site mode on
+  gig days"**, kept on each device.
+- Help: guide "Use On-site mode on the day", with a picture.
+
+### Connected to earlier features
+- Uses the gig's offline copy, the call sheet (with its large print), the rehearsal companion (R1),
+  the walk-through (D1), the input list (F1) and equipment scanning (I3). The Tools tab's "On site"
+  and "Plan" groups (0.54.0) stay as they are.
+
+### Docs
+- `docs/TOOLS_PLAN.md`: truss data from Fantek, Global Truss and Prolyte first (Q3); a proposed
+  acoustic simulator that grows with the project's detail, stages A4–A6 (Q5, to be confirmed).
+
 ## 0.56.0 — DMX calculator and dipswitches (D1)
 
 ### Added
