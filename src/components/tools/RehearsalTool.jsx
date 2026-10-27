@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Plus, ArrowLeft, Play, Pause, RotateCcw, Clock, Flag, Mic, MicOff, Camera, Check, Trash2, FileText, Download, Loader2, Square, CloudOff } from 'lucide-react'
+import { Plus, ArrowLeft, Play, Pause, RotateCcw, Clock, Flag, Mic, MicOff, Camera, Check, Trash2, FileText, Download, Loader2, Square, CloudOff, ListTodo } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -11,6 +11,7 @@ import {
   departmentFor, filterNotes, sortByTime, notesCsv, notesExport, noteRow, queueNote, readQueuedNotes, flushQueuedNotes,
   REHEARSAL_OUTBOX_CHANGED,
 } from '../../lib/rehearsal'
+import { taskFromNote } from '../../lib/tasks'
 import { t, getLanguage, fmt } from '../../i18n'
 import { Modal, btn, btnPrimary, btnDanger, iconBtn, input, label, card, colors, tint } from '../ui'
 import EmptyState from '../EmptyState'
@@ -246,6 +247,13 @@ function SessionView({ session: initial, gig, members, nameOf, userId, canNote, 
     const { error } = await supabase.from('rehearsal_notes').update(patch).eq('id', note.id)
     if (error) { notify(userMessage(error), 'error'); load() }
   }
+  async function makeTask(note) {
+    const { error } = await supabase.from('tasks').insert(taskFromNote(note))
+    if (error && error.code === '23505') return notify(t('rehearsal.taskExists'), 'success')
+    if (error) return notify(userMessage(error), 'error')
+    track('rehearsal:task')
+    notify(t('rehearsal.taskMade'), 'success')
+  }
   async function remove(note) {
     if (!window.confirm(t('rehearsal.removeConfirm'))) return
     setNotes(list => (list || []).filter(n => n.id !== note.id))
@@ -348,7 +356,7 @@ function SessionView({ session: initial, gig, members, nameOf, userId, canNote, 
           {shown.map(n => (
             <NoteRow key={n.id} note={n} session={session} nameOf={nameOf} canNote={canNote}
               canRemove={n.author_id === userId || canManage} onToggle={() => update(n, { status: n.status === 'open' ? 'done' : 'open' })}
-              onRemove={() => remove(n)} />
+              onRemove={() => remove(n)} onTask={canManage && !offline ? () => makeTask(n) : null} />
           ))}
           {shown.length === 0 && pending.length === 0 && <li style={{ color: colors.muted, fontSize: '14px', padding: '8px 0' }}>{t('rehearsal.noNotes')}</li>}
         </ul>
@@ -597,7 +605,7 @@ async function shrink(file) {
   }
 }
 
-function NoteRow({ note, session, nameOf, canNote, canRemove, onToggle, onRemove, from }) {
+function NoteRow({ note, session, nameOf, canNote, canRemove, onToggle, onRemove, onTask, from }) {
   const df = session.frame_count === 'df'
   const done = note.status === 'done'
   return (
@@ -622,6 +630,9 @@ function NoteRow({ note, session, nameOf, canNote, canRemove, onToggle, onRemove
           {done && note.done_by ? ` · ${t('rehearsal.doneBy', { name: nameOf(note.done_by) })}` : ''}
         </div>
       </div>
+      {onTask && !note.pending && (
+        <button type="button" onClick={onTask} aria-label={t('rehearsal.makeTask')} title={t('rehearsal.makeTask')} style={iconBtn}><ListTodo size={15} /></button>
+      )}
       {canRemove && !note.pending && (
         <button type="button" onClick={onRemove} aria-label={t('rehearsal.remove')} style={iconBtn}><Trash2 size={15} /></button>
       )}

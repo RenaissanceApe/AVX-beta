@@ -20,6 +20,7 @@ export function navSections({ workspace, role }) {
         { key: 'myGigs', icon: 'list', to: '/me' },
         { key: 'myCalendar', icon: 'calendar', to: '/me?view=calendar' },
         { key: 'availability', icon: 'calendarOff', to: '/settings/availability' },
+        { key: 'myTasks', icon: 'listTodo', to: '/tasks' },
         { key: 'jobs', icon: 'handshake', to: '/jobs' },
         { key: 'pocketTools', icon: 'wrench', to: '/tools' },
       ] },

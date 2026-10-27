@@ -44,6 +44,7 @@ const LightPlotPage = lazy(() => import('./pages/LightPlotPage'))
 const SystemCalcPage = lazy(() => import('./pages/SystemCalcPage'))
 const RehearsalReportPage = lazy(() => import('./pages/RehearsalReportPage'))
 const PocketToolsPage = lazy(() => import('./pages/PocketToolsPage'))
+const MyTasksPage = lazy(() => import('./pages/MyTasksPage'))
 const DmxWalkPage = lazy(() => import('./pages/DmxWalkPage'))
 // Public: the page a client opens from a quote link (no account)
 const MessagesPage = lazy(() => import('./pages/MessagesPage'))
@@ -133,6 +134,7 @@ function AppRoutes() {
       <Route path="/gig/:id/patch" element={<ProtectedRoute><Suspense fallback={<Spinner />}><PatchSheetPage kind="patch" /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/dmx" element={<ProtectedRoute><Suspense fallback={<Spinner />}><PatchSheetPage kind="dmx" /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/dmx/walk" element={<ProtectedRoute><Suspense fallback={<Spinner />}><DmxWalkPage /></Suspense></ProtectedRoute>} />
+      <Route path="/tasks" element={<ProtectedRoute><Suspense fallback={<Spinner />}><MyTasksPage /></Suspense></ProtectedRoute>} />
       <Route path="/tools" element={<ProtectedRoute><Suspense fallback={<Spinner />}><PocketToolsPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/lights" element={<ProtectedRoute><Suspense fallback={<Spinner />}><LightPlotPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/system" element={<ProtectedRoute><Suspense fallback={<Spinner />}><SystemCalcPage /></Suspense></ProtectedRoute>} />
