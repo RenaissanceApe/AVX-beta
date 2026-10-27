@@ -33,8 +33,13 @@ still open are marked **Q**.
   dependency order, and when something new is built, go back and connect it to what was built
   before. See **Build order** at the end.
 
-**Still open:**
-- **Q3, clarified:** which brands and models of truss and hoist get their data entered first.
+- **Truss data first (Q3, 2026-10-27):** the brands that matter in Portugal: **Fantek**, **Global
+  Truss** and **Prolyte**, whole catalogues if the data can be had, otherwise at least the 30 and
+  40 cm square series (Fantek EC30 and EC40; Global Truss F34 and F44; Prolyte H30V/X30V and
+  H40V/X40V). See RG2.
+- **Acoustics (Q5, 2026-10-27):** not a copy of EASE, but our own simulator whose detail grows with
+  the detail of the project (2D plan → 3D venue → measured speaker data → room surfaces). Proposed
+  stages A4–A6 in section 6, to be confirmed.
 
 ---
 
@@ -282,12 +287,16 @@ Yes, this is viable, because the data is already connected:
 - Once checked, the position shows the result, and it turns back to "not checked" when the fixtures
   change.
 
-**Q3 (open):** which **brands and models** get their data entered first? Each truss model has its
-own load table from its manufacturer, and each hoist model has its WLL, speed and class. Anyone can
-also type in their own model from its datasheet or data plate. Suggested first set, unless you use
-others:
-- truss: Prolyte H30V and H40V, Eurotruss FD34 and HD34, Litec QX30SA, Global Truss F34;
-- hoists: CM Lodestar, Chainmaster BGV-D8+ and C1, Verlinde Stagemaker, Movecat, Liftket.
+**Decided (Q3, 2026-10-27):** truss data from **Fantek**, **Global Truss** and **Prolyte**:
+- whole catalogues if the load tables can be had, otherwise first the 30 and 40 cm square series:
+  Fantek EC30 and EC40; Global Truss F34 and F44; Prolyte H30V, X30V, H40V and X40V;
+- the tables come from the manufacturers' own published load tables (PDF), never derived. Each
+  table keeps its source (document, edition, date), is entered by one person and checked by a
+  second before it can be used, and is versioned, so a report always shows which table it used;
+- the documents themselves are needed first: this environment can't reach the manufacturers'
+  sites, so they have to be shared (the PDFs, or the sites allowed in the environment);
+- hoists (not chosen yet): CM Lodestar, Chainmaster BGV-D8+ and C1, Verlinde Stagemaker, Movecat
+  and Liftket stay the suggestion; anyone can add a model from its data plate.
 
 **Decided (Q4):** a "Checked by" sign-off with warnings, a suggestion to hire a certified rigger
 through the job board, and a liability disclaimer when it is skipped (see Decided above). It is
@@ -321,11 +330,45 @@ team, the documents):
 | **A1 · Speaker library** | Speaker cabinets in the catalogue with specs: sensitivity, max SPL, nominal dispersion H×V, frequency range, impedance, weight, rigging data (for RG3), power (for P1), amplifier channels per cabinet. Presets for common models, typed in from datasheets. Feeds rigging, power and the F4 calculator | 1 PR |
 | **A2 · Simple coverage map** | A plan view of the venue with SPL estimates from point sources with nominal dispersion (inverse square and air absorption by frequency band), for fills, delays and small systems. **Labelled as an estimate, not a simulation**; line arrays are shown only as their aim lines and splays, never as a fake SPL map | 1 PR |
 | **A3 · Prediction and measurement files** | Attach the real prediction (EASE, ArrayCalc, Soundvision project or export) and measurement files (Smaart/SysTune captures, EQ settings) to the gig's sound system, versioned, with notes; a "system tuning sheet" print: delays, EQ, gains, splay angles, as built | 1 PR |
-| **(Stop)** | Revisit only if a manufacturer offers its data for us to use directly | — |
 
-**Q5 (open, clarified):** A1, A2 and A3 are all to be built as described. The question is only
-whether we **stop there**, i.e. never build a full EASE-style acoustic simulation (an SPL map of
-line arrays from manufacturers' measured data), for the reasons above.
+### Our own simulator, in levels of detail (proposed 2026-10-27)
+
+Your question: with a 3D venue, the rigging points, the arrays (count, position, splays) and the
+speakers' specs, what else is needed, and can the simulation scale with the detail the project
+has? **Yes, it can.** What EASE Focus shows is the **direct field**: the sound arriving straight
+from each speaker, added up with its phase. The maths for that is well known (each element is a
+source; at each point and frequency band, add the contributions with their distance, delay and
+directivity). The geometry and the array come from AVX already. What decides the accuracy is one
+thing: **how each cabinet radiates** (its directivity, per frequency, with phase). So the result is
+labelled by the detail it was built from, and gets better as detail is added:
+
+| Level | What the project has | What we compute | How it is labelled |
+|---|---|---|---|
+| **L0** | 2D plan, nominal specs | A2: point sources, nominal dispersion, distance and air loss | Estimate |
+| **L1** | 3D venue (audience planes, rigging points), array configuration, cabinet geometry (size, driver layout) | Direct field per frequency band: each element modelled from its physical size (a line/piston model), added coherently with splays, delays and levels. Shows coverage, throw, the effect of array length and splay, sub arrays and cardioid sub set-ups | Approximate, ±3–6 dB, worst at high frequencies |
+| **L2** | Measured directivity for the cabinet (balloon data per 1/3 octave, ideally with phase) from an open format or with the manufacturer's permission | Same engine with real directivity: close to a direct-field tool like EASE Focus | Prediction |
+| **L3** | Room surfaces with materials | Adds the room in statistical form: reverberation time (Sabine/Eyring), direct-to-reverberant ratio, critical distance and an STI estimate per area | Prediction plus room estimate |
+
+Never: ray tracing or auralisation (that is EASE's full product and a research field of its own).
+
+What makes it hard is not the maths but **data and trust**:
+- **Directivity data:** GLL is closed. Some manufacturers publish data in other formats or would
+  share it; that needs checking per brand before L2 is promised. Without it, L1 is as far as it
+  goes for that cabinet.
+- **Validation:** before anyone tunes a system with it, the engine has to be compared with
+  measurements and with the manufacturers' tools on a few known systems, and the differences
+  published with the results.
+- **Labels on every result:** the level, what it ignores, and that the manufacturer's tool decides
+  rigging and safety.
+
+| Stage | Scope | Size |
+|---|---|---|
+| **A4 · 3D venue and direct-field engine (L1)** | Audience planes and walls from a simple 3D model (drawn in AVX or imported from a plan), the rigging points from RG, arrays from RG3; a coherent direct-field engine in a background worker (bands 63 Hz–16 kHz), SPL and frequency-response maps, labelled L1 | 2 PRs |
+| **A5 · Measured directivity (L2)** | Import of open directivity data where a manufacturer publishes or allows it; the same engine uses it per cabinet; a validation report against reference systems | 1–2 PRs |
+| **A6 · Room estimate (L3)** | Surface materials, RT60, critical distance, STI estimate, shown as a room summary beside the direct-field map | 1 PR |
+
+**Q5b:** go ahead with A4–A6 after A1–A3 (in the build order after RG3, which supplies the arrays)?
+
 
 ---
 
@@ -358,6 +401,7 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 | 19 | **RG4** rigging plot, report, sign-off (Q4) | RG1–RG3, job board, 16 | Gig files, on-site view, job board prefill |
 | 20 | **RG5** suggestions; **P3** one-line and on-site power checklist | RG4, P2 | On-site mode |
 | 21 | **A2** coverage map, **A3** prediction and measurement files | A1, F4 | Gig files, tuning sheet print |
+| 21b | **A4–A6** own simulator, by level of detail (if Q5b is yes) | A1, RG1, RG3 | A2 map, system calculator, tuning sheet |
 | 22 | **Shareable rider / advance page** [28] | stage plot, inputs, patch, P, RG | Includes power and rigging summaries |
 | 23 | **Vehicles and transport** [8], **appointments** [9] | reservations, item weights | Packing list (per vehicle), calendar, clashes |
 | 24 | **Reports** [11] | 10, 11, 23 | Dashboard |
