@@ -33,6 +33,7 @@ export function describeNotification(n, nameOf) {
     case 'job_declined':      return t('notif.jobDeclined', { actor, title: d.title || '' })
     case 'job_match':         return t('notif.jobMatch', { title: d.title || '', org: d.org_name || '', place: d.place || '—', range: d.starts_on ? dayRange(d.starts_on, d.ends_on, fmt) : '—' })
     case 'crew_match':        return t('notif.crewMatch', { actor, search: d.search_name || '' })
+    case 'task_assigned':     return d.gig_name ? t('notif.taskAssigned', { actor, title: d.title || '', gig: d.gig_name }) : t('notif.taskAssignedOrg', { actor, title: d.title || '' })
     case 'guest_message':     return t(Number(d.count) > 1 ? 'notif.guestMany' : 'notif.guest', {
       guest: d.guest_name || t('common.someone'), about: d.about || t(`chat.context.kind.${d.about_kind || 'quote'}`), count: d.count || 1, excerpt: d.excerpt || '' })
     case 'message_report':    return t('notif.messageReport', { where: d.where || gig || '', reason: t(`chat.report.reason.${d.reason || 'other'}`) })
@@ -52,7 +53,7 @@ export function describeNotification(n, nameOf) {
 }
 
 // Kinds that are a direct question to you: they still count when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned'])
 export const countsAsUnread = (n, mutedOrgIds) => !n.read_at && (!n.org_id || !mutedOrgIds?.has(n.org_id) || DIRECT_KINDS.has(n.kind))
 
 export function notificationLink(n) {
@@ -63,6 +64,7 @@ export function notificationLink(n) {
   if (n.kind === 'job_application' && n.org_id) return `/org/${n.org_id}/jobs`
   if (n.kind === 'job_declined' || n.kind === 'job_match') return '/jobs'
   if (n.kind === 'crew_match' && n.org_id) return `/org/${n.org_id}/crew?search=${n.details?.search_id || ''}`
+  if (n.kind === 'task_assigned') return n.gig_id ? `/gig/${n.gig_id}?tab=tasks` : '/tasks'
   if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `/org/${n.org_id}/inventory?tab=maintenance`
   if ((n.kind === 'hire_request' || n.kind === 'hire_answered') && n.org_id) return `/org/${n.org_id}/inventory?tab=subrentals`

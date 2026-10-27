@@ -14,7 +14,7 @@ export type Notification = {
 }
 
 // Kinds that are a direct question to the person: sent even when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned'])
 
 export const STRINGS: Record<Lang, Record<string, string>> = {
   en: {
@@ -66,6 +66,8 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     jobDeclined: '{actor} answered your application for {title}: the place has gone to someone else',
     jobMatch: 'New job for you: {title} at {org}, {place}, {range}',
     crewMatch: '{actor} matches your saved search “{search}”',
+    taskAssigned: '{actor} gave you a task on {gig}: {title}',
+    taskAssignedOrg: '{actor} gave you a task: {title}',
     guestOne: '{guest} wrote about {about}: “{excerpt}”',
     guestMany: '{guest} wrote {count} messages about {about}, latest: “{excerpt}”',
     'about.quote': 'a quote', 'about.supplier': 'a subrental',
@@ -127,6 +129,8 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     jobDeclined: '{actor} respondeu à sua candidatura a {title}: o lugar ficou para outra pessoa',
     jobMatch: 'Novo trabalho para si: {title} em {org}, {place}, {range}',
     crewMatch: '{actor} corresponde à sua pesquisa guardada “{search}”',
+    taskAssigned: '{actor} deu-lhe uma tarefa em {gig}: {title}',
+    taskAssignedOrg: '{actor} deu-lhe uma tarefa: {title}',
     guestOne: '{guest} escreveu sobre {about}: “{excerpt}”',
     guestMany: '{guest} escreveu {count} mensagens sobre {about}, a última: “{excerpt}”',
     'about.quote': 'um orçamento', 'about.supplier': 'um aluguer externo',
@@ -209,6 +213,7 @@ export function describe(n: Notification, lang: Lang, actorName: string | undefi
     case 'job_declined': return fill(s.jobDeclined, { actor, title: d.title ?? '' })
     case 'job_match': return fill(s.jobMatch, { title: d.title ?? '', org: d.org_name ?? '', place: d.place ?? '—', range: dayText(d.starts_on, d.ends_on, lang) })
     case 'crew_match': return fill(s.crewMatch, { actor, search: d.search_name ?? '' })
+    case 'task_assigned': return fill(d.gig_name ? s.taskAssigned : s.taskAssignedOrg, { actor, gig, title: d.title ?? '' })
     case 'guest_message': return fill(Number(d.count ?? 1) > 1 ? s.guestMany : s.guestOne, {
       guest: d.guest_name ?? s.someone, about: d.about || s[`about.${d.about_kind ?? 'quote'}`], count: d.count ?? 1, excerpt: d.excerpt ?? '' })
     case 'message_report': return fill(s.messageReport, { where: d.where ?? gig, reason: s[`reason.${d.reason ?? 'other'}`] ?? '' })
@@ -232,6 +237,7 @@ export function linkFor(n: Notification, appUrl: string) {
   if (n.kind === 'job_application' && n.org_id) return `${appUrl}/org/${n.org_id}/jobs`
   if (n.kind === 'job_declined' || n.kind === 'job_match') return `${appUrl}/jobs`
   if (n.kind === 'crew_match' && n.org_id) return `${appUrl}/org/${n.org_id}/crew?search=${n.details?.search_id ?? ''}`
+  if (n.kind === 'task_assigned') return n.gig_id ? `${appUrl}/gig/${n.gig_id}?tab=tasks` : `${appUrl}/tasks`
   if (n.details?.quote_id) return `${appUrl}/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=maintenance`
   if ((n.kind === 'hire_request' || n.kind === 'hire_answered') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=subrentals`

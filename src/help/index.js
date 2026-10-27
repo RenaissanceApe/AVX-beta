@@ -49,6 +49,7 @@ export const GUIDES = {
   'crew-calendar': { role: 'crew', pages: ['home'], terms: ['gig', 'call-time'], shots: [null, 'calendar-feed', null] },
   'crew-jobs': { role: 'crew', pages: ['jobs', 'crew-profile'], terms: ['crew-call'], shots: [null, 'jobs-board', null] },
   'crew-rehearsal': { role: 'crew', pages: ['gig'], terms: ['timecode'], shots: [null, 'rehearsal', null, null] },
+  'pm-tasks': { role: 'pm', pages: ['gig'], terms: [], shots: [null, 'gig-tasks', null] },
   'crew-onsite': { role: 'crew', pages: ['gig'], terms: ['call-time', 'schedule'], shots: [null, 'onsite', null] },
   'crew-dmx-calc': { role: 'crew', pages: ['pocket-tools', 'gig'], terms: ['dmx-address', 'dmx-universe'], shots: [null, 'dmx-calc', 'dmx-walk'] },
   'crew-trust': { role: 'crew', pages: ['crew-profile', 'jobs'], terms: [], shots: [null, null, null] },

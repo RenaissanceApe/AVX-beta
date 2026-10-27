@@ -229,6 +229,19 @@ export default {
         'Sem ligação? As notas ficam no telemóvel e são enviadas quando voltar a ter rede; as fotos precisam de ligação.',
       ],
     },
+    'pm-tasks': {
+      title: 'Distribuir tarefas num evento',
+      intro: 'Quem faz o quê e até quando: uma tarefa por trabalho, com uma lista quando tem passos.',
+      steps: [
+        'Abra o evento → Tarefas → "Nova tarefa". Escreva o quê, escolha para quem e o prazo, e junte uma lista com um item por linha. A pessoa recebe uma notificação.',
+        'Toque numa tarefa para ver as notas e a lista. Qualquer pessoa no evento pode marcar a lista e a tarefa; as atrasadas ficam a vermelho. "Minhas" e "Em aberto" filtram a lista.',
+        'A partir de uma nota de ensaio, o ícone de lista transforma-a numa tarefa para a mesma pessoa. Cada um vê as suas tarefas, de todos os eventos, em O meu trabalho → As minhas tarefas.',
+      ],
+      mistakes: [
+        'Só quem gere o evento e os administradores e membros da organização criam e alteram tarefas; a equipa marca-as.',
+        'As tarefas só podem ser dadas a pessoas no evento. Junte-as primeiro à equipa.',
+      ],
+    },
     'crew-onsite': {
       title: 'Usar o modo no local no dia',
       intro: 'Nos dias de um evento, o evento abre com o que precisa ali e naquele momento, em botões grandes.',

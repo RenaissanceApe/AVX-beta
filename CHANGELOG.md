@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.58.0 — Tasks (T1)
+
+### Added
+- **Tasks** on every gig, in a new **Tasks** tab: who does what by when.
+  - Production managers add a task with a title, who it's for (anyone on the gig), a due date,
+    notes and a short checklist (one item per line, up to 50), and can edit or remove it (it asks
+    first).
+  - Anyone who writes on the gig, and the person the task is for, ticks it done and ticks its
+    checklist. Others only see it.
+  - Overdue, due today and due within three days are marked; "Mine" and "Open only" filters.
+  - Live for everyone on the gig, and readable offline from the last copy.
+- **My tasks** (My work → My tasks, `/tasks`): every task given to you, on any gig, most urgent
+  first, with a link to its gig.
+- **Rehearsal notes → tasks:** in a rehearsal session, a production manager turns a note into a
+  task in one tap, with the note's cue, text and the same person. A note becomes at most one task.
+- **Notifications:** "… gave you a task on …" in the app, by push and in the e-mail summary,
+  opening the gig's Tasks tab. Sent even when the organisation is muted, since it's addressed to
+  you.
+- Help: guide "Give out tasks on a gig", with a picture.
+
+### Fixed
+- The gig page had a second "main" area inside the app's own, which confused screen readers.
+
+### Connected to earlier features
+- Rehearsal notes (R1, 0.54.0): the "Make a task" button on each note, and the task shows it came
+  from a note.
+- Notifications, push (M5a) and the e-mail summary: new `task_assigned` kind.
+- Gig members and functions: who a task can be for. The gig's offline copy and the help guides.
+- Organisation tasks, checklist templates, tasks in On-site mode and inventory repairs as tasks
+  come in T2.
+
+### Docs
+- `docs/TOOLS_PLAN.md`: the acoustic simulator in levels of detail (A4–A6) is confirmed, after the
+  three simpler sound stages; build order step 5 split into T1 (built) and T2.
+
 ## 0.57.0 — On-site mode
 
 ### Added

@@ -17,6 +17,7 @@ import EquipmentTab from '../components/gig/EquipmentTab'
 import UpdatesTab from '../components/gig/UpdatesTab'
 import ToolsTab from '../components/gig/ToolsTab'
 import ChatTab from '../components/gig/ChatTab'
+import TasksTab from '../components/gig/TasksTab'
 import OnSiteView from '../components/gig/OnSiteView'
 import { readOnSite, saveOnSite, onSiteState, switchOnSite, ONSITE_CHANGED } from '../lib/onSite'
 import AssetVersionsModal from '../components/gig/AssetVersionsModal'
@@ -112,7 +113,7 @@ export default function GigPage() {
 
   async function loadAll({ silent = false } = {}) {
     if (!silent) setLoading(true)
-    const [gigRes, membersRes, assetsRes, postsRes, invitesRes, scheduleRes, activityRes, toolsRes] = await Promise.all([
+    const [gigRes, membersRes, assetsRes, postsRes, invitesRes, scheduleRes, activityRes, toolsRes, tasksRes] = await Promise.all([
       supabase.from('gigs').select('*').eq('id', id).maybeSingle(),
       supabase.from('gig_members').select('*').eq('gig_id', id),
       supabase.from('assets').select('*').eq('gig_id', id).is('superseded_by', null).order('created_at', { ascending: false }),
@@ -122,6 +123,7 @@ export default function GigPage() {
       supabase.from('gig_schedule').select('*').eq('gig_id', id),
       supabase.from('gig_activity').select('*').eq('gig_id', id).order('created_at', { ascending: false }).limit(100),
       supabase.from('gig_tools').select('tool').eq('gig_id', id),
+      supabase.from('tasks').select('id, status, assignee_id, due_on, title').eq('gig_id', id).is('removed_at', null),
     ])
     const results = { gig: gigRes, members: membersRes, assets: assetsRes, posts: postsRes, schedule: scheduleRes, activity: activityRes }
 
@@ -151,6 +153,7 @@ export default function GigPage() {
       schedule: scheduleRes.data || [],
       activity: activityRes.data || [],
       tools: (toolsRes.data || []).map(r => r.tool),
+      tasks: tasksRes.data || [],
     }
 
     // My role in the gig's organisation decides what I can edit (mirrors the database rules)
@@ -228,11 +231,11 @@ export default function GigPage() {
     <AppShell>
       <OfflineBanner savedAt={savedAt} />
       <GigHeader gig={gig} crewCount={members.length} myMembership={myMembership} canEdit={isPM}
-        tab={tab} setTab={setTab} tabs={tabs} counts={{ assets: assets.length, crew: members.length, updates: posts.length, schedule: schedule.length, tools: tools.length }}
+        tab={tab} setTab={setTab} tabs={tabs} counts={{ assets: assets.length, crew: members.length, updates: posts.length, schedule: schedule.length, tools: tools.length, tasks: (data.tasks || []).filter(x => x.status === 'open').length }}
         onBack={goBack} onRefresh={() => loadAll()} onEdit={() => setShowEdit(true)}
         company={company} orgRole={orgRole} />
 
-      <main style={{ maxWidth: '900px', margin: '0 auto', padding: '24px 16px' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '24px 16px' }}>
         {tab === 'overview' && onSiteWhy && (
           <OnSiteView gig={gig} schedule={schedule} tools={tools} myMembership={myMembership} canScan={canUpload} why={onSiteWhy}
             noteSeen={onSite.noteSeen} onDismissNote={() => saveOnSite({ ...readOnSite(), noteSeen: true })}
@@ -260,6 +263,10 @@ export default function GigPage() {
           <CrewTab gig={gig} members={members} invites={invites} isPM={isPM} orgRole={orgRole} userId={user.id} nameOf={nameOf} phoneOf={phoneOf}
             onChanged={reload} onLeft={() => navigate('/dashboard')} showInvite={showInvite} setShowInvite={setShowInvite} />
         )}
+        {tab === 'tasks' && (
+          <TasksTab gig={gig} members={members} nameOf={nameOf} userId={user.id} canManage={editsTools}
+            canNote={editsTools || ['pm', 'crew'].includes(myMembership?.role)} offline={!!savedAt} onChanged={reload} />
+        )}
         {tab === 'equipment' && (
           <EquipmentTab gig={gig} org={orgs.find(o => o.id === gig.org_id) || {}}
             canEdit={isPM || orgRole === 'admin' || orgRole === 'member'} canAdd={orgRole === 'admin' || orgRole === 'member'} />
@@ -276,7 +283,7 @@ export default function GigPage() {
             feed={{ gigId: id, posts, userId: user.id, isPM, nameOf, onChanged: reload }}
             activity={{ entries: activity, nameOf }} />
         )}
-      </main>
+      </div>
 
       {versionsAsset && <AssetVersionsModal asset={versionsAsset} nameOf={nameOf} onClose={() => setVersionsAsset(null)} />}
       {showEdit && (
