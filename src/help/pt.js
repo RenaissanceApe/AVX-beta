@@ -127,6 +127,7 @@ export default {
   },
 
   pages: {
+    'pocket-tools': { title: 'Ferramentas de bolso', summary: 'Calculadoras para qualquer sala, com ou sem evento no AVX: endereços DMX e dipswitches, um bloco de projetores, universos e canais absolutos, e conversão de valores. Funcionam sem ligação.' },
     home: { title: 'Eventos', summary: 'Os eventos da empresa escolhida no topo, ou todos os seus em "O meu trabalho". Abra um para ver a equipa, o horário, os ficheiros e a conversa. O calendário mostra os mesmos eventos por data.' },
     gig: { title: 'Um evento', summary: 'Tudo sobre um evento, em separadores: resumo, equipa, horário, equipamento, ficheiros, atualizações e conversa. Quem gere altera; a equipa vê e pode escrever na conversa.' },
     messages: { title: 'Mensagens', summary: 'As suas conversas: mensagens diretas, conversas de eventos, canais de departamento e da organização. As que têm mensagens por ler aparecem primeiro. Use o menu de uma mensagem para responder, reagir, guardar ou denunciar.' },
@@ -226,6 +227,19 @@ export default {
       mistakes: [
         'O relógio é partilhado: se alguém o acertar pelo timecode do espetáculo, o de toda a gente acompanha. Acerte-o pelo timecode que o espetáculo realmente usa: "Pela câmara" lê um ecrã de timecode com a câmara do telemóvel, "Por LTC" ouve o sinal LTC, ou escreva-o em "Acertar o relógio".',
         'Sem ligação? As notas ficam no telemóvel e são enviadas quando voltar a ter rede; as fotos precisam de ligação.',
+      ],
+    },
+    'crew-dmx-calc': {
+      title: 'Definir o endereço DMX de um projetor pelos dipswitches',
+      intro: 'Muitos projetores recebem o endereço de uma fila de pequenos interruptores. O AVX mostra quais deve mudar.',
+      steps: [
+        'Abra O meu trabalho → Ferramentas de bolso (sem evento), ou o patch DMX de um evento. Em "Como os meus projetores mostram os interruptores", escolha o que a etiqueta do projetor indica: para que lado é ON e de que lado está o interruptor 1.',
+        'Escreva o endereço: os interruptores a pôr em ON acendem, desenhados como no projetor. Tocar nos interruptores faz o contrário. Mais abaixo, "Endereçar uma fila de projetores" lista cada endereço e os seus interruptores para um bloco do mesmo projetor.',
+        'No local, no patch DMX do evento toque em "Percorrer o rig": um projetor de cada vez, agrupados por posição, com interruptores grandes e "Projetor seguinte". Funciona sem ligação.',
+      ],
+      mistakes: [
+        'Os dipswitches só chegam ao endereço 511. Acima disso, use o menu do projetor.',
+        'Alguns projetores têm um 10.º interruptor de função (que não faz parte do endereço): escolha 10 interruptores e deixe-o como está.',
       ],
     },
     'crew-trust': {
