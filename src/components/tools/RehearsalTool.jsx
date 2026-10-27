@@ -14,6 +14,7 @@ import {
 import { t, getLanguage, fmt } from '../../i18n'
 import { Modal, btn, btnPrimary, btnDanger, iconBtn, input, label, card, colors, tint } from '../ui'
 import EmptyState from '../EmptyState'
+import { CameraSync, LtcSync, SyncIcons } from './TimecodeSync'
 
 const SESSION_FIELDS = 'id, gig_id, name, fps, frame_count, clock, running, anchor_at, anchor_ms, clock_set_by, created_by, created_at, ended_at'
 const NOTE_FIELDS = 'id, session_id, gig_id, client_id, author_id, tc_ms, written_at, department, priority, cue, body, photo_path, assignee_id, status, done_by, done_at, created_at, removed_at'
@@ -156,6 +157,7 @@ function SessionView({ session: initial, gig, members, nameOf, userId, canNote, 
   const [offset, setOffset] = useState(0)
   const [composer, setComposer] = useState(null) // { tc_ms } while writing
   const [setting, setSetting] = useState(false)
+  const [syncing, setSyncing] = useState(null) // 'camera' | 'ltc'
   const [filter, setFilter] = useState({ department: 'all', mine: false, open: false })
   const canMark = canNote && !session.ended_at
   const me = members.find(m => m.user_id === userId)
@@ -220,7 +222,8 @@ function SessionView({ session: initial, gig, members, nameOf, userId, canNote, 
     const { data } = await supabase.from('rehearsal_sessions').select(SESSION_FIELDS).eq('id', session.id).maybeSingle()
     if (data) setSession(data)
   }
-  const setTo = (ms, extra = {}) => moveClock({ anchor_ms: clampAnchor(ms), ...extra })
+  // The reading and the server time it belongs to go together, so network delay doesn't shift it
+  const setTo = (ms, extra = {}) => moveClock({ anchor_ms: clampAnchor(ms), anchor_at: new Date(Date.now() + offset).toISOString(), ...extra })
   const nudge = by => setTo(now() + by)
   const frame = 1000 / Number(session.fps)
 
@@ -314,8 +317,11 @@ function SessionView({ session: initial, gig, members, nameOf, userId, canNote, 
             <button type="button" onClick={() => nudge(frame)} style={btn} aria-label={t('rehearsal.nudge', { by: '+1f' })}>+1f</button>
             <button type="button" onClick={() => nudge(1000)} style={btn} aria-label={t('rehearsal.nudge', { by: '+1s' })}>+1s</button>
             <button type="button" onClick={() => setSetting(true)} style={btn}><Clock size={14} /> {t('rehearsal.setClock')}</button>
+            <button type="button" onClick={() => setSyncing('camera')} style={btn}><SyncIcons.camera size={14} /> {t('rehearsal.fromCamera')}</button>
+            <button type="button" onClick={() => setSyncing('ltc')} style={btn}><SyncIcons.ltc size={14} /> {t('rehearsal.fromLtc')}</button>
           </div>
         )}
+        <DriftNote session={session} offset={offset} />
       </ClockPanel>
 
       {canMark && (
@@ -380,6 +386,14 @@ function SessionView({ session: initial, gig, members, nameOf, userId, canNote, 
         <NoteComposer tc={composer.tc_ms} session={session} gig={gig} members={members} nameOf={nameOf} defaultDept={myDept} offline={offline}
           onCancel={() => setComposer(null)} onSave={async note => { if (await save(note)) setComposer(null) }} />
       )}
+      {syncing === 'camera' && (
+        <CameraSync session={session} onClose={() => setSyncing(null)} onType={() => { setSyncing(null); setSetting(true) }}
+          onUse={async (ms, clock) => { await setTo(ms, { clock, running: true }); setSyncing(null); track('rehearsal:sync:camera') }} />
+      )}
+      {syncing === 'ltc' && (
+        <LtcSync session={session} onClose={() => setSyncing(null)}
+          onUse={async (ms, clock) => { await setTo(ms, { clock, running: true }); setSyncing(null); track('rehearsal:sync:ltc') }} />
+      )}
       {setting && (
         <SetClock session={session} current={now()} onCancel={() => setSetting(false)}
           onSet={async (ms, extra) => { await setTo(ms, extra); setSetting(false); track('rehearsal:setClock') }} />
@@ -395,6 +409,16 @@ function Chip({ on, onClick, children }) {
       {children}
     </button>
   )
+}
+
+// Camera and LTC clocks run on their own and drift from the phone's; after a while, say so
+function DriftNote({ session, offset }) {
+  const [, tick] = useState(0)
+  useEffect(() => { const id = setInterval(() => tick(n => n + 1), 30000); return () => clearInterval(id) }, [])
+  if (!['camera', 'ltc'].includes(session.clock) || !session.running || session.ended_at) return null
+  const minutes = Math.floor((Date.now() + offset - new Date(session.anchor_at).getTime()) / 60000)
+  if (minutes < 20) return null
+  return <p role="note" style={{ fontSize: '12px', color: 'var(--warn)', lineHeight: 1.5 }}>{t('rehearsal.drift', { min: minutes })}</p>
 }
 
 // The big timecode, redrawn every frame from the shared anchor

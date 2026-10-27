@@ -80,7 +80,7 @@ Settings (see Decided above).
 
 ## 2. Rehearsal companion
 
-**R1 built (0.54.0).** How it works is under "How R1 works" at the end of this section.
+**R1 built (0.54.0), R2 built (0.55.0).** How they work is under "How R1 works" and "How R2 works" at the end of this section.
 
 A shared, time-stamped notebook for rehearsals. Everyone on the gig (sound, lights, video, stage,
 SM, PM) writes notes at the same time against the same clock. Afterwards each department gets its
@@ -154,6 +154,17 @@ the shared export format). R3 ships the file format first; the live link follows
 | Not yet | Shared marker on a note's time (later), notifications to assignees (with tasks), camera and LTC sync (R2), cue lists and the live bridge (R3) |
 
 Checks: `supabase/tests/rehearsals.sql`; `src/lib/rehearsal.test.js` (timecode, drop-frame, clock, filters, CSV, export).
+
+### How R2 works (0.55.0)
+
+| Piece | How it works |
+|---|---|
+| Exact anchor | Migration `20261128000000_rehearsal_clock.sql`: the phone sends `anchor_at` (its time plus its offset to `server_now()`) with the reading; the server keeps it when it is within 5 s of its own time, otherwise uses its own |
+| Camera | `src/lib/tcOcr.js`: the guide box is cropped from the camera picture (84 % × 24 % of it), turned into an ink mask (Otsu threshold, ink = the minority side, so lit digits on dark and dark digits on light both work), the line of digits is found, pieces of seven-segment digits are joined, colons dropped, and each of the eight digits is read by sampling where its seven segments would be. Two readings must move on with the elapsed time (±2.5 frames) before one is offered; the person confirms. Nothing leaves the phone |
+| LTC | `src/lib/ltc.js`: biphase-mark decoding with an adaptive bit length (any of 23.976–30 fps, any sample rate), sync word, BCD fields and the drop-frame flag. The audio is read with Web Audio (no echo cancellation, noise suppression or gain control); each word's end marks the start of the next frame, and the time it was heard on the phone sets the reading |
+| Drift | Camera and LTC sources run on their own clocks; after 20 minutes a note under the clock suggests syncing again |
+| Checks | `src/lib/tcOcr.test.js` (drawn seven-segment displays, both polarities, noise), `src/lib/ltc.test.js` (generated LTC at 25, 30 and 29.97 DF, 48 and 44.1 kHz, noise); the browser was checked with a generated video of a running display and a generated LTC file as the fake camera and microphone |
+| Not yet | Fonts that aren't seven-segment-like may not read; then type it. The cue list and live bridge are R3 |
 
 ## 3. DMX calculator and dipswitch converter (small, do early)
 
@@ -316,7 +327,7 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 | # | What | Needs | When built, also connect |
 |---|---|---|---|
 | 1 | **R1** rehearsal companion ✅ 0.54.0 | gig, schedule, members | Department from the gig function; reports printable |
-| 2 | **R2** camera and LTC sync | R1 | — |
+| 2 | **R2** camera and LTC sync ✅ 0.55.0 | R1 | Session clock type shown in the report |
 | 3 | **D1** DMX calculator and dipswitches | DMX patch | DMX patch column, light plot fixture view |
 | 4 | **On-site mode** and Tools split (Plan / On site), personal auto setting | R1, D1, field kit | Call sheet, scan mode, equipment steps, settings |
 | 5 | **Tasks** [6] (gig and organisation, checklists) | — | R1 notes → tasks, inventory repairs, on-site checklists |

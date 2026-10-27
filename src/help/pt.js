@@ -224,7 +224,7 @@ export default {
         'Depois da passagem, Relatório imprime as notas por departamento e CSV abre numa folha de cálculo. As notas em aberto voltam a aparecer na sessão seguinte.',
       ],
       mistakes: [
-        'O relógio é partilhado: se alguém o acertar pelo timecode do espetáculo, o de toda a gente acompanha. Acerte-o pelo timecode que o espetáculo realmente usa.',
+        'O relógio é partilhado: se alguém o acertar pelo timecode do espetáculo, o de toda a gente acompanha. Acerte-o pelo timecode que o espetáculo realmente usa: "Pela câmara" lê um ecrã de timecode com a câmara do telemóvel, "Por LTC" ouve o sinal LTC, ou escreva-o em "Acertar o relógio".',
         'Sem ligação? As notas ficam no telemóvel e são enviadas quando voltar a ter rede; as fotos precisam de ligação.',
       ],
     },
