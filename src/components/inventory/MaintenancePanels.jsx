@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Wrench, ClipboardCheck, Camera, Loader2, Check, Plus, AlertTriangle, Image as ImageIcon } from 'lucide-react'
+import { Wrench, ClipboardCheck, Camera, Loader2, Check, Plus, AlertTriangle, Image as ImageIcon, ListTodo } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { REPAIR_STATUSES, isOpenRepair, dueState, repairPhotoPath, MAX_PHOTO_BYTES } from '../../lib/inventory'
 import { formatMoney, localISODate } from '../../lib/quotes'
+import { taskFromRepair } from '../../lib/tasks'
 import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, input, label, card, colors } from '../ui'
 import ContextThread from '../messages/ContextThread'
@@ -80,6 +81,16 @@ export function RepairModal({ orgId, repair, items = [], preset = {}, onClose, o
 
   const cost = form.cost === '' ? null : Number(String(form.cost).replace(',', '.'))
   const invalid = !form.problem.trim() || (!repair && (!itemId || (serial && !unitId))) || (cost != null && !(cost >= 0))
+  const [taskBusy, setTaskBusy] = useState(false)
+  // A task on the organisation for this repair (docs/TOOLS_PLAN.md step 5, T2), at most one
+  async function makeTask() {
+    setTaskBusy(true)
+    const { error } = await supabase.from('tasks').insert(taskFromRepair({ ...repair, org_id: orgId }, repair.item_name))
+    setTaskBusy(false)
+    if (error) return notify(error.code === '23505' ? t('repair.taskExists') : userMessage(error), error.code === '23505' ? 'info' : 'error')
+    track('tasks:fromRepair')
+    notify(t('repair.taskMade'), 'success')
+  }
 
   async function save(e) {
     e.preventDefault()
@@ -163,6 +174,12 @@ export function RepairModal({ orgId, repair, items = [], preset = {}, onClose, o
           {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
         </button>
       </form>
+      {repair && isOpenRepair(repair) && (
+        <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <button type="button" onClick={makeTask} disabled={taskBusy} style={btn}><ListTodo size={14} /> {t('repair.makeTask')}</button>
+          <Link to={`/org/${orgId}/tasks`} style={{ fontSize: '12px', color: colors.accentText }}>{t('repair.seeTasks')}</Link>
+        </div>
+      )}
       {repair && <div style={{ marginTop: '14px' }}><ContextThread type="repair" id={repair.id} height="260px" /></div>}
     </Modal>
   )

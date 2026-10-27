@@ -26,6 +26,7 @@ describe('navigation', () => {
     expect(viewer).not.toContain('newGig')
     expect(viewer).not.toContain('orgSettings')
     expect(viewer).toContain('members')
+    expect(viewer).toContain('orgTasks')
   })
 
   it('puts minor and overflow items in the side list', () => {

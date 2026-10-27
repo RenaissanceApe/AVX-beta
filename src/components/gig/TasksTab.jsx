@@ -5,7 +5,7 @@ import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
-import { TASK_FIELDS, sortTasks, filterTasks } from '../../lib/tasks'
+import { TASK_FIELDS, TEMPLATE_FIELDS, sortTasks, filterTasks } from '../../lib/tasks'
 import { localDay } from '../../lib/onSite'
 import { t } from '../../i18n'
 import { btn, btnPrimary, colors, tint } from '../ui'
@@ -20,6 +20,7 @@ export default function TasksTab({ gig, members, nameOf, userId, canManage, canN
   const [tasks, setTasks] = useState(null)
   const [editing, setEditing] = useState(null) // null | 'new' | task
   const [filter, setFilter] = useState({ mine: false, open: true })
+  const [templates, setTemplates] = useState([])
   const today = localDay()
 
   const load = useCallback(async () => {
@@ -30,6 +31,12 @@ export default function TasksTab({ gig, members, nameOf, userId, canManage, canN
     if (data) saveSnapshot(`tasks.${gig.id}`, data)
   }, [gig.id])
   useEffect(() => { load() }, [load])
+  // The organisation's checklist templates, for managers starting a task
+  useEffect(() => {
+    if (!canManage || !gig.org_id) return
+    supabase.from('task_templates').select(TEMPLATE_FIELDS).eq('org_id', gig.org_id).is('removed_at', null).order('name')
+      .then(({ data }) => setTemplates(data || []))
+  }, [canManage, gig.org_id])
   useEffect(() => {
     const channel = supabase.channel(`tasks-${gig.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks', filter: `gig_id=eq.${gig.id}` }, () => load())
@@ -89,7 +96,7 @@ export default function TasksTab({ gig, members, nameOf, userId, canManage, canN
           ))}
         </ul>
       )}
-      {editing && <TaskForm task={editing === 'new' ? null : editing} people={members} nameOf={nameOf} onSave={save} onClose={() => setEditing(null)} />}
+      {editing && <TaskForm task={editing === 'new' ? null : editing} people={members} nameOf={nameOf} templates={templates} onSave={save} onClose={() => setEditing(null)} />}
     </div>
   )
 }

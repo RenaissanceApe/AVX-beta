@@ -123,7 +123,7 @@ export default function GigPage() {
       supabase.from('gig_schedule').select('*').eq('gig_id', id),
       supabase.from('gig_activity').select('*').eq('gig_id', id).order('created_at', { ascending: false }).limit(100),
       supabase.from('gig_tools').select('tool').eq('gig_id', id),
-      supabase.from('tasks').select('id, status, assignee_id, due_on, title').eq('gig_id', id).is('removed_at', null),
+      supabase.from('tasks').select('id, status, assignee_id, due_on, title, created_at').eq('gig_id', id).is('removed_at', null),
     ])
     const results = { gig: gigRes, members: membersRes, assets: assetsRes, posts: postsRes, schedule: scheduleRes, activity: activityRes }
 
@@ -237,7 +237,7 @@ export default function GigPage() {
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '24px 16px' }}>
         {tab === 'overview' && onSiteWhy && (
-          <OnSiteView gig={gig} schedule={schedule} tools={tools} myMembership={myMembership} canScan={canUpload} why={onSiteWhy}
+          <OnSiteView gig={gig} schedule={schedule} tools={tools} tasks={data.tasks || []} userId={user.id} myMembership={myMembership} canScan={canUpload} why={onSiteWhy}
             noteSeen={onSite.noteSeen} onDismissNote={() => saveOnSite({ ...readOnSite(), noteSeen: true })}
             onLeave={() => saveOnSite({ ...switchOnSite(readOnSite(), gig.id, false), noteSeen: true })} setTab={setTab} />
         )}
