@@ -335,7 +335,7 @@ export default function AuthPage() {
             )}
 
             {error && (
-              <div style={{
+              <div role="alert" style={{
                 padding: '10px 14px', borderRadius: '8px',
                 background: 'color-mix(in srgb, var(--danger) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)',
                 color: 'var(--danger)', fontSize: '13px'
