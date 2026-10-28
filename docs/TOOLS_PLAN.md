@@ -405,7 +405,7 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 | 3 | **D1** DMX calculator and dipswitches ✅ 0.56.0 | DMX patch | DMX patch column and walk-through (by light plot position) |
 | 4 | **On-site mode** and Tools split (Plan / On site), personal auto setting ✅ 0.57.0 | R1, D1, field kit | Call sheet, rehearsal notes, walk-through, input list, scanning, settings |
 | 5 | **Tasks** [6]: **T1** gig tasks, My tasks, R1 notes → tasks, notification ✅ 0.58.0; **T2** organisation tasks, checklist templates ✅ 0.59.0 | — | R1 notes → tasks ✅, inventory repairs ✅, On-site mode ✅; gig templates (step 25) will copy tasks |
-| 6 | **S1** custom statuses and gig types [10] ✅ 0.61.0; **S2** custom fields [12] | — | Gig lists, calendar, filters, export ✅, import ✅ (imported gigs take the matching status); S2: gigs, contacts, items |
+| 6 | **S1** custom statuses and gig types [10] ✅ 0.61.0; **S2** custom fields [12] ✅ 0.62.0 | — | Gig lists, calendar, filters, export ✅, import ✅ (imported gigs take the matching status); S2: gigs, contacts, items |
 | 7 | **Crew rates** [3] | crew, functions | Crew calls and job posts (fee), quotes (labour lines) |
 | 8 | **Time registration** [2] | crew rates, schedule | Gig crew tab, calendar feed, export |
 | 9 | **Leave requests** [5] | availability | Clashes, Find crew "free", time registration |
@@ -461,6 +461,17 @@ why none), and CHANGELOG lists those connections.
 | The built-in status still rules | A trigger keeps them in step: choosing a custom status sets `status` to its base; changing `status` on its own (an import, an older screen) picks the organisation's first status for it, or none; a status that changes its meaning moves its gigs; a removed status or type comes off its gigs. So lists, archiving, notifications and the activity log work as before |
 | Who | Admins manage both lists (Organisation settings → Gig statuses and types); members and anyone on one of the organisation's gigs read them. Checks in `supabase/tests/gig_statuses_types.sql` |
 | Screens | New and edit gig forms (`GigLabelFields`), the gig header and gig cards (`GigLabels`, embedded with the gig in one query), status and type filters on the gigs list and calendar, the organisation export (`status_label`, `gig_type` in the gigs file) |
+
+### How custom fields work (S2, 0.62.0)
+
+| Piece | How it works |
+|---|---|
+| Data | `custom_fields` (entity: gig, client, supplier or item; label; kind: text, number, date, yes_no, choice, link; choices; position; `removed_at`), at most 40 per entity per organisation (migration `20261202000000_custom_fields.sql`). Values in `custom_values` (jsonb, field id → value) on `gigs`, `clients`, `suppliers` and `price_items` |
+| Checks | A trigger checks every value a save sets or changes: the organisation's own current field for that kind of record, and a value of its kind. Values of removed fields stay untouched and can't be set again. A field's kind can't be changed (no update grant). Checks in `supabase/tests/custom_fields.sql` |
+| Who | Admins manage the fields; members read them, and crew on one of the organisation's gigs read its gig fields (so gig fields are visible to crew). Values follow the record's own access rules |
+| Screens | Organisation settings (`OrgCustomFieldsSettings`), `CustomFieldInputs` in the gig, client, supplier and item forms (saved with `mergeValues`, which keeps removed fields' values), `CustomFieldList` on the gig overview, the item page's details, the gigs search (`customSearchText`) |
+| Export | `private.custom_columns` turns each record's values into one column per field label (built-in columns win a clash) in the gigs, clients, suppliers and items files (migration `20261202000001_export_custom_fields.sql`) |
+| Not yet | Import mapping to custom fields; filters by a field's value |
 
 ## References
 

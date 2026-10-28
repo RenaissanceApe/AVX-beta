@@ -69,12 +69,12 @@ export default function OrgCustomFieldsSettings({ org }) {
               <input defaultValue={f.label} maxLength={60} aria-label={t('custom.label')} disabled={busy}
                 onBlur={e => { const v = e.target.value.trim(); if (v && v !== f.label) update(f, { label: v }); else e.target.value = f.label }}
                 style={{ ...input, flex: '1 1 140px', minWidth: 0, padding: '6px 10px' }} />
-              <span style={{ fontSize: '12px', color: colors.muted }}>{t(`custom.kind.${f.kind}`)}</span>
-              <span style={{ display: 'inline-flex', gap: '2px', marginLeft: 'auto' }}>
+              <span style={{ display: 'inline-flex', gap: '2px' }}>
                 <button type="button" onClick={() => move(i, -1)} disabled={busy || i === 0} aria-label={t('labels.moveUp', { name: f.label })} style={iconBtn}><ArrowUp size={14} /></button>
                 <button type="button" onClick={() => move(i, 1)} disabled={busy || i === fields.length - 1} aria-label={t('labels.moveDown', { name: f.label })} style={iconBtn}><ArrowDown size={14} /></button>
                 <button type="button" onClick={() => remove(f)} disabled={busy} aria-label={t('labels.remove', { name: f.label })} style={iconBtn}><Trash2 size={14} /></button>
               </span>
+              <span style={{ fontSize: '12px', color: colors.muted, width: '100%', marginTop: '-4px' }}>{t(`custom.kind.${f.kind}`)}</span>
               {f.kind === 'choice' && (
                 <textarea defaultValue={(f.choices || []).join('\n')} rows={2} aria-label={t('custom.choicesOf', { name: f.label })} disabled={busy}
                   onBlur={e => { const c = choicesFromText(e.target.value); if (c.length && c.join('\n') !== (f.choices || []).join('\n')) update(f, { choices: c }) }}

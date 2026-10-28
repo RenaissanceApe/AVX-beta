@@ -62,6 +62,7 @@ export function sampleData(persona, lang) {
   const gig = {
     id: gigId, org_id: orgId, name: 'Marcolino — Natal', venue: 'Coliseu dos Recreios, Lisboa', start_date: day(24), end_date: day(25),
     status: 'confirmed', description: w.desc, created_by: ricardo, created_at: ago(400), organisations: { name: 'Lumen and Pixel' },
+    custom_values: { cf1: 'PO-2026-118', cf2: 2800, cf3: true, cf4: lang === 'pt' ? 'Interior' : 'Indoor' },
   }
   const jazz = { id: jazzId, org_id: otherOrg, name: 'Festival Jazz Cascais', venue: 'Parque Marechal Carmona', start_date: day(40), end_date: day(42), status: 'confirmed', created_by: ana, created_at: ago(500) }
   const members = [
@@ -199,6 +200,13 @@ export function sampleData(persona, lang) {
         { id: 'gs2', org_id: orgId, name: tx('Confirmado', 'Confirmed'), colour: 'blue', base_status: 'confirmed', position: 2, created_at: ago(300) },
         { id: 'gs3', org_id: orgId, name: tx('Na estrada', 'On the road'), colour: 'green', base_status: 'active', position: 3, created_at: ago(300) },
         { id: 'gs4', org_id: orgId, name: tx('Faturado', 'Invoiced'), colour: 'sky', base_status: 'completed', position: 4, created_at: ago(300) },
+      ],
+      custom_fields: [
+        { id: 'cf1', org_id: orgId, entity: 'gig', label: tx('N.º de encomenda', 'PO number'), kind: 'text', choices: [], position: 1, created_at: ago(200) },
+        { id: 'cf2', org_id: orgId, entity: 'gig', label: tx('Lotação', 'Venue capacity'), kind: 'number', choices: [], position: 2, created_at: ago(200) },
+        { id: 'cf3', org_id: orgId, entity: 'gig', label: tx('Seguro verificado', 'Insurance checked'), kind: 'yes_no', choices: [], position: 3, created_at: ago(200) },
+        { id: 'cf4', org_id: orgId, entity: 'gig', label: tx('Espaço', 'Setting'), kind: 'choice', choices: [tx('Interior', 'Indoor'), tx('Exterior', 'Outdoor')], position: 4, created_at: ago(200) },
+        { id: 'cf5', org_id: orgId, entity: 'client', label: tx('Isento de IVA', 'VAT exempt'), kind: 'yes_no', choices: [], position: 1, created_at: ago(200) },
       ],
       gig_types: [
         { id: 'gt1', org_id: orgId, name: tx('Festival', 'Festival'), colour: 'purple', position: 1, created_at: ago(300) },

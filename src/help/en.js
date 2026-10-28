@@ -854,6 +854,20 @@ export default {
         'Changing what a status means moves every gig that has it.',
       ],
     },
+    'ad-custom-fields': {
+      title: 'Add your own fields',
+      intro: 'Keep the details your company tracks ("PO number", "Venue capacity", "Insurance checked") on gigs, clients, suppliers and catalogue items.',
+      steps: [
+        'Open the organisation\'s settings (admins only) and find "Custom fields". Choose what the field goes on, type its name, pick its kind (text, number, date, yes / no, choice from a list, or link) and tap "Add". For a choice, type one option per line.',
+        'The field now shows in that record\'s form: the gig form, a client or supplier, or a catalogue item. Fill it in and save. Filled-in gig fields show on the gig\'s overview under "More details", and the gigs search finds their text.',
+        'Rename a field, change its choices or reorder it with the arrows at any time. The organisation export has one column per field.',
+      ],
+      mistakes: [
+        'A field\'s kind can\'t change once added. Add a new field instead.',
+        'Removing a field hides it everywhere and can\'t be undone; values already filled in stay in the export.',
+        'Crew on a gig can see its gig fields. Don\'t use them for anything crew shouldn\'t read.',
+      ],
+    },
     'ad-org-export': {
       title: 'Download all your organisation\'s data',
       intro: 'Keep a copy of everything, or take it to another tool. Nothing locks you in.',

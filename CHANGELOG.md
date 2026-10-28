@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.62.0 — Your own fields on gigs, clients, suppliers and items
+
+### Added
+- **Custom fields** (Organisation settings → "Custom fields", admins): add your own fields to gigs,
+  clients, suppliers or catalogue items, such as "PO number", "Venue capacity" or "Insurance checked".
+  - Six kinds: text, number, date, yes / no, choice from a list (one option per line) and link.
+  - Up to 40 per kind of record. Rename, edit the choices or reorder with the arrows at any time; a
+    field's kind can't change.
+  - Removing a field (it asks first) hides it everywhere. Values already filled in are kept and still
+    come out in the export.
+- **In the forms:** the new-gig and edit-gig forms, the client and supplier forms and the catalogue
+  item form show the fields after the built-in ones. The database checks every value against its
+  field (a number is a number, a choice is one of the list, a link starts with http(s)://).
+- **On the pages:** a gig's overview shows the filled-in fields under "More details"; a catalogue
+  item's page lists them with its other details. Clients and suppliers show them in their form.
+- **Search:** the gigs search also finds text and numbers in a gig's fields.
+- **Export:** the organisation export has one column per field, named after it, in the gigs, clients,
+  suppliers and items files.
+- Help: guide "Add your own fields", with a picture.
+
+### Connected to earlier features
+- Gig statuses and types (S1, 0.61.0): the fields sit next to them in the gig forms and in the same
+  organisation settings.
+- The organisation export (S5): extra columns per field.
+- Contacts (clients and suppliers), the inventory catalogue and the gigs list search.
+- Not yet: the file imports (S3) don't map columns to custom fields.
+
 ## 0.61.0 — Your own gig statuses and gig types
 
 ### Added
