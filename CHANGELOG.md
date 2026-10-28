@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.63.0 — Limits on emails and push notifications
+
+### Added
+- **Send limits.** AVX now caps how many emails and push notifications it sends, so a fault in
+  a screen or someone misusing an account can't flood Brevo and get the sending domain blocked:
+  - **Invite emails:** 40 an hour and 150 a day per person, 300 a day per organisation, and at
+    most 3 a day to the same address (inviting the same person again no longer emails them
+    every time).
+  - **Quote emails:** 20 an hour and 60 a day per person, 100 a day per organisation, and 5 a day
+    to the same address.
+  - **Email summary:** at most one per person every 20 hours, and 2,000 per run.
+  - **Push notifications:** 60 an hour per person; test notifications 5 an hour.
+  - **All emails together:** 250 a day, under Brevo's free plan (300 a day). Raise it after
+    upgrading Brevo (see docs/PENDING.md).
+- Over a limit, the invite is still saved and the quote link is still made; the app says the
+  email wasn't sent and suggests sharing the link instead (EN, PT).
+- Database checks for the limits (`supabase/tests/send_limits.sql`).
+
 ## 0.62.1 — Privacy and security check before more users
 
 ### Added

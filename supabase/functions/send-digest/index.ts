@@ -15,12 +15,16 @@
 // - each notification is emailed at most once (notifications.emailed_at)
 // - nothing from organisations the person muted (org_mutes), except direct questions
 //   to them (availability requests, messages, announcements, crew calls, client/supplier messages)
+// - send limits (claim_system_send): one digest per person per 20 hours, and the project's daily
+//   email cap; at most MAX_PER_RUN emails per run. Whatever is held back goes in the next digest.
 // Logs carry counts only, never addresses or content.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { type Lang, type Notification, DIRECT_KINDS, STRINGS, fill, describe, linkFor } from '../_shared/notification-text.ts'
+import { claimSend } from '../_shared/send-limits.ts'
 
 const MAX_LINES = 20
+const MAX_PER_RUN = 2000
 
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
@@ -115,8 +119,9 @@ Deno.serve(async (req) => {
   const prefs = new Map((recipients ?? []).map(p => [p.id, p]))
   const names: Record<string, string> = Object.fromEntries((actors ?? []).filter(p => p.full_name).map(p => [p.id, p.full_name]))
 
-  let sent = 0, optedOut = 0, failed = 0, mutedOnly = 0
+  let sent = 0, optedOut = 0, failed = 0, mutedOnly = 0, limited = 0
   for (const [userId, all] of byUser) {
+    if (sent >= MAX_PER_RUN) { limited++; continue }
     const pref = prefs.get(userId)
     if (!pref || pref.email_digest === false) { optedOut++; continue }
     const items = all.filter(n => !n.org_id || DIRECT_KINDS.has(n.kind) || !muted.has(`${userId}:${n.org_id}`))
@@ -127,6 +132,10 @@ Deno.serve(async (req) => {
     if (userErr || !email) { failed++; continue }
 
     if (dryRun) { sent++; continue }
+
+    const claim = await claimSend(admin, 'claim_system_send', { p_kind: 'digest', p_user: userId })
+    if (claim === 'limited') { limited++; continue }
+    if (claim === 'error') { failed++; continue }
 
     const lang: Lang = pref.language === 'pt' ? 'pt' : 'en'
     const { subject, html, text } = renderEmail(items, lang, names, appUrl)
@@ -153,7 +162,7 @@ Deno.serve(async (req) => {
     sent++
   }
 
-  const summary = { users: byUser.size, sent, optedOut, mutedOnly, failed, dryRun }
+  const summary = { users: byUser.size, sent, optedOut, mutedOnly, limited, failed, dryRun }
   console.log(JSON.stringify({ fn: 'send-digest', step: 'done', ...summary }))
   return json(summary)
 })

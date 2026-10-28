@@ -43,7 +43,8 @@ export default function PushSettings() {
     setBusy(true)
     try {
       const sent = await sendTest()
-      if (!sent) notify(t('push.testNone'), 'info')
+      if (sent === 'rate_limited') notify(t('push.testRateLimited'), 'info')
+      else if (!sent) notify(t('push.testNone'), 'info')
     } catch (err) {
       notify(t('push.failed', { reason: userMessage(err) }), 'error')
     } finally {

@@ -274,6 +274,7 @@ export default {
   'invite.already': '{email} já é membro.',
   'invite.emailed': 'Convite enviado para {email}. Será adicionado assim que aceitar.',
   'invite.notEmailed': '{email} ainda não tem conta e não foi possível enviar o email de convite. Partilhe {link} — quando se registar com este email será adicionado automaticamente.',
+  'invite.rateLimited': 'O convite para {email} foi guardado, mas o email não foi enviado porque saíram muitos convites recentemente. Tente mais tarde ou partilhe {link} — quando se registar com este email será adicionado automaticamente.',
 
   'feed.title': 'Mural do evento',
   'feed.subtitle': 'Atualizações, avisos e informação importante para a equipa.',
@@ -735,6 +736,7 @@ export default {
   'send.linkReady': "Link criado",
   'send.emailNotConfigured': "O envio de email ainda não está configurado nesta aplicação, por isso nada foi enviado. Copie o link e envie-o.",
   'send.emailFailed': "Não foi possível enviar o email. Copie o link e envie-o.",
+  'send.emailRateLimited': "Link criado, mas o email não foi enviado porque foi atingido o limite de emails de orçamentos. Copie o link e envie-o, ou tente mais tarde.",
   'send.history': "Enviados",
   'send.noHistory': "Ainda não foi enviado.",
   'send.linkOnly': "Só link",
@@ -1732,6 +1734,7 @@ export default {
   "push.failed": "Não foi possível alterar as notificações: {reason}",
   "push.test": "Enviar um teste",
   "push.testNone": "Nenhum dispositivo a recebeu. Desative e volte a ativar as notificações.",
+  "push.testRateLimited": "Já enviou várias notificações de teste. Tente daqui a uma hora.",
   "push.installFirst": "No iPhone e iPad, adicione primeiro o AVX ao ecrã principal (Partilhar → Adicionar ao ecrã principal) e abra-o a partir daí; depois ative as notificações.",
   "push.unsupported": "Este navegador não consegue mostrar notificações do AVX.",
   "chat.outbox.waiting": "À espera de ligação",
