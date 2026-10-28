@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.63.0 — Crew rates and a gig's labour cost
+
+### Added
+- **Crew rates** (Organisation settings → "Crew rates", admins): what you pay per function ("FOH
+  engineer"), per person, or per person in one function, per day, half day or hour. The most
+  specific rate wins. Admins and members can see them; crew never do.
+- **Factors:** overtime (and after how many hours), weekend, night and holiday multipliers. Weekend
+  days in a gig's planned cost use the weekend factor now; the others are for time registration.
+- **Labour cost on a gig** (Crew tab, for the people running the gig): what each person costs, from
+  the fee agreed with them or the rate card for their booked days. It shows the total, the crew lines
+  of the gig's quote (the accepted one, else the newest) and the margin, and warns when someone has
+  no rate.
+- **Agreed fees:** set a person's fee on a gig per day, half day, hour or as a fixed amount, with a
+  note, or go back to the rate card. Each person sees their own fee on the gig; nobody else on the
+  crew does.
+- **Export:** three more files in the organisation export: the rate card, the factors and the fees
+  agreed on gigs.
+- Help: guide "Set crew rates and see a gig's labour cost", with two pictures.
+
+### Connected to earlier features
+- Gig crew, their functions and booking times (the days counted), and quotes linked to a gig (crew
+  lines, after the quote's discount).
+- The crew function names from crew profiles are offered when adding a rate.
+- The organisation export (S5) and the privacy notice and data map (0.62.1).
+- Not yet: fees in crew calls and job posts, labour lines in quotes from the rate card, and the
+  overtime, night and holiday factors (they need registered hours, step 8).
+
 ## 0.62.1 — Privacy and security check before more users
 
 ### Added

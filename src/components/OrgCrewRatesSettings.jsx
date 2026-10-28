@@ -25,7 +25,10 @@ export default function OrgCrewRatesSettings({ org }) {
   const [draft, setDraft] = useState(EMPTY)
   const [factors, setFactors] = useState(null)
   const [busy, setBusy] = useState(false)
-  useEffect(() => { if (card.loaded) setFactors(Object.fromEntries(['overtime_after_hours', ...FACTOR_KEYS].map(k => [k, amountInput(card.factors[k])]))) }, [card.loaded, card.factors])
+  // Filled once from the database, so saving a rate doesn't wipe factors being typed
+  useEffect(() => {
+    if (card.loaded) setFactors(f => f || Object.fromEntries(['overtime_after_hours', ...FACTOR_KEYS].map(k => [k, amountInput(card.factors[k])])))
+  }, [card.loaded, card.factors])
 
   const nameOf = id => people.find(p => p.id === id)?.full_name || t('rates.someone')
   const suggestions = [...new Set([...titles, ...FUNCTIONS.map(f => t(`crewFn.${f}`))])]
@@ -83,6 +86,11 @@ export default function OrgCrewRatesSettings({ org }) {
       <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>{t('rates.intro')}</p>
       {card.loaded && card.rates.length === 0 && <p style={{ fontSize: '13px', color: colors.muted, marginBottom: '8px' }}>{t('rates.empty')}</p>}
       {card.rates.length > 0 && (
+        <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px', marginBottom: '4px' }}>
+          {AMOUNTS.map(k => <span key={k} style={{ ...label, fontSize: '11px', marginBottom: 0 }}>{t(`rates.${k}`)}</span>)}
+        </div>
+      )}
+      {card.rates.length > 0 && (
         <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
           {card.rates.map(r => (
             <li key={r.id} style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
@@ -91,7 +99,7 @@ export default function OrgCrewRatesSettings({ org }) {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px', width: '100%' }}>
                 {AMOUNTS.map(k => (
                   <input key={`${k}:${r[k]}`} defaultValue={amountInput(r[k])} inputMode="decimal" disabled={busy}
-                    aria-label={t(`rates.${k}Of`, { name: rateName(r) })} placeholder={t(`rates.${k}`)}
+                    aria-label={t(`rates.${k}Of`, { name: rateName(r) })} placeholder="—"
                     onBlur={e => saveAmount(r, k, e.target.value, e.target)} style={small} />
                 ))}
               </div>

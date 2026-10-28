@@ -854,6 +854,19 @@ export default {
         'Changing what a status means moves every gig that has it.',
       ],
     },
+    'pm-labour-cost': {
+      title: 'Set crew rates and see a gig\'s labour cost',
+      intro: 'Know what each gig\'s crew costs you and whether the quote covers it.',
+      steps: [
+        'Open the organisation\'s settings (admins only) and find "Crew rates". Add a rate for each function you hire ("FOH engineer": per day, per half day or per hour), and for people who charge differently, choose the person too. Below, set your factors; weekend days in a gig\'s planned cost use the weekend one.',
+        'Open a gig\'s Crew tab. Under "Labour cost", each person shows what the rate card suggests for their days, the total cost, the crew lines of the gig\'s quote and your margin.',
+        'Agreed something different with someone? Tap the pencil next to them and set their fee: per day, half day or hour, or a fixed amount. They see their own fee on the gig; nobody else on the crew does.',
+      ],
+      mistakes: [
+        'Rates match a person\'s function on the gig by name. Use the same words (for example always "FOH engineer"), or add the person\'s own rate.',
+        'Freelance production managers on your gigs can set fees there but don\'t see your rate card, so they get no suggestions.',
+      ],
+    },
     'ad-custom-fields': {
       title: 'Add your own fields',
       intro: 'Keep the details your company tracks ("PO number", "Venue capacity", "Insurance checked") on gigs, clients, suppliers and catalogue items.',

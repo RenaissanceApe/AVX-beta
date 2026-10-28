@@ -362,6 +362,19 @@ const SCENES = {
     await box.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
     return null
   } },
+  'org-rates': { persona: 'pm', url: `/org/${ids.org}?panel=settings`, async run(page) {
+    const box = page.locator('section[aria-labelledby="org-rates"]')
+    await box.waitFor()
+    await box.locator('li').first().waitFor()
+    await box.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
+    return null
+  } },
+  'gig-labour': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page) {
+    const box = page.locator('section[aria-labelledby="labour-title"]')
+    await box.waitFor()
+    await box.evaluate(el => window.scrollTo(0, document.documentElement.scrollHeight))
+    return null
+  } },
   'org-fields': { persona: 'pm', url: `/org/${ids.org}?panel=settings`, async run(page) {
     const box = page.locator('section[aria-labelledby="org-fields"]')
     await box.waitFor()
