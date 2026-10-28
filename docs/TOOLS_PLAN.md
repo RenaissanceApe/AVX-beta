@@ -406,7 +406,7 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 | 4 | **On-site mode** and Tools split (Plan / On site), personal auto setting ✅ 0.57.0 | R1, D1, field kit | Call sheet, rehearsal notes, walk-through, input list, scanning, settings |
 | 5 | **Tasks** [6]: **T1** gig tasks, My tasks, R1 notes → tasks, notification ✅ 0.58.0; **T2** organisation tasks, checklist templates ✅ 0.59.0 | — | R1 notes → tasks ✅, inventory repairs ✅, On-site mode ✅; gig templates (step 25) will copy tasks |
 | 6 | **S1** custom statuses and gig types [10] ✅ 0.61.0; **S2** custom fields [12] ✅ 0.62.0 | — | Gig lists, calendar, filters, export ✅, import ✅ (imported gigs take the matching status); S2: gigs, contacts, items |
-| 7 | **Crew rates** [3] | crew, functions | Crew calls and job posts (fee), quotes (labour lines) |
+| 7 | **Crew rates** [3] ✅ 0.63.0 | crew, functions | Crew calls and job posts (fee), quotes (labour lines) |
 | 8 | **Time registration** [2] | crew rates, schedule | Gig crew tab, calendar feed, export |
 | 9 | **Leave requests** [5] | availability | Clashes, Find crew "free", time registration |
 | 10 | **Gig finance overview** [4] | 7, 8, quotes, subrentals | Dashboard, reports |
@@ -461,6 +461,17 @@ why none), and CHANGELOG lists those connections.
 | The built-in status still rules | A trigger keeps them in step: choosing a custom status sets `status` to its base; changing `status` on its own (an import, an older screen) picks the organisation's first status for it, or none; a status that changes its meaning moves its gigs; a removed status or type comes off its gigs. So lists, archiving, notifications and the activity log work as before |
 | Who | Admins manage both lists (Organisation settings → Gig statuses and types); members and anyone on one of the organisation's gigs read them. Checks in `supabase/tests/gig_statuses_types.sql` |
 | Screens | New and edit gig forms (`GigLabelFields`), the gig header and gig cards (`GigLabels`, embedded with the gig in one query), status and type filters on the gigs list and calendar, the organisation export (`status_label`, `gig_type` in the gigs file) |
+
+### How crew rates work (step 7, 0.63.0)
+
+| Piece | How it works |
+|---|---|
+| Data | `crew_rates` (function title and/or person; day, half-day and hour rates; note; `removed_at`; one live rate per function and person, at most 500), `crew_rate_factors` (one row per organisation: overtime and after how many hours, weekend, night, holiday), `gig_crew_fees` (per gig and person: unit day, half_day, hour or fixed; rate; quantity; note). Migration `20261203000000_crew_rates.sql` |
+| Who | Admins manage rates and factors; admins and members read them. A gig's managers (including freelance PMs) set fees there; each person reads only their own fee. Crew never read rates. Checks in `supabase/tests/crew_rates.sql` |
+| Cost | `src/lib/crewRates.js`: the most specific rate (person in function, person, function; names compared ignoring case), the booked days (the person's booking, else the gig's dates), weekend days × the weekend factor, an agreed fee instead when set. Revenue: crew lines of the accepted quote (else the newest not declined) after its discount |
+| Screens | Organisation settings (`OrgCrewRatesSettings`), the gig's Crew tab (`LabourCost` for managers, `MyFee` for crew) |
+| Export | Three files (`crew_rates`, `crew_rate_factors`, `gig_crew_fees`). The export function was renamed `export_org_part_base` and is wrapped by the new one, which handles these parts (migration `20261203000001_export_crew_rates.sql`) |
+| Not yet | Fees in crew calls and job posts; quote labour lines from the rate card; overtime, night and holiday factors (step 8) |
 
 ### How custom fields work (S2, 0.62.0)
 
