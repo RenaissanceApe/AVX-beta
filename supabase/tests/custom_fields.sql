@@ -93,3 +93,28 @@ begin
 
   raise exception 'ALL CUSTOM FIELD CHECKS PASSED';
 end $$;
+
+-- Migration 20261202000001: the export has one column per custom field (built-in columns win)
+--   "ALL CUSTOM EXPORT CHECKS PASSED"  → good
+do $$
+declare a uuid := gen_random_uuid(); org_a uuid; po uuid; vat uuid; out jsonb; outc jsonb;
+begin
+  insert into auth.users (id, email, aud, role) values (a, 'cx-a@avx.invalid', 'authenticated', 'authenticated');
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into organisations (name, created_by) values ('Export Fields Co', a) returning id into org_a;
+  insert into custom_fields (org_id, entity, label, kind) values (org_a, 'gig', 'PO number', 'text') returning id into po;
+  insert into custom_fields (org_id, entity, label, kind) values (org_a, 'gig', 'name', 'text');
+  insert into custom_fields (org_id, entity, label, kind) values (org_a, 'client', 'VAT exempt', 'yes_no') returning id into vat;
+  insert into gigs (org_id, name, status, created_by, custom_values) values (org_a, 'Export gig', 'draft', a, jsonb_build_object(po::text, 'PO-9'));
+  insert into gigs (org_id, name, status, created_by) values (org_a, 'Plain gig', 'draft', a);
+  insert into clients (org_id, name, custom_values) values (org_a, 'Client', jsonb_build_object(vat::text, true));
+  out := public.export_org_part(org_a, 'gigs', 0);
+  outc := public.export_org_part(org_a, 'clients', 0);
+  reset role;
+  if out->0->>'PO number' <> 'PO-9' or out->0->>'name' <> 'Export gig' or not (out->1 ? 'PO number') or out->0 ? 'custom_values' then
+    raise exception 'CHECK FAILED: %', out;
+  end if;
+  if (outc->0->'VAT exempt')::boolean is not true then raise exception 'CHECK FAILED clients: %', outc; end if;
+  raise exception 'ALL CUSTOM EXPORT CHECKS PASSED';
+end $$;
