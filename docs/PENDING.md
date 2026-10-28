@@ -1,14 +1,14 @@
 # Waiting on you
 
-Everything since the inventory build started (0.13.0, PR #14) that needs a decision, a setting
-or a test from you. Checked against the live database and GitHub on 2026-10-19. Tick items off
-here (or tell Claude) so this list stays true.
+Everything that needs a decision, a setting or a test from you. Tick items off here (or tell
+Claude) so this list stays true. Each build session adds its test line to section 2 and its open
+questions to section 3.
 
-**What the live database says today:** 1 organisation, 3 people, 3 gigs, 1 quote. The catalogue,
-locations, stock, gig equipment and messages are all **empty**, no notification has ever been
-created, and nobody has turned on two-step sign-in. So inventory, warehouse scanning, kits,
-maintenance, subrentals, reports, the network picker and messaging have **never been used with
-real data**. They pass their automated checks, but none of it has been tried by a person.
+**What the live database says (2026-10-28):** 2 organisations, 3 people, 3 gigs, 1 quote, 1
+location, two-step sign-in on for 1 account. The catalogue, stock units, messages, tasks and crew
+profiles are still **empty**, so inventory, scanning, kits, maintenance, subrentals, messaging and
+the crew network have **never been used with real data**. They pass their automated checks, but a
+person hasn't tried them yet.
 
 Already done (no action): company details with NIF, address and default terms; Brevo secrets and
 the domain authenticated in Brevo (SPF, DKIM, DMARC); daily database backups (running); daily
@@ -26,9 +26,9 @@ when building finishes.
 | F2 | **Create your locations**: the warehouse, each van | Inventory → Locations | Stock has to sit somewhere |
 | F3 | **Set prep and return days** (both are 0 now). E.g. 1 day before and 1 after each gig | Organisation settings | Otherwise gear is "free" on the day before a gig, when it's actually being prepped |
 | F4 | **Add serial-numbered units** for gear you track one by one (speakers, desks, projectors) and **print QR labels** | Item page → Add units; Inventory → QR labels | Scanning out/in only works with labels |
-| F5 | **Turn on two-step sign-in** for your own admin account | Tap your initials (top right) → Account → "Two-step sign-in" → **Turn on**; scan the QR code with an authenticator app and type the 6-digit code | Recommended for admins; nobody has it on yet |
+| F5 | ✅ (one account has it, 2026-10-28) **Turn on two-step sign-in** for your own admin account | Tap your initials (top right) → Account → "Two-step sign-in" → **Turn on**; scan the QR code with an authenticator app and type the 6-digit code | Recommended for admins; nobody has it on yet |
 | F7 | Optional: **click tracking off** in Brevo, and a custom domain for the app itself (now avx-beta.vercel.app) | Brevo settings; Vercel → Domains | The "not secure" link warning; a nicer address |
-| F8 | **Switch on the signed-in browser tests.** The SQL part is already done. Left: (a) Supabase "AVX test" → Authentication → Sign In / Providers → Email: turn off **Confirm email**; URL Configuration: Site URL `http://localhost:4173` and redirect URL `http://localhost:4173/**`. (b) GitHub repo → Settings → Secrets and variables → Actions → **Variables** tab → add `TEST_SUPABASE_URL` = `https://idvebeadnrxudfgortzg.supabase.co`, `TEST_SUPABASE_ANON_KEY` = the test project's anon key (Project Settings → API), `E2E_AUTH_ENABLED` = `true` | Supabase test project; GitHub settings | They've been **skipped on every PR** so far, so sign-up, invites and uploads aren't tested automatically |
+| F8 | ✅ **Signed-in browser tests** run on every PR since 0.62.1 (`e2e-auth`). Failed or cancelled runs leave `e2e-…@example.com` accounts on the test project; 13 old ones are there now and can be cleared | Supabase test project | — |
 | F9 | Optional: `SUPABASE_SERVICE_ROLE_KEY` GitHub secret to back up uploaded files, not just the database ([BACKUPS.md](BACKUPS.md)) | GitHub → Secrets | Files aren't in the backup today |
 
 ## 2. Final test list (run once, at the end of the build)
@@ -113,6 +113,8 @@ Each has a default already built; nothing is blocked. Say "keep" or "change".
 | D12 | **Truss tables, second check:** you do it (2026-10-28). Open each table's source document (links in docs/TRUSS_DATA.md), compare every row with `src/data/truss/`, and tell Claude which tables match (or what differs); Claude then marks them `checked` with your name and the date. Start with the priority series: Fantek EC30, Global Truss F34 and F44, Prolyte H30V, X30V, H40V | 35 tables waiting, 4 blocked | truss data |
 | D13 | **Questions to the manufacturers:** drafted 2026-10-28 (Fantek: EC-40 weights and EC-76; Global Truss: F23/F24); you send them. Tell Claude the answers and the tables are updated or unblocked | Tables blocked, waiting for replies | truss data |
 | D14 | **Venue pages** (proposed from LumiStage, TOOLS_PLAN.md "Proposed, to confirm"): build them after the rider page? | Not planned yet | competitors |
+| D15 | **Hoists:** "Lodestar 0,5 to 2 t" means CM Lodestar (Columbus McKinnon), Chainmaster D8+, or both? | 0.5, 1 and 2 t models first, brand to confirm | 2026-10-28 |
+| D16 | **Crew rates (PR #72):** confirm the database changes (three new tables, export wrapper; outlined in the PR) and the defaults: admins and members see rates, only admins edit, freelance PMs set fees without seeing the card, euros before VAT, margin against the accepted quote | Built and applied as described | 0.63.0 |
 
 ## 4. Before a public launch (already in the roadmap)
 
