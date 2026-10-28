@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.62.1 — Privacy and security check before more users
+
+### Added
+- **Data map** (docs/DATA_MAP.md): what personal data AVX keeps, where, who sees it, why and for how
+  long, with the open items.
+- **Security review** (docs/SECURITY_REVIEW.md): a whole-app pass against the OWASP Top 10. Nothing
+  exploitable found; what's left is listed.
+- **Browser tests for sign-in going wrong** (`e2e/auth/failures.spec.js`): wrong passwords five
+  times, unknown emails, password reset and sign-in links for unknown emails, a short password and
+  a malformed email at sign-up, and a broken session. They check that nothing reveals whether an
+  email has an account.
+
+### Changed
+- **Privacy notice** (EN, PT): now covers tasks, repairs and inspections, organisations' own fields
+  and two-step sign-in; dated 28 October 2026.
+- Sign-in errors are announced by screen readers.
+- Updated `ws`, `@remix-run/router` and `fflate` for security advisories (none was reachable in AVX).
+
+### Connected to earlier features
+- Sign-in and two-step sign-in, the crew network, tasks (T1, T2), maintenance, custom fields (S2)
+  and the organisation export (S5), as described in the privacy notice and data map.
+
 ## 0.62.0 — Your own fields on gigs, clients, suppliers and items
 
 ### Added
