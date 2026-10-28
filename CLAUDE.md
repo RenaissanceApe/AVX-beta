@@ -96,11 +96,21 @@ if a guide's screen changed (see `GUIDES` in `src/help/index.js`). Help componen
 - Commit message style: `<What changed> (<step>) — <version>`, with `(WIP)` for partial commits.
 - Never commit `.env`, the `service_role` key or SMTP passwords.
 
-## Working style for the owner
+## How to work
 
-- Keep each session to one feature or fix. Big plans live in `docs/` and `ROADMAP.md`. Read the
-  relevant one, don't summarise all of them.
-- Explain results in plain language; the owner is not a full-time developer.
+- **Stay in scope:** change only the lines the task needs. List other improvements you spot in
+  the final summary instead of making them.
+- **Simplest thing that works:** add abstractions, options or new packages only when the task
+  asks for them. Propose a new dependency and wait for a yes before installing it.
+- **Ask when a request has two reasonable readings**; otherwise proceed and state your
+  assumption. Say plainly when you're unsure of a technical detail.
+- **Get an explicit yes in the current message before:** merging to `main` (it deploys), changing
+  the database schema (outline the migration first), deleting files or data, or rewriting
+  existing user-facing text.
+- One feature or fix per session. Big plans live in `docs/` and `ROADMAP.md`; read only the one
+  the task needs.
+- **Finish with a short summary:** files changed, what changed in each, and anything left for
+  the owner. Use plain language; the owner is not a full-time developer.
 
 ## Agent skills
 
