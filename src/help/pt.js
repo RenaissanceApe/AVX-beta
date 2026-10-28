@@ -851,6 +851,19 @@ export default {
         'Mudar o que um estado significa move todos os eventos que o têm.',
       ],
     },
+    'pm-labour-cost': {
+      title: 'Definir os cachês da equipa e ver o custo de mão de obra',
+      intro: 'Saiba quanto lhe custa a equipa de cada evento e se o orçamento o cobre.',
+      steps: [
+        'Abra as definições da organização (só administradores) e procure "Tabela de cachês da equipa". Acrescente um valor para cada função que contrata ("Técnico de FOH": por dia, meio dia ou hora) e, para quem cobra de forma diferente, escolha também a pessoa. Por baixo, defina os fatores; os dias de fim de semana no custo previsto usam o de fim de semana.',
+        'Abra o separador Equipa de um evento. Em "Custo de mão de obra", cada pessoa mostra o que a tabela sugere para os seus dias, o custo total, as linhas de equipa do orçamento do evento e a sua margem.',
+        'Combinou outra coisa com alguém? Toque no lápis ao lado da pessoa e defina o cachê: por dia, meio dia ou hora, ou um valor fixo. A pessoa vê o seu cachê no evento; mais ninguém da equipa o vê.',
+      ],
+      mistakes: [
+        'Os valores correspondem à função da pessoa no evento pelo nome. Use sempre as mesmas palavras (por exemplo "Técnico de FOH") ou acrescente o valor da própria pessoa.',
+        'Diretores de produção freelancer nos seus eventos podem definir cachês, mas não veem a sua tabela, por isso não recebem sugestões.',
+      ],
+    },
     'ad-custom-fields': {
       title: 'Acrescentar os seus próprios campos',
       intro: 'Guarde os detalhes que a sua empresa acompanha ("N.º de encomenda", "Lotação", "Seguro verificado") em eventos, clientes, fornecedores e artigos do catálogo.',

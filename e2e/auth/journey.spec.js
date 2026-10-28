@@ -162,7 +162,8 @@ test('adding an existing user to a gig notifies them', async ({ browser }) => {
   const invite = pmPage.getByRole('dialog')
   await invite.getByPlaceholder('technician@company.com').fill(tech.email)
   await invite.getByRole('button', { name: 'Add to gig' }).click()
-  await expect(pmPage.getByText(tech.name)).toBeVisible({ timeout: 15_000 })
+  // First match: the name is also in the gig's labour cost below the crew list
+  await expect(pmPage.getByText(tech.name).first()).toBeVisible({ timeout: 15_000 })
 
   // The technician sees it in the bell (live, or after a reload), on a phone-sized screen: the
   // panel must stay inside the screen (it used to spill off the left edge on phones)

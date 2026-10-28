@@ -8,7 +8,7 @@
 //                                are made here on first use and kept in push_keys (no user reads it).
 // POST { action: 'test' }      → signed-in user: a test notification to their own devices.
 //
-// Send limits (migration 20261203000000): at most 60 pushes an hour per person, and 5 tests an
+// Send limits (migration 20261204000000): at most 60 pushes an hour per person, and 5 tests an
 // hour; a test over the limit answers 429 { error: 'rate_limited' }.
 //
 // Same rules as the email summary: nothing from an organisation the person muted, except things

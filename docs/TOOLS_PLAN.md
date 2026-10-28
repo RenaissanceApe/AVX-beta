@@ -31,7 +31,7 @@ still open are marked **Q**.
     launch.
 - **Order (Q6):** no preferred order between field tools and business features. Build in
   dependency order, and when something new is built, go back and connect it to what was built
-  before. See **Build order** at the end.
+  before. The build order is in ROADMAP.md.
 
 - **Truss data first (Q3, 2026-10-27):** the brands that matter in Portugal: **Fantek**, **Global
   Truss** and **Prolyte**, whole catalogues if the data can be had, otherwise at least the 30 and
@@ -377,7 +377,7 @@ What makes it hard is not the maths but **data and trust**:
 | **A5 · Measured directivity (L2)** | Import of open directivity data where a manufacturer publishes or allows it; the same engine uses it per cabinet; a validation report against reference systems | 1–2 PRs |
 | **A6 · Room estimate (L3)** | Surface materials, RT60, critical distance, STI estimate, shown as a room summary beside the direct-field map | 1 PR |
 
-**Decided (Q5b, 2026-10-27):** yes. A4–A6 come after A1–A3; in the build order they also wait for
+**Decided (Q5b, 2026-10-27):** yes. A4–A6 come after A1–A3; in the build order (ROADMAP.md) they also wait for
 RG3, which supplies the arrays.
 
 
@@ -394,84 +394,10 @@ RG3, which supplies the arrays.
 
 ## Build order
 
-Built in dependency order: nothing is built before what it needs. Each step lists **what it must
-connect to once built**, so that earlier features pick up the new data. That linking is part of
-the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RESEARCH.md.
-
-| # | What | Needs | When built, also connect |
-|---|---|---|---|
-| 1 | **R1** rehearsal companion ✅ 0.54.0 | gig, schedule, members | Department from the gig function; reports printable |
-| 2 | **R2** camera and LTC sync ✅ 0.55.0 | R1 | Session clock type shown in the report |
-| 3 | **D1** DMX calculator and dipswitches ✅ 0.56.0 | DMX patch | DMX patch column and walk-through (by light plot position) |
-| 4 | **On-site mode** and Tools split (Plan / On site), personal auto setting ✅ 0.57.0 | R1, D1, field kit | Call sheet, rehearsal notes, walk-through, input list, scanning, settings |
-| 5 | **Tasks** [6]: **T1** gig tasks, My tasks, R1 notes → tasks, notification ✅ 0.58.0; **T2** organisation tasks, checklist templates ✅ 0.59.0 | — | R1 notes → tasks ✅, inventory repairs ✅, On-site mode ✅; gig templates (step 25) will copy tasks |
-| 6 | **S1** custom statuses and gig types [10] ✅ 0.61.0; **S2** custom fields [12] ✅ 0.62.0 | — | Gig lists, calendar, filters, export ✅, import ✅ (imported gigs take the matching status); S2: gigs, contacts, items |
-| 7 | **Crew rates** [3] | crew, functions | Crew calls and job posts (fee), quotes (labour lines) |
-| 8 | **Time registration** [2] | crew rates, schedule | Gig crew tab, calendar feed, export |
-| 9 | **Leave requests** [5] | availability | Clashes, Find crew "free", time registration |
-| 10 | **Gig finance overview** [4] | 7, 8, quotes, subrentals | Dashboard, reports |
-| 11 | **Invoices** [1] | accepted quotes, 10 | Quotes, contacts, guest threads, client links |
-| 12 | Damage charged to the client [15], **payments** [22] | invoices, repairs | Repairs, quotes, invoices |
-| 13 | **A1** speaker library | catalogue | F4 sound calculator; later P1 and RG3 |
-| 14 | **MVR/GDTF import** [29], and **MVR export** (LumiStage has it) | light plot, DMX patch | Fixture weights and power for P1 and RG1 |
-| 15 | **P1–P2** power and cables | light plot, A1, 14 | Light plot power estimate, equipment (distros, cables) |
-| 16 | **E-signature** [16] | — | Quote acceptance, delivery notes, crew contracts, rigger sign-off |
-| 17 | **RG1–RG2** weights, points, hoists, trusses, bridles | light plot, catalogue (Q3), truss tables (docs/TRUSS_DATA.md) | Light plot "rigging not checked" and overloaded positions coloured, bridle pocket tool, the second-person check of each truss table |
-| 18 | **RG3** line arrays | A1, F4, RG1 | Sound system calculator |
-| 19 | **RG4** rigging plot, report, sign-off (Q4) | RG1–RG3, job board, 16 | Gig files, on-site view, job board prefill |
-| 20 | **RG5** suggestions; **P3** one-line and on-site power checklist | RG4, P2 | On-site mode |
-| 21 | **A2** coverage map, **A3** prediction and measurement files | A1, F4 | Gig files, tuning sheet print |
-| 21b | **A4–A6** own simulator, by level of detail | A1–A3, RG1, RG3 | A2 map, system calculator, tuning sheet |
-| 22 | **Shareable rider / advance page** [28] | stage plot, inputs, patch, P, RG | Includes power and rigging summaries; from StageKit: start the input list, mixes and plot **from the line-up**, and a **readiness check** before sending |
-| 23 | **Vehicles and transport** [8], **appointments** [9] | reservations, item weights | Packing list (per vehicle), calendar, clashes |
-| 24 | **Reports** [11] | 10, 11, 23 | Dashboard |
-| 25 | **Gig templates** [7] | everything above | Copies schedule, positions, equipment, tools, tasks, custom fields |
-| 26 | **Client portal** [13], **online booking requests** [14] | invoices, quotes | Quote links, guest threads |
-| 27 | Freelancer side: **contracts** [25], **invoicing** [26], **work history** [24] | 7, 8, 16 | Crew profiles, crew calls |
-| 28 | **Public API and webhooks** [17] | stable data model | Cueing app, accounting sync [18], payroll export [23], MCP [19] |
-| 29 | **R3** cueing app bridge (live) | R1, tasks, API | Cueing app roadmap starts here |
-| 30 | Rental network [21], RFID [20] | API, inventory | Subrentals |
-
-Rule for every PR from now on: its description says which earlier features it connected to (or
-why none), and CHANGELOG lists those connections.
-
-### How Tasks T1 works (0.58.0)
-
-| Piece | How it works |
-|---|---|
-| Data | `tasks` (migration `20261129000000_tasks.sql`): on a gig or for an organisation, title, notes, assignee, due date, checklist (JSON, up to 50 items), open/done with who and when, where it came from (a rehearsal note), soft removal. At most 2000 per gig (or per organisation, for its own tasks) |
-| Who may | Read: the gig's members (or the organisation's, for organisation tasks). Add, edit, remove: production managers and organisation admins. Tick: anyone who writes on the gig and the assignee; the trigger lets them change only the status and checklist ticks |
-| Checks | The assignee must be on the gig (or in the organisation); a note becomes a task on its own gig only, once |
-| Notification | `task_assigned` when someone else gives you a task or changes who it's for; a direct kind, sent even when the organisation is muted |
-| Screens | Gig → Tasks (`TasksTab`), My tasks (`/tasks`), the rehearsal session's "Make a task" button. Pure helpers in `src/lib/tasks.js` with tests; database checks in `supabase/tests/tasks.sql` |
-
-### How Tasks T2 works (0.59.0)
-
-| Piece | How it works |
-|---|---|
-| Templates | `task_templates` (migration `20261130000000_tasks_t2.sql`): name, notes, items (texts of up to 200 characters, up to 50). Members of the organisation read them; admins and members manage them; removing only marks them. At most 200 per organisation. Database checks in `supabase/tests/tasks_t2.sql` |
-| Repairs | `tasks.repair_id`: set when the task is made, never changed; the repair must be the organisation's, the task the organisation's own (not a gig's); one live task per repair |
-| Screens | Organisation → Tasks (`OrgTasksPage`, with the templates tab in `TaskTemplates`), "Start from a template" in the task form, "Make a task" in the repair window, the tasks card and tile in On-site mode |
-
-### How gig statuses and types work (S1, 0.61.0)
-
-| Piece | How it works |
-|---|---|
-| Data | `gig_statuses` (name, colour, `base_status`: one of draft, confirmed, active, completed, archived; position) and `gig_types` (name, colour, position), per organisation, at most 30 each, removing only marks them (migration `20261201000000_gig_statuses_types.sql`). `gigs.custom_status_id`, `gigs.gig_type_id` |
-| The built-in status still rules | A trigger keeps them in step: choosing a custom status sets `status` to its base; changing `status` on its own (an import, an older screen) picks the organisation's first status for it, or none; a status that changes its meaning moves its gigs; a removed status or type comes off its gigs. So lists, archiving, notifications and the activity log work as before |
-| Who | Admins manage both lists (Organisation settings → Gig statuses and types); members and anyone on one of the organisation's gigs read them. Checks in `supabase/tests/gig_statuses_types.sql` |
-| Screens | New and edit gig forms (`GigLabelFields`), the gig header and gig cards (`GigLabels`, embedded with the gig in one query), status and type filters on the gigs list and calendar, the organisation export (`status_label`, `gig_type` in the gigs file) |
-
-### How custom fields work (S2, 0.62.0)
-
-| Piece | How it works |
-|---|---|
-| Data | `custom_fields` (entity: gig, client, supplier or item; label; kind: text, number, date, yes_no, choice, link; choices; position; `removed_at`), at most 40 per entity per organisation (migration `20261202000000_custom_fields.sql`). Values in `custom_values` (jsonb, field id → value) on `gigs`, `clients`, `suppliers` and `price_items` |
-| Checks | A trigger checks every value a save sets or changes: the organisation's own current field for that kind of record, and a value of its kind. Values of removed fields stay untouched and can't be set again. A field's kind can't be changed (no update grant). Checks in `supabase/tests/custom_fields.sql` |
-| Who | Admins manage the fields; members read them, and crew on one of the organisation's gigs read its gig fields (so gig fields are visible to crew). Values follow the record's own access rules |
-| Screens | Organisation settings (`OrgCustomFieldsSettings`), `CustomFieldInputs` in the gig, client, supplier and item forms (saved with `mergeValues`, which keeps removed fields' values), `CustomFieldList` on the gig overview, the item page's details, the gigs search (`customSearchText`) |
-| Export | `private.custom_columns` turns each record's values into one column per field label (built-in columns win a clash) in the gigs, clients, suppliers and items files (migration `20261202000001_export_custom_fields.sql`) |
-| Not yet | Import mapping to custom fields; filters by a field's value |
+Moved to [ROADMAP.md](../ROADMAP.md) ("What's left"), which is now the only list of what is built
+next. Step numbers are unchanged (code and migrations refer to "build order step N"). How the
+business features built from it work (tasks, statuses, custom fields, crew rates) is in
+[BUSINESS.md](BUSINESS.md).
 
 ## References
 

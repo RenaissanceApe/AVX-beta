@@ -1,14 +1,14 @@
 # Waiting on you
 
-Everything since the inventory build started (0.13.0, PR #14) that needs a decision, a setting
-or a test from you. Checked against the live database and GitHub on 2026-10-19. Tick items off
-here (or tell Claude) so this list stays true.
+Everything that needs a decision, a setting or a test from you. Tick items off here (or tell
+Claude) so this list stays true. Each build session adds its test line to section 2 and its open
+questions to section 3.
 
-**What the live database says today:** 1 organisation, 3 people, 3 gigs, 1 quote. The catalogue,
-locations, stock, gig equipment and messages are all **empty**, no notification has ever been
-created, and nobody has turned on two-step sign-in. So inventory, warehouse scanning, kits,
-maintenance, subrentals, reports, the network picker and messaging have **never been used with
-real data**. They pass their automated checks, but none of it has been tried by a person.
+**What the live database says (2026-10-28):** 2 organisations, 3 people, 3 gigs, 1 quote, 1
+location, two-step sign-in on for 1 account. The catalogue, stock units, messages, tasks and crew
+profiles are still **empty**, so inventory, scanning, kits, maintenance, subrentals, messaging and
+the crew network have **never been used with real data**. They pass their automated checks, but a
+person hasn't tried them yet.
 
 Already done (no action): company details with NIF, address and default terms; Brevo secrets and
 the domain authenticated in Brevo (SPF, DKIM, DMARC); daily database backups (running); daily
@@ -26,9 +26,9 @@ when building finishes.
 | F2 | **Create your locations**: the warehouse, each van | Inventory → Locations | Stock has to sit somewhere |
 | F3 | **Set prep and return days** (both are 0 now). E.g. 1 day before and 1 after each gig | Organisation settings | Otherwise gear is "free" on the day before a gig, when it's actually being prepped |
 | F4 | **Add serial-numbered units** for gear you track one by one (speakers, desks, projectors) and **print QR labels** | Item page → Add units; Inventory → QR labels | Scanning out/in only works with labels |
-| F5 | **Turn on two-step sign-in** for your own admin account | Tap your initials (top right) → Account → "Two-step sign-in" → **Turn on**; scan the QR code with an authenticator app and type the 6-digit code | Recommended for admins; nobody has it on yet |
+| F5 | ✅ (one account has it, 2026-10-28) **Turn on two-step sign-in** for your own admin account | Tap your initials (top right) → Account → "Two-step sign-in" → **Turn on**; scan the QR code with an authenticator app and type the 6-digit code | Recommended for admins; nobody has it on yet |
 | F7 | Optional: **click tracking off** in Brevo, and a custom domain for the app itself (now avx-beta.vercel.app) | Brevo settings; Vercel → Domains | The "not secure" link warning; a nicer address |
-| F8 | **Switch on the signed-in browser tests.** The SQL part is already done. Left: (a) Supabase "AVX test" → Authentication → Sign In / Providers → Email: turn off **Confirm email**; URL Configuration: Site URL `http://localhost:4173` and redirect URL `http://localhost:4173/**`. (b) GitHub repo → Settings → Secrets and variables → Actions → **Variables** tab → add `TEST_SUPABASE_URL` = `https://idvebeadnrxudfgortzg.supabase.co`, `TEST_SUPABASE_ANON_KEY` = the test project's anon key (Project Settings → API), `E2E_AUTH_ENABLED` = `true` | Supabase test project; GitHub settings | They've been **skipped on every PR** so far, so sign-up, invites and uploads aren't tested automatically |
+| F8 | ✅ **Signed-in browser tests** run on every PR since 0.62.1 (`e2e-auth`). Failed or cancelled runs leave `e2e-…@example.com` accounts on the test project; 13 old ones are there now and can be cleared | Supabase test project | — |
 | F9 | Optional: `SUPABASE_SERVICE_ROLE_KEY` GitHub secret to back up uploaded files, not just the database ([BACKUPS.md](BACKUPS.md)) | GitHub → Secrets | Files aren't in the backup today |
 
 ## 2. Final test list (run once, at the end of the build)
@@ -91,7 +91,8 @@ Use your second email address as a crew member. Each line is a few minutes. New 
 | T52 | **Gig statuses and types (S1):** as an organisation admin, open the organisation's settings → "Gig statuses and types" and tap "Start with a common set". Rename one, change a colour, move one up. Add two gig types. Open a gig → Edit gig: do your statuses and types show? Choose "Invoiced": does the gig move to the past gigs (it means done)? On the gigs list, filter by a status and by a type, also in the calendar. Change what a status means and check its gigs move. Remove a type: its gigs show none. Download the organisation export: does the gigs file have the status name and the type? Check the Portuguese wording | S1 (0.61.0) |
 | T53 | **Custom fields (S2):** as an organisation admin, open the organisation's settings → "Custom fields". Add a gig field of each kind (text, number, date, yes / no, a choice with two options, a link). Open a gig → Edit gig: fill them in (a number with a comma) and save. Does the overview show them under "More details", with the link opening? Search the gigs list for the text. Add a client field, a supplier field and a catalogue item field and fill each one in. Rename a field and reorder; remove one and check its value is gone from the screens but still in the organisation export. Does the export have one column per field? Check as a crew member that you see the gig fields but not the client ones. Check the Portuguese wording | S2 (0.62.0) |
 | T54 | **Sign-up with an existing email (production):** on the live app, try to create an account with an email that already has one. It should say to check your email, exactly as for a new address, and not say the account exists. Then turn on leaked-password protection (Supabase → Authentication → sign-in settings) and try signing up with the password "password123": it should be refused | 0.62.1 |
-| T55 | **Send limits (0.63.0):** first run `supabase/migrations/20261203000000_send_limits.sql` in the SQL editor (test project, then production) and `supabase/tests/send_limits.sql` on test (it should end with "ALL SEND LIMIT CHECKS PASSED"). **Then** (not before: without the migration they stop sending) redeploy the four functions with the CLI, since they now use `supabase/functions/_shared/send-limits.ts`: `supabase functions deploy send-invite` and `supabase functions deploy send-quote` (Verify JWT **on**), `supabase functions deploy send-digest --no-verify-jwt` and `supabase functions deploy send-push --no-verify-jwt` (Verify JWT **off**, as in SETUP). Check: invite someone new and send a quote by email; both still arrive. Tap "Send a test" in notification settings 6 times: the 6th says to try again in an hour. **After upgrading Brevo**, raise the daily cap in the SQL editor: `update public.send_settings set daily_email_cap = 5000;` (use your plan's daily figure minus a margin) | Send limits (0.63.0) |
+| T55 | **Crew rates (step 7):** as an organisation admin, open the organisation's settings → "Crew rates". Add a rate for a function you use on a gig (e.g. "Sound technician", 200 per day), and one for a specific person. Set the weekend factor to 1,25. Open a gig with crew and a quote → Crew tab: does "Labour cost" show each person with the right rate, the weekend days, the total, the quote's crew lines and the margin? Tap the pencil for someone and set a fixed fee; then "Use the rate card instead". Sign in as that crew member: do you see only your own fee, and no labour cost? Download the organisation export: are the rates, factors and fees there? Check the Portuguese wording | 0.63.0 |
+| T56 | **Send limits (0.63.1):** first run `supabase/migrations/20261204000000_send_limits.sql` in the SQL editor (test project, then production) and `supabase/tests/send_limits.sql` on test (it should end with "ALL SEND LIMIT CHECKS PASSED"). **Then** (not before: without the migration they stop sending) redeploy the four functions with the CLI, since they now use `supabase/functions/_shared/send-limits.ts`: `supabase functions deploy send-invite` and `supabase functions deploy send-quote` (Verify JWT **on**), `supabase functions deploy send-digest --no-verify-jwt` and `supabase functions deploy send-push --no-verify-jwt` (Verify JWT **off**, as in SETUP). Check: invite someone new and send a quote by email; both still arrive. Tap "Send a test" in notification settings 6 times: the 6th says to try again in an hour. **After upgrading Brevo**, raise the daily cap in the SQL editor: `update public.send_settings set daily_email_cap = 5000;` (use your plan's daily figure minus a margin) | Send limits (0.63.1) |
 
 ## 3. Decisions still open
 
@@ -113,6 +114,8 @@ Each has a default already built; nothing is blocked. Say "keep" or "change".
 | D12 | **Truss tables, second check:** you do it (2026-10-28). Open each table's source document (links in docs/TRUSS_DATA.md), compare every row with `src/data/truss/`, and tell Claude which tables match (or what differs); Claude then marks them `checked` with your name and the date. Start with the priority series: Fantek EC30, Global Truss F34 and F44, Prolyte H30V, X30V, H40V | 35 tables waiting, 4 blocked | truss data |
 | D13 | **Questions to the manufacturers:** drafted 2026-10-28 (Fantek: EC-40 weights and EC-76; Global Truss: F23/F24); you send them. Tell Claude the answers and the tables are updated or unblocked | Tables blocked, waiting for replies | truss data |
 | D14 | **Venue pages** (proposed from LumiStage, TOOLS_PLAN.md "Proposed, to confirm"): build them after the rider page? | Not planned yet | competitors |
+| D15 | **Hoists:** "Lodestar 0,5 to 2 t" means CM Lodestar (Columbus McKinnon), Chainmaster D8+, or both? | 0.5, 1 and 2 t models first, brand to confirm | 2026-10-28 |
+| D16 | **Crew rates (PR #72):** confirm the database changes (three new tables, export wrapper; outlined in the PR) and the defaults: admins and members see rates, only admins edit, freelance PMs set fees without seeing the card, euros before VAT, margin against the accepted quote | Built and applied as described | 0.63.0 |
 
 ## 4. Before a public launch (already in the roadmap)
 

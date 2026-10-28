@@ -201,6 +201,13 @@ export function sampleData(persona, lang) {
         { id: 'gs3', org_id: orgId, name: tx('Na estrada', 'On the road'), colour: 'green', base_status: 'active', position: 3, created_at: ago(300) },
         { id: 'gs4', org_id: orgId, name: tx('Faturado', 'Invoiced'), colour: 'sky', base_status: 'completed', position: 4, created_at: ago(300) },
       ],
+      crew_rates: [
+        { id: 'cr1', org_id: orgId, function_title: w.sound, user_id: null, day_rate: 220, half_day_rate: 130, hour_rate: null, created_at: ago(300) },
+        { id: 'cr2', org_id: orgId, function_title: w.lights, user_id: null, day_rate: 200, half_day_rate: null, hour_rate: 30, created_at: ago(300) },
+        { id: 'cr3', org_id: orgId, function_title: w.sound, user_id: carla, day_rate: 180, half_day_rate: null, hour_rate: null, created_at: ago(200) },
+      ],
+      crew_rate_factors: [{ org_id: orgId, overtime: 1.5, overtime_after_hours: 10, weekend: 1.25, night: 1.2, holiday: 2 }],
+      gig_crew_fees: persona === 'pm' ? [{ gig_id: gigId, user_id: duarte, org_id: orgId, unit: 'fixed', rate: 300, quantity: 1, note: null }] : [],
       custom_fields: [
         { id: 'cf1', org_id: orgId, entity: 'gig', label: tx('N.º de encomenda', 'PO number'), kind: 'text', choices: [], position: 1, created_at: ago(200) },
         { id: 'cf2', org_id: orgId, entity: 'gig', label: tx('Lotação', 'Venue capacity'), kind: 'number', choices: [], position: 2, created_at: ago(200) },

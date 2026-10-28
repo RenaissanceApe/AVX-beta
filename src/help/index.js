@@ -97,6 +97,7 @@ export const GUIDES = {
   'ad-org-export': { role: 'admin', pages: ['orgs', 'home'], terms: ['organisation'], shots: [null, 'org-export', null] },
   'ad-verify-company': { role: 'admin', pages: ['org-jobs', 'orgs'], terms: ['organisation'], shots: [null, 'org-verify', null] },
   'ad-gig-statuses': { role: 'admin', pages: ['orgs', 'home', 'gig'], terms: ['gig-status'], shots: [null, 'org-labels', null] },
+  'pm-labour-cost': { role: 'admin', pages: ['orgs', 'gig'], terms: [], shots: ['org-rates', 'gig-labour', null] },
   'ad-custom-fields': { role: 'admin', pages: ['orgs', 'gig', 'contacts', 'inventory'], terms: [], shots: ['org-fields', null, null] },
   'ad-import-crew': { role: 'admin', pages: ['orgs', 'home'], terms: ['organisation', 'viewer', 'org-member'], shots: [null, null, 'held-invites'] },
   'ad-mute': { role: 'admin', pages: ['orgs', 'messages'], terms: ['mute', 'email-summary', 'push-notifications'], shots: ['orgs-mute', null, null] },

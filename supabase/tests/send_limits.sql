@@ -1,4 +1,4 @@
--- Checks for migration 20261203000000 (send limits for invite, quote, digest and push).
+-- Checks for migration 20261204000000 (send limits for invite, quote, digest and push).
 -- Run in the TEST project's SQL editor. Rolls itself back; ends with
 --   "ALL SEND LIMIT CHECKS PASSED"  → good
 do $$

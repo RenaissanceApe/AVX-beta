@@ -1,4 +1,4 @@
-// Send limits (migration 20261203000000_send_limits.sql): ask the database before each email or
+// Send limits (migration 20261204000000_send_limits.sql): ask the database before each email or
 // push. 'ok' → send it (it's now counted); 'limited' → over a limit, don't send; 'error' → the
 // check itself failed, don't send either (better a missed email than an unlimited one).
 
