@@ -19,6 +19,7 @@ import { NetworkPicker, PickedPerson, addFromNetwork } from '../NetworkPicker'
 import { CrewCallModal, CrewCallList } from './CrewCalls'
 import PostJobModal from '../jobs/PostJobModal'
 import { useUndoRemove } from '../../lib/undo'
+import { LabourCost, MyFee } from './LabourCost'
 
 // Latest request per person: { user_id: request }
 const latestRequests = rows => {
@@ -230,6 +231,8 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
           </div>
         </div>
       )}
+
+      {isPM ? <LabourCost gig={gig} members={members} nameOf={nameOf} /> : <MyFee gigId={gigId} userId={userId} />}
 
       <style>{`
         .crew-extra { flex-basis: 100%; padding-left: 56px; min-width: 0; }
