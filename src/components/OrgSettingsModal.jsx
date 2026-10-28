@@ -11,6 +11,7 @@ import OrgMessagesSettings from './OrgMessagesSettings'
 import OrgExportSettings from './OrgExportSettings'
 import OrgStepsSettings from './OrgStepsSettings'
 import OrgGigLabelsSettings from './OrgGigLabelsSettings'
+import OrgCustomFieldsSettings from './OrgCustomFieldsSettings'
 import OrgToolsSettings from './OrgToolsSettings'
 import OrgVerificationSettings from './OrgVerificationSettings'
 import { HintLabel } from './help/HelpParts'
@@ -102,6 +103,7 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
       </form>
       <OrgVerificationSettings org={org} onChanged={onChanged} />
       <OrgGigLabelsSettings org={org} />
+      <OrgCustomFieldsSettings org={org} />
       <OrgStepsSettings org={org} />
       <OrgToolsSettings org={org} />
       <OrgMessagesSettings org={org} />

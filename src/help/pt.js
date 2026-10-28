@@ -851,6 +851,20 @@ export default {
         'Mudar o que um estado significa move todos os eventos que o têm.',
       ],
     },
+    'ad-custom-fields': {
+      title: 'Acrescentar os seus próprios campos',
+      intro: 'Guarde os detalhes que a sua empresa acompanha ("N.º de encomenda", "Lotação", "Seguro verificado") em eventos, clientes, fornecedores e artigos do catálogo.',
+      steps: [
+        'Abra as definições da organização (só administradores) e procure "Campos personalizados". Escolha onde fica o campo, escreva o nome, escolha o tipo (texto, número, data, sim / não, escolha de uma lista ou ligação) e toque em "Adicionar". Numa escolha, escreva uma opção por linha.',
+        'O campo aparece no formulário desse registo: o formulário do evento, um cliente ou fornecedor, ou um artigo do catálogo. Preencha e guarde. Os campos de evento preenchidos aparecem na visão geral do evento, em "Mais detalhes", e a pesquisa de eventos encontra o seu texto.',
+        'Mude o nome de um campo, as suas opções ou a ordem com as setas quando quiser. A exportação da organização tem uma coluna por campo.',
+      ],
+      mistakes: [
+        'O tipo de um campo não muda depois de criado. Crie um campo novo.',
+        'Remover um campo esconde-o em todo o lado e não se pode desfazer; os valores já preenchidos ficam na exportação.',
+        'A equipa de um evento vê os campos do evento. Não os use para nada que a equipa não deva ler.',
+      ],
+    },
     'ad-org-export': {
       title: 'Descarregar todos os dados da organização',
       intro: 'Guarde uma cópia de tudo, ou leve-a para outra ferramenta. Nada o prende.',

@@ -27,6 +27,8 @@ import { useSimpleMode } from '../lib/simpleMode'
 import { useGigLabels, GIG_LABELS_EMBED } from '../lib/gigLabels'
 import { GigLabels } from '../components/gig/parts'
 import GigLabelFields from '../components/gig/GigLabelFields'
+import { useCustomFields, mergeValues } from '../lib/customFields'
+import { CustomFieldInputs } from '../components/CustomFields'
 
 // Home of a workspace:
 //   /me           My work: every gig you're on, at any company, with your role on each
@@ -188,6 +190,8 @@ function NewGigModal({ orgId, onClose, onCreated }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const labels = useGigLabels(orgId)
+  const { fields } = useCustomFields(orgId, 'gig')
+  const [custom, setCustom] = useState({})
   // With its own statuses, start on the organisation's first one meaning "confirmed"
   useEffect(() => {
     const first = labels.statuses.find(s => s.base_status === 'confirmed') || labels.statuses[0]
@@ -201,7 +205,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
     // Empty date inputs must be sent as null, not ''; the creator becomes the gig's PM (trigger)
     const { data, error: err } = await supabase.from('gigs').insert({
       ...form, name: form.name.trim(), start_date: form.start_date || null, end_date: form.end_date || null,
-      org_id: orgId, created_by: user.id,
+      org_id: orgId, created_by: user.id, custom_values: mergeValues({}, fields, custom),
     }).select('id').single()
     setSaving(false)
     if (err) {
@@ -232,6 +236,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
         </div>
         <OwnClashWarning startDate={form.start_date} endDate={form.end_date} />
         <GigLabelFields idPrefix="ng" labels={labels} value={form} onChange={patch => setForm(f => ({ ...f, ...patch }))} />
+        <CustomFieldInputs key={fields.length} fields={fields} values={{}} idPrefix="ng" inputStyle={modalInput} onChange={(id, v) => setCustom(c => ({ ...c, [id]: v }))} />
         <FieldLabel label={t('gigForm.description')}>
           <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
             placeholder={t('gigForm.descriptionPlaceholder')} rows={3} style={{ ...modalInput, resize: 'vertical', lineHeight: '1.5' }} />

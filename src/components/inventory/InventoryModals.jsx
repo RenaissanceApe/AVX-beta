@@ -9,6 +9,8 @@ import { TRACKING, KIT_TYPES, STOCK_KINDS, LOCATION_KINDS, UNIT_STATUSES, MOVEME
 import { t } from '../../i18n'
 import { Modal, btnPrimary, input, label, colors } from '../ui'
 import { HintLabel } from '../help/HelpParts'
+import { useCustomFields, mergeValues } from '../../lib/customFields'
+import { CustomFieldInputs } from '../CustomFields'
 
 // A form field; hint adds an ⓘ with its explanation (src/help)
 const Field = ({ id, text, hint, children }) => (
@@ -38,6 +40,8 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
     inspection_kind: item?.inspection_kind || '', inspection_months: item?.inspection_months ?? '',
   })
   const [saving, setSaving] = useState(false)
+  const { fields } = useCustomFields(orgId, 'item')
+  const [custom, setCustom] = useState({})
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
   // A set is a planning shortcut (no stock of its own); a case is stock (usually per unit)
   const setKit = e => setForm(f => ({
@@ -61,6 +65,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
       inspection_kind: form.inspection_kind.trim() || null,
       inspection_months: form.tracking === 'none' ? null : Math.min(120, Math.max(1, int(form.inspection_months) || 0)) || null,
     }
+    if (Object.keys(custom).length) row.custom_values = mergeValues(item?.custom_values, fields, custom)
     const query = item
       ? supabase.from('price_items').update(row).eq('id', item.id)
       : supabase.from('price_items').insert({ ...row, org_id: orgId, created_by: userId })
@@ -131,6 +136,11 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
           <Field id="it-dim" text={t('inv.dimensions')}><input id="it-dim" value={form.dimensions} onChange={set('dimensions')} maxLength={80} placeholder="60 × 40 × 35 cm" style={input} /></Field>
           <Field id="it-value" text={t('inv.replacementValue')} hint="replacement-value"><input id="it-value" inputMode="decimal" value={form.replacement_value} onChange={set('replacement_value')} style={input} /></Field>
         </div>
+        {fields.length > 0 && (
+          <div style={grid}>
+            <CustomFieldInputs key={fields.length} fields={fields} values={item?.custom_values} idPrefix="it" onChange={(id, v) => setCustom(c => ({ ...c, [id]: v }))} />
+          </div>
+        )}
         <Field id="it-packing" text={t('inv.packingNote')}>
           <input id="it-packing" value={form.packing_note} onChange={set('packing_note')} maxLength={500} placeholder={t('inv.packingNotePlaceholder')} style={input} />
         </Field>

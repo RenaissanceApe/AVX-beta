@@ -9,6 +9,7 @@ import { useInventory, useKits } from '../lib/useInventory'
 import { isLowStock, bookValue, dailyAvailability } from '../lib/inventory'
 import { rangeText } from '../lib/clashes'
 import { formatMoney } from '../lib/quotes'
+import { useCustomFields, displayValue } from '../lib/customFields'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { ItemModal, MovementModal, AddUnitsModal, UnitModal } from '../components/inventory/InventoryModals'
@@ -30,10 +31,11 @@ export default function InventoryItemPage() {
   const [params] = useSearchParams()
   const { user } = useAuth()
   const { notify } = useToast()
-  const { lang } = useI18n()
+  const { lang, fmt } = useI18n()
   const navigate = useNavigate()
   const inv = useInventory(orgId)
   const kits = useKits(orgId, inv.canManage)
+  const { fields: customFields } = useCustomFields(orgId, 'item')
   const [units, setUnits] = useState([])
   const [history, setHistory] = useState([])
   const [editing, setEditing] = useState(false)
@@ -88,6 +90,10 @@ export default function InventoryItemPage() {
     [t('inv.replacementValue'), item.replacement_value != null ? formatMoney(item.replacement_value, 'EUR', lang) : ''],
     [t('inv.minStock'), item.min_stock ?? ''],
     [t('inv.packingNote'), item.packing_note],
+    ...customFields.map(f => {
+      const text = displayValue(f, item.custom_values?.[f.id], { yesNo: [t('custom.yes'), t('custom.no')], date: d => fmt(d, 'd MMM yyyy') })
+      return [f.label, f.kind === 'link' && text ? <a href={text} target="_blank" rel="noopener noreferrer" style={{ color: colors.accentText }}>{text.replace(/^https?:\/\//i, '')}</a> : text]
+    }),
   ].filter(([, v]) => v !== '' && v != null)
 
   async function setArchived(archived) {
@@ -127,8 +133,8 @@ export default function InventoryItemPage() {
 
         {facts.length > 0 && (
           <div style={{ ...card, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px 16px', marginBottom: '18px' }}>
-            {facts.map(([k, v]) => (
-              <div key={k} style={{ minWidth: 0 }}>
+            {facts.map(([k, v], i) => (
+              <div key={i} style={{ minWidth: 0 }}>
                 <div style={{ ...label, marginBottom: '2px' }}>{k}</div>
                 <div style={{ fontSize: '14px', overflowWrap: 'anywhere' }}>{v}</div>
               </div>
