@@ -304,8 +304,9 @@ Yes, this is viable, because the data is already connected:
   manufacturers' documents, with source, edition and checksum. 35 wait for the second person's
   check; 4 are blocked on questions to the manufacturers (Fantek EC-40's weights, Fantek EC-76,
   Global Truss F23/F24). Prolyte no longer publishes X40V. RG2 builds the review screen;
-- hoists (not chosen yet): CM Lodestar, Chainmaster BGV-D8+ and C1, Verlinde Stagemaker, Movecat
-  and Liftket stay the suggestion; anyone can add a model from its data plate.
+- **hoists (2026-10-28):** the Lodestar range from 0.5 to 2 t is the standard in Portugal, so those
+  models come first (0.5 t, 1 t, 2 t), from the manufacturer's data sheets; anyone can add another
+  model from its data plate.
 
 **Decided (Q4):** a "Checked by" sign-off with warnings, a suggestion to hire a certified rigger
 through the job board, and a liability disclaimer when it is skipped (see Decided above). It is
