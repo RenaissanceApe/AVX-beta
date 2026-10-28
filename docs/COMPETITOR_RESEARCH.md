@@ -16,11 +16,11 @@ calculators). AVX state: 0.51.0 (crew network N4).
   functions, crew rates and factors, time registration, leave, appointments, vehicles, tasks,
   invoices, payments, purchase orders, costs, ledger codes, tax classes, serial numbers, stock
   movements, repairs, subrentals, project requests, project templates, custom fields, files…).
-- **LumiStage**: not found. lumistage.online does not resolve from here and every search result is
+- **LumiStage**: compared on 2026-10-27 from its own site (see "Changes since the last run"). Run 1: not found. lumistage.online does not resolve from here and every search result is
   an unrelated anime game of the same name. As it launches this month, it may simply not be indexed
   yet. Link received on 2026-10-26 (lumistage.online/uygulama), but this environment's network policy
   blocks the site; it gets compared once the domain is allowed, or from screenshots or a feature list.
-- **StageKit**: not found under that name. Searches return Stage Kit (virtual-event branding),
+- **StageKit**: compared on 2026-10-27 from its own site (see "Changes since the last run"). Run 1: not found under that name. Searches return Stage Kit (virtual-event branding),
   STAGE.KIT (motion capture), StagePro (theatre stage management) and a family of stage-plot/rider
   apps (StageOn, Stagediver, ArtistRider/StageRider). The rider apps are covered below because they
   overlap with AVX's field tools. The product meant is at stagekit.fsnipes.com (link received on
@@ -152,4 +152,42 @@ has), and the effort. **Tier 1** is the next year's backbone; **tier 4** is "onl
 
 ## Changes since the last run
 
-(First run.)
+### 2026-10-27: LumiStage and StageKit, from their own sites
+
+The build machine can now open web pages, so both products were read on their own sites (features
+as the vendors describe them; neither was installed or tried).
+
+**LumiStage** ([lumistage.online/uygulama](https://www.lumistage.online/uygulama), Turkish team; also
+EN/FR/ES/DE). A Windows desktop app for planning a stage in 3D, $10 a month after a 3-day trial, one
+computer, works offline up to 30 days, projects stay on the computer. It says its calculations are
+for planning and critical decisions need an authorised engineer.
+
+| LumiStage | AVX today | AVX plan |
+|---|---|---|
+| 3D stage: drag speakers, lights, LED, truss; "type 'medium concert' and the stage builds itself"; 105 equipment models; camera views | 2D stage plot and light plot per gig, from the gig's real equipment | 3D only for the acoustic simulator (A4); a "starter layout" from a gig type fits gig templates (step 25) |
+| Sound: coverage from dispersion data, SPL heat map, phase between cabinets, line array hung on truss with angles | System calculator | A1–A3, then A4–A6 (TOOLS_PLAN §6) |
+| Light: beams and floor spots, DMX address/universe plan with clash warnings, MVR light plot and DMX patch export | Light plot, DMX patch with clashes, dipswitches, walk-through | **MVR export** next to the planned import (#29) |
+| Power: 16 A circuits, phase balance, suggested generator | Power estimate per position and phase | P1–P3: add "suggested generator size" to P1 |
+| Truss and motor load, overloads coloured in 3D | Weights per light-plot position | RG1–RG5, with the manufacturers' load tables (docs/TRUSS_DATA.md); colour overloaded positions on the plot |
+| Cable list (power, DMX, speaker, signal) | Input list, patch | P2 cable list, joined with the gig's equipment |
+| PDF technical file (A4/A3), Word report, Excel equipment list, DXF, MVR, 4K images, GLB | PDFs and prints per tool, call sheet | Shareable rider/advance page (#28) as the one "technical file" |
+| Plans A/B with comparison, autosave and previous versions | Versions on files and quotes | A/B variants of a plot: idea for later |
+| **Venue library**: per venue the stage size and capacity, installed equipment, light plots and documents, contacts by role, access hours for build and rehearsal, photos, 3D model, 360° tour | Venue as text on the gig | **New idea: venue pages** (shared by the organisations that work there; fills the gig, the call sheet and the plots) |
+| Single user, desktop | Team, crew, inventory, quotes, messaging on any phone or computer | AVX's edge |
+
+**StageKit** ([stagekit.fsnipes.com](https://stagekit.fsnipes.com), "a project by F.Snipes",
+Portuguese). A free web tool for independent bands to make a technical rider: no login, no server,
+no analytics, data kept in the browser (export/import JSON).
+
+| StageKit | AVX today | AVX plan |
+|---|---|---|
+| Wizard: band members with instrument, lead/backing vocal, amp, pedalboard, DI, laptop, playback, click, in-ear → channels, monitor mixes and stage positions are suggested | Input list, monitor mixes in the patch, stage plot: entered separately | **"From the line-up"**: start the input list, mixes and plot from the people and instruments |
+| Drums: how many rack and floor toms → drum channels | Input list templates | Same, in the line-up start |
+| Backline: what the band brings, what the house provides, not used | Equipment on the gig | Part of the shareable rider (#28) |
+| PA text, minimum channels and monitor sends, phantom power when a condenser is used | Input list totals | Shown on the rider page |
+| **Tech check**: a score ("ready for the stage" … "check before sending") with warnings: vocalist without a mic, instrument needing a DI without one, musician without a monitor mix, playback without a stereo DI, laptop without power, in-ear without its own mix, channel count below the sources, band size not matching, missing contact | Conflict warnings in the patch | **A readiness check on the rider page (#28)**, with these rules |
+| A4 PDF: cover, line-up, input list, monitor mixes, backline + PA, stage plot; stage plot as an image; a shareable "tech check" card | Prints per tool | #28 |
+
+What changes in the roadmap: #28 (shareable rider/advance page) gains the line-up start and the
+readiness check, and moves up; MVR export joins #29; venue pages are a new item for Tier 2; P1 adds
+a suggested generator. Recorded in TOOLS_PLAN.md.

@@ -1,0 +1,273 @@
+{
+ "brand": "Fantek",
+ "tables": [
+  {
+   "id": "fantek-ec30",
+   "brand": "Fantek",
+   "series": "EC30",
+   "family": "EC30",
+   "shape": "square",
+   "nominalCm": 30,
+   "status": "unchecked",
+   "checkedBy": null,
+   "issues": [],
+   "columns": [
+    "span_m",
+    "udl_kg_m",
+    "udl_defl_mm",
+    "udl_pa_kg_m",
+    "udl_pa_defl_mm",
+    "p2_kg",
+    "p3_kg",
+    "p4_kg",
+    "p5_kg",
+    "p6_kg",
+    "p7_kg",
+    "p8_kg",
+    "p9_kg",
+    "points_defl_mm",
+    "weight_kg"
+   ],
+   "rows": [
+    [3, 681, 9, 581, 8, 1464, 1022, 681, 511, 409, 341, 292, 255, 8, 15],
+    [4, 510, 16, 435, 15, 1094, 820, 547, 454, 365, 319, 273, 246, 15, 20],
+    [5, 348, 25, 282, 24, 870, 653, 435, 361, 290, 254, 218, 196, 23, 26],
+    [6, 240, 36, 193, 34, 721, 540, 360, 299, 240, 210, 180, 162, 33, 31],
+    [7, 175, 49, 140, 46, 613, 460, 306, 254, 204, 179, 153, 138, 44, 36],
+    [8, 133, 64, 106, 60, 532, 399, 266, 221, 177, 155, 133, 120, 58, 41],
+    [9, 104, 80, 82, 76, 468, 351, 234, 194, 156, 136, 117, 105, 73, 46],
+    [10, 83, 99, 65, 94, 416, 312, 208, 173, 139, 121, 104, 94, 91, 51],
+    [11, 68, 120, 53, 114, 373, 280, 187, 155, 124, 109, 93, 84, 110, 56],
+    [12, 56, 143, 43, 136, 337, 253, 169, 140, 112, 98, 84, 76, 131, 61],
+    [13, 47, 168, 36, 159, 306, 230, 153, 127, 102, 89, 77, 69, 153, 66],
+    [14, 40, 195, 30, 185, 280, 210, 140, 116, 93, 82, 70, 63, 178, 71],
+    [15, 34, 223, 25, 212, 256, 192, 128, 106, 85, 75, 64, 58, 204, 77],
+    [16, 29, 254, 21, 241, 235, 176, 118, 98, 78, 69, 59, 53, 232, 82]
+   ],
+   "conditions": [
+    "Load cases: UDL; UDL + 2 point loads for a PA hang (UDL+PA); n-1 equal point loads at L/n (p2 = centre).",
+    "Point deflection column applies to the point-load cases.",
+    "Aluminium 6082-T6."
+   ],
+   "source": {
+    "publisher": "Fantek Industrial S.L.",
+    "title": "Manual técnico y documentación EC-30 (section 2.2)",
+    "url": "https://media.equipson.es/Docs/Manuales/Manual%20EC-30_2024%201_20240621133912.pdf",
+    "edition": "2024-06-21",
+    "retrieved": "2026-10-27",
+    "sha256": "137a048d54a801537e01379390ce5b53d533c16fb5e5c6b7dbac1a036635b6d4"
+   },
+   "crossCheck": {
+    "title": "Same manual, manufacturer's certificate (annex 3)",
+    "result": "identical"
+   }
+  },
+  {
+   "id": "fantek-ec29p",
+   "brand": "Fantek",
+   "series": "EC29p",
+   "family": "EC29P",
+   "shape": "square",
+   "nominalCm": 29,
+   "status": "unchecked",
+   "checkedBy": null,
+   "issues": [],
+   "columns": [
+    "span_m",
+    "udl_kg_m",
+    "udl_defl_mm",
+    "udl_pa_kg_m",
+    "udl_pa_defl_mm",
+    "p2_kg",
+    "p3_kg",
+    "p4_kg",
+    "p5_kg",
+    "p6_kg",
+    "p7_kg",
+    "p8_kg",
+    "p9_kg",
+    "points_defl_mm",
+    "weight_kg"
+   ],
+   "rows": [
+    [3, 681, 9, 581, 8, 1464, 1022, 681, 511, 409, 341, 292, 255, 8, 15],
+    [4, 510, 16, 435, 15, 1094, 820, 547, 454, 365, 319, 273, 246, 15, 20],
+    [5, 348, 25, 282, 24, 870, 653, 435, 361, 290, 254, 218, 196, 23, 26],
+    [6, 240, 36, 193, 34, 721, 540, 360, 299, 240, 210, 180, 162, 33, 31],
+    [7, 175, 49, 140, 46, 613, 460, 306, 254, 204, 179, 153, 138, 44, 36],
+    [8, 133, 64, 106, 60, 532, 399, 266, 221, 177, 155, 133, 120, 58, 41],
+    [9, 104, 80, 82, 76, 468, 351, 234, 194, 156, 136, 117, 105, 73, 46],
+    [10, 83, 99, 65, 94, 416, 312, 208, 173, 139, 121, 104, 94, 91, 51],
+    [11, 68, 120, 53, 114, 373, 280, 187, 155, 124, 109, 93, 84, 110, 56],
+    [12, 56, 143, 43, 136, 337, 253, 169, 140, 112, 98, 84, 76, 131, 61],
+    [13, 47, 168, 36, 159, 306, 230, 153, 127, 102, 89, 77, 69, 153, 66],
+    [14, 40, 195, 30, 185, 280, 210, 140, 116, 93, 82, 70, 63, 178, 71],
+    [15, 34, 223, 25, 212, 256, 192, 128, 106, 85, 75, 64, 58, 204, 77],
+    [16, 29, 254, 21, 241, 235, 176, 118, 98, 78, 69, 59, 53, 232, 82]
+   ],
+   "conditions": [
+    "Load cases: UDL; UDL + 2 point loads for a PA hang (UDL+PA); n-1 equal point loads at L/n (p2 = centre).",
+    "Point deflection column applies to the point-load cases.",
+    "Aluminium 6082-T6."
+   ],
+   "source": {
+    "publisher": "Fantek Industrial S.L.",
+    "title": "Manual técnico y documentación EC-29p (section 2.2)",
+    "url": "https://media.equipson.es/Docs/Manuales/Manual%20EC-29p_2024%202_20240621133833.pdf",
+    "edition": "2024-06-21",
+    "retrieved": "2026-10-27",
+    "sha256": "fa0758edb25a1729b3dd8d1a769fd612c4a0d11722000036219611f0c64119a7"
+   }
+  },
+  {
+   "id": "fantek-ec76",
+   "brand": "Fantek",
+   "series": "EC76",
+   "family": "EC76",
+   "shape": "square",
+   "nominalCm": 76,
+   "status": "blocked",
+   "checkedBy": null,
+   "issues": [
+    "p2_kg rises from 2175.0 to 2204.0 after 10.0 m",
+    "p3_kg rises from 1259.0 to 1289.0 after 10.0 m",
+    "p4_kg rises from 895.0 to 920.0 after 10.0 m",
+    "p5_kg rises from 689.0 to 709.0 after 10.0 m",
+    "p6_kg rises from 582.0 to 599.0 after 10.0 m",
+    "p7_kg rises from 504.0 to 519.0 after 10.0 m",
+    "p8_kg rises from 445.0 to 459.0 after 10.0 m",
+    "p9_kg rises from 398.0 to 411.0 after 10.0 m",
+    "p3_kg/p2 at 15.0 m is 0.61, beam theory gives 0.75",
+    "p5_kg/p2 at 15.0 m is 0.34, beam theory gives 0.42",
+    "p3_kg/p2 at 16.0 m is 0.61, beam theory gives 0.75",
+    "p5_kg/p2 at 16.0 m is 0.35, beam theory gives 0.42",
+    "p3_kg/p2 at 17.0 m is 0.62, beam theory gives 0.75",
+    "p5_kg/p2 at 17.0 m is 0.35, beam theory gives 0.42",
+    "p3_kg/p2 at 18.0 m is 0.63, beam theory gives 0.75",
+    "p3_kg/p2 at 19.0 m is 0.63, beam theory gives 0.75",
+    "p3_kg/p2 at 20.0 m is 0.64, beam theory gives 0.75"
+   ],
+   "columns": [
+    "span_m",
+    "udl_kg_m",
+    "udl_defl_mm",
+    "udl_pa_kg_m",
+    "udl_pa_defl_mm",
+    "p2_kg",
+    "p3_kg",
+    "p4_kg",
+    "p5_kg",
+    "p6_kg",
+    "p7_kg",
+    "p8_kg",
+    "p9_kg",
+    "points_defl_mm",
+    "weight_kg"
+   ],
+   "rows": [
+    [4, 982, 7, 491, 7, 3184, 1733, 1198, 916, 771, 666, 585, 522, 5, 67],
+    [5, 789, 12, 394, 11, 3071, 1689, 1173, 898, 756, 653, 575, 513, 8, 83],
+    [6, 659, 17, 327, 15, 2919, 1622, 1132, 868, 731, 632, 557, 497, 11, 100],
+    [7, 564, 23, 279, 21, 2729, 1533, 1074, 824, 695, 601, 530, 473, 16, 117],
+    [8, 491, 30, 241, 27, 2501, 1419, 999, 767, 648, 560, 494, 442, 21, 133],
+    [9, 433, 38, 212, 34, 2235, 1281, 906, 697, 588, 509, 450, 402, 28, 150],
+    [10, 385, 47, 188, 42, 2175, 1259, 895, 689, 582, 504, 445, 398, 35, 167],
+    [11, 346, 57, 168, 51, 2204, 1289, 920, 709, 599, 519, 459, 411, 43, 183],
+    [12, 312, 67, 151, 61, 2064, 1219, 874, 674, 570, 494, 438, 391, 52, 200],
+    [13, 284, 79, 136, 72, 1940, 1157, 833, 643, 545, 472, 419, 375, 62, 217],
+    [14, 259, 92, 124, 83, 1830, 1102, 797, 616, 522, 453, 402, 359, 73, 233],
+    [15, 237, 105, 113, 96, 1730, 1052, 764, 591, 501, 435, 386, 346, 84, 250],
+    [16, 217, 120, 103, 109, 1638, 1005, 734, 568, 482, 419, 372, 333, 97, 267],
+    [17, 200, 135, 95, 123, 1553, 962, 705, 547, 464, 403, 359, 321, 111, 283],
+    [18, 185, 152, 87, 138, 1474, 922, 679, 527, 448, 389, 346, 310, 125, 300],
+    [19, 172, 169, 80, 153, 1400, 884, 653, 508, 432, 375, 334, 300, 141, 317],
+    [20, 160, 187, 74, 170, 1331, 848, 629, 489, 417, 362, 323, 290, 157, 333],
+    [21, 149, 207, 69, 187, 1264, 813, 606, 472, 402, 350, 312, 280, 175, 350],
+    [22, 134, 227, 64, 206, 1202, 779, 584, 455, 388, 337, 301, 270, 193, 367],
+    [23, 120, 248, 60, 225, 1142, 747, 562, 438, 374, 326, 291, 261, 213, 383],
+    [24, 108, 270, 56, 245, 1084, 716, 541, 422, 360, 314, 281, 252, 233, 400]
+   ],
+   "conditions": [
+    "Load cases: UDL; UDL + 2 point loads for a PA hang (UDL+PA); n-1 equal point loads at L/n (p2 = centre).",
+    "Point deflection column applies to the point-load cases.",
+    "Aluminium 6082-T6."
+   ],
+   "source": {
+    "publisher": "Fantek Industrial S.L.",
+    "title": "Manual técnico y documentación EC-76 (section 2.2)",
+    "url": "https://media.equipson.es/Docs/Manuales/Manual%20EC-76_2024_6a%201_20240621112532.pdf",
+    "edition": "2024-06-20",
+    "retrieved": "2026-10-27",
+    "sha256": "1f4d5ea6c8147d877ce2547248c3b76481e5a955e45598473295b54cf3b576f4"
+   }
+  },
+  {
+   "id": "fantek-ec40",
+   "brand": "Fantek",
+   "series": "EC40",
+   "family": "EC40",
+   "shape": "square",
+   "nominalCm": 40,
+   "chords": "50x2 mm",
+   "status": "blocked",
+   "checkedBy": null,
+   "issues": [],
+   "questions": [
+    "The weight column gives about 5 kg/m (15 kg at 3 m, 90 kg at 18 m), almost the same as EC-30, but the FK40Q product page gives 7.2 kg/m. Which truss is this table for, and does it include the right self-weight? (Ask Fantek.)"
+   ],
+   "columns": [
+    "span_m",
+    "udl_kg_m",
+    "udl_defl_mm",
+    "udl_pa_kg_m",
+    "udl_pa_defl_mm",
+    "p2_kg",
+    "p3_kg",
+    "p4_kg",
+    "p5_kg",
+    "p6_kg",
+    "p7_kg",
+    "p8_kg",
+    "p9_kg",
+    "points_defl_mm",
+    "weight_kg"
+   ],
+   "rows": [
+    [3, 1085, 7, 852, 5, 2139, 1604, 1069, 814, 651, 542, 465, 407, 6, 15],
+    [4, 800, 12, 562, 9, 1600, 1200, 800, 664, 533, 467, 400, 360, 11, 20],
+    [5, 510, 19, 357, 15, 1275, 956, 638, 529, 425, 372, 319, 287, 16, 25],
+    [6, 353, 27, 246, 21, 1058, 794, 529, 439, 353, 309, 265, 238, 24, 30],
+    [7, 258, 37, 179, 29, 902, 677, 451, 374, 301, 263, 226, 203, 32, 35],
+    [8, 196, 48, 135, 38, 785, 589, 392, 326, 262, 229, 196, 177, 42, 40],
+    [9, 154, 61, 106, 48, 693, 520, 346, 288, 231, 202, 173, 156, 53, 45],
+    [10, 124, 76, 84, 59, 619, 464, 309, 257, 206, 181, 155, 139, 66, 50],
+    [11, 101, 91, 68, 72, 558, 418, 279, 232, 186, 163, 139, 126, 80, 55],
+    [12, 84, 109, 56, 85, 507, 380, 253, 210, 169, 148, 127, 114, 95, 60],
+    [13, 71, 128, 47, 100, 463, 347, 231, 192, 154, 135, 116, 104, 111, 65],
+    [14, 61, 148, 40, 116, 425, 319, 212, 176, 142, 124, 106, 96, 129, 70],
+    [15, 52, 170, 34, 133, 392, 294, 196, 163, 131, 114, 98, 88, 148, 75],
+    [16, 45, 193, 29, 151, 362, 272, 181, 150, 121, 106, 91, 82, 169, 80],
+    [17, 40, 218, 25, 171, 336, 252, 168, 140, 112, 98, 84, 76, 191, 85],
+    [18, 35, 245, 21, 192, 313, 235, 156, 130, 104, 91, 78, 70, 214, 90]
+   ],
+   "conditions": [
+    "Load cases: UDL; UDL + 2 point loads for a PA hang (UDL+PA); n-1 equal point loads at L/n (p2 = centre).",
+    "Point deflection column applies to the point-load cases.",
+    "Aluminium 6082-T6."
+   ],
+   "checks": [
+    "Published as an image: transcribed by hand at 200 dpi.",
+    "Edition: the upload date in the file name (the PDF carries none).",
+    "Every kg value agrees with its lbs column and every mm value with its inch column."
+   ],
+   "source": {
+    "publisher": "Fantek Industrial S.L.",
+    "title": "Datos técnicos EC 40 FK40Q 1",
+    "url": "https://media.equipson.es/Docs/Datasheet/Datos%20tecnicos%20EC%2040%20FK40Q%201_20240228161825.pdf",
+    "edition": "2024-02-28",
+    "retrieved": "2026-10-27",
+    "sha256": "5e04af3150998a216d71273fb01cb8f9fc781b49f8309765533a8fbd595dcb0d"
+   }
+  }
+ ]
+}
