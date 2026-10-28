@@ -101,3 +101,17 @@ if a guide's screen changed (see `GUIDES` in `src/help/index.js`). Help componen
 - Keep each session to one feature or fix. Big plans live in `docs/` and `ROADMAP.md`. Read the
   relevant one, don't summarise all of them.
 - Explain results in plain language; the owner is not a full-time developer.
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked in GitHub Issues for RenaissanceApe/AVX-beta. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default canonical labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
