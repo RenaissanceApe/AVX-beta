@@ -7,6 +7,8 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { quoteNumber } from '../lib/quotes'
+import { useCustomFields, mergeValues } from '../lib/customFields'
+import { CustomFieldInputs } from '../components/CustomFields'
 import { useI18n, t } from '../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../components/ui'
 import EmptyState from '../components/EmptyState'
@@ -195,6 +197,8 @@ export function ClientModal({ orgId, client, onClose, onSaved }) {
   const [quotes, setQuotes] = useState(null)
   const [prefix, setPrefix] = useState('Q')
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
+  const { fields } = useCustomFields(orgId, 'client')
+  const [custom, setCustom] = useState({})
 
   useEffect(() => {
     if (!client) return
@@ -209,6 +213,7 @@ export function ClientModal({ orgId, client, onClose, onSaved }) {
     if (!form.name.trim()) return
     setSaving(true)
     const row = Object.fromEntries(Object.entries(form).map(([k, v]) => [k, v.trim() || null]))
+    if (Object.keys(custom).length) row.custom_values = mergeValues(client?.custom_values, fields, custom)
     const { error } = client
       ? await supabase.from('clients').update(row).eq('id', client.id)
       : await supabase.from('clients').insert({ ...row, org_id: orgId })
@@ -231,6 +236,7 @@ export function ClientModal({ orgId, client, onClose, onSaved }) {
         </div>
         <Field id="cl-address" text={t('contacts.address')}><textarea id="cl-address" value={form.address} onChange={set('address')} rows={2} maxLength={500} style={{ ...input, resize: 'vertical' }} /></Field>
         <Field id="cl-notes" text={t('inv.note')}><input id="cl-notes" value={form.notes} onChange={set('notes')} maxLength={1000} style={input} /></Field>
+        <CustomFieldInputs key={fields.length} fields={fields} values={client?.custom_values} idPrefix="cl" onChange={(id, v) => setCustom(c => ({ ...c, [id]: v }))} />
         {client && <p style={small}>{t('contacts.copyNote')}</p>}
         <button type="submit" disabled={saving || !form.name.trim()} style={{ ...btnPrimary, justifyContent: 'center' }}>
           {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}

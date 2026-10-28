@@ -8,6 +8,8 @@ import { track } from '../../lib/usage'
 import { SUBRENTAL_STATUSES, isOpenSubrental, subrentalTotal, equipmentWindow } from '../../lib/inventory'
 import { rangeText } from '../../lib/clashes'
 import { formatMoney } from '../../lib/quotes'
+import { useCustomFields, mergeValues } from '../../lib/customFields'
+import { CustomFieldInputs } from '../CustomFields'
 import { toLocalInput } from '../gig/Booking'
 import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
@@ -205,12 +207,15 @@ export function SupplierModal({ orgId, supplier, onClose, onSaved }) {
   const [linked, setLinked] = useState(supplier?.partner_org_id ? '' : null) // '' = linked (name unknown), text = just linked
   const [saving, setSaving] = useState(false)
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
+  const { fields } = useCustomFields(orgId, 'supplier')
+  const [custom, setCustom] = useState({})
 
   async function save(e) {
     e.preventDefault()
     if (!form.name.trim()) return
     setSaving(true)
     const row = Object.fromEntries(Object.entries(form).map(([k, v]) => [k, v.trim() || null]))
+    if (Object.keys(custom).length) row.custom_values = mergeValues(supplier?.custom_values, fields, custom)
     const { error } = supplier
       ? await supabase.from('suppliers').update(row).eq('id', supplier.id)
       : await supabase.from('suppliers').insert({ ...row, org_id: orgId })
@@ -247,6 +252,7 @@ export function SupplierModal({ orgId, supplier, onClose, onSaved }) {
         </div>
         <Field id="sp-address" text={t('contacts.address')}><textarea id="sp-address" value={form.address} onChange={set('address')} rows={2} maxLength={500} style={{ ...input, resize: 'vertical' }} /></Field>
         <Field id="sp-notes" text={t('inv.note')}><input id="sp-notes" value={form.notes} onChange={set('notes')} maxLength={1000} style={input} /></Field>
+        <CustomFieldInputs key={fields.length} fields={fields} values={supplier?.custom_values} idPrefix="sp" onChange={(id, v) => setCustom(c => ({ ...c, [id]: v }))} />
         {supplier && (
           <div style={{ ...card, padding: '10px 12px' }}>
             <div style={{ fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}><Link2 size={13} /> {t('sub.onAvxTitle')}</div>

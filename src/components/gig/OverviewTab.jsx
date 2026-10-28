@@ -1,7 +1,9 @@
-import { FileText, Users, MessageSquare, Plus, UserPlus, ArrowRight, Eye, CalendarClock } from 'lucide-react'
+import { FileText, SlidersHorizontal, Users, MessageSquare, Plus, UserPlus, ArrowRight, Eye, CalendarClock } from 'lucide-react'
 import { shortTime, groupByDay } from '../../lib/schedule'
 import { localToday } from '../../lib/gigs'
 import { useI18n } from '../../i18n'
+import { useCustomFields } from '../../lib/customFields'
+import { CustomFieldList } from '../CustomFields'
 import { card, colors, tint } from '../ui'
 import { assetType, Avatar, RoleBadge, FeedPost, SectionTitle, SmallBtn, EmptyMini, linkBtn } from './parts'
 
@@ -14,6 +16,8 @@ function upcoming(schedule, limit = 4) {
 export default function OverviewTab({ gig, assets, members, posts, schedule, canUpload, isPM, nameOf, setTab, openUpload, openInvite, onOpenAsset }) {
   const { t, fmt } = useI18n()
   const next = upcoming(schedule)
+  const { fields } = useCustomFields(gig.org_id, 'gig')
+  const customFilled = fields.some(f => gig.custom_values?.[f.id] != null)
   const panel = { ...card, padding: '18px 20px', borderRadius: '16px' }
   const header = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }
 
@@ -23,6 +27,13 @@ export default function OverviewTab({ gig, assets, members, posts, schedule, can
         <div style={{ ...panel, gridColumn: '1 / -1' }}>
           <div style={{ marginBottom: '10px' }}><SectionTitle icon={<FileText size={14} />} title={t('overview.description')} /></div>
           <p style={{ color: colors.soft, fontSize: '14px', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{gig.description}</p>
+        </div>
+      )}
+
+      {customFilled && (
+        <div style={{ ...panel, gridColumn: '1 / -1' }}>
+          <div style={{ marginBottom: '10px' }}><SectionTitle icon={<SlidersHorizontal size={14} />} title={t('custom.details')} /></div>
+          <CustomFieldList fields={fields} values={gig.custom_values} />
         </div>
       )}
 

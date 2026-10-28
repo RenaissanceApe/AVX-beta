@@ -17,11 +17,14 @@ export function gigBucket(gig, today) {
   return 'upcoming'
 }
 
+// Text of a record's custom field values (docs/TOOLS_PLAN.md step 6, S2), for search
+export const customSearchText = values => Object.values(values || {}).filter(v => typeof v === 'string' || typeof v === 'number').join(' ')
+
 export function filterGigs(gigs, filter, search = '', today = localToday()) {
   const q = search.trim().toLowerCase()
   const list = gigs.filter(g =>
     (filter === 'all' || gigBucket(g, today) === filter) &&
-    (!q || [g.name, g.venue, g.description].some(v => v && v.toLowerCase().includes(q)))
+    (!q || [g.name, g.venue, g.description, customSearchText(g.custom_values)].some(v => v && v.toLowerCase().includes(q)))
   )
   // Past gigs: most recent first
   if (filter === 'past') list.sort((a, b) => (b.start_date || '').localeCompare(a.start_date || ''))

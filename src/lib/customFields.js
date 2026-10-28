@@ -70,8 +70,5 @@ export function mergeValues(current, fields, edited) {
   return out
 }
 
-// Text of a record's custom values, for search
-export const customSearchText = values => Object.values(values || {}).filter(v => typeof v === 'string' || typeof v === 'number').join(' ')
-
 // Choices typed one per line
 export const choicesFromText = text => [...new Set(String(text || '').split('\n').map(s => s.trim()).filter(Boolean))].slice(0, 30).map(s => s.slice(0, 80))

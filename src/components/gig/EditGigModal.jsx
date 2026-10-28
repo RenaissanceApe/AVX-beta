@@ -7,6 +7,8 @@ import { useI18n } from '../../i18n'
 import { Modal, btnPrimary, input, label } from '../ui'
 import GigLabelFields from './GigLabelFields'
 import { useGigLabels } from '../../lib/gigLabels'
+import { useCustomFields, mergeValues } from '../../lib/customFields'
+import { CustomFieldInputs } from '../CustomFields'
 import { DangerZone, DangerConfirmModal } from '../DangerConfirm'
 import { removeGigFiles } from '../../lib/storage'
 import { OwnClashWarning } from './Booking'
@@ -36,6 +38,8 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
     custom_status_id: gig.custom_status_id || null, gig_type_id: gig.gig_type_id || null,
   })
   const labels = useGigLabels(gig.org_id)
+  const { fields } = useCustomFields(gig.org_id, 'gig')
+  const [custom, setCustom] = useState({})
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
@@ -46,6 +50,7 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
     setSaving(true)
     // Empty date inputs must be sent as null, not ''
     const changes = { ...form, name: form.name.trim(), start_date: form.start_date || null, end_date: form.end_date || null }
+    if (Object.keys(custom).length) changes.custom_values = mergeValues(gig.custom_values, fields, custom)
     const { error } = await supabase.from('gigs').update(changes).eq('id', gig.id)
     setSaving(false)
     if (error) {
@@ -95,6 +100,7 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
         </div>
         <OwnClashWarning startDate={form.start_date} endDate={form.end_date} excludeGig={gig.id} />
         <GigLabelFields idPrefix="eg" labels={labels} value={form} onChange={patch => setForm(f => ({ ...f, ...patch }))} />
+        <CustomFieldInputs key={fields.length} fields={fields} values={gig.custom_values} idPrefix="eg" onChange={(id, v) => setCustom(c => ({ ...c, [id]: v }))} />
         <div>
           <label style={label} htmlFor="eg-desc">{t('gigForm.description')}</label>
           <textarea id="eg-desc" value={form.description} onChange={set('description')} placeholder={t('gigForm.descriptionPlaceholder')}

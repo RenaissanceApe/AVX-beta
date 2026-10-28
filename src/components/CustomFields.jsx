@@ -36,7 +36,7 @@ export function CustomFieldInputs({ fields, values, onChange, idPrefix, inputSty
         <label htmlFor={id} style={labelStyle}>{f.label}</label>
         {f.kind === 'choice' ? (
           <select id={id} value={v ?? ''} onChange={e => set(e.target.value)} style={{ ...inputStyle, ...select }}>
-            <option value="">{t('custom.none')}</option>
+            <option value="">{t('custom.noChoice')}</option>
             {(f.choices || []).map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         ) : (

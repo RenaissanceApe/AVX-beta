@@ -61,7 +61,7 @@ export default function OrgCustomFieldsSettings({ org }) {
       <div role="group" aria-label={t('custom.on')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
         {FIELD_ENTITIES.map(e => <button key={e} type="button" aria-pressed={entity === e} onClick={() => setEntity(e)} style={tab(entity === e)}>{t(`custom.entity.${e}`)}</button>)}
       </div>
-      {loaded && fields.length === 0 && <p style={{ fontSize: '13px', color: colors.muted, marginBottom: '8px' }}>{t('custom.none.' + entity)}</p>}
+      {loaded && fields.length === 0 && <p style={{ fontSize: '13px', color: colors.muted, marginBottom: '8px' }}>{t(`custom.empty.${entity}`)}</p>}
       {fields.length > 0 && (
         <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
           {fields.map((f, i) => (
