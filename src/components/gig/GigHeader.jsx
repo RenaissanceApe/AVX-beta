@@ -2,7 +2,7 @@ import { ArrowLeft, MapPin, Calendar, Users, RefreshCw, Pencil, Building2 } from
 import { shortTime } from '../../lib/schedule'
 import { useI18n } from '../../i18n'
 import { colors } from '../ui'
-import { StatusBadge } from './parts'
+import { GigLabels } from './parts'
 import { PageHelp } from '../help/HelpParts'
 
 export const GIG_TABS = ['overview', 'schedule', 'tasks', 'assets', 'crew', 'equipment', 'tools', 'chat', 'updates']
@@ -34,7 +34,7 @@ export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, 
             <div style={{ flex: 1, minWidth: '220px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
                 <h1 style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.4px' }}>{gig.name}</h1>
-                <StatusBadge status={gig.status} />
+                <GigLabels gig={gig} />
                 <PageHelp page="gig" />
               </div>
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '13px', color: colors.muted }}>

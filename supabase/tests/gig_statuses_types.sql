@@ -93,3 +93,23 @@ begin
 
   raise exception 'ALL GIG STATUS CHECKS PASSED';
 end $$;
+
+-- Migration 20261201000001: the gigs export carries the organisation's status and type
+--   "ALL EXPORT CHECKS PASSED"  → good
+do $$
+declare a uuid := gen_random_uuid(); org_a uuid; ty uuid; out jsonb;
+begin
+  insert into auth.users (id, email, aud, role) values (a, 'ex-a@avx.invalid', 'authenticated', 'authenticated');
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into organisations (name, created_by) values ('Export Co', a) returning id into org_a;
+  insert into gig_statuses (org_id, name, base_status) values (org_a, 'Pencilled', 'draft');
+  insert into gig_types (org_id, name) values (org_a, 'Festival') returning id into ty;
+  insert into gigs (org_id, name, status, created_by, gig_type_id) values (org_a, 'Export gig', 'draft', a, ty);
+  out := public.export_org_part(org_a, 'gigs', 0);
+  reset role;
+  if out->0->>'status_label' <> 'Pencilled' or out->0->>'gig_type' <> 'Festival' or out->0->>'status' <> 'draft' then
+    raise exception 'CHECK FAILED: %', out;
+  end if;
+  raise exception 'ALL EXPORT CHECKS PASSED';
+end $$;

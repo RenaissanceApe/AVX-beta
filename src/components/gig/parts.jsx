@@ -1,6 +1,7 @@
 import { FileText, Image, Clock, Music, Layout, ClipboardList, Trash2 } from 'lucide-react'
 import { useI18n } from '../../i18n'
 import { colors, iconBtn, tint } from '../ui'
+import { gigStatusLabel, gigTypeOf, labelStyle } from '../../lib/gigLabels'
 
 // Pieces shared by the gig page tabs.
 
@@ -31,6 +32,22 @@ export function StatusBadge({ status }) {
       fontSize: '11px', fontWeight: 700, padding: '3px 9px', borderRadius: '20px',
       color: st.color, background: st.bg, textTransform: 'uppercase', letterSpacing: '0.06em',
     }}>{t(`status.${status}`)}</span>
+  )
+}
+
+// A gig's status as its organisation names it (docs/TOOLS_PLAN.md step 6), and its type
+export function GigLabels({ gig }) {
+  const { t } = useI18n()
+  const own = gigStatusLabel(gig, t)
+  const type = gigTypeOf(gig)
+  const chip = { fontSize: '11px', fontWeight: 700, padding: '3px 9px', borderRadius: '20px', letterSpacing: '0.04em', overflowWrap: 'anywhere' }
+  return (
+    <>
+      {own.custom
+        ? <span style={{ ...chip, ...labelStyle(own.colour), textTransform: 'uppercase' }}>{own.name}</span>
+        : <StatusBadge status={gig.status} />}
+      {type && <span style={{ ...chip, ...labelStyle(type.colour), background: 'transparent', border: '1px solid currentColor' }}>{type.name}</span>}
+    </>
   )
 }
 

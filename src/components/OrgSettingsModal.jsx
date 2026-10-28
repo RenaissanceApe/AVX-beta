@@ -10,6 +10,7 @@ import { DangerZone, DangerConfirmModal } from './DangerConfirm'
 import OrgMessagesSettings from './OrgMessagesSettings'
 import OrgExportSettings from './OrgExportSettings'
 import OrgStepsSettings from './OrgStepsSettings'
+import OrgGigLabelsSettings from './OrgGigLabelsSettings'
 import OrgToolsSettings from './OrgToolsSettings'
 import OrgVerificationSettings from './OrgVerificationSettings'
 import { HintLabel } from './help/HelpParts'
@@ -100,6 +101,7 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
         <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('orgSettings.companyHint')}</p>
       </form>
       <OrgVerificationSettings org={org} onChanged={onChanged} />
+      <OrgGigLabelsSettings org={org} />
       <OrgStepsSettings org={org} />
       <OrgToolsSettings org={org} />
       <OrgMessagesSettings org={org} />

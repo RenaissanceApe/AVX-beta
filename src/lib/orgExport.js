@@ -16,7 +16,7 @@ export const PARTS = [
   { part: 'stock_movements', columns: ['created_at', 'item', 'item_code', 'unit_code', 'kind', 'quantity', 'from_location', 'to_location', 'note', 'by'] },
   { part: 'clients', columns: ['name', 'contact_name', 'email', 'phone', 'address', 'tax_id', 'notes', 'archived_at', 'created_at'] },
   { part: 'suppliers', columns: ['name', 'contact_name', 'email', 'phone', 'address', 'tax_id', 'notes', 'archived_at', 'created_at'] },
-  { part: 'gigs', columns: ['ref', 'name', 'start_date', 'end_date', 'venue', 'status', 'client', 'notes', 'created_at'] },
+  { part: 'gigs', columns: ['ref', 'name', 'start_date', 'end_date', 'venue', 'status', 'status_label', 'gig_type', 'client', 'notes', 'created_at'] },
   { part: 'gig_equipment', columns: ['gig_ref', 'gig', 'item', 'item_code', 'category', 'quantity', 'planned_from', 'planned_until', 'notes', 'packing_note'] },
   { part: 'gig_crew', columns: ['gig_ref', 'gig', 'name', 'role', 'function_title', 'call_time', 'booked_from', 'booked_until'] },
   { part: 'gig_schedule', columns: ['gig_ref', 'gig', 'day', 'start_time', 'end_time', 'title', 'location', 'notes'] },
