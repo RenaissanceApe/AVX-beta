@@ -92,9 +92,11 @@ function LabelList({ org, kind, items, reload }) {
                   {BASE_STATUSES.map(b => <option key={b} value={b}>{t('labels.means', { status: t(`status.${b}`) })}</option>)}
                 </select>
               )}
-              <button type="button" onClick={() => move(i, -1)} disabled={busy || i === 0} aria-label={t('labels.moveUp', { name: item.name })} style={iconBtn}><ArrowUp size={14} /></button>
-              <button type="button" onClick={() => move(i, 1)} disabled={busy || i === items.length - 1} aria-label={t('labels.moveDown', { name: item.name })} style={iconBtn}><ArrowDown size={14} /></button>
-              <button type="button" onClick={() => remove(item)} disabled={busy} aria-label={t('labels.remove', { name: item.name })} style={iconBtn}><Trash2 size={14} /></button>
+              <span style={{ display: 'inline-flex', gap: '2px', marginLeft: 'auto' }}>
+                <button type="button" onClick={() => move(i, -1)} disabled={busy || i === 0} aria-label={t('labels.moveUp', { name: item.name })} style={iconBtn}><ArrowUp size={14} /></button>
+                <button type="button" onClick={() => move(i, 1)} disabled={busy || i === items.length - 1} aria-label={t('labels.moveDown', { name: item.name })} style={iconBtn}><ArrowDown size={14} /></button>
+                <button type="button" onClick={() => remove(item)} disabled={busy} aria-label={t('labels.remove', { name: item.name })} style={iconBtn}><Trash2 size={14} /></button>
+              </span>
             </li>
           ))}
         </ul>

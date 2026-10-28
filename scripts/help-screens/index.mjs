@@ -356,6 +356,12 @@ const SCENES = {
     await first.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
     return first
   } },
+  'org-labels': { persona: 'pm', url: `/org/${ids.org}?panel=settings`, async run(page) {
+    const box = page.locator('section[aria-labelledby="org-labels"]')
+    await box.waitFor()
+    await box.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
+    return null
+  } },
   'org-verify': { persona: 'pm', url: `/org/${ids.org}?panel=settings`, async run(page) {
     const box = page.locator('section[aria-labelledby="org-verify-title"]')
     await box.waitFor()

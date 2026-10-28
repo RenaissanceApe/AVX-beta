@@ -103,7 +103,7 @@ export default {
     validity: 'Durante quantos dias um orçamento novo é válido. Depois disso o cliente ainda o pode ler, mas já não o pode aceitar.',
     'call-time': 'A hora a que esta pessoa tem de chegar. Aparece na folha de serviço e no telemóvel dela.',
     'booking-times': 'As horas para que esta pessoa está marcada. Sem elas, conta como ocupada nos dias inteiros do evento, e trabalhos curtos no mesmo dia pareceriam sobrepostos.',
-    'gig-status': 'Rascunho: ainda em planeamento. Confirmado: vai acontecer. Em curso: está a decorrer. Concluído: terminou. Arquivado: guardado, mas fora das listas.',
+    'gig-status': 'Rascunho: ainda em planeamento. Confirmado: vai acontecer. Em curso: está a decorrer. Concluído: terminou. Arquivado: guardado, mas fora das listas. A sua organização pode dar nomes próprios aos estados; cada um significa um destes.',
     'gig-role': 'Diretor de Produção: altera tudo no evento. Equipa técnica: vê o evento, os ficheiros e o horário, e escreve na conversa. Leitor: só vê.',
     'org-role': 'Administrador: tudo, incluindo membros e definições. Membro: eventos, ficheiros e orçamentos. Leitor: vê os eventos, sem orçamentos nem preços.',
     findable: 'Quem o pode encontrar pelo nome ao formar uma equipa. Só pessoas com quem já trabalhou, nunca toda a gente no AVX.',
@@ -836,6 +836,19 @@ export default {
       mistakes: [
         'Às vezes o VIES não responde durante algum tempo. Tente mais tarde; pode validar 5 vezes por dia.',
         'Se várias pessoas denunciarem as suas vagas, as publicações ficam em pausa até a AVX analisar; entretanto as vagas ficam ocultas.',
+      ],
+    },
+    'ad-gig-statuses': {
+      title: 'Usar os seus próprios estados e tipos de evento',
+      intro: 'Chame aos eventos o que a sua empresa lhes chama ("Opção", "Pré-reserva", "Faturado") e organize-os por tipo.',
+      steps: [
+        'Abra as definições da organização (só administradores) e procure "Estados e tipos de evento". "Começar com um conjunto habitual" junta seis estados que pode renomear, ou junte os seus um a um.',
+        'Para cada estado escolha uma cor e o que significa no AVX: rascunho, confirmado, em curso, concluído ou arquivado. Esse significado continua a decidir se um evento é próximo, passado ou arquivado. Junte tipos de evento da mesma forma e ordene ambos com as setas.',
+        'No formulário de um evento, escolha o estado e o tipo. A lista de eventos mostra-os com as suas cores e pode ser filtrada por eles; a exportação da organização inclui-os.',
+      ],
+      mistakes: [
+        'Remover um estado mantém os eventos onde estavam (o estado base), mas tira-lhes o nome.',
+        'Mudar o que um estado significa move todos os eventos que o têm.',
       ],
     },
     'ad-org-export': {

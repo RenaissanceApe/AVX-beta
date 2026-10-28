@@ -404,7 +404,7 @@ the step's PR, not a later clean-up. Numbers in brackets are from COMPETITOR_RES
 | 3 | **D1** DMX calculator and dipswitches ✅ 0.56.0 | DMX patch | DMX patch column and walk-through (by light plot position) |
 | 4 | **On-site mode** and Tools split (Plan / On site), personal auto setting ✅ 0.57.0 | R1, D1, field kit | Call sheet, rehearsal notes, walk-through, input list, scanning, settings |
 | 5 | **Tasks** [6]: **T1** gig tasks, My tasks, R1 notes → tasks, notification ✅ 0.58.0; **T2** organisation tasks, checklist templates ✅ 0.59.0 | — | R1 notes → tasks ✅, inventory repairs ✅, On-site mode ✅; gig templates (step 25) will copy tasks |
-| 6 | **Custom statuses and gig types** [10], **custom fields** [12] | — | Gig lists, calendar, filters, export, import |
+| 6 | **S1** custom statuses and gig types [10] ✅ 0.61.0; **S2** custom fields [12] | — | Gig lists, calendar, filters, export ✅, import ✅ (imported gigs take the matching status); S2: gigs, contacts, items |
 | 7 | **Crew rates** [3] | crew, functions | Crew calls and job posts (fee), quotes (labour lines) |
 | 8 | **Time registration** [2] | crew rates, schedule | Gig crew tab, calendar feed, export |
 | 9 | **Leave requests** [5] | availability | Clashes, Find crew "free", time registration |
@@ -451,6 +451,15 @@ why none), and CHANGELOG lists those connections.
 | Templates | `task_templates` (migration `20261130000000_tasks_t2.sql`): name, notes, items (texts of up to 200 characters, up to 50). Members of the organisation read them; admins and members manage them; removing only marks them. At most 200 per organisation. Database checks in `supabase/tests/tasks_t2.sql` |
 | Repairs | `tasks.repair_id`: set when the task is made, never changed; the repair must be the organisation's, the task the organisation's own (not a gig's); one live task per repair |
 | Screens | Organisation → Tasks (`OrgTasksPage`, with the templates tab in `TaskTemplates`), "Start from a template" in the task form, "Make a task" in the repair window, the tasks card and tile in On-site mode |
+
+### How gig statuses and types work (S1, 0.61.0)
+
+| Piece | How it works |
+|---|---|
+| Data | `gig_statuses` (name, colour, `base_status`: one of draft, confirmed, active, completed, archived; position) and `gig_types` (name, colour, position), per organisation, at most 30 each, removing only marks them (migration `20261201000000_gig_statuses_types.sql`). `gigs.custom_status_id`, `gigs.gig_type_id` |
+| The built-in status still rules | A trigger keeps them in step: choosing a custom status sets `status` to its base; changing `status` on its own (an import, an older screen) picks the organisation's first status for it, or none; a status that changes its meaning moves its gigs; a removed status or type comes off its gigs. So lists, archiving, notifications and the activity log work as before |
+| Who | Admins manage both lists (Organisation settings → Gig statuses and types); members and anyone on one of the organisation's gigs read them. Checks in `supabase/tests/gig_statuses_types.sql` |
+| Screens | New and edit gig forms (`GigLabelFields`), the gig header and gig cards (`GigLabels`, embedded with the gig in one query), status and type filters on the gigs list and calendar, the organisation export (`status_label`, `gig_type` in the gigs file) |
 
 ## References
 
