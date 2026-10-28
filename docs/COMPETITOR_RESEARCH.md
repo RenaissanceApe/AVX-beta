@@ -133,15 +133,10 @@ has), and the effort. **Tier 1** is the next year's backbone; **tier 4** is "onl
 | Calendar feed | Read-only; no appointments of one's own → #9 |
 | Help guides | No in-app search across guides; no AI help yet (planned in PUBLIC_SITE) |
 
-## Suggested order
+## Order
 
-1. Settings layout (asked), crew network N5, rehearsal companion R1–R2 (asked as the next tool).
-2. **Business loop:** crew rates (#3) → time registration (#2) → leave approval (#5) → gig finance (#4)
-   → invoices hand-off (#1, starting with an export to a Portuguese certified program).
-3. **Daily completeness:** tasks (#6) with gig templates (#7), custom statuses (#10), appointments
-   (#9), vehicles (#8).
-4. Field tools from TOOLS_PLAN.md in its order (DMX calculator, power, rigging, sound).
-5. Reports (#11), client portal (#13), API (#17) as the cueing app needs it.
+The order these are built in is kept in [ROADMAP.md](../ROADMAP.md) ("What's left"), with the
+numbers in brackets pointing back to the rows above.
 
 ## Sources (run 1)
 
