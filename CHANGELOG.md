@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.61.0 — Your own gig statuses and gig types
+
+### Added
+- **Gig statuses** per organisation (Organisation settings → "Gig statuses and types", admins):
+  your own names and colours ("Option", "Pencilled", "Invoiced"…).
+  - Each one means one of AVX's five (draft, confirmed, active, done, archived), which still decide
+    what is upcoming, past or archived.
+  - "Start with a common set" adds six to rename; reorder with the arrows; remove (it asks first).
+  - Changing what a status means moves its gigs; removing it keeps its gigs where they were.
+- **Gig types** ("Festival", "Corporate", "Theatre"…) with colours, managed the same way.
+- **On gigs:** the new-gig and edit forms offer your statuses (or the five built-in ones when you
+  have none) and the gig types. The gig header and the gigs list show them in their colours; a new
+  gig starts on your first status meaning "confirmed".
+- **Gigs list and calendar:** filter by status and by gig type, also in My work across companies.
+- **Export:** the organisation export's gigs file has two new columns, the status name and the gig
+  type.
+- Help: guide "Use your own gig statuses and types", with a picture; the "gig status" term mentions
+  them.
+
+### Connected to earlier features
+- The five built-in statuses (lists, archiving, past/upcoming, notifications, activity log) are
+  unchanged and kept in step by the database.
+- Import of upcoming jobs (S3b, 0.45.0): imported gigs get the organisation's status matching what they were
+  imported as.
+- The organisation export (S5) and the offline copy of the gigs list.
+
 ## 0.60.0 — Truss load tables; LumiStage and StageKit compared
 
 ### Added

@@ -106,7 +106,7 @@ export default {
     validity: 'How many days a new quote stays valid. After that the client can still read it but no longer accept it.',
     'call-time': 'When this person must arrive. It shows on the call sheet and in their phone.',
     'booking-times': 'The hours this person is booked for. Without them, they count as busy for the gig’s whole days, and short jobs on the same day would look like a clash.',
-    'gig-status': 'Draft: still being planned. Confirmed: going ahead. Active: happening now. Done: finished. Archived: kept but hidden from the lists.',
+    'gig-status': 'Draft: still being planned. Confirmed: going ahead. Active: happening now. Done: finished. Archived: kept but hidden from the lists. Your organisation can name its own statuses; each one means one of these.',
     'gig-role': 'PM: changes everything on the gig. Crew: sees it, its files and schedule, and writes in the chat. Viewer: reads only.',
     'org-role': 'Admin: everything, including members and settings. Member: gigs, files and quotes. Viewer: sees the gigs, without quotes or prices.',
     findable: 'Who can find you by name when building a crew. Only people you already worked with, never everyone on AVX.',
@@ -839,6 +839,19 @@ export default {
       mistakes: [
         'VIES sometimes doesn\'t answer for a while. Try again later; there are 5 checks a day.',
         'If several people report your job posts, posting pauses until AVX has looked; your posts are hidden meanwhile.',
+      ],
+    },
+    'ad-gig-statuses': {
+      title: 'Use your own gig statuses and types',
+      intro: 'Call gigs what your company calls them ("Option", "Pencilled", "Invoiced") and sort them by kind.',
+      steps: [
+        'Open the organisation\'s settings (admins only) and find "Gig statuses and types". "Start with a common set" adds six statuses you can rename, or add your own one by one.',
+        'For each status choose a colour and what it means in AVX: draft, confirmed, active, done or archived. That meaning still decides whether a gig counts as upcoming, past or archived. Add gig types the same way, and order both with the arrows.',
+        'In a gig\'s form, choose the status and the type. The gigs list shows them with their colours and can be filtered by them; the organisation export includes them.',
+      ],
+      mistakes: [
+        'Removing a status keeps its gigs where they were (their built-in status) but takes the name off them.',
+        'Changing what a status means moves every gig that has it.',
       ],
     },
     'ad-org-export': {

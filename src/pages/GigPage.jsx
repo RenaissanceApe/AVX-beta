@@ -26,6 +26,7 @@ import AppShell from '../components/shell/AppShell'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import OfflineBanner from '../components/OfflineBanner'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
+import { GIG_LABELS_EMBED } from '../lib/gigLabels'
 
 // Gig page container: loads the gig's data, keeps it live, works out permissions,
 // and hands everything to the tab components in src/components/gig/.
@@ -114,7 +115,7 @@ export default function GigPage() {
   async function loadAll({ silent = false } = {}) {
     if (!silent) setLoading(true)
     const [gigRes, membersRes, assetsRes, postsRes, invitesRes, scheduleRes, activityRes, toolsRes, tasksRes] = await Promise.all([
-      supabase.from('gigs').select('*').eq('id', id).maybeSingle(),
+      supabase.from('gigs').select(`*, ${GIG_LABELS_EMBED}`).eq('id', id).maybeSingle(),
       supabase.from('gig_members').select('*').eq('gig_id', id),
       supabase.from('assets').select('*').eq('gig_id', id).is('superseded_by', null).order('created_at', { ascending: false }),
       supabase.from('feed_posts').select('*').eq('gig_id', id).order('created_at', { ascending: true }),
@@ -288,7 +289,7 @@ export default function GigPage() {
       {versionsAsset && <AssetVersionsModal asset={versionsAsset} nameOf={nameOf} onClose={() => setVersionsAsset(null)} />}
       {showEdit && (
         <EditGigModal gig={gig} canDelete={orgRole === 'admin' || gig.created_by === user.id} onClose={() => setShowEdit(false)}
-          onSaved={changes => setData(d => ({ ...d, gig: { ...d.gig, ...changes } }))}
+          onSaved={changes => { setData(d => ({ ...d, gig: { ...d.gig, ...changes } })); reload() }}
           onDeleted={() => { notify(t('danger.gigDeleted', { name: gig.name }), 'success'); navigate('/dashboard', { replace: true }) }} />
       )}
     </AppShell>

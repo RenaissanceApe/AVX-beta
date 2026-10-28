@@ -5,8 +5,8 @@ import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { useI18n } from '../../i18n'
 import { Modal, btnPrimary, input, label } from '../ui'
-import { HintLabel } from '../help/HelpParts'
-import { GIG_STATUSES } from './parts'
+import GigLabelFields from './GigLabelFields'
+import { useGigLabels } from '../../lib/gigLabels'
 import { DangerZone, DangerConfirmModal } from '../DangerConfirm'
 import { removeGigFiles } from '../../lib/storage'
 import { OwnClashWarning } from './Booking'
@@ -33,7 +33,9 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
   const [form, setForm] = useState({
     name: gig.name, venue: gig.venue || '', start_date: gig.start_date || '', end_date: gig.end_date || '',
     description: gig.description || '', status: gig.status,
+    custom_status_id: gig.custom_status_id || null, gig_type_id: gig.gig_type_id || null,
   })
+  const labels = useGigLabels(gig.org_id)
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
@@ -92,12 +94,7 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
           </div>
         </div>
         <OwnClashWarning startDate={form.start_date} endDate={form.end_date} excludeGig={gig.id} />
-        <div>
-          <HintLabel htmlFor="eg-status" hint="gig-status">{t('gigForm.status')}</HintLabel>
-          <select id="eg-status" value={form.status} onChange={set('status')} style={{ ...input, cursor: 'pointer' }}>
-            {GIG_STATUSES.map(s => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
-          </select>
-        </div>
+        <GigLabelFields idPrefix="eg" labels={labels} value={form} onChange={patch => setForm(f => ({ ...f, ...patch }))} />
         <div>
           <label style={label} htmlFor="eg-desc">{t('gigForm.description')}</label>
           <textarea id="eg-desc" value={form.description} onChange={set('description')} placeholder={t('gigForm.descriptionPlaceholder')}

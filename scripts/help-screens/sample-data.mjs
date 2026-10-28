@@ -194,6 +194,16 @@ export function sampleData(persona, lang) {
         ? [{ org_id: orgId, user_id: ricardo, role: 'admin', organisations: org, joined_at: '2026-01-10T10:00:00Z' }, { org_id: orgId, user_id: duarte, role: 'member', organisations: org }]
         : [],
       gigs: persona === 'pm' ? [gig] : [gig, jazz],
+      gig_statuses: [
+        { id: 'gs1', org_id: orgId, name: tx('Opção', 'Option'), colour: 'yellow', base_status: 'draft', position: 1, created_at: ago(300) },
+        { id: 'gs2', org_id: orgId, name: tx('Confirmado', 'Confirmed'), colour: 'blue', base_status: 'confirmed', position: 2, created_at: ago(300) },
+        { id: 'gs3', org_id: orgId, name: tx('Na estrada', 'On the road'), colour: 'green', base_status: 'active', position: 3, created_at: ago(300) },
+        { id: 'gs4', org_id: orgId, name: tx('Faturado', 'Invoiced'), colour: 'sky', base_status: 'completed', position: 4, created_at: ago(300) },
+      ],
+      gig_types: [
+        { id: 'gt1', org_id: orgId, name: tx('Festival', 'Festival'), colour: 'purple', position: 1, created_at: ago(300) },
+        { id: 'gt2', org_id: orgId, name: tx('Empresa', 'Corporate'), colour: 'orange', position: 2, created_at: ago(300) },
+      ],
       gig_members: myGigs.concat(members.filter(m => !myGigs.some(x => x.gig_id === m.gig_id && x.user_id === m.user_id))),
       gig_schedule: schedule,
       assets,
