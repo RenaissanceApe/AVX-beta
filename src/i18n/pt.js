@@ -274,6 +274,7 @@ export default {
   'invite.already': '{email} já é membro.',
   'invite.emailed': 'Convite enviado para {email}. Será adicionado assim que aceitar.',
   'invite.notEmailed': '{email} ainda não tem conta e não foi possível enviar o email de convite. Partilhe {link} — quando se registar com este email será adicionado automaticamente.',
+  'invite.alreadySent': 'Já foi enviado um convite para {email} há instantes.',
   'invite.rateLimited': 'O convite para {email} foi guardado, mas o email não foi enviado porque saíram muitos convites recentemente. Tente mais tarde ou partilhe {link} — quando se registar com este email será adicionado automaticamente.',
 
   'feed.title': 'Mural do evento',
@@ -733,6 +734,7 @@ export default {
   'send.copyPrompt': "Copie este link:",
   'send.linkOnce': "Por segurança o link só é mostrado agora. Se o perder, envie o orçamento de novo (isso substitui este link).",
   'send.emailed': "Orçamento enviado para {email}",
+  'send.alreadySent': "Este envio já foi feito há instantes: veja o histórico abaixo. Clique em Enviar outra vez só se quiser enviá-lo de novo.",
   'send.linkReady': "Link criado",
   'send.emailNotConfigured': "O envio de email ainda não está configurado nesta aplicação, por isso nada foi enviado. Copie o link e envie-o.",
   'send.emailFailed': "Não foi possível enviar o email. Copie o link e envie-o.",

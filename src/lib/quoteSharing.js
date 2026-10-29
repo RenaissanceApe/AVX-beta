@@ -19,13 +19,24 @@ export async function saveVersion(quote, body, note) {
   }).select('id, version_no, note, total_net, created_at, created_by').single()
 }
 
+// One key per send. Clicking Send again after an error (same address, same choice) reuses the
+// key and the version saved for it, so send-quote sees the same send and doesn't email it twice.
+// Anything else starts a new send. Forget the attempt (null) once a send gets an answer.
+export function sendAttempt(previous, { email, sendEmail }) {
+  const to = (email || '').trim().toLowerCase()
+  if (previous && previous.email === to && previous.sendEmail === !!sendEmail) return previous
+  return { key: crypto.randomUUID(), email: to, sendEmail: !!sendEmail, versionId: null }
+}
+
 // Creates a link to the version (replacing any earlier open link) and emails it when
 // asked, optionally with a PDF of the quote attached ({ content: base64, name }).
-// Returns { link, share_id, emailed, email_error? }.
-export async function sendQuote({ quoteId, versionId, email, sendEmail, pdf }) {
+// Returns { link, share_id, emailed, email_error? }, or { duplicate: true, share_id, emailed }
+// when this send (requestKey) already went through.
+export async function sendQuote({ quoteId, versionId, email, sendEmail, pdf, requestKey }) {
   const { data, error } = await supabase.functions.invoke('send-quote', {
     body: {
       quote_id: quoteId, version_id: versionId, email: email?.trim() || '', send_email: !!sendEmail,
+      request_key: requestKey || null,
       ...(pdf ? { pdf: pdf.content, pdf_name: pdf.name } : {}),
     },
   })

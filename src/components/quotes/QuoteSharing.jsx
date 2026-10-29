@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { History, Eye, RotateCcw, Loader2, Save, Send, Copy, Check, Link2, Ban, Mail } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
-import { saveVersion, sendQuote } from '../../lib/quoteSharing'
+import { saveVersion, sendQuote, sendAttempt } from '../../lib/quoteSharing'
 import { quotePdfBase64, quotePdfName } from '../../lib/quotePdf'
 import { track } from '../../lib/usage'
 import { formatMoney } from '../../lib/quotes'
@@ -117,6 +117,7 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
   const [result, setResult] = useState(null) // { link, emailed, email_error }
   const [copied, setCopied] = useState(false)
   const [shares, setShares] = useState(null)
+  const attempt = useRef(null) // the send in progress, kept for a retry (sendAttempt)
 
   async function loadShares() {
     const { data, error } = await supabase.from('quote_shares')
@@ -136,8 +137,15 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
     try {
       const { quote, body } = await prepare()
       const to = email.trim()
-      const { data: version, error } = await saveVersion(quote, body, to ? t('quoteVersions.sentToNote', { email: to }) : t('quoteVersions.sentNote'))
-      if (error) throw error
+      const current = sendAttempt(attempt.current, { email: to, sendEmail: byEmail })
+      attempt.current = current
+      let versionId = current.versionId
+      if (!versionId) {
+        const { data: version, error } = await saveVersion(quote, body, to ? t('quoteVersions.sentToNote', { email: to }) : t('quoteVersions.sentNote'))
+        if (error) throw error
+        versionId = version.id
+        attempt.current = { ...current, versionId }
+      }
       let pdf = null
       if (byEmail && attachPdf) {
         // The same version the link shows, as a PDF attachment
@@ -153,7 +161,15 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
           notify(t('send.pdfFailed'), 'info')
         }
       }
-      const res = await sendQuote({ quoteId, versionId: version.id, email: to, sendEmail: byEmail, pdf })
+      const res = await sendQuote({ quoteId, versionId, email: to, sendEmail: byEmail, pdf, requestKey: current.key })
+      attempt.current = null
+      if (res.duplicate) {
+        // An earlier click of this same send went through; it's in the history below
+        notify(t('send.alreadySent'), 'info', { duration: 12000 })
+        onSent()
+        loadShares()
+        return
+      }
       setResult(res)
       onSent()
       track(res.emailed ? (pdf ? 'quote:sent-email-pdf' : 'quote:sent-email') : 'quote:sent-link')
