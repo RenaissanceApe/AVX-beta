@@ -84,8 +84,9 @@ Recommended while you're in Auth settings:
 
 ## Step 3b — Edge Function and emails
 
-- Deploy the invite function: `supabase functions deploy send-invite` (Supabase CLI), or paste
-  `supabase/functions/send-invite/index.ts` into Supabase → Edge Functions. Keep "Verify JWT" on.
+- Deploy the invite function: `supabase functions deploy send-invite` (Supabase CLI) with "Verify JWT"
+  on. send-invite, send-quote, send-digest and send-push all use `supabase/functions/_shared/`, so
+  pasting `index.ts` into the dashboard is not enough: deploy with the CLI or the Supabase connector.
 - Optional daily email summary: deploy `supabase/functions/send-digest` with "Verify JWT" **off**
   (it checks its own secret), then follow the Brevo steps in [docs/EMAIL.md](docs/EMAIL.md).
 - Sending quotes to clients: deploy `supabase/functions/send-quote` (Verify JWT **on**) and
