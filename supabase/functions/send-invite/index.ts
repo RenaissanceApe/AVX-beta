@@ -14,9 +14,14 @@
 //
 // Each invite email counts against the send limits (claim_send, as the user). Over a limit the
 // invite is still stored and the app says the email wasn't sent (email_error: 'rate_limited').
+//
+// Every call out has a time limit (_shared/timeout.ts). If the invitation email doesn't go out in
+// time the answer is email_error: 'timeout' and the claim is kept, not released: the email may have
+// gone out, so a retry in the next 10 minutes is answered 'already_sent' instead of sending twice.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { claimSend } from '../_shared/send-limits.ts'
+import { fetchWithTimeout, isTimeout } from '../_shared/timeout.ts'
 
 const ALLOWED_ORIGINS = [
   'https://avx-beta.vercel.app',
@@ -71,7 +76,7 @@ Deno.serve(async (req) => {
 
   const url = Deno.env.get('SUPABASE_URL')!
   const userClient = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, {
-    global: { headers: { Authorization: authorization } },
+    global: { headers: { Authorization: authorization }, fetch: fetchWithTimeout },
     auth: { persistSession: false },
   })
 
@@ -86,13 +91,17 @@ Deno.serve(async (req) => {
     : userClient.rpc('invite_to_org', { p_org: targetId, p_email: email, p_role: body.role ?? 'member' })
 
   const { data: result, error: rpcError } = await rpc
+  if (isTimeout(rpcError)) {
+    console.error(JSON.stringify({ fn: 'send-invite', step: 'invite', kind, timeout: true }))
+    return json({ error: 'timeout' }, 504, origin)
+  }
   if (rpcError) {
     // Permission and validation messages come from the database and are safe to show
     return json({ error: rpcError.message }, 400, origin)
   }
   if (result !== 'invited') return json({ result, emailed: false }, 200, origin)
 
-  const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
+  const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { global: { fetch: fetchWithTimeout }, auth: { persistSession: false } })
   const invite = { p_kind: kind, p_target: targetId, p_email: email }
   const { data: claimed, error: claimError } = await admin.rpc('claim_invite_email', invite)
   if (claimError) {
@@ -117,6 +126,10 @@ Deno.serve(async (req) => {
   const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${appOrigin}/welcome`,
   })
+  if (isTimeout(inviteError)) {
+    console.error(JSON.stringify({ fn: 'send-invite', step: 'inviteUserByEmail', kind, timeout: true }))
+    return json({ result, emailed: false, email_error: 'timeout' }, 200, origin)
+  }
   if (inviteError) {
     await release()
     // The pending invite is stored either way; the person can still sign up themselves.

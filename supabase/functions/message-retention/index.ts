@@ -6,9 +6,10 @@
 // that nobody can see any more. Direct conversations are never touched. Logs carry counts only.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { fetchWithTimeout, isTimeout } from '../_shared/timeout.ts'
 
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
-  auth: { persistSession: false },
+  global: { fetch: fetchWithTimeout }, auth: { persistSession: false },
 })
 const BATCH = 500
 const MAX_BATCHES = 20 // up to 10,000 messages a night; the rest the next night
@@ -27,7 +28,8 @@ function sameKey(a: string, b: string) {
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
-  const { data: key } = await admin.from('job_keys').select('secret').eq('name', 'message_retention').maybeSingle()
+  const { data: key, error: keyError } = await admin.from('job_keys').select('secret').eq('name', 'message_retention').maybeSingle()
+  if (isTimeout(keyError)) return json({ error: 'timeout' }, 504)
   if (!key || !sameKey(req.headers.get('x-job-key') ?? '', key.secret)) return json({ error: 'Forbidden' }, 403)
 
   let deleted = 0, files = 0, failed = 0

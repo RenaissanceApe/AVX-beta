@@ -42,6 +42,8 @@ export function userMessage(error, fallback) {
   const msg = error?.message || ''
   if (!msg) return fallback || t('error.generic')
   if (/failed to fetch|networkerror|load failed/i.test(msg)) return t('error.network')
+  // Edge Functions answer { error: 'timeout' } when a service they call doesn't answer in time
+  if (/^timeout$|timed out/i.test(msg)) return t('error.timeout')
   if (/row-level security|permission denied|not authorized/i.test(msg)) return t('error.permission')
   if (/jwt expired|invalid jwt|refresh token/i.test(msg)) return t('error.session')
   if (/payload too large|exceeded the maximum allowed size/i.test(msg)) return t('error.tooLarge')

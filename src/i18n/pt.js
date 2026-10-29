@@ -51,6 +51,7 @@ export default {
 
   'error.generic': 'Algo correu mal. Tente novamente.',
   'error.network': 'Problema de rede — verifique a ligação e tente novamente.',
+  'error.timeout': 'O servidor demorou demasiado a responder. Tente novamente daqui a pouco.',
   'error.permission': 'Não tem permissão para fazer isso.',
   'error.session': 'A sua sessão expirou. Inicie sessão novamente.',
   'error.tooLarge': 'O ficheiro é demasiado grande (máx. 50 MB).',
@@ -276,6 +277,7 @@ export default {
   'invite.notEmailed': '{email} ainda não tem conta e não foi possível enviar o email de convite. Partilhe {link} — quando se registar com este email será adicionado automaticamente.',
   'invite.alreadySent': 'Já foi enviado um convite para {email} há instantes.',
   'invite.rateLimited': 'O convite para {email} foi guardado, mas o email não foi enviado porque saíram muitos convites recentemente. Tente mais tarde ou partilhe {link} — quando se registar com este email será adicionado automaticamente.',
+  'invite.emailTimeout': 'O convite para {email} foi guardado, mas o serviço de email não respondeu a tempo, por isso o convite pode ou não ter sido enviado. Se não chegar, partilhe {link} — quando se registar com este email será adicionado automaticamente.',
 
   'feed.title': 'Mural do evento',
   'feed.subtitle': 'Atualizações, avisos e informação importante para a equipa.',
@@ -738,6 +740,7 @@ export default {
   'send.linkReady': "Link criado",
   'send.emailNotConfigured': "O envio de email ainda não está configurado nesta aplicação, por isso nada foi enviado. Copie o link e envie-o.",
   'send.emailFailed': "Não foi possível enviar o email. Copie o link e envie-o.",
+  'send.emailTimeout': "Link criado, mas o serviço de email não respondeu a tempo, por isso o email pode ou não ter sido enviado. Confirme com o cliente antes de o enviar de novo, ou copie o link e envie-o.",
   'send.emailRateLimited': "Link criado, mas o email não foi enviado porque foi atingido o limite de emails de orçamentos. Copie o link e envie-o, ou tente mais tarde.",
   'send.history': "Enviados",
   'send.noHistory': "Ainda não foi enviado.",

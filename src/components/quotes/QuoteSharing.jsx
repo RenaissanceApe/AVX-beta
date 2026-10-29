@@ -173,7 +173,7 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
       setResult(res)
       onSent()
       track(res.emailed ? (pdf ? 'quote:sent-email-pdf' : 'quote:sent-email') : 'quote:sent-link')
-      if (byEmail && !res.emailed) notify(t({ not_configured: 'send.emailNotConfigured', rate_limited: 'send.emailRateLimited' }[res.email_error] || 'send.emailFailed'), 'info', { duration: 12000 })
+      if (byEmail && !res.emailed) notify(t({ not_configured: 'send.emailNotConfigured', rate_limited: 'send.emailRateLimited', timeout: 'send.emailTimeout' }[res.email_error] || 'send.emailFailed'), 'info', { duration: 12000 })
       else notify(res.emailed ? t('send.emailed', { email: to }) : t('send.linkReady'), 'success')
       loadShares()
     } catch (err) {

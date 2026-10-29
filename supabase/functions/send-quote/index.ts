@@ -19,9 +19,13 @@
 //
 // Each email counts against the send limits (claim_send, as the user). Over a limit the link is
 // still made and returned with email_error: 'rate_limited', for the user to send it themselves.
+//
+// Every call out has a time limit (_shared/timeout.ts). If Brevo doesn't answer in time the link
+// is returned with email_error: 'timeout' and the email is not tried again: it may have gone out.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { claimSend } from '../_shared/send-limits.ts'
+import { fetchWithTimeout, isTimeout } from '../_shared/timeout.ts'
 
 const ALLOWED_ORIGINS = [
   'https://avx-beta.vercel.app',
@@ -55,6 +59,12 @@ function json(body: unknown, status: number, origin: string | null) {
     status,
     headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
   })
+}
+
+// Supabase didn't answer in time; the app shows its "took too long" message
+function timedOut(step: string, origin: string | null) {
+  console.error(JSON.stringify({ fn: 'send-quote', step, timeout: true }))
+  return json({ error: 'timeout' }, 504, origin)
 }
 
 function escapeHtml(s: string) {
@@ -121,21 +131,23 @@ Deno.serve(async (req) => {
 
   const url = Deno.env.get('SUPABASE_URL')!
   const userClient = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, {
-    global: { headers: { Authorization: authorization } },
+    global: { headers: { Authorization: authorization }, fetch: fetchWithTimeout },
     auth: { persistSession: false },
   })
-  const { data: userRes } = await userClient.auth.getUser()
+  const { data: userRes, error: userErr } = await userClient.auth.getUser()
+  if (isTimeout(userErr)) return timedOut('user', origin)
   const user = userRes?.user
   if (!user) return json({ error: 'Not signed in' }, 401, origin)
 
   // Both reads run under RLS: only org admins and members get rows back
-  const [{ data: quote }, { data: version }] = await Promise.all([
+  const [{ data: quote, error: quoteErr }, { data: version, error: versionErr }] = await Promise.all([
     userClient.from('quotes').select('id, org_id, number, title, language, client_name, organisations(name, email, quote_number_prefix)').eq('id', quoteId).maybeSingle(),
     userClient.from('quote_versions').select('id, quote_id, snapshot').eq('id', versionId).eq('quote_id', quoteId).maybeSingle(),
   ])
+  if (isTimeout(quoteErr) || isTimeout(versionErr)) return timedOut('read', origin)
   if (!quote || !version) return json({ error: 'Quote not found' }, 404, origin)
 
-  const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
+  const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { global: { fetch: fetchWithTimeout }, auth: { persistSession: false } })
   const token = randomToken()
   const expiresAt = new Date(Date.now() + LINK_DAYS * 24 * 3600e3)
 
@@ -151,6 +163,9 @@ Deno.serve(async (req) => {
       return json({ duplicate: true, share_id: earlier.id, emailed: earlier.emailed }, 200, origin)
     }
   }
+  // The link may have been stored after all; the app's retry carries the same key and is answered
+  // as a duplicate
+  if (isTimeout(shareErr)) return timedOut('insert', origin)
   if (shareErr || !share) {
     console.error(JSON.stringify({ fn: 'send-quote', step: 'insert', message: shareErr?.message }))
     return json({ error: 'Could not create the link' }, 500, origin)
@@ -199,20 +214,26 @@ Deno.serve(async (req) => {
   const text = [fill(s.greeting, vars), '', fill(s.body, vars), '', `${s.open}: ${link}`, '', fill(s.expires, vars), '', fill(s.footer, vars)].join('\n')
 
   const replyTo = org.email && EMAIL.test(org.email) ? org.email : user.email
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: { 'api-key': apiKey, 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify({
-      sender: { name: orgName.slice(0, 70), email: from },
-      to: [{ email, ...(clientName ? { name: clientName.slice(0, 70) } : {}) }],
-      ...(replyTo ? { replyTo: { email: replyTo } } : {}),
-      subject: fill(s.subject, vars),
-      htmlContent: html,
-      textContent: text,
-      ...(pdf ? { attachment: [{ content: pdf, name: pdfName }] } : {}),
-      tags: ['quote'],
-    }),
-  })
+  let res: Response
+  try {
+    res = await fetchWithTimeout('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': apiKey, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        sender: { name: orgName.slice(0, 70), email: from },
+        to: [{ email, ...(clientName ? { name: clientName.slice(0, 70) } : {}) }],
+        ...(replyTo ? { replyTo: { email: replyTo } } : {}),
+        subject: fill(s.subject, vars),
+        htmlContent: html,
+        textContent: text,
+        ...(pdf ? { attachment: [{ content: pdf, name: pdfName }] } : {}),
+        tags: ['quote'],
+      }),
+    })
+  } catch (err) {
+    console.error(JSON.stringify({ fn: 'send-quote', step: 'brevo', timeout: isTimeout(err) }))
+    return json({ link, share_id: share.id, emailed: false, email_error: isTimeout(err) ? 'timeout' : 'send_failed' }, 200, origin)
+  }
   if (!res.ok) {
     console.error(JSON.stringify({ fn: 'send-quote', step: 'brevo', status: res.status }))
     return json({ link, share_id: share.id, emailed: false, email_error: 'send_failed' }, 200, origin)
