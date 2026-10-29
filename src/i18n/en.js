@@ -275,6 +275,7 @@ export default {
   'invite.already': '{email} is already a member.',
   'invite.emailed': "Invitation emailed to {email}. They'll be added as soon as they accept.",
   'invite.notEmailed': "{email} doesn't have an account yet and the invitation email couldn't be sent. Share {link} with them — once they sign up with this email they'll be added automatically.",
+  'invite.rateLimited': "Invite to {email} saved, but the email wasn't sent because a lot of invites have gone out recently. Try again later, or share {link} with them — once they sign up with this email they'll be added automatically.",
 
   'feed.title': 'Gig feed',
   'feed.subtitle': 'Updates, notices and important information for the team.',
@@ -736,6 +737,7 @@ export default {
   'send.linkReady': "Link created",
   'send.emailNotConfigured': "Email isn't set up for this app yet, so nothing was emailed. Copy the link and send it yourself.",
   'send.emailFailed': "The email couldn't be sent. Copy the link and send it yourself.",
+  'send.emailRateLimited': "Link created, but the email wasn't sent because the limit for quote emails was reached. Copy the link and send it yourself, or try again later.",
   'send.history': "Sent",
   'send.noHistory': "Not sent yet.",
   'send.linkOnly': "Link only",
@@ -1733,6 +1735,7 @@ export default {
   "push.failed": "Couldn’t change notifications: {reason}",
   "push.test": "Send a test",
   "push.testNone": "No device got it. Turn notifications off and on again.",
+  "push.testRateLimited": "You've sent several test notifications. Try again in an hour.",
   "push.installFirst": "On iPhone and iPad, add AVX to the home screen first (Share → Add to Home Screen) and open it from there, then turn notifications on.",
   "push.unsupported": "This browser can’t show notifications from AVX.",
   "chat.outbox.waiting": "Waiting for a connection",

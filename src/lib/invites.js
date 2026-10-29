@@ -31,9 +31,10 @@ export async function sendInvite({ kind, targetId, email, role, functionTitle, c
   return data
 }
 
-export function inviteMessage(email, { result, emailed }) {
+export function inviteMessage(email, { result, emailed, email_error: emailError }) {
   if (result === 'added') return { kind: 'success', text: t('invite.added', { email }) }
   if (result === 'already_member') return { kind: 'info', text: t('invite.already', { email }) }
   if (emailed) return { kind: 'success', text: t('invite.emailed', { email }) }
+  if (emailError === 'rate_limited') return { kind: 'info', text: t('invite.rateLimited', { email, link: `${window.location.origin}/auth` }) }
   return { kind: 'info', text: t('invite.notEmailed', { email, link: `${window.location.origin}/auth` }) }
 }

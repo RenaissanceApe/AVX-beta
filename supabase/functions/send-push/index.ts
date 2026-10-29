@@ -8,6 +8,9 @@
 //                                are made here on first use and kept in push_keys (no user reads it).
 // POST { action: 'test' }      → signed-in user: a test notification to their own devices.
 //
+// Send limits (migration 20261204000000): at most 60 pushes an hour per person, and 5 tests an
+// hour; a test over the limit answers 429 { error: 'rate_limited' }.
+//
 // Same rules as the email summary: nothing from an organisation the person muted, except things
 // addressed to them. Devices the push service no longer knows are turned off. JWT verification is
 // off (the database calls it); user actions check the caller's token here. Logs carry counts only.
@@ -15,6 +18,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 import { type Lang, type Notification, DIRECT_KINDS, STRINGS, describe, linkFor } from '../_shared/notification-text.ts'
+import { claimSend } from '../_shared/send-limits.ts'
 
 const ALLOWED_ORIGINS = ['https://avx-beta.vercel.app', 'http://localhost:5173', 'http://localhost:4173']
 const PREVIEW_ORIGIN = /^https:\/\/avx-beta-[a-z0-9-]+\.vercel\.app$/
@@ -97,6 +101,13 @@ Deno.serve(async (req) => {
     const user = await caller(req)
     if (!user) return json({ error: 'Not signed in' }, 401)
     if (body.action === 'key') return json({ publicKey: (await keys()).public_key })
+    // The test is counted as the user (claim_send uses their token)
+    const userClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: req.headers.get('Authorization')! } }, auth: { persistSession: false },
+    })
+    const claim = await claimSend(userClient, 'claim_send', { p_kind: 'push_test' })
+    if (claim === 'limited') return json({ error: 'rate_limited' }, 429)
+    if (claim === 'error') return json({ error: 'Could not send' }, 500)
     const { data: profile } = await admin.from('profiles').select('language').eq('id', user.id).maybeSingle()
     const lang: Lang = profile?.language === 'pt' ? 'pt' : 'en'
     const sent = await deliver(await devicesOf(user.id), { title: 'AVX', body: STRINGS[lang].pushTest, url: '/dashboard', tag: 'avx-test' })
@@ -122,6 +133,8 @@ Deno.serve(async (req) => {
   const { data: claimed } = await admin.from('notifications').update({ pushed_at: new Date().toISOString() })
     .eq('id', id).or(`pushed_at.is.null,pushed_at.lt.${new Date(created - 2 * 60e3).toISOString()}`).select('id')
   if (!claimed?.length) return json({ skipped: 'changed' })
+  const claim = await claimSend(admin, 'claim_system_send', { p_kind: 'push', p_user: n.user_id })
+  if (claim !== 'ok') return json({ skipped: claim === 'limited' ? 'limited' : 'limit check failed' })
 
   const [{ data: profile }, { data: actor }] = await Promise.all([
     admin.from('profiles').select('language').eq('id', n.user_id).maybeSingle(),

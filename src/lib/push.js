@@ -61,6 +61,8 @@ export async function turnOff() {
 
 export async function sendTest() {
   const { data, error } = await supabase.functions.invoke('send-push', { body: { action: 'test' } })
+  // 429: over the test limit (send limits)
+  if (error?.context?.status === 429) return 'rate_limited'
   if (error) throw error
   return data?.sent || 0
 }

@@ -12,8 +12,12 @@
 //
 // Function secrets: BREVO_API_KEY and DIGEST_FROM (same as the email digest) to send
 // email; without them the link is returned for the user to copy. Optional: APP_URL.
+//
+// Each email counts against the send limits (claim_send, as the user). Over a limit the link is
+// still made and returned with email_error: 'rate_limited', for the user to send it themselves.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { claimSend } from '../_shared/send-limits.ts'
 
 const ALLOWED_ORIGINS = [
   'https://avx-beta.vercel.app',
@@ -149,6 +153,11 @@ Deno.serve(async (req) => {
   const apiKey = Deno.env.get('BREVO_API_KEY')
   const from = Deno.env.get('DIGEST_FROM')
   if (!apiKey || !from) return json({ link, share_id: share.id, emailed: false, email_error: 'not_configured' }, 200, origin)
+
+  const claim = await claimSend(userClient, 'claim_send', { p_kind: 'quote', p_org: quote.org_id, p_recipient: email })
+  if (claim !== 'ok') {
+    return json({ link, share_id: share.id, emailed: false, email_error: claim === 'limited' ? 'rate_limited' : 'send_failed' }, 200, origin)
+  }
 
   const org = (quote.organisations ?? {}) as { name?: string; email?: string; quote_number_prefix?: string | null }
   const snap = (version.snapshot ?? {}) as Record<string, unknown>

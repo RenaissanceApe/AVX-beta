@@ -6,8 +6,12 @@
 // this function use the service role to send Supabase's "Invite user" email, which
 // goes out through the project's SMTP settings. Creating that auth user fires
 // handle_new_user, which turns the pending invite into a membership.
+//
+// Each invite email counts against the send limits (claim_send, as the user). Over a limit the
+// invite is still stored and the app says the email wasn't sent (email_error: 'rate_limited').
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { claimSend } from '../_shared/send-limits.ts'
 
 const ALLOWED_ORIGINS = [
   'https://avx-beta.vercel.app',
@@ -82,6 +86,13 @@ Deno.serve(async (req) => {
     return json({ error: rpcError.message }, 400, origin)
   }
   if (result !== 'invited') return json({ result, emailed: false }, 200, origin)
+
+  const claim = await claimSend(userClient, 'claim_send', {
+    p_kind: 'invite', p_recipient: email, ...(kind === 'gig' ? { p_gig: targetId } : { p_org: targetId }),
+  })
+  if (claim !== 'ok') {
+    return json({ result, emailed: false, email_error: claim === 'limited' ? 'rate_limited' : 'send_failed' }, 200, origin)
+  }
 
   const appOrigin = allowedOrigin(origin) ?? ALLOWED_ORIGINS[0]
   const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
