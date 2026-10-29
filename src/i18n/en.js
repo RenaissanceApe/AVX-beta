@@ -275,6 +275,7 @@ export default {
   'invite.already': '{email} is already a member.',
   'invite.emailed': "Invitation emailed to {email}. They'll be added as soon as they accept.",
   'invite.notEmailed': "{email} doesn't have an account yet and the invitation email couldn't be sent. Share {link} with them — once they sign up with this email they'll be added automatically.",
+  'invite.alreadySent': "An invitation was already emailed to {email} a moment ago.",
   'invite.rateLimited': "Invite to {email} saved, but the email wasn't sent because a lot of invites have gone out recently. Try again later, or share {link} with them — once they sign up with this email they'll be added automatically.",
 
   'feed.title': 'Gig feed',
@@ -734,6 +735,7 @@ export default {
   'send.copyPrompt': "Copy this link:",
   'send.linkOnce': "For security the link is only shown now. If you lose it, send the quote again (that replaces this link).",
   'send.emailed': "Quote sent to {email}",
+  'send.alreadySent': "This send already went through a moment ago: see the history below. Click Send again only if you want to send it once more.",
   'send.linkReady': "Link created",
   'send.emailNotConfigured': "Email isn't set up for this app yet, so nothing was emailed. Copy the link and send it yourself.",
   'send.emailFailed': "The email couldn't be sent. Copy the link and send it yourself.",

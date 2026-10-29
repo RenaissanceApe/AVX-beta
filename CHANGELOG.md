@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.63.2 — No double emails
+
+### Fixed
+- **A quote is emailed once.** If the network is slow or drops just after you click "Send by email"
+  and you click again, AVX now sees it's the same send: the client gets one email, the link in it
+  keeps working (before, the second click replaced it), and no extra version is saved. The screen
+  says it was already sent and shows it in the history (EN, PT).
+- **An invite is emailed once.** Two invites to the same new address at the same moment (a
+  double-click, two tabs, two admins) send one email; the other says it was already emailed a
+  moment ago. If the email fails, inviting again still sends it.
+- Push notifications already couldn't go out twice; nothing changed there.
+- Database checks for both (`supabase/tests/no_double_sends.sql`).
 ## 0.63.1 — Limits on emails and push notifications
 
 ### Added

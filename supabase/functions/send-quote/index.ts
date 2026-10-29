@@ -3,8 +3,8 @@
 //
 // The app saves the version first (quote_versions, as the user) and passes its id.
 // Access is checked by reading the quote and the version with the caller's own
-// token: if RLS hides them, nothing happens. Only then does the service role revoke
-// the quote's previous open links and store the new one. The link carries a random
+// token: if RLS hides them, nothing happens. Only then does the service role store the
+// new link and revoke the quote's previous open ones. The link carries a random
 // token; only its SHA-256 hash is stored, so the link is shown once.
 //
 // The app may send a PDF of the same version (base64, made in the browser); it is
@@ -12,6 +12,10 @@
 //
 // Function secrets: BREVO_API_KEY and DIGEST_FROM (same as the email digest) to send
 // email; without them the link is returned for the user to copy. Optional: APP_URL.
+//
+// The app sends a request_key per send, and the same key again on a retry. It is stored with the
+// link (unique per quote), so a second request with that key creates no link and sends no email:
+// it answers { duplicate: true, share_id, emailed } instead.
 //
 // Each email counts against the send limits (claim_send, as the user). Over a limit the link is
 // still made and returned with email_error: 'rate_limited', for the user to send it themselves.
@@ -30,6 +34,7 @@ const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 // Base64 of a PDF (starts with "%PDF-"), at most about 3 MB
 const PDF_BASE64 = /^JVBERi0[A-Za-z0-9+/]+={0,2}$/
 const MAX_PDF_CHARS = 4_000_000
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 function allowedOrigin(origin: string | null): string | null {
   if (!origin) return null
@@ -107,7 +112,8 @@ Deno.serve(async (req) => {
   const versionId = String(body.version_id ?? '')
   const email = String(body.email ?? '').trim().toLowerCase()
   const sendEmail = body.send_email === true && email !== ''
-  if (!quoteId || !versionId || (email && (!EMAIL.test(email) || email.length > 200))) {
+  const requestKey = body.request_key == null ? null : String(body.request_key)
+  if (!quoteId || !versionId || (email && (!EMAIL.test(email) || email.length > 200)) || (requestKey && !UUID.test(requestKey))) {
     return json({ error: 'Invalid request' }, 400, origin)
   }
   const pdf = typeof body.pdf === 'string' && body.pdf.length <= MAX_PDF_CHARS && PDF_BASE64.test(body.pdf) ? body.pdf : null
@@ -133,18 +139,27 @@ Deno.serve(async (req) => {
   const token = randomToken()
   const expiresAt = new Date(Date.now() + LINK_DAYS * 24 * 3600e3)
 
-  // One live link per quote: sending again replaces the previous one
-  const { error: revokeErr } = await admin.from('quote_shares').update({ status: 'revoked' }).eq('quote_id', quoteId).eq('status', 'open')
-  if (revokeErr) console.error(JSON.stringify({ fn: 'send-quote', step: 'revoke', message: revokeErr.message }))
-
   const { data: share, error: shareErr } = await admin.from('quote_shares').insert({
     quote_id: quoteId, org_id: quote.org_id, version_id: versionId, token_hash: await sha256Hex(token),
-    sent_to: email || null, expires_at: expiresAt.toISOString(), created_by: user.id,
+    sent_to: email || null, expires_at: expiresAt.toISOString(), created_by: user.id, request_key: requestKey,
   }).select('id').single()
+  // Same key as an earlier request (a retry or a double-click): that one already made the link
+  if (shareErr?.code === '23505' && requestKey) {
+    const { data: earlier } = await admin.from('quote_shares').select('id, emailed').eq('quote_id', quoteId).eq('request_key', requestKey).maybeSingle()
+    if (earlier) {
+      console.log(JSON.stringify({ fn: 'send-quote', step: 'duplicate' }))
+      return json({ duplicate: true, share_id: earlier.id, emailed: earlier.emailed }, 200, origin)
+    }
+  }
   if (shareErr || !share) {
     console.error(JSON.stringify({ fn: 'send-quote', step: 'insert', message: shareErr?.message }))
     return json({ error: 'Could not create the link' }, 500, origin)
   }
+
+  // One live link per quote: sending again replaces the previous one (only after the new link is
+  // made, so a duplicate request never revokes the link that was just sent)
+  const { error: revokeErr } = await admin.from('quote_shares').update({ status: 'revoked' }).eq('quote_id', quoteId).eq('status', 'open').neq('id', share.id)
+  if (revokeErr) console.error(JSON.stringify({ fn: 'send-quote', step: 'revoke', message: revokeErr.message }))
 
   const appUrl = (allowedOrigin(origin) ?? Deno.env.get('APP_URL') ?? ALLOWED_ORIGINS[0]).replace(/\/$/, '')
   const link = `${appUrl}/q/${token}`

@@ -7,6 +7,11 @@
 // goes out through the project's SMTP settings. Creating that auth user fires
 // handle_new_user, which turns the pending invite into a membership.
 //
+// No double sends: before emailing, the invite is claimed (claim_invite_email, service role), which
+// succeeds once every 10 minutes. A second request at the same moment (a double-click, a retry, two
+// tabs) answers email_error: 'already_sent'. If the email isn't sent after all, the claim is
+// released so a retry can send it.
+//
 // Each invite email counts against the send limits (claim_send, as the user). Over a limit the
 // invite is still stored and the app says the email wasn't sent (email_error: 'rate_limited').
 
@@ -87,19 +92,33 @@ Deno.serve(async (req) => {
   }
   if (result !== 'invited') return json({ result, emailed: false }, 200, origin)
 
+  const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
+  const invite = { p_kind: kind, p_target: targetId, p_email: email }
+  const { data: claimed, error: claimError } = await admin.rpc('claim_invite_email', invite)
+  if (claimError) {
+    console.error(JSON.stringify({ fn: 'send-invite', step: 'claim', kind, code: claimError.code }))
+    return json({ result, emailed: false, email_error: 'send_failed' }, 200, origin)
+  }
+  if (claimed !== true) return json({ result, emailed: false, email_error: 'already_sent' }, 200, origin)
+  const release = async () => {
+    const { error } = await admin.rpc('release_invite_email', invite)
+    if (error) console.error(JSON.stringify({ fn: 'send-invite', step: 'release', kind, code: error.code }))
+  }
+
   const claim = await claimSend(userClient, 'claim_send', {
     p_kind: 'invite', p_recipient: email, ...(kind === 'gig' ? { p_gig: targetId } : { p_org: targetId }),
   })
   if (claim !== 'ok') {
+    await release()
     return json({ result, emailed: false, email_error: claim === 'limited' ? 'rate_limited' : 'send_failed' }, 200, origin)
   }
 
   const appOrigin = allowedOrigin(origin) ?? ALLOWED_ORIGINS[0]
-  const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
   const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${appOrigin}/welcome`,
   })
   if (inviteError) {
+    await release()
     // The pending invite is stored either way; the person can still sign up themselves.
     console.error(JSON.stringify({ fn: 'send-invite', step: 'inviteUserByEmail', kind, status: inviteError.status, message: inviteError.message }))
     return json({ result, emailed: false, email_error: inviteError.message }, 200, origin)
