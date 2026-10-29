@@ -137,3 +137,7 @@ ROADMAP.md.
 - Versions, client links and positions: `quote_versions`, `quote_shares` and `gig_positions`
   (migration `20261021000000_quote_versions_shares_positions.sql`). Links are created only by the
   `send-quote` Edge Function and answered only through `quote-public`; members can only turn a link off.
+- No double sends: each click of Send carries a key (`quote_shares.request_key`, unique per quote,
+  migration `20261205000000_no_double_sends.sql`). Clicking again after an error reuses the key and the
+  saved version, so `send-quote` answers `duplicate` instead of a second link and email. The new link
+  is stored before the older ones are revoked, so a duplicate never kills the link that was sent.
