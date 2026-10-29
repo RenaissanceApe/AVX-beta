@@ -132,9 +132,10 @@ Deno.serve(async (req) => {
   }
   if (inviteError) {
     await release()
-    // The pending invite is stored either way; the person can still sign up themselves.
-    console.error(JSON.stringify({ fn: 'send-invite', step: 'inviteUserByEmail', kind, status: inviteError.status, message: inviteError.message }))
-    return json({ result, emailed: false, email_error: inviteError.message }, 200, origin)
+    // The pending invite is stored either way; the person can still sign up themselves. Status and
+    // code only: the message can repeat what was sent
+    console.error(JSON.stringify({ fn: 'send-invite', step: 'inviteUserByEmail', kind, status: inviteError.status, code: inviteError.code }))
+    return json({ result, emailed: false, email_error: 'send_failed' }, 200, origin)
   }
   console.log(JSON.stringify({ fn: 'send-invite', step: 'emailed', kind }))
   return json({ result, emailed: true }, 200, origin)

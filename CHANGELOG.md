@@ -12,6 +12,10 @@
   twice on its own. Nothing is retried automatically where a retry could send a second email.
 - The daily email summary stops for the day if Brevo stops answering, and never puts the same
   notifications in two summaries.
+- **Long jobs finish in time.** The daily email summary and the nightly message clean-up stop
+  starting new work after 100 seconds, so they always finish before Supabase's 150-second limit;
+  whatever is left is done on the next run.
+- A failed invitation email no longer passes the email service's own error text back to the app.
 ## 0.63.2 — No double emails
 
 ### Fixed

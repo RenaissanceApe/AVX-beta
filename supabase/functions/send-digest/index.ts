@@ -20,12 +20,14 @@
 // - every call out has a time limit (_shared/timeout.ts). If Brevo doesn't answer in time, that
 //   person's notifications are marked emailed (it may have gone out; better a missed summary than
 //   the same one twice) and the run stops; the rest go in the next run. Nothing is retried.
+// - each run starts no new person after 100 s (_shared/timeout.ts, runBudget), so it answers before
+//   Supabase's 150 s limit; whoever is left goes in the next run (outOfTime in the summary).
 // Logs carry counts only, never addresses or content.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { type Lang, type Notification, DIRECT_KINDS, STRINGS, fill, describe, linkFor } from '../_shared/notification-text.ts'
 import { claimSend } from '../_shared/send-limits.ts'
-import { fetchWithTimeout, isTimeout } from '../_shared/timeout.ts'
+import { fetchWithTimeout, isTimeout, runBudget } from '../_shared/timeout.ts'
 
 const MAX_LINES = 20
 const MAX_PER_RUN = 2000
@@ -123,9 +125,11 @@ Deno.serve(async (req) => {
   const prefs = new Map((recipients ?? []).map(p => [p.id, p]))
   const names: Record<string, string> = Object.fromEntries((actors ?? []).filter(p => p.full_name).map(p => [p.id, p.full_name]))
 
-  let sent = 0, optedOut = 0, failed = 0, mutedOnly = 0, limited = 0, timedOut = false
+  let sent = 0, optedOut = 0, failed = 0, mutedOnly = 0, limited = 0, timedOut = false, outOfTime = false
+  const overBudget = runBudget()
   for (const [userId, all] of byUser) {
-    if (timedOut) { limited++; continue }
+    if (!outOfTime && overBudget()) outOfTime = true
+    if (timedOut || outOfTime) { limited++; continue }
     if (sent >= MAX_PER_RUN) { limited++; continue }
     const pref = prefs.get(userId)
     if (!pref || pref.email_digest === false) { optedOut++; continue }
@@ -180,7 +184,7 @@ Deno.serve(async (req) => {
     sent++
   }
 
-  const summary = { users: byUser.size, sent, optedOut, mutedOnly, limited, failed, timedOut, dryRun }
+  const summary = { users: byUser.size, sent, optedOut, mutedOnly, limited, failed, timedOut, outOfTime, dryRun }
   console.log(JSON.stringify({ fn: 'send-digest', step: 'done', ...summary }))
   return json(summary)
 })

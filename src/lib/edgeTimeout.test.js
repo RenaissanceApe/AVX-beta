@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { fetchWithTimeout, isTimeout, withTimeout } from '../../supabase/functions/_shared/timeout.ts'
+import { fetchWithTimeout, isTimeout, runBudget, withTimeout } from '../../supabase/functions/_shared/timeout.ts'
 
 // A service that never answers, but stops when the request is aborted (as fetch does)
 const hangingFetch = (_url, init) => new Promise((_, reject) => {
@@ -34,6 +34,17 @@ describe('Edge Function timeouts', () => {
     const err = await withTimeout(new Promise(() => {}), 'push service', 20).catch(e => e)
     expect(err.message).toBe('push service timed out after 20 ms')
     expect(await withTimeout(Promise.resolve(3), 'x', 20)).toBe(3)
+  })
+
+  it('tells a batch job when its time is up', () => {
+    vi.useFakeTimers()
+    const overBudget = runBudget(1000)
+    expect(overBudget()).toBe(false)
+    vi.advanceTimersByTime(999)
+    expect(overBudget()).toBe(false)
+    vi.advanceTimersByTime(1)
+    expect(overBudget()).toBe(true)
+    vi.useRealTimers()
   })
 
   it('recognises a timeout returned as a Supabase error', () => {

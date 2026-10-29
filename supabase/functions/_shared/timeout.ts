@@ -33,6 +33,17 @@ export async function fetchWithTimeout(input: string | URL | Request, init: Requ
   }
 }
 
+// For jobs that loop over many calls (send-digest, message-retention). Supabase stops a function
+// that hasn't answered after 150 s, so before each new piece of work a job asks the check that
+// runBudget() returns, and leaves the rest for its next run once it says time is up. 100 s leaves
+// room for the piece already under way (a few calls of up to 10 s each).
+export const RUN_BUDGET_MS = 100_000
+
+export function runBudget(ms = RUN_BUDGET_MS) {
+  const end = Date.now() + ms
+  return () => Date.now() >= end
+}
+
 // For calls that aren't a fetch we make ourselves (the web-push library). Stops waiting after `ms`;
 // the call itself may still finish in the background.
 export async function withTimeout<T>(promise: Promise<T>, what: string, ms = TIMEOUT_MS): Promise<T> {
