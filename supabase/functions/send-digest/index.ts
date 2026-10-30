@@ -17,11 +17,17 @@
 //   to them (availability requests, messages, announcements, crew calls, client/supplier messages)
 // - send limits (claim_system_send): one digest per person per 20 hours, and the project's daily
 //   email cap; at most MAX_PER_RUN emails per run. Whatever is held back goes in the next digest.
+// - every call out has a time limit (_shared/timeout.ts). If Brevo doesn't answer in time, that
+//   person's notifications are marked emailed (it may have gone out; better a missed summary than
+//   the same one twice) and the run stops; the rest go in the next run. Nothing is retried.
+// - each run starts no new person after 100 s (_shared/timeout.ts, runBudget), so it answers before
+//   Supabase's 150 s limit; whoever is left goes in the next run (outOfTime in the summary).
 // Logs carry counts only, never addresses or content.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { type Lang, type Notification, DIRECT_KINDS, STRINGS, fill, describe, linkFor } from '../_shared/notification-text.ts'
 import { claimSend } from '../_shared/send-limits.ts'
+import { fetchWithTimeout, isTimeout, runBudget } from '../_shared/timeout.ts'
 
 const MAX_LINES = 20
 const MAX_PER_RUN = 2000
@@ -82,7 +88,7 @@ Deno.serve(async (req) => {
   const dryRun = new URL(req.url).searchParams.get('dry') === '1'
 
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
-    auth: { persistSession: false },
+    global: { fetch: fetchWithTimeout }, auth: { persistSession: false },
   })
 
   const now = Date.now()
@@ -94,7 +100,7 @@ Deno.serve(async (req) => {
     .order('created_at', { ascending: false })
     .limit(5000)
   if (error) {
-    console.error(JSON.stringify({ fn: 'send-digest', step: 'load', message: error.message }))
+    console.error(JSON.stringify({ fn: 'send-digest', step: 'load', message: error.message, timeout: isTimeout(error) }))
     return json({ error: 'Could not load notifications' }, 500)
   }
 
@@ -119,8 +125,11 @@ Deno.serve(async (req) => {
   const prefs = new Map((recipients ?? []).map(p => [p.id, p]))
   const names: Record<string, string> = Object.fromEntries((actors ?? []).filter(p => p.full_name).map(p => [p.id, p.full_name]))
 
-  let sent = 0, optedOut = 0, failed = 0, mutedOnly = 0, limited = 0
+  let sent = 0, optedOut = 0, failed = 0, mutedOnly = 0, limited = 0, timedOut = false, outOfTime = false
+  const overBudget = runBudget()
   for (const [userId, all] of byUser) {
+    if (!outOfTime && overBudget()) outOfTime = true
+    if (timedOut || outOfTime) { limited++; continue }
     if (sent >= MAX_PER_RUN) { limited++; continue }
     const pref = prefs.get(userId)
     if (!pref || pref.email_digest === false) { optedOut++; continue }
@@ -139,18 +148,31 @@ Deno.serve(async (req) => {
 
     const lang: Lang = pref.language === 'pt' ? 'pt' : 'en'
     const { subject, html, text } = renderEmail(items, lang, names, appUrl)
-    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: { 'api-key': apiKey, 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        sender: { name: 'AVX', email: from },
-        to: [{ email }],
-        subject,
-        htmlContent: html,
-        textContent: text,
-        tags: ['digest'],
-      }),
-    })
+    let res: Response
+    try {
+      res = await fetchWithTimeout('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: { 'api-key': apiKey, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          sender: { name: 'AVX', email: from },
+          to: [{ email }],
+          subject,
+          htmlContent: html,
+          textContent: text,
+          tags: ['digest'],
+        }),
+      })
+    } catch (err) {
+      failed++
+      timedOut = isTimeout(err)
+      console.error(JSON.stringify({ fn: 'send-digest', step: 'brevo', timeout: timedOut }))
+      if (!timedOut) continue
+      // It may have gone out: don't put the same notifications in tomorrow's email
+      const { error: markErr } = await admin.from('notifications')
+        .update({ emailed_at: new Date().toISOString() }).in('id', items.map(n => n.id))
+      if (markErr) console.error(JSON.stringify({ fn: 'send-digest', step: 'mark', message: markErr.message }))
+      continue
+    }
     if (!res.ok) {
       failed++
       console.error(JSON.stringify({ fn: 'send-digest', step: 'brevo', status: res.status }))
@@ -162,7 +184,7 @@ Deno.serve(async (req) => {
     sent++
   }
 
-  const summary = { users: byUser.size, sent, optedOut, mutedOnly, limited, failed, dryRun }
+  const summary = { users: byUser.size, sent, optedOut, mutedOnly, limited, failed, timedOut, outOfTime, dryRun }
   console.log(JSON.stringify({ fn: 'send-digest', step: 'done', ...summary }))
   return json(summary)
 })

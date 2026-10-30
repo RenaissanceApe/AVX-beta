@@ -9,6 +9,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { readVies } from '../_shared/vies.ts'
+import { fetchWithTimeout, isTimeout } from '../_shared/timeout.ts'
 
 const ALLOWED_ORIGINS = [
   'https://avx-beta.vercel.app',
@@ -38,11 +39,15 @@ Deno.serve(async (req) => {
 
   // As the person: their rights, their two-step sign-in, their limits
   const asUser = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
-    global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } }, auth: { persistSession: false },
+    global: { headers: { Authorization: req.headers.get('Authorization') ?? '' }, fetch: fetchWithTimeout }, auth: { persistSession: false },
   })
   const { data: started, error } = await asUser.rpc('start_vies_check', {
     p_org: String(body?.org ?? ''), p_country: String(body?.country ?? ''), p_number: String(body?.number ?? ''),
   })
+  if (isTimeout(error)) {
+    console.error(JSON.stringify({ fn: 'vies-check', step: 'start', timeout: true }))
+    return json({ error: 'timeout' }, 504, origin)
+  }
   if (error) {
     const status = error.code === '42501' ? 403 : error.code === '54000' ? 429 : 400
     return json({ error: error.message, code: error.code }, status, origin)
@@ -50,26 +55,27 @@ Deno.serve(async (req) => {
 
   let result: { valid: boolean, name: string | null, address: string | null, error: string | null }
   try {
-    const res = await fetch(VIES, {
+    // VIES is often slow, so it gets 20 s rather than the usual 10
+    const res = await fetchWithTimeout(VIES, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ countryCode: started.country, vatNumber: started.vat_number }),
-      signal: AbortSignal.timeout(20000),
-    })
+    }, 20_000)
     result = readVies(res.ok ? await res.json() : { errorWrappers: [{ error: `HTTP_${res.status}` }] })
-  } catch {
+  } catch (err) {
+    console.error(JSON.stringify({ fn: 'vies-check', step: 'vies', timeout: isTimeout(err) }))
     result = { valid: false, name: null, address: null, error: 'UNREACHABLE' }
   }
 
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
-    auth: { persistSession: false },
+    global: { fetch: fetchWithTimeout }, auth: { persistSession: false },
   })
   const { data: status, error: recordError } = await admin.rpc('record_vies_result', {
     p_id: started.id, p_valid: result.valid, p_name: result.name, p_address: result.address, p_error: result.error,
   })
   if (recordError) {
-    console.error(JSON.stringify({ fn: 'vies-check', step: 'record', code: recordError.code }))
-    return json({ error: 'Could not record the answer' }, 500, origin)
+    console.error(JSON.stringify({ fn: 'vies-check', step: 'record', code: recordError.code, timeout: isTimeout(recordError) }))
+    return json({ error: isTimeout(recordError) ? 'timeout' : 'Could not record the answer' }, isTimeout(recordError) ? 504 : 500, origin)
   }
   console.log(JSON.stringify({ fn: 'vies-check', step: 'done', status, country: started.country }))
   return json({ status, name: result.name, reason: result.error }, 200, origin)

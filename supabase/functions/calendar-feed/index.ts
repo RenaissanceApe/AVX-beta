@@ -5,6 +5,7 @@
 // time. JWT verification is off for this function.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { fetchWithTimeout, isTimeout } from '../_shared/timeout.ts'
 import { buildCalendar, type FeedGig, type FeedLang } from '../_shared/ics.ts'
 
 const APP_URL = Deno.env.get('APP_URL') ?? 'https://avx-beta.vercel.app'
@@ -18,8 +19,12 @@ Deno.serve(async (req) => {
   const token = new URL(req.url).searchParams.get('t') ?? ''
   if (!/^[0-9a-f]{64}$/.test(token)) return text('Not found', 404)
 
-  const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
-  const { data: feed } = await admin.from('calendar_feeds').select('user_id').eq('token', token).maybeSingle()
+  const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
+    global: { fetch: fetchWithTimeout }, auth: { persistSession: false },
+  })
+  const { data: feed, error: feedError } = await admin.from('calendar_feeds').select('user_id').eq('token', token).maybeSingle()
+  // Not "Not found" when the database was only slow: a calendar app may drop a feed that's gone
+  if (isTimeout(feedError)) return text('Calendar not available right now', 503)
   if (!feed) return text('Not found', 404)
 
   const since = new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10)
@@ -31,7 +36,7 @@ Deno.serve(async (req) => {
     admin.from('profiles').select('language').eq('id', feed.user_id).maybeSingle(),
   ])
   if (error) {
-    console.error('calendar-feed', error.message)
+    console.error(JSON.stringify({ fn: 'calendar-feed', step: 'gigs', timeout: isTimeout(error) }))
     return text('Calendar not available right now', 503)
   }
   await admin.from('calendar_feeds').update({ last_used_at: new Date().toISOString() }).eq('user_id', feed.user_id)

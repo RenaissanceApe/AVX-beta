@@ -4,11 +4,15 @@
 //
 // Files go first: a message is deleted only once its files are gone, so nothing is left behind
 // that nobody can see any more. Direct conversations are never touched. Logs carry counts only.
+//
+// Every call has a time limit, and a run starts no new message after 100 s (_shared/timeout.ts),
+// so it answers before Supabase's 150 s limit; the rest wait for the next night (outOfTime).
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { fetchWithTimeout, isTimeout, runBudget } from '../_shared/timeout.ts'
 
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
-  auth: { persistSession: false },
+  global: { fetch: fetchWithTimeout }, auth: { persistSession: false },
 })
 const BATCH = 500
 const MAX_BATCHES = 20 // up to 10,000 messages a night; the rest the next night
@@ -27,11 +31,14 @@ function sameKey(a: string, b: string) {
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
-  const { data: key } = await admin.from('job_keys').select('secret').eq('name', 'message_retention').maybeSingle()
+  const { data: key, error: keyError } = await admin.from('job_keys').select('secret').eq('name', 'message_retention').maybeSingle()
+  if (isTimeout(keyError)) return json({ error: 'timeout' }, 504)
   if (!key || !sameKey(req.headers.get('x-job-key') ?? '', key.secret)) return json({ error: 'Forbidden' }, 403)
 
-  let deleted = 0, files = 0, failed = 0
-  for (let batch = 0; batch < MAX_BATCHES; batch++) {
+  let deleted = 0, files = 0, failed = 0, outOfTime = false
+  const overBudget = runBudget()
+  for (let batch = 0; batch < MAX_BATCHES && !outOfTime; batch++) {
+    if (overBudget()) { outOfTime = true; break }
     const { data: due, error } = await admin.rpc('retention_due', { p_limit: BATCH })
     if (error) {
       console.error(JSON.stringify({ fn: 'message-retention', step: 'due', message: error.message }))
@@ -42,6 +49,8 @@ Deno.serve(async (req) => {
     // Files first; a message whose files couldn't be removed stays for the next night
     const ready: string[] = []
     for (const m of due as { id: string; paths: string[] }[]) {
+      // Out of time: the messages already cleared are still deleted below
+      if (overBudget()) { outOfTime = true; break }
       if (!m.paths.length) { ready.push(m.id); continue }
       const { error: removeError } = await admin.storage.from('message-files').remove(m.paths)
       if (removeError) { failed++; continue }
@@ -58,6 +67,6 @@ Deno.serve(async (req) => {
     if (due.length < BATCH) break
   }
 
-  console.log(JSON.stringify({ fn: 'message-retention', step: 'done', deleted, files, failed }))
-  return json({ deleted, files, failed })
+  console.log(JSON.stringify({ fn: 'message-retention', step: 'done', deleted, files, failed, outOfTime }))
+  return json({ deleted, files, failed, outOfTime })
 })

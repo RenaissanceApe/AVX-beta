@@ -14,11 +14,15 @@
 // Same rules as the email summary: nothing from an organisation the person muted, except things
 // addressed to them. Devices the push service no longer knows are turned off. JWT verification is
 // off (the database calls it); user actions check the caller's token here. Logs carry counts only.
+//
+// Every call out has a time limit (_shared/timeout.ts), 10 s per device for the push services. A
+// device that doesn't answer in time is skipped, not retried (it may have shown the notification).
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 import { type Lang, type Notification, DIRECT_KINDS, STRINGS, describe, linkFor } from '../_shared/notification-text.ts'
 import { claimSend } from '../_shared/send-limits.ts'
+import { TIMEOUT_MS, fetchWithTimeout, isTimeout, withTimeout } from '../_shared/timeout.ts'
 
 const ALLOWED_ORIGINS = ['https://avx-beta.vercel.app', 'http://localhost:5173', 'http://localhost:4173']
 const PREVIEW_ORIGIN = /^https:\/\/avx-beta-[a-z0-9-]+\.vercel\.app$/
@@ -34,13 +38,15 @@ function corsHeaders(origin: string | null) {
 }
 
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
-  auth: { persistSession: false },
+  global: { fetch: fetchWithTimeout }, auth: { persistSession: false },
 })
 const SUBJECT = `mailto:${Deno.env.get('DIGEST_FROM') ?? 'info@lumenandpixel.com'}`
 
 // The keys, made once per project
 async function keys() {
-  const { data } = await admin.from('push_keys').select('public_key, private_key').eq('id', 1).maybeSingle()
+  const { data, error } = await admin.from('push_keys').select('public_key, private_key').eq('id', 1).maybeSingle()
+  // Only make new keys when there really are none, not when the database was slow to answer
+  if (error) throw error
   if (data) return data
   const made = webpush.generateVAPIDKeys()
   const row = {
@@ -49,7 +55,8 @@ async function keys() {
   }
   // Two first uses at once: keep whichever was stored first
   await admin.from('push_keys').upsert(row, { onConflict: 'id', ignoreDuplicates: true })
-  const { data: stored } = await admin.from('push_keys').select('public_key, private_key').eq('id', 1).single()
+  const { data: stored, error: storedError } = await admin.from('push_keys').select('public_key, private_key').eq('id', 1).single()
+  if (storedError) throw storedError
   return stored!
 }
 
@@ -62,13 +69,17 @@ async function deliver(subs: Sub[], payload: Record<string, unknown>) {
   let sent = 0
   for (const s of subs) {
     try {
-      await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(payload), { TTL: 3600, urgency: 'normal' })
+      // The library's own timeout covers a silent connection; withTimeout caps the whole send
+      await withTimeout(webpush.sendNotification(
+        { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(payload),
+        { TTL: 3600, urgency: 'normal', timeout: TIMEOUT_MS },
+      ), 'push service')
       sent++
       await admin.from('push_subscriptions').update({ last_used_at: new Date().toISOString() }).eq('id', s.id)
     } catch (err) {
       const status = (err as { statusCode?: number }).statusCode
       if (status === 404 || status === 410) await admin.from('push_subscriptions').update({ revoked_at: new Date().toISOString() }).eq('id', s.id)
-      else console.error(JSON.stringify({ fn: 'send-push', step: 'send', status: status ?? 'error' }))
+      else console.error(JSON.stringify({ fn: 'send-push', step: 'send', status: status ?? (isTimeout(err) ? 'timeout' : 'error') }))
     }
   }
   return sent
@@ -82,7 +93,8 @@ async function devicesOf(userId: string) {
 async function caller(req: Request) {
   const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
   if (!token) return null
-  const { data } = await admin.auth.getUser(token)
+  const { data, error } = await admin.auth.getUser(token)
+  if (isTimeout(error)) throw error
   return data.user ?? null
 }
 
@@ -98,20 +110,26 @@ Deno.serve(async (req) => {
 
   // ── From the app: the public key, or a test ─────────────────────────────────
   if (body.action === 'key' || body.action === 'test') {
-    const user = await caller(req)
-    if (!user) return json({ error: 'Not signed in' }, 401)
-    if (body.action === 'key') return json({ publicKey: (await keys()).public_key })
-    // The test is counted as the user (claim_send uses their token)
-    const userClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
-      global: { headers: { Authorization: req.headers.get('Authorization')! } }, auth: { persistSession: false },
-    })
-    const claim = await claimSend(userClient, 'claim_send', { p_kind: 'push_test' })
-    if (claim === 'limited') return json({ error: 'rate_limited' }, 429)
-    if (claim === 'error') return json({ error: 'Could not send' }, 500)
-    const { data: profile } = await admin.from('profiles').select('language').eq('id', user.id).maybeSingle()
-    const lang: Lang = profile?.language === 'pt' ? 'pt' : 'en'
-    const sent = await deliver(await devicesOf(user.id), { title: 'AVX', body: STRINGS[lang].pushTest, url: '/dashboard', tag: 'avx-test' })
-    return json({ sent })
+    try {
+      const user = await caller(req)
+      if (!user) return json({ error: 'Not signed in' }, 401)
+      if (body.action === 'key') return json({ publicKey: (await keys()).public_key })
+      // The test is counted as the user (claim_send uses their token)
+      const userClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+        global: { headers: { Authorization: req.headers.get('Authorization')! }, fetch: fetchWithTimeout }, auth: { persistSession: false },
+      })
+      const claim = await claimSend(userClient, 'claim_send', { p_kind: 'push_test' })
+      if (claim === 'limited') return json({ error: 'rate_limited' }, 429)
+      if (claim === 'error') return json({ error: 'Could not send' }, 500)
+      const { data: profile } = await admin.from('profiles').select('language').eq('id', user.id).maybeSingle()
+      const lang: Lang = profile?.language === 'pt' ? 'pt' : 'en'
+      const sent = await deliver(await devicesOf(user.id), { title: 'AVX', body: STRINGS[lang].pushTest, url: '/dashboard', tag: 'avx-test' })
+      return json({ sent })
+    } catch (err) {
+      // The sign-in check timed out, or the keys couldn't be read
+      console.error(JSON.stringify({ fn: 'send-push', step: body.action, timeout: isTimeout(err) }))
+      return json({ error: isTimeout(err) ? 'timeout' : 'Could not send' }, isTimeout(err) ? 504 : 500)
+    }
   }
 
   // ── From the database: one notification ─────────────────────────────────────

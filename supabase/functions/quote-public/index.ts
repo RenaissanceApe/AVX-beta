@@ -10,6 +10,7 @@
 // verification is off for this function (the client has no account).
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { fetchWithTimeout, isTimeout } from '../_shared/timeout.ts'
 
 const ALLOWED_ORIGINS = [
   'https://avx-beta.vercel.app',
@@ -64,11 +65,16 @@ Deno.serve(async (req) => {
   }
 
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
-    auth: { persistSession: false },
+    global: { fetch: fetchWithTimeout }, auth: { persistSession: false },
   })
-  const { data: share } = await admin.from('quote_shares')
+  const { data: share, error: shareError } = await admin.from('quote_shares')
     .select('id, quote_id, org_id, status, expires_at, viewed_at, responded_at, responder_name, created_by, quote_versions(snapshot), quotes(number, title, created_by)')
     .eq('token_hash', await sha256Hex(token)).maybeSingle()
+  // Slow, not missing: the page says something went wrong rather than "link not found"
+  if (isTimeout(shareError)) {
+    console.error(JSON.stringify({ fn: 'quote-public', step: 'load', timeout: true }))
+    return json({ error: 'timeout' }, 504, origin)
+  }
   if (!share || share.status === 'revoked') return json({ state: 'not_found' }, 404, origin)
 
   const { data: org } = await admin.from('organisations')

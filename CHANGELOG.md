@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.63.3 — No more waiting on a silent service
+
+### Fixed
+- **AVX gives up after 10 seconds instead of hanging** when a service it relies on doesn't
+  answer: the email service (Brevo), the phone and computer push services, OpenStreetMap's town
+  search and the database itself (the EU VAT check keeps its 20 seconds, as that service is slow).
+  You get a clear "took too long, try again" message instead of a spinner that never stops (EN, PT).
+- **A quote or invite email that timed out says so honestly:** the email may or may not have gone
+  out, so the screen asks you to check with the person before sending again, and nothing is sent
+  twice on its own. Nothing is retried automatically where a retry could send a second email.
+- The daily email summary stops for the day if Brevo stops answering, and never puts the same
+  notifications in two summaries.
+- **Long jobs finish in time.** The daily email summary and the nightly message clean-up stop
+  starting new work after 100 seconds, so they always finish before Supabase's 150-second limit;
+  whatever is left is done on the next run.
+- A failed invitation email no longer passes the email service's own error text back to the app.
 ## 0.63.2 — No double emails
 
 ### Fixed

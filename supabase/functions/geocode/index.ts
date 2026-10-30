@@ -7,6 +7,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { toPlaces } from '../_shared/places.ts'
+import { fetchWithTimeout, isTimeout } from '../_shared/timeout.ts'
 
 const ALLOWED_ORIGINS = [
   'https://avx-beta.vercel.app',
@@ -34,9 +35,10 @@ Deno.serve(async (req) => {
   // A signed-in person (the app's public key alone isn't enough)
   const auth = req.headers.get('Authorization') ?? ''
   const client = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
-    global: { headers: { Authorization: auth } }, auth: { persistSession: false },
+    global: { headers: { Authorization: auth }, fetch: fetchWithTimeout }, auth: { persistSession: false },
   })
-  const { data: who } = await client.auth.getUser()
+  const { data: who, error: whoError } = await client.auth.getUser()
+  if (isTimeout(whoError)) return json({ error: 'timeout' }, 504, origin)
   if (!who?.user) return json({ error: 'Not signed in' }, 401, origin)
   let q = '', lang = 'en'
   if (req.method === 'GET') {
@@ -61,12 +63,12 @@ Deno.serve(async (req) => {
 
   const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&layer=address&featureType=settlement&accept-language=${lang}&q=${encodeURIComponent(q)}`
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'AVX-beta/1.0 (https://avx-beta.vercel.app)' } })
+    const res = await fetchWithTimeout(url, { headers: { 'User-Agent': 'AVX-beta/1.0 (https://avx-beta.vercel.app)' } })
     if (!res.ok) return json({ error: 'Place search not available right now' }, 503, origin)
     const places = toPlaces(await res.json())
     return json({ places }, 200, origin)
   } catch (err) {
-    console.error('geocode', (err as Error).message)
+    console.error(JSON.stringify({ fn: 'geocode', step: 'nominatim', timeout: isTimeout(err) }))
     return json({ error: 'Place search not available right now' }, 503, origin)
   }
 })

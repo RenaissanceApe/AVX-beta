@@ -52,6 +52,7 @@ export default {
 
   'error.generic': 'Something went wrong. Please try again.',
   'error.network': 'Network problem — check your connection and try again.',
+  'error.timeout': 'The server took too long to answer. Please try again in a moment.',
   'error.permission': "You don't have permission to do that.",
   'error.session': 'Your session expired. Please sign in again.',
   'error.tooLarge': 'That file is too large (max 50 MB).',
@@ -277,6 +278,7 @@ export default {
   'invite.notEmailed': "{email} doesn't have an account yet and the invitation email couldn't be sent. Share {link} with them — once they sign up with this email they'll be added automatically.",
   'invite.alreadySent': "An invitation was already emailed to {email} a moment ago.",
   'invite.rateLimited': "Invite to {email} saved, but the email wasn't sent because a lot of invites have gone out recently. Try again later, or share {link} with them — once they sign up with this email they'll be added automatically.",
+  'invite.emailTimeout': "Invite to {email} saved, but the email service didn't answer in time, so the invitation may or may not have gone out. If it doesn't arrive, share {link} with them — once they sign up with this email they'll be added automatically.",
 
   'feed.title': 'Gig feed',
   'feed.subtitle': 'Updates, notices and important information for the team.',
@@ -739,6 +741,7 @@ export default {
   'send.linkReady': "Link created",
   'send.emailNotConfigured': "Email isn't set up for this app yet, so nothing was emailed. Copy the link and send it yourself.",
   'send.emailFailed': "The email couldn't be sent. Copy the link and send it yourself.",
+  'send.emailTimeout': "Link created, but the email service didn't answer in time, so the email may or may not have gone out. Check with the client before sending it again, or copy the link and send it yourself.",
   'send.emailRateLimited': "Link created, but the email wasn't sent because the limit for quote emails was reached. Copy the link and send it yourself, or try again later.",
   'send.history': "Sent",
   'send.noHistory': "Not sent yet.",

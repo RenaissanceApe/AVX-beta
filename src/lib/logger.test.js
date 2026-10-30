@@ -4,6 +4,7 @@ import { userMessage } from './logger'
 describe('userMessage', () => {
   it('maps common failures to readable text', () => {
     expect(userMessage(new TypeError('Failed to fetch'))).toMatch(/Network problem/)
+    expect(userMessage({ message: 'timeout' })).toMatch(/took too long/)
     expect(userMessage({ message: 'new row violates row-level security policy for table "gigs"' })).toMatch(/permission/)
     expect(userMessage({ message: 'new row for relation "gigs" violates check constraint "gigs_dates_order"' })).toMatch(/End date/)
     expect(userMessage({ message: 'violates check constraint "feed_posts_content_length"' })).toMatch(/too long/)
