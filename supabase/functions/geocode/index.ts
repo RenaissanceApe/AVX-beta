@@ -64,7 +64,10 @@ Deno.serve(async (req) => {
   const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&layer=address&featureType=settlement&accept-language=${lang}&q=${encodeURIComponent(q)}`
   try {
     const res = await fetchWithTimeout(url, { headers: { 'User-Agent': 'AVX-beta/1.0 (https://avx-beta.vercel.app)' } })
-    if (!res.ok) return json({ error: 'Place search not available right now' }, 503, origin)
+    if (!res.ok) {
+      console.error(JSON.stringify({ fn: 'geocode', step: 'nominatim', status: res.status }))
+      return json({ error: 'Place search not available right now' }, 503, origin)
+    }
     const places = toPlaces(await res.json())
     return json({ places }, 200, origin)
   } catch (err) {
