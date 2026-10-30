@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.63.4 — No personal address in the code
+
+### Fixed
+- Push notifications no longer fall back to a personal email address written into the code when
+  the sender address isn't set; they use the app's address instead. Nothing changes while the
+  sender address is set, as it is now.
+
 ## 0.63.3 — No more waiting on a silent service
 
 ### Fixed

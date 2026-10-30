@@ -40,7 +40,10 @@ function corsHeaders(origin: string | null) {
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
   global: { fetch: fetchWithTimeout }, auth: { persistSession: false },
 })
-const SUBJECT = `mailto:${Deno.env.get('DIGEST_FROM') ?? 'info@lumenandpixel.com'}`
+// Who the push services can contact: the sender address when it's set, otherwise the app's address
+// (a mailto: or https: link is required; no personal address in the code)
+const DIGEST_FROM = Deno.env.get('DIGEST_FROM')
+const SUBJECT = DIGEST_FROM ? `mailto:${DIGEST_FROM}` : (Deno.env.get('APP_URL') ?? 'https://avx-beta.vercel.app')
 
 // The keys, made once per project
 async function keys() {
