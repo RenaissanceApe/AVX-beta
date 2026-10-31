@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, Loader2, Building2, Truck, Search, Upload, Pencil, Archive, ArchiveRestore, Check, Users, FileText } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { selectAll } from '../lib/selectAll'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
@@ -41,7 +42,7 @@ export default function ContactsPage() {
     if (key === 'clients') next.delete('tab'); else next.set('tab', key)
     setParams(next, { replace: true })
   }
-  const [lists, setLists] = useState(null) // { clients, suppliers, quotes }
+  const [lists, setLists] = useState(null) // { clients, suppliers, counts: quotes per client_id, null = typed in only }
   const [search, setSearch] = useState('')
   const [showArchived, setShowArchived] = useState(false)
   const [editing, setEditing] = useState(null) // contact or {} (new)
@@ -52,20 +53,20 @@ export default function ContactsPage() {
     const [c, s, q] = await Promise.all([
       supabase.from('clients').select('*').eq('org_id', orgId).order('name'),
       supabase.from('suppliers').select('*').eq('org_id', orgId).order('name'),
-      supabase.from('quotes').select('id, client_id, client_company, client_name').eq('org_id', orgId),
+      selectAll(() => supabase.rpc('client_quote_counts', { p_org: orgId }).order('client_id')),
     ])
     for (const [step, res] of Object.entries({ clients: c, suppliers: s, quotes: q })) if (res.error) logger.error('contacts', res.error, { step })
-    setLists({ clients: c.data || [], suppliers: s.data || [], quotes: q.data || [] })
+    setLists({ clients: c.data || [], suppliers: s.data || [], counts: q.data || [] })
   }, [orgId])
   useEffect(() => { if (canEdit) load() }, [canEdit, load])
 
   const quoteCount = useMemo(() => {
     const m = new Map()
-    for (const q of lists?.quotes || []) if (q.client_id) m.set(q.client_id, (m.get(q.client_id) || 0) + 1)
+    for (const r of lists?.counts || []) if (r.client_id) m.set(r.client_id, r.quotes)
     return m
   }, [lists])
   // Quotes with a client typed in but not linked to one in the directory
-  const unlinked = (lists?.quotes || []).filter(q => !q.client_id && (q.client_company?.trim() || q.client_name?.trim())).length
+  const unlinked = (lists?.counts || []).find(r => !r.client_id)?.quotes || 0
 
   const all = useMemo(() => lists?.[tab] || [], [lists, tab])
   const visible = useMemo(() => {

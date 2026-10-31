@@ -42,7 +42,7 @@ Inventory menu (admins and members): **Catalogue**, **Locations**, **Stock movem
 | Locations | Warehouses, vehicles, sites. Archived, never deleted; stock can leave an archived location but not enter it |
 | Bulk stock | A ledger (`stock_movements`) that is only ever added to: bought/added, found, sold, lost, retired, moved, count corrections. "Count" compares what you counted with the books and writes the correction. Taking out more than a location holds is refused |
 | Serial units | `stock_units`: code (QR), serial, location, status (available, in repair, lost, retired), purchase date and cost, write-off period. Book value is straight-line (60 months unless set). Every change of place or status is logged automatically |
-| Stock levels | `stock_levels` view: quantity per item and location (units available or in repair), worked out from the ledger and units |
+| Stock levels | `stock_levels` view: quantity per item and location (units available or in repair). It reads `stock_totals`, a running total per item and location that the database updates whenever a bulk movement is recorded or a unit is added, moved or changes status (0.63.6), so the ledger isn't added up again on each read. `supabase/tests/stock_totals.sql` compares the totals with the full ledger |
 | Import | Paste rows (name; category; code; quantity; price; location): items matched by code then name, new ones created in bulk, quantities added as purchases |
 | QR labels | A4 sheets (3 or 2 across). Each QR opens `/scan/<code>`, which finds the item or unit in your organisations and opens it, so any phone camera works as a scanner |
 

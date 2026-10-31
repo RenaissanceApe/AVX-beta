@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, Loader2, FileText, LayoutTemplate, Building2, Trash2, Search, Tags } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { selectAll } from '../lib/selectAll'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
@@ -56,10 +57,10 @@ export default function QuotesPage() {
     const [orgRes, roleRes, quotesRes, templatesRes, pricesRes, clientsRes] = await Promise.all([
       supabase.from('organisations').select('*').eq('id', orgId).maybeSingle(),
       supabase.from('org_members').select('role').eq('org_id', orgId).eq('user_id', user.id).maybeSingle(),
-      supabase.from('quotes').select('id, number, title, status, client_name, client_company, issue_date, valid_until, total_net, currency, gig_id, updated_at')
-        .eq('org_id', orgId).order('number', { ascending: false }),
+      selectAll(() => supabase.from('quotes').select('id, number, title, status, client_name, client_company, issue_date, valid_until, total_net, currency, gig_id, updated_at')
+        .eq('org_id', orgId).order('number', { ascending: false }).order('id')),
       supabase.from('quote_templates').select('id, name, description, body, created_by, updated_at').eq('org_id', orgId).order('name'),
-      supabase.from('price_items').select('*').eq('org_id', orgId).is('archived_at', null).order('name'),
+      selectAll(() => supabase.from('price_items').select('*').eq('org_id', orgId).is('archived_at', null).order('name').order('id')),
       supabase.from('clients').select('id, name, contact_name, email, address, tax_id').eq('org_id', orgId).is('archived_at', null).order('name'),
     ])
     for (const [step, res] of Object.entries({ orgRes, quotesRes, templatesRes })) {

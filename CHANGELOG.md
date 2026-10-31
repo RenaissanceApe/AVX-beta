@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.63.6 — Long lists load in full
+
+### Fixed
+- **Big organisations see all their gigs, quotes and catalogue items.** The server sends at
+  most 1000 rows at a time, so Home for an organisation, the Quotes list, the price list in
+  quotes and the Inventory catalogue and stock totals quietly left out everything past the first
+  1000. On Home, those were the newest gigs. AVX now reads long lists in batches of 1000 until it
+  has them all. Nothing looks different.
+- **Quote counts on the Contacts page stay right** for organisations with more than 1000
+  quotes. The database now does the counting, instead of the page loading every quote.
+
+### Faster
+- **Stock totals don't slow down as history grows.** The database now keeps a running total
+  per item and location, updated with every movement, instead of adding up every movement ever
+  recorded each time Inventory opens or availability is checked. The numbers are the same.
+
 ## 0.63.5 — Town search works again
 
 ### Fixed

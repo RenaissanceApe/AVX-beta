@@ -3,6 +3,7 @@ import { supabase } from './supabase'
 import { logger } from './logger'
 import { useWorkspace } from './WorkspaceContext'
 import { levelsByItem } from './inventory'
+import { selectAll } from './selectAll'
 
 // Everything the inventory screens of one organisation need: the catalogue (rental and
 // sale items), locations and stock levels. Only admins and members can manage inventory.
@@ -18,9 +19,9 @@ export function useInventory(orgId) {
   const reload = useCallback(async () => {
     if (!orgId) return
     const [itemsRes, locRes, levelRes] = await Promise.all([
-      supabase.from('price_items').select('*').eq('org_id', orgId).in('kind', ['rental', 'sale']).order('name'),
+      selectAll(() => supabase.from('price_items').select('*').eq('org_id', orgId).in('kind', ['rental', 'sale']).order('name').order('id')),
       supabase.from('stock_locations').select('*').eq('org_id', orgId).order('name'),
-      supabase.from('stock_levels').select('*').eq('org_id', orgId),
+      selectAll(() => supabase.from('stock_levels').select('*').eq('org_id', orgId).order('item_id').order('location_id')),
     ])
     for (const [step, res] of Object.entries({ itemsRes, locRes, levelRes })) {
       if (res.error) logger.error('inventory', res.error, { step })
