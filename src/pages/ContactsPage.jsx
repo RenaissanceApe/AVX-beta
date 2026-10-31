@@ -51,8 +51,8 @@ export default function ContactsPage() {
 
   const load = useCallback(async () => {
     const [c, s, q] = await Promise.all([
-      supabase.from('clients').select('*').eq('org_id', orgId).order('name'),
-      supabase.from('suppliers').select('*').eq('org_id', orgId).order('name'),
+      selectAll(() => supabase.from('clients').select('*').eq('org_id', orgId).order('name').order('id')),
+      selectAll(() => supabase.from('suppliers').select('*').eq('org_id', orgId).order('name').order('id')),
       selectAll(() => supabase.rpc('client_quote_counts', { p_org: orgId }).order('client_id')),
     ])
     for (const [step, res] of Object.entries({ clients: c, suppliers: s, quotes: q })) if (res.error) logger.error('contacts', res.error, { step })

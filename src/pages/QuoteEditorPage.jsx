@@ -73,7 +73,7 @@ export default function QuoteEditorPage() {
       }
       const [roleRes, gigsRes, tplRes, orgRes, pricesRes, clientsRes] = await Promise.all([
         supabase.from('org_members').select('role').eq('org_id', q.org_id).eq('user_id', user.id).maybeSingle(),
-        supabase.from('gigs').select('id, name, start_date, org_id').eq('org_id', q.org_id).order('start_date', { ascending: false, nullsFirst: false }),
+        selectAll(() => supabase.from('gigs').select('id, name, start_date, org_id').eq('org_id', q.org_id).order('start_date', { ascending: false, nullsFirst: false }).order('id')),
         supabase.from('quote_templates').select('id, name, description, body').eq('org_id', q.org_id).order('name'),
         supabase.from('organisations').select('quote_number_prefix').eq('id', q.org_id).maybeSingle(),
         selectAll(() => supabase.from('price_items').select('*').eq('org_id', q.org_id).is('archived_at', null).order('name').order('id')),

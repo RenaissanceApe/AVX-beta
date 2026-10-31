@@ -76,7 +76,7 @@ export default function Dashboard() {
     let rows, error
     if (mode === 'me') {
       const [mine, companies, bookings] = await Promise.all([
-        supabase.from('gig_members').select(`role, function_title, call_time, gigs(*, ${GIG_LABELS_EMBED})`).eq('user_id', user.id),
+        selectAll(() => supabase.from('gig_members').select(`role, function_title, call_time, gigs(*, ${GIG_LABELS_EMBED})`).eq('user_id', user.id).order('gig_id')),
         supabase.rpc('my_gig_companies'),
         supabase.from('reservations').select('id, gig_id, period, status')
           .eq('resource_type', 'person').eq('resource_id', user.id).neq('status', 'cancelled'),
