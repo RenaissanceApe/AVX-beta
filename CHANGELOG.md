@@ -8,6 +8,8 @@
   quotes and the Inventory catalogue and stock totals quietly left out everything past the first
   1000. On Home, those were the newest gigs. AVX now reads long lists in batches of 1000 until it
   has them all. Nothing looks different.
+- **Quote counts on the Contacts page stay right** for organisations with more than 1000
+  quotes. The database now does the counting, instead of the page loading every quote.
 
 ## 0.63.5 — Town search works again
 
