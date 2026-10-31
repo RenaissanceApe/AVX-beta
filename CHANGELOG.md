@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.63.7 — Stock checks hold under pressure
+
+### Fixed
+- **Two people can't take the same last items.** If two people sold or moved the same bulk item
+  from the same place at the same moment, both could pass the "not enough stock" check, and the
+  location went below zero. Now the second one waits a moment for the first to finish and then
+  sees the real number. The message is the same as before.
+- **More long lists load in full:** the clients and suppliers on the Contacts page, the gig
+  picker in a quote, and My work no longer stop at 1000 rows. Nothing looks different.
+
 ## 0.63.6 — Long lists load in full
 
 ### Fixed
