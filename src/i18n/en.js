@@ -2667,6 +2667,7 @@ export default {
   "crewProfile.places": "Matching places",
   "crewProfile.noPlaces": "No place found. Try the city's name, or add the country.",
   "crewProfile.placeFailed": "Couldn’t search for places right now. Try again in a moment.",
+  "crewProfile.placeCredit": "Search by LocationIQ.com",
   "crewProfile.travelLabel": "How far you travel for work",
   "crewProfile.travelKm": "Up to {km} km",
   "crewProfile.travel.country": "Anywhere in my country",

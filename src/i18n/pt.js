@@ -2666,6 +2666,7 @@ export default {
   "crewProfile.places": "Locais encontrados",
   "crewProfile.noPlaces": "Não se encontrou nenhum local. Experimente o nome da cidade ou acrescente o país.",
   "crewProfile.placeFailed": "Não foi possível procurar locais agora. Tente de novo daqui a pouco.",
+  "crewProfile.placeCredit": "Pesquisa por LocationIQ.com",
   "crewProfile.travelLabel": "Até onde se desloca para trabalhar",
   "crewProfile.travelKm": "Até {km} km",
   "crewProfile.travel.country": "Qualquer sítio no meu país",

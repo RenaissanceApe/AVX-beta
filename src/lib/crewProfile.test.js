@@ -70,4 +70,23 @@ describe('crew profile', () => {
     ])
     expect(toPlaces(null)).toEqual([])
   })
+
+  it('keeps only towns from LocationIQ answers, at most six', () => {
+    // LocationIQ's answer shape (Nominatim JSON with class and type)
+    const town = (name, country_code, extra = {}) => ({
+      class: 'boundary', type: 'administrative', lat: '41.15', lon: '-8.61', name,
+      address: { city: name, country: 'X', country_code }, ...extra,
+    })
+    const rows = [
+      { ...town('Rua do Porto', 'br'), class: 'highway', type: 'residential', address: { city: 'Manaus', country: 'Brasil', country_code: 'br' } },
+      { ...town('Porto', 'pt'), address: { city: 'Porto', county: 'Porto', country: 'Portugal', country_code: 'pt' } },
+      { ...town('Castiglione', 'it'), class: 'place', type: 'hamlet' },
+      ...['A', 'B', 'C', 'D', 'E', 'F'].map(n => town(`Town ${n}`, 'es')),
+    ]
+    const places = toPlaces(rows)
+    expect(places).toHaveLength(6)
+    expect(places.map(p => p.place)).not.toContain('Manaus, Brasil')
+    expect(places[0].place).toBe('Porto, Portugal')
+    expect(places[1].place).toBe('Castiglione, X')
+  })
 })
