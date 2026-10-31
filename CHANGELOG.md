@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.63.6 — Long lists load in full
+
+### Fixed
+- **Big organisations see all their gigs, quotes and catalogue items.** The server sends at
+  most 1000 rows at a time, so Home for an organisation, the Quotes list, the price list in
+  quotes and the Inventory catalogue and stock totals quietly left out everything past the first
+  1000. On Home, those were the newest gigs. AVX now reads long lists in batches of 1000 until it
+  has them all. Nothing looks different.
+
 ## 0.63.5 — Town search works again
 
 ### Fixed

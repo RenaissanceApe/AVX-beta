@@ -5,6 +5,7 @@ import {
   History, Send, ListChecks, Package,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { selectAll } from '../lib/selectAll'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
@@ -75,7 +76,7 @@ export default function QuoteEditorPage() {
         supabase.from('gigs').select('id, name, start_date, org_id').eq('org_id', q.org_id).order('start_date', { ascending: false, nullsFirst: false }),
         supabase.from('quote_templates').select('id, name, description, body').eq('org_id', q.org_id).order('name'),
         supabase.from('organisations').select('quote_number_prefix').eq('id', q.org_id).maybeSingle(),
-        supabase.from('price_items').select('*').eq('org_id', q.org_id).is('archived_at', null).order('name'),
+        selectAll(() => supabase.from('price_items').select('*').eq('org_id', q.org_id).is('archived_at', null).order('name').order('id')),
         supabase.from('clients').select('id, org_id, name, contact_name, email, address, tax_id, archived_at').eq('org_id', q.org_id).order('name'),
       ])
       if (cancelled) return

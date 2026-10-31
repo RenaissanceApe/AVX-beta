@@ -4,6 +4,7 @@ import {
   Plus, Calendar, MapPin, ChevronRight, Building2, Loader2, X, ArrowRight, Search, List, CalendarDays, Briefcase, AlertTriangle,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { selectAll } from '../lib/selectAll'
 import { useAuth } from '../lib/AuthContext'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { logger, userMessage } from '../lib/logger'
@@ -86,7 +87,8 @@ export default function Dashboard() {
       if (bookings.error) logger.error('dashboard', bookings.error, { step: 'bookings' })
       setClashIds(clashingGigIds(bookings.data))
     } else {
-      const res = await supabase.from('gigs').select(`*, ${GIG_LABELS_EMBED}`).eq('org_id', orgId).order('start_date', { ascending: true, nullsFirst: false })
+      const res = await selectAll(() => supabase.from('gigs').select(`*, ${GIG_LABELS_EMBED}`).eq('org_id', orgId)
+        .order('start_date', { ascending: true, nullsFirst: false }).order('id'))
       error = res.error
       rows = res.data || []
     }
