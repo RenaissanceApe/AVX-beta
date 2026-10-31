@@ -200,7 +200,7 @@ test('a PM uploads a file and then a new version of it', async ({ page }) => {
   await expect(page.getByText('Uploaded "E2E Patch".')).toBeVisible({ timeout: 15_000 })
   await upload('ch1 kick\nch2 snare')
   await expect(page.getByText('Uploaded version 2 of "E2E Patch".')).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByText('Version 2')).toBeVisible()
+  await expect(page.getByText('Version 2', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: /Open · history/ })).toBeVisible()
 })
 
