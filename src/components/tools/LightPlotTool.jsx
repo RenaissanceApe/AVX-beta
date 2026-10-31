@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Printer, RotateCw, Trash2, Plus, Loader2, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, AlertTriangle, Undo2, LogOut } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
@@ -57,7 +58,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
 
   useEffect(() => {
     if (!canEdit || !gig.org_id) return
-    supabase.from('price_items').select('id, name, category').eq('org_id', gig.org_id).neq('tracking', 'none').is('archived_at', null).order('name')
+    selectAll(() => supabase.from('price_items').select('id, name, category').eq('org_id', gig.org_id).neq('tracking', 'none').is('archived_at', null).order('name').order('id'))
       .then(({ data }) => setCatalogue(data || []))
   }, [canEdit, gig.org_id])
 

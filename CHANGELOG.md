@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.63.9 — Pickers show everything
+
+### Fixed
+- **Pickers list everything, however big the organisation.** The equipment picker on a gig's
+  Equipment tab and in the input list, stage plot, light plot and DMX patch tools, the client
+  picker in Quotes and in a quote, the supplier lists in subrentals, and the units shown for a
+  case's contents stopped at 1000. They now load everything. Nothing looks different.
+
 ## 0.63.8 — Imports and removing an organisation work at any size
 
 ### Fixed

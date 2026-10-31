@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Trash2, Loader2, Check, Boxes, Puzzle, Shuffle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { alternativesOf } from '../../lib/inventory'
@@ -123,8 +124,8 @@ export function CaseContentsModal({ caseUnit, kits, onClose, onSaved }) {
 
   useEffect(() => {
     if (!contentIds.length) return setUnits([])
-    supabase.from('stock_units').select('id, item_id, code, serial, status, case_unit_id, in_case:case_unit_id(code)')
-      .in('item_id', contentIds).neq('status', 'retired').order('code')
+    selectAll(() => supabase.from('stock_units').select('id, item_id, code, serial, status, case_unit_id, in_case:case_unit_id(code)')
+      .in('item_id', contentIds).neq('status', 'retired').order('code').order('id'))
       .then(({ data, error }) => {
         if (error) logger.error('kits', error, { step: 'caseUnits' })
         setUnits(data || [])

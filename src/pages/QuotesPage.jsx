@@ -61,7 +61,7 @@ export default function QuotesPage() {
         .eq('org_id', orgId).order('number', { ascending: false }).order('id')),
       supabase.from('quote_templates').select('id, name, description, body, created_by, updated_at').eq('org_id', orgId).order('name'),
       selectAll(() => supabase.from('price_items').select('*').eq('org_id', orgId).is('archived_at', null).order('name').order('id')),
-      supabase.from('clients').select('id, name, contact_name, email, address, tax_id').eq('org_id', orgId).is('archived_at', null).order('name'),
+      selectAll(() => supabase.from('clients').select('id, name, contact_name, email, address, tax_id').eq('org_id', orgId).is('archived_at', null).order('name').order('id')),
     ])
     for (const [step, res] of Object.entries({ orgRes, quotesRes, templatesRes })) {
       if (res.error) logger.error('quotes', res.error, { step })

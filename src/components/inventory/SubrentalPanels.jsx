@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Plus, Trash2, Loader2, Check, X, Handshake, Truck, Inbox, Link2, Copy, RefreshCw, Archive, ArchiveRestore, Pencil } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
@@ -50,7 +51,7 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
 
   useEffect(() => {
     Promise.all([
-      supabase.from('suppliers').select('id, name, partner_org_id, archived_at').eq('org_id', orgId).order('name'),
+      selectAll(() => supabase.from('suppliers').select('id, name, partner_org_id, archived_at').eq('org_id', orgId).order('name').order('id')),
       supabase.from('gigs').select('id, name, start_date, end_date').eq('org_id', orgId).neq('status', 'archived').order('start_date', { ascending: false }).limit(150),
     ]).then(([s, g]) => {
       setSuppliers((s.data || []).filter(x => !x.archived_at || x.id === subrental?.supplier_id))
@@ -392,7 +393,7 @@ export function SubrentalsTab({ orgId, inv }) {
   async function load() {
     const [s, sp] = await Promise.all([
       supabase.from('subrentals').select(SUBRENTAL_SELECT).eq('org_id', orgId).order('starts_at', { ascending: false }).limit(300),
-      supabase.from('suppliers').select('*').eq('org_id', orgId).order('name'),
+      selectAll(() => supabase.from('suppliers').select('*').eq('org_id', orgId).order('name').order('id')),
     ])
     if (s.error) logger.error('subrentals', s.error, { step: 'list' })
     setSubs(s.data || [])
