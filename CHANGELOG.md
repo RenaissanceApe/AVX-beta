@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.63.8 — Imports and removing an organisation work at any size
+
+### Fixed
+- **Importing into a big organisation spots existing rows correctly.** The import preview reads
+  what's already there (gigs, catalogue items, units, locations, contacts, kit contents, gig
+  equipment, imported quotes, invites) to tell new rows from ones it will update. It used to read
+  at most 1000 of each, so past that it could show rows as new. It now reads them all.
+- **Removing an organisation removes all its files.** It used to find at most 1000 gigs, and at
+  most 1000 files per gig, so with more than that, some files stayed in storage. Now every gig's
+  folder is emptied completely.
+
 ## 0.63.7 — Stock checks hold under pressure
 
 ### Fixed
