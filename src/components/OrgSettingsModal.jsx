@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { removeGigFiles } from '../lib/storage'
+import { selectAll } from '../lib/selectAll'
 import { useI18n } from '../i18n'
 import { Modal, btnPrimary, input, label, colors } from './ui'
 import { DangerZone, DangerConfirmModal } from './DangerConfirm'
@@ -61,7 +62,7 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
   }
 
   async function deleteOrganisation() {
-    const { data: gigs, error: gigsError } = await supabase.from('gigs').select('id').eq('org_id', org.id)
+    const { data: gigs, error: gigsError } = await selectAll(() => supabase.from('gigs').select('id').eq('org_id', org.id).order('id'))
     if (gigsError) throw gigsError
     await removeGigFiles((gigs || []).map(g => g.id))
     const { data, error } = await supabase.from('organisations').delete().eq('id', org.id).select('id')

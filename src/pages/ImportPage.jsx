@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Upload, Loader2, MapPin, Package, Barcode, Boxes, AlertTriangle, Check, Download, Undo2, Save, FileText, Building2, Truck, Users, CalendarDays, PackageCheck, Receipt } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { selectAll } from '../lib/selectAll'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
@@ -395,30 +396,30 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fi
     if (isHeld(kind)) {
       Promise.all([
         supabase.rpc('org_member_list', { p_org: orgId }),
-        supabase.from('org_invites').select('email').eq('org_id', orgId),
-        supabase.from('held_invites').select('email').eq('org_id', orgId).eq('status', 'held'),
+        selectAll(() => supabase.from('org_invites').select('email').eq('org_id', orgId).order('id')),
+        selectAll(() => supabase.from('held_invites').select('email').eq('org_id', orgId).eq('status', 'held').order('id')),
       ]).then(([m, i, h]) => setExisting({ members: (m.data || []).map(x => x.email), invites: (i.data || []).map(x => x.email), held: (h.data || []).map(x => x.email) }))
       return
     }
     if (isJob(kind)) {
       Promise.all([
-        supabase.from('gigs').select('id, name, start_date, import_ref').eq('org_id', orgId),
-        kind === 'gig_equipment' ? supabase.from('price_items').select('id, name, code, tracking, kit_type, archived_at').eq('org_id', orgId) : Promise.resolve({ data: [] }),
-        kind === 'gig_equipment' ? supabase.from('gig_equipment').select('gig_id, item_id').eq('org_id', orgId) : Promise.resolve({ data: [] }),
-        kind === 'quotes' ? supabase.from('quotes').select('import_ref, status').eq('org_id', orgId).not('import_ref', 'is', null) : Promise.resolve({ data: [] }),
+        selectAll(() => supabase.from('gigs').select('id, name, start_date, import_ref').eq('org_id', orgId).order('id')),
+        kind === 'gig_equipment' ? selectAll(() => supabase.from('price_items').select('id, name, code, tracking, kit_type, archived_at').eq('org_id', orgId).order('id')) : Promise.resolve({ data: [] }),
+        kind === 'gig_equipment' ? selectAll(() => supabase.from('gig_equipment').select('gig_id, item_id').eq('org_id', orgId).order('id')) : Promise.resolve({ data: [] }),
+        kind === 'quotes' ? selectAll(() => supabase.from('quotes').select('import_ref, status').eq('org_id', orgId).not('import_ref', 'is', null).order('id')) : Promise.resolve({ data: [] }),
       ]).then(([g, i, l, q]) => setExisting({ gigs: g.data || [], items: i.data || [], lines: l.data || [], quotes: q.data || [] }))
       return
     }
     if (isContacts(kind)) {
-      supabase.from(kind).select('name, email, tax_id, archived_at').eq('org_id', orgId)
+      selectAll(() => supabase.from(kind).select('name, email, tax_id, archived_at').eq('org_id', orgId).order('id'))
         .then(({ data }) => setExisting({ contacts: data || [] }))
       return
     }
     Promise.all([
-      supabase.from('stock_locations').select('name, archived_at').eq('org_id', orgId),
-      supabase.from('price_items').select('id, name, code, tracking, kit_type, archived_at').eq('org_id', orgId),
-      kind === 'units' ? supabase.from('stock_units').select('code').eq('org_id', orgId) : Promise.resolve({ data: [] }),
-      kind === 'kits' ? supabase.from('item_parts').select('parent_id, child_id, kind').eq('org_id', orgId) : Promise.resolve({ data: [] }),
+      selectAll(() => supabase.from('stock_locations').select('name, archived_at').eq('org_id', orgId).order('id')),
+      selectAll(() => supabase.from('price_items').select('id, name, code, tracking, kit_type, archived_at').eq('org_id', orgId).order('id')),
+      kind === 'units' ? selectAll(() => supabase.from('stock_units').select('code').eq('org_id', orgId).order('id')) : Promise.resolve({ data: [] }),
+      kind === 'kits' ? selectAll(() => supabase.from('item_parts').select('parent_id, child_id, kind').eq('org_id', orgId).order('id')) : Promise.resolve({ data: [] }),
     ]).then(([l, i, u, p]) => setExisting({ locations: l.data || [], items: i.data || [], units: u.data || [], parts: p.data || [] }))
   }, [orgId, kind])
 
