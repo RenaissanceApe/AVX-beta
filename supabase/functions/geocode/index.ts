@@ -1,9 +1,12 @@
 // geocode: a typed city → a few matching places with coordinates, for the crew profile's base
 // (docs/CREW_NETWORK.md, N1). GET ?q=Porto&lang=pt. Signed-in people only (JWT verification on).
-// Asks OpenStreetMap's Nominatim from here, so the person's browser doesn't contact it and the
-// service sees AVX, not them. Its rules: an identifying User-Agent and at most one request a
-// second, so the app only asks when the person presses Find. Coordinates are rounded to about
-// 1 km before they leave this function.
+// Asks LocationIQ (OpenStreetMap data, Nominatim-style answers, its EU servers) from here, so the
+// person's browser doesn't contact it and the service sees AVX, not them. OpenStreetMap's own
+// Nominatim server refuses requests from Supabase's servers (403), hence LocationIQ. Function
+// secret LOCATIONIQ_KEY (an access token; one per project). Free plan: 2 requests a second, 5,000
+// a day, and a visible "Search by LocationIQ.com" link in the app (PlaceFinder). At most one
+// request a second from here, and the app only asks when the person presses Find. Coordinates are
+// rounded to about 1 km before they leave this function.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { toPlaces } from '../_shared/places.ts'
@@ -56,19 +59,31 @@ Deno.serve(async (req) => {
   if (q.length < 2) return json({ places: [] }, 200, origin)
   if (!/^[a-z]{2}$/.test(lang)) lang = 'en'
 
-  // One request a second to Nominatim from this instance
+  const key = Deno.env.get('LOCATIONIQ_KEY')
+  if (!key) {
+    console.error(JSON.stringify({ fn: 'geocode', step: 'config', reason: 'LOCATIONIQ_KEY not set' }))
+    return json({ error: 'Place search not available right now' }, 503, origin)
+  }
+
+  // One request a second to LocationIQ from this instance
   const wait = last + 1100 - Date.now()
   if (wait > 0) await new Promise(r => setTimeout(r, wait))
   last = Date.now()
 
-  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&layer=address&featureType=settlement&accept-language=${lang}&q=${encodeURIComponent(q)}`
+  // toPlaces keeps only towns and at most 6 of them, so ask for a few more than that
+  const url = `https://eu1.locationiq.com/v1/search?key=${encodeURIComponent(key)}&format=json&addressdetails=1&limit=10&accept-language=${lang}&q=${encodeURIComponent(q)}`
   try {
     const res = await fetchWithTimeout(url, { headers: { 'User-Agent': 'AVX-beta/1.0 (https://avx-beta.vercel.app)' } })
-    if (!res.ok) return json({ error: 'Place search not available right now' }, 503, origin)
+    // LocationIQ answers 404 when nothing matches
+    if (res.status === 404) return json({ places: [] }, 200, origin)
+    if (!res.ok) {
+      console.error(JSON.stringify({ fn: 'geocode', step: 'locationiq', status: res.status }))
+      return json({ error: 'Place search not available right now' }, 503, origin)
+    }
     const places = toPlaces(await res.json())
     return json({ places }, 200, origin)
   } catch (err) {
-    console.error(JSON.stringify({ fn: 'geocode', step: 'nominatim', timeout: isTimeout(err) }))
+    console.error(JSON.stringify({ fn: 'geocode', step: 'locationiq', timeout: isTimeout(err) }))
     return json({ error: 'Place search not available right now' }, 503, origin)
   }
 })

@@ -8,8 +8,8 @@ import { btn, input, label as labelStyle, colors } from './ui'
 
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 
-// Type a town, tap Find, pick one (docs/CREW_NETWORK.md): asks the geocode Edge Function, which
-// returns towns with coordinates rounded to about 1 km. Used by the crew profile and crew search.
+// Type a town, tap Find, pick one (docs/CREW_NETWORK.md): asks the geocode Edge Function (LocationIQ),
+// which returns towns with coordinates rounded to about 1 km. Used by the crew profile and crew search.
 //   <PlaceFinder id label hint initialQuery onChoose={place => …} />
 export default function PlaceFinder({ id, label, hint: hintText, initialQuery = '', onChoose }) {
   const { t, lang } = useI18n()
@@ -40,6 +40,10 @@ export default function PlaceFinder({ id, label, hint: hintText, initialQuery = 
           </button>
         </div>
         {hintText && <p style={{ ...hint, marginTop: '6px' }}>{hintText}</p>}
+        {/* LocationIQ's free plan asks for this link wherever its search is used */}
+        <p style={{ ...hint, marginTop: '4px' }}>
+          <a href="https://locationiq.com/?ref=link-back" target="_blank" rel="noopener noreferrer" style={{ color: colors.muted }}>{t('crewProfile.placeCredit')}</a>
+        </p>
       </div>
       {places && (
         places.length ? (

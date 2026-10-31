@@ -58,8 +58,8 @@ is kept on our own servers; Vercel only serves the app's files.
 ## Who processes it for us
 
 Supabase (database, sign-in, files; Zurich), Vercel (serves the app; IP addresses), Brevo (sends
-emails; France), the browsers' push services (encrypted notifications), OpenStreetMap's place search
-(only the town name typed for a crew profile), the European Commission's VIES (only a VAT number),
+emails; France), the browsers' push services (encrypted notifications), LocationIQ's place search, EU servers
+(only the town name typed for a crew profile or a crew search), the European Commission's VIES (only a VAT number),
 Sentry if configured. All listed in the privacy notice.
 
 ## Open items

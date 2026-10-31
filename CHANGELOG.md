@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.63.5 — Town search works again
+
+### Fixed
+- **Finding a town works again** on the crew profile and in Find crew ("Find" / "Localizar"). It
+  had stopped because OpenStreetMap's free place search refuses requests from our servers. AVX
+  now uses LocationIQ, which uses the same OpenStreetMap data, on its servers in the EU. Only the town
+  name you type is sent, as before. Results are towns only, never streets.
+- A small "Search by LocationIQ.com" link now shows under the town field, as LocationIQ's free
+  plan asks (EN, PT). The privacy notice names LocationIQ instead of OpenStreetMap.
+
 ## 0.63.4 — No personal address in the code
 
 ### Fixed
