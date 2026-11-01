@@ -5,6 +5,7 @@ import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
+import { updateIfUnchanged, notifyConflict } from '../../lib/staleSave'
 import { TASK_FIELDS, TEMPLATE_FIELDS, sortTasks, filterTasks } from '../../lib/tasks'
 import { localDay } from '../../lib/onSite'
 import { t } from '../../i18n'
@@ -49,10 +50,14 @@ export default function TasksTab({ gig, members, nameOf, userId, canManage, canN
 
   async function save(values) {
     const isNew = editing === 'new'
-    const { error } = isNew
+    const { error, conflict } = isNew
       ? await supabase.from('tasks').insert({ ...values, gig_id: gig.id })
-      : await supabase.from('tasks').update(values).eq('id', editing.id)
+      : await updateIfUnchanged(supabase, 'tasks', editing.id, values, editing.updated_at)
     if (error) return notify(userMessage(error), 'error')
+    if (conflict) {
+      logger.warn('tasks', 'save refused', { step: 'update', taskId: editing.id, conflict })
+      return notifyConflict(conflict, notify, t)
+    }
     if (isNew) track('tasks:add')
     setEditing(null)
     load()
@@ -60,7 +65,8 @@ export default function TasksTab({ gig, members, nameOf, userId, canManage, canN
   }
   async function patch(task, values) {
     setTasks(list => list.map(x => (x.id === task.id ? { ...x, ...values } : x)))
-    const { error } = await supabase.from('tasks').update(values).eq('id', task.id)
+    const { data, error } = await supabase.from('tasks').update(values).eq('id', task.id).select('updated_at')
+    if (data?.[0]) setTasks(list => list.map(x => (x.id === task.id ? { ...x, updated_at: data[0].updated_at } : x)))
     if (error) { notify(userMessage(error), 'error'); load() } else onChanged?.()
   }
   async function remove(task) {

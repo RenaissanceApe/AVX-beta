@@ -10,13 +10,13 @@ function fakeClient(row, { failUpdate, failRead, canEdit = true } = {}) {
         const filters = {}
         const q = {
           eq: (col, val) => { filters[col] = val; return q },
-          select: async () => {
-            calls.push({ table, changes, filters })
+          select: async columns => {
+            calls.push({ table, changes, filters, columns })
             if (failUpdate) return { data: null, error: { message: 'boom' } }
             const match = row && canEdit && Object.entries(filters).every(([k, v]) => row[k] === v)
             if (!match) return { data: [], error: null }
             Object.assign(row, changes, { updated_at: 'T2' })
-            return { data: [{ updated_at: row.updated_at }], error: null }
+            return { data: [columns === 'updated_at' ? { updated_at: row.updated_at } : { ...row }], error: null }
           },
         }
         return q
@@ -37,9 +37,16 @@ describe('updateIfUnchanged', () => {
   it('saves when the record is as it was opened', async () => {
     const row = { id: 'g1', name: 'Old', updated_at: 'T1' }
     const { client, calls } = fakeClient(row)
-    expect(await updateIfUnchanged(client, 'gigs', 'g1', { name: 'New' }, 'T1')).toEqual({ updatedAt: 'T2' })
+    expect(await updateIfUnchanged(client, 'gigs', 'g1', { name: 'New' }, 'T1')).toEqual({ updatedAt: 'T2', row: { updated_at: 'T2' } })
     expect(row.name).toBe('New')
     expect(calls[0].filters).toEqual({ id: 'g1', updated_at: 'T1' })
+  })
+
+  it('returns the saved record when asked for more columns', async () => {
+    const { client, calls } = fakeClient({ id: 'p1', name: 'Old', updated_at: 'T1' })
+    const result = await updateIfUnchanged(client, 'price_items', 'p1', { name: 'New' }, 'T1', '*')
+    expect(result.row).toEqual({ id: 'p1', name: 'New', updated_at: 'T2' })
+    expect(calls[0].columns).toBe('*')
   })
 
   it('refuses a stale save and leaves the record alone', async () => {
@@ -47,6 +54,12 @@ describe('updateIfUnchanged', () => {
     const { client } = fakeClient(row)
     expect(await updateIfUnchanged(client, 'gigs', 'g1', { name: 'Mine' }, 'T1')).toEqual({ conflict: 'stale' })
     expect(row.name).toBe('Theirs')
+  })
+
+  it('asks for a reload when the copy has no stamp', async () => {
+    const { client, calls } = fakeClient({ id: 'g1', updated_at: 'T1' })
+    expect(await updateIfUnchanged(client, 'gigs', 'g1', { name: 'Mine' }, undefined)).toEqual({ conflict: 'stale' })
+    expect(calls).toEqual([])
   })
 
   it('says when the record is gone', async () => {
