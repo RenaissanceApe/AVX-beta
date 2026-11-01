@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import QRCode from 'qrcode'
 import { ArrowLeft, Printer, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { selectAll } from '../lib/selectAll'
 import { logger } from '../lib/logger'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { scanUrl, LABEL_SIZES } from '../lib/inventory'
@@ -33,10 +34,13 @@ export default function LabelsPage() {
     let cancelled = false
     async function load() {
       const everything = !itemIds.length && !unitIds.length
-      let itemQuery = supabase.from('price_items').select('id, name, code, tracking, brand, model').eq('org_id', orgId).neq('tracking', 'none').is('archived_at', null)
-      if (!everything) itemQuery = itemIds.length ? itemQuery.in('id', itemIds) : null
+      const wantItems = everything || itemIds.length > 0
+      const itemQuery = () => {
+        const q = supabase.from('price_items').select('id, name, code, tracking, brand, model').eq('org_id', orgId).neq('tracking', 'none').is('archived_at', null)
+        return (everything ? q : q.in('id', itemIds)).order('name').order('id')
+      }
       const [itemsRes, unitsRes] = await Promise.all([
-        itemQuery ? itemQuery.order('name') : Promise.resolve({ data: [] }),
+        wantItems ? selectAll(itemQuery) : Promise.resolve({ data: [] }),
         unitIds.length ? supabase.from('stock_units').select('id, code, serial, item_id, price_items(name)').eq('org_id', orgId).in('id', unitIds).order('code') : Promise.resolve({ data: [] }),
       ])
       if (itemsRes.error) logger.error('labels', itemsRes.error, { step: 'items' })
