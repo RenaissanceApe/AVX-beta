@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Loader2, Search, Weight, Zap, ScanLine, ClipboardList, Shuffle, Wrench, Handshake } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
@@ -244,7 +245,7 @@ function EquipmentPicker({ gig, org, planned, kits, onClose, onAdded }) {
 
   useEffect(() => {
     Promise.all([
-      supabase.from('price_items').select('id, name, category, code, tracking, kit_type').eq('org_id', gig.org_id).or('tracking.neq.none,kit_type.eq.set').is('archived_at', null).order('name'),
+      selectAll(() => supabase.from('price_items').select('id, name, category, code, tracking, kit_type').eq('org_id', gig.org_id).or('tracking.neq.none,kit_type.eq.set').is('archived_at', null).order('name').order('id')),
       win ? supabase.rpc('equipment_availability', { p_org: gig.org_id, p_items: null, p_from: win.from, p_until: win.until, p_exclude_gig: gig.id }) : Promise.resolve({ data: [] }),
     ]).then(([itemsRes, freeRes]) => {
       if (itemsRes.error) logger.error('equipment', itemsRes.error, { step: 'catalogue' })

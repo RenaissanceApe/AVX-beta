@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Printer, PackagePlus, Loader2, RotateCcw } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
@@ -46,7 +47,7 @@ export default function InputListTool({ gig, canEdit, canPlanEquipment }) {
   // The catalogue's stock-tracked items, to link a mic or DI to (editors only)
   useEffect(() => {
     if (!canEdit || !gig.org_id) return
-    supabase.from('price_items').select('id, name, category').eq('org_id', gig.org_id).neq('tracking', 'none').is('archived_at', null).order('name')
+    selectAll(() => supabase.from('price_items').select('id, name, category').eq('org_id', gig.org_id).neq('tracking', 'none').is('archived_at', null).order('name').order('id'))
       .then(({ data, error }) => { if (error) logger.error('inputs', error, { step: 'items' }); setItems(data || []) })
   }, [canEdit, gig.org_id])
 

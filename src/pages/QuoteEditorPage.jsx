@@ -77,7 +77,7 @@ export default function QuoteEditorPage() {
         supabase.from('quote_templates').select('id, name, description, body').eq('org_id', q.org_id).order('name'),
         supabase.from('organisations').select('quote_number_prefix').eq('id', q.org_id).maybeSingle(),
         selectAll(() => supabase.from('price_items').select('*').eq('org_id', q.org_id).is('archived_at', null).order('name').order('id')),
-        supabase.from('clients').select('id, org_id, name, contact_name, email, address, tax_id, archived_at').eq('org_id', q.org_id).order('name'),
+        selectAll(() => supabase.from('clients').select('id, org_id, name, contact_name, email, address, tax_id, archived_at').eq('org_id', q.org_id).order('name').order('id')),
       ])
       if (cancelled) return
       const b = normalizeBody(q.body)

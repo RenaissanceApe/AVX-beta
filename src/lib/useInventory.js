@@ -56,9 +56,9 @@ export function useKits(orgId, enabled = true) {
   const reload = useCallback(async () => {
     if (!orgId || !enabled) return setKits({ parts: [], pairs: [], items: {}, loaded: true })
     const [partsRes, pairsRes, itemsRes] = await Promise.all([
-      supabase.from('item_parts').select('*').eq('org_id', orgId),
-      supabase.from('item_alternatives').select('*').eq('org_id', orgId),
-      supabase.from('price_items').select('id, name, kit_type, tracking, category, archived_at').eq('org_id', orgId).in('kind', ['rental', 'sale']),
+      selectAll(() => supabase.from('item_parts').select('*').eq('org_id', orgId).order('id')),
+      selectAll(() => supabase.from('item_alternatives').select('*').eq('org_id', orgId).order('id')),
+      selectAll(() => supabase.from('price_items').select('id, name, kit_type, tracking, category, archived_at').eq('org_id', orgId).in('kind', ['rental', 'sale']).order('id')),
     ])
     for (const [step, res] of Object.entries({ partsRes, pairsRes, itemsRes })) {
       if (res.error) logger.error('kits', res.error, { step })
