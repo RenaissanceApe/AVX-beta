@@ -1,7 +1,7 @@
 // Tasks (docs/TOOLS_PLAN.md build order step 5, T1): who does what by when, on a gig or for the
 // organisation, with a small checklist. Pure helpers for the lists.
 
-export const TASK_FIELDS = 'id, gig_id, org_id, title, notes, assignee_id, due_on, checklist, status, done_by, done_at, source_kind, source_id, repair_id, created_by, created_at, removed_at'
+export const TASK_FIELDS = 'id, gig_id, org_id, title, notes, assignee_id, due_on, checklist, status, done_by, done_at, source_kind, source_id, repair_id, created_by, created_at, removed_at, updated_at'
 export const TEMPLATE_FIELDS = 'id, org_id, name, notes, items, updated_at'
 
 // How urgent an open task is: 'overdue', 'today', 'soon' (within 3 days) or null

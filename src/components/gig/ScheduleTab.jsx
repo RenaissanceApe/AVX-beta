@@ -6,6 +6,7 @@ import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { groupByDay, shortTime } from '../../lib/schedule'
 import { useUndoRemove } from '../../lib/undo'
+import { updateIfUnchanged, notifyConflict } from '../../lib/staleSave'
 import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, card, label, colors } from '../ui'
 import EmptyState from '../EmptyState'
@@ -42,13 +43,17 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
       day: form.day, start_time: form.start_time, end_time: form.end_time || null,
       title: form.title.trim(), location: form.location.trim() || null, notes: form.notes.trim() || null,
     }
-    const { error } = editing === 'new'
+    const { error, conflict } = editing === 'new'
       ? await supabase.from('gig_schedule').insert({ ...row, gig_id: gig.id, created_by: user.id })
-      : await supabase.from('gig_schedule').update(row).eq('id', editing.id)
+      : await updateIfUnchanged(supabase, 'gig_schedule', editing.id, row, editing.updated_at)
     setSaving(false)
     if (error) {
       logger.error('schedule', error, { step: editing === 'new' ? 'insert' : 'update', gigId: gig.id })
       return notify(/end_time/.test(error.message) ? t('schedule.endAfterStart') : userMessage(error), 'error')
+    }
+    if (conflict) {
+      logger.warn('schedule', 'save refused', { step: 'update', gigId: gig.id, conflict })
+      return notifyConflict(conflict, notify, t)
     }
     setEditing(null)
     onChanged()

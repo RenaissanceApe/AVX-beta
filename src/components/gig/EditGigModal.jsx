@@ -12,6 +12,7 @@ import { CustomFieldInputs } from '../CustomFields'
 import { DangerZone, DangerConfirmModal } from '../DangerConfirm'
 import { removeGigFiles } from '../../lib/storage'
 import { OwnClashWarning } from './Booking'
+import { updateIfUnchanged, notifyConflict } from '../../lib/staleSave'
 
 // What deleting a gig destroys, as readable lines for the confirmation dialog
 async function gigDeletionImpact(gigId, t) {
@@ -41,6 +42,8 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
   const { fields } = useCustomFields(gig.org_id, 'gig')
   const [custom, setCustom] = useState({})
   const [saving, setSaving] = useState(false)
+  // The version this form was opened on, kept even if the page refreshes the gig meanwhile
+  const [openedAt] = useState(gig.updated_at)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
 
@@ -51,13 +54,17 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
     // Empty date inputs must be sent as null, not ''
     const changes = { ...form, name: form.name.trim(), start_date: form.start_date || null, end_date: form.end_date || null }
     if (Object.keys(custom).length) changes.custom_values = mergeValues(gig.custom_values, fields, custom)
-    const { error } = await supabase.from('gigs').update(changes).eq('id', gig.id)
+    const { error, conflict, updatedAt } = await updateIfUnchanged(supabase, 'gigs', gig.id, changes, openedAt)
     setSaving(false)
     if (error) {
       logger.error('gig', error, { step: 'saveGig', gigId: gig.id })
       return notify(t('gig.saveFailed', { reason: userMessage(error) }), 'error')
     }
-    onSaved(changes)
+    if (conflict) {
+      logger.warn('gig', 'save refused', { step: 'saveGig', gigId: gig.id, conflict })
+      return notifyConflict(conflict, notify, t)
+    }
+    onSaved({ ...changes, updated_at: updatedAt })
     onClose()
   }
 

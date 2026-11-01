@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.63.10 — No more silent overwrites
+
+### Fixed
+- **Two people editing the same thing no longer overwrite each other.** If you and a colleague
+  had the same gig, schedule item, task, client or catalogue / price-list item open, whoever saved
+  last quietly replaced the other's changes. Now the second save is refused with "Someone else
+  changed this — reload to see their changes" (also in Portuguese), and a Reload button. Your form
+  stays open so you can copy what you typed. Quotes already worked this way. Quick one-tap
+  changes (ticking a task, checking an input, moving things on a plot) still simply save.
+
 ## 0.63.9 — Pickers show everything
 
 ### Fixed

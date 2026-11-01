@@ -7,6 +7,7 @@ import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import { PRICED_KINDS, UNITS, formatMoney, parsePriceImport, parsePrice } from '../../lib/quotes'
+import { updateIfUnchanged, notifyConflict } from '../../lib/staleSave'
 
 const matches = (item, q) => !q || [item.name, item.category, item.details].some(v => (v || '').toLowerCase().includes(q))
 const byCategory = items => {
@@ -102,14 +103,17 @@ function PriceItemModal({ orgId, userId, item, categories, onClose, onSaved }) {
       name: form.name.trim(), unit_price: price, category: form.category.trim() || null,
       kind: form.kind, unit: form.unit, details: form.details.trim() || null, updated_at: new Date().toISOString(),
     }
-    const query = item
-      ? supabase.from('price_items').update(row).eq('id', item.id)
-      : supabase.from('price_items').insert({ ...row, org_id: orgId, created_by: userId })
-    const { data, error } = await query.select().single()
+    const { data, error, conflict } = item
+      ? await updateIfUnchanged(supabase, 'price_items', item.id, row, item.updated_at, '*').then(r => ({ ...r, data: r.row }))
+      : await supabase.from('price_items').insert({ ...row, org_id: orgId, created_by: userId }).select().single()
     setSaving(false)
     if (error) {
       logger.error('prices', error, { step: item ? 'update' : 'insert' })
       return notify(userMessage(error), 'error')
+    }
+    if (conflict) {
+      logger.warn('prices', 'save refused', { step: 'update', itemId: item.id, conflict })
+      return notifyConflict(conflict, notify, t)
     }
     onSaved(data)
     onClose()

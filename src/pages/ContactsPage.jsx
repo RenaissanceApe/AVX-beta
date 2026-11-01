@@ -17,6 +17,7 @@ import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import { QuoteStatusBadge } from '../components/quotes/parts'
 import { SupplierModal } from '../components/inventory/SubrentalPanels'
+import { updateIfUnchanged, notifyConflict } from '../lib/staleSave'
 
 const TABS = ['clients', 'suppliers']
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }
@@ -215,11 +216,15 @@ export function ClientModal({ orgId, client, onClose, onSaved }) {
     setSaving(true)
     const row = Object.fromEntries(Object.entries(form).map(([k, v]) => [k, v.trim() || null]))
     if (Object.keys(custom).length) row.custom_values = mergeValues(client?.custom_values, fields, custom)
-    const { error } = client
-      ? await supabase.from('clients').update(row).eq('id', client.id)
+    const { error, conflict } = client
+      ? await updateIfUnchanged(supabase, 'clients', client.id, row, client.updated_at)
       : await supabase.from('clients').insert({ ...row, org_id: orgId })
     setSaving(false)
     if (error) return notify(userMessage(error), 'error')
+    if (conflict) {
+      logger.warn('contacts', 'save refused', { step: 'updateClient', clientId: client.id, conflict })
+      return notifyConflict(conflict, notify, t)
+    }
     if (!client) track('contacts:newClient')
     onSaved()
     onClose()

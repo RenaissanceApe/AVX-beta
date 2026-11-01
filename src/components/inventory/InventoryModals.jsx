@@ -11,6 +11,7 @@ import { Modal, btnPrimary, input, label, colors } from '../ui'
 import { HintLabel } from '../help/HelpParts'
 import { useCustomFields, mergeValues } from '../../lib/customFields'
 import { CustomFieldInputs } from '../CustomFields'
+import { updateIfUnchanged, notifyConflict } from '../../lib/staleSave'
 
 // A form field; hint adds an ⓘ with its explanation (src/help)
 const Field = ({ id, text, hint, children }) => (
@@ -31,6 +32,8 @@ const SaveButton = ({ saving, disabled, children }) => (
 // Catalogue item: the price list fields plus how stock is kept and its specs
 export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, onSaved }) {
   const { notify } = useToast()
+  // The version this form was opened on, kept even if the page reloads the item meanwhile
+  const [openedAt] = useState(item?.updated_at)
   const [form, setForm] = useState({
     name: item?.name || '', kind: item?.kind || 'rental', category: item?.category || '', unit_price: item?.unit_price ?? '',
     unit: item?.unit || 'day', tracking: item?.tracking || 'bulk', code: item?.code || '', brand: item?.brand || '',
@@ -66,14 +69,17 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
       inspection_months: form.tracking === 'none' ? null : Math.min(120, Math.max(1, int(form.inspection_months) || 0)) || null,
     }
     if (Object.keys(custom).length) row.custom_values = mergeValues(item?.custom_values, fields, custom)
-    const query = item
-      ? supabase.from('price_items').update(row).eq('id', item.id)
-      : supabase.from('price_items').insert({ ...row, org_id: orgId, created_by: userId })
-    const { data, error } = await query.select().single()
+    const { data, error, conflict } = item
+      ? await updateIfUnchanged(supabase, 'price_items', item.id, row, openedAt, '*').then(r => ({ ...r, data: r.row }))
+      : await supabase.from('price_items').insert({ ...row, org_id: orgId, created_by: userId }).select().single()
     setSaving(false)
     if (error) {
       logger.error('inventory', error, { step: item ? 'updateItem' : 'insertItem' })
       return notify(userMessage(error), 'error')
+    }
+    if (conflict) {
+      logger.warn('inventory', 'save refused', { step: 'updateItem', itemId: item.id, conflict })
+      return notifyConflict(conflict, notify, t)
     }
     if (!item) track('inventory:item-added')
     onSaved(data)

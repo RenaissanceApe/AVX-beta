@@ -8,6 +8,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
+import { updateIfUnchanged, notifyConflict } from '../lib/staleSave'
 import { TASK_FIELDS, TEMPLATE_FIELDS, sortTasks, filterTasks, taskPlace } from '../lib/tasks'
 import { localDay } from '../lib/onSite'
 import { useI18n } from '../i18n'
@@ -81,17 +82,22 @@ export default function OrgTasksPage() {
 
   async function save(values) {
     const isNew = editing === 'new'
-    const { error } = isNew
+    const { error, conflict } = isNew
       ? await supabase.from('tasks').insert({ ...values, org_id: orgId })
-      : await supabase.from('tasks').update(values).eq('id', editing.id)
+      : await updateIfUnchanged(supabase, 'tasks', editing.id, values, editing.updated_at)
     if (error) return notify(userMessage(error), 'error')
+    if (conflict) {
+      logger.warn('tasks', 'save refused', { step: 'update', taskId: editing.id, conflict })
+      return notifyConflict(conflict, notify, t)
+    }
     if (isNew) track('tasks:addOrg')
     setEditing(null)
     load()
   }
   async function patch(task, values) {
     setTasks(list => list.map(x => (x.id === task.id ? { ...x, ...values } : x)))
-    const { error } = await supabase.from('tasks').update(values).eq('id', task.id)
+    const { data, error } = await supabase.from('tasks').update(values).eq('id', task.id).select('updated_at')
+    if (data?.[0]) setTasks(list => list.map(x => (x.id === task.id ? { ...x, updated_at: data[0].updated_at } : x)))
     if (error) { notify(userMessage(error), 'error'); load() }
   }
   async function remove(task) {
