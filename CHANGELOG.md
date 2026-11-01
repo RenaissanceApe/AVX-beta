@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.63.11 — A restore you can practise
+
+### Fixed
+- **Turning on file backups no longer wipes the database backup.** The nightly backup fetched the
+  code after making the database copy, and that step empties the folder first, so with the
+  files secret added each night's backup would have held only the files. The code is now
+  fetched first. Backups made so far were not affected (the files secret was never set).
+
+### Changed
+- **Backups page rewritten as a restore drill** ([docs/BACKUPS.md](docs/BACKUPS.md)): what is and
+  isn't backed up, what would have stopped a restore, a step-by-step drill into a throwaway
+  Supabase project with checks (row counts, signing in, opening a gig's file), what to do for a
+  real restore, and an "If the live site is down" checklist. The old restore command didn't work
+  on Supabase; the drill builds the structure from the migrations and loads only the data.
+
 ## 0.63.10 — No more silent overwrites
 
 ### Fixed

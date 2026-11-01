@@ -25,6 +25,9 @@ jobs:
       BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
+      # Checkout comes first: run later, it empties the folder and deletes the database dump.
+      - uses: actions/checkout@v4
+
       - name: Check configuration
         id: config
         run: |
@@ -56,9 +59,6 @@ jobs:
           rm "$name.dump"
           echo "BACKUP_FILE=$name.dump.gpg" >> "$GITHUB_ENV"
           ls -lh "$name.dump.gpg"
-
-      - uses: actions/checkout@v4
-        if: steps.config.outputs.enabled == 'true' && env.SUPABASE_SERVICE_ROLE_KEY != ''
 
       - name: Download and encrypt uploaded files
         if: steps.config.outputs.enabled == 'true' && env.SUPABASE_SERVICE_ROLE_KEY != ''
