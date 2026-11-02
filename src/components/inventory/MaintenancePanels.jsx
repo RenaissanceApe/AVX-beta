@@ -11,6 +11,7 @@ import { taskFromRepair } from '../../lib/tasks'
 import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, input, label, card, colors } from '../ui'
 import ContextThread from '../messages/ContextThread'
+import { HintLabel } from '../help/HelpParts'
 
 const AMBER = 'var(--warn)'
 const select = { ...input, appearance: 'auto' }
@@ -190,9 +191,11 @@ export function InspectionModal({ item, unitId: presetUnit, onClose, onSaved }) 
   const { notify } = useToast()
   const [units, setUnits] = useState([])
   const [unitId, setUnitId] = useState(presetUnit || '')
-  const [form, setForm] = useState({ done_on: localISODate(), result: 'pass', inspector: '', notes: '' })
+  const [form, setForm] = useState({ done_on: localISODate(), result: 'pass', inspector: '', notes: '', cost: '' })
   const [saving, setSaving] = useState(false)
   const serial = item.tracking === 'serial'
+  const cost = form.cost === '' ? null : Number(String(form.cost).replace(',', '.'))
+  const costOk = cost == null || cost >= 0
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
   useEffect(() => {
     if (!serial) return
@@ -202,11 +205,11 @@ export function InspectionModal({ item, unitId: presetUnit, onClose, onSaved }) 
 
   async function save(e) {
     e.preventDefault()
-    if (serial && !unitId) return
+    if ((serial && !unitId) || !costOk) return
     setSaving(true)
     const { error } = await supabase.from('inspections').insert({
       org_id: item.org_id, item_id: item.id, unit_id: serial ? unitId : null, done_on: form.done_on, result: form.result,
-      inspector: form.inspector.trim() || null, notes: form.notes.trim() || null,
+      inspector: form.inspector.trim() || null, notes: form.notes.trim() || null, cost,
     })
     setSaving(false)
     if (error) {
@@ -234,6 +237,10 @@ export function InspectionModal({ item, unitId: presetUnit, onClose, onSaved }) 
           )}
           <Field id="in-date" text={t('inspect.date')}><input id="in-date" type="date" value={form.done_on} max={localISODate()} onChange={set('done_on')} style={input} required /></Field>
           <Field id="in-by" text={t('inspect.by')}><input id="in-by" value={form.inspector} onChange={set('inspector')} maxLength={120} style={input} /></Field>
+          <div>
+            <HintLabel htmlFor="in-cost" hint="inspection-cost">{t('inspect.cost')}</HintLabel>
+            <input id="in-cost" inputMode="decimal" value={form.cost} onChange={set('cost')} aria-invalid={!costOk} style={input} />
+          </div>
         </div>
         <div role="radiogroup" aria-label={t('inspect.result')} style={{ display: 'flex', gap: '8px' }}>
           {['pass', 'fail'].map(r => (
@@ -245,7 +252,7 @@ export function InspectionModal({ item, unitId: presetUnit, onClose, onSaved }) 
         </div>
         <Field id="in-notes" text={t('inv.note')}><input id="in-notes" value={form.notes} onChange={set('notes')} maxLength={1000} style={input} /></Field>
         {form.result === 'fail' && <p role="alert" style={{ fontSize: '12px', color: AMBER }}>{t('inspect.failHint')}</p>}
-        <button type="submit" disabled={saving || (serial && !unitId)} style={{ ...btnPrimary, justifyContent: 'center' }}>
+        <button type="submit" disabled={saving || (serial && !unitId) || !costOk} style={{ ...btnPrimary, justifyContent: 'center' }}>
           {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
         </button>
       </form>

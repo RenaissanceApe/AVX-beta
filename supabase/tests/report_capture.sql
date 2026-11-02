@@ -277,6 +277,21 @@ begin
   -- Parts that didn't change still come from the older export
   select export_org_part(org_a, 'clients') into j;
   if jsonb_array_length(j) <> 2 then raise exception 'CHECK FAILED: clients part (%)', jsonb_array_length(j); end if;
+
+  -- The jobs import links the gig to a client of the same name (migration 20261210000001)
+  perform import_jobs(org_a, 'gigs', jsonb_build_array(
+    jsonb_build_object('_row', 2, 'ref', 'RC-1', 'name', 'Imported job', 'start_date', current_date + 10, 'client', 'festival lda'),
+    jsonb_build_object('_row', 3, 'ref', 'RC-2', 'name', 'Unknown client job', 'start_date', current_date + 11, 'client', 'Nobody Lda')));
+  if (select client_id from gigs where org_id = org_a and import_ref = 'RC-1') is distinct from cl then raise exception 'CHECK FAILED: import client'; end if;
+  if (select client_id from gigs where org_id = org_a and import_ref = 'RC-2') is not null then raise exception 'CHECK FAILED: import invented a client'; end if;
+  if (select description from gigs where org_id = org_a and import_ref = 'RC-2') not like 'Client: Nobody Lda%' then raise exception 'CHECK FAILED: import client name kept'; end if;
+  -- The equipment import takes a cost price and write-off period (migration 20261210000002)
+  perform run_import(org_a, 'items', '[{"name": "DMX 5m", "code": "DMX5RC", "quantity": 20, "location": "Warehouse", "unit_price": 3, "cost_price": 8.5, "depreciation_months": 48}]');
+  if (select cost_price from price_items where org_id = org_a and code = 'DMX5RC') <> 8.5
+     or (select depreciation_months from price_items where org_id = org_a and code = 'DMX5RC') <> 48 then raise exception 'CHECK FAILED: import item cost'; end if;
+  if (select m.unit_cost from stock_movements m join price_items i on i.id = m.item_id where i.code = 'DMX5RC' and i.org_id = org_a and m.kind = 'purchase') <> 8.5 then
+    raise exception 'CHECK FAILED: import opening stock cost';
+  end if;
   reset role;
 
   -- Members can't export (admins only)

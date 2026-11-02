@@ -28,6 +28,7 @@ import { useSimpleMode } from '../lib/simpleMode'
 import { useGigLabels, GIG_LABELS_EMBED } from '../lib/gigLabels'
 import { GigLabels } from '../components/gig/parts'
 import GigLabelFields from '../components/gig/GigLabelFields'
+import GigClientField from '../components/gig/GigClientField'
 import { useCustomFields, mergeValues } from '../lib/customFields'
 import { CustomFieldInputs } from '../components/CustomFields'
 
@@ -188,7 +189,7 @@ export default function Dashboard() {
 
 function NewGigModal({ orgId, onClose, onCreated }) {
   const { user } = useAuth()
-  const [form, setForm] = useState({ name: '', venue: '', start_date: '', end_date: '', description: '', status: 'confirmed', custom_status_id: null, gig_type_id: null })
+  const [form, setForm] = useState({ name: '', venue: '', start_date: '', end_date: '', description: '', status: 'confirmed', custom_status_id: null, gig_type_id: null, client_id: null })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const labels = useGigLabels(orgId)
@@ -237,6 +238,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
           </FieldLabel>
         </div>
         <OwnClashWarning startDate={form.start_date} endDate={form.end_date} />
+        <GigClientField orgId={orgId} idPrefix="ng" value={form.client_id} onChange={v => setForm(f => ({ ...f, client_id: v }))} />
         <GigLabelFields idPrefix="ng" labels={labels} value={form} onChange={patch => setForm(f => ({ ...f, ...patch }))} />
         <CustomFieldInputs key={fields.length} fields={fields} values={{}} idPrefix="ng" inputStyle={modalInput} onChange={(id, v) => setCustom(c => ({ ...c, [id]: v }))} />
         <FieldLabel label={t('gigForm.description')}>

@@ -6,6 +6,8 @@ export const LINE_KINDS = ['rental', 'sale', 'crew', 'transport', 'other', 'comm
 export const PRICED_KINDS = LINE_KINDS.filter(k => k !== 'comment')
 export const UNITS = ['unit', 'day', 'hour', 'km', 'set', 'lump']
 export const QUOTE_STATUSES = ['draft', 'sent', 'accepted', 'declined']
+// Why a declined quote was lost (quotes.lost_reason; the database checks the same list)
+export const LOST_REASONS = ['price', 'competitor', 'cancelled', 'unavailable', 'scope', 'other']
 
 export function newId() {
   return globalThis.crypto?.randomUUID?.() ?? `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`

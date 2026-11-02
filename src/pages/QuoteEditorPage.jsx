@@ -17,6 +17,7 @@ import QuoteSummary from '../components/quotes/QuoteSummary'
 import { QuoteStatusBadge } from '../components/quotes/parts'
 import { VersionsModal, SendQuoteModal } from '../components/quotes/QuoteSharing'
 import GigPlanModal from '../components/quotes/GigPlanModal'
+import LostReasonModal from '../components/quotes/LostReasonModal'
 import QuoteAvailabilityModal from '../components/quotes/QuoteAvailability'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import ContextThread from '../components/messages/ContextThread'
@@ -29,7 +30,7 @@ import {
 const EDITABLE = [
   'title', 'status', 'language', 'currency', 'client_name', 'client_company', 'client_email', 'client_address', 'client_tax_id',
   'issue_date', 'valid_until', 'intro', 'terms', 'vat_rate', 'discount_pct', 'show_line_prices', 'gig_id',
-  'payment_terms', 'manager_name', 'client_id',
+  'payment_terms', 'manager_name', 'client_id', 'lost_reason', 'lost_note',
 ]
 const SAVE_DELAY = 1000
 
@@ -147,6 +148,13 @@ export default function QuoteEditorPage() {
       return next
     })
     markDirty()
+  }
+  // Declined asks why (optional); any other status drops the reason, as the database does
+  function changeStatus(status) {
+    if (status === 'declined') {
+      updateQuote({ status })
+      setModal({ kind: 'lost' })
+    } else updateQuote({ status, lost_reason: null, lost_note: null })
   }
   function updateBody(next) {
     latest.current.body = next
@@ -272,7 +280,7 @@ export default function QuoteEditorPage() {
     const { data, error } = await supabase.from('gigs').insert({
       org_id: quote.org_id, name: quote.title.slice(0, 200), start_date: start, end_date: end,
       status: quote.status === 'accepted' ? 'confirmed' : 'draft', created_by: user.id,
-      description: [quote.client_company, quote.client_name].filter(Boolean).join(' · ') || null,
+      description: [quote.client_company, quote.client_name].filter(Boolean).join(' · ') || null, client_id: quote.client_id || null,
     }).select('id, name, start_date, org_id').single()
     if (error) {
       logger.error('quote', error, { step: 'createGig', quoteId: id })
@@ -307,9 +315,14 @@ export default function QuoteEditorPage() {
             <span style={{ fontFamily: 'var(--font-mono)', color: colors.soft, fontSize: '13px' }}>{quoteNumber(quote, prefix)}</span>
             <input value={quote.title} onChange={e => updateQuote({ title: e.target.value })} aria-label={t('quotes.quoteTitle')} maxLength={200}
               style={{ ...input, flex: '1 1 220px', fontSize: '18px', fontWeight: 800, background: 'transparent', border: '1px solid transparent', padding: '6px 8px' }} />
-            <select value={quote.status} onChange={e => updateQuote({ status: e.target.value })} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', padding: '7px 10px', cursor: 'pointer' }}>
+            <select value={quote.status} onChange={e => changeStatus(e.target.value)} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', padding: '7px 10px', cursor: 'pointer' }}>
               {QUOTE_STATUSES.map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
             </select>
+            {quote.status === 'declined' && (
+              <button onClick={() => setModal({ kind: 'lost' })} style={{ ...btnGhost, padding: '7px 10px' }}>
+                {quote.lost_reason ? t('lost.shown', { reason: t(`lost.reasons.${quote.lost_reason}`) }) : t('lost.add')}
+              </button>
+            )}
             <SaveIndicator state={saveState} onRetry={save} />
             <PageHelp page="quote" />
           </div>
@@ -387,6 +400,10 @@ export default function QuoteEditorPage() {
       {modal?.kind === 'saveTemplate' && (
         <SaveTemplateModal orgId={quote.org_id} userId={user.id} body={modal.body} defaultName={modal.name}
           onClose={() => setModal(null)} onSaved={tpl => { setTemplates(list => [...list, tpl].sort((a, b) => a.name.localeCompare(b.name))); setModal(null) }} />
+      )}
+      {modal?.kind === 'lost' && (
+        <LostReasonModal reason={quote.lost_reason} note={quote.lost_note} onClose={() => setModal(null)}
+          onSave={changes => { updateQuote(changes); setModal(null) }} />
       )}
       {modal?.kind === 'versions' && (
         <VersionsModal quoteId={id} prepare={prepare} currency={quote.currency} onRestore={restoreVersion} onClose={() => setModal(null)} />
