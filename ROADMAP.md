@@ -32,16 +32,29 @@ Built in dependency order: nothing before what it needs. **"Connect"** lists the
 that must pick up the new one; that linking is part of the step's PR, not a later clean-up, and
 the PR description and CHANGELOG say what was connected. Numbers in brackets are from
 [docs/COMPETITOR_RESEARCH.md](docs/COMPETITOR_RESEARCH.md). Step numbers are fixed (code and
-migrations refer to them). "Prompt" is the section of docs/SESSION_PROMPTS.md to paste.
+migrations refer to them). "Prompt" is the section of docs/SESSION_PROMPTS.md to paste. **K** rows
+are the dashboards and analytics pack ([docs/ANALYTICS.md](docs/ANALYTICS.md)), each placed after
+the data it counts.
 
 | # | What | Needs | Connect | Plan | Prompt |
 |---|---|---|---|---|---|
+| K0 | **Capture for reports**: quote sent and decided dates, lost reason; a client on gigs; cost price on items; cost and price on stock purchases and sales; inspection cost | quotes, inventory | Quote editor, send-quote, quote-public, gig forms, create gig from quote, stock modals, inspections, import wizard, organisation export | ANALYTICS.md | K0 |
 | 7b | Crew-rate follow-ups: fees in crew calls and job posts, quote crew lines from the rate card | 7 | Crew calls, job board, quote editor | BUSINESS.md | S01 |
-| 8 | **Time registration** [2] | 7, schedule | Gig crew tab, labour cost (actual vs planned), calendar feed, export | BUSINESS.md | S02 |
-| 9 | **Leave requests** [5] | availability | Clashes, Find crew "free", time registration | BUSINESS.md | S03 |
-| 10 | **Gig finance overview** [4] | 7, 8, quotes, subrentals | Dashboard, reports | BUSINESS.md | S04 |
-| 11 | **Invoices** [1] (hand-off to certified software, VAT per line) | accepted quotes, 10 | Quotes, contacts, guest threads, client links | BUSINESS.md | S05 |
-| 12 | Damage charged to the client [15], **payments** [22] | 11, repairs | Repairs, quotes, invoices | BUSINESS.md | S06 |
+| 8 | **Time registration** [2] | 7, schedule | Gig crew tab, labour cost (actual vs planned), calendar feed, export, reports (approved hours kept as approved) | BUSINESS.md | S02 |
+| 9 | **Leave requests** [5] | availability | Clashes, Find crew "free", time registration, reports (working week) | BUSINESS.md | S03 |
+| 9b | **Expenses**: every company cost with its receipt, category, VAT, due and paid dates; recurring costs; linked so each cost counts once | 9, contacts, subrentals, repairs | Subrentals, repairs, crew fees, stock purchases, contacts, organisation export, data map | BUSINESS.md, ANALYTICS.md | S03b |
+| K1 | **Reports engine** [11]: the definitions, one revenue rule, report parts and charts, the Reports area with its Overview; I7 counted in the database | K0, 9b | Inventory → Reports, labour cost panel, organisation Home, menus, usage counts | ANALYTICS.md | K1 |
+| 10 | **Gig finance overview** [4] | 7, 8, 9b, K1, quotes, subrentals | Dashboard, expenses, reports (K2 builds on it) | BUSINESS.md | S04 |
+| 11 | **Invoices** [1] (hand-off to certified software, VAT per line) | accepted quotes, 10 | Quotes, contacts, guest threads, client links, the revenue rule (K1) | BUSINESS.md | S05 |
+| 12 | Damage charged to the client [15], **payments** [22] | 11, repairs | Repairs, quotes, invoices, reports (K3) | BUSINESS.md | S06 |
+| K2 | **Money: results and margins** [4] [11] | K1, 9b, 10 | Gig finance panel, Overview, gig cards, expenses | ANALYTICS.md | K2 |
+| K3 | **Money: cash, spending and forecast** | K2, 11, 12 | Invoices, payments, expenses, contacts, Overview | ANALYTICS.md | K3 |
+| K4 | **Sales and clients** | K0, K1, 10 | Quotes list, contacts, Overview | ANALYTICS.md | K4 |
+| K5 | **Equipment money**: profit, payback, buy or keep hiring in | K0, K1 | Inventory → Reports, item page, subrentals, Overview | ANALYTICS.md | K5 |
+| K6 | **Warehouse and upkeep** numbers | K5 | Maintenance, subrentals, dispatch, Overview | ANALYTICS.md | K6 |
+| K7 | **Operations and people** | K1, 8, 9 | Crew tab, tasks, gig wrap-up page, Overview, data map | ANALYTICS.md | K7 |
+| K8 | **Crew numbers** in My work, fee paid, year statement | K1, 7b, 8, 9b | My work, labour cost panel, My fee, K3, step 27 | ANALYTICS.md | K8 |
+| K9 | Report extras, only those you pick: weekly email, saved views, monthly PDF, accountant link | K2–K8 | Email summary, Overview | ANALYTICS.md | K9 |
 | 13 | **A1** speaker library | catalogue | F4 sound calculator; later P1 and RG3 | TOOLS_PLAN.md §6 | S07 |
 | 14 | **MVR/GDTF import** [29] and MVR export | light plot, DMX patch | Fixture weights and power for P1 and RG1 | TOOLS_PLAN.md, FIELD_TOOLS.md | S08 |
 | 15 | **P1–P2** power and cables | light plot, 13, 14 | Light plot power estimate, gig equipment (distros, cables) | TOOLS_PLAN.md §4 | S09, S10 |
@@ -50,16 +63,18 @@ migrations refer to them). "Prompt" is the section of docs/SESSION_PROMPTS.md to
 | 18 | **RG3** line arrays | 13, F4, RG1 | Sound system calculator | TOOLS_PLAN.md §5 | S14 |
 | 19 | **RG4** rigging plot, report, sign-off | RG1–RG3, job board, 16 | Gig files, on-site view, job board prefill | TOOLS_PLAN.md §5 | S15 |
 | 20 | **RG5** suggestions; **P3** one-line diagram and on-site power checklist | RG4, P2 | On-site mode | TOOLS_PLAN.md §4–5 | S16 |
+| K10 | **Safety and compliance**, only if you say yes (D27): overdue inspections on booked gear, expiring certificates, missing sign-offs, a safety pack per gig | I5, 16, 19, 20, K1 | Equipment tab, maintenance, crew profiles, rigging report, power checklist, gig files | ANALYTICS.md | K10 |
 | 21 | **A2** coverage map, **A3** prediction and measurement files | 13, F4 | Gig files, tuning sheet | TOOLS_PLAN.md §6 | S17 |
 | 21b | **A4–A6** own simulator by level of detail | A1–A3, RG1, RG3 | A2 map, system calculator, tuning sheet | TOOLS_PLAN.md §6 | S18, S19, S20, S20b |
 | 22 | **Shareable rider / advance page** [28] | stage plot, inputs, patch, P, RG | Power and rigging summaries; line-up start and readiness check (from StageKit) | BUSINESS.md | S21 |
 | 22b | **Venue pages**, only if you say yes (decision D14) | 22, P1, RG1 | Gig address, call sheet, power supply, rigging points | TOOLS_PLAN.md "Proposed" | S22 |
-| 23 | **Vehicles and transport** [8], **appointments** [9] | reservations, item weights | Packing list per vehicle, calendar, clashes | BUSINESS.md | S23 |
-| 24 | **Reports** [11] | 10, 11, 23 | Dashboard | BUSINESS.md | S24 |
+| 23 | **Vehicles and transport** [8], **appointments** [9] | reservations, item weights | Packing list per vehicle, calendar, clashes, gig finance (running costs), expenses, vehicle-use report | BUSINESS.md | S23 |
+| K11 | **Sustainability report**, only if you say yes (D28): transport, energy and estimated emissions per gig | 8, 15, 23, K1 | Trips, power plan, gig files, Reports | ANALYTICS.md | K11 |
+| 24 | ~~Reports~~ [11]: covered by K1–K8, and vehicle use by step 23 | — | — | ANALYTICS.md | — |
 | 25 | **Gig templates** [7] | everything above | Copies schedule, positions, equipment, tools, tasks, custom fields | BUSINESS.md | S25 |
-| 26 | **Client portal** [13], **online booking requests** [14] | 11, quotes | Quote links, guest threads | BUSINESS.md | S26 |
+| 26 | **Client portal** [13], **online booking requests** [14] | 11, quotes | Quote links, guest threads, the client's balance (K3) | BUSINESS.md | S26 |
 | 26b | **M5b** email replies (needs inbound email on the domain) | messaging, 26 | Email summary, client and supplier threads | MESSAGING.md | S27 |
-| 27 | Freelancer side: **contracts** [25], **invoicing** [26], **work history** [24] | 7, 8, 16 | Crew profiles, crew calls | BUSINESS.md | S28 |
+| 27 | Freelancer side: **contracts** [25], **invoicing** [26], **work history** [24] | 7, 8, 16 | Crew profiles, crew calls, K8's monthly summary | BUSINESS.md | S28 |
 | 28 | **Public API and webhooks** [17] | stable data model | Cueing app, accounting sync [18], payroll export [23], MCP [19] | BUSINESS.md | S29 |
 | 29 | **R3** cueing app bridge | R1, tasks, 28 | Cueing app roadmap starts here | TOOLS_PLAN.md §2 | S30 |
 | 30 | Rental network [21], RFID [20] | 28, inventory | Subrentals | BUSINESS.md | S31 |
@@ -87,6 +102,17 @@ migrations refer to them). "Prompt" is the section of docs/SESSION_PROMPTS.md to
 - Legal review of the privacy notice and terms.
 - Leaked-password protection and daily restorable backups (Supabase Pro); Vercel Pro (commercial use).
 - Custom domain for the app.
+
+## After launch
+
+Planned, not scheduled: built once the public launch has settled. Prompts are in
+docs/SESSION_PROMPTS.md ("After launch"), plans in [docs/ANALYTICS.md](docs/ANALYTICS.md).
+
+| # | What | Needs | Prompt |
+|---|---|---|---|
+| K12 | **Crew: all income**: work outside AVX, the person's own costs, a year statement covering everything | K8, 9b | K12 |
+| K13 | **Crew-owned gear for hire**, run as a one-person organisation so inventory and cross-hire work unchanged | I6, K8, 12 | K13 |
+| — | Ideas, only if you say yes (D29): market insights, client feedback, a platform dashboard for you, expense automation | — | — |
 
 ## Known limitations (beta)
 

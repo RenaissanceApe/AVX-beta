@@ -2,7 +2,8 @@
 
 The business side of AVX built from the build order in [ROADMAP.md](../ROADMAP.md): tasks,
 an organisation's own statuses, types and fields, and the money loop (crew rates, then time
-registration, leave, gig finance, invoices). Each section says how a built feature works, so the
+registration, leave, expenses, gig finance, invoices); the reports built on all of it are planned in
+[ANALYTICS.md](ANALYTICS.md). Each section says how a built feature works, so the
 next session can connect to it without reading its code first. Rows the competitor research
 ranks are numbered [n] from [COMPETITOR_RESEARCH.md](COMPETITOR_RESEARCH.md).
 
@@ -85,6 +86,9 @@ questions marked "Ask" before outlining the migration**. When built, the spec is
   The person is notified both ways.
 - **Money:** approved hours × the agreed fee or rate → **actual labour cost**, shown next to the
   planned cost in the labour panel (step 7). Fixed fees ignore hours.
+- **History stays true:** each approved day keeps its hours split (normal, overtime, night,
+  weekend, holiday) and its cost as they were at approval, so a later rate change never rewrites
+  past costs (reports K2, K7 and K8 read them).
 - **Views:** the person's own hours (My work), the gig's hours (Crew tab), an organisation view per
   person and month. CSV export, and a "hours" file in the organisation export.
 - **Who:** each person writes their own; managers write for anyone on the gig; crew never see
@@ -100,23 +104,58 @@ questions marked "Ask" before outlining the migration**. When built, the spec is
 - Approved leave blocks the person like unavailability: clashes, Find crew "free", the network
   picker's ⚠, and time registration (no hours on leave days).
 - Organisation calendar of who is away; notifications to the person and the admins.
+- A **working week** per staff member (default Monday to Friday), so reports (K7) can count
+  utilisation.
+
+### 9b · Expenses
+
+Full expense tracking, decided 2026-11-02 ([PENDING.md](PENDING.md) D24). AVX doesn't keep the
+official accounts: the ledger is for running the business and handing the accountant a clean file.
+
+- **Ledger:** date, supplier (from Contacts, or typed), description, category, amount excl. VAT,
+  VAT rate and amount, total, currency, the supplier's invoice number, due date, paid on and how,
+  notes, and a receipt (phone photo or PDF in a private bucket). Removing only marks it
+  (`removed_at`).
+- **Categories** per organisation (admins manage them; a starter list), each of a kind: direct (job
+  costs), overhead (running the company), capital (equipment, vehicles: spread over a number of
+  months, not a cost of the month) or tax/other.
+- **Each cost counted once:** an expense links to a gig and to at most one of a subrental, a repair,
+  a crew fee or a stock purchase (a vehicle after step 23). The linked expense is the actual amount;
+  until then the record's own amount is the estimate.
+- **Recurring** costs (rent, insurance, leasing): monthly, quarterly or yearly; a daily job drafts
+  the next one on its date for someone to confirm.
+- **Who:** `private.can_see_finance(org)` as decided in D23, made here and used by every report
+  later.
+- **Views**, simple first: this month, unpaid and due, by category, with totals; details (VAT,
+  links, receipts) on demand; CSV for the accountant; a file in the organisation export.
+- Ask: D23; the starter categories; whether VAT is recovered (if not, it counts as cost); expense
+  claims by crew and staff (an expense on a gig with a photo, approved by the gig's managers, shown
+  as "to reimburse") now or after the launch; importing the AT e-Fatura purchase-invoices file now
+  or after the launch.
 
 ### 10 · Gig finance overview [4]
 
-- One panel per gig (admins and members only): **revenue** (accepted quote total, net) against
-  **costs**: labour (planned from step 7, actual from step 8 when approved), subrentals (confirmed
-  `subrentals.quoted_total` or their lines), repairs charged to the gig, and **other costs** typed
-  in (a new table: description, amount, category, receipt photo optional).
+- One panel per gig (those who see money, D23): **revenue** (every accepted quote of the gig, net,
+  by the revenue rule in [ANALYTICS.md](ANALYTICS.md); none accepted: the newest sent quote, marked
+  estimate) against **costs**: labour (planned from step 7, actual from step 8 when approved),
+  subrentals (confirmed `subrentals.quoted_total` or their lines), repairs charged to the gig, and
+  **other costs**: expenses linked to the gig (step 9b; a linked expense replaces the planned amount
+  of its subrental, repair or fee).
 - Margin in money and %, with the parts that are still estimates marked as such.
-- An organisation list of gigs with revenue, cost and margin, filterable by period, status, type,
-  client; CSV. Feeds reports (step 24).
+- When a gig is completed, its rate-card labour can be saved as agreed fees, so a later rate change
+  doesn't change its margin.
+- One function, `gig_finance(org, from, until)`, feeds the panel and an organisation list of gigs
+  with revenue, cost and margin, built as a report in the Reports area (K1): filters by period,
+  status, type and client; CSV. K2 builds on it.
 
 ### 11 · Invoices [1]
 
 - **Portugal requires certified invoicing software (AT)**, so AVX does not issue legal invoices.
   Ask: which program the owner uses (InvoiceXpress, Moloni, Vendus, TOConline) and whether to start
   with a file export (works with any) or that program's API.
-- First: **VAT per line** on quotes (today one rate per quote), needed for invoices.
+- First: **VAT per line** on quotes (today one rate per quote), needed for invoices. It changes the
+  quote maths, so the revenue rule's SQL and JS twins (K1) change with it, checked by their shared
+  fixtures.
 - An **invoice draft** from an accepted quote (all, or chosen phases or a deposit %), with the
   client from contacts; status draft → sent to the certified program → issued (number and PDF
   link stored) → paid / overdue; credit notes against an issued invoice.
@@ -153,12 +192,17 @@ questions marked "Ask" before outlining the migration**. When built, the spec is
   double-booked.
 - **Appointments:** non-gig calendar items (site visit, meeting, warehouse day) with people, shown in
   calendars, clashes and the calendar feed.
+- **Costs:** running cost per km and per day on each vehicle and km on each trip, so transport cost
+  goes into gig finance; expenses (9b) can link to a vehicle (fuel, tolls, repairs).
+- **Vehicle use** report in the Reports area (trips, km, days used, load against capacity): the
+  vehicle part of the old step 24.
 
 ### 24 · Reports [11]
 
-- Organisation reports: crew days and hours per person, gigs and revenue per client, quote win
-  rate, margin per gig type and period, equipment utilisation (I7 already has the item side),
-  vehicle use. Each a table with filters and CSV; a small dashboard of the key numbers.
+Covered by the dashboards and analytics pack, K1–K8 in [ANALYTICS.md](ANALYTICS.md): crew days and
+hours (K7), gigs and revenue per client and the quote win rate (K4), margin per gig type and period
+(K2), equipment use (K5, building on I7) and the key numbers (K1's Overview). Vehicle use is part of
+step 23.
 
 ### 25 · Gig templates [7]
 
@@ -169,7 +213,7 @@ questions marked "Ask" before outlining the migration**. When built, the spec is
 ### 26 · Client portal [13], online booking requests [14]
 
 - **Portal:** one link per client (token) listing their quotes, invoices, shared documents and the
-  conversations they already have through quote links.
+  conversations they already have through quote links, and their balance (from K3's cash function).
 - **Booking requests:** a public form per organisation (dry hire): pick catalogue items and dates,
   see indicative availability, send → a draft quote and a notification. Spam protection.
 
@@ -180,6 +224,8 @@ questions marked "Ask" before outlining the migration**. When built, the spec is
 - **Freelancer invoicing:** a summary of approved hours and fees per company and month to issue a
   "recibo verde" on the AT portal (AVX never issues it).
 - **Work history** on crew profiles: gigs done on AVX, shown only with the company's permission.
+- Freelancer invoicing and the work-history counts reuse K8's monthly summary (crew numbers in My
+  work).
 
 ### 28 · Public API and webhooks [17]
 
