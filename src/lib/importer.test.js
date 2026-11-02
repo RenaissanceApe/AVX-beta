@@ -39,6 +39,14 @@ describe('import wizard: matching columns', () => {
     })
   })
 
+  it('guesses an item’s cost price and write-off period (K0), including AVX’s own export', () => {
+    expect(guessMapping(['Name', 'Price', 'Cost price', 'Depreciation months'], 'items')).toEqual({
+      Name: 'name', Price: 'unit_price', 'Cost price': 'cost_price', 'Depreciation months': 'depreciation_months',
+    })
+    expect(guessMapping(['Nome', 'Preço de custo', 'Amortização'], 'items')).toEqual({ Nome: 'name', 'Preço de custo': 'cost_price', 'Amortização': 'depreciation_months' })
+    expect(guessMapping(['Naam', 'Inkoopprijs'], 'items')).toEqual({ Naam: 'name', Inkoopprijs: 'cost_price' })
+  })
+
   it('uses each field once, and matches longer headings that contain a name', () => {
     expect(guessMapping(['Name', 'Display name'], 'items')).toEqual({ Name: 'name' })
     expect(guessMapping(['Rental price (€)', 'Article'], 'items')).toEqual({ 'Rental price (€)': 'unit_price', Article: 'name' })

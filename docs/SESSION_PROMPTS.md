@@ -17,59 +17,12 @@ next step.
 **When a step's plan changes** (a new decision, a question answered), edit its prompt here and its
 plan in the doc it names, in the same commit.
 
-Steps 1–7 (0.54–0.63) are built. Sessions S01–S31 are the build order, with the expenses step
-(S03b) and the dashboards and analytics pack (K0–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
+Steps 1–7 (0.54–0.63) and K0 (0.64) are built. Sessions S01–S31 are the build order, with the expenses step
+(S03b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U1–U4 are small upkeep sessions to run in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
-
-## K0 · Capture for reports
-
-```
-Build ROADMAP step K0: capture the data the reports will need. Read the ROADMAP row and
-docs/ANALYTICS.md ("Definitions", "What else has to be built", "K0"), then grep: quote status
-changes (src/pages/QuoteEditorPage.jsx, supabase/functions/send-quote, quote-public), the new and
-edit gig forms, "Create gig" from a quote, the stock modals
-(src/components/inventory/InventoryModals.jsx), the record-inspection form, the import wizard's
-column guesses (src/lib/importer.js, docs/SWITCHING.md) and the organisation export wrapper.
-
-No report screens in this step: only fields, so history starts now.
-
-Scope:
-- Quotes: sent_at (first time it was sent), decided_at (accepted or declined), lost_reason and
-  lost_note. One trigger sets the times on every status change, so the editor, send-quote and
-  quote-public are all covered. Backfill: sent from the first client link, decided from the
-  link's answer, else updated_at (say in the PR these are approximate). Marking a quote declined
-  asks for the reason (optional).
-- Gigs: client_id, a client of the same organisation (a check like quotes_client_check).
-  Backfill from the gig's accepted quote, else its newest quote. "Create gig" copies the quote's
-  client; a client picker in the new and edit gig forms; the jobs import fills it from its client
-  column (today that goes into the description).
-- Equipment costs: price_items.cost_price (usual purchase cost per unit, excl. VAT) and
-  price_items.depreciation_months (default for its units and bulk purchases; empty means 60, as
-  for units); stock_movements.unit_cost on purchase (cost each, prefilled from cost_price) and
-  sale (price each) rows only; inspections.cost (optional). The item form, Record purchase, Sell
-  and Record inspection get the fields; the equipment import guesses a cost column.
-- Organisation export: the new columns in the gigs, quotes, items, movements and inspections
-  files (wrap the export the way 20261203000001_export_crew_rates.sql does).
-
-Already decided: amounts are excl. VAT; crew and viewers see none of it (today's quote and
-inventory rules apply).
-
-Ask me before building: the lost reasons; should a unit that is sold or written off record its
-sale value (disposal_value, disposed_on)?; import history (past jobs as completed gigs, accepted
-and declined quotes with their dates) now, later or never (D26)?
-
-Connect: quote editor, send-quote, quote-public, gig forms, create gig from quote, stock modals,
-inspections, import wizard, organisation export.
-
-Done when: supabase/tests/report_capture.sql (no delete statements) covers every status path
-setting the times, the backfill on fixtures, a client of another organisation refused, unit_cost
-refused on other movement kinds, and who may set what; EN and PT; hints for the new fields; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
 
 ## S01 · Step 7b: crew-rate follow-ups
 
