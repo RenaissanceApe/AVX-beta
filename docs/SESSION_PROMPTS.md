@@ -171,32 +171,137 @@ Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
 ```
 
+## S03b · Step 9b: expenses
+
+```
+Build ROADMAP step 9b: expenses. Read the ROADMAP row, docs/BUSINESS.md "Planned → 9b" and
+"→ 10", docs/ANALYTICS.md ("Decided", principle "Each cost counted once"), how repair photos are
+stored (docs/INVENTORY.md I5, the repair-photos bucket), suppliers (I6 and Contacts) and the
+stale-save guard (supabase/migrations/20261209000000_stale_save_guard.sql).
+
+Scope:
+- An expenses ledger for the organisation: date, supplier (from Contacts, or typed), description,
+  category, amount excl. VAT, VAT rate and amount, total, currency, the supplier's invoice number,
+  due date, paid on and how, notes, and a receipt (phone photo or PDF in a private bucket).
+- Categories per organisation (admins manage, a starter list), each of a kind: direct (job
+  costs), overhead (running the company), capital (equipment, vehicles: spread over a number of
+  months, not a cost of the month) or tax/other.
+- Links so each cost is counted once: a gig, and at most one of a subrental, a repair, a crew fee
+  or a stock purchase (a vehicle once step 23 exists). A linked expense is the actual amount; the
+  record's own amount stays the estimate until then.
+- Recurring expenses (rent, insurance, leasing): monthly, quarterly or yearly; a daily job drafts
+  the next one on its date for someone to confirm.
+- private.can_see_finance(org) as I decide (D23): expenses use it now, every report later.
+- Lists, simple first: this month, unpaid and due, by category, with totals; details (VAT, links,
+  receipts) on demand; filters; CSV for the accountant; a file in the organisation export.
+- Removing an expense only marks it (removed_at).
+
+Already decided: full expense tracking (D24). AVX doesn't keep the official accounts: it is for
+running the business and handing the accountant a clean file.
+
+Ask me before building: D23 (admins only, or admins and members, see money); the starter
+categories; do I recover VAT (if not, VAT counts as cost)?; expense claims now or after launch
+(crew and staff add an expense on a gig with a photo, the gig's managers approve, it shows as "to
+reimburse"); importing the purchase-invoices file from the AT e-Fatura portal now or after launch
+(check the file format first).
+
+Connect: subrentals, repairs, crew fees (labour panel), stock purchases (Record purchase can add
+the expense), Contacts (supplier spend), organisation export, DATA_MAP.md (receipts).
+
+Done when: database tests (who adds, reads and approves; links to another organisation's records
+refused; one live expense per linked record; recurring drafts made once); unit tests for the VAT
+maths and recurrence; help guide "office-expenses" with screenshots; 320/390 px EN/PT; PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+## K1 · Reports engine and the Reports area
+
+```
+Build ROADMAP step K1: the reports engine and the Reports area. Read the ROADMAP row,
+docs/ANALYTICS.md ("Definitions", "K1"), "How expenses work" in docs/BUSINESS.md (9b,
+private.can_see_finance), docs/INVENTORY.md I7, src/lib/reports.js,
+src/components/inventory/ReportsTab.jsx, src/lib/quotes.js (quoteTotals, lineTotal),
+src/lib/crewRates.js (quoteCrewRevenue), src/lib/nav.js and
+supabase/migrations/20261206000000_client_quote_counts.sql (the pattern: security invoker, the
+table rules decide).
+
+Scope:
+- First walk me through docs/ANALYTICS.md "Definitions"; change it where I say, then build to it.
+- One revenue rule, two twins: public.report_revenue_lines(org, from, until) in SQL and
+  src/lib/analytics/revenue.js: one row per priced line of accepted quotes, net after line, phase
+  and quote discounts, optional phases and comments left out, with kind, item, quote, gig,
+  client, gig type and status, currency and its report date. The same fixtures
+  (src/lib/analytics/fixtures.json) are checked by Vitest and by supabase/tests/reports_k1.sql
+  with the same expected numbers.
+- Periods in the organisation's time zone (organisations.time_zone, never a hard-coded Lisbon):
+  this month, last month, this quarter, this year, last 12 months, custom; compared with the
+  previous period or the same period last year.
+- Every money function checks private.can_see_finance(org) (step 9b).
+- Report parts in src/components/reports/: period and filter bar (status, type, client),
+  group-by, sortable table, CSV (reuse reportCsv), print; charts in plain SVG, no new package
+  (number tile with change, bar, stacked bar, line, sparkline), each with an accessible name and a
+  table to read instead; colours from colors.*, never colour alone. Simple first: a few totals
+  and one chart, "Show details" for the rest, remembered on the device.
+- Reports area: /org/:orgId/reports (?tab=), in the menu for those allowed, an Overview tab with a
+  tile list (src/lib/analytics/tiles.js) that later steps add to. First tiles: gigs this month,
+  confirmed revenue in the next 30 days, value of quotes waiting for an answer, equipment use
+  (90 days). A key-numbers strip on the organisation's Home (hidden in simple mode, can be folded).
+- I7 on the database: public.equipment_report(org, from, until), same columns as today, dated by
+  the rule; Inventory → Reports reads it. Today that tab asks for up to 20,000 rows but the API
+  returns at most 1000, so big organisations get wrong numbers. List in the PR any figure that
+  changes, and why.
+- The labour cost panel's revenue follows the rule (all accepted quotes of the gig, after phase
+  discounts).
+- Usage counts: view:reports:<tab>, csv:reports:<tab>.
+
+Ask me before building: the four first tiles; Reports as its own menu section or under
+Organisation.
+
+Connect: Inventory → Reports, labour cost panel, organisation Home, menus, usage counts.
+
+Done when: the shared fixtures pass in both; database tests (no delete statements) for who may
+call each function (admin, member, viewer, crew, another organisation, two-step) and month
+boundaries in Europe/Lisbon and America/New_York; each function under a second on 5,000 quotes
+generated inside the rolled-back test; unit tests for periods, comparisons, chart scales and CSV;
+e2e for the Reports area with axe; help: page note, terms (net revenue, estimate, comparison
+period, utilisation), guide "office-reports" with screenshots (sample answers for the new
+functions in scripts/help-screens/sample-data.mjs); 320 and 390 px in EN and PT; PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
 ## S04 · Step 10: gig finance overview
 
 ```
-Build ROADMAP step 10: gig finance overview. Read the ROADMAP row, docs/BUSINESS.md "Planned → 10"
-and "How crew rates work", docs/QUOTES.md (totals), and the subrental and repair tables
-(docs/INVENTORY.md I5–I6).
+Build ROADMAP step 10: gig finance overview. Read the ROADMAP row, docs/BUSINESS.md "Planned → 10",
+"How crew rates work" and "How expenses work" (9b), docs/ANALYTICS.md ("Definitions", "How K1
+works"), docs/QUOTES.md (totals), and the subrental and repair tables (docs/INVENTORY.md I5–I6).
 
 Scope:
-- A finance panel per gig for organisation admins and members:
-  - revenue: the accepted quote, net;
+- One function, public.gig_finance(org, from, until) (security invoker, checks
+  private.can_see_finance), feeds the panel and the list; K2 builds on it.
+- A finance panel per gig for those who see money (D23):
+  - revenue: every accepted quote of the gig, net, by the K1 rule (none accepted: the newest sent
+    quote, marked estimate);
   - labour: planned (step 7) and actual (step 8, approved hours);
   - subrentals: confirmed ones;
   - repairs charged to the gig;
-  - other costs typed in (new table: description, amount, category, optional receipt photo in a
-    private bucket).
+  - other costs: expenses linked to the gig (9b); a linked expense replaces the planned amount of
+    its subrental, repair or fee.
 - Margin in money and %, with estimated parts marked.
-- An organisation list of gigs with revenue, cost and margin; filters (period, status, type,
-  client); CSV and an export file.
+- When a gig is completed, offer to save its rate-card labour as agreed fees, so a later rate
+  change doesn't change its margin.
+- The organisation list of gigs with revenue, cost and margin is a report in the Reports area (K1
+  parts: period, filters for status, type and client, CSV); an export file.
 
-Ask me before building: the categories for other costs; should members (not only admins) see
-margins?
+Ask me before building: a margin hint on gig cards for those who see money?
 
-Connect: dashboard (a margin hint on gig cards for admins?), reports (step 24 will reuse the
-query), organisation export.
+Connect: Overview tiles (margin this month, gigs with a negative margin), gig cards, expenses (add
+one from the panel), organisation export; K2 builds on gig_finance.
 
-Done when: database tests for who sees money; unit tests for the totals; help guide; PR open.
+Done when: database tests for who sees money; the totals checked on fixtures in the database and in
+unit tests; help guide; PR open.
 Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
 ```
@@ -216,6 +321,8 @@ Ask me first, before any design:
 
 Scope:
 - VAT per line on quotes (today one rate per quote), with old quotes migrated to their single rate.
+  Change report_revenue_lines and src/lib/analytics/revenue.js (K1) with it and rerun their shared
+  fixtures: net revenue must not change.
 - An invoice draft from an accepted quote: all of it, chosen phases, or a deposit %. Client from
   contacts.
 - Status: draft → sent to the certified program → issued (store its number and a link to the PDF)
@@ -225,7 +332,7 @@ Scope:
 - Invoices in the organisation export.
 
 Connect: quotes (invoiced amount on the quote), contacts, client guest threads, gig finance
-(step 10: invoiced vs paid).
+(step 10: invoiced vs paid), reports (K3 reads the issue, due and paid dates).
 
 Done when: database tests (only admins and members, numbering can't be edited by hand); unit
 tests for VAT per line and deposit maths; help guide; PR open. If the API route is chosen, list
@@ -249,9 +356,260 @@ Scope:
 Ask me before building: payment links now or later; if now, which provider (Stripe, or Portuguese
 methods first: MB Way and Multibanco references through easypay or ifthenpay)?
 
-Connect: repairs, invoices, gig finance, client portal later (step 26).
+Connect: repairs, invoices, gig finance, client portal later (step 26), reports (K3: paid per
+month, overdue).
 
 Done when: database tests; help guide; PR open; any provider secret listed for me to add.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+## K2 · Money: results and margins
+
+```
+Build ROADMAP step K2: money, results and margins. Read the ROADMAP row, docs/ANALYTICS.md
+("Definitions", "K2"), "How K1 works", "How expenses work" (9b), the gig finance section step 10
+wrote in docs/BUSINESS.md (gig_finance) and how step 8 stores approved hours.
+
+Scope (Reports → Money), simple first with details on demand:
+- Results per month, quarter or year, with the comparison: revenue by line kind (rental, sale,
+  crew, transport, other); direct costs: labour (approved hours, else agreed fee, else rate card,
+  marked estimate), subrentals, repairs not charged to the client, gig expenses, cost of goods
+  sold (sale lines × the item's cost price); gross margin in money and %; then overheads
+  (overhead expenses by category) and depreciation (equipment and capital expenses) → operating
+  result; the estimated share of each.
+- Margin by gig (step 10's list), by gig type, status, client, line kind and production manager.
+- Planned against actual labour, per gig and per period, in hours and money.
+- Tiles: revenue this month against last year, margin % this year, operating result this year,
+  gigs with a negative margin.
+- One function, public.finance_results(org, from, until, group_by), built on gig_finance,
+  report_revenue_lines and the expenses; the browser only formats.
+
+Ask me before building: do repairs not charged count against the gig?; production manager
+grouping (first PM, or shared between PMs?); the tiles.
+
+Connect: gig finance panel (link to the report), Overview, gig cards (margin hint, if I said yes in
+step 10), expenses (a category's total opens its list).
+
+Done when: database tests for every figure on fixtures (two currencies kept apart, a gig across
+two months, a quote with no gig, a capital expense spread over its months, a cost linked to an
+expense counted once, estimate flags, who may call it); unit tests; help guide "office-money"
+with screenshots; 320/390 px EN/PT; PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+## K3 · Money: cash, spending and forecast
+
+```
+Build ROADMAP step K3: money, cash, spending and forecast. Read the ROADMAP row,
+docs/ANALYTICS.md ("Definitions", "Decided", "K3"), "How K2 works", "How expenses work" (9b),
+and how steps 11 and 12 built invoices, credit notes and payments (docs/BUSINESS.md).
+
+Scope (Reports → Money), simple first with details on demand:
+- Cash in: invoiced and paid per month (with VAT, labelled), overdue invoices by age (0–30, 31–60,
+  61–90, over 90 days), expected cash in by due date, balance per client, deposits, credit notes.
+- Cash out: expenses paid per month, unpaid expenses by due date, recurring costs coming up; crew
+  fees to pay once K8 marks them (leave the tile for K8).
+- Cash position: money expected in minus money expected out, per month ahead.
+- Spending: by category, supplier, gig and month; the biggest changes against the comparison
+  period.
+- Forecast: confirmed revenue of upcoming gigs per month; quotes waiting for an answer shown apart,
+  with the win rate beside them (not multiplied in unless I say so).
+- Budgets and targets, if I want them: a monthly budget per expense category and a revenue target,
+  with progress tiles.
+- Tiles: overdue now, cash expected in 30 days, unpaid expenses due in 14 days, confirmed revenue
+  in the next 3 months.
+
+Ask me before building: budgets and targets yes or no; weight the forecast by win rate?; how many
+months ahead for the cash position.
+
+Connect: invoices (overdue list), payments, expenses, Contacts (client balance, supplier spend),
+Overview; the client portal (step 26) shows the client's balance from this function (name it in
+docs/BUSINESS.md "Planned → 26").
+
+Done when: database tests (partial payments, credit notes, overdue by the organisation's date,
+recurring costs counted once, only those who see money can call it); help guide "office-cash";
+PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+## K4 · Sales and clients
+
+```
+Build ROADMAP step K4: sales and clients. Read the ROADMAP row, docs/ANALYTICS.md
+("Definitions", "K4"), "How K0 works" (quote dates, lost reasons, client on gigs),
+docs/QUOTES.md (statuses, client links) and the Contacts page.
+
+Scope (Reports → Sales, and Contacts), simple first with details on demand:
+- Quotes waiting for an answer by age and status (sent, opened by the client, expiring soon) with
+  their value; a follow-up list (sent more than N days ago, no answer).
+- Win rate by number and by value per period (by decision date), per gig type, per client and per
+  person who made the quote; time from sent to decision (median); lost reasons; average quote
+  value; discounts given (gross against net).
+- Clients: revenue, margin, gigs, quotes, win rate, first, last and next gig, average gig value;
+  new and returning clients per period; what the top 5 clients bring.
+- A numbers card on a client in Contacts.
+- Tiles: quotes waiting (value), win rate over 90 days, top client this year.
+
+Ask me before building: N days for follow-ups; win rate per person for members too, or admins
+only?; group by a custom field of kind "choice" (e.g. sales channel)?
+
+Connect: Quotes list (follow-up filter), Contacts, Overview.
+
+Done when: database tests (expired quotes kept out of the win rate, quotes with no client,
+another organisation's clients never counted, who may call); help guide "office-sales"; PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+## K5 · Equipment money
+
+```
+Build ROADMAP step K5: equipment money. Read the ROADMAP row, docs/ANALYTICS.md ("Definitions",
+"K5"), docs/INVENTORY.md (I4 kits, I5, I6, I7) and "How K1 works" (equipment_report).
+
+Scope (Reports → Equipment; Inventory → Reports opens it, one screen):
+- Profit per item, category and unit in a period: revenue (the rule; a set's revenue shared out to
+  its contents by their day prices; lines typed by hand shown as "not linked to an item: N%")
+  minus depreciation in the period, repairs not charged, inspections, hire-in for that item and
+  losses at replacement value.
+- Payback per unit and item: revenue since purchase against purchase cost, the date it paid for
+  itself, or when it will at the current pace.
+- Buy or keep hiring in: per item, hire-in spend over 12 months against the cost to buy (cost
+  price, else replacement value) and the months to pay back.
+- Coverage: how many units and items have a purchase cost, with a link to fill the gaps.
+- A numbers card on the item page: lifetime revenue, payback, use over 12 months, next bookings.
+- Tiles: best and worst earners this year, hire-in spend this year.
+
+Ask me before building: how a set's revenue is shared (day price, my default, or replacement
+value); the default depreciation months; should profit carry a share of labour (default no)?
+
+Connect: Inventory → Reports, item page, subrentals ("buy instead?" links to the hire-ins),
+Overview.
+
+Done when: database tests on fixtures (sets, bulk and serial items, a unit bought mid-period, a lost
+unit found again, one hire-in covering two items); help guide "warehouse-equipment-money" with
+screenshots; PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+## K6 · Warehouse and upkeep
+
+```
+Build ROADMAP step K6: warehouse and upkeep numbers. Read the ROADMAP row, docs/ANALYTICS.md
+("K6"), docs/INVENTORY.md (I2, I3, I5, I6) and docs/RESERVATIONS.md.
+
+Scope (Reports → Warehouse):
+- Demand against stock per item: the busiest moment booked against what you owned then, days
+  short, how often it was hired in; idle stock and "sell?" candidates (no confirmed booking in 12
+  months, with book value).
+- Suppliers: hire-in spend per supplier, requests confirmed or declined, time to answer.
+- Damage and loss: repairs per item and per gig and client, time from reported to repaired, cost
+  and how much was charged back; losses per gig and client; inspections due, overdue, and cost.
+- Dispatch: per gig, scanned out against planned and back against out, still missing; scans per
+  day (warehouse workload); how many days before the gig gear left.
+- Tiles: items short in the next 30 days, units in repair, inspections overdue.
+
+Ask me before building: which dispatch steps count as "prepped"; the idle period.
+
+Connect: maintenance, subrentals, dispatch page, Overview; the morning reminders already notify
+overdue inspections (don't duplicate).
+
+Done when: database tests (past stock from the ledger, a subrental covering part of a period, an
+undone scan left out); help guide "warehouse-numbers"; PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+## K7 · Operations and people
+
+```
+Build ROADMAP step K7: operations and people. Read the ROADMAP row, docs/ANALYTICS.md ("K7"),
+docs/BUSINESS.md (how time registration, leave and tasks work), docs/DATA_MAP.md and the gig
+activity log (gig_activity).
+
+Scope (Reports → Operations):
+- Activity: gigs and gig days per month by status and type; the busiest days; how far ahead gigs
+  are booked.
+- People: crew days and hours per person (staff and freelancers); overtime, night, weekend and
+  holiday hours; planned against approved hours; how long approvals take; staff utilisation
+  (booked working days against working days after leave and holidays); leave taken and left; the
+  share of crew days done by freelancers.
+- Staffing: positions filled and open by gig date; time to fill (from the activity log); crew-call
+  answers (accepted, declined, none) and time to answer; job posts (applications, filled).
+- Tasks: open, overdue and done on time, per person and per gig.
+- Gig wrap-up: a printable page per gig after it ends: planned against actual hours and costs
+  (money only for those who see it), damage, losses and missing items, open tasks and notes.
+- A person page for admins: their days, hours and cost with the organisation.
+- Tiles: crew days this month, open positions in the next 14 days, overdue tasks, hours waiting
+  for approval.
+
+Ask me before building: per-person figures for admins only (my default) or members too; what the
+wrap-up page shows; a "cancelled" status so cancellations can be counted?
+
+Connect: Crew tab, tasks, gig page (wrap-up link once the gig has ended), Overview, DATA_MAP.md.
+
+Done when: database tests (crew and viewers can't call it; per-person data only for whom I chose);
+help guide "pm-operations"; a DATA_MAP.md row for per-person reports; PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+## K8 · Crew numbers
+
+```
+Build ROADMAP step K8: crew numbers in My work. Read the ROADMAP row, docs/ANALYTICS.md ("K8",
+"Decided"), docs/NAVIGATION.md (My work), docs/BUSINESS.md (crew rates, time registration,
+expenses, the step 27 plan) and src/components/gig/LabourCost.jsx (LabourCost and MyFee).
+
+Scope:
+- My numbers (My work): gigs, days and hours (approved and waiting), overtime, per company and
+  month; earnings from agreed fees and approved hours × fee; upcoming booked earnings; travel km
+  and time; busiest months; functions worked; job posts applied to (shortlisted, accepted); crew
+  calls answered.
+- Fee paid: marking a person's fee paid in the labour panel records an expense linked to that fee
+  (step 9b) with its date, and the person is notified; the person sees only "paid on <date>" for
+  their own fees (through a function, never the organisation's expenses) and can mark it
+  received. The organisation gets a "crew to pay" list and K3's tile.
+- Reimbursements owed to the person, if expense claims were built in 9b.
+- Year statement per company: fees, hours and km for a year, as CSV and a printable page, for the
+  tax return. The same monthly summary is what step 27 uses for the "recibo verde".
+- Tiles on My work: earned this month, not yet paid, next booked days.
+
+Already decided: AVX work only (D25: work outside AVX comes after the launch, K12); only the
+person's own rows; companies show only their name (my_gig_companies); nothing about other crew.
+
+Ask me before building: may crew mark "received"?; the year statement's layout.
+
+Connect: My work, labour cost panel (paid), My fee, K3's crew-to-pay tile; step 27 reuses the
+monthly summary (name its function in docs/BUSINESS.md "Planned → 27").
+
+Done when: database tests (a person never sees another's fee or hours; a company sees only its own
+paid marks); unit tests; help guide "crew-numbers" with screenshots for Carla; PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+## K9 · Report extras (optional)
+
+```
+Build ROADMAP step K9: report extras, only those I pick. Read the ROADMAP row,
+docs/ANALYTICS.md ("K9"), docs/EMAIL.md and, for the accountant link, how quote links work
+(token hashing, supabase/functions/quote-public).
+
+Ask me first which of these to build:
+- a weekly key-numbers email to admins (opt-in), through the email summary and Brevo;
+- saved views (a report with its filters) per person, pinned to the Overview;
+- a monthly management pack as a PDF (overview, money, sales, equipment), with jsPDF;
+- a read-only link for the accountant (token, expiry, revocable).
+
+Connect: email summary, Overview, notification settings.
+
+Done when: tests for what is built (the link: expired and revoked show nothing, and a security
+review section); help; PR open.
 Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
 ```
@@ -521,6 +879,40 @@ Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
 ```
 
+## K10 · Safety and compliance (only if D27 is yes)
+
+```
+Build ROADMAP step K10: safety and compliance. Check docs/PENDING.md D27 first: if I haven't said
+yes, stop and ask me. Read the ROADMAP row, docs/ANALYTICS.md ("K10"), docs/INVENTORY.md I5
+(inspections), docs/CREW_NETWORK.md N4 (certificates), and how RG4's sign-off, P3's on-site power
+checklist and e-signature were built (docs/TOOLS_PLAN.md §4–5, docs/BUSINESS.md 16).
+
+Scope (Reports → Safety):
+- Gear: inspections due, overdue and failed; units booked on upcoming gigs whose inspection will
+  be overdue by then (and a ⚠ on the gig's Equipment tab, never a block).
+- People: crew on upcoming gigs whose certificates (from the profiles they share) expire before
+  the gig; the certificates each function needs, as I set them.
+- Gigs: rigging sign-offs missing or pending, on-site power checklists not done, documents not
+  signed (crew contracts, delivery notes), damage reported on site.
+- A printable safety pack per gig: inspection dates of the gear going, rigging sign-off, power
+  checklist, crew certificates.
+- Tiles: booked gear with an overdue inspection, unsigned rigging in the next 7 days.
+
+Already decided: rigging and power results are aids that a competent person must check; the pack
+says so.
+
+Ask me before building: which certificates each function needs; who sees crew certificates in the
+pack (the gig's managers only?).
+
+Connect: Equipment tab (⚠), maintenance, crew profiles, rigging report, power checklist, gig files
+(the pack can be saved there), Overview.
+
+Done when: database tests (certificates only from profiles the organisation may see; crew don't see
+others' certificates); help guide "pm-safety"; PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
 ## S17 · Step 21: A2 coverage map, A3 prediction and measurement files
 
 ```
@@ -681,41 +1073,52 @@ Scope:
 - Clashes when a vehicle or driver is double-booked.
 - Appointments: non-gig calendar items (site visit, meeting, warehouse day) with people, shown in
   calendars, clashes and the calendar feed.
+- Costs: running cost per km and per day on each vehicle, and km on each trip, so transport cost
+  goes into gig_finance (step 10); expenses (9b) can link to a vehicle (fuel, tolls, repairs).
+- A vehicle-use report in the Reports area with the K1 parts (trips, km, days used, load against
+  capacity): the vehicle part of the old step 24.
 
 Ask me before building: my vehicles and whether drivers need a licence category check.
 
 Connect: packing lists, scanning out per vehicle, calendars, calendar feed, time registration
-(driving hours).
+(driving hours), gig finance, expenses, Reports.
 
 Done when: database tests; help guide; PR open.
 Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
 ```
 
-## S24 · Step 24: reports
+## K11 · Sustainability report (only if D28 is yes)
 
 ```
-Build ROADMAP step 24: reports. Read docs/BUSINESS.md "Planned → 24", docs/INVENTORY.md I7 (the
-equipment reports already built) and the gig finance query from step 10.
+Build ROADMAP step K11: the sustainability report. Check docs/PENDING.md D28 first: if I haven't
+said yes, stop and ask me. Read the ROADMAP row, docs/ANALYTICS.md ("K11"), and how time
+registration (km), P1 power and vehicles and trips were built (docs/BUSINESS.md 8 and 23,
+docs/TOOLS_PLAN.md §4).
 
-Scope:
-- Organisation reports:
-  - crew days and hours per person;
-  - gigs and revenue per client;
-  - quote win rate;
-  - margin per gig type and period;
-  - vehicle use.
-- Each report is a table with filters and CSV.
-- A small dashboard of the key numbers.
-- Reuse I7 for equipment.
+Scope (Reports → Sustainability, and per gig):
+- Transport: km per trip and vehicle (with its fuel type), crew travel km, tonne-km of gear moved.
+- Energy: the power plan's estimated kWh per gig, from the grid or a generator.
+- Estimated emissions from a named, dated set of published emission factors (stored with their
+  source and version, editable per vehicle), per gig and per period.
+- A per-gig summary for clients and festivals (printable), labelled as an estimate with its method.
 
-Ask me before building: which five numbers I want to see first.
+Ask me before building: which emission-factor source (e.g. Portugal's APA, the EU's EEA or the UK's
+DESNZ factors); whether clients have asked for it, and in what format.
 
-Connect: dashboard, organisation export.
+Connect: trips, power plan, gig files, Reports.
 
-Done when: unit tests for the aggregations; help guide; PR open.
+Done when: unit tests against the source's worked examples; help guide; PR open.
 Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
+```
+
+## S24 · Step 24: reports (covered by the K steps)
+
+```
+Step 24 is covered by the dashboards and analytics pack: K1–K8 (docs/ANALYTICS.md) and step 23's
+vehicle-use report. There is nothing to build here: if one of its reports is still missing, add it
+to the K step it belongs to.
 ```
 
 ## S25 · Step 25: gig templates
@@ -754,7 +1157,7 @@ Scope:
 
 Ask me before building: which items may be offered publicly, and should prices show?
 
-Connect: quotes, invoices, guest threads, availability, contacts.
+Connect: quotes, invoices, guest threads, availability, contacts, the client's balance (K3).
 
 Done when: security review of both public surfaces; database tests; help guide; PR open.
 Stop after this step; don't start the next one.
@@ -793,6 +1196,8 @@ Scope:
 - Freelancer invoicing: a monthly summary of approved hours and fees per company, for issuing a
   "recibo verde" on the AT portal (AVX never issues it).
 - Work history on crew profiles: gigs done on AVX, shown only with the company's permission.
+- Freelancer invoicing and the work-history counts reuse K8's monthly summary (docs/ANALYTICS.md
+  "How K8 works").
 
 Ask me before building: a Portuguese "prestação de serviços" template to start from, and whether
 a lawyer should review it.
@@ -818,7 +1223,8 @@ Scope:
 - Public documentation of the API.
 
 Ask me before building: the first integration I want (accounting sync, payroll export, the
-cueing app, an MCP server)? It decides which endpoints come first.
+cueing app, an MCP server)? It decides which endpoints come first. Should the report functions
+(K1–K8) get read-only endpoints?
 
 Connect: settings (token management), the data map (who receives data), the security review.
 
@@ -885,6 +1291,8 @@ Scope:
 - Use it everywhere gig days, bookings, clashes, the calendar feed, the email summary and
   reminders are computed.
 - Keep Lisbon as the default.
+- Report periods (K1) already read organisations.time_zone: add a check with a non-Lisbon
+  organisation.
 
 Ask me before building: confirm the migration outline.
 
@@ -1008,5 +1416,66 @@ End of build P5: public docs and help (docs/PUBLIC_SITE.md §1). A public docs s
 from the in-app guides (src/help), one source for every answer. An AI help assistant that answers
 only from the docs, cites the guide, says when it doesn't know and offers a contact form. Ask me
 which AI provider and budget before building. PR open.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+---
+
+## After launch
+
+Planned in [ANALYTICS.md](ANALYTICS.md) ("After the launch"), not scheduled: run these once the
+public launch has settled.
+
+### K12 · Crew: all income
+
+```
+After the launch, step K12: crew, all income. Read the ROADMAP row, docs/ANALYTICS.md ("K12",
+"How K8 works") and ask me what freelancers asked for during the beta.
+
+Scope:
+- Work outside AVX, private to the person: company, dates, fee, km, notes; counted in My numbers
+  and the year statement, marked as typed by them.
+- The person's own business costs (fuel, gear, training, insurance) with receipts, reusing the
+  expense receipt handling (9b) in a personal space.
+- Totals and the year statement covering everything; a mileage log export; amounts kept in the
+  currency they were earned in, never added across currencies.
+- Labelled as a summary, not tax advice.
+
+Ask me before building: what beta freelancers asked for; any tax-office format worth matching.
+
+Connect: My numbers (K8), year statement, freelancer invoicing (step 27).
+
+Done when: database tests (nobody but the person sees any of it); help guide; PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+### K13 · Crew-owned gear for hire
+
+```
+After the launch, step K13: crew-owned gear for hire. Read the ROADMAP row, docs/ANALYTICS.md
+("K13"), docs/INVENTORY.md I6 (cross-hire codes, hire requests) and docs/CREW_NETWORK.md.
+
+Approach to confirm with me first: a freelancer who owns gear runs it as a one-person
+organisation (already possible today), so the catalogue, units, availability, QR labels,
+cross-hire code and hire requests work unchanged, and companies hire it as a subrental.
+
+Scope:
+- A short "I own gear" setup from the crew profile: creates or picks the person's own
+  organisation and links it to the profile.
+- "Gear and operator" in crew calls and job posts: a call can carry a hire request for the
+  person's gear.
+- Optional: gear for hire shown on the crew profile and in Find crew.
+- The hire income appears in the person's numbers (K8) next to their fees.
+
+Ask me before building: show gear on profiles and in Find crew?; who sees hire prices; damage terms
+(repairs charged to the hirer, step 12).
+
+Connect: crew profile, Find crew, crew calls, job board, subrentals, My numbers, rental network
+(step 30).
+
+Done when: database tests (a company sees only what the owner shares; prices only when shared);
+help guide; PR open.
+Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
 ```

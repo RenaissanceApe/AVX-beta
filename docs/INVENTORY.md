@@ -148,6 +148,10 @@ Inventory → **Reports**, for the last 90 days, 12 months or this year, with a 
 No database changes: the report is worked out in the browser from what admins and members can
 already read (`src/lib/reports.js`, tested in `reports.test.js`).
 
+**Known limit (found 2026-11-02):** the tab asks for up to 20,000 rows per list, but the API returns
+at most 1000, so past 1000 units, bookings, accepted quotes or movements in the period the figures
+come out too low. Step K1 ([ANALYTICS.md](ANALYTICS.md)) moves the report into the database.
+
 ## How it builds on what exists
 
 - **Reservations** ([RESERVATIONS.md](RESERVATIONS.md)): gear on a gig becomes reservations with
