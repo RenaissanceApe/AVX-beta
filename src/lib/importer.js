@@ -116,6 +116,8 @@ export const FIELDS = {
     { key: 'power_w', type: 'int', max: 1000000, names: ['power', 'power w', 'vermogen', 'potencia', 'watt', 'watts', 'w'] },
     { key: 'dimensions', type: 'text', max: 80, names: ['dimensions', 'size', 'afmetingen', 'dimensoes', 'measurements'] },
     { key: 'replacement_value', type: 'money', names: ['list price', 'replacement value', 'vervangingswaarde', 'new price', 'nieuwprijs', 'valor de reposicao', 'value', 'waarde', 'insured value'] },
+    { key: 'cost_price', type: 'money', names: ['cost price', 'cost', 'purchase price', 'purchase cost', 'purchase costs', 'kostprijs', 'inkoopprijs', 'aankoopprijs', 'custo', 'preco de custo', 'preco de compra', 'valor de compra'] },
+    { key: 'depreciation_months', type: 'int', max: 600, names: ['depreciation months', 'depreciation', 'write off months', 'write off period', 'useful life', 'afschrijving', 'afschrijvingstermijn', 'amortizacao', 'meses de amortizacao', 'vida util'] },
     { key: 'min_stock', type: 'int', max: 100000, names: ['critical stock level', 'minimum stock', 'min stock', 'minimale voorraad', 'stock minimo'] },
     { key: 'packing_note', type: 'text', max: 500, names: ['internal remark', 'packing note', 'pakbon opmerking', 'nota de embalagem'] },
     { key: 'details', type: 'text', max: 2000, names: ['external remark', 'details', 'description', 'omschrijving', 'beschrijving', 'descricao', 'notes', 'remarks', 'opmerkingen', 'notas'] },

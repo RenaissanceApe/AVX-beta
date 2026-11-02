@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.64.0 — Numbers start counting
+
+### Added
+- **History for the reports starts now** (step K0, [docs/ANALYTICS.md](docs/ANALYTICS.md)). No new
+  report screens yet; these fields are recorded from today so the reports have months of data
+  when they arrive. Only admins and members see them; amounts are without VAT.
+  - **Quotes** remember when they were first sent and when the client accepted or declined,
+    however that happened (in the editor, by email or through the client's link). Marking a
+    quote Declined asks why it was lost (price, another supplier, cancelled, not available, scope
+    changed, other) with an optional note; a client's note from the link is kept as the note.
+  - **Gigs have a client** from Contacts: a picker in the new and edit gig forms, copied by
+    "Create gig" from a quote, and filled by the jobs import when the client's name matches.
+    Crew don't see it.
+  - **Equipment costs:** a cost price and a write-off period per item; the cost each when you
+    add stock you bought (it starts from the cost price) and the price each when you sell stock;
+    an optional cost on inspections; and a sale or payout value when a unit is retired or lost.
+    The equipment import recognises a cost price column.
+  - The **organisation export** has the new columns.
+- Existing quotes and gigs were filled in where possible: sent and decided dates from the client
+  links (otherwise from the last change, so older dates are approximate), and each gig's client
+  from its accepted quote, otherwise its newest one.
+
+### Connected
+- Quote editor, send-quote and quote-public (one database rule sets the dates for all three), the
+  new and edit gig forms, "Create gig" from a quote, the stock and unit forms, Record inspection,
+  the jobs and equipment imports, and the organisation export.
+
 ## 0.63.11 — A restore you can practise
 
 ### Fixed

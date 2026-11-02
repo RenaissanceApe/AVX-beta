@@ -6,6 +6,7 @@ import { logger, userMessage } from '../../lib/logger'
 import { useI18n } from '../../i18n'
 import { Modal, btnPrimary, input, label } from '../ui'
 import GigLabelFields from './GigLabelFields'
+import GigClientField from './GigClientField'
 import { useGigLabels } from '../../lib/gigLabels'
 import { useCustomFields, mergeValues } from '../../lib/customFields'
 import { CustomFieldInputs } from '../CustomFields'
@@ -36,7 +37,7 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
   const [form, setForm] = useState({
     name: gig.name, venue: gig.venue || '', start_date: gig.start_date || '', end_date: gig.end_date || '',
     description: gig.description || '', status: gig.status,
-    custom_status_id: gig.custom_status_id || null, gig_type_id: gig.gig_type_id || null,
+    custom_status_id: gig.custom_status_id || null, gig_type_id: gig.gig_type_id || null, client_id: gig.client_id || null,
   })
   const labels = useGigLabels(gig.org_id)
   const { fields } = useCustomFields(gig.org_id, 'gig')
@@ -53,6 +54,8 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
     setSaving(true)
     // Empty date inputs must be sent as null, not ''
     const changes = { ...form, name: form.name.trim(), start_date: form.start_date || null, end_date: form.end_date || null }
+    // The client is sent only when it changed: crew who manage a gig can't set it (nor see clients)
+    if (changes.client_id === (gig.client_id || null)) delete changes.client_id
     if (Object.keys(custom).length) changes.custom_values = mergeValues(gig.custom_values, fields, custom)
     const { error, conflict, updatedAt } = await updateIfUnchanged(supabase, 'gigs', gig.id, changes, openedAt)
     setSaving(false)
@@ -106,6 +109,7 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
           </div>
         </div>
         <OwnClashWarning startDate={form.start_date} endDate={form.end_date} excludeGig={gig.id} />
+        <GigClientField orgId={gig.org_id} idPrefix="eg" value={form.client_id} onChange={v => setForm(f => ({ ...f, client_id: v }))} />
         <GigLabelFields idPrefix="eg" labels={labels} value={form} onChange={patch => setForm(f => ({ ...f, ...patch }))} />
         <CustomFieldInputs key={fields.length} fields={fields} values={gig.custom_values} idPrefix="eg" onChange={(id, v) => setCustom(c => ({ ...c, [id]: v }))} />
         <div>

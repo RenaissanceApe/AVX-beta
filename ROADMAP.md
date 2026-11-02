@@ -23,6 +23,7 @@ up front. What each release changed is in [CHANGELOG.md](CHANGELOG.md).
 | Crew network N1–N5: profiles, Find crew, job board, trust, alerts | 0.48–0.53 | [docs/CREW_NETWORK.md](docs/CREW_NETWORK.md) |
 | Steps 1–4: rehearsal companion R1–R2, DMX calculator D1, On-site mode | 0.54–0.57 | [docs/TOOLS_PLAN.md](docs/TOOLS_PLAN.md) |
 | Steps 5–7: tasks T1–T2, gig statuses and types, custom fields, crew rates and labour cost | 0.58–0.63 | [docs/BUSINESS.md](docs/BUSINESS.md) |
+| K0: capture for reports (quote dates and lost reasons, a client on gigs, equipment costs) | 0.64.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
 | Truss load tables (data only, waiting for a second check) | 0.60 | [docs/TRUSS_DATA.md](docs/TRUSS_DATA.md) |
 | Privacy and security check: data map, OWASP review, sign-in failure tests | 0.62.1 | [docs/DATA_MAP.md](docs/DATA_MAP.md), [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) |
 
@@ -38,7 +39,6 @@ the data it counts.
 
 | # | What | Needs | Connect | Plan | Prompt |
 |---|---|---|---|---|---|
-| K0 | **Capture for reports**: quote sent and decided dates, lost reason; a client on gigs; cost price on items; cost and price on stock purchases and sales; inspection cost | quotes, inventory | Quote editor, send-quote, quote-public, gig forms, create gig from quote, stock modals, inspections, import wizard, organisation export | ANALYTICS.md | K0 |
 | 7b | Crew-rate follow-ups: fees in crew calls and job posts, quote crew lines from the rate card | 7 | Crew calls, job board, quote editor | BUSINESS.md | S01 |
 | 8 | **Time registration** [2] | 7, schedule | Gig crew tab, labour cost (actual vs planned), calendar feed, export, reports (approved hours kept as approved) | BUSINESS.md | S02 |
 | 9 | **Leave requests** [5] | availability | Clashes, Find crew "free", time registration, reports (working week) | BUSINESS.md | S03 |

@@ -127,6 +127,14 @@ export default {
     'stage-box': 'Which stage box input the line goes into, e.g. SB1-03 (box 1, input 3). Helps the stage crew patch it.',
     'mark-lost': 'Records the units that did not come back as lost. Stock and reports change. If one turns up later, set its status back to Available.',
     'quote-client': 'Picking a client fills in their details from Contacts. The quote keeps its own copy, so you can still change them here for this quote only.',
+    'cost-price': 'What you usually pay to buy one, without VAT. It fills in the cost when you record a purchase, and later shows what a sale or a loss really cost you.',
+    'item-depreciation': 'Over how many months a purchase of this item goes down to zero on paper. New units and bulk purchases use it unless you set their own. Empty means 60 (five years).',
+    'purchase-cost': 'What you paid for each one on this purchase, without VAT. It starts from the item’s cost price; change it if this purchase was different.',
+    'sale-price': 'What the buyer paid for each one, without VAT. Used to show what selling stock brought in.',
+    'disposal-value': 'What the unit brought in when it left: its sale price, an insurance payout, or 0 if nothing. Used to show the unit’s whole profit.',
+    'inspection-cost': 'What this inspection cost, without VAT (e.g. the PAT tester’s fee). Optional; it counts towards the item’s upkeep.',
+    'lost-reason': 'Why the client said no. Optional, but over time it shows why quotes are lost (price, another supplier, cancelled events…). Only your team sees it.',
+    'gig-client': 'The client the gig is for, from Contacts. Reports group gigs and their results by client. Crew don’t see it.',
   },
 
   pages: {
@@ -396,6 +404,7 @@ export default {
         'At the top, choose the company the gig belongs to.',
         'Tap "New gig" (on a phone, under More). Type the name and venue, and choose the start and end dates.',
         'Choose the status: Draft while it is not certain, Confirmed when it is happening. Tap "Create gig", then add crew, schedule and equipment.',
+        'Pick the client from Contacts if you know it (optional). Reports group gigs and their results by client; crew don\'t see it.',
       ],
       mistakes: [
         'Without dates, AVX can\'t warn about double bookings or check whether there is enough equipment.',
@@ -601,6 +610,7 @@ export default {
         'Open Inventory → Locations and tap "Add location".',
         'Type the name, choose the kind (warehouse, vehicle, site / venue, other) and add the address if useful.',
         'To move stock between locations, open the item and use Move. Every change is recorded in Movements.',
+        'When you add stock you bought, choose Purchase and fill in the cost each (it starts from the item\'s cost price); when you sell stock, the price each. Amounts are without VAT, and only admins and members see them.',
       ],
       mistakes: [
         'Locations are archived, not deleted, so their history stays complete. Archive one only when nothing is kept there any more.',
@@ -784,6 +794,7 @@ export default {
         'Check the quote with "Preview & print".',
         'Tap "Send to client", type their email and tap "Send quote". To send the link yourself, untick the email and tap "Create link".',
         'You are notified when the client accepts or declines. The client can also write to you from the quote\'s page.',
+        'If the client declines, or you mark the quote Declined, AVX asks why it was lost (optional). Over time this shows why quotes are lost.',
       ],
       mistakes: [
         'The link is shown only once. If you lose it, send the quote again; that replaces the old link.',

@@ -18,7 +18,7 @@ In the order they depend on each other:
 | Order | Data | Becomes in AVX | Notes |
 |---|---|---|---|
 | 1 | Warehouses, vans | Locations | Usually a handful; typed or imported |
-| 2 | Equipment list | Catalogue items (category, code, brand, model, price, weight, power, replacement value) | The core. Most tools export it to Excel/CSV |
+| 2 | Equipment list | Catalogue items (category, code, brand, model, price, weight, power, replacement value, cost price and write-off months since 0.64) | The core. Most tools export it to Excel/CSV |
 | 3 | Serial numbers | Units (serial, purchase date and cost, location, status) | Existing barcodes can be kept as the unit's code, so old labels keep working |
 | 4 | Sets, cases, accessories | Kit contents | Often a separate export, or listed per item |
 | 5 | Clients and suppliers | **Contacts directory** (Contacts: clients and suppliers) | Built in S2 (0.43.0) |
@@ -136,7 +136,7 @@ Checks: `supabase/tests/held_invites.sql`.
 | Piece | How it works |
 |---|---|
 | Kinds | **Upcoming jobs**, **Equipment on jobs** and **Open quotes** in the import wizard (admins and members), grouped under "People and work" with crew |
-| Jobs | One row per job: number, name, start and end dates, venue, status, client, notes. Each becomes a gig (status read from words like "Bevestigd"/"Confirmado" → confirmed, "Optie"/"Concept" → draft); the client and notes go in its description; the importer becomes its manager. Past jobs (ended before today) and cancelled ones are left out with a note; a new job needs a start date |
+| Jobs | One row per job: number, name, start and end dates, venue, status, client, notes. Each becomes a gig (status read from words like "Bevestigd"/"Confirmado" → confirmed, "Optie"/"Concept" → draft); the client and notes go in its description, and a client whose name is in Contacts is also linked as the gig's client (0.64); the importer becomes its manager. Past jobs (ended before today) and cancelled ones are left out with a note; a new job needs a start date |
 | Equipment | One row per line: the job (number or name), the item (code or name), how many. Lines go on the gig's Equipment tab and book the gear for the gig's dates; the same item again changes its quantity. Only items kept in stock can be planned (sets through their contents, as in the app) |
 | Quotes | One row per quote line, with the quote's number (or title), client, dates, section, description, item code, quantity, days, price, discount. Rows with the same number make one **draft** quote, its lines in sections; a line with a catalogue item keeps the item (so availability can be checked) and its price when the file has none. A client whose name is in Contacts is linked with their details |
 | Re-importing | Gigs and quotes keep the old tool's number (`import_ref`) and are matched by it (gigs also by name and start date), so they're updated, not doubled. A quote already sent from AVX is left as it is |

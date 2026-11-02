@@ -124,6 +124,14 @@ export default {
     'stage-box': 'Em que entrada da stage box entra a linha, ex.: SB1-03 (caixa 1, entrada 3). Ajuda a equipa de palco a ligar.',
     'mark-lost': 'Regista como perdidas as unidades que não voltaram. O stock e os relatórios mudam. Se alguma aparecer mais tarde, volte a pôr o estado em Disponível.',
     'quote-client': 'Escolher um cliente preenche os dados dele a partir dos Contactos. O orçamento guarda a sua própria cópia, por isso ainda pode alterá-los aqui só para este orçamento.',
+    'cost-price': 'O que costuma pagar para comprar um, sem IVA. Preenche o custo quando regista uma compra e, mais tarde, mostra quanto lhe custou realmente uma venda ou uma perda.',
+    'item-depreciation': 'Em quantos meses uma compra deste artigo desce até zero no papel. As unidades novas e as compras a granel usam este valor, salvo se tiverem o seu. Vazio significa 60 (cinco anos).',
+    'purchase-cost': 'O que pagou por cada um nesta compra, sem IVA. Começa com o preço de custo do artigo; altere-o se esta compra foi diferente.',
+    'sale-price': 'O que o comprador pagou por cada um, sem IVA. Serve para mostrar o que a venda de stock rendeu.',
+    'disposal-value': 'O que a unidade rendeu ao sair: o preço de venda, uma indemnização do seguro, ou 0 se nada. Serve para mostrar o lucro total da unidade.',
+    'inspection-cost': 'Quanto custou esta inspeção, sem IVA (por exemplo, o técnico do teste PAT). Opcional; conta para a manutenção do artigo.',
+    'lost-reason': 'Porque é que o cliente disse que não. Opcional, mas com o tempo mostra porque se perdem orçamentos (preço, outro fornecedor, eventos cancelados…). Só a sua equipa vê.',
+    'gig-client': 'O cliente para quem é o evento, dos Contactos. Os relatórios agrupam os eventos e os resultados por cliente. A equipa técnica não o vê.',
   },
 
   pages: {
@@ -393,6 +401,7 @@ export default {
         'No topo, escolha a empresa a que o evento pertence.',
         'Toque em "Novo evento" (no telemóvel, em Mais). Escreva o nome e o local e escolha as datas de início e de fim.',
         'Escolha o estado: Rascunho enquanto não é certo, Confirmado quando vai acontecer. Toque em "Criar evento" e depois adicione a equipa, o horário e o equipamento.',
+        'Escolha o cliente dos Contactos, se o souber (opcional). Os relatórios agrupam os eventos e os resultados por cliente; a equipa técnica não o vê.',
       ],
       mistakes: [
         'Sem datas, o AVX não consegue avisar de marcações duplas nem ver se há equipamento suficiente.',
@@ -598,6 +607,7 @@ export default {
         'Abra Inventário → Locais e toque em "Adicionar local".',
         'Escreva o nome, escolha o tipo (armazém, veículo, local / recinto, outro) e junte a morada, se for útil.',
         'Para passar stock de um local para outro, abra o artigo e use Mover. Todas as alterações ficam registadas em Movimentos.',
+        'Quando adiciona stock que comprou, escolha Compra e preencha o custo por unidade (começa com o preço de custo do artigo); quando vende stock, o preço por unidade. Os valores são sem IVA e só os administradores e membros os veem.',
       ],
       mistakes: [
         'Os locais são arquivados, não apagados, para o histórico ficar completo. Arquive um local só quando já nada ficar lá.',
@@ -781,6 +791,7 @@ export default {
         'Confirme o orçamento em "Pré-visualizar e imprimir".',
         'Toque em "Enviar ao cliente", escreva o email e toque em "Enviar orçamento". Para enviar o link por si, desmarque o email e toque em "Criar link".',
         'É avisado quando o cliente aceita ou recusa. O cliente também lhe pode escrever a partir da página do orçamento.',
+        'Se o cliente recusar, ou se marcar o orçamento como Recusado, o AVX pergunta porque se perdeu (opcional). Com o tempo, isto mostra porque se perdem orçamentos.',
       ],
       mistakes: [
         'O link só aparece uma vez. Se o perder, envie o orçamento outra vez; isso substitui o link antigo.',

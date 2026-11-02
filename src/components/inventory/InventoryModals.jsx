@@ -41,6 +41,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
     replacement_value: item?.replacement_value ?? '', min_stock: item?.min_stock ?? '', packing_note: item?.packing_note || '',
     details: item?.details || '', kit_type: item?.kit_type || '',
     inspection_kind: item?.inspection_kind || '', inspection_months: item?.inspection_months ?? '',
+    cost_price: item?.cost_price ?? '', depreciation_months: item?.depreciation_months ?? '',
   })
   const [saving, setSaving] = useState(false)
   const { fields } = useCustomFields(orgId, 'item')
@@ -53,10 +54,12 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
   }))
   const price = parsePrice(form.unit_price === '' ? '0' : form.unit_price)
   const codeOk = !form.code.trim() || /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/.test(form.code.trim())
+  const costPrice = numberOrNull(form.cost_price)
+  const costOk = costPrice == null || (Number.isFinite(costPrice) && costPrice >= 0)
 
   async function save(e) {
     e.preventDefault()
-    if (!form.name.trim() || !Number.isFinite(price) || price < 0 || !codeOk) return
+    if (!form.name.trim() || !Number.isFinite(price) || price < 0 || !codeOk || !costOk) return
     setSaving(true)
     const int = v => { const n = numberOrNull(v); return n == null ? null : Math.round(n) }
     const row = {
@@ -64,6 +67,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
       tracking: form.tracking, kit_type: form.kit_type || null, code: form.code.trim() || null, brand: form.brand.trim() || null, model: form.model.trim() || null,
       weight_kg: numberOrNull(form.weight_kg), power_w: int(form.power_w), dimensions: form.dimensions.trim() || null,
       replacement_value: numberOrNull(form.replacement_value), min_stock: int(form.min_stock),
+      cost_price: costPrice, depreciation_months: Math.min(600, Math.max(1, int(form.depreciation_months) || 0)) || null,
       packing_note: form.packing_note.trim() || null, details: form.details.trim() || null, updated_at: new Date().toISOString(),
       inspection_kind: form.inspection_kind.trim() || null,
       inspection_months: form.tracking === 'none' ? null : Math.min(120, Math.max(1, int(form.inspection_months) || 0)) || null,
@@ -141,6 +145,8 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
           <Field id="it-power" text={t('inv.power')}><input id="it-power" inputMode="numeric" value={form.power_w} onChange={set('power_w')} style={input} /></Field>
           <Field id="it-dim" text={t('inv.dimensions')}><input id="it-dim" value={form.dimensions} onChange={set('dimensions')} maxLength={80} placeholder="60 × 40 × 35 cm" style={input} /></Field>
           <Field id="it-value" text={t('inv.replacementValue')} hint="replacement-value"><input id="it-value" inputMode="decimal" value={form.replacement_value} onChange={set('replacement_value')} style={input} /></Field>
+          <Field id="it-cost" text={t('inv.costPrice')} hint="cost-price"><input id="it-cost" inputMode="decimal" value={form.cost_price} onChange={set('cost_price')} aria-invalid={!costOk} style={input} /></Field>
+          <Field id="it-life" text={t('inv.depreciationMonths')} hint="item-depreciation"><input id="it-life" type="number" min={1} max={600} value={form.depreciation_months} onChange={set('depreciation_months')} placeholder="60" style={input} /></Field>
         </div>
         {fields.length > 0 && (
           <div style={grid}>
@@ -163,7 +169,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
         <Field id="it-details" text={t('quote.lineDetails')}>
           <textarea id="it-details" value={form.details} onChange={set('details')} rows={2} maxLength={1000} style={{ ...input, resize: 'vertical' }} />
         </Field>
-        <SaveButton saving={saving} disabled={!form.name.trim() || !codeOk}>{t('common.save')}</SaveButton>
+        <SaveButton saving={saving} disabled={!form.name.trim() || !codeOk || !costOk}>{t('common.save')}</SaveButton>
       </form>
     </Modal>
   )
@@ -174,6 +180,8 @@ export function MovementModal({ item, mode, locationId, locations, stock, onClos
   const { notify } = useToast()
   const kinds = mode === 'add' ? ['purchase', 'found'] : mode === 'remove' ? ['lost', 'sale', 'retire'] : mode === 'move' ? ['transfer'] : []
   const [kind, setKind] = useState(kinds[0] || 'correction')
+  // Cost each on a purchase (from the item's cost price), price each on a sale
+  const [unitCost, setUnitCost] = useState(kinds[0] === 'purchase' ? String(item.cost_price ?? '') : '')
   const [from, setFrom] = useState(mode !== 'add' ? locationId || '' : '')
   const [to, setTo] = useState(mode === 'add' || mode === 'count' ? locationId || locations[0]?.id || '' : '')
   const [qty, setQty] = useState('')
@@ -182,7 +190,11 @@ export function MovementModal({ item, mode, locationId, locations, stock, onClos
   const at = id => stock?.byLocation?.[id] || 0
   const shape = mode === 'count' ? { from: false, to: true } : MOVEMENT_SHAPES[kind]
   const n = Number(qty)
-  const valid = Number.isInteger(n) && (mode === 'count' ? n >= 0 : n > 0)
+  const priced = mode !== 'count' && (kind === 'purchase' || kind === 'sale')
+  const cost = priced ? numberOrNull(unitCost) : null
+  const costOk = cost == null || (Number.isFinite(cost) && cost >= 0)
+  const changeKind = k => { setKind(k); setUnitCost(k === 'purchase' ? String(item.cost_price ?? '') : '') }
+  const valid = costOk && Number.isInteger(n) && (mode === 'count' ? n >= 0 : n > 0)
     && (!shape.from || from) && (!shape.to || to) && !(shape.from && shape.to && from === to)
     && (mode === 'count' || !shape.from || n <= at(from))
 
@@ -195,7 +207,7 @@ export function MovementModal({ item, mode, locationId, locations, stock, onClos
       if (!fix) { notify(t('inv.countMatches'), 'info'); return onClose() }
       row = { kind: 'correction', quantity: fix.quantity, ...(fix.direction === 'in' ? { to_location_id: to } : { from_location_id: to }) }
     } else {
-      row = { kind, quantity: n, from_location_id: shape.from ? from : null, to_location_id: shape.to ? to : null }
+      row = { kind, quantity: n, from_location_id: shape.from ? from : null, to_location_id: shape.to ? to : null, unit_cost: cost }
     }
     setSaving(true)
     const { error } = await supabase.from('stock_movements').insert({ ...row, org_id: item.org_id, item_id: item.id, note: note.trim() || null })
@@ -222,7 +234,7 @@ export function MovementModal({ item, mode, locationId, locations, stock, onClos
       <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {kinds.length > 1 && (
           <Field id="mv-kind" text={t('inv.reason')}>
-            <select id="mv-kind" value={kind} onChange={e => setKind(e.target.value)} style={select}>
+            <select id="mv-kind" value={kind} onChange={e => changeKind(e.target.value)} style={select}>
               {kinds.map(k => <option key={k} value={k}>{t(`inv.kind.${k}`)}</option>)}
             </select>
           </Field>
@@ -233,6 +245,11 @@ export function MovementModal({ item, mode, locationId, locations, stock, onClos
           <Field id="mv-qty" text={mode === 'count' ? t('inv.counted') : t('inv.quantity')}>
             <input id="mv-qty" type="number" min={mode === 'count' ? 0 : 1} max={100000} value={qty} onChange={e => setQty(e.target.value)} style={input} autoFocus required />
           </Field>
+          {priced && (
+            <Field id="mv-cost" text={t(kind === 'sale' ? 'inv.salePriceEach' : 'inv.costEach')} hint={kind === 'sale' ? 'sale-price' : 'purchase-cost'}>
+              <input id="mv-cost" inputMode="decimal" value={unitCost} onChange={e => setUnitCost(e.target.value)} aria-invalid={!costOk} style={input} />
+            </Field>
+          )}
         </div>
         {mode === 'count' && to && <p style={{ fontSize: '12px', color: colors.muted }}>{t('inv.countHint', { count: at(to) })}</p>}
         {shape.from && from && Number.isInteger(n) && n > at(from) && mode !== 'count' && (
@@ -254,8 +271,8 @@ export function AddUnitsModal({ item, locations, onClose, onSaved }) {
   const [count, setCount] = useState('1')
   const [location, setLocation] = useState(locations[0]?.id || '')
   const [purchaseDate, setPurchaseDate] = useState('')
-  const [cost, setCost] = useState('')
-  const [life, setLife] = useState('')
+  const [cost, setCost] = useState(String(item.cost_price ?? ''))
+  const [life, setLife] = useState(String(item.depreciation_months ?? ''))
   const [saving, setSaving] = useState(false)
   const list = serials.split(/\r?\n/).map(s => s.trim()).filter(Boolean)
   const total = list.length || Math.max(0, Math.min(200, Math.round(Number(count) || 0)))
@@ -318,14 +335,21 @@ export function UnitModal({ unit, locations, onClose, onSaved }) {
   const [form, setForm] = useState({
     serial: unit.serial || '', location_id: unit.location_id || '', status: unit.status, purchase_date: unit.purchase_date || '',
     purchase_cost: unit.purchase_cost ?? '', depreciation_months: unit.depreciation_months ?? '', notes: unit.notes || '',
+    disposal_value: unit.disposal_value ?? '', disposed_on: unit.disposed_on || '',
   })
+  const out = form.status === 'lost' || form.status === 'retired'
+  const disposal = numberOrNull(form.disposal_value)
+  const disposalOk = !out || disposal == null || (Number.isFinite(disposal) && disposal >= 0)
   const [saving, setSaving] = useState(false)
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
 
   async function save(e) {
     e.preventDefault()
+    if (!disposalOk) return
     setSaving(true)
     const { error } = await supabase.from('stock_units').update({
+      // Kept only while the unit is lost or retired (the database clears them otherwise)
+      disposal_value: out ? disposal : null, disposed_on: out ? form.disposed_on || null : null,
       serial: form.serial.trim() || null, location_id: form.location_id || null, status: form.status,
       purchase_date: form.purchase_date || null, purchase_cost: numberOrNull(form.purchase_cost),
       depreciation_months: form.depreciation_months ? Math.round(Number(form.depreciation_months)) : null, notes: form.notes.trim() || null,
@@ -360,10 +384,20 @@ export function UnitModal({ unit, locations, onClose, onSaved }) {
           <Field id="u-life" text={t('inv.depreciationMonths')} hint="depreciation"><input id="u-life" type="number" min={1} max={600} value={form.depreciation_months} onChange={set('depreciation_months')} placeholder="60" style={input} /></Field>
         </div>
         <Field id="u-notes" text={t('inv.note')}><input id="u-notes" value={form.notes} onChange={set('notes')} maxLength={500} style={input} /></Field>
-        {(form.status === 'lost' || form.status === 'retired') && form.status !== unit.status && (
+        {out && (
+          <div style={grid}>
+            <Field id="u-disposal" text={t('inv.disposalValue')} hint="disposal-value">
+              <input id="u-disposal" inputMode="decimal" value={form.disposal_value} onChange={set('disposal_value')} aria-invalid={!disposalOk} style={input} />
+            </Field>
+            <Field id="u-disposed" text={t('inv.disposedOn')}>
+              <input id="u-disposed" type="date" value={form.disposed_on} onChange={set('disposed_on')} style={input} />
+            </Field>
+          </div>
+        )}
+        {out && form.status !== unit.status && (
           <p role="alert" style={{ fontSize: '12px', color: 'var(--warn)' }}>{t('inv.statusWarning')}</p>
         )}
-        <SaveButton saving={saving}>{t('common.save')}</SaveButton>
+        <SaveButton saving={saving} disabled={!disposalOk}>{t('common.save')}</SaveButton>
       </form>
     </Modal>
   )

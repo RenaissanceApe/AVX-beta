@@ -5,7 +5,7 @@ built as the **K** steps ("key numbers"), in the order [ROADMAP.md](../ROADMAP.m
 in its own session with its prompt in [SESSION_PROMPTS.md](SESSION_PROMPTS.md). The expenses step
 they need (9b) is specified in [BUSINESS.md](BUSINESS.md).
 
-**Status (2026-11-02): planned, nothing built.** When a K step is built, its section below is
+**Status (2026-11-02): K0 built (0.64.0); the rest planned.** When a K step is built, its section below is
 replaced by "How K… works", in the same shape as BUSINESS.md, so the next session can connect to it
 without reading its code first.
 
@@ -86,7 +86,7 @@ without reading its code first.
 
 | Id | What | Needs | When |
 |---|---|---|---|
-| **K0** | Capture for reports | quotes, inventory | Next, before 7b |
+| **K0** | Capture for reports (built, 0.64.0) | quotes, inventory | Done |
 | **9b** | Expenses (spec in BUSINESS.md) | 9, contacts, subrentals, repairs | After 9 |
 | **K1** | Reports engine and the Reports area | K0, 9b | After 9b, before step 10 (its first user) |
 | **K2** | Money: results and margins | K1, 9b, 10 | After 12 |
@@ -157,7 +157,7 @@ payments arrive.
 | Quote sent and decided dates, lost reason (with a backfill from client links) | Win rate per period, time to decision, why quotes are lost | K0 |
 | A client on each gig (backfill from quotes, picker, jobs import) | Gigs, margin and wrap-ups per client; the client portal later | K0 |
 | Cost price and write-off period on items; cost on purchases and price on sales of stock; inspection cost | Profit of bulk and untracked items, cost of goods sold, book value, upkeep cost | K0 |
-| A unit's sale value when sold or written off; history import (both asked) | Lifetime profit; year-on-year for companies that switch | K0, if yes |
+| A unit's sale value when sold or written off (built); history import (later, D26) | Lifetime profit; year-on-year for companies that switch | K0; history import later |
 | Expenses: categories with a kind, receipts, recurring costs, links, write-off months for capital, `can_see_finance` | Overheads, spending, actual costs, money going out | 9b |
 | One revenue rule in SQL and JS, shared fixtures | Every money figure agreeing everywhere | K1 |
 | Confirm costs when a gig is completed; approved hours and cost kept as they were | Past margins that don't change | 10, 8 |
@@ -205,27 +205,74 @@ better ones and records them in its "How … works" section.
 - Docs: its section here becomes "How K… works"; the ROADMAP row is marked built; a test line in
   PENDING.md section 2 and its open questions in section 3.
 
-## K0 · Capture for reports
+## How K0 works (built in 0.64.0)
 
-Needs: quotes, inventory. **Next session**, before 7b: each month without these fields is a month
-of history lost. No report screens.
+Fields only, so history starts now; no report screens. Migrations `20261210000000_report_capture.sql`
+(fields, triggers, backfill, export), `20261210000001_import_gig_client.sql` (jobs import) and
+`20261210000002_import_item_cost.sql` (equipment import); checks in
+`supabase/tests/report_capture.sql` (no delete statements). Amounts are excl. VAT. Every new
+column sits on a table only admins and members (`can_quote`) can read, except `gigs.client_id`,
+which crew can read as an id (they still can't open client records).
 
-- **Quotes**: `sent_at` (first time it was sent), `decided_at` (accepted or declined),
-  `lost_reason` (a short list) and `lost_note`. One trigger on status changes covers the editor,
-  send-quote and quote-public. Backfill: sent from the first client link, decided from the link's
-  answer, else `updated_at` (approximate). Marking a quote declined asks for the reason (optional).
-- **Gigs**: `client_id`, a client of the same organisation (checked like `quotes_client_check`).
-  Backfill from the gig's accepted quote, else its newest quote. "Create gig" copies the quote's
-  client; a client picker in the new and edit gig forms; the jobs import fills it from its client
-  column. Crew still don't see client records (clients stay admins and members only).
-- **Equipment costs**: `price_items.cost_price` (usual purchase cost per unit, excl. VAT) and
-  `price_items.depreciation_months` (default for its units and bulk purchases; empty means 60);
-  `stock_movements.unit_cost` on purchase (cost each) and sale (price each) rows only;
-  `inspections.cost`. The item form, Record purchase, Sell, Record inspection and the equipment
-  import get the fields.
-- **Export**: the new columns in the gigs, quotes, items, movements and inspections files.
-- Ask: the lost reasons; a unit's sale value when sold or written off (`disposal_value`,
-  `disposed_on`); history import (D26).
+**Quotes.** `sent_at`, `decided_at`, `lost_reason`, `lost_note`. One trigger,
+`private.quotes_report_dates()` (before insert or update on `quotes`), writes the dates on every
+status change, so the editor, send-quote and quote-public are all covered:
+
+| Change | sent_at | decided_at | lost_reason / lost_note |
+|---|---|---|---|
+| Leaves draft for the first time (to sent, accepted or declined, also on insert) | now | — | — |
+| Becomes accepted or declined | kept (set now if it never left draft) | now | — |
+| Goes back to draft or sent | kept, never cleared | cleared | cleared |
+| Declined through the client link | | now | an empty `lost_note` gets the client's note from the link |
+
+Dates sent by the app are ignored. `lost_reason` is one of `price`, `competitor`, `cancelled`,
+`unavailable`, `scope`, `other` (`LOST_REASONS` in `src/lib/quotes.js`, same list in the
+`quotes_lost_check` constraint); it is kept only while the quote is declined. Marking a quote
+Declined in the editor opens `LostReasonModal` (optional; "Skip" leaves it empty); a button next
+to the status shows the reason and reopens it.
+
+**Gigs.** `gigs.client_id` → `clients`. `private.gigs_client_check()` refuses a client of another
+organisation, and refuses anyone who isn't an admin or member (`can_quote`) setting or changing
+it (database jobs with no signed-in user may). Set by: the new and edit gig forms
+(`GigClientField`, hidden for people who can't read clients; the edit form only sends it when it
+changed), "Create gig" in the quote editor (copies the quote's client), and the jobs import
+(a client column whose name matches a client in Contacts; the name still goes in the description
+too).
+
+**Equipment costs.**
+- `price_items.cost_price` (usual purchase cost per unit) and `price_items.depreciation_months`
+  (default write-off for its units and bulk purchases; **empty means 60**, as for units). Item
+  form; "Add units" starts from both.
+- `stock_movements.unit_cost`: cost each on `purchase` rows, price each on `sale` rows; any other
+  kind is refused (`stock_movements_unit_cost_check`). Add stock → Purchase starts from the item's
+  cost price; Remove → Sold starts empty. Movements are never edited. The equipment import's
+  opening quantity gets the cost price. Unit purchase rows written by the database have no
+  `unit_cost`: use `stock_units.purchase_cost`.
+- `inspections.cost` (optional) in Record inspection.
+- `stock_units.disposal_value` and `disposed_on`: when a unit is set to lost or retired, the unit
+  form asks for its sale price or payout; `disposed_on` defaults to that day (organisation's time
+  zone). Both are cleared when the unit comes back (`private.stock_units_disposal()`).
+
+**Backfill** (`private.report_capture_backfill(org)`, run once for everyone; approximate):
+`sent_at` from the first client link, else `updated_at` for quotes not in draft; `decided_at`
+from the matching link answer, else `updated_at`; `lost_note` from a declined link's note. A
+gig's client from its accepted quote, else its newest quote with a client. Units already lost or
+retired get `disposed_on` from that movement. The tables' own triggers are paused while it runs,
+so it doesn't count as an edit (no new quote version, activity or notification).
+
+**Imports.** The equipment import guesses "Cost price" (also cost, purchase price, kostprijs,
+inkoopprijs, preço de custo…) and "Depreciation months" (write-off, afschrijving, amortização…).
+History import (past jobs, decided quotes with their dates) is **later** (D26).
+
+**Export.** A wrapper as in `20261203000001` (`export_org_part_pre_k0` holds the previous one):
+items get `cost_price`, `depreciation_months`; units `disposal_value`, `disposed_on`; movements
+`unit_cost`; gigs' `client` comes from `client_id` first; quotes `sent_at`, `decided_at`,
+`lost_reason`, `lost_note`; inspections `cost`.
+
+**For K1 and later:** win rate and time to decision read `sent_at` / `decided_at` (older ones
+are approximate); cost of goods sold uses a sale row's quantity × the item's `cost_price`
+(the row's `unit_cost` is the sale price); bulk depreciation uses purchase rows' `unit_cost` over
+the item's `depreciation_months` (60 if empty).
 
 ## K1 · Reports engine and the Reports area
 

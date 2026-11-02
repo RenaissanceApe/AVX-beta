@@ -122,7 +122,7 @@ const SCENES = {
   'gig-form': { persona: 'pm', url: `/org/${ids.org}?new=gig`, async run(page, L) {
     const dialog = page.getByRole('dialog')
     await dialog.getByLabel(L('gigForm.name'), { exact: false }).fill('Marcolino — Natal')
-    await dialog.getByLabel(L('gigForm.venue')).fill('Coliseu dos Recreios, Lisboa')
+    await dialog.getByLabel(L('gigForm.venue'), { exact: true }).fill('Coliseu dos Recreios, Lisboa')
     await dialog.getByLabel(L('gigForm.start')).fill(dayFromNow(24))
     await dialog.getByLabel(L('gigForm.end')).fill(dayFromNow(25))
     return dialog.getByRole('button', { name: L('dash.createGig') })
