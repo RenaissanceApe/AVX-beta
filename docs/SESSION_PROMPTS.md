@@ -18,8 +18,8 @@ next step.
 plan in the doc it names, in the same commit.
 
 Steps 1–7 (0.54–0.63) and K0 (0.64) are built. Sessions S01–S31 are the build order, with the expenses step
-(S03b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
-ROADMAP.md places them; U1–U4 are small upkeep sessions to run in any gap; P1–P5 close the build;
+(S03b), steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
+ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
@@ -635,6 +635,10 @@ Scope (TOOLS_PLAN §4 P1):
   - current per phase and per output, neutral current, breaker headroom (warn at 80 %), phase
     balance;
   - a generator size suggestion with a margin;
+  - loads typed by hand with watts and phase (catering, bars, site office), so the whole supply is
+    planned (TOOLS_PLAN "Decided (2026-11-03)");
+  - a status per distro and load: connected, partly, not connected (words and icons, not colour
+    alone);
   - a printable report labelled as an estimate for a qualified electrician.
 
 Ask me before building: supply defaults for Portugal (230/400 V, 50 Hz), and which connectors
@@ -659,12 +663,13 @@ Scope:
 - Cable runs between distros and loads: length, cross-section, type, how it's laid.
 - Voltage drop (warn above 3–5 %) and current capacity.
 - A cable list (power, DMX, speaker, signal) added to the gig's equipment.
-- An automatic phase-balancing suggestion.
+- An automatic phase-balancing suggestion, and a second choice that fills each output up to a
+  reserve (e.g. 80 % of the breaker); every suggestion shown before it is applied.
 - Inrush groups that flag where many fixtures power on at once.
 
 Ask me before building: the cable types and lengths I stock (so the list maps to catalogue items).
 
-Connect: gig equipment and packing list, power report.
+Connect: gig equipment and packing list, power report, labels (U5: distro and cable labels).
 
 Done when: unit tests for voltage drop and capacity; help guide; PR open.
 Stop after this step; don't start the next one.
@@ -802,11 +807,40 @@ Scope:
   - until signed, the plot and report carry a visible warning;
   - with no rigger, suggest a job post for a certified rigger, prefilled;
   - if every warning is dismissed, show the liability disclaimer.
+- Engineer's pack (D33): one download with every input (positions, weights, points, hoists, truss
+  types and the table edition used, bridles), the results and the plot, so a certified engineer
+  can check it without re-entering anything; "Send to an engineer" shares it through a
+  supplier-style link.
+- Measured loads (TOOLS_PLAN "Decided (2026-11-03)"): the rigger types the load-cell reading per
+  point on site and sees it next to the planned load, with a warning above the hoist's WLL or more
+  than a set percentage over the plan.
 
-Connect: gig files (the report), On-site mode (read-only plot), job board prefill, the terms
-(disclaimer wording to review).
+Connect: gig files (the report and the pack), On-site mode (read-only plot, measured loads), job
+board prefill, the QR on prints (U6), the terms (disclaimer wording to review).
 
 Done when: database tests for sign-off (who can sign, can't edit after); help guide; PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+## S15b · Step 19b: TradeShowLoads export
+
+```
+Build ROADMAP step 19b: TradeShowLoads export (docs/PENDING.md D34). Read docs/TOOLS_PLAN.md
+"Decided (2026-11-03)" and how RG4 was built.
+
+First: find out whether the .tsle file format is published or openly documented. If it isn't,
+stop, tell me what you found and who to ask, and build nothing.
+
+Scope (only if the format is open):
+- Export the rigging plan's hang points as a .tsle file: fair, hall, booth and company typed in;
+  each point with its name, position and load from RG4.
+- The export uses the same checked numbers as the report and carries the same "aid, to be checked"
+  wording.
+
+Connect: rigging report, gig files.
+
+Done when: unit tests that the file matches the format's examples; help entry; PR open.
 Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
 ```
@@ -821,13 +855,42 @@ Scope:
 - RG5: when a rigging check fails, suggest fixes (move a point, add a point, a bigger hoist, a
   stronger truss type, spread a bridle), each re-checked before it's shown.
 - P3:
-  - a one-line diagram of the power tree;
+  - a one-line diagram of the power tree, with the data chain (which fixture feeds which, through
+    which splitter or node) from the DMX patch;
+  - a move-loads grid for on-site changes (outputs down the side, loads across, tap to move, phase
+    totals update at once);
   - views per area and per department;
   - an on-site checklist of what plugs into what, ticked off on the phone, offline.
 
 Connect: On-site mode (both checklists), rigging and power reports.
 
 Done when: unit tests (every suggestion passes the same checks); help guide; PR open.
+Stop after this step; don't start the next one.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+## S16b · Step 20b: work areas
+
+```
+Build ROADMAP step 20b: work areas (docs/PENDING.md D35). Read docs/TOOLS_PLAN.md "Decided
+(2026-11-03)", docs/BUSINESS.md (tasks T1–T2), how On-site mode, the light plot positions, P3 and
+RG4 were built, and how U5 (labels) and U6 (QR on prints) work.
+
+Scope:
+- A work area on a gig groups light-plot positions, power and rigging items and gig equipment
+  (a truss, FOH, a tower, stage left).
+- Each area is a task: people, an estimated build time, build instructions, notes; status
+  upcoming, active, done.
+- A printed sheet per area with what goes there, who builds it and a QR that opens the area.
+- Progress per area and for the whole gig in On-site mode, offline like the other checklists.
+
+Ask me before building: how areas are made (by hand, or suggested from positions), and the
+migration outline.
+
+Connect: tasks, light plot, power and rigging plots, On-site mode, labels (area on case labels),
+prints, the activity feed.
+
+Done when: database tests for who can see and change areas; help guide and screenshots; PR open.
 Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
 ```
@@ -1022,7 +1085,8 @@ and docs/RESERVATIONS.md (the reservations engine was built for this).
 Scope:
 - Vehicles as bookable resources: plate, capacity (kg, m³), licence needed.
 - Trips on a gig: out and back, vehicle, driver, times.
-- The packing list split per vehicle, with weight against capacity.
+- The packing list split per vehicle, with weight against capacity, and a suggestion that splits it
+  across the chosen vehicles by weight and volume (cases kept whole), which the planner can change.
 - Clashes when a vehicle or driver is double-booked.
 - Appointments: non-gig calendar items (site visit, meeting, warehouse day) with people, shown in
   calendars, clashes and the calendar feed.
@@ -1306,6 +1370,54 @@ Scope:
 - Rebuild with scripts/truss-data/ so the data stays reproducible.
 
 Done when: src/lib/trussTables.test.js passes; TRUSS_DATA.md and PENDING.md updated; PR open.
+Stop after this step.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+### U5 · Label templates
+
+```
+Upkeep U5: label templates (docs/PENDING.md D31). Read docs/TOOLS_PLAN.md "Decided (2026-11-03)"
+(label sizes), docs/INVENTORY.md (QR labels), src/pages/LabelsPage.jsx and the label sizes in
+src/lib/inventory.js.
+
+Scope:
+- Three sizes, not tied to any printer brand:
+  - small 50 × 25 mm (roll 50 × 25 mm; A4 sheet 52.5 × 29.7 mm, 40 per sheet);
+  - medium 100 × 50 mm (roll 100 × 50 mm; A4 sheet 105 × 57 mm, 10 per sheet);
+  - large A6 / 4 × 6 in (roll 102 × 152 mm; A4 sheet 105 × 148 mm, 4 per sheet).
+  Each layout fits inside both its roll and its sheet size.
+- Three ways to print each: a roll (one label per page), pre-cut A4 sheets, or plain A4 / US
+  Letter with cut lines. The two sheet layouts in use today are replaced.
+- What goes on a label, per size, from a short list: name, code, QR, organisation, gig, case
+  contents, a department colour band with its name printed (never colour alone). Saved per
+  organisation as templates.
+- Labels for items, units and cases now; distros and cables once P1–P2 exist.
+
+Ask me before building: the default fields per size, and the migration outline if templates are
+stored in the database.
+
+Done when: unit tests for the layout maths (how many fit, margins, roll pages); a print check at
+each size in both languages; help guide and screenshots updated; PR open.
+Stop after this step.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+### U6 · A QR and print date on every print
+
+```
+Upkeep U6: a QR and print date on every print (docs/PENDING.md D32). Grep for the print routes
+in src/App.jsx (/gig/:id/inputs, /plot, /patch, /dmx, /lights, /system, the call sheet).
+
+Scope:
+- A small QR in a corner of every print that opens the same page live in AVX, with "Printed
+  <date, time>" beside it.
+- Opening the link needs the same access as the page; no public links.
+- One shared print-footer component, so later prints (power plan, rigging report, work areas)
+  get it by using it.
+
+Done when: unit test for the link builder; e2e check that each print shows the QR; help entry;
+PR open.
 Stop after this step.
 Finish with the short summary CLAUDE.md asks for.
 ```

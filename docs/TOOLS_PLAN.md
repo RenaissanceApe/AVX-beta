@@ -392,6 +392,62 @@ RG3, which supplies the arrays.
   sit after step 22 (rider page).
 - **A/B variants** of a plot or a power plan, compared side by side: later, with gig templates.
 
+## Decided (2026-11-03, from Production Assist)
+
+From docs/COMPETITOR_RESEARCH.md ("2026-11-03: Production Assist"). The first group goes inside steps
+already planned and needs no new step; the second group became new steps. All of it was confirmed
+on 2026-11-03 (docs/PENDING.md D31–D35); the steps are in ROADMAP.md.
+
+**Inside planned steps** (added to the step's scope when it is built):
+
+- **P1:** loads typed by hand with watts and phase (catering, bars, site office), so the whole supply
+  is planned, not just the show; a status per distro and load ("connected", "partly", "not
+  connected"), shown in words and icons, not by colour alone.
+- **P2:** automatic assignment that **fills each output up to a reserve** (for example 80% of the
+  breaker), as a choice next to phase balancing; every suggestion shown before it is applied.
+- **P3:** a **move-loads grid** for on-site changes (outputs down the side, loads across the top,
+  tap to move, the phase totals update at once); the one-line diagram also shows the **data chain**
+  (which fixture feeds which, through which splitter or node), using the DMX patch.
+- **RG4:** an **engineer's pack**: one download with the inputs (positions, weights, points, hoists,
+  truss types and the table edition used, bridles), the results and the plot, so a certified engineer
+  can check it without re-entering anything; and **measured loads**: the rigger types the load-cell
+  reading per point on site and sees it next to the planned load, with a warning when it is over the
+  hoist's WLL or more than a set percentage above the plan.
+- **Step 23:** a suggestion that splits the packing list across the chosen vehicles by weight and
+  volume (cases kept whole), which the planner can change.
+
+**New steps (yes, 2026-11-03):**
+
+| # | What | Size | Would sit |
+|---|---|---|---|
+| D | What | Size | Where |
+|---|---|---|---|
+| D31 | **Label templates**: three standard sizes (below) and what goes on each: name, code, QR, gig, case contents, a colour band per department (with its name printed, not colour alone), the distro or circuit; for items, units, cases and, after P1, distros and cables | 1 PR | Upkeep U5 (it extends I1's QR labels) |
+| D32 | **A QR on every print** (call sheet, input list, patch, DMX, light plot, system calculator, and later the power plan and rigging report) that opens the current version, with the print date beside it, so an old paper copy is easy to spot | small, 1 PR | Upkeep U6 |
+| D33 | The **engineer's pack** above, plus a "Send to an engineer" step that shares it through a supplier-style link | part of RG4 | Step 19 (RG4) |
+| D34 | **TradeShowLoads** (`.tsle`) export of hang points for trade fairs | small, if the format is open | Step 19b, after RG4 |
+| D35 | **Work areas** on a gig: group positions, fixtures and equipment into areas (a truss, FOH, a tower), each a task with people, an estimated build time, instructions and a QR on its printed sheet; progress per area in On-site mode | 1 PR | Step 20b, after P3 and RG4 (it uses their positions) |
+
+**Label sizes (D31, decided 2026-11-03: modular, no specific printer).** Three sizes, chosen
+because each exists both as a printer roll and as a pre-cut A4 sheet sold internationally:
+
+- **Small, 50 × 25 mm**: cables, small items (QR and code). Roll 50 × 25 mm (2 × 1 in); A4 pre-cut
+  sheet 52.5 × 29.7 mm, 40 per sheet.
+- **Medium, 100 × 50 mm**: units, distros, racks (QR, name, code, a colour band). Roll 100 × 50 mm
+  (4 × 2 in); A4 pre-cut sheet 105 × 57 mm, 10 per sheet.
+- **Large, A6 / 4 × 6 in**: cases (QR, name, contents, gig). Roll 102 × 152 mm (4 × 6 in, the
+  shipping-label size every thermal printer takes); A4 pre-cut sheet 105 × 148 mm (A6), 4 per sheet.
+
+Each size prints three ways: **on a roll** (one label per page, for any label or thermal printer),
+**on pre-cut A4 sheets**, or **on plain A4 or US Letter with cut lines**. Each layout is drawn a few
+millimetres inside the smaller of its roll and sheet sizes, so the same design fits both. No printer
+brand or model is assumed. The two sheet layouts in use today (63.5 × 38.1 mm, 21 per sheet; 99.1 ×
+67.7 mm, 8 per sheet) match no roll size and are replaced by these three.
+
+Not adopted: 3D CAD, our own structural engineering (finite elements, wind, ballast), an in-house
+engineering office, live load-cell hardware links, VR, CAD plug-ins, branch-and-merge versions of a
+gig, PosiStageNet. Reasons are in the research note.
+
 ## Build order
 
 Moved to [ROADMAP.md](../ROADMAP.md) ("What's left"), which is now the only list of what is built

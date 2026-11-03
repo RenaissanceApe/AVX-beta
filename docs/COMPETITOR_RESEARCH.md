@@ -186,3 +186,67 @@ no analytics, data kept in the browser (export/import JSON).
 What changes in the roadmap: #28 (shareable rider/advance page) gains the line-up start and the
 readiness check, and moves up; MVR export joins #29; venue pages are a new item for Tier 2; P1 adds
 a suggested generator. Recorded in TOOLS_PLAN.md.
+
+### 2026-11-03: Production Assist, from its own site and manual
+
+**Production Assist** ([production-assist.com](https://www.production-assist.com), DeerSoft GmbH,
+Germany; version 1.15, October 2026; 11 languages including Portuguese). Read from its public pages:
+the home page, pricing, feature pages (structural, power, collaboration, VR, engineering office) and
+about 30 pages of its online manual (electrical and network planning, labels, QR codes, assembly
+sheets and tasks, worksheets, online workflow, load cells, TradeShowLoads, maintenance, CRM, the
+Core API, the 1.15 release notes). Nothing was installed or tried. The site and manual are served as
+plain pages, so reverse-engineering the app (the "rea" tool) wasn't needed and wasn't used: the
+manual is more detailed than anything we could get from the app's code, and it says plainly
+which parts don't work yet.
+
+**What it is:** a 3D CAD and engineering program for temporary structures (truss, ground support,
+scaffolding, stages, exhibition stands, tents), with real-time structural calculation (finite
+elements, Eurocode), electrical and data planning, paperwork and labels. Desktop app (Windows, Mac,
+a portable Windows build), iOS app, a browser view of online projects, and plug-ins for Vectorworks,
+AutoCAD, BricsCAD, ZWCAD, SketchUp, Capture and grandMA3. Its main selling point is its own
+**engineering office**: you order a certified structural check from inside the app, see the price
+straight away, and the office signs it and carries the liability.
+
+**Pricing** (per month): Community free (structures with up to 6 supports, 20 power consumers, 10
+cases, 2 trucks); Basic €20 (30 supports, exports and labels); Pro Teams €120 with 5 users, +€20 per
+user (unlimited, cloud teamwork); Arena €600 (whole venue roofs, chain-shortening across systems,
+load cells, script-based checks for venues, phone support from a structural engineer). Limits are
+counted in the things it calculates, which is worth remembering for AVX's own pricing
+([PUBLIC_SITE.md](PUBLIC_SITE.md)).
+
+| Production Assist | AVX today | AVX plan | Verdict |
+|---|---|---|---|
+| **3D drawing** of trusses, scaffolding, booths; imports DWG/DXF, 3DS/glTF/FBX/OBJ/IFC, images; 2D and 3D views; animation timeline | 2D stage plot and light plot per gig | MVR/GDTF import and export (#14); 3D only for the acoustic simulator (A4) | **Don't copy.** A CAD program is a different product; AVX reads and writes MVR so it works next to one |
+| **Structural calculation** (FEA, Eurocode): loads, support reactions, deflection, utilisation; statically indeterminate systems with chain shortening; ground support, **ballast**, **wind loads**, tipping and sliding; connections, corner braces, truss crosses; load combinations; PDF report with a QR code; DSTV/IFC export | Weights per light-plot position | RG1–RG5: point loads on a line, manufacturers' truss tables, bridles, line arrays, plot and report with sign-off | **Keep AVX's line**: manufacturers' tables and a competent person's check, never our own engineering. Two pieces fit (see TOOLS_PLAN "Proposed" 2026-11-03): an **engineer's pack** from RG4 and **measured loads** typed in on site |
+| **Engineering office**: order a certified structural check in the app, instant price, sent back into the project | — | RG4 suggests hiring a certified rigger through the job board | **Adopt the hand-off, not the office**: RG4 exports everything an engineer needs (D33) |
+| **Load cells**: live readings (Broadweigh, Flexa IOT, Show Distribution, RON StageMaster, T24 USB) compared with the calculated loads (Arena tier) | — | — | **Small version only**: type the measured load per point and see it against the plan (RG4 extra). No hardware links |
+| **TradeShowLoads** `.tsle` export/import of hang points for trade fairs | — | — | **Ask** (D34): only useful for fairs that ask for that file |
+| **Electrical planning**: power sources, distributors, consumers; patch by hand or automatically (1:1, or **fill each output up to a reserve**); a **hotpatch matrix** to move loads between outputs on site; phase load, voltage drop and residual current per cable; cables routed along the truss; a wiring diagram; a red/yellow/green "connected" status per object; non-show loads (catering) as plain consumers | Power estimate per light-plot position and phase | P1–P3: catalogue electrical fields, supply → distros → outputs → loads, per-phase totals, warnings, cable runs and voltage drop, cable list, balancing suggestion, one-line diagram, on-site checklist | **Mostly planned already.** Add to P1–P3: fill-to-reserve auto-assign, a move-loads grid for on-site changes, a "connected / partly / not" status (shown as words and icons, not colour alone), and loads typed by hand for catering, bars and the like |
+| **Data/network planning**: DMX daisy chains, splitters, nodes and switches; DMX address shorthand (`1+24`, or `1+` to use each fixture's footprint); DMX overview; data wiring diagram | DMX patch with next-free addressing, clash warnings, readdress in order, dipswitches | — | Addressing is **already covered**. **Adopt** the data chain (which fixture feeds which, through which splitter/node) as part of P3's one-line diagram |
+| **Labels**: a label designer (paper formats, label size, rounding; dynamic fields, static text, QR code, image, **colour code**); label types for objects, cases and racks; filtered by kind (fixture, electrical, structure, inventory, audio); PDF | A4 QR label sheets (3 or 2 across) for items and units | — | **Adopt** as a small step: label templates (D31) |
+| **QR codes** on objects, work areas and printed PDFs, opening the live online version | QR per item and unit, `/scan/<code>` opens it | — | **Adopt the cheap part**: a QR on every AVX print (call sheet, patch, power plan, rigging report) that opens the current version, so a paper copy shows when it's out of date (D32) |
+| **Assembly sheets as tasks**: the drawing split into work areas (a truss, a tower, a layer), each with assigned people, a calculated build time, build instructions, notes, a QR code, and a status (upcoming, active, done) with a progress bar | Tasks T1–T2; On-site mode; light-plot positions | — | **Adopt** as "work areas" on the gig (D35): tasks linked to a position or area, with the equipment and fixtures in it, a QR on the printed sheet and a progress bar in On-site mode |
+| **Paperwork / worksheets**: patch lists, dimmer sheets, mark-out lists, material overview, transport cases, racks, colour filters, connections, notes; PDF/CSV export | Prints per tool, packing lists, call sheet | Rider/advance page (#22) | **Covered**; a **colour-filter (gel) list** from the light plot is a cheap extra if asked |
+| **Truck packing**: cases, racks and trucks, automatic placing of objects into containers | Truck totals (weight, volume) on packing lists | Step 23: packing list per vehicle, weight against capacity | **Covered by step 23**; add an "auto-split across vehicles by weight and volume" suggestion there. No 3D packing |
+| **Online workflow**: a master plan, branches, commits, change requests with reviews, approvals and automatic checks; public share links; project notifications and calendar | One live version per gig, versions on files and quotes, activity feed, notifications, links for guests and suppliers | A/B variants of a plot (idea, later) | **Don't copy** branching: crews work on one live gig. An "approved by … on …" stamp on a plot or power plan is the useful core; fold into the A/B idea |
+| **Cue list, presets, focus plots**; grandMA3 cue import; **PosiStageNet** send/receive | Rehearsal companion R1–R2 | R3 cueing app bridge (#29) | **Later, with R3** if at all |
+| **VR** (Meta Quest walkthrough) | — | — | **Don't copy** |
+| **CAD plug-ins** (Vectorworks, AutoCAD, BricsCAD, ZWCAD, SketchUp, Capture) and **Core API** (glTF in, calculation results out as JSON) | — | MVR/GDTF (#14), public API (#28) | **Covered by the plan**: MVR is the shared format; no plug-ins |
+| **Maintenance** (inspection pool, schedules, report templates) | Inspections and repairs (I5) | — | **AVX is ahead.** Their manual says these screens are examples and don't save anything yet |
+| **CRM** (prospect contact queue, follow-ups, response rate) | Contacts, quotes with lost reasons (K0) | K4 sales and clients | **Not comparable**: it reads as their own sales team's tool. Nothing to add |
+| Content library: manufacturers' trusses, fixtures, electrical devices | Catalogue per organisation; truss tables (waiting for the check) | A1 speaker library, GDTF import | **Covered by the plan** |
+| Sign-in with Microsoft Entra; Pro Teams licence sharing | Email, magic link, two-step sign-in | — | Not now |
+| Know-how pages explaining the rules (DGUV 17, Eurocodes, what belongs in a structural report) | Help guides, terms, hints | — | **Small idea**: a help page per rigging/power tool on which rules apply in Portugal and what a report must contain (with RG4 and P1, not before) |
+
+**Where AVX stands against it.** Production Assist is an engineering and drawing tool; AVX runs the
+gig (crew, quotes, inventory, messages, field tools). The overlap is power, rigging, labels and
+on-site paperwork, and there Production Assist goes deeper (real FEA, certified checks). AVX's
+answer should stay "aids from manufacturers' data, checked by a competent person", made easy to hand
+to a real engineer, and joined with the gig's real equipment, which Production Assist doesn't have
+(it has no rental, crew or quoting side).
+
+What changes in the plan: five proposals, recorded in TOOLS_PLAN.md ("Proposed, to confirm
+(2026-11-03)") and asked in docs/PENDING.md (D31–D35). Smaller additions inside steps already planned (P1–P3, RG4, step 23) are listed in
+the same TOOLS_PLAN section, to be picked up when each step is built. **All five confirmed on
+2026-11-03**: label templates (U5) and a QR on every print (U6) as upkeep sessions, the engineer's
+pack inside RG4 (step 19), TradeShowLoads export (19b) and work areas (20b) as new steps.

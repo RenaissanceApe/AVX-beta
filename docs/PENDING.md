@@ -142,6 +142,11 @@ Each has a default already built; nothing is blocked. Say "keep" or "change".
 | D28 | **Sustainability report** (K11, suggested): transport km, energy and estimated emissions per gig, with a summary for clients and festivals. Build it after step 23? | Not planned until you say yes | 2026-11-02 |
 | D29 | **After-launch ideas** ([ANALYTICS.md](ANALYTICS.md), "After the launch"): market insights (anonymised rates and demand; needs a legal check), client feedback after each gig, a platform dashboard for you, expense automation (reading receipts, bank files). Which, if any, should be planned? | Not planned | 2026-11-02 |
 | D30 | **Report capture details (K0)**, built as proposed: (a) a quote marked accepted or declined without ever being sent gets its sent date at that moment; (b) Remove → Sold starts with an empty price (not the hire price); (c) a client's note when declining through the link fills the lost note, with no reason picked; (d) the jobs import links the gig to a client of the same name and still writes "Client: …" in the description; (e) the older quote dates filled in by the backfill are approximate (from the client link, else the last change). Say if any should change | Built as described | 0.64.0 |
+| D31 | ✅ (decided 2026-11-03) **Label templates**: yes, as upkeep U5. No specific printer: three standard sizes (small 50 × 25 mm, medium 100 × 50 mm, large A6 / 4 × 6 in), each printable on a roll, on pre-cut A4 sheets or on plain A4/Letter with cut lines (TOOLS_PLAN.md "Decided (2026-11-03)") | Planned (U5) | 2026-11-03 |
+| D32 | ✅ (decided 2026-11-03) **A QR and print date on every print**: yes, as upkeep U6 | Planned (U6) | 2026-11-03 |
+| D33 | ✅ (decided 2026-11-03) **Engineer's pack in RG4**: yes, part of step 19 | Planned (step 19) | 2026-11-03 |
+| D34 | ✅ (decided 2026-11-03) **TradeShowLoads (`.tsle`) export**: yes, step 19b, if the file format can be had openly (the session checks first) | Planned (step 19b) | 2026-11-03 |
+| D35 | ✅ (decided 2026-11-03) **Work areas** on a gig: yes, step 20b, after P3 and RG4 | Planned (step 20b) | 2026-11-03 |
 
 ## 4. Before a public launch (already in the roadmap)
 
