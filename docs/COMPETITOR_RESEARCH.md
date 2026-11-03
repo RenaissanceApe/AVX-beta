@@ -247,5 +247,6 @@ to a real engineer, and joined with the gig's real equipment, which Production A
 
 What changes in the plan: five proposals, recorded in TOOLS_PLAN.md ("Proposed, to confirm
 (2026-11-03)") and asked in docs/PENDING.md (D31–D35). Smaller additions inside steps already planned (P1–P3, RG4, step 23) are listed in
-the same TOOLS_PLAN section, to be picked up when each step is built; nothing moves in the roadmap
-until you say yes.
+the same TOOLS_PLAN section, to be picked up when each step is built. **All five confirmed on
+2026-11-03**: label templates (U5) and a QR on every print (U6) as upkeep sessions, the engineer's
+pack inside RG4 (step 19), TradeShowLoads export (19b) and work areas (20b) as new steps.

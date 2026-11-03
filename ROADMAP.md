@@ -57,18 +57,20 @@ the data it counts.
 | K9 | Report extras, only those you pick: weekly email, saved views, monthly PDF, accountant link | K2–K8 | Email summary, Overview | ANALYTICS.md | K9 |
 | 13 | **A1** speaker library | catalogue | F4 sound calculator; later P1 and RG3 | TOOLS_PLAN.md §6 | S07 |
 | 14 | **MVR/GDTF import** [29] and MVR export | light plot, DMX patch | Fixture weights and power for P1 and RG1 | TOOLS_PLAN.md, FIELD_TOOLS.md | S08 |
-| 15 | **P1–P2** power and cables | light plot, 13, 14 | Light plot power estimate, gig equipment (distros, cables) | TOOLS_PLAN.md §4 | S09, S10 |
+| 15 | **P1–P2** power and cables (with the 2026-11-03 additions: loads typed by hand, a connected status, fill-to-reserve) | light plot, 13, 14 | Light plot power estimate, gig equipment (distros, cables), labels (U5: distros and cables) | TOOLS_PLAN.md §4, "Decided (2026-11-03)" | S09, S10 |
 | 16 | **E-signature** [16] | — | Quote acceptance, delivery notes, crew contracts, rigger sign-off | BUSINESS.md | S11 |
 | 17 | **RG1–RG2** weights, points, hoists, trusses, bridles | light plot, catalogue, truss tables | Light plot "rigging not checked", bridle pocket tool, truss-table review screen | TOOLS_PLAN.md §5, TRUSS_DATA.md | S12, S13 |
 | 18 | **RG3** line arrays | 13, F4, RG1 | Sound system calculator | TOOLS_PLAN.md §5 | S14 |
-| 19 | **RG4** rigging plot, report, sign-off | RG1–RG3, job board, 16 | Gig files, on-site view, job board prefill | TOOLS_PLAN.md §5 | S15 |
-| 20 | **RG5** suggestions; **P3** one-line diagram and on-site power checklist | RG4, P2 | On-site mode | TOOLS_PLAN.md §4–5 | S16 |
+| 19 | **RG4** rigging plot, report, sign-off, **engineer's pack** and **measured loads** (D33) | RG1–RG3, job board, 16 | Gig files, on-site view, job board prefill, supplier-style link (send to an engineer), QR on the report (U6) | TOOLS_PLAN.md §5, "Decided (2026-11-03)" | S15 |
+| 19b | **TradeShowLoads export** (`.tsle`, D34), if the format can be had openly | 19 | Rigging report, gig files | TOOLS_PLAN.md "Decided (2026-11-03)" | S15b |
+| 20 | **RG5** suggestions; **P3** one-line diagram (with the data chain), move-loads grid and on-site power checklist | RG4, P2 | On-site mode | TOOLS_PLAN.md §4–5, "Decided (2026-11-03)" | S16 |
+| 20b | **Work areas** (D35): positions, fixtures and gear grouped into areas, each a task with people, build time, instructions, a QR sheet and progress | 20, tasks, U5, U6 | Tasks, light plot positions, power and rigging plots, On-site mode, labels, prints | TOOLS_PLAN.md "Decided (2026-11-03)" | S16b |
 | K10 | **Safety and compliance**, only if you say yes (D27): overdue inspections on booked gear, expiring certificates, missing sign-offs, a safety pack per gig | I5, 16, 19, 20, K1 | Equipment tab, maintenance, crew profiles, rigging report, power checklist, gig files | ANALYTICS.md | K10 |
 | 21 | **A2** coverage map, **A3** prediction and measurement files | 13, F4 | Gig files, tuning sheet | TOOLS_PLAN.md §6 | S17 |
 | 21b | **A4–A6** own simulator by level of detail | A1–A3, RG1, RG3 | A2 map, system calculator, tuning sheet | TOOLS_PLAN.md §6 | S18, S19, S20, S20b |
 | 22 | **Shareable rider / advance page** [28] | stage plot, inputs, patch, P, RG | Power and rigging summaries; line-up start and readiness check (from StageKit) | BUSINESS.md | S21 |
 | 22b | **Venue pages**, only if you say yes (decision D14) | 22, P1, RG1 | Gig address, call sheet, power supply, rigging points | TOOLS_PLAN.md "Proposed" | S22 |
-| 23 | **Vehicles and transport** [8], **appointments** [9] | reservations, item weights | Packing list per vehicle, calendar, clashes, gig finance (running costs), expenses, vehicle-use report | BUSINESS.md | S23 |
+| 23 | **Vehicles and transport** [8] (with a split-across-vehicles suggestion), **appointments** [9] | reservations, item weights | Packing list per vehicle, calendar, clashes, gig finance (running costs), expenses, vehicle-use report | BUSINESS.md | S23 |
 | K11 | **Sustainability report**, only if you say yes (D28): transport, energy and estimated emissions per gig | 8, 15, 23, K1 | Trips, power plan, gig files, Reports | ANALYTICS.md | K11 |
 | 24 | ~~Reports~~ [11]: covered by K1–K8, and vehicle use by step 23 | — | — | ANALYTICS.md | — |
 | 25 | **Gig templates** [7] | everything above | Copies schedule, positions, equipment, tools, tasks, custom fields | BUSINESS.md | S25 |
@@ -87,6 +89,8 @@ the data it counts.
 | React Router 7, current Vite and Vitest | Remaining advisories (docs/SECURITY_REVIEW.md) | U2 |
 | Data map open items: trim the crew-search log and old notifications, held-invitation time limit | docs/DATA_MAP.md | U3 |
 | Truss tables: mark checked or update from the manufacturers' answers (D12, D13) | Needed before RG2 can use them | U4 |
+| Label templates in three standard sizes, on rolls or sheets (D31) | Cases, units and cables labelled for any printer | U5 |
+| A QR and print date on every print (D32) | An old paper copy is easy to spot | U6 |
 
 ## End of the build
 
