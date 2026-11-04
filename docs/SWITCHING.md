@@ -1,6 +1,6 @@
 # Switching to AVX: plan
 
-Status: **S1–S5 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0), crew as held invitations (S3a, 0.44.0), upcoming jobs, their equipment and open quotes (S3b, 0.45.0), Rentman exports, the switching checklist and the calendar feed (S4, 0.46.0), the organisation export (S5, 0.47.0). Switching is complete; next on the roadmap: crew network and job board.
+Status: **S1–S5 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0), crew as held invitations (S3a, 0.44.0), upcoming jobs, their equipment and open quotes (S3b, 0.45.0), Rentman exports, the switching checklist and the calendar feed (S4, 0.46.0), the organisation export (S5, 0.47.0). Switching is complete; next on the roadmap: crew network and job board. An overhaul of the wizard, so every problem can be fixed where it shows up (IM1–IM3), is planned in "Import overhaul: fix it here" below.
 
 The aim: a company using Rentman, another rental tool or spreadsheets can be fully running on
 AVX within a day, without retyping anything and without risking their data. Making it easy to
@@ -180,3 +180,116 @@ Checks: `supabase/tests/org_export.sql`; the files in `src/lib/orgExport.test.js
   field structure Claude may read and write freely. Sample export files are only needed if that
   route doesn't give enough.
 - Order: after messaging and after help stage H1.
+
+## Import overhaul: fix it here (plan, decided 2026-11-04)
+
+Why: an equipment file stopped at the Check step because its rows named a location "warehouse"
+the organisation didn't have. The check was right, but its only answer was to go back, edit the
+file and import again, and that is true of every problem today: the check lists problems, leaves
+those rows out and says "Fix them in the file and import it again". Importing is tedious by
+nature, so the wizard should make it as easy and as controlled as possible.
+
+Scope: the whole wizard (it is the app's only import path), all ten kinds and all four steps.
+Built in three parts, each in its own session (ROADMAP.md, prompts IM1–IM3; decision D37).
+
+### Principles
+
+1. **Never a dead end.** Every problem offers at least one fix on the spot, plus "leave these rows
+   out". Going back to the file is one option, never the only one.
+2. **Fix once for every row.** Problems are grouped by cause and value ("12 rows · location
+   'warehouse'"), and one choice fixes the whole group. One-off cell errors are edited in place.
+3. **Nothing changes until Import.** A fix that adds something (a location, an item, a contact)
+   shows at once in the check as "will be added", is listed on the Import button ("Import 130
+   rows · adds 1 location") and is saved only when Import is pressed.
+4. **The check tells the truth.** Every reason the database can refuse a row is predicted in the
+   check where the page has the data. Anything that still slips through comes back after the
+   import with "fix and try again", not as a dead list.
+5. **Your file isn't changed, and the fixes can go with you.** Rows left out can be downloaded
+   with their original cells and the problem, fixed in Excel and imported as a small file.
+6. Groups nobody decided on are left out, as today, and the Import button says how many ("12 rows
+   waiting for a decision will be left out"). IM1 asks the owner to confirm this default.
+
+### Check step
+
+Every group also offers "Leave these rows out". **(IM3)** marks a fix that needs the database part.
+
+| Situation (key today) | Kinds | Fixes offered |
+|---|---|---|
+| Location not in AVX (`unknownLocation`) | equipment, units | **Add "warehouse" as a new location** (type filled in as warehouse) · **Use a location you have ▾** (the closest name chosen first) |
+| …but an archived location has that name | equipment, units | **Restore "warehouse"** · use another ▾ |
+| A quantity with an empty location cell (`needLocation`) | equipment | **Put them in ▾** |
+| Item not in AVX (`unknownItem`) | units, kit contents, equipment on jobs | **Use an item you have ▾** · **Add "X" to the catalogue** (a small form: name, code, how it's kept; for units, per unit) |
+| Kit not in AVX (`unknownKit`) | kit contents | **Use an item you have ▾** · **Add "X" as a new set or case** |
+| Several items share the name (`sameName`) | equipment, units, kits, equipment on jobs | **Choose which one ▾** (code, brand and category shown to tell them apart); when the chosen one has no code **(IM3)** |
+| The code of an archived item (new prediction: today a surprise after the import) | same | **Restore the item (IM3)** · use another ▾ |
+| Units for an item counted in bulk (`bulkItem`) | units | Use another item ▾, with the known limitation (above) explained |
+| An item not kept in stock, planned on a job (`notTracked`) | equipment on jobs | **Start keeping "X" in stock (counted)** · use another item ▾ |
+| Job not in AVX (`unknownJob`) | equipment on jobs | **Use a gig you have ▾** (closest name first) |
+| Several gigs share the name (new prediction: shown as "new" today) | jobs, equipment on jobs | **Choose which one ▾** |
+| Several contacts share the name (`sameContact`) | clients, suppliers | **Choose which one ▾** · **Add as a new contact (IM3)** |
+| Client not in Contacts (silent today: kept as text) | jobs, quotes | A heads-up, not a problem: **Add to Contacts** · **Link to a contact ▾** · keep as text (as today) |
+| A word AVX doesn't know (`choice`: a status "Gepland", a unit "Stück") | every choice field | **Treat "Gepland" as [Confirmed ▾]** in every row · leave it empty (the usual default) |
+| A bad or missing cell (`number`, `whole`, `date`, `code`, `email`, `long`, `missing`, `noStart`) | all | **Edit the cell here** (checked again as you type). The same value in many rows ("n/a" as a price): **Treat as empty**. A code with spaces: **Remove the spaces**. Too long: **Cut to N characters** |
+| A job that ends before it starts (`dates`) | jobs | **Swap the dates** · edit |
+| A new item kept per unit, with a quantity (new prediction, `serialQuantity`) | equipment | **Count it in bulk instead** · **Leave the quantity out** (import its units later) |
+| A unit code already on another item's unit (new prediction, `otherItem`) | units | **Edit the code** |
+| Changing how an item with stock is kept (new prediction where the stock totals tell, `trackingLocked`) | equipment | **Keep it as it is** |
+| A quantity for an item already in AVX (`quantityKept`, a note after the import today) | equipment | A heads-up before importing: not added, use a stock count |
+| Past or cancelled jobs, inactive crew, people already in or invited, a quote already sent (new prediction) | jobs, crew, quotes | **"Left out on purpose"**: a calm list, no action (past jobs: D26, a step of its own) |
+
+### Choose step
+
+| Situation | Today | Fix |
+|---|---|---|
+| An Excel workbook with several sheets | only the first sheet is read | **A sheet picker**, with each sheet's number of rows |
+| Title lines above the headings | the headings are assumed on line 1 | **"Headings are on row N"**, suggested |
+| A CSV file saved by Excel on Windows (accents turn into "Armaz�m") | read as UTF-8 | Noticed and read again as Western (Windows-1252) text, saying so, with a switch |
+| More than 5000 rows | Next can't be pressed | **Import in parts of 5000** (a batch each; a quote's lines are never split) |
+| The wrong kind chosen | nothing | "This looks like a Units file", with **Switch** |
+
+### Match step
+
+| Situation | Today | Fix |
+|---|---|---|
+| A field the file doesn't have (no item column in a units file, no location column…) | blocked, except "Where is this stock?" for Rentman's equipment | **"Same for every row"**: one value for a missing field (location, item, job, client, status, role, location type). Replaces "Where is this stock?" |
+| Dates written month/day | read day first: some fail, some are silently wrong | The order noticed per date column; asked when it can't be told |
+| Columns with data that won't be imported | left out silently | Listed: "Not imported: Remarks, Colour" |
+
+### Done step and earlier imports
+
+| Situation | Today | Fix |
+|---|---|---|
+| Rows the database refused | a list, and a CSV of messages | **Fix and try again**: back to the check with only those rows, and the same fixes |
+| Rows left out | a CSV of lines and messages | **Download them with their data**: the original columns plus a Problem column |
+| Undo refused "already in use" | one general message | Says what uses it and offers to undo the rest **(IM3, a hand-run file)** |
+
+### How it will be built
+
+- The logic stays pure and tested in `src/lib/importer.js`, as one pipeline:
+  `table → fixTable(table, mapping, fixes) → buildRows(…, { defaults }) → dryRun(rows, kind, existing + pending) → groupProblems(rows, plan, kind)`.
+- The fixes are kept by the wizard page, so Back and Next keep them, keyed by field and value
+  (so they survive a change of column): replaced values, edited cells, "same for every row"
+  values, rows left out, and what's waiting to be added.
+- `dryRun` gains the new predictions and says per row whether it's a problem, left out on purpose
+  or a note. Edited cells are checked with `cleanValue`, as the file's are; the closest existing
+  name is suggested; refusals after the import are read with `serverMessage`.
+- A `FIXES` table says which fixes each reason offers per kind. A unit test checks that every
+  reason the check gives and every reason the database gives has an entry, so a new refusal can't
+  ship without a way forward.
+- What a fix adds is saved when Import is pressed, just before the import: locations and items
+  through `run_import` (each its own batch in Earlier imports, undone on its own, until IM3 puts
+  them in the import's batch); contacts added as the Contacts page adds them. Restoring a
+  location and "start keeping in stock" are ordinary changes the people who can import may
+  already make.
+- The check step moves to `src/components/import/` (the fix panel and a small "add" dialog);
+  choices are radio buttons in labelled groups, with text and an icon, never colour alone. Text
+  in English and Portuguese; the `wh-import` help guide and its screenshots follow.
+- The fix panel is generic, so later imports (S08's MVR/GDTF) can use it.
+
+### Parts
+
+| Part | What | Database |
+|---|---|---|
+| **IM1 · Fix it in the check** | The Check-step table (the IM3 fixes show as not available yet), grouping, cell edits, additions saved on Import, the new predictions, "left out on purpose" and heads-ups, the summary on the Import button, the `FIXES` table and its test, a signed-in browser test | None |
+| **IM2 · Before and after the check** | The Choose, Match and Done tables, except the undo row | None |
+| **IM3 · The database part** | Additions and restores in the import's own batch (one undo takes it all back); exact picks by id (item, location, gig, client; checked to belong to the organisation), so same-named records without codes can be chosen and "add as a new contact" works; restoring archived items; fixes remembered with a saved matching (`import_presets.fixes`); undo saying what's in use and offering to undo the rest | One migration, outlined for the owner's yes first; the undo change is a hand-run file (it removes records). Needs `20261117000001_import_undo.sql` to have been run (T31) |

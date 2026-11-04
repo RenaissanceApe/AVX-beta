@@ -19,7 +19,7 @@ plan in the doc it names, in the same commit.
 
 Steps 1–7 (0.54–0.63) and K0 (0.64) are built. Sessions S01–S31 are the build order, with the expenses step
 (S03b), steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
-ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; P1–P5 close the build;
+ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM3 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
@@ -1518,6 +1518,107 @@ checks it confirms as fixed tests in e2e/auth/<area>.spec.js; list what it found
 in QA.md. Scanning can use a fake camera feed showing a QR label.
 
 Done when: the new tests pass twice in CI; problems found are listed in the PR; PR open.
+Stop after this step.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+---
+
+## Import overhaul (any time, in order)
+
+Plan: [SWITCHING.md](SWITCHING.md), "Import overhaul: fix it here" (decision D37). IM2 and IM3 need
+IM1 merged first.
+
+### IM1 · Fix it in the check
+
+```
+Import overhaul IM1: fix it in the check (docs/SWITCHING.md, "Import overhaul: fix it here";
+docs/PENDING.md D37). Read that section, then CheckStep and DoneStep in src/pages/ImportPage.jsx
+and dryRun, buildRows and SERVER in src/lib/importer.js (in ranges).
+
+Scope:
+- The Check-step table: problems grouped by cause and value, one choice fixing every row in the
+  group, cell errors edited in place and checked again as I type, "leave these rows out" on
+  every group. Fixes marked IM3 show as not available yet, with the reason.
+- What a fix adds (a location, an item, a contact) shows as "will be added", is listed on the
+  Import button and is saved only when I press Import: locations and items through run_import
+  (each its own batch for now), contacts as the Contacts page adds them.
+- The new predictions in the table, a "left out on purpose" list and the heads-ups.
+- The pipeline and the FIXES table as the plan describes, with the test that every reason has an
+  entry. The fixes kept by ImportPage, so Back and Next keep them. CheckStep moves to
+  src/components/import/.
+- No database change.
+
+Ask me before building: anything in the Check-step table I'd change, and principle 6 (groups
+nobody decided on are left out).
+
+Done when: unit tests for fixTable, groupProblems, the new predictions and the FIXES coverage; a
+signed-in e2e test (an equipment file with an unknown location → add it from the check → import
+→ the stock is there); axe clean; a browser check at 320 and 390 px in both languages; the
+wh-import help guide and its imp-check screenshot updated; PR open.
+Stop after this step.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+### IM2 · Before and after the check
+
+```
+Import overhaul IM2: before and after the check (docs/SWITCHING.md, "Import overhaul: fix it
+here", the Choose, Match and Done tables). IM1 must be merged. Read ChooseStep, MatchStep and
+DoneStep in src/pages/ImportPage.jsx, src/lib/xlsx.js, and parseDate and buildRows in
+src/lib/importer.js.
+
+Scope:
+- Choose: a sheet picker for workbooks with several sheets; "headings are on row N", suggested;
+  a file saved by Excel on Windows noticed and read as Windows-1252, saying so, with a switch;
+  more than 5000 rows imported in parts of 5000 (a quote's lines never split); "this looks like
+  a … file" with Switch.
+- Match: "same for every row" for a field the file doesn't have (it replaces "Where is this
+  stock?"); the date order noticed per date column, asked when it can't be told; the columns
+  that won't be imported listed.
+- Done: "fix and try again" for rows the database refused (back to the check with only those
+  rows and IM1's fixes); left-out rows downloadable with their original columns and a Problem
+  column.
+- No database change.
+
+Done when: unit tests (sheets, heading row, text encoding, parts, date order, the left-out
+file); e2e for one Choose fix and one Done fix; a browser check at 320 and 390 px in both
+languages; the help guide and its imp-choose and imp-match screenshots updated; PR open.
+Stop after this step.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+### IM3 · The database part
+
+```
+Import overhaul IM3: the database part (docs/SWITCHING.md, "Import overhaul: fix it here",
+Parts). IM1 must be merged, and supabase/migrations/20261117000001_import_undo.sql run by hand
+(docs/PENDING.md T31): check that undo_import exists on both projects first. Read
+20261115000000_import_wizard.sql (run_import and its row functions),
+20261117000001_import_undo.sql, 20261119000000_import_jobs.sql and
+supabase/tests/import_wizard.sql.
+
+Scope:
+- What a fix adds or restores is made in the import's own batch, so one undo removes the import
+  and what it added. run_import keeps its signature (create or replace).
+- Exact picks: a row may carry the id the check chose (item, location, gig, client), checked to
+  belong to the organisation and not archived, used before the code and name lookup, in
+  run_import and import_jobs. This turns on "choose which one" for same-named records without
+  codes and "add as a new contact".
+- Restoring an archived item from the check, logged so undo archives it again.
+- Fixes remembered with a saved matching: import_presets.fixes (jsonb, size-limited), applied
+  with it.
+- Undo refused "in use": say what uses it (the first few, with names) and offer to undo the
+  rest. This changes undo_import, which removes records, so it is a hand-run file again.
+- The app side: IM1's separate batches for additions folded into the import's batch; the IM3
+  fixes switched on.
+
+Ask me before building: the migration outline and the hand-run file, for my yes.
+
+Done when: supabase/tests/import_fixes.sql (and import_undo.sql after the hand-run file) end
+with "ALL … CHECKS PASSED" on the test project; the migration applied to production with the
+same function bodies; unit tests for the app side; the hand-run steps in docs/PENDING.md; PR
+open.
 Stop after this step.
 Finish with the short summary CLAUDE.md asks for.
 ```

@@ -149,6 +149,7 @@ Each has a default already built; nothing is blocked. Say "keep" or "change".
 | D34 | ✅ (decided 2026-11-03) **TradeShowLoads (`.tsle`) export**: yes, step 19b, if the file format can be had openly (the session checks first) | Planned (step 19b) | 2026-11-03 |
 | D35 | ✅ (decided 2026-11-03) **Work areas** on a gig: yes, step 20b, after P3 and RG4 | Planned (step 20b) | 2026-11-03 |
 | D36 | ✅ (decided 2026-11-02) **QA bot**: AI tester on each PR before merge; a light live check after each merge and one real sign-up a day; QA accounts tagged by their Mailosaur address so they stay out of your numbers; inbox Mailosaur ([QA.md](QA.md)) | Planned (QA1–QA4) | 2026-11-02 |
+| D37 | ✅ (decided 2026-11-04) **Import overhaul, "fix it here"**: yes, as IM1–IM3 in any gap ([SWITCHING.md](SWITCHING.md)). Every problem in the import gets a fix where it shows up; what a fix adds is saved only when Import is pressed; the database part (IM3: one undo, exact picks, archived restores, remembered fixes) is included as the last part, its migration outlined for your yes first | Planned (IM1–IM3) | 2026-11-04 |
 
 ## 4. Before a public launch (already in the roadmap)
 
