@@ -19,7 +19,7 @@ plan in the doc it names, in the same commit.
 
 Steps 1–7 (0.54–0.63) and K0 (0.64) are built. Sessions S01–S31 are the build order, with the expenses step
 (S03b), steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
-ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; P1–P5 close the build;
+ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
@@ -1418,6 +1418,106 @@ Scope:
 
 Done when: unit test for the link builder; e2e check that each print shows the QR; help entry;
 PR open.
+Stop after this step.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+---
+
+## QA bot (any time, in order)
+
+Plan and setup steps: [QA.md](QA.md). Each prompt tells you which setup to do first.
+
+### QA1 · Foundations
+
+```
+QA bot step QA1: foundations (docs/QA.md, "Fixed tests on every PR" and "QA accounts and the QA
+tag"; my setup is "Setup A"). Read docs/QA.md and docs/TESTING.md.
+
+Scope:
+- e2e/helpers/app.js: move the shared helpers out of e2e/auth/journey.spec.js (sign up, sign in,
+  English, accessibility check, delete account); add an init script that sends the "do not track"
+  signal src/lib/usage.js respects.
+- e2e/helpers/inbox.js (Mailosaur API with fetch: new address, wait for an email, return its links
+  without printing them) and e2e/helpers/totp.js (two-step codes with Node's crypto).
+- scripts/qa/seed.mjs and scripts/qa/cleanup.mjs on the test project: the QA admin and QA crew
+  accounts, a fresh "AVX QA run <id>" company with realistic data, removal through the app; cleanup
+  also clears old e2e-… leftovers (PENDING F8, D21).
+- scripts/qa/run-sql-tests.sh and a sql-tests job in .github/workflows/ci.yml (psql 17 as in
+  backup.yml, refuse production, on when SQL_TESTS_ENABLED is 'true', environment test-project).
+- .github/pull_request_template.md with a "How to test" section; one line in CLAUDE.md step 5 to fill
+  it.
+
+Ask me before building: confirm Mailosaur as a new outside service; check Setup A is done and tell
+me exactly what's missing.
+
+Done when: the inbox helper receives a password-reset email from the test project; sql-tests runs
+all 57 files (list any that fail because their migration isn't on test); npm run check and the
+signed-in tests pass; TESTING.md and QA.md updated; PR open.
+Stop after this step.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+### QA2 · Live checks and the QA tag
+
+```
+QA bot step QA2: live checks after each merge, a daily real sign-up, and the QA tag (docs/QA.md,
+"Live checks after merge and daily" and "QA accounts and the QA tag"; my setup is "Setup B").
+
+Scope:
+- The QA tag migration and supabase/tests/qa_accounts.sql, as outlined in QA.md; docs/USAGE.md
+  queries use the new summary views.
+- vite.config.js writes version.json (version and commit); vercel.json marks it no-cache.
+- playwright.config.js: a LIVE=1 mode (e2e/live, the live URL, no local server).
+- e2e/live/after-deploy.spec.js and e2e/live/daily-signup.spec.js.
+- .github/workflows/live-check.yml: push to main (wait for the merged commit) and daily; environment
+  live-check; on failure one PR comment and one qa-bot + needs-triage issue per failing check.
+- A step-by-step guide for me to create the live QA account.
+
+Ask me before building: the migration outline; then walk me through Setup B at the right moments.
+
+Done when: qa_accounts.sql passes on test; a manual live-check run and a manual daily run pass;
+private.platform_summary shows the same numbers as before and private.qa_summary only the live QA
+account; QA.md updated; PR open.
+Stop after this step.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+### QA3 · The AI tester
+
+```
+QA bot step QA3: the AI tester on each PR before merge (docs/QA.md, "AI tester before merge" and
+"Safety"; my setup is "Setup C").
+
+Scope:
+- .claude/skills/qa/SKILL.md (the rules), qa/areas.md (files → areas → connected areas, routes,
+  tests, T-lines), qa/mcp.json (two browsers, admin and crew).
+- scripts/qa/context.mjs, scripts/qa/sign-in.mjs, scripts/qa/inbox.mjs.
+- .github/workflows/qa-agent.yml: ready PRs and the qa label; the agent job read-only; a separate job
+  posts one PR comment; security findings only in an encrypted artifact. Model and turn cap from
+  repo variables, never in code.
+
+Ask me before building: yes to anthropics/claude-code-action@v1 and @playwright/mcp (pinned); check
+Setup C.
+
+Done when: on a scratch PR with two planted bugs the bot reports both with steps, a clean PR passes,
+`/qa` works in a session; time and cost per run written in QA.md; PR open.
+Stop after this step.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+### QA4 · Catch-up (repeat)
+
+```
+QA bot step QA4: catch-up. Take the next area without browser tests, in this order: inventory and
+scanning, messaging, crew network, tasks and business, field tools, import (docs/QA.md, "Build
+order"; skip areas QA.md marks done).
+
+Scope: run /qa over that area's lines in docs/PENDING.md section 2 on the test project; commit the
+checks it confirms as fixed tests in e2e/auth/<area>.spec.js; list what it found; mark the area done
+in QA.md. Scanning can use a fake camera feed showing a QR label.
+
+Done when: the new tests pass twice in CI; problems found are listed in the PR; PR open.
 Stop after this step.
 Finish with the short summary CLAUDE.md asks for.
 ```

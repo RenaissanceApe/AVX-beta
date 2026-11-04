@@ -92,6 +92,16 @@ the data it counts.
 | Label templates in three standard sizes, on rolls or sheets (D31) | Cases, units and cables labelled for any printer | U5 |
 | A QR and print date on every print (D32) | An old paper copy is easy to spot | U6 |
 
+**QA bot** ([docs/QA.md](docs/QA.md)), decided 2026-11-02. Run these in order, in any gap; each needs
+a few minutes of setup from you (QA.md, "Build order and when you step in"):
+
+| What | Why | Prompt |
+|---|---|---|
+| QA1 Foundations: Mailosaur inbox, QA accounts on the test project, the SQL access-rule tests in CI | Everything below needs them; the 57 SQL tests stop depending on someone pasting them | QA1 |
+| QA2 Live checks after each merge, a daily real sign-up, the QA tag that keeps QA accounts out of your numbers | Every merge goes live; this checks the live app straight away | QA2 |
+| QA3 The AI tester on each PR before merge | Tests each change like a person, and writes fixed tests for what it confirms | QA3 |
+| QA4 Catch-up, one area per run (repeat) | Inventory, messaging, crew network, tasks, field tools and import have no browser tests | QA4 |
+
 ## End of the build
 
 1. **Final test pass** from [docs/PENDING.md](docs/PENDING.md) section 2 (run once, by you).

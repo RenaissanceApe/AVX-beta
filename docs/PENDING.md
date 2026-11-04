@@ -31,6 +31,7 @@ when building finishes.
 | F8 | ✅ **Signed-in browser tests** run on every PR since 0.62.1 (`e2e-auth`). Failed or cancelled runs leave `e2e-…@example.com` accounts on the test project; 13 old ones are there now and can be cleared | Supabase test project | — |
 | F9 | After 0.63.11 is merged: `SUPABASE_SERVICE_ROLE_KEY` GitHub secret to back up uploaded files, not just the database ([BACKUPS.md](BACKUPS.md)) | GitHub → Secrets | Files aren't in the backup today |
 | F10 | **Before the first restore drill** ([BACKUPS.md → Before your first drill](BACKUPS.md#before-your-first-drill)): `BACKUP_PASSPHRASE` and the Edge Function secrets (`BREVO_API_KEY`, `DIGEST_FROM`, `DIGEST_SECRET`, `LOCATIONIQ_KEY`, `APP_URL`) saved in your password manager; Postgres tools 17+, gpg, git and Node 22 installed; one production gig with a file noted. Then run the drill and fill in its log | Password manager, your computer | A backup you can't open or restore isn't a backup |
+| F11 | **QA bot setup, in steps** ([QA.md](QA.md), "Build order and when you step in"): Setup A before or during QA1 (Mailosaur trial, test project SMTP to Mailosaur, environment `test-project` with four secrets); Setup B during QA2; Setup C during QA3 (Claude API key with a monthly limit). Each session tells you when | Mailosaur, Supabase test project, GitHub | Lets the QA bot test every change before and after it goes live |
 
 ## 2. Final test list (run once, at the end of the build)
 
@@ -147,6 +148,7 @@ Each has a default already built; nothing is blocked. Say "keep" or "change".
 | D33 | ✅ (decided 2026-11-03) **Engineer's pack in RG4**: yes, part of step 19 | Planned (step 19) | 2026-11-03 |
 | D34 | ✅ (decided 2026-11-03) **TradeShowLoads (`.tsle`) export**: yes, step 19b, if the file format can be had openly (the session checks first) | Planned (step 19b) | 2026-11-03 |
 | D35 | ✅ (decided 2026-11-03) **Work areas** on a gig: yes, step 20b, after P3 and RG4 | Planned (step 20b) | 2026-11-03 |
+| D36 | ✅ (decided 2026-11-02) **QA bot**: AI tester on each PR before merge; a light live check after each merge and one real sign-up a day; QA accounts tagged by their Mailosaur address so they stay out of your numbers; inbox Mailosaur ([QA.md](QA.md)) | Planned (QA1–QA4) | 2026-11-02 |
 
 ## 4. Before a public launch (already in the roadmap)
 
