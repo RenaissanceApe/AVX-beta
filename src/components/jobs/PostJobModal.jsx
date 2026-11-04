@@ -6,7 +6,9 @@ import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { FUNCTIONS, LANGUAGES, languageName } from '../../lib/crewProfile'
 import { CURRENCIES, PAY_PER, emptyPost, postPayload, jobError } from '../../lib/jobs'
-import { useI18n } from '../../i18n'
+import { functionRate, jobPay } from '../../lib/crewRates'
+import { useRateCard } from '../../lib/useCrewRates'
+import { useI18n, translate, LANGUAGES as UI_LANGUAGES } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, colors, tint } from '../ui'
 import PlaceFinder from '../PlaceFinder'
 
@@ -25,6 +27,25 @@ export default function PostJobModal({ gig: givenGig, position, gigs = [], onClo
   const [positions, setPositions] = useState([])
   const [saving, setSaving] = useState(false)
   const set = patch => setForm(f => ({ ...f, ...patch }))
+  const card = useRateCard(gig?.org_id)
+  const [prefilled, setPrefilled] = useState(null) // the pay last filled in from the rate card
+
+  // Pay from the rate card for the chosen function (its name in any language, or the title),
+  // unless someone already typed their own
+  const rate = functionRate(card.rates, [
+    ...(form.function_key ? UI_LANGUAGES.map(l => translate(l.value, `crewFn.${form.function_key}`)) : []), form.title,
+  ])
+  const pay = jobPay(rate)
+  const payKey = JSON.stringify(pay)
+  useEffect(() => {
+    if (!pay) return
+    setForm(f => {
+      const untouched = !f.pay_amount || (prefilled && f.pay_mode === prefilled.pay_mode && f.pay_amount === prefilled.pay_amount && f.pay_per === prefilled.pay_per)
+      return untouched ? { ...f, ...pay } : f
+    })
+    setPrefilled(pay)
+  }, [payKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  const fromCard = pay && form.pay_mode === pay.pay_mode && form.pay_amount === pay.pay_amount && form.pay_per === pay.pay_per
 
   useEffect(() => {
     if (!gig) return
@@ -164,6 +185,7 @@ export default function PostJobModal({ gig: givenGig, position, gigs = [], onClo
                   </select></div>
               </div>
             )}
+            {fromCard && <p style={hint}>{t('jobs.payFromCard')}</p>}
           </fieldset>
           <p style={hint}>{t('jobs.postPrivacy')}</p>
         </>}

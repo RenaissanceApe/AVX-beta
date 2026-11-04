@@ -20,6 +20,7 @@ import GigPlanModal from '../components/quotes/GigPlanModal'
 import LostReasonModal from '../components/quotes/LostReasonModal'
 import QuoteAvailabilityModal from '../components/quotes/QuoteAvailability'
 import { useWorkspace } from '../lib/WorkspaceContext'
+import { useRateCard } from '../lib/useCrewRates'
 import ContextThread from '../components/messages/ContextThread'
 import { PageHelp } from '../components/help/HelpParts'
 import {
@@ -43,6 +44,8 @@ export default function QuoteEditorPage() {
   const navigate = useNavigate()
 
   const [quote, setQuote] = useState(null)
+  // The crew rate card: only admins and members can read it, so for anyone else no costs show
+  const rateCard = useRateCard(quote?.org_id)
   const [body, setBody] = useState({ phases: [] })
   const [role, setRole] = useState(null)
   const [gigs, setGigs] = useState([])
@@ -371,10 +374,10 @@ export default function QuoteEditorPage() {
 
       <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 16px' }}>
         {tab === 'details' && <QuoteDetails quote={quote} gigs={gigs} clients={clients} onChange={updateQuote} onSaveClient={saveClientToContacts} />}
-        {tab === 'summary' && <QuoteSummary quote={quote} body={body} totals={totals} onOpenPhase={i => setTab(`phase:${body.phases[i].id}`)} />}
+        {tab === 'summary' && <QuoteSummary quote={quote} body={body} totals={totals} rates={rateCard.rates} onOpenPhase={i => setTab(`phase:${body.phases[i].id}`)} />}
         {tab === 'summary' && <div style={{ marginTop: '18px' }}><ContextThread type="quote" id={quote.id} /></div>}
         {phase && (
-          <PhaseEditor key={phase.id} phase={phase} index={phaseIndex} count={body.phases.length} currency={quote.currency} priceItems={priceItems}
+          <PhaseEditor key={phase.id} phase={phase} index={phaseIndex} count={body.phases.length} currency={quote.currency} priceItems={priceItems} rates={rateCard.rates}
             onChange={updatePhase}
             onMove={delta => updateBody({ phases: move(body.phases, phaseIndex, delta) })}
             onDuplicate={duplicatePhase}

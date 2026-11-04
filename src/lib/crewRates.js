@@ -1,7 +1,7 @@
 // Crew rates and labour cost (docs/TOOLS_PLAN.md build order step 7). The organisation's rate card
 // (crew_rates), its factors (crew_rate_factors) and the fee agreed with each person on a gig
 // (gig_crew_fees). Pure helpers, unit tested.
-import { quoteTotals, round2 } from './quotes'
+import { quoteTotals, lineTotal, round2 } from './quotes'
 
 export const FEE_UNITS = ['day', 'half_day', 'hour', 'fixed']
 export const FACTOR_KEYS = ['overtime', 'weekend', 'night', 'holiday']
@@ -86,3 +86,65 @@ export const parseAmount = raw => {
   return Number.isFinite(n) && n >= 0 ? round2(n) : NaN
 }
 export const amountInput = v => (v == null ? '' : String(v).replace('.', ','))
+
+// ── Step 7b: the rate card in crew calls, job posts and quotes ─────────────────────────────────
+
+// The rate for a function whoever does it (no person rates), trying each name in turn: a job
+// post's function is a key whose name differs per language
+export function functionRate(rates, names) {
+  for (const n of [names].flat()) {
+    const r = n && String(n).trim() ? resolveRate(rates, { userId: null, functionTitle: n }) : null
+    if (r) return r
+  }
+  return null
+}
+
+// A crew call's fee from the rate card's suggestion for the gig's days. With weekend days the day
+// rate isn't the same every day, so the call offers the total as a fixed fee.
+export function callFee(suggestion) {
+  if (!suggestion) return null
+  if (suggestion.weekendDays && suggestion.total !== round2(suggestion.rate * suggestion.quantity)) {
+    return { unit: 'fixed', rate: suggestion.total, quantity: 1 }
+  }
+  return { unit: suggestion.unit, rate: suggestion.rate, quantity: suggestion.quantity }
+}
+
+// A job post's pay from the rate card: the day rate per day, else the hour rate per hour
+export function jobPay(rate) {
+  if (rate?.day_rate != null) return { pay_mode: 'fixed', pay_amount: amountInput(Number(rate.day_rate)), pay_per: 'day' }
+  if (rate?.hour_rate != null) return { pay_mode: 'fixed', pay_amount: amountInput(Number(rate.hour_rate)), pay_per: 'hour' }
+  return null
+}
+
+const numOr = (v, d) => { const n = parseFloat(String(v ?? '').replace(',', '.')); return Number.isFinite(n) ? n : d }
+// What a quote's crew line costs by the rate card: its description is the function, priced per
+// day (day rate) or per hour (hour rate) × quantity × factor. Null for other lines or units.
+export function quoteLineCost(line, rates) {
+  if (line?.kind !== 'crew') return null
+  const rate = functionRate(rates, line.description)
+  const per = line.unit === 'day' ? rate?.day_rate : line.unit === 'hour' ? rate?.hour_rate : null
+  if (per == null) return null
+  const cost = round2(numOr(line.qty, 0) * numOr(line.factor, 1) * Number(per))
+  const price = lineTotal(line)
+  const margin = round2(price - cost)
+  return { rate: Number(per), cost, price, margin, marginPct: price ? Math.round((margin / price) * 100) : null }
+}
+
+// The crew lines of a quote (optional phases left out) against the rate card. Price and cost
+// count only lines with a rate; missing counts crew lines without one.
+export function quoteCrewMargin(body, rates) {
+  let price = 0, cost = 0, missing = 0, lines = 0
+  for (const p of body?.phases || []) {
+    if (p.optional) continue
+    for (const s of p.sections || []) for (const l of s.lines || []) {
+      if (l.kind !== 'crew') continue
+      lines++
+      const c = quoteLineCost(l, rates)
+      if (!c) { missing++; continue }
+      price += c.price; cost += c.cost
+    }
+  }
+  price = round2(price); cost = round2(cost)
+  const margin = round2(price - cost)
+  return { lines, missing, price, cost, margin, marginPct: price ? Math.round((margin / price) * 100) : null }
+}
