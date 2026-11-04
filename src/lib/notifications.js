@@ -1,4 +1,5 @@
-import { t, fmt } from '../i18n'
+import { t, fmt, getLanguage } from '../i18n'
+import { formatMoney } from './quotes'
 import { dayRange } from './messages'
 import { shortTime } from './schedule'
 import { rangeText } from './clashes'
@@ -27,7 +28,10 @@ export function describeNotification(n, nameOf) {
     case 'damage_reported':   return t('notif.damage', { actor, item: [d.item_name, d.unit_code].filter(Boolean).join(' · '), gig: gig || '—', excerpt: d.excerpt || '' })
     case 'inspection_due':    return t('notif.inspectionDue', { count: d.count || 0, org: d.org_name || '' })
     case 'hire_request':      return t('notif.hireRequest', { org: d.from_org || '', range: d.starts_at && d.ends_at ? rangeText(d.starts_at, d.ends_at) : '—' })
-    case 'crew_call':         return t('notif.crewCall', { actor, title: d.title || '', gig, range: d.start_date ? dayRange(d.start_date, d.end_date, fmt) : '—' })
+    case 'crew_call': {
+      const text = t('notif.crewCall', { actor, title: d.title || '', gig, range: d.start_date ? dayRange(d.start_date, d.end_date, fmt) : '—' })
+      return d.fee?.total != null ? t('notif.crewCallFee', { text, amount: formatMoney(d.fee.total, 'EUR', getLanguage()) }) : text
+    }
     case 'crew_call_answer':  return t(`notif.crewCall.${d.answer === 'accepted' ? 'accepted' : 'declined'}`, { actor, title: d.title || '', gig })
     case 'job_application':   return t('notif.jobApplication', { actor, title: d.title || '', gig })
     case 'job_declined':      return t('notif.jobDeclined', { actor, title: d.title || '' })

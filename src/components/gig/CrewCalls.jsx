@@ -7,21 +7,41 @@ import { track } from '../../lib/usage'
 import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
 import { NetworkPicker } from '../NetworkPicker'
+import { FeeFields, useFeeForm } from './FeeFields'
+import { formatMoney } from '../../lib/quotes'
+import { bookedDays, callFee, feeTotal, functionRate, suggestFee } from '../../lib/crewRates'
+import { useRateCard } from '../../lib/useCrewRates'
+import { feeText } from './LabourCost'
 
 // Crew calls (docs/MESSAGING.md, M4): offer a place on the gig to several people from your
 // network at once. Each gets it in their direct conversation with you and answers there; the
-// first to accept get the places, and the call closes when they're all taken.
+// first to accept get the places, and the call closes when they're all taken. A call can carry a
+// fee (step 7b): the rate card's suggestion for the function, editable; the people called see it,
+// and accepting makes it their agreed fee on the gig.
 
-export function CrewCallModal({ gigId, preset = {}, onClose, onSent }) {
+// "€200 × 3 days = €600", or "€1 200 fixed"
+export function callFeeText(fee, lang) {
+  if (!fee || fee.rate == null) return ''
+  return fee.unit === 'fixed' ? feeText(fee, t, lang) : `${feeText(fee, t, lang)} = ${formatMoney(feeTotal(fee), 'EUR', lang)}`
+}
+
+export function CrewCallModal({ gigId, gig, preset = {}, onClose, onSent }) {
   const { notify } = useToast()
+  const { lang } = useI18n()
+  const card = useRateCard(gig?.org_id)
   const [title, setTitle] = useState(preset.title || '')
   const [quantity, setQuantity] = useState(preset.quantity || 1)
   const [note, setNote] = useState('')
   const [people, setPeople] = useState([])
   const [sending, setSending] = useState(false)
 
+  // What the rate card suggests for this function over the gig's days (only admins and members
+  // can read the card; for anyone else there is no suggestion)
+  const suggestion = suggestFee(functionRate(card.rates, title), bookedDays(null, gig), card.factors)
+  const fee = useFeeForm(callFee(suggestion))
+
   const pick = p => setPeople(list => (list.some(x => x.user_id === p.user_id) ? list : [...list, p]))
-  const invalid = !title.trim() || !people.length
+  const invalid = !title.trim() || !people.length || fee.bad
 
   async function send(e) {
     e.preventDefault()
@@ -30,13 +50,14 @@ export function CrewCallModal({ gigId, preset = {}, onClose, onSent }) {
     const { data, error } = await supabase.rpc('send_crew_call', {
       p_gig: gigId, p_title: title.trim(), p_quantity: Math.min(20, Math.max(1, Math.round(Number(quantity) || 1))),
       p_note: note.trim() || null, p_people: people.map(p => p.user_id),
+      p_fee_unit: fee.fee?.unit ?? null, p_fee_rate: fee.fee?.rate ?? null, p_fee_quantity: fee.fee?.quantity ?? null,
     })
     setSending(false)
     if (error) {
       logger.error('crewcall', error, { gigId })
       return notify(error.code === '22023' ? t('crewCall.nobody') : userMessage(error), 'error')
     }
-    track('crewcall:send')
+    track(fee.fee ? 'crewcall:send:fee' : 'crewcall:send')
     notify(t('crewCall.sent', { count: data }), 'success')
     onSent()
     onClose()
@@ -60,6 +81,10 @@ export function CrewCallModal({ gigId, preset = {}, onClose, onSent }) {
           <label style={label} htmlFor="cc-note">{t('crewCall.note')}</label>
           <input id="cc-note" value={note} onChange={e => setNote(e.target.value)} maxLength={500} placeholder={t('crewCall.notePlaceholder')} style={input} />
         </div>
+        <FeeFields id="cc" state={fee} canReset={!!suggestion} resetLabel={t('crewCall.feeUseCard')}
+          note={suggestion
+            ? t('crewCall.feeSuggested', { text: feeText(suggestion, t, lang) + (suggestion.weekendDays ? ` ${t('labour.weekendDays', { count: suggestion.weekendDays })}` : '') })
+            : t('crewCall.feeNone')} />
         <div>
           <div style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><Users size={13} /> {t('crewCall.people', { count: people.length })}</div>
           {people.length > 0 && (
@@ -86,7 +111,7 @@ export function CrewCallModal({ gigId, preset = {}, onClose, onSent }) {
 // The gig's crew calls, for its managers: who was asked, who answered, close one early
 export function CrewCallList({ gigId, nameOf, refreshKey }) {
   const { notify } = useToast()
-  const { ago } = useI18n()
+  const { ago, lang } = useI18n()
   const [calls, setCalls] = useState([])
   const [names, setNames] = useState({})
 
@@ -124,6 +149,7 @@ export function CrewCallList({ gigId, nameOf, refreshKey }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '14px' }}>{c.title}</div>
                   <div style={{ fontSize: '12px', color: colors.muted }}>{t('crewCall.asked', { count: c.answers.length, when: ago(c.created_at) })}</div>
+                  {c.fee_rate != null && <div style={{ fontSize: '12px', color: colors.muted }}>{t('crewCall.feeLine', { text: callFeeText({ unit: c.fee_unit, rate: c.fee_rate, quantity: c.fee_quantity }, lang) })}</div>}
                 </div>
                 <span style={{ fontSize: '12px', fontWeight: 700, color: taken >= c.quantity ? colors.accentText : 'var(--warn)', whiteSpace: 'nowrap' }}>
                   {c.closed_at ? t('chat.ev.closedFilled', { taken, quantity: c.quantity }) : t('chat.ev.filled', { taken, quantity: c.quantity })}

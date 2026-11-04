@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.65.0 — Fees from the rate card
+
+### Added
+- **Crew calls can carry a fee** (step 7b, [docs/BUSINESS.md](docs/BUSINESS.md)). When you send
+  a crew call for a function, the fee fills in from your rate card: the day rate for the gig's
+  days, with weekend days at the weekend factor. Change it or leave it empty. The people you call
+  see the fee in their offer and its notification before they answer; whoever accepts has it as
+  their agreed fee, so "Labour cost" shows them as "Agreed". A fee you already set for them is
+  kept. The gig's list of crew calls shows each call's fee.
+- **The same fee on the other offers.** Find crew's "Offer a place" has the fee fields too, and
+  starts from that person's own rate if they have one. On the job board, "Offer the place" now
+  opens a small window (instead of the browser's OK / Cancel box) with the fee: the day rate the
+  applicant sent for the post's days, else your post's pay. Change it or leave it empty.
+- The crew call's note now gives "black clothes" as an example instead of "fee as usual". Find
+  crew's offer no longer says pay is agreed in the messages or asks for their day rate, and its
+  help guide mentions setting a fee in the offer.
+- **Job posts** fill in the pay from the rate card when you choose the function (the day rate per
+  day, else the hour rate per hour). You can still change it.
+- **Quotes** show, under each crew line, its cost by your rate card and your margin, and the
+  Summary tab adds them up under "Crew margin". Only your organisation's admins and members see
+  this; it's never on the client's printed quote, PDF or link. Amounts are euros before VAT.
+- Help: the "Set crew rates and see a gig's labour cost" guide has three new steps with pictures,
+  and two new ⓘ hints.
+
+### Connected
+- Crew calls, Find crew's offer, the job board's offer, the chat offer card and its notification,
+  the job board's post form, the quote editor and its Summary, and the gig's labour cost panel
+  (an accepted offer's fee shows as agreed).
+
 ## 0.64.0 — Numbers start counting
 
 ### Added

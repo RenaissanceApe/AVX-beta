@@ -87,6 +87,8 @@ export default {
   },
 
   hints: {
+    'crew-call-fee': 'O que oferece a todos nesta chamada, sem IVA. Parte da sua tabela (valor por dia × os dias do evento, dias de fim de semana com o fator de fim de semana) e pode alterá-lo. As pessoas chamadas veem-no na oferta; quem aceitar fica com ele como cachê combinado no evento.',
+    'quote-crew-margin': 'Cada linha de equipa corresponde à tabela pela descrição (a função) e pela unidade: por dia usa o valor por dia, por hora o valor por hora. Só a sua organização vê isto.',
     'prep-days': 'Dias antes do evento em que o equipamento já fica reservado, para carregar e testar. Exemplo: 1 = o material fica ocupado desde a véspera.',
     'return-days': 'Dias depois do evento em que o equipamento continua reservado, para descarregar e conferir. Exemplo: 1 = ocupado até ao dia seguinte.',
     tracking: 'Contado a granel: guarda um número por local (cabos). Por número de série: cada unidade tem o seu registo e etiqueta QR (cabeças móveis). Não pode mudar depois de haver stock.',
@@ -430,7 +432,7 @@ export default {
         'Num resultado, toque em "Perguntar se está livre" para confirmar as datas, ou em "Oferecer um lugar" para lhe oferecer o trabalho. A resposta chega às suas mensagens; se aceitar uma oferta, entra no evento.',
       ],
       mistakes: [
-        'Os perfis não têm preços: combine o valor nas mensagens. O e-mail e o telefone só são partilhados quando a pessoa entra no evento.',
+        'Os perfis não têm preços: indique um cachê na oferta ou combine-o nas mensagens. O e-mail e o telefone só são partilhados quando a pessoa entra no evento.',
         'As pesquisas e os primeiros contactos têm um limite diário para evitar abusos. As pessoas com quem já trabalhou continuam fáceis de chamar no formulário de convite do evento.',
         'Procura muitas vezes o mesmo tipo de pessoa? Toque em "Guardar esta pesquisa" e mantenha o alerta ativo: é avisado quando alguém que se ajusta ativa o perfil. As pesquisas guardadas aparecem acima do formulário para toda a organização.',
       ],
@@ -869,6 +871,9 @@ export default {
         'Abra as definições da organização (só administradores) e procure "Tabela de cachês da equipa". Acrescente um valor para cada função que contrata ("Técnico de FOH": por dia, meio dia ou hora) e, para quem cobra de forma diferente, escolha também a pessoa. Por baixo, defina os fatores; os dias de fim de semana no custo previsto usam o de fim de semana.',
         'Abra o separador Equipa de um evento. Em "Custo de mão de obra", cada pessoa mostra o que a tabela sugere para os seus dias, o custo total, as linhas de equipa do orçamento do evento e a sua margem.',
         'Combinou outra coisa com alguém? Toque no lápis ao lado da pessoa e defina o cachê: por dia, meio dia ou hora, ou um valor fixo. A pessoa vê o seu cachê no evento; mais ninguém da equipa o vê.',
+        'Vai enviar uma chamada de equipa? O cachê é preenchido a partir da tabela para a função e os dias do evento; altere-o ou deixe-o vazio. As pessoas chamadas veem-no na oferta e quem aceitar fica com ele como cachê combinado em "Custo de mão de obra". Oferecer um lugar a partir de Procurar técnicos ou a um candidato a uma vaga funciona da mesma forma.',
+        'Vai publicar uma vaga? Escolha a função e o pagamento é preenchido com o valor por dia (ou por hora). Altere-o se quiser.',
+        'Num orçamento, cada linha de equipa mostra o custo pela tabela e a sua margem, e o separador Resumo soma-os em "Margem da equipa". Isto nunca aparece no orçamento, PDF ou link do cliente.',
       ],
       mistakes: [
         'Os valores correspondem à função da pessoa no evento pelo nome. Use sempre as mesmas palavras (por exemplo "Técnico de FOH") ou acrescente o valor da própria pessoa.',

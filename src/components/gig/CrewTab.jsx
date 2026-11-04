@@ -239,7 +239,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
         @media (max-width: 640px) { .crew-extra { padding-left: 0; } }
       `}</style>
       {showInvite && <InviteModal gigId={gigId} functionTitle={inviteFor} onClose={() => { setShowInvite(false); setInviteFor('') }} onInvited={onChanged} />}
-      {callFor && <CrewCallModal gigId={gigId} preset={callFor} onClose={() => setCallFor(null)} onSent={() => setCallsKey(k => k + 1)} />}
+      {callFor && <CrewCallModal gigId={gigId} gig={gig} preset={callFor} onClose={() => setCallFor(null)} onSent={() => setCallsKey(k => k + 1)} />}
       {postingJob && <PostJobModal gig={gig} onClose={() => setPostingJob(false)} onPosted={() => setPostingJob(false)} />}
       {asking && (
         <AskAvailabilityModal gigId={gigId} personId={asking.user_id} name={nameOf(asking.user_id)} clashes={clashes[asking.user_id] || []}

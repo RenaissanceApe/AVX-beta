@@ -9,6 +9,7 @@ import { rangeText } from '../../lib/clashes'
 import { formatSize, dayRange } from '../../lib/messages'
 import { useI18n, t, fmt } from '../../i18n'
 import { Modal, input, btn, btnPrimary, colors } from '../ui'
+import { callFeeText } from '../gig/CrewCalls'
 
 // Pieces of a message (docs/MESSAGING.md, M2): files, object cards, reactions, earlier versions.
 
@@ -286,6 +287,7 @@ export function AckStatusModal({ message, onClose }) {
 // was answered comes from the answer lines that follow it in the conversation (`answers`).
 export function EventCard({ message: m, mine, actor, answers }) {
   const { notify } = useToast()
+  const { lang } = useI18n()
   const p = m.payload || {}
   const [busy, setBusy] = useState(null)
   const [note, setNote] = useState('')
@@ -356,6 +358,7 @@ export function EventCard({ message: m, mine, actor, answers }) {
       </div>
       <Link to={`/gig/${p.gig_id}`} style={{ display: 'block', color: 'var(--text)', fontWeight: 700, fontSize: '15px', margin: '6px 0 2px', textDecoration: 'none' }}>{p.gig_name}</Link>
       {range && <div style={{ fontSize: '13px', color: colors.soft }}>{range}</div>}
+      {isCall && p.fee?.rate != null && <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '4px' }}>{t('crewCall.feeLine', { text: callFeeText(p.fee, lang) })}</div>}
       {p.message && <div style={{ fontSize: '13px', marginTop: '6px', whiteSpace: 'pre-wrap' }}>“{p.message}”</div>}
       {state && <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '8px', color: last?.status === 'unavailable' || last?.answer === 'declined' ? colors.muted : colors.accentText }}>{state}{last?.note ? ` · ${last.note}` : ''}</div>}
       {canAnswer && !isCall && (

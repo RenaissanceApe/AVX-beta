@@ -90,6 +90,8 @@ export default {
   },
 
   hints: {
+    'crew-call-fee': 'What you offer everyone in this call, before VAT. It starts from your rate card (day rate × the gig\'s days, weekend days with the weekend factor) and you can change it. The people called see it in the offer; whoever accepts gets it as their agreed fee on the gig.',
+    'quote-crew-margin': 'Each crew line is matched to the rate card by its description (the function) and unit: per day uses the day rate, per hour the hour rate. Only your organisation sees this.',
     'prep-days': 'Days before a gig when its equipment is already booked, for loading and testing. Example: 1 = the gear is busy from the day before.',
     'return-days': 'Days after a gig when its equipment is still booked, for unloading and checking it back in. Example: 1 = busy until the day after.',
     tracking: 'Counted in bulk: you keep a number per location (cables). By serial number: each unit has its own record and QR label (moving heads). This can’t change once there is stock.',
@@ -433,7 +435,7 @@ export default {
         'On a result, tap "Ask if free" to check their dates, or "Offer a place" to offer them the job. The answer arrives in your messages; if they accept an offer, they join the gig.',
       ],
       mistakes: [
-        'Rates aren\'t on profiles: agree the fee in the messages. Their e-mail and phone are shared only once they join your gig.',
+        'Rates aren\'t on profiles: set a fee in your offer, or agree it in the messages. Their e-mail and phone are shared only once they join your gig.',
         'Searches and first contacts are limited each day to stop misuse. People you\'ve worked with before are always easy to reach from the gig\'s invite form.',
         'Looking for the same kind of person often? Tap "Save this search" and keep its alert on: you\'re told when someone who fits switches on their profile. Saved searches show above the form for everyone in the organisation.',
       ],
@@ -872,6 +874,9 @@ export default {
         'Open the organisation\'s settings (admins only) and find "Crew rates". Add a rate for each function you hire ("FOH engineer": per day, per half day or per hour), and for people who charge differently, choose the person too. Below, set your factors; weekend days in a gig\'s planned cost use the weekend one.',
         'Open a gig\'s Crew tab. Under "Labour cost", each person shows what the rate card suggests for their days, the total cost, the crew lines of the gig\'s quote and your margin.',
         'Agreed something different with someone? Tap the pencil next to them and set their fee: per day, half day or hour, or a fixed amount. They see their own fee on the gig; nobody else on the crew does.',
+        'Sending a crew call? The fee fills in from the rate card for the function and the gig\'s days; change it or leave it empty. The people called see it in the offer, and whoever accepts has it as their agreed fee under "Labour cost". Offering a place from Find crew or to a job applicant works the same way.',
+        'Posting a job? Choose the function and the pay fills in from its day rate (or hour rate). Change it if you like.',
+        'In a quote, each crew line shows its cost by the rate card and your margin, and the Summary tab adds them up under "Crew margin". This is never on the client\'s quote, PDF or link.',
       ],
       mistakes: [
         'Rates match a person\'s function on the gig by name. Use the same words (for example always "FOH engineer"), or add the person\'s own rate.',
