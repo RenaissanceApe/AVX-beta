@@ -56,7 +56,7 @@ When a step here is built, its session adds a "How … works" section below in t
 | Cost | `src/lib/crewRates.js`: the most specific rate (person in function, person, function; names compared ignoring case), the booked days (the person's booking, else the gig's dates), weekend days × the weekend factor, an agreed fee instead when set. Revenue: crew lines of the accepted quote (else the newest not declined) after its discount |
 | Screens | Organisation settings (`OrgCrewRatesSettings`), the gig's Crew tab (`LabourCost` for managers, `MyFee` for crew) |
 | Export | Three files (`crew_rates`, `crew_rate_factors`, `gig_crew_fees`). The export function was renamed `export_org_part_base` and is wrapped by the new one, which handles these parts (migration `20261203000001_export_crew_rates.sql`) |
-| Not yet | Overtime, night and holiday factors (step 8) |
+| Later | Overtime, night and holiday factors are used by time registration (step 8, below) |
 
 ## How crew-rate follow-ups work (step 7b, 0.65.0)
 
@@ -69,32 +69,25 @@ When a step here is built, its session adds a "How … works" section below in t
 | Suggestions | `src/lib/crewRates.js`: `feeFromForm` (a fee form → the fee to send), `offerFee` (a job board offer starts from the applicant's day rate, else the post's pay: per day × the post's days, per job fixed, per hour with the hours to fill in; euros only), `functionRate` (a function's rate under any of its names), `callFee` (the rate card's suggestion for the gig's days; with weekend days at a higher rate it becomes one fixed amount), `jobPay` (day rate per day, else hour rate per hour), `quoteLineCost` and `quoteCrewMargin` (a crew line's description is its function; per day uses the day rate, per hour the hour rate, × quantity × factor) |
 | Screens | `FeeFields` and `useFeeForm` (`components/gig/FeeFields.jsx`), shared by `CrewCallModal` (the function's rate), Find crew's offer (`ContactModal`: the person's own rate first, then the function's) and the job board's `OfferModal` (which replaced the browser confirm box); each fills from its suggestion until edited. `CrewCallList` and the chat offer card (`EventCard`) show the fee; the notification adds it. `PostJobModal` fills pay from the card for the function or title until someone types their own. The quote editor shows each crew line's cost and margin under it, and the Summary tab a "Crew margin" block; only for EUR quotes, and never in `QuoteDocument` (print, PDF, client link) |
 
+## How time registration works (step 8, 0.66.0)
+
+| Piece | How it works |
+|---|---|
+| Data | `time_entries`: one row per person, gig and day (start, end, break, travel minutes, km, note; an end at or before the start runs past midnight). Status `submitted` → `approved` or `returned` (with `review_note`). Approved rows keep `split` (normal, overtime, night, weekend, holiday, worked, travel, km hours), `fee_unit`, `fee_rate` and `cost` as they were at approval. `crew_rate_factors` gained `night_from`, `night_until` (default 22:00–07:00) and `km_rate`. `org_holidays`: the organisation's own days. Removing marks (`removed_at`). Migration `20261212000000_time_registration.sql` |
+| Who | Each person writes their own days; the gig's managers (`can_manage_gig`: PMs, the creator, org admins) write for anyone on the gig and read everyone's. Crew never read others' hours or money. Approved days can't be changed by anyone. Only `review_time_entry` sets the status, split and cost. Org members not managing the gig see nothing; org admins see all (the Hours page). Checks in `supabase/tests/time_registration.sql` |
+| Maths | `src/lib/timeRegistration.js` (unit tested): Portuguese national holidays (Easter-based ones computed) plus the organisation's; each minute of the shift gets its highest factor (ties: holiday > weekend > overtime > night); overtime starts after `overtime_after_hours` of work; the break is taken from the cheapest non-overtime minutes. Cost: hour fee = hours × rate × factor; day / half-day fee = the rate per day worked + hourly equivalent (rate ÷ overtime hours, or half of them) × overtime factor for overtime hours and × (factor − 1) for night, weekend and holiday hours; fixed fee = km only per day, the fee itself once per gig (`personActual`). Travel at the plain hourly rate; km × `km_rate`. Price: the agreed fee, else the rate card (hour, day, half-day rate) |
+| Approval | The app works out the split and cost (`approval` in `src/lib/hours.js`) and sends them to `review_time_entry`, which checks the split adds up to the worked hours and stores it. Freelance PMs get the factors and holidays from `time_settings`; without an agreed fee they approve with no cost. Notifications: `hours_submitted` to the approvers (the gig's PMs and creator, else the org admins; one unread per person), `hours_approved` / `hours_returned` to the person |
+| Offline | `src/lib/hours.js`: days typed without a connection are kept on the phone (per user) with their id and sent when the connection returns (App flushes on `online`); cleared on sign-out |
+| Screens | `components/hours/GigHours.jsx` on the gig's Crew tab (crew: their own; managers: everyone, approve, send back, approve all, CSV); `HoursParts.jsx` (the day form, rows, status); `ClockInOut.jsx` in On-site mode; `pages/HoursPage.jsx` at `/me/hours` (My work) and `/org/:orgId/hours` (admins), per month with CSV; the labour panel shows the actual cost next to the planned; Crew rates settings have the night window, km rate and holidays |
+| Export and feed | Organisation export: `time_entries` and `org_holidays` files, the factors file with the new columns (the export function was renamed `export_org_part_pre_step8` and wrapped). The calendar feed lists the person's own logged days in each gig's description |
+| Reports | K2, K7 and K8 read approved `time_entries` (`split`, `cost`); a fixed fee is added once per person and gig |
+
 ## Planned
 
 Specs for the business steps still to build, in ROADMAP.md order. Each is a starting point: the
 session that builds it reads its spec, checks it against the code, and **asks the owner the
 questions marked "Ask" before outlining the migration**. When built, the spec is replaced by a
 "How … works" section above.
-
-### 8 · Time registration [2]
-
-- Each person on a gig logs **hours per day**: start, end, break, plus travel time and kilometres
-  (optional). Prefilled from their booking (`gig_members.booked_from/until`) or the gig's schedule.
-- **Overtime and factors** from `crew_rate_factors`: hours past `overtime_after_hours` in a day,
-  weekend days, night hours (Ask: which window counts as night, e.g. 00:00–07:00?), public holidays
-  (Ask: a Portuguese holiday list built in, or the organisation types its own?).
-- **Approval:** the gig's managers approve or send back with a note; approved hours are locked.
-  The person is notified both ways.
-- **Money:** approved hours × the agreed fee or rate → **actual labour cost**, shown next to the
-  planned cost in the labour panel (step 7). Fixed fees ignore hours.
-- **History stays true:** each approved day keeps its hours split (normal, overtime, night,
-  weekend, holiday) and its cost as they were at approval, so a later rate change never rewrites
-  past costs (reports K2, K7 and K8 read them).
-- **Views:** the person's own hours (My work), the gig's hours (Crew tab), an organisation view per
-  person and month. CSV export, and a "hours" file in the organisation export.
-- **Who:** each person writes their own; managers write for anyone on the gig; crew never see
-  others' hours or money.
-- Offline: hours can be typed without a connection and sent later (like rehearsal notes).
 
 ### 9 · Leave requests [5]
 

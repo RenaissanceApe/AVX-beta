@@ -182,13 +182,16 @@ export function personActual(entries, fee) {
 // Hours totals over a list of entries (approved ones carry their stored split)
 export function totals(entries, factors, orgHolidays) {
   const out = Object.fromEntries([...BUCKETS, 'worked', 'travel', 'km', 'cost'].map(k => [k, 0]))
+  let travelMinutes = 0
   for (const e of entries || []) {
     if (e.removed_at) continue
     const s = e.status === 'approved' && e.split ? e.split : splitEntry(e, factors, orgHolidays)
     if (!s) continue
-    for (const k of [...BUCKETS, 'worked', 'travel', 'km']) out[k] = round2(out[k] + (Number(s[k]) || 0))
+    for (const k of [...BUCKETS, 'worked', 'km']) out[k] = round2(out[k] + (Number(s[k]) || 0))
+    travelMinutes += e.travel_minutes != null ? Number(e.travel_minutes) || 0 : (Number(s.travel) || 0) * 60
     if (e.status === 'approved') out.cost = round2(out.cost + (Number(e.cost) || 0))
   }
+  out.travel = round2(travelMinutes / 60)
   return out
 }
 

@@ -32,7 +32,7 @@ export function LabourCost({ gig, members, nameOf, refreshKey }) {
   const [editing, setEditing] = useState(null) // labour line
 
   const load = useCallback(async () => {
-    const [f, q, h] = await Promise.all([
+    const [f, h, q] = await Promise.all([
       supabase.from('gig_crew_fees').select('user_id, unit, rate, quantity, note').eq('gig_id', gig.id),
       supabase.from('time_entries').select('user_id, status, cost, removed_at').eq('gig_id', gig.id).eq('status', 'approved').is('removed_at', null).limit(2000),
       gig.org_id ? supabase.from('quotes').select('id, status, body, discount_pct, created_at, updated_at').eq('gig_id', gig.id) : { data: [] },

@@ -99,6 +99,9 @@ describe('totals, prefill and CSV', () => {
       { status: 'approved', split: { normal: 5, worked: 5 }, cost: 1, removed_at: 'x' },
     ], factors)
     expect(t).toMatchObject({ normal: 12, worked: 12, cost: 240 })
+    const two = [{ status: 'submitted', work_date: '2026-12-02', start_time: '09:00', end_time: '10:00', travel_minutes: 40 },
+      { status: 'submitted', work_date: '2026-12-03', start_time: '09:00', end_time: '10:00', travel_minutes: 40 }]
+    expect(totals(two, factors).travel).toBe(1.33)
   })
   it('prefills from the schedule for the day', () => {
     const schedule = [{ day: '2026-12-04', start_time: '10:00:00', end_time: '12:00:00' }, { day: '2026-12-04', start_time: '20:00:00', end_time: '23:30:00' }]

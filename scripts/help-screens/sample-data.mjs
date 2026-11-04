@@ -213,7 +213,7 @@ export function sampleData(persona, lang) {
         { id: 'te1', gig_id: gigId, user_id: carla, org_id: orgId, work_date: day(24), start_time: '08:00:00', end_time: '00:30:00', break_minutes: 60, travel_minutes: 40, km: 36, note: null, status: 'submitted', review_note: null, split: null, cost: null, removed_at: null, gigs: { name: gig.name } },
         { id: 'te2', gig_id: gigId, user_id: carla, org_id: orgId, work_date: day(25), start_time: '09:00:00', end_time: '18:00:00', break_minutes: 30, travel_minutes: 40, km: 36, note: null, status: 'returned', review_note: tx('A desmontagem acabou às 20:00', 'Load-out finished at 20:00'), split: null, cost: null, removed_at: null, gigs: { name: gig.name } },
         { id: 'te3', gig_id: gigId, user_id: duarte, org_id: orgId, work_date: day(24), start_time: '09:00:00', end_time: '23:00:00', break_minutes: 60, travel_minutes: 0, km: 0, note: null, status: 'approved', review_note: null, split: { normal: 9, overtime: 3, night: 1, weekend: 0, holiday: 0, worked: 13, travel: 0, km: 0 }, fee_unit: 'fixed', fee_rate: 300, cost: 0, removed_at: null, gigs: { name: gig.name } },
-      ].filter(e => persona === 'pm' || e.user_id === carla),
+      ].filter(e => persona === 'pm' || e.id === 'te2'),
       org_holidays: [{ id: 'h1', org_id: orgId, day: '2026-06-13', name: 'Santo António' }],
       custom_fields: [
         { id: 'cf1', org_id: orgId, entity: 'gig', label: tx('N.º de encomenda', 'PO number'), kind: 'text', choices: [], position: 1, created_at: ago(200) },
