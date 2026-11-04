@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Coins, Plus, Trash2, Check } from 'lucide-react'
+import { Coins, Plus, Trash2, Check, CalendarHeart } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
@@ -7,7 +7,8 @@ import { track } from '../lib/usage'
 import { FUNCTIONS } from '../lib/crewProfile'
 import { FACTOR_KEYS, parseAmount, amountInput } from '../lib/crewRates'
 import { useRateCard, useOrgCrewPeople } from '../lib/useCrewRates'
-import { useI18n } from '../i18n'
+import { DEFAULT_NIGHT } from '../lib/timeRegistration'
+import { useI18n, fmt } from '../i18n'
 import { btn, iconBtn, input, label, colors } from './ui'
 
 const AMOUNTS = ['day_rate', 'half_day_rate', 'hour_rate']
@@ -27,7 +28,11 @@ export default function OrgCrewRatesSettings({ org }) {
   const [busy, setBusy] = useState(false)
   // Filled once from the database, so saving a rate doesn't wipe factors being typed
   useEffect(() => {
-    if (card.loaded) setFactors(f => f || Object.fromEntries(['overtime_after_hours', ...FACTOR_KEYS].map(k => [k, amountInput(card.factors[k])])))
+    if (card.loaded) setFactors(f => f || {
+      ...Object.fromEntries(['overtime_after_hours', ...FACTOR_KEYS, 'km_rate'].map(k => [k, amountInput(card.factors[k] ?? 0)])),
+      night_from: String(card.factors.night_from || DEFAULT_NIGHT.night_from).slice(0, 5),
+      night_until: String(card.factors.night_until || DEFAULT_NIGHT.night_until).slice(0, 5),
+    })
   }, [card.loaded, card.factors])
 
   const nameOf = id => people.find(p => p.id === id)?.full_name || t('rates.someone')
@@ -68,9 +73,13 @@ export default function OrgCrewRatesSettings({ org }) {
   }
   const rateName = r => [r.function_title, r.user_id && nameOf(r.user_id)].filter(Boolean).join(' · ')
 
-  const factorValues = factors && Object.fromEntries(Object.entries(factors).map(([k, v]) => [k, parseAmount(v)]))
+  const factorValues = factors && {
+    ...Object.fromEntries(['overtime_after_hours', ...FACTOR_KEYS, 'km_rate'].map(k => [k, parseAmount(factors[k])])),
+    night_from: factors.night_from, night_until: factors.night_until,
+  }
   const factorsOk = factorValues && FACTOR_KEYS.every(k => factorValues[k] >= 1 && factorValues[k] <= 5)
     && factorValues.overtime_after_hours >= 1 && factorValues.overtime_after_hours <= 24
+    && factorValues.km_rate >= 0 && factorValues.km_rate <= 100 && !!factorValues.night_from && !!factorValues.night_until
   async function saveFactors(e) {
     e.preventDefault()
     if (!factorsOk) return
@@ -143,10 +152,78 @@ export default function OrgCrewRatesSettings({ org }) {
                 <input id={`factor-${k}`} inputMode="decimal" value={factors[k]} onChange={e => setFactors(f => ({ ...f, [k]: e.target.value }))} style={small} />
               </div>
             ))}
+            {['night_from', 'night_until'].map(k => (
+              <div key={k}>
+                <label htmlFor={`factor-${k}`} style={{ ...label, fontSize: '11px' }}>{t(`rates.factor.${k}`)}</label>
+                <input id={`factor-${k}`} type="time" value={factors[k]} onChange={e => setFactors(f => ({ ...f, [k]: e.target.value }))} style={small} />
+              </div>
+            ))}
+            <div>
+              <label htmlFor="factor-km_rate" style={{ ...label, fontSize: '11px' }}>{t('rates.factor.km_rate')}</label>
+              <input id="factor-km_rate" inputMode="decimal" value={factors.km_rate} onChange={e => setFactors(f => ({ ...f, km_rate: e.target.value }))} style={small} />
+            </div>
             <button type="submit" disabled={busy || !factorsOk} style={{ ...btn, justifyContent: 'center' }}><Check size={14} /> {t('common.save')}</button>
           </div>
         </form>
       )}
+      <OrgHolidays orgId={org.id} />
     </section>
+  )
+}
+
+// The organisation's own holidays (step 8), on top of Portugal's national ones
+function OrgHolidays({ orgId }) {
+  const { t } = useI18n()
+  const { notify } = useToast()
+  const [list, setList] = useState(null)
+  const [draft, setDraft] = useState({ day: '', name: '' })
+  const [busy, setBusy] = useState(false)
+  const load = async () => {
+    const { data } = await supabase.from('org_holidays').select('id, day, name').eq('org_id', orgId).is('removed_at', null).order('day')
+    setList(data || [])
+  }
+  useEffect(() => { load() }, [orgId]) // eslint-disable-line react-hooks/exhaustive-deps
+  async function run(query, step) {
+    setBusy(true)
+    const { error } = await query
+    setBusy(false)
+    if (error) { logger.error('holidays', error, { step }); notify(userMessage(error), 'error'); return false }
+    track(`holidays:${step}`)
+    load()
+    return true
+  }
+  async function add(e) {
+    e.preventDefault()
+    if (!draft.day || !draft.name.trim()) return
+    if (await run(supabase.from('org_holidays').insert({ org_id: orgId, day: draft.day, name: draft.name.trim() }), 'add')) setDraft({ day: '', name: '' })
+  }
+  if (!list) return null
+  return (
+    <div style={{ marginTop: '14px' }}>
+      <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><CalendarHeart size={13} aria-hidden="true" /> {t('holidays.title')}</h4>
+      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '8px' }}>{t('holidays.intro')}</p>
+      {list.length > 0 && (
+        <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {list.map(h => (
+            <li key={h.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '14px' }}>
+              <span style={{ flex: 1, minWidth: 0 }}><strong>{fmt(h.day, 'd MMM yyyy')}</strong> · {h.name}</span>
+              <button type="button" disabled={busy} onClick={() => run(supabase.from('org_holidays').update({ removed_at: new Date().toISOString() }).eq('id', h.id), 'remove')}
+                aria-label={t('holidays.remove', { name: h.name })} style={iconBtn}><Trash2 size={14} /></button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <form onSubmit={add} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px', alignItems: 'end' }}>
+        <div>
+          <label htmlFor="holiday-day" style={{ ...label, fontSize: '11px' }}>{t('holidays.day')}</label>
+          <input id="holiday-day" type="date" value={draft.day} onChange={e => setDraft(d => ({ ...d, day: e.target.value }))} style={small} />
+        </div>
+        <div>
+          <label htmlFor="holiday-name" style={{ ...label, fontSize: '11px' }}>{t('holidays.name')}</label>
+          <input id="holiday-name" value={draft.name} maxLength={80} placeholder={t('holidays.namePlaceholder')} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))} style={small} />
+        </div>
+        <button type="submit" disabled={busy || !draft.day || !draft.name.trim()} style={{ ...btn, justifyContent: 'center' }}><Plus size={14} /> {t('labels.add')}</button>
+      </form>
+    </div>
   )
 }

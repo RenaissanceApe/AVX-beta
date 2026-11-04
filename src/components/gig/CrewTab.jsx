@@ -20,6 +20,7 @@ import { CrewCallModal, CrewCallList } from './CrewCalls'
 import PostJobModal from '../jobs/PostJobModal'
 import { useUndoRemove } from '../../lib/undo'
 import { LabourCost, MyFee } from './LabourCost'
+import GigHours from '../hours/GigHours'
 
 // Latest request per person: { user_id: request }
 const latestRequests = rows => {
@@ -40,6 +41,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
   const [inviteFor, setInviteFor] = useState('') // function title to prefill when inviting for a position
   const [callFor, setCallFor] = useState(null) // { title, quantity } for a new crew call
   const [callsKey, setCallsKey] = useState(0)
+  const [hoursKey, setHoursKey] = useState(0)
   const [postingJob, setPostingJob] = useState(false)
   const isOrgAdmin = orgRole === 'admin'
   const orgName = orgs.find(o => o.id === gig.org_id)?.name || ''
@@ -232,7 +234,8 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
         </div>
       )}
 
-      {isPM ? <LabourCost gig={gig} members={members} nameOf={nameOf} /> : <MyFee gigId={gigId} userId={userId} />}
+      {isPM ? <LabourCost gig={gig} members={members} nameOf={nameOf} refreshKey={hoursKey} /> : <MyFee gigId={gigId} userId={userId} />}
+      <GigHours gig={gig} members={members} isPM={isPM} userId={userId} nameOf={nameOf} onReviewed={() => setHoursKey(k => k + 1)} />
 
       <style>{`
         .crew-extra { flex-basis: 100%; padding-left: 56px; min-width: 0; }

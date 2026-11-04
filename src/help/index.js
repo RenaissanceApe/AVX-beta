@@ -26,6 +26,8 @@ export const PAGE_TERMS = {
   jobs: ['crew-call', 'block'],
   'org-jobs': ['crew-call', 'block'],
   'org-tasks': ['repair'],
+  'my-hours': ['hours-split'],
+  'org-hours': ['hours-split'],
   quote: ['phase', 'factor', 'vat', 'quote-version', 'client-link', 'price-list'],
   orgs: ['organisation', 'org-admin', 'org-member', 'viewer', 'retention'],
 }
@@ -97,6 +99,8 @@ export const GUIDES = {
   'ad-org-export': { role: 'admin', pages: ['orgs', 'home'], terms: ['organisation'], shots: [null, 'org-export', null] },
   'ad-verify-company': { role: 'admin', pages: ['org-jobs', 'orgs'], terms: ['organisation'], shots: [null, 'org-verify', null] },
   'ad-gig-statuses': { role: 'admin', pages: ['orgs', 'home', 'gig'], terms: ['gig-status'], shots: [null, 'org-labels', null] },
+  'crew-hours': { role: 'crew', pages: ['gig', 'my-hours'], terms: ['hours-split'], shots: ['hours-log', null, null] },
+  'pm-approve-hours': { role: 'admin', pages: ['gig', 'org-hours', 'orgs'], terms: ['hours-split'], shots: ['gig-hours', null, 'org-hours'] },
   'pm-labour-cost': { role: 'admin', pages: ['orgs', 'gig', 'org-jobs'], terms: ['crew-call'], shots: ['org-rates', 'gig-labour', 'quote-crew-total', 'crewcall-fee', 'job-pay', 'quote-crew-margin'] },
   'ad-custom-fields': { role: 'admin', pages: ['orgs', 'gig', 'contacts', 'inventory'], terms: [], shots: ['org-fields', null, null] },
   'ad-import-crew': { role: 'admin', pages: ['orgs', 'home'], terms: ['organisation', 'viewer', 'org-member'], shots: [null, null, 'held-invites'] },

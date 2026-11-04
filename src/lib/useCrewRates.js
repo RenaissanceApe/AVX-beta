@@ -11,7 +11,7 @@ export function useRateCard(orgId) {
     const [r, f] = await Promise.all([
       supabase.from('crew_rates').select('id, function_title, user_id, day_rate, half_day_rate, hour_rate, note, created_at')
         .eq('org_id', orgId).is('removed_at', null).order('function_title', { nullsFirst: false }).order('created_at'),
-      supabase.from('crew_rate_factors').select('overtime, overtime_after_hours, weekend, night, holiday').eq('org_id', orgId).maybeSingle(),
+      supabase.from('crew_rate_factors').select('overtime, overtime_after_hours, weekend, night, holiday, night_from, night_until, km_rate').eq('org_id', orgId).maybeSingle(),
     ])
     setState({ rates: r.data || [], factors: f.data || DEFAULT_FACTORS, hasFactors: !!f.data, loaded: true })
   }, [orgId])

@@ -68,6 +68,9 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     crewMatch: '{actor} matches your saved search “{search}”',
     taskAssigned: '{actor} gave you a task on {gig}: {title}',
     taskAssignedOrg: '{actor} gave you a task: {title}',
+    hoursSubmitted: '{actor} logged hours on {gig}',
+    hoursApproved: '{actor} approved your hours for {date} on {gig}',
+    hoursReturned: '{actor} sent back your hours for {date} on {gig}',
     guestOne: '{guest} wrote about {about}: “{excerpt}”',
     guestMany: '{guest} wrote {count} messages about {about}, latest: “{excerpt}”',
     'about.quote': 'a quote', 'about.supplier': 'a subrental',
@@ -131,6 +134,9 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     crewMatch: '{actor} corresponde à sua pesquisa guardada “{search}”',
     taskAssigned: '{actor} deu-lhe uma tarefa em {gig}: {title}',
     taskAssignedOrg: '{actor} deu-lhe uma tarefa: {title}',
+    hoursSubmitted: '{actor} registou horas em {gig}',
+    hoursApproved: '{actor} aprovou as suas horas de {date} em {gig}',
+    hoursReturned: '{actor} devolveu as suas horas de {date} em {gig}',
     guestOne: '{guest} escreveu sobre {about}: “{excerpt}”',
     guestMany: '{guest} escreveu {count} mensagens sobre {about}, a última: “{excerpt}”',
     'about.quote': 'um orçamento', 'about.supplier': 'um aluguer externo',
@@ -213,6 +219,9 @@ export function describe(n: Notification, lang: Lang, actorName: string | undefi
     case 'job_declined': return fill(s.jobDeclined, { actor, title: d.title ?? '' })
     case 'job_match': return fill(s.jobMatch, { title: d.title ?? '', org: d.org_name ?? '', place: d.place ?? '—', range: dayText(d.starts_on, d.ends_on, lang) })
     case 'crew_match': return fill(s.crewMatch, { actor, search: d.search_name ?? '' })
+    case 'hours_submitted': return fill(s.hoursSubmitted, { actor, gig })
+    case 'hours_approved': return fill(s.hoursApproved, { actor, gig, date: dayText(d.work_date, null, lang) })
+    case 'hours_returned': return fill(s.hoursReturned, { actor, gig, date: dayText(d.work_date, null, lang) }) + (d.note ? `: “${d.note}”` : '')
     case 'task_assigned': return fill(d.gig_name ? s.taskAssigned : s.taskAssignedOrg, { actor, gig, title: d.title ?? '' })
     case 'guest_message': return fill(Number(d.count ?? 1) > 1 ? s.guestMany : s.guestOne, {
       guest: d.guest_name ?? s.someone, about: d.about || s[`about.${d.about_kind ?? 'quote'}`], count: d.count ?? 1, excerpt: d.excerpt ?? '' })
@@ -242,7 +251,7 @@ export function linkFor(n: Notification, appUrl: string) {
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=maintenance`
   if ((n.kind === 'hire_request' || n.kind === 'hire_answered') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=subrentals`
   if (n.kind === 'availability_request') return `${appUrl}/me#requests`
-  if (n.gig_id && (n.kind === 'availability_reply' || n.kind === 'booking_changed' || n.kind === 'crew_call_answer')) return `${appUrl}/gig/${n.gig_id}?tab=crew`
+  if (n.gig_id && (n.kind === 'availability_reply' || n.kind === 'booking_changed' || n.kind === 'crew_call_answer' || n.kind.startsWith('hours_'))) return `${appUrl}/gig/${n.gig_id}?tab=crew`
   if (!n.gig_id) return `${appUrl}/dashboard`
   return n.kind === 'schedule_changed' ? `${appUrl}/gig/${n.gig_id}?tab=schedule` : `${appUrl}/gig/${n.gig_id}`
 }

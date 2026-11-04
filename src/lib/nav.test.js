@@ -5,7 +5,7 @@ const keys = sections => sections.flatMap(s => s.items.map(i => i.key))
 
 describe('navigation', () => {
   it('My work lists your gigs and organisations', () => {
-    expect(keys(navSections({ workspace: MY_WORK }))).toEqual(['myGigs', 'myCalendar', 'availability', 'myTasks', 'jobs', 'pocketTools', 'allOrgs', 'newOrg'])
+    expect(keys(navSections({ workspace: MY_WORK }))).toEqual(['myGigs', 'myCalendar', 'availability', 'myTasks', 'myHours', 'jobs', 'pocketTools', 'allOrgs', 'newOrg'])
   })
 
   it('shows quotes and settings only to roles that can use them', () => {
@@ -13,6 +13,8 @@ describe('navigation', () => {
     const member = keys(navSections({ workspace: 'o1', role: 'member' }))
     const viewer = keys(navSections({ workspace: 'o1', role: 'viewer' }))
     expect(admin).toContain('orgSettings')
+    expect(admin).toContain('orgHours')
+    expect(member).not.toContain('orgHours')
     expect(admin).toContain('quotes')
     expect(member).toContain('priceList')
     expect(member).not.toContain('orgSettings')

@@ -206,8 +206,15 @@ export function sampleData(persona, lang) {
         { id: 'cr2', org_id: orgId, function_title: w.lights, user_id: null, day_rate: 200, half_day_rate: null, hour_rate: 30, created_at: ago(300) },
         { id: 'cr3', org_id: orgId, function_title: w.sound, user_id: carla, day_rate: 180, half_day_rate: null, hour_rate: null, created_at: ago(200) },
       ],
-      crew_rate_factors: [{ org_id: orgId, overtime: 1.5, overtime_after_hours: 10, weekend: 1.25, night: 1.2, holiday: 2 }],
+      crew_rate_factors: [{ org_id: orgId, overtime: 1.5, overtime_after_hours: 10, weekend: 1.25, night: 1.2, holiday: 2, night_from: '22:00:00', night_until: '07:00:00', km_rate: 0.36 }],
       gig_crew_fees: persona === 'pm' ? [{ gig_id: gigId, user_id: duarte, org_id: orgId, unit: 'fixed', rate: 300, quantity: 1, note: null }] : [],
+      // Time registration (step 8): Carla's first day waiting, her second sent back, Duarte's approved
+      time_entries: [
+        { id: 'te1', gig_id: gigId, user_id: carla, org_id: orgId, work_date: day(24), start_time: '08:00:00', end_time: '00:30:00', break_minutes: 60, travel_minutes: 40, km: 36, note: null, status: 'submitted', review_note: null, split: null, cost: null, removed_at: null, gigs: { name: gig.name } },
+        { id: 'te2', gig_id: gigId, user_id: carla, org_id: orgId, work_date: day(25), start_time: '09:00:00', end_time: '18:00:00', break_minutes: 30, travel_minutes: 40, km: 36, note: null, status: 'returned', review_note: tx('A desmontagem acabou às 20:00', 'Load-out finished at 20:00'), split: null, cost: null, removed_at: null, gigs: { name: gig.name } },
+        { id: 'te3', gig_id: gigId, user_id: duarte, org_id: orgId, work_date: day(24), start_time: '09:00:00', end_time: '23:00:00', break_minutes: 60, travel_minutes: 0, km: 0, note: null, status: 'approved', review_note: null, split: { normal: 9, overtime: 3, night: 1, weekend: 0, holiday: 0, worked: 13, travel: 0, km: 0 }, fee_unit: 'fixed', fee_rate: 300, cost: 0, removed_at: null, gigs: { name: gig.name } },
+      ].filter(e => persona === 'pm' || e.id === 'te2'),
+      org_holidays: [{ id: 'h1', org_id: orgId, day: '2026-06-13', name: 'Santo António' }],
       custom_fields: [
         { id: 'cf1', org_id: orgId, entity: 'gig', label: tx('N.º de encomenda', 'PO number'), kind: 'text', choices: [], position: 1, created_at: ago(200) },
         { id: 'cf2', org_id: orgId, entity: 'gig', label: tx('Lotação', 'Venue capacity'), kind: 'number', choices: [], position: 2, created_at: ago(200) },
@@ -340,6 +347,7 @@ export function sampleData(persona, lang) {
       my_gig_companies: persona === 'pm' ? [{ org_id: orgId, name: 'Lumen and Pixel' }] : [{ org_id: orgId, name: 'Lumen and Pixel' }, { org_id: otherOrg, name: 'SoundWorks Lisboa' }],
       my_availability_requests: persona === 'pm' ? [] : [request],
       my_unread_counts: [],
+      time_settings: { factors: { overtime: 1.5, overtime_after_hours: 10, weekend: 1.25, night: 1.2, holiday: 2, night_from: '22:00', night_until: '07:00', km_rate: 0.36 }, holidays: [{ day: '2026-06-13', name: 'Santo António' }] },
       calendar_feed: '7c1e9a4b'.repeat(8),
       list_jobs: { needs_profile: false, total: 2, more: false, results: [
         { id: 'jp1', org_name: 'Palco Norte, Lda', verified: true, verified_name: 'PALCO NORTE - PRODUCOES LDA', title: tx('Rigger', 'Rigger'), function_key: 'rigger', quantity: 2, starts_on: day(30), ends_on: day(31),

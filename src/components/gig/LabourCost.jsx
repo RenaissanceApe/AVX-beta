@@ -7,6 +7,7 @@ import { track } from '../../lib/usage'
 import { formatMoney } from '../../lib/quotes'
 import { FEE_UNITS, labourLines, labourSummary, quoteCrewRevenue, feeTotal, parseAmount, amountInput } from '../../lib/crewRates'
 import { useRateCard } from '../../lib/useCrewRates'
+import { personActual } from '../../lib/timeRegistration'
 import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 
@@ -22,27 +23,34 @@ export function feeText(f, t, lang) {
 // Labour cost on a gig's Crew tab, for the people who run the gig (docs/TOOLS_PLAN.md step 7): what
 // each person costs (the fee agreed with them, else the rate card's suggestion), the total, and
 // the margin against the crew lines of the gig's quote.
-export function LabourCost({ gig, members, nameOf }) {
+export function LabourCost({ gig, members, nameOf, refreshKey }) {
   const { t, lang } = useI18n()
   const card = useRateCard(gig.org_id)
   const [fees, setFees] = useState(null)
   const [quotes, setQuotes] = useState([])
+  const [hours, setHours] = useState([])
   const [editing, setEditing] = useState(null) // labour line
 
   const load = useCallback(async () => {
-    const [f, q] = await Promise.all([
+    const [f, h, q] = await Promise.all([
       supabase.from('gig_crew_fees').select('user_id, unit, rate, quantity, note').eq('gig_id', gig.id),
+      supabase.from('time_entries').select('user_id, status, cost, removed_at').eq('gig_id', gig.id).eq('status', 'approved').is('removed_at', null).limit(2000),
       gig.org_id ? supabase.from('quotes').select('id, status, body, discount_pct, created_at, updated_at').eq('gig_id', gig.id) : { data: [] },
     ])
     setFees(f.data || [])
     setQuotes(q.data || [])
+    setHours(h.data || [])
   }, [gig.id, gig.org_id])
-  useEffect(() => { load() }, [load])
+  useEffect(() => { load() }, [load, refreshKey])
 
   if (!fees || !members.length) return null
   const lines = labourLines({ members, gig, rates: card.rates, factors: card.factors, fees })
   const crew = quoteCrewRevenue(quotes)
   const sum = labourSummary(lines, crew?.revenue ?? null)
+  // Actual cost from approved hours (step 8): each person's stored day costs, a fixed fee once
+  const actualOf = l => personActual(hours.filter(h => h.user_id === l.member.user_id), l.fee)
+  const actuals = lines.map(actualOf)
+  const actual = actuals.some(a => a != null) ? Math.round(actuals.reduce((s, a) => s + (a || 0), 0) * 100) / 100 : null
 
   return (
     <section aria-labelledby="labour-title" style={{ ...card, padding: '14px 16px', marginTop: '16px' }}>
@@ -62,13 +70,22 @@ export function LabourCost({ gig, members, nameOf }) {
                   : t('labour.noRate')}
               </span>
             </span>
-            <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{l.total != null ? money(l.total, lang) : '—'}</span>
+            <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>
+              {l.total != null ? money(l.total, lang) : '—'}
+              {actualOf(l) != null && <span style={{ display: 'block', fontSize: '12px', fontWeight: 400, color: colors.muted }}>{t('labour.actualShort', { amount: money(actualOf(l), lang) })}</span>}
+            </span>
             <button type="button" onClick={() => setEditing(l)} aria-label={t('labour.editFor', { name: nameOf(l.member.user_id) })} style={iconBtn}><Pencil size={14} /></button>
           </li>
         ))}
       </ul>
       <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '4px 12px', fontSize: '14px', marginTop: '12px', paddingTop: '10px', borderTop: `1px solid ${colors.border}` }}>
         <dt>{t('labour.cost')}</dt><dd style={{ margin: 0, fontWeight: 700, textAlign: 'right' }}>{money(sum.cost, lang)}</dd>
+        {actual != null && (
+          <><dt>{t('labour.actual')}</dt>
+          <dd style={{ margin: 0, fontWeight: 700, textAlign: 'right', color: actual > sum.cost ? colors.danger : 'var(--text)' }}>
+            {money(actual, lang)}{actual !== sum.cost && ` (${actual > sum.cost ? '+' : '−'}${money(Math.abs(actual - sum.cost), lang)})`}
+          </dd></>
+        )}
         {crew && <><dt>{t('labour.quoted')}</dt><dd style={{ margin: 0, textAlign: 'right' }}>{money(sum.revenue, lang)}</dd></>}
         {crew && (
           <><dt>{t('labour.margin')}</dt>

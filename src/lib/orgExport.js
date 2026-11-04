@@ -28,8 +28,10 @@ export const PARTS = [
   { part: 'repairs', columns: ['created_at', 'item', 'item_code', 'unit_code', 'quantity', 'gig', 'status', 'problem', 'repairer', 'cost', 'charge_client', 'expected_back', 'outcome', 'closed_at'] },
   { part: 'inspections', columns: ['done_on', 'item', 'item_code', 'unit_code', 'result', 'inspector', 'cost', 'notes'] },
   { part: 'crew_rates', columns: ['function_title', 'person', 'day_rate', 'half_day_rate', 'hour_rate', 'note', 'created_at'] },
-  { part: 'crew_rate_factors', columns: ['overtime', 'overtime_after_hours', 'weekend', 'night', 'holiday', 'updated_at'] },
+  { part: 'crew_rate_factors', columns: ['overtime', 'overtime_after_hours', 'weekend', 'night', 'holiday', 'night_from', 'night_until', 'km_rate', 'updated_at'] },
   { part: 'gig_crew_fees', columns: ['gig_ref', 'gig', 'name', 'function_title', 'unit', 'rate', 'quantity', 'total', 'note', 'updated_at'] },
+  { part: 'org_holidays', columns: ['day', 'name', 'created_at'] },
+  { part: 'time_entries', columns: ['gig_ref', 'gig', 'name', 'function_title', 'work_date', 'start_time', 'end_time', 'break_minutes', 'travel_minutes', 'km', 'status', 'normal', 'overtime', 'night', 'weekend', 'holiday', 'fee_unit', 'fee_rate', 'cost', 'note', 'review_note', 'reviewed_at'] },
 ]
 
 export const PAGE_SIZE = 5000

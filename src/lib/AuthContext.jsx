@@ -5,6 +5,7 @@ import { setMonitoringUser } from './monitoring'
 import { setOfflineUser, clearOfflineData } from './offline'
 import { turnOff as turnOffPush } from './push'
 import { clearOutbox } from './outbox'
+import { clearQueuedHours } from './hours'
 import { useI18n } from '../i18n'
 
 const AuthContext = createContext({})
@@ -87,7 +88,7 @@ export function AuthProvider({ children }) {
   async function signOut() {
     // This device stops getting this person's notifications
     await turnOffPush().catch(() => {})
-    if (user) clearOutbox(user.id)
+    if (user) { clearOutbox(user.id); clearQueuedHours(user.id) }
     await clearOfflineData()
     const { error } = await supabase.auth.signOut()
     if (error) logger.error('auth', error, { step: 'signOut' })

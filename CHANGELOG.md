@@ -1,5 +1,44 @@
 # Changelog
 
+## 0.66.0 — Hours
+
+### Added
+- **Time registration** (step 8, [docs/BUSINESS.md](docs/BUSINESS.md)). Everyone on a gig logs
+  their hours per day on the gig's Crew tab: start, end, break, and optionally travel time and
+  kilometres. Start and end fill in from their booking or the gig's schedule. An end before the
+  start means they worked past midnight. Without a connection the hours wait on the phone and are
+  sent when it's back.
+- **Clock in / clock out** in On-site mode: one tap when you start, one when you finish, and the
+  day is sent to the gig's hours.
+- **Approval.** The gig's managers see everyone's days, each with its split (normal, overtime,
+  night, weekend and holiday hours) and its cost. They approve a day, or send it back with a note
+  ("Approve all" does every waiting day at once). The person is notified either way, and the
+  managers are notified when hours come in. Approved days are locked, and each keeps its hours
+  split and cost exactly as they were when it was approved, so changing a rate later never
+  rewrites past costs.
+- **How hours are paid**, as decided: overtime after the organisation's "overtime after" hours;
+  night hours in a window the organisation sets (22:00–07:00 to start with); weekends; Portugal's
+  13 national holidays plus the organisation's own days (a town holiday, Carnival). Each hour gets
+  only its highest factor. A day fee pays the day rate plus extras at its hourly equivalent; an
+  hour fee pays hours × rate × factor; a fixed fee ignores hours. Travel time is paid at the plain
+  hour rate; km at a rate per km the organisation sets.
+- **Labour cost** now shows the actual cost from approved hours next to the planned cost, for
+  each person and in total.
+- **My hours** (in My work): your hours on every gig, month by month, with what approved days pay.
+  **Hours** for organisation admins: everyone's hours per person and month, with their approved
+  cost. Both download as CSV, as does each gig's list.
+- Organisation settings → Crew rates: the night window, the rate per km, and your own holidays.
+- Help: two new guides with pictures ("Log your hours on a gig", "Approve crew hours and see the
+  actual labour cost"), three ⓘ hints and a glossary word. The factors hint now explains how the
+  factors apply to hours.
+
+### Connected
+- The labour cost panel (actual next to planned), My work (a "My hours" page), On-site mode
+  (clock in and out), notifications (in the app, by push and in the email summary), your calendar
+  feed (each gig shows the hours you logged on it), and the organisation export (new hours and
+  holidays files; the factors file has the night window and km rate). Reports K2, K7 and K8 will
+  read the approved days' stored hours and cost.
+
 ## 0.65.0 — Fees from the rate card
 
 ### Added

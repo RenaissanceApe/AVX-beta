@@ -3,6 +3,7 @@
 
 export default {
   terms: {
+    'hours-split': { term: 'Divisão de horas', definition: 'Como um dia registado se divide em horas normais, extra, noturnas, de fim de semana e de feriado. Cada hora conta uma vez, com o seu fator mais alto. Fica guardada como estava quando o dia foi aprovado.', example: 'Sex 14:00–02:00 com 1 h de pausa: 7 h normais, 3 h noturnas, 1 h extra.', where: 'Evento → Equipa → Horas, As minhas horas, Horas da organização' },
     gig: { term: 'Evento', definition: 'Um trabalho da sua equipa: um concerto, uma conferência, um aluguer.', example: 'Palco principal do festival, 12–14 de julho.', where: 'Lista de eventos, calendário, página do evento' },
     organisation: { term: 'Organização', definition: 'Uma empresa no AVX. Tem membros, eventos, equipamento e orçamentos.', example: 'Lumen and Pixel, com três administradores e vinte técnicos.', where: 'Seletor de empresa, no topo' },
     workspace: { term: 'Área de trabalho', definition: 'O que está a ver: uma organização, ou "O meu trabalho" com tudo aquilo em que está marcado.', example: 'Mudar de "Lumen and Pixel" para "O meu trabalho" para ver eventos de outras empresas.', where: 'Seletor de empresa, no topo' },
@@ -87,6 +88,9 @@ export default {
   },
 
   hints: {
+    hours: 'Cada pessoa regista início, fim e pausa de cada dia em que trabalha. Os responsáveis do evento aprovam ou devolvem; os dias aprovados ficam fechados, com a divisão de horas e o custo. A equipa só vê as suas.',
+    'hours-end': 'Um fim antes do início significa que trabalhou depois da meia-noite (por exemplo das 14:00 às 02:00).',
+    'hours-travel': 'Tempo de viagem de e para o local. É pago ao valor por hora simples, sem fatores de horas extra ou noturnas; os km ao valor por km da organização.',
     'crew-call-fee': 'O que oferece a todos nesta chamada, sem IVA. Parte da sua tabela (valor por dia × os dias do evento, dias de fim de semana com o fator de fim de semana) e pode alterá-lo. As pessoas chamadas veem-no na oferta; quem aceitar fica com ele como cachê combinado no evento.',
     'quote-crew-margin': 'Cada linha de equipa corresponde à tabela pela descrição (a função) e pela unidade: por dia usa o valor por dia, por hora o valor por hora. Só a sua organização vê isto.',
     'prep-days': 'Dias antes do evento em que o equipamento já fica reservado, para carregar e testar. Exemplo: 1 = o material fica ocupado desde a véspera.',
@@ -137,6 +141,8 @@ export default {
   },
 
   pages: {
+    'my-hours': { title: 'As minhas horas', summary: 'As horas que registou em todos os eventos, em qualquer empresa, mês a mês: o que aguarda, foi devolvido ou aprovado, e o que os dias aprovados pagam. Descarregue-as em CSV.' },
+    'org-hours': { title: 'Horas', summary: 'As horas registadas de todos nos eventos da organização, por pessoa e mês, com o custo guardado quando cada dia foi aprovado. Só administradores. Descarregue-as em CSV.' },
     'pocket-tools': { title: 'Ferramentas de bolso', summary: 'Calculadoras para qualquer sala, com ou sem evento no AVX: endereços DMX e dipswitches, um bloco de projetores, universos e canais absolutos, e conversão de valores. Funcionam sem ligação.' },
     home: { title: 'Eventos', summary: 'Os eventos da empresa escolhida no topo, ou todos os seus em "O meu trabalho". Abra um para ver a equipa, o horário, os ficheiros e a conversa. O calendário mostra os mesmos eventos por data.' },
     gig: { title: 'Um evento', summary: 'Tudo sobre um evento, em separadores: resumo, equipa, horário, equipamento, ficheiros, atualizações e conversa. Quem gere altera; a equipa vê e pode escrever na conversa.' },
@@ -156,6 +162,32 @@ export default {
 
   // guides: Ajuda → Guias e o painel ?. Os passos correspondem às imagens em index.js (GUIDES).
   guides: {
+    'crew-hours': {
+      title: 'Registar as suas horas num evento',
+      intro: 'Diga aos responsáveis do evento quando trabalhou, para que horas extra, noites e viagens sejam pagas como devem.',
+      steps: [
+        'Abra o separador Equipa do evento e toque em "Registar horas". O início e o fim vêm da sua marcação ou do horário do evento: altere-os para o que trabalhou de facto, junte a pausa, o tempo de viagem e os km, e toque em "Enviar horas".',
+        'No dia, o modo no local tem "Marcar entrada" e "Marcar saída": o início e o fim ficam preenchidos. Sem ligação? As horas ficam no telemóvel e são enviadas quando a ligação voltar.',
+        'Um responsável aprova o seu dia ou devolve-o com uma nota; recebe uma notificação em ambos os casos. Corrija um dia devolvido com o lápis. "As minhas horas" em O meu trabalho mostra todos os eventos, mês a mês.',
+      ],
+      mistakes: [
+        'Os dias aprovados não podem ser alterados. Se algo estiver errado, fale com o responsável do evento.',
+        'Só um registo por dia em cada evento: altere o dia que já registou em vez de juntar outro.',
+      ],
+    },
+    'pm-approve-hours': {
+      title: 'Aprovar as horas da equipa e ver o custo real',
+      intro: 'Veja o que cada pessoa trabalhou, aprove, e compare o custo real com o previsto.',
+      steps: [
+        'No separador Equipa de um evento, "Horas" mostra os dias de todos. Cada dia a aguardar mostra a divisão (normais, extra, noturnas, fim de semana, feriado) e o custo. Toque em "Aprovar", ou em "Devolver" com uma nota. Também pode registar horas por qualquer pessoa no evento.',
+        'Os dias aprovados ficam fechados com a divisão e o custo. "Custo de mão de obra" mostra agora o custo real das horas aprovadas ao lado do previsto: cachês combinados por dia ou hora, valores fixos uma vez, mais viagens e km.',
+        'Na organização, "Horas" (administradores) mostra todos por mês com as horas e o custo aprovado. Descarregue um CSV para os salários; a exportação da organização também tem as horas. Defina a janela noturna, o valor por km e os seus feriados nas definições da organização, em "Tabela de cachês da equipa".',
+      ],
+      mistakes: [
+        'Alterar um valor depois nunca muda um dia aprovado: o custo fica como foi aprovado.',
+        'Os diretores de produção freelancer não veem a sua tabela de valores: para alguém sem cachê combinado, aprovam as horas sem custo. Defina primeiro um cachê.',
+      ],
+    },
     'crew-join': {
       title: 'Aceitar um convite e definir a palavra-passe',
       intro: 'Um diretor de produção adicionou-o a um evento. Configure a conta uma vez e passa a ver todos os seus eventos num só sítio.',
