@@ -435,7 +435,7 @@ export default {
         'On a result, tap "Ask if free" to check their dates, or "Offer a place" to offer them the job. The answer arrives in your messages; if they accept an offer, they join the gig.',
       ],
       mistakes: [
-        'Rates aren\'t on profiles: agree the fee in the messages. Their e-mail and phone are shared only once they join your gig.',
+        'Rates aren\'t on profiles: set a fee in your offer, or agree it in the messages. Their e-mail and phone are shared only once they join your gig.',
         'Searches and first contacts are limited each day to stop misuse. People you\'ve worked with before are always easy to reach from the gig\'s invite form.',
         'Looking for the same kind of person often? Tap "Save this search" and keep its alert on: you\'re told when someone who fits switches on their profile. Saved searches show above the form for everyone in the organisation.',
       ],

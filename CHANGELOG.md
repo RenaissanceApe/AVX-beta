@@ -13,7 +13,9 @@
   starts from that person's own rate if they have one. On the job board, "Offer the place" now
   opens a small window (instead of the browser's OK / Cancel box) with the fee: the day rate the
   applicant sent for the post's days, else your post's pay. Change it or leave it empty.
-- The crew call's note now gives "black clothes" as an example instead of "fee as usual".
+- The crew call's note now gives "black clothes" as an example instead of "fee as usual". Find
+  crew's offer no longer says pay is agreed in the messages or asks for their day rate, and its
+  help guide mentions setting a fee in the offer.
 - **Job posts** fill in the pay from the rate card when you choose the function (the day rate per
   day, else the hour rate per hour). You can still change it.
 - **Quotes** show, under each crew line, its cost by your rate card and your margin, and the

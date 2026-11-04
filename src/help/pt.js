@@ -432,7 +432,7 @@ export default {
         'Num resultado, toque em "Perguntar se está livre" para confirmar as datas, ou em "Oferecer um lugar" para lhe oferecer o trabalho. A resposta chega às suas mensagens; se aceitar uma oferta, entra no evento.',
       ],
       mistakes: [
-        'Os perfis não têm preços: combine o valor nas mensagens. O e-mail e o telefone só são partilhados quando a pessoa entra no evento.',
+        'Os perfis não têm preços: indique um cachê na oferta ou combine-o nas mensagens. O e-mail e o telefone só são partilhados quando a pessoa entra no evento.',
         'As pesquisas e os primeiros contactos têm um limite diário para evitar abusos. As pessoas com quem já trabalhou continuam fáceis de chamar no formulário de convite do evento.',
         'Procura muitas vezes o mesmo tipo de pessoa? Toque em "Guardar esta pesquisa" e mantenha o alerta ativo: é avisado quando alguém que se ajusta ativa o perfil. As pesquisas guardadas aparecem acima do formulário para toda a organização.',
       ],
