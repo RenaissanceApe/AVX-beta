@@ -19,7 +19,7 @@ plan in the doc it names, in the same commit.
 
 Steps 1–7 (0.54–0.63) and K0 (0.64) are built. Sessions S01–S31 are the build order, with the expenses step
 (S03b), steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
-ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM3 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
+ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
@@ -159,7 +159,8 @@ reimburse"); importing the purchase-invoices file from the AT e-Fatura portal no
 (check the file format first).
 
 Connect: subrentals, repairs, crew fees (labour panel), stock purchases (Record purchase can add
-the expense), Contacts (supplier spend), organisation export, DATA_MAP.md (receipts).
+the expense), Contacts (supplier spend), organisation export, DATA_MAP.md (receipts); if the AT
+e-Fatura file is imported, it goes through the import wizard and its fix panel (IM1).
 
 Done when: database tests (who adds, reads and approves; links to another organisation's records
 refused; one live expense per linked record; recurring drafts made once); unit tests for the VAT
@@ -586,7 +587,8 @@ Already decided: data only from manufacturers' datasheets; never derived.
 Ask me before building: which brands and models to preset first (the ones I own or rent most)?
 
 Connect: the F4 sound system calculator uses the specs (sensitivity, max SPL, dispersion) instead
-of typed numbers; later P1 (power) and RG3 (arrays) read the same fields.
+of typed numbers; later P1 (power) and RG3 (arrays) read the same fields; the import wizard (new
+fields guessed, and a FIXES entry for any new reason a row can be refused, IM1).
 
 Done when: unit tests; help hints on the new fields; PR open.
 Stop after this step; don't start the next one.
@@ -611,7 +613,8 @@ Scope:
 Ask me before building: which programs do I or my clients use, and can I share a sample MVR file
 to test with?
 
-Connect: catalogue (weights and power for P1 and RG1), light plot, DMX patch, gig equipment.
+Connect: catalogue (weights and power for P1 and RG1), light plot, DMX patch, gig equipment; the
+import fix panel (IM1) for fixtures that need matching to catalogue items.
 
 Done when: unit tests with a small sample MVR/GDTF; the round trip (import → export → import) keeps
 fixtures and addresses; help guide; PR open.
@@ -645,7 +648,7 @@ Ask me before building: supply defaults for Portugal (230/400 V, 50 Hz), and whi
 and distros I own.
 
 Connect: light plot power estimate (now from the tool), gig files (the report), On-site mode
-(read-only view).
+(read-only view), the import wizard (electrical columns guessed; FIXES entries for new reasons, IM1).
 
 Done when: unit tests for the electrical maths (single and three phase, unbalanced neutral); help
 guide; PR open.
@@ -1515,7 +1518,8 @@ order"; skip areas QA.md marks done).
 
 Scope: run /qa over that area's lines in docs/PENDING.md section 2 on the test project; commit the
 checks it confirms as fixed tests in e2e/auth/<area>.spec.js; list what it found; mark the area done
-in QA.md. Scanning can use a fake camera feed showing a QR label.
+in QA.md. Scanning can use a fake camera feed showing a QR label. Import: only after the import
+overhaul's IM2 is merged, and only what IM1–IM2's own browser tests don't cover.
 
 Done when: the new tests pass twice in CI; problems found are listed in the PR; PR open.
 Stop after this step.
@@ -1526,8 +1530,8 @@ Finish with the short summary CLAUDE.md asks for.
 
 ## Import overhaul (any time, in order)
 
-Plan: [SWITCHING.md](SWITCHING.md), "Import overhaul: fix it here" (decision D38). IM2 and IM3 need
-IM1 merged first.
+Plan: [SWITCHING.md](SWITCHING.md), "Import overhaul: fix it here" (decision D38). IM2, IM3 and IM4
+need IM1 merged first.
 
 ### IM1 · Fix it in the check
 
@@ -1548,6 +1552,8 @@ Scope:
   entry. The fixes kept by ImportPage, so Back and Next keep them. CheckStep moves to
   src/components/import/.
 - No database change.
+- Browser tests: if QA1 is merged, use its shared helpers (e2e/helpers/app.js); the import area
+  of QA4 then only adds what these tests don't cover.
 
 Ask me before building: anything in the Check-step table I'd change, and principle 6 (groups
 nobody decided on are left out).
@@ -1575,11 +1581,16 @@ Scope:
   a … file" with Switch.
 - Match: "same for every row" for a field the file doesn't have (it replaces "Where is this
   stock?"); the date order noticed per date column, asked when it can't be told; the columns
-  that won't be imported listed.
+  that won't be imported listed; the organisation's custom fields (gigs, clients, suppliers,
+  items) offered as places a column can go, their values checked by the field's kind
+  (docs/BUSINESS.md, custom fields, "Not yet").
 - Done: "fix and try again" for rows the database refused (back to the check with only those
   rows and IM1's fixes); left-out rows downloadable with their original columns and a Problem
   column.
-- No database change.
+- No database change unless saving custom values through the import needs one (outline it
+  for my yes first).
+- Browser tests: if QA1 is merged, use its shared helpers (e2e/helpers/app.js); the import area
+  of QA4 then only adds what these tests don't cover.
 
 Done when: unit tests (sheets, heading row, text encoding, parts, date order, the left-out
 file); e2e for one Choose fix and one Done fix; a browser check at 320 and 390 px in both
@@ -1608,6 +1619,9 @@ Scope:
 - Restoring an archived item from the check, logged so undo archives it again.
 - Fixes remembered with a saved matching: import_presets.fixes (jsonb, size-limited), applied
   with it.
+- Units for an item counted in bulk: "Switch X to per unit" (only while its stock is just the
+  opening quantity, which is removed; the units then bring the stock). It removes a stock
+  movement, so it is in the hand-run file (SWITCHING.md S4, known limitation).
 - Undo refused "in use": say what uses it (the first few, with names) and offer to undo the
   rest. This changes undo_import, which removes records, so it is a hand-run file again.
 - The app side: IM1's separate batches for additions folded into the import's batch; the IM3
@@ -1619,6 +1633,32 @@ Done when: supabase/tests/import_fixes.sql (and import_undo.sql after the hand-r
 with "ALL … CHECKS PASSED" on the test project; the migration applied to production with the
 same function bodies; unit tests for the app side; the hand-run steps in docs/PENDING.md; PR
 open.
+Stop after this step.
+Finish with the short summary CLAUDE.md asks for.
+```
+
+### IM4 · Past jobs and decided quotes (history import)
+
+```
+Import overhaul IM4: the history import (docs/PENDING.md D26; docs/SWITCHING.md, "Import
+overhaul: fix it here", Parts; docs/ANALYTICS.md on year-on-year). IM1 must be merged. Read
+20261119000000_import_jobs.sql and 20261210000001_import_gig_client.sql, and dryRun for gigs and
+quotes in src/lib/importer.js.
+
+Scope:
+- In the check's "left out on purpose" list, past jobs offer "Import as past jobs": they become
+  completed gigs with their dates, client and venue (cancelled ones stay out unless I choose
+  "Import as cancelled").
+- Quotes can come in with their status (accepted, declined) and their dates (sent, decided) so
+  the K reports count them; a declined quote can bring its reason when the file has one.
+- Past gigs never book equipment or clash with anything, and nobody is notified about them.
+- Re-importing still matches by the old number (import_ref), so nothing doubles.
+
+Ask me before building: the migration outline for my yes; how far back to allow.
+
+Done when: supabase/tests/import_jobs.sql extended (past gigs don't book stock, statuses and
+dates kept) ends with "ALL … CHECKS PASSED" on test; production applied with the same function
+bodies; unit tests for the predictions; help guide; PR open.
 Stop after this step.
 Finish with the short summary CLAUDE.md asks for.
 ```

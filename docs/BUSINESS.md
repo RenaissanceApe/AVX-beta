@@ -45,7 +45,7 @@ When a step here is built, its session adds a "How … works" section below in t
 | Who | Admins manage the fields; members read them, and crew on one of the organisation's gigs read its gig fields (so gig fields are visible to crew). Values follow the record's own access rules |
 | Screens | Organisation settings (`OrgCustomFieldsSettings`), `CustomFieldInputs` in the gig, client, supplier and item forms (saved with `mergeValues`, which keeps removed fields' values), `CustomFieldList` on the gig overview, the item page's details, the gigs search (`customSearchText`) |
 | Export | `private.custom_columns` turns each record's values into one column per field label (built-in columns win a clash) in the gigs, clients, suppliers and items files (migration `20261202000001_export_custom_fields.sql`) |
-| Not yet | Import mapping to custom fields; filters by a field's value |
+| Not yet | Import mapping to custom fields (planned in IM2, [SWITCHING.md](SWITCHING.md) "Import overhaul"); filters by a field's value |
 
 ## How crew rates work (step 7, 0.63.0)
 

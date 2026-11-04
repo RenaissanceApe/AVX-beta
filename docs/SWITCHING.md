@@ -1,6 +1,6 @@
 # Switching to AVX: plan
 
-Status: **S1–S5 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0), crew as held invitations (S3a, 0.44.0), upcoming jobs, their equipment and open quotes (S3b, 0.45.0), Rentman exports, the switching checklist and the calendar feed (S4, 0.46.0), the organisation export (S5, 0.47.0). Switching is complete; next on the roadmap: crew network and job board. An overhaul of the wizard, so every problem can be fixed where it shows up (IM1–IM3), is planned in "Import overhaul: fix it here" below.
+Status: **S1–S5 built**: the import wizard for locations, equipment and units (S1a, 0.41.0), Excel files and kit contents (S1b, 0.42.0), the contacts directory with its import (S2, 0.43.0), crew as held invitations (S3a, 0.44.0), upcoming jobs, their equipment and open quotes (S3b, 0.45.0), Rentman exports, the switching checklist and the calendar feed (S4, 0.46.0), the organisation export (S5, 0.47.0). Switching is complete; next on the roadmap: crew network and job board. An overhaul of the wizard, so every problem can be fixed where it shows up (IM1–IM3), is planned in "Import overhaul: fix it here" below (IM1–IM4).
 
 The aim: a company using Rentman, another rental tool or spreadsheets can be fully running on
 AVX within a day, without retyping anything and without risking their data. Making it easy to
@@ -157,7 +157,7 @@ Checks: `supabase/tests/import_jobs.sql`.
 Known limitation: an item imported with a bulk quantity can't take serial numbers afterwards (the
 units import refuses bulk items). For gear kept per serial number, import the units file first or
 leave its quantity out of the equipment file. Converting it automatically needs the opening stock
-movement removed, which is a hand-run change for later.
+movement removed, which is a hand-run change: planned in IM3 ("Import overhaul" below).
 
 Checks: `supabase/tests/calendar_feed.sql`; the feed's text in `src/lib/ics.test.js`.
 
@@ -190,7 +190,7 @@ those rows out and says "Fix them in the file and import it again". Importing is
 nature, so the wizard should make it as easy and as controlled as possible.
 
 Scope: the whole wizard (it is the app's only import path), all ten kinds and all four steps.
-Built in three parts, each in its own session (ROADMAP.md, prompts IM1–IM3; decision D38).
+Built in four parts, each in its own session (ROADMAP.md, prompts IM1–IM4; decision D38).
 
 ### Principles
 
@@ -235,7 +235,7 @@ Every group also offers "Leave these rows out". **(IM3)** marks a fix that needs
 | A unit code already on another item's unit (new prediction, `otherItem`) | units | **Edit the code** |
 | Changing how an item with stock is kept (new prediction where the stock totals tell, `trackingLocked`) | equipment | **Keep it as it is** |
 | A quantity for an item already in AVX (`quantityKept`, a note after the import today) | equipment | A heads-up before importing: not added, use a stock count |
-| Past or cancelled jobs, inactive crew, people already in or invited, a quote already sent (new prediction) | jobs, crew, quotes | **"Left out on purpose"**: a calm list, no action (past jobs: D26, a step of its own) |
+| Past or cancelled jobs, inactive crew, people already in or invited, a quote already sent (new prediction) | jobs, crew, quotes | **"Left out on purpose"**: a calm list, no action until IM4, which adds **Import as past jobs** (D26) |
 
 ### Choose step
 
@@ -254,6 +254,7 @@ Every group also offers "Leave these rows out". **(IM3)** marks a fix that needs
 | A field the file doesn't have (no item column in a units file, no location column…) | blocked, except "Where is this stock?" for Rentman's equipment | **"Same for every row"**: one value for a missing field (location, item, job, client, status, role, location type). Replaces "Where is this stock?" |
 | Dates written month/day | read day first: some fail, some are silently wrong | The order noticed per date column; asked when it can't be told |
 | Columns with data that won't be imported | left out silently | Listed: "Not imported: Remarks, Colour" |
+| A column for one of your custom fields | can't be imported (BUSINESS.md, "Not yet") | Custom fields of gigs, clients, suppliers and items offered as targets; values checked by the field's kind |
 
 ### Done step and earlier imports
 
@@ -284,12 +285,17 @@ Every group also offers "Leave these rows out". **(IM3)** marks a fix that needs
 - The check step moves to `src/components/import/` (the fix panel and a small "add" dialog);
   choices are radio buttons in labelled groups, with text and an icon, never colour alone. Text
   in English and Portuguese; the `wh-import` help guide and its screenshots follow.
-- The fix panel is generic, so later imports (S08's MVR/GDTF) can use it.
+- The fix panel is generic, so later additions to the import use it: S07's speaker specs and
+  S09's electrical columns (new fields, and a `FIXES` entry for any new reason), S08's MVR/GDTF
+  fixtures matched to catalogue items, and S03b's AT e-Fatura file if it is imported.
+- Browser tests: IM1–IM2 write the import's own; QA4's import run comes after IM2 and only adds
+  what they don't cover (it uses QA1's shared helpers, as IM does once QA1 is merged).
 
 ### Parts
 
 | Part | What | Database |
 |---|---|---|
 | **IM1 · Fix it in the check** | The Check-step table (the IM3 fixes show as not available yet), grouping, cell edits, additions saved on Import, the new predictions, "left out on purpose" and heads-ups, the summary on the Import button, the `FIXES` table and its test, a signed-in browser test | None |
-| **IM2 · Before and after the check** | The Choose, Match and Done tables, except the undo row | None |
-| **IM3 · The database part** | Additions and restores in the import's own batch (one undo takes it all back); exact picks by id (item, location, gig, client; checked to belong to the organisation), so same-named records without codes can be chosen and "add as a new contact" works; restoring archived items; fixes remembered with a saved matching (`import_presets.fixes`); undo saying what's in use and offering to undo the rest | One migration, outlined for the owner's yes first; the undo change is a hand-run file (it removes records). Needs `20261117000001_import_undo.sql` to have been run (T31) |
+| **IM2 · Before and after the check** | The Choose, Match and Done tables, except the undo row; columns into custom fields | None expected (outlined first if saving custom values needs one) |
+| **IM3 · The database part** | Additions and restores in the import's own batch (one undo takes it all back); exact picks by id (item, location, gig, client; checked to belong to the organisation), so same-named records without codes can be chosen and "add as a new contact" works; restoring archived items; fixes remembered with a saved matching (`import_presets.fixes`); undo saying what's in use and offering to undo the rest; units for an item counted in bulk can switch it to per unit (the S4 known limitation) | One migration, outlined for the owner's yes first; the undo change is a hand-run file (it removes records). Needs `20261117000001_import_undo.sql` to have been run (T31) |
+| **IM4 · History import** (D26) | Past jobs come in as completed gigs (no booking, no clashes, nobody notified) and quotes with their accepted or declined status and dates, for year-on-year reports | One migration, outlined for the owner's yes first |
