@@ -6,6 +6,9 @@
 
 export default {
   terms: {
+    leave: { term: 'Leave', definition: 'Days off for an organisation\'s staff (admins and members): holiday, sick, training or other. Holiday, training and other wait for an admin to approve them; sick days count at once. Approved leave makes you busy for gigs, Find crew and hours.', example: 'Holiday from Monday 1 to Friday 5 March: 5 working days.', where: 'Organisation → Leave' },
+    'holiday-balance': { term: 'Holiday balance', definition: 'The holiday days a member of staff has left in a year: the allowance plus the days carried over, minus approved holiday. Requests still waiting are shown apart.', example: '22 allowance + 2 carried − 9 taken = 15 left.', where: 'Organisation → Leave' },
+    'working-week': { term: 'Working week', definition: 'The weekdays a member of staff normally works, and their hours a day. Leave only counts working days, and reports use it to count how much of a person\'s time was booked.', example: 'Monday to Thursday, 9 h a day: a week of holiday is 4 days.', where: 'Organisation → Leave → Edit' },
     'hours-split': { term: 'Hours split', definition: 'How a logged day divides into normal, overtime, night, weekend and holiday hours. Each hour counts once, under its highest factor. It is kept as it was when the day was approved.', example: 'Fri 14:00–02:00 with a 1 h break: 7 h normal, 3 h night, 1 h overtime.', where: 'Gig → Crew → Hours, My hours, organisation Hours' },
     gig: { term: 'Gig', definition: 'An event or job your team works on: a concert, a conference, a rental.', example: 'Festival main stage, 12–14 July.', where: 'Gigs list, calendar, gig page' },
     organisation: { term: 'Organisation', definition: 'A company in AVX. It has members, gigs, equipment and quotes.', example: 'Lumen and Pixel, with three admins and twenty crew.', where: 'Company switcher at the top' },
@@ -91,6 +94,11 @@ export default {
   },
 
   hints: {
+    'leave-type': 'Holiday counts against your holiday days. Sick days count at once and the admins are told; holiday, training and other wait for an admin.',
+    'leave-half': 'Take only the afternoon of the first day or the morning of the last day. A half day counts 0.5, and you can still log hours on it.',
+    'leave-allowance': 'Holiday days per year. The organisation\'s number applies to everyone unless a person has their own (leave it empty to use the organisation\'s).',
+    'leave-carried': 'Days from last year added to this year\'s allowance. You decide how many: nothing carries over by itself.',
+    'leave-hours': 'A normal working day for this person. Reports use it with the working days to count how much of their time was booked.',
     hours: 'Each person logs start, end and break for every day they work. The gig\'s managers approve or send back; approved days lock, keeping their hours split and cost. Crew only ever see their own.',
     'hours-end': 'An end earlier than the start means you worked past midnight (for example 14:00 to 02:00).',
     'hours-travel': 'Time spent travelling to and from the venue. It is paid at the plain hour rate, without overtime or night factors; km at the organisation\'s rate per km.',
@@ -144,6 +152,7 @@ export default {
   },
 
   pages: {
+    'org-leave': { title: 'Leave', summary: 'Who in the organisation is away each day, your holiday days and your requests. Admins also decide requests, enter leave for someone and set holiday days and working weeks. Approved leave makes the person busy for gigs and hours.' },
     'my-hours': { title: 'My hours', summary: 'The hours you logged on every gig, at any company, month by month: what is waiting, sent back or approved, and what approved days pay. Download them as a CSV.' },
     'org-hours': { title: 'Hours', summary: 'Everyone\'s logged hours on the organisation\'s gigs, per person and month, with the cost stored when each day was approved. Admins only. Download them as a CSV.' },
     'pocket-tools': { title: 'Pocket tools', summary: 'Calculators for any venue, with or without a gig in AVX: DMX addresses and dipswitches, a block of fixtures, universes and absolute channels, and value conversions. They work offline.' },
@@ -165,6 +174,32 @@ export default {
 
   // guides: Help → Guides and the ? panel. Steps line up with the screenshots in index.js (GUIDES).
   guides: {
+    'of-leave': {
+      title: 'Ask for leave',
+      intro: 'Tell the organisation when you\'ll be away, so nobody books you and your holiday days stay right.',
+      steps: [
+        'Open Leave in the organisation\'s menu and tap "Ask for leave". Pick the type, the first and last day, and a half day if you only take a morning or an afternoon. The form shows how many working days it uses.',
+        'Holiday, training and other go to the admins; you get a notification when they approve or refuse. A sick day counts at once, even for days already past, and the admins are told.',
+        'Your balance at the top shows the holiday days left this year. Approved leave appears in "Who is away", in your calendar feed, and blocks gigs and hours on those days. Remove leave with ×.',
+      ],
+      mistakes: [
+        'Asked or approved leave can\'t be moved: remove it and ask again.',
+        'Freelancers mark their own unavailable dates in My work instead: those need no approval.',
+      ],
+    },
+    'ad-leave': {
+      title: 'Approve leave and keep holiday days right',
+      intro: 'Decide requests, see who is away, and set each person\'s holiday days and working week.',
+      steps: [
+        'In Leave, "requests waiting for you" lists each request with its days. Tap "Approve", or "Refuse" with a reason they will see. "Add for someone" enters leave (a sick call, say) that counts at once.',
+        'Under "Holiday days and working weeks", set the organisation\'s days per year (22 to start). "Edit" a person for their own allowance, the days carried over from last year, their working days and hours a day.',
+        '"Who is away" shows the month day by day. Approved leave blocks the person for gigs, Find crew and hours; the organisation export has the leave, balances and working weeks.',
+      ],
+      mistakes: [
+        'Nothing carries over by itself: type each person\'s carried days at the start of the year.',
+        'Other members see a sick day only as "away", without notes.',
+      ],
+    },
     'crew-hours': {
       title: 'Log your hours on a gig',
       intro: 'Tell the gig\'s managers when you worked, so overtime, nights and travel are paid right.',

@@ -232,7 +232,11 @@ export function sampleData(persona, lang) {
       gig_invites: persona === 'pm' ? [{ id: 'i1', gig_id: gigId, email: 'joana.r@example.com', role: 'crew', function_title: w.stage, call_time: '08:00', created_at: ago(30) }] : [],
       gig_positions: [],
       availability_requests: persona === 'pm' ? [] : [request],
-      crew_unavailability: persona === 'pm' ? [] : [{ id: 'u1', user_id: carla, start_date: day(50), end_date: day(57), note: w.holiday, created_at: ago(100) }],
+      // Leave (step 9): Carla's own dates; for Ricardo (admin), Duarte's request waiting and his own approved days
+      crew_unavailability: persona === 'pm' ? [
+        { id: 'lv1', user_id: duarte, org_id: orgId, type: 'holiday', status: 'requested', start_date: day(30), end_date: day(34), start_half: false, end_half: false, days: 5, note: tx('Casamento da minha irmã', 'My sister’s wedding'), removed_at: null, created_at: ago(20) },
+        { id: 'lv2', user_id: ricardo, org_id: orgId, type: 'training', status: 'approved', start_date: day(12), end_date: day(12), start_half: false, end_half: true, days: 0.5, note: null, removed_at: null, created_at: ago(200) },
+      ] : [{ id: 'u1', user_id: carla, org_id: null, type: 'holiday', status: 'approved', start_date: day(50), end_date: day(57), start_half: false, end_half: false, days: 8, note: w.holiday, removed_at: null, created_at: ago(100) }],
       notifications: persona === 'pm' ? [] : [{ id: 1, user_id: carla, org_id: orgId, gig_id: gigId, actor_id: ricardo, kind: 'availability_request', details: { gig_name: gig.name, from: `${day(24)}T00:00:00Z`, until: `${day(26)}T00:00:00Z` }, read_at: null, created_at: ago(3) }],
       gig_equipment: gear,
       tasks: [
@@ -379,6 +383,16 @@ export function sampleData(persona, lang) {
           post_description: tx('Sem pagamento, boa experiência.', 'No pay, great experience.'), org_id: 'o-x', org_name: 'Eventos Rápidos', reason: 'spam', note: null, reporter: 'Inês Lopes', created_at: ago(40), profile: null, org_suspended: false }],
         suspended_orgs: [], suspended_profiles: [],
       },
+      org_leave_calendar: persona === 'pm' ? [
+        { id: 'lv3', user_id: ana, full_name: 'Ana Costa', type: 'holiday', status: 'approved', start_date: day(1), end_date: day(3), start_half: false, end_half: false, days: 3, note: null },
+        { id: 'lv4', user_id: duarte, full_name: 'Duarte Silva', type: 'sick', status: 'approved', start_date: day(0), end_date: day(0), start_half: false, end_half: false, days: 1, note: null },
+        { id: 'lv2', user_id: ricardo, full_name: 'Ricardo Bedulho', type: 'training', status: 'approved', start_date: day(2), end_date: day(2), start_half: false, end_half: true, days: 0.5, note: null },
+      ] : [],
+      leave_balances: persona === 'pm' ? [
+        { user_id: ana, full_name: 'Ana Costa', role: 'admin', allowance: 22, own_allowance: null, carried: 2, used: 9, asked: 0, left_days: 15, work_days: [1, 2, 3, 4, 5], hours_per_day: 8 },
+        { user_id: duarte, full_name: 'Duarte Silva', role: 'member', allowance: 22, own_allowance: null, carried: 0, used: 11, asked: 5, left_days: 11, work_days: [1, 2, 3, 4], hours_per_day: 9 },
+        { user_id: ricardo, full_name: 'Ricardo Bedulho', role: 'admin', allowance: 25, own_allowance: 25, carried: 0, used: 14.5, asked: 0, left_days: 10.5, work_days: [1, 2, 3, 4, 5], hours_per_day: 8 },
+      ] : [],
       my_clashes: [],
       gig_clashes: persona === 'pm' ? [{ user_id: duarte, kind: 'booked', status: 'confirmed', starts_at: `${day(24)}T00:00:00Z`, ends_at: `${day(25)}T00:00:00Z`, gig_id: null, label: null, company: null, role_label: null }] : [],
       email_clashes: [],

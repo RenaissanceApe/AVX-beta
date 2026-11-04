@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.67.0 — Leave
+
+### Added
+- **Leave requests** (step 9, [docs/BUSINESS.md](docs/BUSINESS.md)). An organisation's staff
+  (admins and members) ask for leave in the new **Leave** page: holiday, sick, training or other,
+  with a half day at the start or end if needed. The form shows how many working days it uses.
+  Holiday, training and other wait for an admin, who approves or refuses (with a reason the person
+  sees); both sides get a notification. A sick day counts at once, even for days already past, and
+  the admins are told. Admins can also enter leave for someone, which counts at once.
+- **Holiday days.** Each organisation has its holiday days per year (22 to start). An admin can
+  give a person their own number for a year and type the days carried over from last year
+  (nothing carries over by itself). Everyone sees their own balance: allowance, carried, taken,
+  waiting and left; admins see everyone's.
+- **Working week** per member of staff: their working days (Monday to Friday to start) and hours
+  a day. Leave only counts working days, leaving out weekends off, Portugal's national holidays
+  and the organisation's own.
+- **Who is away**: the month day by day, for the organisation's admins and members. Members see a
+  colleague's sick day only as "away", and never the notes.
+- **Types for your own dates.** Freelancers' unavailable dates (My work → Availability) now have a
+  type too, and still need no approval. Staff see their organisation leave there with its status,
+  and a button to ask each organisation for leave.
+
+### Connected
+- Approved leave makes the person busy everywhere unavailable dates did: clashes on a gig's Crew
+  tab, Find crew's "free only", and the ⚠ in the network picker (a half day only blocks that
+  morning or afternoon). A request waiting for approval doesn't block anyone yet. Other companies
+  still only see "busy", never the type.
+- Time registration: no hours can be logged on a whole day of approved leave (a half day still
+  allows them).
+- Notifications in the app, by push and in the email summary; your calendar feed (your approved
+  leave and unavailable dates as all-day events); the organisation export (new leave, holiday
+  days, working weeks and settings files).
+- Reports (K7): the database can now count each person's working days, leave by type, days and
+  hours available and approved hours logged, ready for the K7 people reports.
+- Help: two guides with pictures ("Ask for leave", "Approve leave and keep holiday days right"),
+  five ⓘ hints and three glossary words.
+
 ## 0.66.0 — Hours
 
 ### Added

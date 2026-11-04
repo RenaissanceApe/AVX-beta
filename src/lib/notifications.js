@@ -55,12 +55,21 @@ export function describeNotification(n, nameOf) {
     case 'hours_submitted':   return t('notif.hoursSubmitted', { actor, gig })
     case 'hours_approved':    return t('notif.hoursApproved', { actor, gig, date: d.work_date ? fmt(d.work_date, 'd MMM') : '' })
     case 'hours_returned':    return t('notif.hoursReturned', { actor, gig, date: d.work_date ? fmt(d.work_date, 'd MMM') : '' }) + (d.note ? `: “${d.note}”` : '')
+    case 'leave_requested':
+    case 'leave_sick':
+    case 'leave_cancelled':
+    case 'leave_approved':
+    case 'leave_refused': {
+      const range = d.start_date ? dayRange(d.start_date, d.end_date, fmt) : '—'
+      const text = t(`notif.${n.kind.replace(/_(\w)/g, (_, c) => c.toUpperCase())}`, { actor, range, type: t(`leave.type.${d.type || 'other'}`) })
+      return d.note ? `${text}: “${d.note}”` : text
+    }
     default:                  return t('notif.generic', { gig })
   }
 }
 
 // Kinds that are a direct question to you: they still count when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned', 'leave_requested', 'leave_sick', 'leave_cancelled', 'leave_approved', 'leave_refused'])
 export const countsAsUnread = (n, mutedOrgIds) => !n.read_at && (!n.org_id || !mutedOrgIds?.has(n.org_id) || DIRECT_KINDS.has(n.kind))
 
 export function notificationLink(n) {
@@ -71,6 +80,7 @@ export function notificationLink(n) {
   if (n.kind === 'job_application' && n.org_id) return `/org/${n.org_id}/jobs`
   if (n.kind === 'job_declined' || n.kind === 'job_match') return '/jobs'
   if (n.kind === 'crew_match' && n.org_id) return `/org/${n.org_id}/crew?search=${n.details?.search_id || ''}`
+  if (n.kind.startsWith('leave_') && n.org_id) return `/org/${n.org_id}/leave`
   if (n.kind === 'task_assigned') return n.gig_id ? `/gig/${n.gig_id}?tab=tasks` : '/tasks'
   if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `/org/${n.org_id}/inventory?tab=maintenance`

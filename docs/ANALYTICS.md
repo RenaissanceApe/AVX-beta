@@ -397,6 +397,9 @@ Needs: K1, 8, 9.
 - A person page for admins: their days, hours and cost with the organisation (a DATA_MAP.md row).
 - Tiles: crew days this month, open positions in the next 14 days, overdue tasks, hours waiting for
   approval.
+- Built in step 9: `staff_utilisation(org, from, to)` gives each member of staff's working days, leave
+  per type, days and hours available and approved hours logged (docs/BUSINESS.md, "How leave
+  requests work").
 - Ask: per-person figures for admins only or members too; the wrap-up page; a "cancelled" status.
 
 ## K8 · Crew numbers

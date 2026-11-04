@@ -14,7 +14,7 @@ export type Notification = {
 }
 
 // Kinds that are a direct question to the person: sent even when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned', 'leave_requested', 'leave_sick', 'leave_cancelled', 'leave_approved', 'leave_refused'])
 
 export const STRINGS: Record<Lang, Record<string, string>> = {
   en: {
@@ -71,6 +71,12 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     hoursSubmitted: '{actor} logged hours on {gig}',
     hoursApproved: '{actor} approved your hours for {date} on {gig}',
     hoursReturned: '{actor} sent back your hours for {date} on {gig}',
+    leaveRequested: '{actor} asked for leave: {type}, {range}',
+    leaveSick: '{actor} is off sick: {range}',
+    leaveCancelled: '{actor} cancelled approved leave: {type}, {range}',
+    leaveApproved: '{actor} approved your leave: {type}, {range}',
+    leaveRefused: '{actor} refused your leave: {type}, {range}',
+    'leaveType.holiday': 'holiday', 'leaveType.sick': 'sick', 'leaveType.training': 'training', 'leaveType.other': 'other',
     guestOne: '{guest} wrote about {about}: “{excerpt}”',
     guestMany: '{guest} wrote {count} messages about {about}, latest: “{excerpt}”',
     'about.quote': 'a quote', 'about.supplier': 'a subrental',
@@ -137,6 +143,12 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     hoursSubmitted: '{actor} registou horas em {gig}',
     hoursApproved: '{actor} aprovou as suas horas de {date} em {gig}',
     hoursReturned: '{actor} devolveu as suas horas de {date} em {gig}',
+    leaveRequested: '{actor} pediu uma ausência: {type}, {range}',
+    leaveSick: '{actor} está de baixa: {range}',
+    leaveCancelled: '{actor} cancelou uma ausência aprovada: {type}, {range}',
+    leaveApproved: '{actor} aprovou a sua ausência: {type}, {range}',
+    leaveRefused: '{actor} recusou a sua ausência: {type}, {range}',
+    'leaveType.holiday': 'férias', 'leaveType.sick': 'baixa', 'leaveType.training': 'formação', 'leaveType.other': 'outro',
     guestOne: '{guest} escreveu sobre {about}: “{excerpt}”',
     guestMany: '{guest} escreveu {count} mensagens sobre {about}, a última: “{excerpt}”',
     'about.quote': 'um orçamento', 'about.supplier': 'um aluguer externo',
@@ -222,6 +234,11 @@ export function describe(n: Notification, lang: Lang, actorName: string | undefi
     case 'hours_submitted': return fill(s.hoursSubmitted, { actor, gig })
     case 'hours_approved': return fill(s.hoursApproved, { actor, gig, date: dayText(d.work_date, null, lang) })
     case 'hours_returned': return fill(s.hoursReturned, { actor, gig, date: dayText(d.work_date, null, lang) }) + (d.note ? `: “${d.note}”` : '')
+    case 'leave_requested': case 'leave_sick': case 'leave_cancelled': case 'leave_approved': case 'leave_refused': {
+      const key = n.kind.replace(/_(\w)/g, (_: string, c: string) => c.toUpperCase())
+      const text = fill(s[key], { actor, range: dayText(d.start_date, d.end_date, lang), type: s[`leaveType.${d.type ?? 'other'}`] ?? '' })
+      return d.note ? `${text}: “${d.note}”` : text
+    }
     case 'task_assigned': return fill(d.gig_name ? s.taskAssigned : s.taskAssignedOrg, { actor, gig, title: d.title ?? '' })
     case 'guest_message': return fill(Number(d.count ?? 1) > 1 ? s.guestMany : s.guestOne, {
       guest: d.guest_name ?? s.someone, about: d.about || s[`about.${d.about_kind ?? 'quote'}`], count: d.count ?? 1, excerpt: d.excerpt ?? '' })
@@ -246,6 +263,7 @@ export function linkFor(n: Notification, appUrl: string) {
   if (n.kind === 'job_application' && n.org_id) return `${appUrl}/org/${n.org_id}/jobs`
   if (n.kind === 'job_declined' || n.kind === 'job_match') return `${appUrl}/jobs`
   if (n.kind === 'crew_match' && n.org_id) return `${appUrl}/org/${n.org_id}/crew?search=${n.details?.search_id ?? ''}`
+  if (n.kind.startsWith('leave_') && n.org_id) return `${appUrl}/org/${n.org_id}/leave`
   if (n.kind === 'task_assigned') return n.gig_id ? `${appUrl}/gig/${n.gig_id}?tab=tasks` : `${appUrl}/tasks`
   if (n.details?.quote_id) return `${appUrl}/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=maintenance`

@@ -18,10 +18,20 @@ export type FeedGig = {
   booked_until?: string | null
   hours?: { work_date: string, start_time: string, end_time: string, status: string }[] // this person's own logged days
 }
+// The person's own approved leave and unavailable dates (step 9)
+export type FeedLeave = {
+  id: string
+  type: string // holiday | sick | training | other
+  start_date: string
+  end_date: string
+  start_half?: boolean
+  end_half?: boolean
+  org?: string | null
+}
 
 const WORDS: Record<FeedLang, Record<string, string>> = {
-  en: { calendar: 'AVX gigs', call: 'Call time', role: 'Role', open: 'Open in AVX', draft: 'Draft (not confirmed yet)', pm: 'Production manager', crew: 'Crew', viewer: 'Viewer', hours: 'Your hours', approved: 'approved', waiting: 'waiting for approval', returned: 'sent back' },
-  pt: { calendar: 'Eventos AVX', call: 'Hora de chamada', role: 'Papel', open: 'Abrir no AVX', draft: 'Rascunho (ainda não confirmado)', pm: 'Diretor de produção', crew: 'Equipa', viewer: 'Leitor', hours: 'As suas horas', approved: 'aprovadas', waiting: 'a aguardar aprovação', returned: 'devolvidas' },
+  en: { holiday: 'Holiday', sick: 'Sick', training: 'Training', other: 'Unavailable', morning: 'morning', afternoon: 'afternoon', calendar: 'AVX gigs', call: 'Call time', role: 'Role', open: 'Open in AVX', draft: 'Draft (not confirmed yet)', pm: 'Production manager', crew: 'Crew', viewer: 'Viewer', hours: 'Your hours', approved: 'approved', waiting: 'waiting for approval', returned: 'sent back' },
+  pt: { holiday: 'Férias', sick: 'Baixa', training: 'Formação', other: 'Indisponível', morning: 'manhã', afternoon: 'tarde', calendar: 'Eventos AVX', call: 'Hora de chamada', role: 'Papel', open: 'Abrir no AVX', draft: 'Rascunho (ainda não confirmado)', pm: 'Diretor de produção', crew: 'Equipa', viewer: 'Leitor', hours: 'As suas horas', approved: 'aprovadas', waiting: 'a aguardar aprovação', returned: 'devolvidas' },
 }
 
 // Text values: backslash, semicolon, comma and line breaks escaped (RFC 5545 3.3.11)
@@ -76,7 +86,20 @@ export function gigEvent(g: FeedGig, lang: FeedLang, appUrl: string, now: Date) 
   return lines
 }
 
-export function buildCalendar(gigs: FeedGig[], lang: FeedLang, appUrl: string, now = new Date()) {
+// One all-day VEVENT per stretch of leave; a half first or last day is said in the title
+export function leaveEvent(l: FeedLeave, lang: FeedLang, now: Date) {
+  const w = WORDS[lang] || WORDS.en
+  const halves = [l.start_half ? `${l.start_date.slice(8, 10)}/${l.start_date.slice(5, 7)} ${w.afternoon}` : null,
+    l.end_half ? `${l.end_date.slice(8, 10)}/${l.end_date.slice(5, 7)} ${w.morning}` : null].filter(Boolean)
+  const title = [w[l.type] || w.other, l.org].filter(Boolean).join(' · ') + (halves.length ? ` (${halves.join(', ')})` : '')
+  return [
+    'BEGIN:VEVENT', `UID:leave-${l.id}@avx`, `DTSTAMP:${utcValue(now.toISOString())}`,
+    `DTSTART;VALUE=DATE:${dateValue(l.start_date)}`, `DTEND;VALUE=DATE:${dateValue(nextDay(l.end_date))}`,
+    `SUMMARY:${escapeText(title)}`, 'TRANSP:OPAQUE', 'STATUS:CONFIRMED', 'END:VEVENT',
+  ]
+}
+
+export function buildCalendar(gigs: FeedGig[], lang: FeedLang, appUrl: string, now = new Date(), leave: FeedLeave[] = []) {
   const w = WORDS[lang] || WORDS.en
   const lines = [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//AVX//Gigs//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
@@ -86,6 +109,7 @@ export function buildCalendar(gigs: FeedGig[], lang: FeedLang, appUrl: string, n
     if (g.status === 'archived') continue
     lines.push(...gigEvent(g, lang, appUrl, now))
   }
+  for (const l of leave) lines.push(...leaveEvent(l, lang, now))
   lines.push('END:VCALENDAR')
   return lines.map(fold).join('\r\n') + '\r\n'
 }

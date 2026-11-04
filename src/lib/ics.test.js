@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildCalendar, gigEvent, escapeText, fold } from '../../supabase/functions/_shared/ics.ts'
+import { buildCalendar, gigEvent, leaveEvent, escapeText, fold } from '../../supabase/functions/_shared/ics.ts'
 
 const APP = 'https://avx-beta.vercel.app'
 const NOW = new Date('2026-10-21T12:00:00Z')
@@ -47,5 +47,17 @@ describe('calendar feed', () => {
     expect(ics).toContain('UID:a@avx')
     expect(ics).toContain('DTEND;VALUE=DATE:20261102')
     expect(ics).toContain('X-WR-CALNAME:AVX gigs')
+  })
+
+  it('adds the person’s own approved leave as all-day events (step 9)', () => {
+    const ev = leaveEvent({ id: 'l1', type: 'holiday', start_date: '2027-03-01', end_date: '2027-03-05', org: 'Lumen and Pixel' }, 'en', NOW)
+    expect(ev).toContain('UID:leave-l1@avx')
+    expect(ev).toContain('DTSTART;VALUE=DATE:20270301')
+    expect(ev).toContain('DTEND;VALUE=DATE:20270306')
+    expect(ev).toContain('SUMMARY:Holiday · Lumen and Pixel')
+    const half = leaveEvent({ id: 'l2', type: 'training', start_date: '2027-03-08', end_date: '2027-03-08', end_half: true }, 'pt', NOW)
+    expect(half).toContain('SUMMARY:Formação (08/03 manhã)')
+    const cal = buildCalendar([], 'en', APP, NOW, [{ id: 'l3', type: 'other', start_date: '2027-04-01', end_date: '2027-04-01' }])
+    expect(cal).toContain('SUMMARY:Unavailable')
   })
 })
