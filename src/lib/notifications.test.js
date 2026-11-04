@@ -11,6 +11,8 @@ describe('notifications', () => {
       .toBe('Someone added you to NOS as Crew')
     expect(describeNotification({ kind: 'call_time_changed', details: { gig_name: 'NOS', call_time: '09:30:00' } }, nameOf))
       .toBe('Your call time for NOS is now 09:30')
+    expect(describeNotification({ kind: 'leave_refused', actor_id: 'u1', details: { type: 'holiday', start_date: '2027-03-01', end_date: '2027-03-01', note: 'Busy week' } }, nameOf))
+      .toBe('Ana refused your leave: Holiday, 1 Mar: “Busy week”')
   })
   it('links to the right place', () => {
     expect(notificationLink({ gig_id: 'g1', kind: 'schedule_changed' })).toBe('/gig/g1?tab=schedule')
@@ -19,6 +21,7 @@ describe('notifications', () => {
     expect(notificationLink({ org_id: 'o1', gig_id: 'g1', kind: 'damage_reported' })).toBe('/org/o1/inventory?tab=maintenance')
     expect(notificationLink({ org_id: 'o1', kind: 'inspection_due' })).toBe('/org/o1/inventory?tab=maintenance')
     expect(notificationLink({ org_id: 'o1', kind: 'hire_request' })).toBe('/org/o1/inventory?tab=subrentals')
+    expect(notificationLink({ org_id: 'o1', kind: 'leave_requested' })).toBe('/org/o1/leave')
   })
   it('describes maintenance', () => {
     expect(describeNotification({ kind: 'damage_reported', actor_id: 'u1', details: { item_name: 'Speaker', unit_code: 'U-1', gig_name: 'NOS', excerpt: 'Cracked' } }, nameOf))

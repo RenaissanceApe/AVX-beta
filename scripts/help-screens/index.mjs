@@ -397,6 +397,25 @@ const SCENES = {
     await first.click()
     return first
   } },
+  'leave-ask': { persona: 'pm', url: `/org/${ids.org}/leave`, async run(page, L) {
+    await page.getByRole('button', { name: L('leave.ask') }).first().click()
+    const dialog = page.getByRole('dialog')
+    await dialog.locator('#leave-type').selectOption('holiday')
+    await dialog.getByLabel(L('availability.from'), { exact: true }).fill(dayFromNow(40))
+    await dialog.getByLabel(L('availability.to'), { exact: true }).fill(dayFromNow(44))
+    return dialog.getByRole('button', { name: L('leave.send') })
+  } },
+  'leave-requests': { persona: 'pm', url: `/org/${ids.org}/leave`, async run(page, L) {
+    const box = page.locator('section[aria-labelledby="leave-requests"]')
+    await box.waitFor()
+    return box.getByRole('button', { name: L('leave.approve') }).first()
+  } },
+  'leave-balances': { persona: 'pm', url: `/org/${ids.org}/leave`, async run(page) {
+    const box = page.locator('section[aria-labelledby="leave-balances"]')
+    await box.waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'start' }))
+    return box
+  } },
   'crewcall-fee': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
     await page.getByRole('button', { name: L('crewCall.button') }).first().click()
     const dialog = page.getByRole('dialog')

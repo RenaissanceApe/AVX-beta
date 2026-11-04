@@ -28,6 +28,7 @@ export const PAGE_TERMS = {
   'org-tasks': ['repair'],
   'my-hours': ['hours-split'],
   'org-hours': ['hours-split'],
+  'org-leave': ['leave', 'holiday-balance', 'working-week', 'unavailable-dates'],
   quote: ['phase', 'factor', 'vat', 'quote-version', 'client-link', 'price-list'],
   orgs: ['organisation', 'org-admin', 'org-member', 'viewer', 'retention'],
 }
@@ -101,6 +102,8 @@ export const GUIDES = {
   'ad-gig-statuses': { role: 'admin', pages: ['orgs', 'home', 'gig'], terms: ['gig-status'], shots: [null, 'org-labels', null] },
   'crew-hours': { role: 'crew', pages: ['gig', 'my-hours'], terms: ['hours-split'], shots: ['hours-log', null, null] },
   'pm-approve-hours': { role: 'admin', pages: ['gig', 'org-hours', 'orgs'], terms: ['hours-split'], shots: ['gig-hours', null, 'org-hours'] },
+  'of-leave': { role: 'office', pages: ['org-leave', 'home'], terms: ['leave', 'holiday-balance'], shots: ['leave-ask', null, null] },
+  'ad-leave': { role: 'admin', pages: ['org-leave', 'orgs'], terms: ['leave', 'holiday-balance', 'working-week'], shots: ['leave-requests', 'leave-balances', null] },
   'pm-labour-cost': { role: 'admin', pages: ['orgs', 'gig', 'org-jobs'], terms: ['crew-call'], shots: ['org-rates', 'gig-labour', 'quote-crew-total', 'crewcall-fee', 'job-pay', 'quote-crew-margin'] },
   'ad-custom-fields': { role: 'admin', pages: ['orgs', 'gig', 'contacts', 'inventory'], terms: [], shots: ['org-fields', null, null] },
   'ad-import-crew': { role: 'admin', pages: ['orgs', 'home'], terms: ['organisation', 'viewer', 'org-member'], shots: [null, null, 'held-invites'] },

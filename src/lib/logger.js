@@ -54,6 +54,8 @@ export function userMessage(error, fallback) {
   if (/Only the gig PM or an organisation admin/i.test(msg)) return t('error.permission')
   if (/Only organisation admins/i.test(msg)) return t('error.permission')
   if (/Invalid email address/i.test(msg)) return t('error.email')
+  // Time registration on a day of approved leave (step 9)
+  if (/On leave that day/i.test(msg)) return t('leave.error.onLeave')
   // Inventory rules (supabase/migrations/20261025000000_inventory_catalogue.sql)
   const notEnough = /Not enough stock at that location \((-?\d+) available\)/.exec(msg)
   if (notEnough) return t('inv.error.notEnough', { count: Number(notEnough[1]) })

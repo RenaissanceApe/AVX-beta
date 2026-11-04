@@ -32,6 +32,10 @@ export const PARTS = [
   { part: 'gig_crew_fees', columns: ['gig_ref', 'gig', 'name', 'function_title', 'unit', 'rate', 'quantity', 'total', 'note', 'updated_at'] },
   { part: 'org_holidays', columns: ['day', 'name', 'created_at'] },
   { part: 'time_entries', columns: ['gig_ref', 'gig', 'name', 'function_title', 'work_date', 'start_time', 'end_time', 'break_minutes', 'travel_minutes', 'km', 'status', 'normal', 'overtime', 'night', 'weekend', 'holiday', 'fee_unit', 'fee_rate', 'cost', 'note', 'review_note', 'reviewed_at'] },
+  { part: 'leave_settings', columns: ['holiday_days', 'updated_at'] },
+  { part: 'work_weeks', columns: ['name', 'days', 'hours_per_day', 'updated_at'] },
+  { part: 'leave_years', columns: ['name', 'year', 'allowance', 'carried', 'note', 'updated_at'] },
+  { part: 'leave', columns: ['name', 'type', 'status', 'start_date', 'end_date', 'start_half', 'end_half', 'days', 'note', 'decision_note', 'decided_by', 'decided_at', 'created_at'] },
 ]
 
 export const PAGE_SIZE = 5000

@@ -3,6 +3,9 @@
 
 export default {
   terms: {
+    leave: { term: 'Ausência', definition: 'Dias de ausência dos funcionários de uma organização (administradores e membros): férias, baixa, formação ou outro. Férias, formação e outro aguardam a aprovação de um administrador; a baixa conta logo. Uma ausência aprovada deixa-o ocupado para eventos, Procurar equipa e horas.', example: 'Férias de segunda 1 a sexta 5 de março: 5 dias úteis.', where: 'Organização → Ausências' },
+    'holiday-balance': { term: 'Saldo de férias', definition: 'Os dias de férias que um funcionário ainda tem num ano: o direito mais os dias transitados, menos as férias aprovadas. Os pedidos a aguardar aparecem à parte.', example: '22 de direito + 2 transitados − 9 gozados = faltam 15.', where: 'Organização → Ausências' },
+    'working-week': { term: 'Semana de trabalho', definition: 'Os dias da semana em que um funcionário trabalha normalmente e as suas horas por dia. As ausências só contam dias úteis, e os relatórios usam-na para contar quanto do tempo da pessoa foi ocupado.', example: 'Segunda a quinta, 9 h por dia: uma semana de férias são 4 dias.', where: 'Organização → Ausências → Editar' },
     'hours-split': { term: 'Divisão de horas', definition: 'Como um dia registado se divide em horas normais, extra, noturnas, de fim de semana e de feriado. Cada hora conta uma vez, com o seu fator mais alto. Fica guardada como estava quando o dia foi aprovado.', example: 'Sex 14:00–02:00 com 1 h de pausa: 7 h normais, 3 h noturnas, 1 h extra.', where: 'Evento → Equipa → Horas, As minhas horas, Horas da organização' },
     gig: { term: 'Evento', definition: 'Um trabalho da sua equipa: um concerto, uma conferência, um aluguer.', example: 'Palco principal do festival, 12–14 de julho.', where: 'Lista de eventos, calendário, página do evento' },
     organisation: { term: 'Organização', definition: 'Uma empresa no AVX. Tem membros, eventos, equipamento e orçamentos.', example: 'Lumen and Pixel, com três administradores e vinte técnicos.', where: 'Seletor de empresa, no topo' },
@@ -88,6 +91,11 @@ export default {
   },
 
   hints: {
+    'leave-type': 'As férias contam para os seus dias de férias. A baixa conta logo e os administradores são avisados; férias, formação e outro aguardam um administrador.',
+    'leave-half': 'Tire só a tarde do primeiro dia ou a manhã do último. Meio dia conta 0,5 e pode registar horas nele.',
+    'leave-allowance': 'Dias de férias por ano. O número da organização aplica-se a todos, a não ser que a pessoa tenha um próprio (deixe vazio para usar o da organização).',
+    'leave-carried': 'Dias do ano passado somados ao direito deste ano. Decide quantos: nada transita sozinho.',
+    'leave-hours': 'Um dia normal de trabalho desta pessoa. Os relatórios usam-no com os dias de trabalho para contar quanto do seu tempo foi ocupado.',
     hours: 'Cada pessoa regista início, fim e pausa de cada dia em que trabalha. Os responsáveis do evento aprovam ou devolvem; os dias aprovados ficam fechados, com a divisão de horas e o custo. A equipa só vê as suas.',
     'hours-end': 'Um fim antes do início significa que trabalhou depois da meia-noite (por exemplo das 14:00 às 02:00).',
     'hours-travel': 'Tempo de viagem de e para o local. É pago ao valor por hora simples, sem fatores de horas extra ou noturnas; os km ao valor por km da organização.',
@@ -141,6 +149,7 @@ export default {
   },
 
   pages: {
+    'org-leave': { title: 'Ausências', summary: 'Quem na organização está ausente em cada dia, os seus dias de férias e os seus pedidos. Os administradores também decidem pedidos, registam ausências de alguém e definem os dias de férias e as semanas de trabalho. Uma ausência aprovada deixa a pessoa ocupada para eventos e horas.' },
     'my-hours': { title: 'As minhas horas', summary: 'As horas que registou em todos os eventos, em qualquer empresa, mês a mês: o que aguarda, foi devolvido ou aprovado, e o que os dias aprovados pagam. Descarregue-as em CSV.' },
     'org-hours': { title: 'Horas', summary: 'As horas registadas de todos nos eventos da organização, por pessoa e mês, com o custo guardado quando cada dia foi aprovado. Só administradores. Descarregue-as em CSV.' },
     'pocket-tools': { title: 'Ferramentas de bolso', summary: 'Calculadoras para qualquer sala, com ou sem evento no AVX: endereços DMX e dipswitches, um bloco de projetores, universos e canais absolutos, e conversão de valores. Funcionam sem ligação.' },
@@ -162,6 +171,32 @@ export default {
 
   // guides: Ajuda → Guias e o painel ?. Os passos correspondem às imagens em index.js (GUIDES).
   guides: {
+    'of-leave': {
+      title: 'Pedir uma ausência',
+      intro: 'Diga à organização quando vai estar fora, para ninguém o marcar e os seus dias de férias ficarem certos.',
+      steps: [
+        'Abra Ausências no menu da organização e toque em "Pedir ausência". Escolha o tipo, o primeiro e o último dia, e meio dia se só tirar a manhã ou a tarde. O formulário mostra quantos dias úteis usa.',
+        'Férias, formação e outro vão para os administradores; recebe uma notificação quando aprovarem ou recusarem. Um dia de baixa conta logo, mesmo para dias já passados, e os administradores são avisados.',
+        'O saldo no topo mostra os dias de férias que faltam este ano. Uma ausência aprovada aparece em "Quem está ausente", no seu calendário e bloqueia eventos e horas nesses dias. Remova uma ausência com ×.',
+      ],
+      mistakes: [
+        'Uma ausência pedida ou aprovada não se muda: remova-a e peça de novo.',
+        'Os freelancers marcam as suas datas indisponíveis em O meu trabalho: essas não precisam de aprovação.',
+      ],
+    },
+    'ad-leave': {
+      title: 'Aprovar ausências e manter os dias de férias certos',
+      intro: 'Decida pedidos, veja quem está ausente e defina os dias de férias e a semana de trabalho de cada pessoa.',
+      steps: [
+        'Em Ausências, "pedidos à sua espera" lista cada pedido com os seus dias. Toque em "Aprovar", ou em "Recusar" com um motivo que a pessoa vê. "Registar para alguém" regista uma ausência (uma baixa por telefone, por exemplo) que conta logo.',
+        'Em "Dias de férias e semanas de trabalho", defina os dias por ano da organização (22 para começar). "Editar" uma pessoa para o seu direito próprio, os dias transitados do ano passado, os seus dias de trabalho e horas por dia.',
+        '"Quem está ausente" mostra o mês dia a dia. Uma ausência aprovada bloqueia a pessoa para eventos, Procurar equipa e horas; a exportação da organização tem as ausências, os saldos e as semanas de trabalho.',
+      ],
+      mistakes: [
+        'Nada transita sozinho: escreva os dias transitados de cada pessoa no início do ano.',
+        'Os outros membros veem um dia de baixa só como "ausente", sem notas.',
+      ],
+    },
     'crew-hours': {
       title: 'Registar as suas horas num evento',
       intro: 'Diga aos responsáveis do evento quando trabalhou, para que horas extra, noites e viagens sejam pagas como devem.',
