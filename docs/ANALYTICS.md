@@ -80,7 +80,7 @@ without reading its code first.
 | Crew certificates carry an expiry date; inspections have due dates | `crew_profiles`, `20261029000000_maintenance.sql` | A safety report is possible (K10) |
 | No chart package; Home is a gig list; the only report is I7 | `package.json`, `Dashboard.jsx` | K1 builds the parts and the Reports area |
 | Help screenshots answer database functions from `data.rpc` | `scripts/help-screens/sample-data.mjs` | Report screens are easy to screenshot |
-| Switching leaves out past jobs and imports quotes as drafts | [SWITCHING.md](SWITCHING.md) S3b | History import is asked in K0 (D26) |
+| Switching leaves out past jobs and imports quotes as drafts | [SWITCHING.md](SWITCHING.md) S3b | History import: D26, planned as IM4 (SWITCHING.md, "Import overhaul") |
 
 ## Steps and build order
 
@@ -157,7 +157,7 @@ payments arrive.
 | Quote sent and decided dates, lost reason (with a backfill from client links) | Win rate per period, time to decision, why quotes are lost | K0 |
 | A client on each gig (backfill from quotes, picker, jobs import) | Gigs, margin and wrap-ups per client; the client portal later | K0 |
 | Cost price and write-off period on items; cost on purchases and price on sales of stock; inspection cost | Profit of bulk and untracked items, cost of goods sold, book value, upkeep cost | K0 |
-| A unit's sale value when sold or written off (built); history import (later, D26) | Lifetime profit; year-on-year for companies that switch | K0; history import later |
+| A unit's sale value when sold or written off (built); history import (D26, planned as IM4) | Lifetime profit; year-on-year for companies that switch | K0; history import later |
 | Expenses: categories with a kind, receipts, recurring costs, links, write-off months for capital, `can_see_finance` | Overheads, spending, actual costs, money going out | 9b |
 | One revenue rule in SQL and JS, shared fixtures | Every money figure agreeing everywhere | K1 |
 | Confirm costs when a gig is completed; approved hours and cost kept as they were | Past margins that don't change | 10, 8 |
@@ -262,7 +262,7 @@ so it doesn't count as an edit (no new quote version, activity or notification).
 
 **Imports.** The equipment import guesses "Cost price" (also cost, purchase price, kostprijs,
 inkoopprijs, preço de custo…) and "Depreciation months" (write-off, afschrijving, amortização…).
-History import (past jobs, decided quotes with their dates) is **later** (D26).
+History import (past jobs, decided quotes with their dates) is planned as **IM4** of the import overhaul (D26, [SWITCHING.md](SWITCHING.md)).
 
 **Export.** A wrapper as in `20261203000001` (`export_org_part_pre_k0` holds the previous one):
 items get `cost_price`, `depreciation_months`; units `disposal_value`, `disposed_on`; movements
