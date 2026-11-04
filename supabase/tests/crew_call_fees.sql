@@ -1,23 +1,25 @@
--- Checks for migration 20261211000000 (a fee on a crew call, step 7b).
+-- Checks for migrations 20261211000000 (a fee on a crew call) and 20261211000001 (a fee on Find
+-- crew's and the job board's offers), step 7b.
 -- Run in the TEST project's SQL editor. Rolls itself back; ends with
 --   "ALL CREW CALL FEE CHECKS PASSED"  → good
 do $$
 declare
   a uuid := gen_random_uuid(); f1 uuid := gen_random_uuid(); f2 uuid := gen_random_uuid(); f3 uuid := gen_random_uuid();
-  k uuid := gen_random_uuid();
+  k uuid := gen_random_uuid(); f4 uuid := gen_random_uuid(); f5 uuid := gen_random_uuid(); post uuid; app uuid;
   org_a uuid; g0 uuid; g uuid; call_id uuid; call2 uuid; call3 uuid; n int; t text; j jsonb;
 begin
   insert into auth.users (id, email, aud, role) values
     (a, 'ccf-a@avx.invalid', 'authenticated', 'authenticated'), (f1, 'ccf-f1@avx.invalid', 'authenticated', 'authenticated'),
     (f2, 'ccf-f2@avx.invalid', 'authenticated', 'authenticated'), (f3, 'ccf-f3@avx.invalid', 'authenticated', 'authenticated'),
-    (k, 'ccf-k@avx.invalid', 'authenticated', 'authenticated');
+    (k, 'ccf-k@avx.invalid', 'authenticated', 'authenticated'), (f4, 'ccf-f4@avx.invalid', 'authenticated', 'authenticated'),
+    (f5, 'ccf-f5@avx.invalid', 'authenticated', 'authenticated');
 
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;
   insert into organisations (name, created_by) values ('Fee Co', a) returning id into org_a;
   -- A past gig puts the three freelancers in the admin's network; the new gig has one crew member
   insert into gigs (org_id, name, created_by, start_date, status) values (org_a, 'Old gig', a, '2026-05-01', 'completed') returning id into g0;
-  insert into gig_members (gig_id, user_id, role, function_title) values (g0, f1, 'crew', 'Rigger'), (g0, f2, 'crew', 'Rigger'), (g0, f3, 'crew', 'Rigger');
+  insert into gig_members (gig_id, user_id, role, function_title) values (g0, f1, 'crew', 'Rigger'), (g0, f2, 'crew', 'Rigger'), (g0, f3, 'crew', 'Rigger'), (g0, f4, 'crew', 'Rigger');
   insert into gigs (org_id, name, created_by, start_date, end_date, status) values (org_a, 'Fee gig', a, '2026-12-04', '2026-12-06', 'confirmed') returning id into g;
   insert into gig_members (gig_id, user_id, role, function_title) values (g, k, 'crew', 'Sound');
   reset role;
@@ -115,6 +117,52 @@ begin
   t := answer_crew_call(call3, true);
   reset role;
   if t <> 'accepted' or exists (select 1 from gig_crew_fees where gig_id = g and user_id = f3) then raise exception 'CHECK FAILED: no-fee call (%)', t; end if;
+
+  -- Find crew: offering a place with a fee; the old five-argument call still works
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  begin
+    perform contact_crew(g, f4, 'offer', 'Rigger', null, 'month', 100, 1);
+    raise exception 'CHECK FAILED: Find crew offer with an unknown fee unit';
+  exception when check_violation then null; end;
+  t := contact_crew(g, f4, 'offer', 'Rigger', 'Can you?', 'day', 180, 2);
+  select id into call_id from crew_calls where gig_id = g and fee_rate = 180;
+  if call_id is null or (select fee_unit || ':' || fee_quantity from crew_calls where id = call_id) <> 'day:2.00' then raise exception 'CHECK FAILED: Find crew offer fee'; end if;
+  reset role;
+  select m.payload into j from messages m where m.payload->>'event' = 'crew_call' and m.payload->>'call_id' = call_id::text;
+  if (j->'fee'->>'total')::numeric is distinct from 360 then raise exception 'CHECK FAILED: Find crew offer message %', j; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub', f4, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  t := answer_crew_call(call_id, true);
+  if (select rate from gig_crew_fees where gig_id = g and user_id = f4) is distinct from 180 then raise exception 'CHECK FAILED: Find crew fee not agreed'; end if;
+  reset role;
+
+  -- Job board: offering the place to an applicant with a fee
+  insert into job_posts (org_id, gig_id, title, starts_on, ends_on, created_by) values (org_a, g, 'Runner', '2026-12-04', '2026-12-06', a) returning id into post;
+  insert into job_applications (post_id, user_id, day_rate, currency) values (post, f5, 90, 'EUR') returning id into app;
+  perform set_config('request.jwt.claims', json_build_object('sub', k, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  begin
+    perform answer_application(app, 'offer', null, 'day', 90, 3);
+    raise exception 'CHECK FAILED: crew offered a job';
+  exception when insufficient_privilege then null; end;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  t := answer_application(app, 'offer', 'Welcome', 'day', 90, 3);
+  if t <> 'offered' then raise exception 'CHECK FAILED: offer returned %', t; end if;
+  select id into call_id from crew_calls where gig_id = g and title = 'Runner';
+  if (select fee_rate from crew_calls where id = call_id) is distinct from 90 then raise exception 'CHECK FAILED: job offer fee'; end if;
+  -- The three-argument call still works (shortlisting, declining)
+  t := answer_application(app, 'shortlist');
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', f5, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  t := answer_crew_call(call_id, true);
+  if (select unit || ':' || rate || ':' || quantity from gig_crew_fees where gig_id = g and user_id = f5) is distinct from 'day:90.00:3.00' then
+    raise exception 'CHECK FAILED: job offer fee not agreed';
+  end if;
+  reset role;
 
   raise exception 'ALL CREW CALL FEE CHECKS PASSED';
 end $$;

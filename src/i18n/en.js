@@ -1687,7 +1687,7 @@ export default {
   "crewCall.function": "Function",
   "crewCall.places": "Places",
   "crewCall.note": "Note",
-  "crewCall.notePlaceholder": "Optional, e.g. load-in at 08:00, fee as usual",
+  "crewCall.notePlaceholder": "Optional, e.g. load-in at 08:00, black clothes",
   "crewCall.people.one": "{count} person picked",
   "crewCall.people.other": "{count} people picked",
   "crewCall.removeNamed": "Remove {name}",
