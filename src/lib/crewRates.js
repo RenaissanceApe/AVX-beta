@@ -148,3 +148,29 @@ export function quoteCrewMargin(body, rates) {
   const margin = round2(price - cost)
   return { lines, missing, price, cost, margin, marginPct: price ? Math.round((margin / price) * 100) : null }
 }
+
+// What a fee form holds → the fee to send: { fee: { unit, rate, quantity } | null, total, bad }.
+// An empty rate means no fee; a fixed fee counts once.
+export function feeFromForm(form) {
+  const rate = parseAmount(form?.rate)
+  if (rate == null) return { fee: null, total: null, bad: false }
+  const quantity = form.unit === 'fixed' ? 1 : parseAmount(form.quantity)
+  if (Number.isNaN(rate) || !FEE_UNITS.includes(form.unit) || !(quantity > 0 && quantity <= 1000)) return { fee: null, total: null, bad: true }
+  const fee = { unit: form.unit, rate, quantity }
+  return { fee, total: feeTotal(fee), bad: false }
+}
+
+// The fee a job board offer starts from: the day rate the applicant sent, else the post's own pay
+// (per day × the post's days, per job as a fixed amount, per hour with the hours left to fill in).
+// Only in euros; a pay range starts from its lower figure.
+export function offerFee(post, application) {
+  const days = bookedDays(null, { start_date: post?.starts_on, end_date: post?.ends_on }).length || 1
+  if (application?.day_rate != null && (application.currency || post?.currency || 'EUR') === 'EUR') {
+    return { unit: 'day', rate: Number(application.day_rate), quantity: days }
+  }
+  if (post?.pay_mode !== 'fixed' || post.pay_amount == null || (post.currency || 'EUR') !== 'EUR') return null
+  const rate = Number(post.pay_amount)
+  if (post.pay_per === 'job') return { unit: 'fixed', rate, quantity: 1 }
+  if (post.pay_per === 'hour') return { unit: 'hour', rate, quantity: null }
+  return { unit: 'day', rate, quantity: days }
+}

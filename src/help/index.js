@@ -64,7 +64,7 @@ export const GUIDES = {
   'crew-offline': { role: 'crew', pages: ['gig', 'home'], terms: ['offline-copy', 'files'], shots: [null, 'files-offline', 'offline-banner', null] },
   'pm-create-gig': { role: 'pm', pages: ['home'], terms: ['gig', 'gig-status', 'workspace'], shots: [null, 'gig-form', null, null] },
   'pm-post-job': { role: 'pm', pages: ['org-jobs', 'gig'], terms: ['crew-call'], shots: [null, null, 'org-jobs'] },
-  'pm-find-crew': { role: 'pm', pages: ['crew-search', 'gig'], terms: ['crew-call', 'availability-request'], shots: [null, 'crew-search', null] },
+  'pm-find-crew': { role: 'pm', pages: ['crew-search', 'gig'], terms: ['crew-call', 'availability-request'], shots: [null, 'crew-search', 'crewsearch-offer'] },
   'pm-invite-crew': { role: 'pm', pages: ['gig'], terms: ['pm', 'crew', 'viewer', 'network', 'call-time', 'crew-call'], shots: ['crew-invite', 'invite-form', null, null] },
   'pm-schedule': { role: 'pm', pages: ['gig'], terms: ['schedule', 'call-time', 'feed'], shots: ['schedule-add', 'schedule-form', null] },
   'pm-call-sheet': { role: 'pm', pages: ['gig'], terms: ['call-sheet', 'schedule', 'call-time'], shots: [null, 'schedule-callsheet', 'call-sheet-send', null] },

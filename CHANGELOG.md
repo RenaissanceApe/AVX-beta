@@ -9,6 +9,11 @@
   see the fee in their offer and its notification before they answer; whoever accepts has it as
   their agreed fee, so "Labour cost" shows them as "Agreed". A fee you already set for them is
   kept. The gig's list of crew calls shows each call's fee.
+- **The same fee on the other offers.** Find crew's "Offer a place" has the fee fields too, and
+  starts from that person's own rate if they have one. On the job board, "Offer the place" now
+  opens a small window (instead of the browser's OK / Cancel box) with the fee: the day rate the
+  applicant sent for the post's days, else your post's pay. Change it or leave it empty.
+- The crew call's note now gives "black clothes" as an example instead of "fee as usual".
 - **Job posts** fill in the pay from the rate card when you choose the function (the day rate per
   day, else the hour rate per hour). You can still change it.
 - **Quotes** show, under each crew line, its cost by your rate card and your margin, and the
@@ -18,8 +23,9 @@
   and two new ⓘ hints.
 
 ### Connected
-- Crew calls, the chat offer card and its notification, the job board's post form, the quote
-  editor and its Summary, and the gig's labour cost panel (an accepted call's fee shows as agreed).
+- Crew calls, Find crew's offer, the job board's offer, the chat offer card and its notification,
+  the job board's post form, the quote editor and its Summary, and the gig's labour cost panel
+  (an accepted offer's fee shows as agreed).
 
 ## 0.64.0 — Numbers start counting
 

@@ -874,7 +874,7 @@ export default {
         'Open the organisation\'s settings (admins only) and find "Crew rates". Add a rate for each function you hire ("FOH engineer": per day, per half day or per hour), and for people who charge differently, choose the person too. Below, set your factors; weekend days in a gig\'s planned cost use the weekend one.',
         'Open a gig\'s Crew tab. Under "Labour cost", each person shows what the rate card suggests for their days, the total cost, the crew lines of the gig\'s quote and your margin.',
         'Agreed something different with someone? Tap the pencil next to them and set their fee: per day, half day or hour, or a fixed amount. They see their own fee on the gig; nobody else on the crew does.',
-        'Sending a crew call? The fee fills in from the rate card for the function and the gig\'s days; change it or leave it empty. The people called see it in the offer, and whoever accepts has it as their agreed fee under "Labour cost".',
+        'Sending a crew call? The fee fills in from the rate card for the function and the gig\'s days; change it or leave it empty. The people called see it in the offer, and whoever accepts has it as their agreed fee under "Labour cost". Offering a place from Find crew or to a job applicant works the same way.',
         'Posting a job? Choose the function and the pay fills in from its day rate (or hour rate). Change it if you like.',
         'In a quote, each crew line shows its cost by the rate card and your margin, and the Summary tab adds them up under "Crew margin". This is never on the client\'s quote, PDF or link.',
       ],

@@ -421,6 +421,15 @@ const SCENES = {
     await box.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
     return box
   } },
+  'crewsearch-offer': { persona: 'pm', url: `/org/${ids.org}/crew?gig=${ids.gig}`, async run(page, L) {
+    await page.getByRole('button', { name: L('crewSearch.search'), exact: true }).click()
+    await page.getByRole('button', { name: L('crewSearch.offerNamed', { name: 'Rui Teixeira' }) }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog.locator('#cs-offer-title').fill(page.lang === 'pt' ? 'Técnica de som' : 'Sound technician')
+    const fee = dialog.locator('fieldset').first()
+    await fee.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return fee
+  } },
   'crew-search': { persona: 'pm', url: `/org/${ids.org}/crew?gig=${ids.gig}`, async run(page, L) {
     await page.getByRole('button', { name: L('crewSearch.search'), exact: true }).click()
     const first = page.locator('#cs-results').locator('xpath=following-sibling::div[1]/div[1]')

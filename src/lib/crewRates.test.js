@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { resolveRate, bookedDays, suggestFee, feeTotal, labourLines, labourSummary, quoteCrewRevenue, parseAmount, amountInput,
-  functionRate, callFee, jobPay, quoteLineCost, quoteCrewMargin } from './crewRates'
+  functionRate, callFee, jobPay, quoteLineCost, quoteCrewMargin, feeFromForm, offerFee } from './crewRates'
 
 const rates = [
   { id: 'fn', function_title: 'FOH engineer', user_id: null, day_rate: 300, half_day_rate: 180 },
@@ -111,5 +111,25 @@ describe('crew rates', () => {
     ] }
     expect(quoteCrewMargin(body, card)).toEqual({ lines: 2, missing: 1, price: 2400, cost: 1800, margin: 600, marginPct: 25 })
     expect(quoteCrewMargin({ phases: [] }, card)).toMatchObject({ lines: 0, marginPct: null })
+  })
+
+  it('reads a fee form: empty is no fee, a fixed fee counts once, bad values are flagged', () => {
+    expect(feeFromForm({ unit: 'day', rate: '', quantity: '3' })).toEqual({ fee: null, total: null, bad: false })
+    expect(feeFromForm({ unit: 'day', rate: '200,5', quantity: '3' })).toEqual({ fee: { unit: 'day', rate: 200.5, quantity: 3 }, total: 601.5, bad: false })
+    expect(feeFromForm({ unit: 'fixed', rate: '500', quantity: '' })).toMatchObject({ fee: { quantity: 1 }, total: 500 })
+    expect(feeFromForm({ unit: 'hour', rate: '30', quantity: '' }).bad).toBe(true)
+    expect(feeFromForm({ unit: 'day', rate: 'abc', quantity: '1' }).bad).toBe(true)
+    expect(feeFromForm({ unit: 'week', rate: '10', quantity: '1' }).bad).toBe(true)
+  })
+
+  it('starts a job board offer from the applicant\'s rate, else the post\'s pay', () => {
+    const post = { starts_on: '2026-12-04', ends_on: '2026-12-06', pay_mode: 'fixed', pay_amount: 150, pay_per: 'day', currency: 'EUR' }
+    expect(offerFee({ ...post, pay_mode: 'ask_rate', pay_amount: null }, { day_rate: 180, currency: 'EUR' })).toEqual({ unit: 'day', rate: 180, quantity: 3 })
+    expect(offerFee(post, {})).toEqual({ unit: 'day', rate: 150, quantity: 3 })
+    expect(offerFee({ ...post, pay_per: 'job' }, {})).toEqual({ unit: 'fixed', rate: 150, quantity: 1 })
+    expect(offerFee({ ...post, pay_per: 'hour' }, {})).toEqual({ unit: 'hour', rate: 150, quantity: null })
+    // Other currencies, or nothing to start from: no fee
+    expect(offerFee({ ...post, currency: 'GBP' }, { day_rate: 200, currency: 'GBP' })).toBe(null)
+    expect(offerFee({ ...post, pay_mode: 'ask_rate', pay_amount: null }, {})).toBe(null)
   })
 })

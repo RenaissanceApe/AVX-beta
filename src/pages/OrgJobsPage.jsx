@@ -9,12 +9,14 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { jobError, money } from '../lib/jobs'
 import { trustError } from '../lib/trust'
 import { useI18n } from '../i18n'
-import { btn, btnPrimary, card, colors } from '../components/ui'
+import { Modal, btn, btnPrimary, card, colors } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import JobCard from '../components/jobs/JobCard'
 import PostJobModal from '../components/jobs/PostJobModal'
 import CrewProfileCard from '../components/CrewProfileCard'
+import { FeeFields, useFeeForm } from '../components/gig/FeeFields'
+import { offerFee } from '../lib/crewRates'
 
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 const tone = { open: colors.accentText, filled: 'var(--sky)', closed: colors.muted }
@@ -127,6 +129,7 @@ function Applicants({ post, orgId }) {
   const { notify } = useToast()
   const [list, setList] = useState(null)
   const [busy, setBusy] = useState(null)
+  const [offering, setOffering] = useState(null) // the application being offered the place
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.rpc('job_applicants', { p_post: post.id })
@@ -135,19 +138,20 @@ function Applicants({ post, orgId }) {
   }, [post.id, notify])
   useEffect(() => { load() }, [load])
 
-  async function answer(a, action) {
+  async function answer(a, action, fee = null) {
     let message = null
     if (action === 'decline') {
       message = window.prompt(t('jobs.declinePrompt', { name: a.name || '' }), t('jobs.declineDefault'))
       if (message === null) return
     }
-    if (action === 'offer' && !window.confirm(t('jobs.offerConfirm', { name: a.name || '', title: post.title }))) return
     setBusy(a.id)
-    const { error } = await supabase.rpc('answer_application', { p_application: a.id, p_action: action, p_message: message })
+    const args = { p_application: a.id, p_action: action, p_message: message }
+    const { error } = await supabase.rpc('answer_application', fee ? { ...args, p_fee_unit: fee.unit, p_fee_rate: fee.rate, p_fee_quantity: fee.quantity } : args)
     setBusy(null)
     if (error) { logger.error('jobs', error, { step: 'answer', action }); const k = jobError(error); return notify(k ? t(k) : userMessage(error), 'error') }
     notify(t(`jobs.answered.${action}`, { name: a.name || '' }), 'success')
-    track(`jobs:${action}`)
+    track(`jobs:${action}${fee ? ':fee' : ''}`)
+    setOffering(null)
     load()
   }
 
@@ -161,6 +165,7 @@ function Applicants({ post, orgId }) {
   if (!list) return <div style={{ padding: '12px' }}><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /></div>
   if (!list.length) return <p style={{ ...hint, marginTop: '8px' }}>{t('jobs.noApplicants')}</p>
   return (
+    <>
     <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0 0', display: 'flex', flexDirection: 'column', gap: '10px' }} aria-label={t('jobs.applicants')}>
       {list.map(a => {
         const closed = ['declined', 'accepted', 'withdrawn'].includes(a.status)
@@ -177,7 +182,7 @@ function Applicants({ post, orgId }) {
               {!closed && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
                   {a.status === 'applied' && <button type="button" disabled={busy === a.id} onClick={() => answer(a, 'shortlist')} style={btn} aria-label={t('jobs.shortlistNamed', { name: a.name || '' })}><Star size={14} /> {t('jobs.shortlist')}</button>}
-                  {a.status !== 'offered' && <button type="button" disabled={busy === a.id} onClick={() => answer(a, 'offer')} style={btnPrimary} aria-label={t('jobs.offerNamed', { name: a.name || '' })}><Megaphone size={14} /> {t('jobs.offer')}</button>}
+                  {a.status !== 'offered' && <button type="button" disabled={busy === a.id} onClick={() => setOffering(a)} style={btnPrimary} aria-label={t('jobs.offerNamed', { name: a.name || '' })}><Megaphone size={14} /> {t('jobs.offer')}</button>}
                   <button type="button" disabled={busy === a.id} onClick={() => answer(a, 'decline')} style={{ ...btn, background: 'transparent' }} aria-label={t('jobs.declineNamed', { name: a.name || '' })}><XCircle size={14} /> {t('jobs.decline')}</button>
                 </div>
               )}
@@ -186,5 +191,30 @@ function Applicants({ post, orgId }) {
         )
       })}
     </ul>
+    {offering && <OfferModal post={post} application={offering} busy={busy === offering.id} onClose={() => setOffering(null)} onOffer={fee => answer(offering, 'offer', fee)} />}
+    </>
+  )
+}
+
+// Offering the place to an applicant, with the fee it starts from: their day rate, else the post's pay
+function OfferModal({ post, application: a, busy, onClose, onOffer }) {
+  const { t, lang } = useI18n()
+  const start = offerFee(post, a)
+  const fee = useFeeForm(start)
+  const from = !start ? 'none' : a.day_rate != null && start.unit === 'day' ? 'rate' : start.quantity == null ? 'hours' : 'post'
+  return (
+    <Modal title={t('jobs.offerTitle', { name: a.name || '' })} onClose={onClose}>
+      <form onSubmit={e => { e.preventDefault(); if (!fee.bad) onOffer(fee.fee) }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <p style={{ fontSize: '14px', lineHeight: 1.5 }}>{t('jobs.offerConfirm', { name: a.name || '', title: post.title })}</p>
+        <FeeFields id="jo" state={fee} canReset={!!start} resetLabel={t('jobs.offerFeeReset')}
+          note={t(`jobs.offerFeeFrom.${from}`, { rate: a.day_rate != null ? money(Number(a.day_rate), a.currency || post.currency, lang) : '' })} />
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button type="submit" disabled={busy || fee.bad} style={btnPrimary}>
+            {busy ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Megaphone size={15} />} {t('jobs.offer')}
+          </button>
+          <button type="button" onClick={onClose} style={{ ...btn, background: 'transparent' }}>{t('common.cancel')}</button>
+        </div>
+      </form>
+    </Modal>
   )
 }

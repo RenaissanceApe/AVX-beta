@@ -871,7 +871,7 @@ export default {
         'Abra as definições da organização (só administradores) e procure "Tabela de cachês da equipa". Acrescente um valor para cada função que contrata ("Técnico de FOH": por dia, meio dia ou hora) e, para quem cobra de forma diferente, escolha também a pessoa. Por baixo, defina os fatores; os dias de fim de semana no custo previsto usam o de fim de semana.',
         'Abra o separador Equipa de um evento. Em "Custo de mão de obra", cada pessoa mostra o que a tabela sugere para os seus dias, o custo total, as linhas de equipa do orçamento do evento e a sua margem.',
         'Combinou outra coisa com alguém? Toque no lápis ao lado da pessoa e defina o cachê: por dia, meio dia ou hora, ou um valor fixo. A pessoa vê o seu cachê no evento; mais ninguém da equipa o vê.',
-        'Vai enviar uma chamada de equipa? O cachê é preenchido a partir da tabela para a função e os dias do evento; altere-o ou deixe-o vazio. As pessoas chamadas veem-no na oferta e quem aceitar fica com ele como cachê combinado em "Custo de mão de obra".',
+        'Vai enviar uma chamada de equipa? O cachê é preenchido a partir da tabela para a função e os dias do evento; altere-o ou deixe-o vazio. As pessoas chamadas veem-no na oferta e quem aceitar fica com ele como cachê combinado em "Custo de mão de obra". Oferecer um lugar a partir de Procurar técnicos ou a um candidato a uma vaga funciona da mesma forma.',
         'Vai publicar uma vaga? Escolha a função e o pagamento é preenchido com o valor por dia (ou por hora). Altere-o se quiser.',
         'Num orçamento, cada linha de equipa mostra o custo pela tabela e a sua margem, e o separador Resumo soma-os em "Margem da equipa". Isto nunca aparece no orçamento, PDF ou link do cliente.',
       ],
