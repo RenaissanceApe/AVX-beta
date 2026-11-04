@@ -16,11 +16,12 @@ export type FeedGig = {
   call_time?: string | null // '09:30:00'
   booked_from?: string | null // timestamptz, this person's own booking
   booked_until?: string | null
+  hours?: { work_date: string, start_time: string, end_time: string, status: string }[] // this person's own logged days
 }
 
 const WORDS: Record<FeedLang, Record<string, string>> = {
-  en: { calendar: 'AVX gigs', call: 'Call time', role: 'Role', open: 'Open in AVX', draft: 'Draft (not confirmed yet)', pm: 'Production manager', crew: 'Crew', viewer: 'Viewer' },
-  pt: { calendar: 'Eventos AVX', call: 'Hora de chamada', role: 'Papel', open: 'Abrir no AVX', draft: 'Rascunho (ainda não confirmado)', pm: 'Diretor de produção', crew: 'Equipa', viewer: 'Leitor' },
+  en: { calendar: 'AVX gigs', call: 'Call time', role: 'Role', open: 'Open in AVX', draft: 'Draft (not confirmed yet)', pm: 'Production manager', crew: 'Crew', viewer: 'Viewer', hours: 'Your hours', approved: 'approved', waiting: 'waiting for approval', returned: 'sent back' },
+  pt: { calendar: 'Eventos AVX', call: 'Hora de chamada', role: 'Papel', open: 'Abrir no AVX', draft: 'Rascunho (ainda não confirmado)', pm: 'Diretor de produção', crew: 'Equipa', viewer: 'Leitor', hours: 'As suas horas', approved: 'aprovadas', waiting: 'a aguardar aprovação', returned: 'devolvidas' },
 }
 
 // Text values: backslash, semicolon, comma and line breaks escaped (RFC 5545 3.3.11)
@@ -67,6 +68,7 @@ export function gigEvent(g: FeedGig, lang: FeedLang, appUrl: string, now: Date) 
     g.status === 'draft' ? w.draft : null,
     role ? `${w.role}: ${role}` : null,
     g.call_time ? `${w.call}: ${g.call_time.slice(0, 5)}` : null,
+    g.hours?.length ? `${w.hours}:\n${g.hours.slice(0, 31).map(h => `${h.work_date} ${h.start_time.slice(0, 5)}–${h.end_time.slice(0, 5)} (${w[h.status === 'submitted' ? 'waiting' : h.status] || h.status})`).join('\n')}` : null,
     `${w.open}: ${appUrl}/gig/${g.id}`,
   ].filter(Boolean).join('\n')
   lines.push(`DESCRIPTION:${escapeText(description)}`, `URL:${appUrl}/gig/${g.id}`)

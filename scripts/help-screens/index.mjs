@@ -376,6 +376,27 @@ const SCENES = {
     await box.evaluate(el => window.scrollTo(0, document.documentElement.scrollHeight))
     return null
   } },
+  'hours-log': { persona: 'crew', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
+    await page.getByRole('button', { name: L('hours.log') }).first().click()
+    const dialog = page.getByRole('dialog')
+    await dialog.locator('#hours-start').waitFor()
+    return dialog.locator('#hours-end')
+  } },
+  'gig-hours': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
+    const box = page.locator('section[aria-labelledby="hours-title"]')
+    await box.waitFor()
+    const approve = box.getByRole('button', { name: L('hours.approve') }).first()
+    await approve.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return approve
+  } },
+  'org-hours': { persona: 'pm', url: `/org/${ids.org}/hours`, async run(page) {
+    const d = new Date(Date.now() + 24 * 86400000)
+    await page.locator('#hours-month').fill(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+    const first = page.locator('li button[aria-expanded]').first()
+    await first.waitFor()
+    await first.click()
+    return first
+  } },
   'crewcall-fee': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
     await page.getByRole('button', { name: L('crewCall.button') }).first().click()
     const dialog = page.getByRole('dialog')

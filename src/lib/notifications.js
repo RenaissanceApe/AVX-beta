@@ -52,6 +52,9 @@ export function describeNotification(n, nameOf) {
     case 'booking_changed':   return d.booked_from && d.booked_until
       ? t('notif.bookingChanged', { actor, gig, range: rangeText(d.booked_from, d.booked_until) })
       : t('notif.bookingCleared', { actor, gig })
+    case 'hours_submitted':   return t('notif.hoursSubmitted', { actor, gig })
+    case 'hours_approved':    return t('notif.hoursApproved', { actor, gig, date: d.work_date ? fmt(d.work_date, 'd MMM') : '' })
+    case 'hours_returned':    return t('notif.hoursReturned', { actor, gig, date: d.work_date ? fmt(d.work_date, 'd MMM') : '' }) + (d.note ? `: “${d.note}”` : '')
     default:                  return t('notif.generic', { gig })
   }
 }
@@ -74,7 +77,7 @@ export function notificationLink(n) {
   if ((n.kind === 'hire_request' || n.kind === 'hire_answered') && n.org_id) return `/org/${n.org_id}/inventory?tab=subrentals`
   // Requests are answered in My work (you may not be on the gig yet)
   if (n.kind === 'availability_request') return '/me#requests'
-  if (n.gig_id && (n.kind === 'availability_reply' || n.kind === 'booking_changed' || n.kind === 'crew_call_answer')) return `/gig/${n.gig_id}?tab=crew`
+  if (n.gig_id && (n.kind === 'availability_reply' || n.kind === 'booking_changed' || n.kind === 'crew_call_answer' || n.kind.startsWith('hours_'))) return `/gig/${n.gig_id}?tab=crew`
   if (n.gig_id) return n.kind === 'schedule_changed' ? `/gig/${n.gig_id}?tab=schedule` : `/gig/${n.gig_id}`
   return '/dashboard'
 }

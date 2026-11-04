@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './lib/AuthContext'
 import { WorkspaceProvider, useWorkspace } from './lib/WorkspaceContext'
 import { homePath } from './lib/nav'
 import { flushOutbox } from './lib/outbox'
+import { flushQueuedHours } from './lib/hours'
 import { ToastProvider } from './lib/ToastContext'
 import { I18nProvider, t } from './i18n'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -33,6 +34,7 @@ const CrewSearchPage = lazy(() => import('./pages/CrewSearchPage'))
 const JobsPage = lazy(() => import('./pages/JobsPage'))
 const OrgJobsPage = lazy(() => import('./pages/OrgJobsPage'))
 const OrgTasksPage = lazy(() => import('./pages/OrgTasksPage'))
+const HoursPage = lazy(() => import('./pages/HoursPage'))
 const TrustAdminPage = lazy(() => import('./pages/TrustAdminPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const ScanPage = lazy(() => import('./pages/ScanPage'))
@@ -87,10 +89,10 @@ function AppRoutes() {
     const event = user && !mfaRequired ? screenEvent(location.pathname, location.search) : null
     if (event) track(event)
   }, [location.pathname, location.search, user, mfaRequired])
-  // Messages written offline go out when the connection comes back (lib/outbox)
+  // Messages and hours written offline go out when the connection comes back (lib/outbox)
   useEffect(() => {
     if (!user || mfaRequired) return
-    const flush = () => flushOutbox(user.id)
+    const flush = () => { flushOutbox(user.id); flushQueuedHours(user.id) }
     flush()
     window.addEventListener('online', flush)
     return () => window.removeEventListener('online', flush)
@@ -118,6 +120,7 @@ function AppRoutes() {
       <Route path="/s/:token" element={<Suspense fallback={<Spinner />}><SupplierLinkPage /></Suspense>} />
       <Route path="/dashboard" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
       <Route path="/me" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/me/hours" element={<ProtectedRoute><Suspense fallback={<Spinner />}><HoursPage /></Suspense></ProtectedRoute>} />
       <Route path="/me/profile" element={<ProtectedRoute><Suspense fallback={<Spinner />}><CrewProfilePage /></Suspense></ProtectedRoute>} />
       <Route path="/jobs" element={<ProtectedRoute><Suspense fallback={<Spinner />}><JobsPage /></Suspense></ProtectedRoute>} />
       <Route path="/admin/trust" element={<ProtectedRoute><Suspense fallback={<Spinner />}><TrustAdminPage /></Suspense></ProtectedRoute>} />
@@ -145,6 +148,7 @@ function AppRoutes() {
       <Route path="/org/:orgId/contacts" element={<ProtectedRoute><Suspense fallback={<Spinner />}><ContactsPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/crew" element={<ProtectedRoute><Suspense fallback={<Spinner />}><CrewSearchPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/jobs" element={<ProtectedRoute><Suspense fallback={<Spinner />}><OrgJobsPage /></Suspense></ProtectedRoute>} />
+      <Route path="/org/:orgId/hours" element={<ProtectedRoute><Suspense fallback={<Spinner />}><HoursPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/tasks" element={<ProtectedRoute><Suspense fallback={<Spinner />}><OrgTasksPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/inventory" element={<ProtectedRoute><Suspense fallback={<Spinner />}><InventoryPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/inventory/import" element={<ProtectedRoute><Suspense fallback={<Spinner />}><ImportPage /></Suspense></ProtectedRoute>} />

@@ -4,6 +4,7 @@ import { todaysSchedule, localDay } from '../../lib/onSite'
 import { dueState, sortTasks } from '../../lib/tasks'
 import { t, fmt } from '../../i18n'
 import { btn, card, colors, tint } from '../ui'
+import ClockInOut from '../hours/ClockInOut'
 
 const shortTime = v => (v ? String(v).slice(0, 5) : '')
 
@@ -48,6 +49,8 @@ export default function OnSiteView({ gig, schedule, tools, tasks = [], userId, m
           <button type="button" onClick={onDismissNote} aria-label={t('onsite.dismissNote')} style={{ background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', padding: '4px' }}><X size={16} /></button>
         </div>
       )}
+
+      {myMembership && <ClockInOut gig={gig} userId={userId} />}
 
       {myMembership?.call_time && (
         <div style={{ ...card, display: 'flex', alignItems: 'center', gap: '14px' }}>

@@ -28,12 +28,15 @@ Deno.serve(async (req) => {
   if (!feed) return text('Not found', 404)
 
   const since = new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10)
-  const [{ data: rows, error }, { data: profile }] = await Promise.all([
+  const [{ data: rows, error }, { data: profile }, { data: hours }] = await Promise.all([
     admin.from('gig_members')
       .select('role, function_title, call_time, booked_from, booked_until, gigs!inner(id, name, venue, start_date, end_date, status, organisations(name))')
       .eq('user_id', feed.user_id)
       .limit(1000),
     admin.from('profiles').select('language').eq('id', feed.user_id).maybeSingle(),
+    // Their own logged hours only (step 8)
+    admin.from('time_entries').select('gig_id, work_date, start_time, end_time, status')
+      .eq('user_id', feed.user_id).is('removed_at', null).gte('work_date', since).order('work_date').limit(2000),
   ])
   if (error) {
     console.error(JSON.stringify({ fn: 'calendar-feed', step: 'gigs', timeout: isTimeout(error) }))
@@ -46,6 +49,8 @@ Deno.serve(async (req) => {
     id: r.gigs.id, name: r.gigs.name, venue: r.gigs.venue, start_date: r.gigs.start_date, end_date: r.gigs.end_date,
     status: r.gigs.status, org: r.gigs.organisations?.name ?? null, role: r.role, function_title: r.function_title,
     call_time: r.call_time, booked_from: r.booked_from, booked_until: r.booked_until,
+    // deno-lint-ignore no-explicit-any
+    hours: (hours ?? []).filter((h: any) => h.gig_id === r.gigs.id),
   }))
   const lang: FeedLang = profile?.language === 'en' ? 'en' : 'pt'
   return new Response(req.method === 'HEAD' ? null : buildCalendar(gigs, lang, APP_URL), {

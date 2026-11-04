@@ -30,6 +30,12 @@ describe('calendar feed', () => {
     expect(gigEvent({ id: 'g3', name: 'No date' }, 'en', APP, NOW)).toEqual([])
   })
 
+  it('lists the person’s own logged hours in the description', () => {
+    const ev = gigEvent({ id: 'g3', name: 'Show', start_date: '2026-12-04', status: 'confirmed',
+      hours: [{ work_date: '2026-12-04', start_time: '14:00:00', end_time: '02:00:00', status: 'approved' }, { work_date: '2026-12-05', start_time: '10:00:00', end_time: '18:00:00', status: 'submitted' }] }, 'en', APP, NOW)
+    expect(ev.find(l => l.startsWith('DESCRIPTION'))).toContain('Your hours:\\n2026-12-04 14:00–02:00 (approved)\\n2026-12-05 10:00–18:00 (waiting for approval)')
+  })
+
   it('builds a calendar without archived gigs, with CRLF line ends', () => {
     const ics = buildCalendar([
       { id: 'a', name: 'On', start_date: '2026-11-01', status: 'confirmed' },

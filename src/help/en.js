@@ -6,6 +6,7 @@
 
 export default {
   terms: {
+    'hours-split': { term: 'Hours split', definition: 'How a logged day divides into normal, overtime, night, weekend and holiday hours. Each hour counts once, under its highest factor. It is kept as it was when the day was approved.', example: 'Fri 14:00–02:00 with a 1 h break: 7 h normal, 3 h night, 1 h overtime.', where: 'Gig → Crew → Hours, My hours, organisation Hours' },
     gig: { term: 'Gig', definition: 'An event or job your team works on: a concert, a conference, a rental.', example: 'Festival main stage, 12–14 July.', where: 'Gigs list, calendar, gig page' },
     organisation: { term: 'Organisation', definition: 'A company in AVX. It has members, gigs, equipment and quotes.', example: 'Lumen and Pixel, with three admins and twenty crew.', where: 'Company switcher at the top' },
     workspace: { term: 'Workspace', definition: 'What you are looking at: one organisation, or "My work" with everything you are booked on.', example: 'Switch from "Lumen and Pixel" to "My work" to see gigs from other companies.', where: 'Company switcher at the top' },
@@ -90,6 +91,9 @@ export default {
   },
 
   hints: {
+    hours: 'Each person logs start, end and break for every day they work. The gig\'s managers approve or send back; approved days lock, keeping their hours split and cost. Crew only ever see their own.',
+    'hours-end': 'An end earlier than the start means you worked past midnight (for example 14:00 to 02:00).',
+    'hours-travel': 'Time spent travelling to and from the venue. It is paid at the plain hour rate, without overtime or night factors; km at the organisation\'s rate per km.',
     'crew-call-fee': 'What you offer everyone in this call, before VAT. It starts from your rate card (day rate × the gig\'s days, weekend days with the weekend factor) and you can change it. The people called see it in the offer; whoever accepts gets it as their agreed fee on the gig.',
     'quote-crew-margin': 'Each crew line is matched to the rate card by its description (the function) and unit: per day uses the day rate, per hour the hour rate. Only your organisation sees this.',
     'prep-days': 'Days before a gig when its equipment is already booked, for loading and testing. Example: 1 = the gear is busy from the day before.',
@@ -140,6 +144,8 @@ export default {
   },
 
   pages: {
+    'my-hours': { title: 'My hours', summary: 'The hours you logged on every gig, at any company, month by month: what is waiting, sent back or approved, and what approved days pay. Download them as a CSV.' },
+    'org-hours': { title: 'Hours', summary: 'Everyone\'s logged hours on the organisation\'s gigs, per person and month, with the cost stored when each day was approved. Admins only. Download them as a CSV.' },
     'pocket-tools': { title: 'Pocket tools', summary: 'Calculators for any venue, with or without a gig in AVX: DMX addresses and dipswitches, a block of fixtures, universes and absolute channels, and value conversions. They work offline.' },
     home: { title: 'Gigs', summary: 'The gigs of the company you chose at the top, or all of yours in "My work". Open one to see its crew, schedule, files and chat. The calendar shows the same gigs by date.' },
     gig: { title: 'A gig', summary: 'Everything about one gig, in tabs: overview, crew, schedule, equipment, files, updates and chat. Managers change things; crew see them and can write in the chat.' },
@@ -159,6 +165,32 @@ export default {
 
   // guides: Help → Guides and the ? panel. Steps line up with the screenshots in index.js (GUIDES).
   guides: {
+    'crew-hours': {
+      title: 'Log your hours on a gig',
+      intro: 'Tell the gig\'s managers when you worked, so overtime, nights and travel are paid right.',
+      steps: [
+        'Open the gig\'s Crew tab and tap "Log hours". Start and end come from your booking or the gig\'s schedule: change them to what you really worked, add your break, travel time and km, and tap "Send hours".',
+        'On the day, On-site mode has "Clock in" and "Clock out": your start and end are filled in for you. No connection? Your hours wait on your phone and are sent when it\'s back.',
+        'A manager approves your day or sends it back with a note; you get a notification either way. Fix a sent-back day with the pencil. "My hours" in My work shows every gig, month by month.',
+      ],
+      mistakes: [
+        'Approved days can\'t be changed. If something is wrong, ask the gig\'s manager.',
+        'Only one entry per day per gig: change the day you already logged instead of adding another.',
+      ],
+    },
+    'pm-approve-hours': {
+      title: 'Approve crew hours and see the actual labour cost',
+      intro: 'Check what each person worked, approve it, and compare the real cost with what you planned.',
+      steps: [
+        'In a gig\'s Crew tab, "Hours" lists everyone\'s days. Each waiting day shows its split (normal, overtime, night, weekend, holiday) and its cost. Tap "Approve", or "Send back" with a note. You can also log hours for anyone on the gig.',
+        'Approved days lock with their split and cost. "Labour cost" now shows the actual cost from approved hours next to the planned one: agreed fees per day or hour, fixed fees once, plus travel and km.',
+        'In the organisation, "Hours" (admins) shows everyone per month with their hours and approved cost. Download a CSV for payroll; the organisation export has the hours too. Set the night window, the rate per km and your own holidays in the organisation\'s settings under "Crew rates".',
+      ],
+      mistakes: [
+        'Changing a rate later never changes an approved day: the cost stays as it was approved.',
+        'Freelance production managers don\'t see your rate card: for someone without an agreed fee they approve the hours with no cost. Set a fee for them first.',
+      ],
+    },
     'crew-join': {
       title: 'Accept an invitation and set your password',
       intro: 'A production manager added you to a gig. Set up your account once, then every gig you are on shows up in one place.',

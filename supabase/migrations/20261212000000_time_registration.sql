@@ -249,7 +249,7 @@ end $$;
 revoke execute on function public.time_settings(uuid) from public, anon;
 grant execute on function public.time_settings(uuid) to authenticated;
 
--- Organisation export: a time_entries file (and the new factor columns are kept by the old part)
+-- Organisation export: time_entries and org_holidays files; the factors file gets the new columns
 alter function private.export_org_part_unchecked(uuid, text, integer) rename to export_org_part_pre_step8;
 
 create or replace function private.export_org_part_unchecked(p_org uuid, p_part text, p_offset integer default 0)
@@ -273,6 +273,12 @@ begin
         left join public.profiles p on p.id = t.user_id
        where g.org_id = p_org and t.removed_at is null
        order by t.work_date, g.name, p.full_name, t.id offset v_off limit v_lim) x;
+  when 'crew_rate_factors' then
+    select jsonb_agg(to_jsonb(x)) into v_out from (
+      select f.overtime, f.overtime_after_hours, f.weekend, f.night, f.holiday,
+             to_char(f.night_from, 'HH24:MI') as night_from, to_char(f.night_until, 'HH24:MI') as night_until, f.km_rate, f.updated_at
+        from public.crew_rate_factors f
+       where f.org_id = p_org and v_off = 0) x;
   when 'org_holidays' then
     select jsonb_agg(to_jsonb(x)) into v_out from (
       select h.day, h.name, h.created_at from public.org_holidays h
