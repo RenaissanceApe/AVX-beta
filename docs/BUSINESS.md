@@ -56,7 +56,18 @@ When a step here is built, its session adds a "How … works" section below in t
 | Cost | `src/lib/crewRates.js`: the most specific rate (person in function, person, function; names compared ignoring case), the booked days (the person's booking, else the gig's dates), weekend days × the weekend factor, an agreed fee instead when set. Revenue: crew lines of the accepted quote (else the newest not declined) after its discount |
 | Screens | Organisation settings (`OrgCrewRatesSettings`), the gig's Crew tab (`LabourCost` for managers, `MyFee` for crew) |
 | Export | Three files (`crew_rates`, `crew_rate_factors`, `gig_crew_fees`). The export function was renamed `export_org_part_base` and is wrapped by the new one, which handles these parts (migration `20261203000001_export_crew_rates.sql`) |
-| Not yet | Fees in crew calls and job posts; quote labour lines from the rate card; overtime, night and holiday factors (step 8) |
+| Not yet | Overtime, night and holiday factors (step 8) |
+
+## How crew-rate follow-ups work (step 7b, 0.65.0)
+
+| Piece | How it works |
+|---|---|
+| Data | `crew_calls` has an optional fee: `fee_unit` (day, half_day, hour, fixed), `fee_rate`, `fee_quantity` (all three or none; fixed counts once). One fee for everyone in the call. Migration `20261211000000_crew_call_fees.sql` |
+| Sending | `send_crew_call` has an eight-argument version that takes the fee; the five-argument one (crew search, job board, trust screens) sends none. The fee goes into each invitation message and notification (`fee`: unit, rate, quantity, total) |
+| Accepting | Accepting a call with a fee creates the person's `gig_crew_fees` row with the call's unit, rate and quantity, so the labour panel shows it as agreed. A fee already set for them is kept (only a cleared one is filled). Checks in `supabase/tests/crew_call_fees.sql` |
+| Who | The people called see the fee in their offer before answering (they read the call's row, as before); crew on the gig never see the calls or others' fees. Only admins and members read the rate card, so freelance PMs get no suggestion but can type a fee |
+| Suggestions | `src/lib/crewRates.js`: `functionRate` (a function's rate under any of its names), `callFee` (the rate card's suggestion for the gig's days; with weekend days at a higher rate it becomes one fixed amount), `jobPay` (day rate per day, else hour rate per hour), `quoteLineCost` and `quoteCrewMargin` (a crew line's description is its function; per day uses the day rate, per hour the hour rate, × quantity × factor) |
+| Screens | `CrewCallModal` (fee fields, filled from the card until edited, "Use the rate card's fee"), `CrewCallList` and the chat offer card (`EventCard`) show the fee; the notification adds it. `PostJobModal` fills pay from the card for the function or title until someone types their own. The quote editor shows each crew line's cost and margin under it, and the Summary tab a "Crew margin" block; only for EUR quotes, and never in `QuoteDocument` (print, PDF, client link) |
 
 ## Planned
 
@@ -64,16 +75,6 @@ Specs for the business steps still to build, in ROADMAP.md order. Each is a star
 session that builds it reads its spec, checks it against the code, and **asks the owner the
 questions marked "Ask" before outlining the migration**. When built, the spec is replaced by a
 "How … works" section above.
-
-### 7b · Crew-rate follow-ups
-
-- **Crew calls** (`CrewCallModal`, `crew_calls`) and **job posts** (`job_posts.pay_*`) offer the fee
-  suggested by the rate card for the function, editable. Accepting a crew call with a fee creates
-  the person's `gig_crew_fees` row.
-- **Quotes:** adding a crew line offers the function's day rate as a cost hint next to the price
-  (price list stays the selling price); the quote shows the crew margin per line for admins and
-  members only, never on the client's print.
-- No new tables expected; maybe a `fee` column on `crew_calls`.
 
 ### 8 · Time registration [2]
 

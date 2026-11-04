@@ -7,6 +7,7 @@ import { track } from '../../lib/usage'
 import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
 import { NetworkPicker } from '../NetworkPicker'
+import { Hint } from '../help/HelpParts'
 import { formatMoney } from '../../lib/quotes'
 import { FEE_UNITS, bookedDays, callFee, feeTotal, functionRate, parseAmount, amountInput, suggestFee } from '../../lib/crewRates'
 import { useRateCard } from '../../lib/useCrewRates'
@@ -94,7 +95,7 @@ export function CrewCallModal({ gigId, gig, preset = {}, onClose, onSent }) {
           <input id="cc-note" value={note} onChange={e => setNote(e.target.value)} maxLength={500} placeholder={t('crewCall.notePlaceholder')} style={input} />
         </div>
         <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-          <legend style={label}>{t('crewCall.fee')}</legend>
+          <legend style={{ ...label, display: 'flex', alignItems: 'center', gap: '4px' }}>{t('crewCall.fee')} <Hint id="crew-call-fee" label={t('crewCall.fee')} /></legend>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px' }}>
             <div>
               <label style={label} htmlFor="cc-fee-unit">{t('labour.unitLabel')}</label>
@@ -116,7 +117,7 @@ export function CrewCallModal({ gigId, gig, preset = {}, onClose, onSent }) {
           <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginTop: '6px' }}>
             {total != null && <strong style={{ color: 'var(--text)' }}>{t('crewCall.feeTotal', { amount: formatMoney(total, 'EUR', lang) })} </strong>}
             {suggestion
-              ? t('crewCall.feeSuggested', { text: feeText(suggestion, t, lang) }) + (suggestion.weekendDays ? ` ${t('labour.weekendDays', { count: suggestion.weekendDays })}` : '')
+              ? t('crewCall.feeSuggested', { text: feeText(suggestion, t, lang) + (suggestion.weekendDays ? ` ${t('labour.weekendDays', { count: suggestion.weekendDays })}` : '') })
               : t('crewCall.feeNone')}
           </p>
           {feeTouched && suggested && (

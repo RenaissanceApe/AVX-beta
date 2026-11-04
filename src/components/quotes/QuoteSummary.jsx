@@ -2,6 +2,7 @@ import { useI18n } from '../../i18n'
 import { colors } from '../ui'
 import { PRICED_KINDS, formatMoney } from '../../lib/quotes'
 import { quoteCrewMargin } from '../../lib/crewRates'
+import { Hint } from '../help/HelpParts'
 
 // Financial overview: every phase, the split by kind, and the totals.
 export default function QuoteSummary({ quote, body, totals, rates = [], onOpenPhase }) {
@@ -45,7 +46,7 @@ export default function QuoteSummary({ quote, body, totals, rates = [], onOpenPh
 
       {crew?.lines > 0 && (
         <section aria-labelledby="crew-margin-title">
-          <h3 id="crew-margin-title" style={h3}>{t('quote.crewMargin')}</h3>
+          <h3 id="crew-margin-title" style={{ ...h3, display: 'flex', alignItems: 'center', gap: '4px' }}>{t('quote.crewMargin')} <Hint id="quote-crew-margin" label={t('quote.crewMargin')} /></h3>
           <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '6px' }}>{t('quote.crewMarginHint')}</p>
           <div style={{ fontSize: '14px' }}>
             <Line label={t('quote.crewMarginPrice')} value={money(crew.price)} />
