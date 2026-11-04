@@ -82,24 +82,26 @@ When a step here is built, its session adds a "How … works" section below in t
 | Export and feed | Organisation export: `time_entries` and `org_holidays` files, the factors file with the new columns (the export function was renamed `export_org_part_pre_step8` and wrapped). The calendar feed lists the person's own logged days in each gig's description |
 | Reports | K2, K7 and K8 read approved `time_entries` (`split`, `cost`); a fixed fee is added once per person and gig |
 
+## How leave requests work (step 9, 0.67.0)
+
+| Piece | How it works |
+|---|---|
+| Data | `crew_unavailability` (a person's own dates since 0.12) gained `type` (holiday, sick, training, other), `org_id` (empty for a freelancer's own dates), `status` (requested → approved or refused; cancelled when removed), `start_half` / `end_half` (afternoon of the first day, morning of the last), `days` (working days used, set by the database), who decided, when and the note, and `removed_at`. Rows from before stay approved "other" dates. New tables: `org_leave_settings` (holiday days per year, default 22), `staff_leave_years` (a person's own allowance for a year and the days carried over, typed by an admin), `staff_work_weeks` (ISO weekdays, default Monday to Friday, and hours a day). Migrations `20261213000000_leave_requests.sql` and `20261213000001_leave_requests_removal.sql` (applied by hand: hard removal stays only for freelance dates) |
+| Who | Staff = an organisation's admins and members (not viewers). Each asks for their own leave; holiday, training and other start as `requested`, sick is `approved` at once (past days allowed; requests start from today); an admin may enter leave for staff, approved at once. Only `decide_leave` changes the status: admins approve, or refuse with a note (approved leave can still be refused, e.g. a sick day by mistake). Asked or approved leave can't be moved, only removed (marked) and asked again. Admins read their organisation's leave; members read the calendar through `org_leave_calendar` (no notes, a colleague's sick day as "away", requests only their own); other companies only ever get "busy" through the reservations. Checks in `supabase/tests/leave_requests.sql` |
+| Days | `private.leave_days` counts the person's working weekdays in the range, without Portugal's national holidays (`private.pt_holiday`, Easter-based ones computed, the same list as `src/lib/timeRegistration.js`) and the organisation's `org_holidays`; a half first or last day counts 0.5; without an organisation every day counts. `src/lib/leave.js` (unit tested) counts the same way for the form's preview |
+| Balances | `leave_balances(org, year)`: per member of staff, allowance (their own for the year, else the organisation's), carried, used (approved holiday that year), asked (waiting), left, their working days and hours a day. Admins get everyone, others only themselves. Leave across New Year counts in each year |
+| Blocking | Only approved, not removed entries block. Reservations (clashes on a gig's Crew tab, the network picker's ⚠) are confirmed only then, and a half day starts or ends at 13:00 Lisbon time; `person_conflicts` and Find crew's `crew_busy` filter the same way. Time registration: `time_entries_leave` refuses hours on a whole day of approved organisation leave ("On leave that day"); half days and freelance dates don't block hours |
+| Notifications | `leave_requested` and `leave_sick` to the organisation's admins, `leave_cancelled` when someone removes approved leave, `leave_approved` / `leave_refused` (with the note) to the person, `leave_approved` also when an admin enters leave for them. All count as direct (shown even when the organisation is muted); they open `/org/:id/leave` |
+| Screens | `pages/LeavePage.jsx` at `/org/:orgId/leave` (menu: Organisation → Leave, admins and members): ask for leave, your balance, who is away (month, day by day), your leave (remove with ×); admins also get the requests waiting (`components/leave/LeaveAdmin.jsx`), "Add for someone", and holiday days and working weeks (organisation's days per year; per person: own allowance, carried, working days, hours a day). `components/leave/LeaveParts.jsx` has the form and the chips. Account → Availability shows a type on each date, the person's organisation leave with its status, and a button per organisation to ask for leave |
+| Feed and export | The calendar feed adds the person's approved leave and unavailable dates as all-day events. Organisation export: `leave_settings`, `work_weeks`, `leave_years` and `leave` files (the export function was renamed `export_org_part_pre_step9` and wrapped) |
+| Reports | `staff_utilisation(org, from, to)` (admins): per member of staff, working days, approved leave days per type, days and hours available, approved hours logged on the organisation's gigs. K7 builds on it |
+
 ## Planned
 
 Specs for the business steps still to build, in ROADMAP.md order. Each is a starting point: the
 session that builds it reads its spec, checks it against the code, and **asks the owner the
 questions marked "Ask" before outlining the migration**. When built, the spec is replaced by a
 "How … works" section above.
-
-### 9 · Leave requests [5]
-
-- Builds on `crew_unavailability` (a person's own unavailable dates). Adds **types** (holiday,
-  sick, training, other) and, for an organisation's **staff** (admins and members), a request that
-  an admin approves or refuses. Freelancers keep marking dates without approval.
-- **Balances** per staff member per year for holiday days (Ask: whole days only? carry-over?).
-- Approved leave blocks the person like unavailability: clashes, Find crew "free", the network
-  picker's ⚠, and time registration (no hours on leave days).
-- Organisation calendar of who is away; notifications to the person and the admins.
-- A **working week** per staff member (default Monday to Friday), so reports (K7) can count
-  utilisation.
 
 ### 9b · Expenses
 
