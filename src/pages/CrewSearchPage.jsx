@@ -17,6 +17,10 @@ import PlaceFinder from '../components/PlaceFinder'
 import ReportModal from '../components/ReportModal'
 import SavedCrewSearches from '../components/SavedCrewSearches'
 import { trustError } from '../lib/trust'
+import { bookedDays, callFee, resolveRate, suggestFee } from '../lib/crewRates'
+import { useRateCard } from '../lib/useCrewRates'
+import { FeeFields, useFeeForm } from '../components/gig/FeeFields'
+import { feeText } from '../components/gig/LabourCost'
 
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px' }
@@ -61,7 +65,7 @@ export default function CrewSearchPage() {
   useEffect(() => {
     if (!canSearch) return
     const today = new Date().toISOString().slice(0, 10)
-    supabase.from('gigs').select('id, name, venue, start_date, end_date, status').eq('org_id', orgId).neq('status', 'archived')
+    supabase.from('gigs').select('id, org_id, name, venue, start_date, end_date, status').eq('org_id', orgId).neq('status', 'archived')
       .or(`end_date.gte.${today},and(end_date.is.null,start_date.gte.${today})`).order('start_date').limit(100)
       .then(({ data, error }) => {
         if (error) return logger.error('crewSearch', error, { step: 'gigs' })
@@ -251,18 +255,24 @@ export default function CrewSearchPage() {
 }
 
 function ContactModal({ gig, person, kind, defaultTitle, onClose, onSent }) {
-  const { t, fmt } = useI18n()
+  const { t, fmt, lang } = useI18n()
   const { notify } = useToast()
   const [title, setTitle] = useState(defaultTitle)
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
+  // The fee for this one person: their own rate on the card if they have one, else the function's
+  const card = useRateCard(gig.org_id)
+  const suggestion = kind === 'offer' ? suggestFee(resolveRate(card.rates, { userId: person.user_id, functionTitle: title }), bookedDays(null, gig), card.factors) : null
+  const fee = useFeeForm(callFee(suggestion))
   const dates = gig.start_date ? (gig.end_date && gig.end_date !== gig.start_date ? `${fmt(gig.start_date, 'd MMM')} – ${fmt(gig.end_date, 'd MMM yyyy')}` : fmt(gig.start_date, 'd MMM yyyy')) : ''
 
   async function send(e) {
     e.preventDefault()
-    if (kind === 'offer' && !title.trim()) return
+    if (kind === 'offer' && (!title.trim() || fee.bad)) return
     setSending(true)
-    const { error } = await supabase.rpc('contact_crew', { p_gig: gig.id, p_user: person.user_id, p_kind: kind, p_title: kind === 'offer' ? title.trim() : null, p_message: message.trim() || null })
+    const args = { p_gig: gig.id, p_user: person.user_id, p_kind: kind, p_title: kind === 'offer' ? title.trim() : null, p_message: message.trim() || null }
+    const withFee = kind === 'offer' && fee.fee
+    const { error } = await supabase.rpc('contact_crew', withFee ? { ...args, p_fee_unit: fee.fee.unit, p_fee_rate: fee.fee.rate, p_fee_quantity: fee.fee.quantity } : args)
     setSending(false)
     if (error) {
       logger.error('crewSearch', error, { step: 'contact', kind })
@@ -270,7 +280,7 @@ function ContactModal({ gig, person, kind, defaultTitle, onClose, onSent }) {
       return notify(key ? t(key) : userMessage(error), 'error')
     }
     notify(t(`crewSearch.sentToast.${kind}`, { name: person.name || '' }), 'success')
-    track(`crew:contact:${kind}`)
+    track(`crew:contact:${kind}${withFee ? ':fee' : ''}`)
     onSent()
   }
 
@@ -284,13 +294,19 @@ function ContactModal({ gig, person, kind, defaultTitle, onClose, onSent }) {
             <input id="cs-offer-title" value={title} onChange={e => setTitle(e.target.value)} maxLength={120} required style={input} />
           </div>
         )}
+        {kind === 'offer' && (
+          <FeeFields id="cs" state={fee} canReset={!!suggestion} resetLabel={t('crewCall.feeUseCard')}
+            note={suggestion
+              ? t('crewCall.feeSuggested', { text: feeText(suggestion, t, lang) + (suggestion.weekendDays ? ` ${t('labour.weekendDays', { count: suggestion.weekendDays })}` : '') })
+              : t('crewCall.feeNone')} />
+        )}
         <div>
           <label style={label} htmlFor="cs-message">{t('crewSearch.message')}</label>
           <textarea id="cs-message" rows={3} value={message} onChange={e => setMessage(e.target.value)} maxLength={500}
             placeholder={kind === 'offer' ? t('crewSearch.offerPlaceholder') : t('crewSearch.askPlaceholder')} style={{ ...input, resize: 'vertical' }} />
         </div>
         <p style={hint}>{kind === 'offer' ? t('crewSearch.offerHint') : t('crewSearch.askHint')}</p>
-        <button type="submit" disabled={sending || (kind === 'offer' && !title.trim())} style={{ ...btnPrimary, justifyContent: 'center' }}>
+        <button type="submit" disabled={sending || (kind === 'offer' && (!title.trim() || fee.bad))} style={{ ...btnPrimary, justifyContent: 'center' }}>
           {sending ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : kind === 'offer' ? <Handshake size={15} /> : <CalendarCheck size={15} />}
           {' '}{kind === 'offer' ? t('crewSearch.sendOffer') : t('crewSearch.sendAsk')}
         </button>

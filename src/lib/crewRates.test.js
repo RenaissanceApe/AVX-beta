@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { resolveRate, bookedDays, suggestFee, feeTotal, labourLines, labourSummary, quoteCrewRevenue, parseAmount, amountInput } from './crewRates'
+import { resolveRate, bookedDays, suggestFee, feeTotal, labourLines, labourSummary, quoteCrewRevenue, parseAmount, amountInput,
+  functionRate, callFee, jobPay, quoteLineCost, quoteCrewMargin, feeFromForm, offerFee } from './crewRates'
 
 const rates = [
   { id: 'fn', function_title: 'FOH engineer', user_id: null, day_rate: 300, half_day_rate: 180 },
@@ -72,5 +73,63 @@ describe('crew rates', () => {
     expect(parseAmount('')).toBe(null)
     expect(parseAmount('abc')).toBeNaN()
     expect(amountInput(12.5)).toBe('12,5')
+  })
+
+  it('finds a function rate under any of its names, never a person rate', () => {
+    expect(functionRate(rates, ['Técnico FOH', 'foh engineer']).id).toBe('fn')
+    expect(functionRate(rates, 'Runner').id).toBe('half')
+    expect(functionRate(rates, ['', null])).toBe(null)
+    expect(functionRate([{ id: 'p', function_title: 'Rigger', user_id: 'k', day_rate: 9 }], 'Rigger')).toBe(null)
+  })
+
+  it('turns a suggestion into a crew call fee', () => {
+    expect(callFee({ unit: 'day', rate: 200, quantity: 3, weekendDays: 0, total: 600 })).toEqual({ unit: 'day', rate: 200, quantity: 3 })
+    // Weekend days at a higher rate: offered as one fixed amount
+    expect(callFee({ unit: 'day', rate: 300, quantity: 3, weekendDays: 2, total: 1200 })).toEqual({ unit: 'fixed', rate: 1200, quantity: 1 })
+    // Weekend factor 1: still per day
+    expect(callFee({ unit: 'day', rate: 300, quantity: 3, weekendDays: 2, total: 900 })).toEqual({ unit: 'day', rate: 300, quantity: 3 })
+    expect(callFee(null)).toBe(null)
+  })
+
+  it('prefills a job post from the day rate, else the hour rate', () => {
+    expect(jobPay({ day_rate: 250.5 })).toEqual({ pay_mode: 'fixed', pay_amount: '250,5', pay_per: 'day' })
+    expect(jobPay({ hour_rate: 30 })).toEqual({ pay_mode: 'fixed', pay_amount: '30', pay_per: 'hour' })
+    expect(jobPay({ half_day_rate: 60 })).toBe(null)
+    expect(jobPay(null)).toBe(null)
+  })
+
+  it('costs quote crew lines by the rate card and totals the margin', () => {
+    const card = [...rates, { id: 'hr', function_title: 'Rigger', user_id: null, hour_rate: 40 }]
+    const foh = { id: 'a', kind: 'crew', description: 'FOH engineer', qty: 2, factor: 3, unit: 'day', unit_price: 400, discount_pct: 0 }
+    expect(quoteLineCost(foh, card)).toEqual({ rate: 300, cost: 1800, price: 2400, margin: 600, marginPct: 25 })
+    expect(quoteLineCost({ ...foh, description: 'Rigger', unit: 'hour', qty: 1, factor: 10, unit_price: 35 }, card)).toMatchObject({ cost: 400, margin: -50 })
+    expect(quoteLineCost({ ...foh, unit: 'lump' }, card)).toBe(null)
+    expect(quoteLineCost({ ...foh, kind: 'rental' }, card)).toBe(null)
+    const body = { phases: [
+      { id: 'p', sections: [{ id: 's', lines: [foh, { ...foh, id: 'b', description: 'Clown' }, { ...foh, id: 'c', kind: 'rental' }] }] },
+      { id: 'o', optional: true, sections: [{ id: 's2', lines: [foh] }] },
+    ] }
+    expect(quoteCrewMargin(body, card)).toEqual({ lines: 2, missing: 1, price: 2400, cost: 1800, margin: 600, marginPct: 25 })
+    expect(quoteCrewMargin({ phases: [] }, card)).toMatchObject({ lines: 0, marginPct: null })
+  })
+
+  it('reads a fee form: empty is no fee, a fixed fee counts once, bad values are flagged', () => {
+    expect(feeFromForm({ unit: 'day', rate: '', quantity: '3' })).toEqual({ fee: null, total: null, bad: false })
+    expect(feeFromForm({ unit: 'day', rate: '200,5', quantity: '3' })).toEqual({ fee: { unit: 'day', rate: 200.5, quantity: 3 }, total: 601.5, bad: false })
+    expect(feeFromForm({ unit: 'fixed', rate: '500', quantity: '' })).toMatchObject({ fee: { quantity: 1 }, total: 500 })
+    expect(feeFromForm({ unit: 'hour', rate: '30', quantity: '' }).bad).toBe(true)
+    expect(feeFromForm({ unit: 'day', rate: 'abc', quantity: '1' }).bad).toBe(true)
+    expect(feeFromForm({ unit: 'week', rate: '10', quantity: '1' }).bad).toBe(true)
+  })
+
+  it('starts a job board offer from the applicant\'s rate, else the post\'s pay', () => {
+    const post = { starts_on: '2026-12-04', ends_on: '2026-12-06', pay_mode: 'fixed', pay_amount: 150, pay_per: 'day', currency: 'EUR' }
+    expect(offerFee({ ...post, pay_mode: 'ask_rate', pay_amount: null }, { day_rate: 180, currency: 'EUR' })).toEqual({ unit: 'day', rate: 180, quantity: 3 })
+    expect(offerFee(post, {})).toEqual({ unit: 'day', rate: 150, quantity: 3 })
+    expect(offerFee({ ...post, pay_per: 'job' }, {})).toEqual({ unit: 'fixed', rate: 150, quantity: 1 })
+    expect(offerFee({ ...post, pay_per: 'hour' }, {})).toEqual({ unit: 'hour', rate: 150, quantity: null })
+    // Other currencies, or nothing to start from: no fee
+    expect(offerFee({ ...post, currency: 'GBP' }, { day_rate: 200, currency: 'GBP' })).toBe(null)
+    expect(offerFee({ ...post, pay_mode: 'ask_rate', pay_amount: null }, {})).toBe(null)
   })
 })

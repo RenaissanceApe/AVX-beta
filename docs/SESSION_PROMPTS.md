@@ -1526,14 +1526,14 @@ Finish with the short summary CLAUDE.md asks for.
 
 ## Import overhaul (any time, in order)
 
-Plan: [SWITCHING.md](SWITCHING.md), "Import overhaul: fix it here" (decision D37). IM2 and IM3 need
+Plan: [SWITCHING.md](SWITCHING.md), "Import overhaul: fix it here" (decision D38). IM2 and IM3 need
 IM1 merged first.
 
 ### IM1 · Fix it in the check
 
 ```
 Import overhaul IM1: fix it in the check (docs/SWITCHING.md, "Import overhaul: fix it here";
-docs/PENDING.md D37). Read that section, then CheckStep and DoneStep in src/pages/ImportPage.jsx
+docs/PENDING.md D38). Read that section, then CheckStep and DoneStep in src/pages/ImportPage.jsx
 and dryRun, buildRows and SERVER in src/lib/importer.js (in ranges).
 
 Scope:

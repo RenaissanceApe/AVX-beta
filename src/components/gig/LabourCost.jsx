@@ -13,7 +13,7 @@ import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../
 const money = (v, lang) => formatMoney(v, 'EUR', lang)
 
 // How a fee reads: "€350 × 3 days", "€500 fixed"
-function feeText(f, t, lang) {
+export function feeText(f, t, lang) {
   if (!f || f.rate == null) return ''
   if (f.unit === 'fixed') return t('labour.fixedText', { amount: money(f.rate, lang) })
   return `${money(f.rate, lang)} × ${t(`labour.qty.${f.unit}`, { count: Number(f.quantity) })}`

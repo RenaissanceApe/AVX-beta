@@ -190,7 +190,7 @@ those rows out and says "Fix them in the file and import it again". Importing is
 nature, so the wizard should make it as easy and as controlled as possible.
 
 Scope: the whole wizard (it is the app's only import path), all ten kinds and all four steps.
-Built in three parts, each in its own session (ROADMAP.md, prompts IM1–IM3; decision D37).
+Built in three parts, each in its own session (ROADMAP.md, prompts IM1–IM3; decision D38).
 
 ### Principles
 

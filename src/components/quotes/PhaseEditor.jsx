@@ -4,13 +4,14 @@ import { PricePickerModal } from './PriceList'
 import { useI18n } from '../../i18n'
 import { iconBtn, input, label, colors } from '../ui'
 import { Hint, HintLabel } from '../help/HelpParts'
+import { quoteLineCost } from '../../lib/crewRates'
 import {
   LINE_KINDS, UNITS, emptyLine, emptySection, lineTotal, sectionTotal, phaseTotals, formatMoney, move, newId, lineFromPriceItem,
 } from '../../lib/quotes'
 
 // One phase of a quote (like a Rentman subproject): its own dates and discount, and
 // sections (like equipment / function groups) holding the priced lines.
-export default function PhaseEditor({ phase, index, count, currency, priceItems = [], onChange, onMove, onDuplicate, onRemove, onSaveTemplate }) {
+export default function PhaseEditor({ phase, index, count, currency, priceItems = [], rates = [], onChange, onMove, onDuplicate, onRemove, onSaveTemplate }) {
   const { t, lang } = useI18n()
   const totals = phaseTotals(phase)
   const set = changes => onChange({ ...phase, ...changes })
@@ -57,7 +58,7 @@ export default function PhaseEditor({ phase, index, count, currency, priceItems 
       </div>
 
       {phase.sections.map((section, i) => (
-        <SectionEditor key={section.id} section={section} currency={currency} priceItems={priceItems}
+        <SectionEditor key={section.id} section={section} currency={currency} priceItems={priceItems} rates={rates}
           first={i === 0} last={i === phase.sections.length - 1}
           onChange={next => updateSection(i, next)}
           onMove={delta => setSections(move(phase.sections, i, delta))}
@@ -80,7 +81,7 @@ export default function PhaseEditor({ phase, index, count, currency, priceItems 
   )
 }
 
-function SectionEditor({ section, currency, priceItems, first, last, onChange, onMove, onRemove }) {
+function SectionEditor({ section, currency, priceItems, rates, first, last, onChange, onMove, onRemove }) {
   const { t, lang } = useI18n()
   const [picking, setPicking] = useState(false)
   const setLines = lines => onChange({ ...section, lines })
@@ -112,7 +113,7 @@ function SectionEditor({ section, currency, priceItems, first, last, onChange, o
         </div>
       )}
       {section.lines.map((line, i) => (
-        <LineEditor key={line.id} line={line} currency={currency} first={i === 0} last={i === section.lines.length - 1}
+        <LineEditor key={line.id} line={line} currency={currency} rates={rates} first={i === 0} last={i === section.lines.length - 1}
           onChange={next => updateLine(i, next)}
           onMove={delta => setLines(move(section.lines, i, delta))}
           onDuplicate={() => setLines([...section.lines.slice(0, i + 1), { ...line, id: newId() }, ...section.lines.slice(i + 1)])}
@@ -137,11 +138,13 @@ function SectionEditor({ section, currency, priceItems, first, last, onChange, o
   )
 }
 
-function LineEditor({ line, currency, first, last, onChange, onMove, onDuplicate, onRemove }) {
+function LineEditor({ line, currency, rates, first, last, onChange, onMove, onDuplicate, onRemove }) {
   const { t, lang } = useI18n()
   const [showDetails, setShowDetails] = useState(!!line.details)
   const set = changes => onChange({ ...line, ...changes })
   const isComment = line.kind === 'comment'
+  // The rate card's cost for a crew line, for the organisation only (rates are in euros)
+  const cost = currency === 'EUR' ? quoteLineCost(line, rates) : null
 
   return (
     <div className="q-line-wrap">
@@ -184,6 +187,11 @@ function LineEditor({ line, currency, first, last, onChange, onMove, onDuplicate
           <LineMenu first={first} last={last} onMove={onMove} onDuplicate={onDuplicate} onRemove={onRemove} />
         </span>
       </div>
+      {cost && (
+        <p style={{ fontSize: '12px', color: cost.margin < 0 ? colors.danger : colors.muted, margin: '2px 0 0', textAlign: 'right' }}>
+          {t(cost.marginPct != null ? 'quote.rateCostPct' : 'quote.rateCost', { cost: formatMoney(cost.cost, currency, lang), margin: formatMoney(cost.margin, currency, lang), pct: cost.marginPct })}
+        </p>
+      )}
       {showDetails && (
         <textarea value={line.details} onChange={e => set({ details: e.target.value })} aria-label={t('quote.lineDetails')}
           placeholder={t('quote.detailsPlaceholder')} rows={2} maxLength={1000}

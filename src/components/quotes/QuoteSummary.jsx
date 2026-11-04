@@ -1,11 +1,15 @@
 import { useI18n } from '../../i18n'
 import { colors } from '../ui'
 import { PRICED_KINDS, formatMoney } from '../../lib/quotes'
+import { quoteCrewMargin } from '../../lib/crewRates'
+import { Hint } from '../help/HelpParts'
 
 // Financial overview: every phase, the split by kind, and the totals.
-export default function QuoteSummary({ quote, body, totals, onOpenPhase }) {
+export default function QuoteSummary({ quote, body, totals, rates = [], onOpenPhase }) {
   const { t, fmt, lang } = useI18n()
   const money = v => formatMoney(v, quote.currency, lang)
+  // Crew lines against the rate card (rates are in euros; only the organisation can read them)
+  const crew = quote.currency === 'EUR' && rates.length ? quoteCrewMargin(body, rates) : null
   const range = p => [p.start_date, p.end_date].filter(Boolean).map(d => fmt(d, 'd MMM')).join(' – ')
 
   return (
@@ -40,6 +44,19 @@ export default function QuoteSummary({ quote, body, totals, onOpenPhase }) {
         {!PRICED_KINDS.some(k => totals.byKind[k]) && <p style={{ color: colors.muted, fontSize: '13px' }}>—</p>}
       </section>
 
+      {crew?.lines > 0 && (
+        <section aria-labelledby="crew-margin-title">
+          <h3 id="crew-margin-title" style={{ ...h3, display: 'flex', alignItems: 'center', gap: '4px' }}>{t('quote.crewMargin')} <Hint id="quote-crew-margin" label={t('quote.crewMargin')} /></h3>
+          <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '6px' }}>{t('quote.crewMarginHint')}</p>
+          <div style={{ fontSize: '14px' }}>
+            <Line label={t('quote.crewMarginPrice')} value={money(crew.price)} />
+            <Line label={t('quote.crewMarginCost')} value={money(crew.cost)} />
+            <Line label={t('quote.crewMarginValue')} value={`${money(crew.margin)}${crew.marginPct != null ? ` (${crew.marginPct}%)` : ''}`} strong danger={crew.margin < 0} />
+          </div>
+          {crew.missing > 0 && <p style={{ fontSize: '12px', color: 'var(--warn)', marginTop: '4px' }}>{t('quote.crewMarginMissing', { count: crew.missing })}</p>}
+        </section>
+      )}
+
       <section style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '12px', fontSize: '14px' }}>
         <Line label={t('quote.subtotal')} value={money(totals.subtotal)} />
         {totals.discount > 0 && <Line label={t('quote.discountOf', { pct: quote.discount_pct })} value={`−${money(totals.discount)}`} />}
@@ -52,10 +69,10 @@ export default function QuoteSummary({ quote, body, totals, onOpenPhase }) {
   )
 }
 
-function Line({ label, value, strong, accent, muted }) {
+function Line({ label, value, strong, accent, muted, danger }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', fontWeight: strong ? 700 : 400,
-      color: accent ? colors.accentText : muted ? colors.muted : 'var(--text)', fontSize: accent ? '16px' : undefined }}>
+      color: danger ? colors.danger : accent ? colors.accentText : muted ? colors.muted : 'var(--text)', fontSize: accent ? '16px' : undefined }}>
       <span>{label}</span><span>{value}</span>
     </div>
   )

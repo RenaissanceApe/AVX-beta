@@ -8,6 +8,7 @@
 //   npm run help:screens               every picture, both languages
 //   npm run help:screens -- call-time,push  only the pictures whose names contain these words
 //   HELP_THEME=light HELP_OUT=/tmp/x npm run help:screens   another theme, saved elsewhere (to check it)
+//   HELP_WIDTH=320 HELP_OUT=/tmp/x npm run help:screens      a narrower phone, saved elsewhere (to check it)
 //
 // Needs Chromium for Playwright (in CI images it is at /opt/pw-browsers/chromium; set
 // PW_CHROMIUM_PATH to use another).
@@ -375,6 +376,37 @@ const SCENES = {
     await box.evaluate(el => window.scrollTo(0, document.documentElement.scrollHeight))
     return null
   } },
+  'crewcall-fee': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
+    await page.getByRole('button', { name: L('crewCall.button') }).first().click()
+    const dialog = page.getByRole('dialog')
+    await dialog.locator('#cc-title').fill(page.lang === 'pt' ? 'Técnica de som' : 'Sound technician')
+    const fee = dialog.locator('fieldset').first()
+    await fee.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return fee
+  } },
+  'job-pay': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
+    await page.getByRole('button', { name: L('jobs.postButton') }).first().click()
+    const dialog = page.getByRole('dialog')
+    await dialog.locator('#pj-title').fill(page.lang === 'pt' ? 'Técnica de som' : 'Sound technician')
+    const pay = dialog.locator('fieldset').last()
+    await pay.locator('#pj-amount').waitFor()
+    await pay.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return pay
+  } },
+  'quote-crew-margin': { persona: 'pm', url: '/quote/q1', async run(page, L) {
+    await page.getByRole('tab', { name: page.lang === 'pt' ? 'Montagem' : 'Load-in' }).first().click()
+    const line = page.getByText(page.lang === 'pt' ? 'Custo pela tabela' : 'Rate card cost').first()
+    await line.waitFor()
+    await line.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return line
+  } },
+  'quote-crew-total': { persona: 'pm', url: '/quote/q1', async run(page, L) {
+    await page.getByRole('tab', { name: L('quote.tab.summary') }).first().click()
+    const box = page.locator('section[aria-labelledby="crew-margin-title"]')
+    await box.waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box
+  } },
   'org-fields': { persona: 'pm', url: `/org/${ids.org}?panel=settings`, async run(page) {
     const box = page.locator('section[aria-labelledby="org-fields"]')
     await box.waitFor()
@@ -388,6 +420,15 @@ const SCENES = {
     await page.locator('#vies-number').fill('500 000 000')
     await box.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
     return box
+  } },
+  'crewsearch-offer': { persona: 'pm', url: `/org/${ids.org}/crew?gig=${ids.gig}`, async run(page, L) {
+    await page.getByRole('button', { name: L('crewSearch.search'), exact: true }).click()
+    await page.getByRole('button', { name: L('crewSearch.offerNamed', { name: 'Rui Teixeira' }) }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog.locator('#cs-offer-title').fill(page.lang === 'pt' ? 'Técnica de som' : 'Sound technician')
+    const fee = dialog.locator('fieldset').first()
+    await fee.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return fee
   } },
   'crew-search': { persona: 'pm', url: `/org/${ids.org}/crew?gig=${ids.gig}`, async run(page, L) {
     await page.getByRole('button', { name: L('crewSearch.search'), exact: true }).click()
@@ -470,7 +511,7 @@ const respond = (route, body, status = 200) => route.fulfill({ status, contentTy
 async function newPhone(browser, persona, lang) {
   const data = sampleData(persona, lang)
   const ctx = await browser.newContext({
-    viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block',
+    viewport: { width: Number(process.env.HELP_WIDTH) || 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block',
     locale: lang === 'pt' ? 'pt-PT' : 'en-GB', timezoneId: 'Europe/Lisbon',
   })
   const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url')
