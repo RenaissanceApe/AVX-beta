@@ -4,7 +4,8 @@ import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { logger, userMessage } from '../lib/logger'
 import { useI18n, LANGUAGES } from '../i18n'
-import { Zap, Eye, EyeOff, ArrowRight, Loader2, Mail, CheckCircle } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight, Loader2, Mail, CheckCircle } from 'lucide-react'
+import { AvxMark } from '../components/ui'
 
 export default function AuthPage() {
   const [mode, setMode] = useState('signin')
@@ -174,7 +175,7 @@ export default function AuthPage() {
           {t('auth.verified')}
         </p>
         <button onClick={() => setConfirmed(false)} style={{
-          background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
+          background: 'var(--accent)',
           border: 'none', borderRadius: '10px', padding: '13px 32px',
           color: 'var(--on-accent)', fontSize: '15px', fontWeight: '700',
           fontFamily: 'var(--font-ui)', cursor: 'pointer',
@@ -217,11 +218,11 @@ export default function AuthPage() {
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
             <div style={{
-              width: '36px', height: '36px', background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
+              width: '36px', height: '36px', background: 'var(--accent)',
               borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 0 20px color-mix(in srgb, var(--accent) 40%, transparent)'
             }}>
-              <Zap size={20} color="var(--on-accent)" fill="var(--on-accent)" />
+              <AvxMark size={22} style={{ color: 'var(--on-accent)' }} />
             </div>
             <span style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text)', letterSpacing: '-0.5px' }}>AVX</span>
           </div>
@@ -354,7 +355,7 @@ export default function AuthPage() {
             <button type="submit" disabled={loading} style={{
               marginTop: '4px',
               padding: '13px', borderRadius: '10px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-              background: loading ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'linear-gradient(135deg, var(--accent), var(--accent-2))',
+              background: loading ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'var(--accent)',
               color: 'var(--on-accent)', fontWeight: '700', fontSize: '15px',
               fontFamily: 'var(--font-ui)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',

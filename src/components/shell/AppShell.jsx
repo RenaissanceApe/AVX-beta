@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
-  Zap, ChevronDown, Check, Briefcase, List, CalendarDays, CalendarOff, Building2, Plus, FileText, Tags,
+  ChevronDown, Check, Briefcase, List, CalendarDays, CalendarOff, Building2, Plus, FileText, Tags,
   LayoutTemplate, Users, Settings, MoreHorizontal, X, LogOut, BellOff, Package, MapPin, History, QrCode, Wrench, Handshake, BarChart3, HelpCircle, Contact, Search, ListTodo, Clock, Receipt, TrendingUp } from 'lucide-react'
 import { useAuth } from '../../lib/AuthContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
@@ -9,7 +9,7 @@ import { navSections, splitItems, phoneTabs, isActive, homePath, MY_WORK } from 
 import { useI18n } from '../../i18n'
 import NotificationBell from '../NotificationBell'
 import MessagesButton from '../messages/MessagesButton'
-import { colors, iconBtn } from '../ui'
+import { colors, iconBtn, AvxMark } from '../ui'
 
 export const ICONS = {
   briefcase: Briefcase, list: List, calendar: CalendarDays, calendarOff: CalendarOff, building: Building2, plus: Plus,
@@ -42,7 +42,7 @@ export default function AppShell({ children }) {
       <style>{SHELL_CSS}</style>
       <header className="shell-bar">
         <Link to={homePath(workspace)} className="shell-logo" aria-label={`AVX — ${t('nav.home')}`} title={t('nav.home')}>
-          <span className="shell-logo-mark"><Zap size={15} color="var(--on-accent)" fill="var(--on-accent)" /></span>
+          <span className="shell-logo-mark"><AvxMark size={22} /></span>
           <span className="shell-logo-text">AVX</span>
         </Link>
         <span className="shell-divider" aria-hidden="true" />
@@ -279,10 +279,9 @@ const SHELL_CSS = `
     padding: 0 18px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent); }
   .shell-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); border-radius: 10px; padding: 4px; }
-  .shell-logo:hover .shell-logo-mark { box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent); }
-  .shell-logo-mark { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 30%, transparent); transition: box-shadow .2s; }
-  .shell-logo-text { font-weight: 800; font-size: 18px; letter-spacing: -0.3px; }
+  .shell-logo-mark { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: var(--accent-text); }
+  :root[data-theme="light"] .shell-logo-mark { color: var(--text); }
+  .shell-logo-text { font-family: var(--font-mono); font-weight: 700; font-size: 17px; letter-spacing: 0.06em; }
   .shell-divider { width: 1px; height: 22px; background: color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent); }
   .shell-switcher, .shell-section { position: relative; }
   .shell-switch-btn { display: flex; align-items: center; gap: 8px; max-width: 380px; padding: 6px 10px; border-radius: 10px; cursor: pointer;
@@ -292,7 +291,7 @@ const SHELL_CSS = `
   .shell-chevron { color: ${colors.soft}; flex-shrink: 0; }
   .shell-orgmark { flex-shrink: 0; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800;
     background: linear-gradient(135deg, color-mix(in srgb, var(--purple) 90%, transparent), color-mix(in srgb, var(--purple) 90%, transparent)); color: var(--on-accent); }
-  .shell-orgmark-me { width: 22px; height: 22px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--on-accent); }
+  .shell-orgmark-me { width: 22px; height: 22px; background: var(--accent); color: var(--on-accent); }
   .shell-role { flex-shrink: 0; font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; }
   .shell-role-admin { color: var(--yellow); background: color-mix(in srgb, var(--yellow) 14%, transparent); }
   .shell-role-member { color: var(--sky); background: color-mix(in srgb, var(--sky) 14%, transparent); }
@@ -304,7 +303,7 @@ const SHELL_CSS = `
   .shell-section-btn.is-active { color: ${colors.accentText}; }
   .shell-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   .shell-avatar { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--on-accent);
-    background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+    background: var(--accent); }
   .shell-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 70; border-radius: 18px; padding: 14px; color: var(--text);
     background-color: color-mix(in srgb, var(--panel) 97%, transparent); background-image: ${GRAIN}, linear-gradient(160deg, color-mix(in srgb, var(--tint, var(--accent)) 12%, transparent), color-mix(in srgb, var(--fg) min(100%, calc(2% * var(--line-k))), transparent) 55%);
     backdrop-filter: blur(22px) saturate(140%); -webkit-backdrop-filter: blur(22px) saturate(140%);

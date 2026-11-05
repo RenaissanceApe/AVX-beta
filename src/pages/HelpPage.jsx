@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
-import { ArrowLeft, Zap, Search, BookOpen, ListChecks, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Search, BookOpen, ListChecks, ChevronRight } from 'lucide-react'
 import { APP_NAME } from '../config'
 import { searchTerms, guide, guidesByRole, GUIDE_ROLES } from '../help'
 import GuideView from '../components/help/GuideView'
 import { useI18n, LANGUAGES } from '../i18n'
 import { track } from '../lib/usage'
-import { colors } from '../components/ui'
+import { colors, AvxMark } from '../components/ui'
 
 // Help (docs/HELP.md): the how-to guides by role (H2) and the glossary (H1), every AVX and trade
 // word in plain language, searchable, readable before signing in too. /help#call-time opens at
@@ -41,7 +41,7 @@ export default function HelpPage() {
               {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
             </select>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontWeight: 800 }}>
-              <Zap size={16} color="var(--accent-text)" fill="var(--accent-text)" aria-hidden="true" /> {APP_NAME}
+              <AvxMark size={16} style={{ color: 'var(--accent-text)' }} /> {APP_NAME}
             </span>
           </span>
         </div>

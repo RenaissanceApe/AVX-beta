@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Zap } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import { AvxMark } from '../components/ui'
 import { APP_NAME, COMPANY_NAME, COMPANY_COUNTRY, CONTACT_EMAIL, LEGAL_LAST_UPDATED, SENTRY_DSN } from '../config'
 import { useI18n } from '../i18n'
 import { PrivacyPt, TermsPt } from './LegalPagePt'
@@ -126,7 +127,7 @@ export default function LegalPage({ doc }) {
             <ArrowLeft size={14} /> {t('common.back')}
           </Link>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontWeight: 800 }}>
-            <Zap size={16} color="var(--accent-text)" fill="var(--accent-text)" /> {APP_NAME}
+            <AvxMark size={16} style={{ color: 'var(--accent-text)' }} /> {APP_NAME}
           </span>
         </div>
         {doc === 'terms' ? (pt ? <TermsPt /> : <Terms />) : (pt ? <PrivacyPt /> : <Privacy />)}

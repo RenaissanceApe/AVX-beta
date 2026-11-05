@@ -5,7 +5,8 @@ import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { logger, userMessage } from '../lib/logger'
 import { useToast } from '../lib/ToastContext'
 import { useI18n } from '../i18n'
-import { Zap, Loader2, ArrowRight } from 'lucide-react'
+import { Loader2, ArrowRight } from 'lucide-react'
+import { AvxMark } from '../components/ui'
 
 // Landing page for invitation emails. The invite link signs the person in;
 // here they choose their display name and a password for future sign-ins.
@@ -46,10 +47,10 @@ export default function WelcomePage() {
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              width: '36px', height: '36px', background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
+              width: '36px', height: '36px', background: 'var(--accent)',
               borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
-              <Zap size={20} color="var(--on-accent)" fill="var(--on-accent)" />
+              <AvxMark size={22} style={{ color: 'var(--on-accent)' }} />
             </div>
             <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text)' }}>AVX</span>
           </div>
@@ -105,6 +106,6 @@ const input = {
 
 const btn = {
   width: '100%', padding: '13px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-  background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', color: 'var(--on-accent)', fontWeight: 700, fontSize: '15px',
+  background: 'var(--accent)', color: 'var(--on-accent)', fontWeight: 700, fontSize: '15px',
   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
 }

@@ -74,7 +74,7 @@ export default function FeedTab({ gigId, posts, userId, isPM, nameOf, onChanged 
           </button>
           <button onClick={post} disabled={posting || !canPost} style={{
             display: 'flex', alignItems: 'center', gap: '6px', border: 'none', borderRadius: '8px', padding: '8px 16px',
-            background: canPost ? `linear-gradient(135deg, ${colors.accent}, ${colors.accentDark})` : 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)',
+            background: canPost ? colors.accent : 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)',
             color: canPost ? 'var(--on-accent)' : 'var(--muted)', cursor: canPost ? 'pointer' : 'default', fontSize: '13px', fontWeight: 700,
           }}>
             {posting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('feed.post')}

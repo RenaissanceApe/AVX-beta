@@ -412,7 +412,7 @@ function FieldLabel({ label, children }) {
 
 const btnPrimary = {
   display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-  background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', color: 'var(--on-accent)', fontWeight: 700, fontSize: '14px',
+  background: 'var(--accent)', color: 'var(--on-accent)', fontWeight: 700, fontSize: '14px',
   fontFamily: 'var(--font-ui)', boxShadow: '0 4px 16px color-mix(in srgb, var(--accent) 25%, transparent)', transition: 'all 0.2s'
 }
 const btnModal = { ...btnPrimary, width: '100%', justifyContent: 'center', padding: '13px', fontSize: '15px', marginTop: '4px' }
