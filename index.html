@@ -58,8 +58,10 @@
          let them shrink to their column and keep a normal height */
       input[type="date"], input[type="time"], input[type="datetime-local"] { min-width: 0; min-height: 42px; -webkit-appearance: none; appearance: none; }
       input::-webkit-date-and-time-value { text-align: left; }
-      :focus-visible { outline: 2px solid var(--accent-text, #33FB31); outline-offset: 2px; }
+      :focus-visible { outline: 2px solid var(--focus, #33FB31); outline-offset: 2px; }
       :root[data-theme="contrast"] :focus-visible { outline-width: 3px; }
+      /* Text fields always show the ring while focused (inline styles turn the default outline off) */
+      :is(input, textarea, select):focus { outline: 2px solid var(--focus, #33FB31) !important; outline-offset: 0; }
       .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
       @keyframes spin { to { transform: rotate(360deg) } }
       @keyframes fadeIn { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: translateY(0) } }

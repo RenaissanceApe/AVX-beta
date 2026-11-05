@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { THEMES, themeCss, contrast } from './tokens'
+import { THEMES, themeCss, contrast, DERIVED_PCT } from './tokens'
 
 // A colour at some percent over a background, as #rrggbb (what color-mix(… transparent) shows)
 const over = (fg, bg, pct) => '#' + [1, 3, 5].map(i => Math.round(parseInt(fg.slice(i, i + 2), 16) * pct / 100 + parseInt(bg.slice(i, i + 2), 16) * (1 - pct / 100)).toString(16).padStart(2, '0')).join('')
@@ -45,10 +45,41 @@ describe('themes', () => {
     for (const fg of ['text', 'text2', 'muted', 'accentText']) for (const bg of BACKGROUNDS) expect(contrast(t[fg], t[bg])).toBeGreaterThanOrEqual(7)
   })
 
+  it('give control edges (line-strong) and the focus ring 3:1 on every ground', () => {
+    const low = []
+    for (const [name, t] of Object.entries(THEMES)) {
+      const pct = Math.min(100, DERIVED_PCT.lineStrong * t.lineK)
+      for (const bg of ['bg', 'panel', 'chrome']) {
+        const edge = contrast(over(t.fg, t[bg], pct), t[bg])
+        if (edge < 3) low.push(`${name}: line-strong on ${bg} = ${edge.toFixed(2)}`)
+        const ring = contrast(t.focus, t[bg])
+        if (ring < 3) low.push(`${name}: focus on ${bg} = ${ring.toFixed(2)}`)
+      }
+    }
+    expect(low).toEqual([])
+  })
+
+  it('keep status text readable on the danger-soft and warn-soft rows', () => {
+    const low = []
+    for (const [name, t] of Object.entries(THEMES)) {
+      for (const [c, pct] of [['danger', 16], ['warn', 14]]) {
+        const soft = over(t[c], t.panel, pct)
+        for (const fg of ['text', 'muted', c]) {
+          const r = contrast(t[fg], soft)
+          if (r < 4.5) low.push(`${name}: ${fg} on ${c}-soft = ${r.toFixed(2)}`)
+        }
+      }
+    }
+    expect(low).toEqual([])
+  })
+
   it('writes one CSS block per theme', () => {
     const css = themeCss()
     expect(css).toMatch(/:root\[data-theme="light"\] \{[^}]*--accent-text: #3F511A;/)
     expect(css).toMatch(/--on-accent: #021829;/)
+    for (const v of ['line', 'line-strong', 'fill', 'hover', 'selection', 'danger-soft', 'warn-soft', 'overlay', 'paper', 'ink', 'focus']) {
+      expect(css.split('\n').every(block => block.includes(`--${v}: `))).toBe(true)
+    }
   })
 })
 

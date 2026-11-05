@@ -11,16 +11,18 @@ import { X } from 'lucide-react'
 export const colors = {
   bg: 'var(--bg)', panel: 'var(--panel)', text: 'var(--text)', muted: 'var(--muted)', soft: 'var(--soft)',
   accent: 'var(--accent)', accentText: 'var(--accent-text)', accentDark: 'var(--accent-2)', onAccent: 'var(--on-accent)', danger: 'var(--danger)',
-  border: 'color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)',
+  border: 'var(--line)', line: 'var(--line)', lineStrong: 'var(--line-strong)', fill: 'var(--fill)', hover: 'var(--hover)',
+  chrome: 'var(--chrome)', selection: 'var(--selection)', text2: 'var(--text-2)',
+  warn: 'var(--warn)', info: 'var(--info)', dangerSoft: 'var(--danger-soft)', warnSoft: 'var(--warn-soft)', overlay: 'var(--overlay)',
 }
 
 // A see-through version of a colour (any CSS colour, variables included), e.g. tint(colors.accent, 12)
 export const tint = (color, percent) => `color-mix(in srgb, ${color} ${percent}%, transparent)`
 
 export const btn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px', borderRadius: 0,
-  border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(38% * var(--line-k))), transparent)', background: 'transparent', color: 'var(--text)',
-  fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0,
+  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px',
+  border: '1px solid var(--line-strong)', background: 'transparent', color: 'var(--text)',
+  fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0, fontFamily: 'var(--font-ui)',
 }
 export const btnPrimary = {
   ...btn, border: '1px solid var(--accent)', color: 'var(--on-accent)', fontWeight: 600, fontSize: '14px', padding: '10px 18px',
@@ -29,14 +31,14 @@ export const btnPrimary = {
 export const btnDanger = { ...btn, background: 'transparent', borderColor: 'var(--danger)', color: 'var(--text)' }
 export const iconBtn = {
   background: 'none', border: 'none', cursor: 'pointer', color: colors.muted,
-  padding: '6px', display: 'flex', alignItems: 'center', flexShrink: 0, borderRadius: 0,
+  padding: '6px', display: 'flex', alignItems: 'center', flexShrink: 0,
 }
 export const input = {
-  width: '100%', padding: '10px 12px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(38% * var(--line-k))), transparent)',
-  borderRadius: 0, color: 'var(--text)', fontSize: '14px', outline: 'none',
+  width: '100%', padding: '10px 12px', background: 'var(--shade)', border: '1px solid var(--line-strong)',
+  color: 'var(--text)', fontSize: '14px', outline: 'none',
 }
 export const card = {
-  background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`, borderRadius: 0, padding: '14px 16px',
+  background: 'var(--panel)', border: '1px solid var(--line)', padding: '14px 16px',
 }
 export const label = {
   display: 'block', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: colors.muted,
@@ -46,11 +48,11 @@ export const label = {
 export function Modal({ title, onClose, children, maxWidth = 480 }) {
   return (
     <div onClick={e => e.target === e.currentTarget && onClose()} style={{
-      position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.72)',
+      position: 'fixed', inset: 0, zIndex: 100, background: 'var(--overlay)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'calc(16px + var(--safe-top)) 16px 16px',
     }}>
       <div role="dialog" aria-modal="true" aria-label={title} style={{
-        background: colors.panel, border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(18% * var(--line-k))), transparent)', borderRadius: 0, color: 'var(--text)',
+        background: colors.panel, border: '1px solid var(--line-strong)', color: 'var(--text)',
         padding: '22px', width: '100%', maxWidth: `${maxWidth}px`, maxHeight: 'calc(100vh - 32px - var(--safe-top))', overflowY: 'auto',
         animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
       }}>
