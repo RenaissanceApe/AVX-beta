@@ -5,6 +5,9 @@
 export const LINE_KINDS = ['rental', 'sale', 'crew', 'transport', 'other', 'comment']
 export const PRICED_KINDS = LINE_KINDS.filter(k => k !== 'comment')
 export const UNITS = ['unit', 'day', 'hour', 'km', 'set', 'lump']
+// AT reasons for a line without VAT (0 %): the certified program needs one on every such line.
+// The codes are AT's ("Tabela de motivos de isenção"); check with your accountant which applies.
+export const VAT_EXEMPTIONS = ['M07', 'M10', 'M05', 'M16', 'M40', 'M99']
 export const QUOTE_STATUSES = ['draft', 'sent', 'accepted', 'declined']
 // Why a declined quote was lost (quotes.lost_reason; the database checks the same list)
 export const LOST_REASONS = ['price', 'competitor', 'cancelled', 'unavailable', 'scope', 'other']
@@ -20,9 +23,11 @@ const num = (v, fallback = 0) => {
 const clampPct = v => Math.min(100, Math.max(0, num(v)))
 export const round2 = v => Math.round((v + Number.EPSILON) * 100) / 100
 
-export const emptyLine = (kind = 'rental') => ({
+// vatRate: the quote's default rate, given by the editor so each new line starts with it
+export const emptyLine = (kind = 'rental', vatRate = null) => ({
   id: newId(), kind, description: '', details: '', qty: 1,
   unit: kind === 'crew' ? 'day' : kind === 'transport' ? 'km' : 'unit', factor: 1, unit_price: 0, discount_pct: 0,
+  ...(vatRate != null && kind !== 'comment' ? { vat_rate: clampPct(vatRate) } : {}),
 })
 export const emptySection = (name = '') => ({ id: newId(), name, lines: [] })
 export const emptyPhase = (name = '') => ({
@@ -31,6 +36,11 @@ export const emptyPhase = (name = '') => ({
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const cleanRate = v => {
+  if (v === null || v === undefined || v === '') return null
+  const n = num(v, NaN)
+  return Number.isFinite(n) ? clampPct(n) : null
+}
 const cleanTime = v => (typeof v === 'string' && TIME.test(v.slice(0, 5)) ? v.slice(0, 5) : null)
 
 // Fill in anything missing so older or hand-edited bodies never crash the editor.
@@ -59,6 +69,9 @@ export function normalizeBody(body) {
           factor: num(l.factor, 1),
           unit_price: num(l.unit_price),
           discount_pct: clampPct(l.discount_pct),
+          // Its own VAT rate (step 11); a line without one uses the quote's rate (lineVatRate)
+          ...(cleanRate(l.vat_rate) != null ? { vat_rate: cleanRate(l.vat_rate) } : {}),
+          ...(VAT_EXEMPTIONS.includes(l.vat_exemption) ? { vat_exemption: l.vat_exemption } : {}),
           // Link to a catalogue item (lines added from the price list), for availability
           ...(typeof l.item_id === 'string' && UUID.test(l.item_id) ? { item_id: l.item_id } : {}),
         })),
@@ -81,24 +94,93 @@ export function phaseTotals(phase) {
   return { gross, discount, net: round2(gross - discount) }
 }
 
+// A line's VAT rate: its own, else the quote's (lines saved before VAT per line)
+export const lineVatRate = (line, quote) => cleanRate(line?.vat_rate) ?? clampPct(quote?.vat_rate)
+
+// Split a net amount over VAT rates. `parts` are [{ rate, exact }] (unrounded nets); each rate's
+// base is rounded to the cent and the rounding left over goes to the biggest base, so the bases
+// always add up to `net`. VAT is worked out per rate on its base, as an invoice prints it.
+export function vatBreakdown(parts, net) {
+  const map = new Map()
+  for (const p of parts) {
+    const cur = map.get(p.rate) || { rate: p.rate, exact: 0, exemptions: new Set() }
+    cur.exact += p.exact
+    if (p.exemption) cur.exemptions.add(p.exemption)
+    map.set(p.rate, cur)
+  }
+  const rows = [...map.values()].sort((a, b) => b.rate - a.rate).map(r => ({ rate: r.rate, base: round2(r.exact), exemptions: [...r.exemptions] }))
+  if (!rows.length) return []
+  const diff = round2(net - rows.reduce((s, r) => s + r.base, 0))
+  if (diff) {
+    const biggest = rows.reduce((a, b) => (Math.abs(b.base) > Math.abs(a.base) ? b : a))
+    biggest.base = round2(biggest.base + diff)
+  }
+  return rows.map(r => ({ ...r, vat: round2(r.base * r.rate / 100) }))
+}
+
 // Whole-quote totals. Optional phases are priced but not added to the total
 // (shown on the quote as options, like Rentman's "not in financial" subprojects).
+// VAT is per line (step 11): `vatByRate` lists each rate's base and VAT; a quote whose lines
+// all share one rate gives exactly the VAT it gave with one rate per quote.
 export function quoteTotals(quote) {
   const body = normalizeBody(quote.body)
   const byKind = Object.fromEntries(PRICED_KINDS.map(k => [k, 0]))
+  const quoteFactor = 1 - clampPct(quote.discount_pct) / 100
+  const vatParts = []
   const phases = body.phases.map(p => {
     const totals = phaseTotals(p)
     if (!p.optional) {
-      for (const s of p.sections) for (const l of s.lines) if (l.kind !== 'comment') byKind[l.kind] = round2(byKind[l.kind] + lineTotal(l))
+      const factor = (1 - p.discount_pct / 100) * quoteFactor
+      for (const s of p.sections) {
+        for (const l of s.lines) {
+          if (l.kind === 'comment') continue
+          byKind[l.kind] = round2(byKind[l.kind] + lineTotal(l))
+          const rate = lineVatRate(l, quote)
+          vatParts.push({ rate, exact: lineTotal(l) * factor, exemption: rate === 0 ? l.vat_exemption || null : null })
+        }
+      }
     }
     return { id: p.id, optional: p.optional, ...totals }
   })
   const subtotal = round2(phases.filter(p => !p.optional).reduce((sum, p) => sum + p.net, 0))
   const discount = round2(subtotal * clampPct(quote.discount_pct) / 100)
   const net = round2(subtotal - discount)
-  const vat = round2(net * Math.min(100, Math.max(0, num(quote.vat_rate))) / 100)
+  const vatByRate = vatBreakdown(vatParts, net)
+  const vat = round2(vatByRate.reduce((sum, r) => sum + r.vat, 0))
   const optional = round2(phases.filter(p => p.optional).reduce((sum, p) => sum + p.net, 0))
-  return { byKind, phases, subtotal, discount, net, vat, total: round2(net + vat), optional }
+  // Lines at 0 % without the reason the certified program needs
+  const missingExemption = vatParts.some(p => p.rate === 0 && !p.exemption)
+  return { byKind, phases, subtotal, discount, net, vat, vatByRate, total: round2(net + vat), optional, missingExemption }
+}
+
+// Every priced line set to one rate (the "apply to all lines" button)
+export function setAllVatRates(body, rate) {
+  const r = clampPct(rate)
+  const b = normalizeBody(body)
+  return {
+    phases: b.phases.map(p => ({
+      ...p,
+      sections: p.sections.map(s => ({
+        ...s,
+        lines: s.lines.map(l => {
+          if (l.kind === 'comment') return l
+          const { vat_exemption: _drop, ...rest } = l
+          return r === 0 && l.vat_exemption ? { ...rest, vat_rate: r, vat_exemption: l.vat_exemption } : { ...rest, vat_rate: r }
+        }),
+      })),
+    })),
+  }
+}
+
+
+// The VAT rows of the totals: one per rate (an invoice-style table when lines differ), with the
+// exemption codes of 0 % lines
+export function vatRows(totals, q) {
+  return totals.vatByRate.length ? totals.vatByRate : [{ rate: Number(q.vat_rate) || 0, base: 0, vat: 0, exemptions: [] }]
+}
+export function vatLabel(tr, r, totals, number, money) {
+  const label = totals.vatByRate.length > 1 ? tr('quoteDoc.vatOnBase', { pct: number(r.rate), base: money(r.base) }) : tr('quoteDoc.vat', { pct: number(r.rate) })
+  return r.exemptions?.length ? `${label} (${r.exemptions.join(', ')})` : label
 }
 
 // Templates keep the structure and prices but not dates; every id is fresh so a
@@ -331,7 +413,7 @@ export function parsePriceImport(text, defaultKind = 'rental') {
 }
 
 // A price list item as a quote line
-export const lineFromPriceItem = item => ({
-  ...emptyLine(item.kind), description: item.name, details: item.details || '', unit: item.unit, unit_price: Number(item.unit_price) || 0,
+export const lineFromPriceItem = (item, vatRate = null) => ({
+  ...emptyLine(item.kind, vatRate), description: item.name, details: item.details || '', unit: item.unit, unit_price: Number(item.unit_price) || 0,
   ...(item.id ? { item_id: item.id } : {}),
 })

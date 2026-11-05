@@ -9,7 +9,7 @@ import '@fontsource/space-mono/latin-700.css'
 import '@fontsource/space-mono/latin-ext-700.css'
 import { translate, fmtIn } from '../../i18n'
 import {
-  normalizeBody, quoteTotals, lineTotal, sectionTotal, formatMoney, formatNumber, quoteNumber, groupTotals, termsBlocks,
+  normalizeBody, quoteTotals, lineTotal, sectionTotal, formatMoney, formatNumber, quoteNumber, groupTotals, termsBlocks, vatRows, vatLabel,
 } from '../../lib/quotes'
 
 // The quote as the client sees it, in the quote's own language (not the app's).
@@ -176,7 +176,9 @@ export default function QuoteDocument({ quote, org = {}, branding = {}, toolbar,
                   {phaseDiscounts > 0 && <tr><th>{tr('quoteDoc.phaseDiscounts')}</th><td>−{money(phaseDiscounts)}</td></tr>}
                   {totals.discount > 0 && <tr><th>{tr('quoteDoc.finalDiscount', { pct: formatNumber(q.discount_pct, L) })}</th><td>−{money(totals.discount)}</td></tr>}
                   <tr className="strong"><th>{tr('quoteDoc.totalExVat')}</th><td>{money(totals.net)}</td></tr>
-                  <tr><th>{tr('quoteDoc.vat', { pct: formatNumber(q.vat_rate, L) })}</th><td>{money(totals.vat)}</td></tr>
+                  {vatRows(totals, q).map(r => (
+                    <tr key={r.rate}><th>{vatLabel(tr, r, totals, n => formatNumber(n, L), money)}</th><td>{money(r.vat)}</td></tr>
+                  ))}
                   <tr className="strong"><th>{tr('quoteDoc.totalIncVat')}</th><td>{money(totals.total)}</td></tr>
                 </tbody>
               </table>

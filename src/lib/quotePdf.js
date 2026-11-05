@@ -1,6 +1,6 @@
 import { translate, fmtIn } from '../i18n'
 import {
-  normalizeBody, quoteTotals, lineTotal, sectionTotal, formatMoney, formatNumber, quoteNumber, groupTotals, termsBlocks,
+  normalizeBody, quoteTotals, lineTotal, sectionTotal, formatMoney, formatNumber, quoteNumber, groupTotals, termsBlocks, vatRows, vatLabel,
 } from './quotes'
 import { track } from './usage'
 
@@ -219,7 +219,7 @@ export async function buildQuotePdf({ quote, org = {}, branding = {} }) {
     phaseDiscounts > 0 && [tr('quoteDoc.phaseDiscounts'), `-${money(phaseDiscounts)}`],
     totals.discount > 0 && [tr('quoteDoc.finalDiscount', { pct: num(q.discount_pct) }), `-${money(totals.discount)}`],
     [{ content: tr('quoteDoc.totalExVat'), styles: strong }, { content: money(totals.net), styles: strong }],
-    [tr('quoteDoc.vat', { pct: num(q.vat_rate) }), money(totals.vat)],
+    ...vatRows(totals, q).map(r => [vatLabel(tr, r, totals, num, money), money(r.vat)]),
     [{ content: tr('quoteDoc.totalIncVat'), styles: strong }, { content: money(totals.total), styles: strong }],
   ].filter(Boolean)
   table({ body: totalRows, columnStyles: { 1: { halign: 'right' } }, pageBreak: 'avoid' })

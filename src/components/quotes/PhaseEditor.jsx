@@ -6,12 +6,12 @@ import { iconBtn, input, label, colors } from '../ui'
 import { Hint, HintLabel } from '../help/HelpParts'
 import { quoteLineCost } from '../../lib/crewRates'
 import {
-  LINE_KINDS, UNITS, emptyLine, emptySection, lineTotal, sectionTotal, phaseTotals, formatMoney, move, newId, lineFromPriceItem,
+  LINE_KINDS, UNITS, VAT_EXEMPTIONS, emptyLine, emptySection, lineTotal, sectionTotal, phaseTotals, formatMoney, move, newId, lineFromPriceItem,
 } from '../../lib/quotes'
 
 // One phase of a quote (like a Rentman subproject): its own dates and discount, and
 // sections (like equipment / function groups) holding the priced lines.
-export default function PhaseEditor({ phase, index, count, currency, priceItems = [], rates = [], onChange, onMove, onDuplicate, onRemove, onSaveTemplate }) {
+export default function PhaseEditor({ phase, index, count, currency, vatRate = 23, priceItems = [], rates = [], onChange, onMove, onDuplicate, onRemove, onSaveTemplate }) {
   const { t, lang } = useI18n()
   const totals = phaseTotals(phase)
   const set = changes => onChange({ ...phase, ...changes })
@@ -58,7 +58,7 @@ export default function PhaseEditor({ phase, index, count, currency, priceItems 
       </div>
 
       {phase.sections.map((section, i) => (
-        <SectionEditor key={section.id} section={section} currency={currency} priceItems={priceItems} rates={rates}
+        <SectionEditor key={section.id} section={section} currency={currency} vatRate={vatRate} priceItems={priceItems} rates={rates}
           first={i === 0} last={i === phase.sections.length - 1}
           onChange={next => updateSection(i, next)}
           onMove={delta => setSections(move(phase.sections, i, delta))}
@@ -81,7 +81,7 @@ export default function PhaseEditor({ phase, index, count, currency, priceItems 
   )
 }
 
-function SectionEditor({ section, currency, priceItems, rates, first, last, onChange, onMove, onRemove }) {
+function SectionEditor({ section, currency, vatRate, priceItems, rates, first, last, onChange, onMove, onRemove }) {
   const { t, lang } = useI18n()
   const [picking, setPicking] = useState(false)
   const setLines = lines => onChange({ ...section, lines })
@@ -108,12 +108,13 @@ function SectionEditor({ section, currency, priceItems, rates, first, last, onCh
           <span className="q-factor">{t('quote.col.factor')} <Hint id="factor" label={t('quote.col.factor')} /></span>
           <span className="q-price">{t('quote.col.price')}</span>
           <span className="q-disc">{t('quote.col.discount')}</span>
+          <span className="q-vat">{t('quote.col.vat')} <Hint id="line-vat" label={t('quote.col.vat')} /></span>
           <span className="q-total">{t('quote.col.total')}</span>
           <span className="q-actions" />
         </div>
       )}
       {section.lines.map((line, i) => (
-        <LineEditor key={line.id} line={line} currency={currency} rates={rates} first={i === 0} last={i === section.lines.length - 1}
+        <LineEditor key={line.id} line={line} currency={currency} vatRate={vatRate} rates={rates} first={i === 0} last={i === section.lines.length - 1}
           onChange={next => updateLine(i, next)}
           onMove={delta => setLines(move(section.lines, i, delta))}
           onDuplicate={() => setLines([...section.lines.slice(0, i + 1), { ...line, id: newId() }, ...section.lines.slice(i + 1)])}
@@ -122,7 +123,7 @@ function SectionEditor({ section, currency, priceItems, rates, first, last, onCh
 
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
         {LINE_KINDS.map(kind => (
-          <button key={kind} onClick={() => setLines([...section.lines, emptyLine(kind)])} className="q-add-line">
+          <button key={kind} onClick={() => setLines([...section.lines, emptyLine(kind, vatRate)])} className="q-add-line">
             <Plus size={12} /> {t(`lineKind.${kind}`)}
           </button>
         ))}
@@ -132,13 +133,13 @@ function SectionEditor({ section, currency, priceItems, rates, first, last, onCh
       </div>
       {picking && (
         <PricePickerModal items={priceItems} onClose={() => setPicking(false)}
-          onPick={picked => { setLines([...section.lines, ...picked.map(lineFromPriceItem)]); setPicking(false) }} />
+          onPick={picked => { setLines([...section.lines, ...picked.map(item => lineFromPriceItem(item, vatRate))]); setPicking(false) }} />
       )}
     </section>
   )
 }
 
-function LineEditor({ line, currency, rates, first, last, onChange, onMove, onDuplicate, onRemove }) {
+function LineEditor({ line, currency, vatRate, rates, first, last, onChange, onMove, onDuplicate, onRemove }) {
   const { t, lang } = useI18n()
   const [showDetails, setShowDetails] = useState(!!line.details)
   const set = changes => onChange({ ...line, ...changes })
@@ -177,6 +178,9 @@ function LineEditor({ line, currency, rates, first, last, onChange, onMove, onDu
             <Cell className="q-disc" label={t('quote.col.discount')}>
               <input type="number" step="0.5" min="0" max="100" value={line.discount_pct} onChange={e => set({ discount_pct: e.target.value })} aria-label={t('quote.col.discount')} style={numInput} />
             </Cell>
+            <Cell className="q-vat" label={t('quote.col.vat')}>
+              <input type="number" step="0.01" min="0" max="100" value={line.vat_rate ?? vatRate ?? ''} onChange={e => set({ vat_rate: e.target.value })} aria-label={t('quote.col.vat')} style={numInput} />
+            </Cell>
             <Cell className="q-total" label={t('quote.col.total')}>
               <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '13px', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatMoney(lineTotal(line), currency, lang)}</span>
             </Cell>
@@ -191,6 +195,16 @@ function LineEditor({ line, currency, rates, first, last, onChange, onMove, onDu
         <p style={{ fontSize: '12px', color: cost.margin < 0 ? colors.danger : colors.muted, margin: '2px 0 0', textAlign: 'right' }}>
           {t(cost.marginPct != null ? 'quote.rateCostPct' : 'quote.rateCost', { cost: formatMoney(cost.cost, currency, lang), margin: formatMoney(cost.margin, currency, lang), pct: cost.marginPct })}
         </p>
+      )}
+      {!isComment && line.vat_rate !== '' && Number(line.vat_rate ?? vatRate) === 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end', marginTop: '4px', flexWrap: 'wrap' }}>
+          <label htmlFor={`vx-${line.id}`} style={{ fontSize: '12px', color: line.vat_exemption ? colors.muted : 'var(--warn)' }}>{t('quote.vatExemption')}</label>
+          <select id={`vx-${line.id}`} value={line.vat_exemption || ''} onChange={e => set({ vat_exemption: e.target.value || undefined })}
+            style={{ ...input, width: 'auto', maxWidth: '100%', height: '32px', padding: '0 6px', fontSize: '12px', cursor: 'pointer' }}>
+            <option value="">{t('quote.vatExemptionPick')}</option>
+            {VAT_EXEMPTIONS.map(code => <option key={code} value={code}>{code} · {t(`vatExemption.${code}`)}</option>)}
+          </select>
+        </div>
       )}
       {showDetails && (
         <textarea value={line.details} onChange={e => set({ details: e.target.value })} aria-label={t('quote.lineDetails')}
@@ -235,12 +249,12 @@ export const QUOTE_EDITOR_CSS = `
   .q-cell-label { display: none; }
   .q-phase-head { display: flex; gap: 10px; flex-wrap: wrap; }
   .q-section { background: var(--panel); border: 1px solid var(--line); padding: 12px; margin-bottom: 12px; }
-  .q-line { display: grid; grid-template-columns: 112px minmax(140px,1fr) 64px 82px 58px 92px 58px 96px auto; gap: 6px; align-items: center; }
+  .q-line { display: grid; grid-template-columns: 112px minmax(140px,1fr) 64px 82px 58px 92px 58px 58px 96px auto; gap: 6px; align-items: center; }
   .q-line.q-comment { grid-template-columns: 112px 1fr auto; }
   .q-line-head { font-size: 9.5px; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .12em; color: var(--muted); padding: 0 2px 4px; }
   /* Lines sit on a 32px grid (DESIGN.md "QuoteEditor"); phones get 44px fields below */
   .q-line input:not([type="checkbox"]), .q-line select { height: 32px; min-height: 32px; padding-top: 0; padding-bottom: 0; }
-  .q-line-head .q-total, .q-line-head .q-qty, .q-line-head .q-factor, .q-line-head .q-price, .q-line-head .q-disc { text-align: right; }
+  .q-line-head .q-total, .q-line-head .q-qty, .q-line-head .q-factor, .q-line-head .q-price, .q-line-head .q-disc, .q-line-head .q-vat { text-align: right; }
   .q-line-wrap { padding: 4px 0; border-top: 1px solid var(--line); }
   .q-add-line, .q-add-section { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px; font-size: 12px; font-weight: 600; cursor: pointer;
     background: transparent; color: var(--text-2); border: 1px dashed var(--line-strong); }
@@ -248,16 +262,16 @@ export const QUOTE_EDITOR_CSS = `
   .q-add-line:hover, .q-add-section:hover { color: var(--text); border-color: var(--text); }
   /* Tablets and phones in landscape: tighter columns, no up/down buttons (lines still move on desktop) */
   @media (min-width: 761px) and (max-width: 1060px) {
-    .q-line { grid-template-columns: 100px minmax(100px,1fr) 50px 70px 48px 74px 48px 82px auto; gap: 4px; }
+    .q-line { grid-template-columns: 100px minmax(100px,1fr) 50px 70px 48px 74px 48px 48px 82px auto; gap: 4px; }
     .q-line.q-comment { grid-template-columns: 100px 1fr auto; }
     .q-hide-narrow { display: none !important; }
   }
   @media (max-width: 760px) {
     .q-line-head { display: none; }
-    .q-line { grid-template-columns: 1.25fr 1fr 1fr 1fr; grid-template-areas: "kind desc desc desc" "qty unit factor price" "disc total total actions"; }
+    .q-line { grid-template-columns: 1.25fr 1fr 1fr 1fr; grid-template-areas: "kind desc desc desc" "qty unit factor price" "disc vat total actions"; }
     .q-line.q-comment { grid-template-columns: 1.25fr 1fr 1fr 1fr; grid-template-areas: "kind desc desc desc" ". . . actions"; }
     .q-kind { grid-area: kind; } .q-desc { grid-area: desc; } .q-qty { grid-area: qty; } .q-unit { grid-area: unit; }
-    .q-factor { grid-area: factor; } .q-price { grid-area: price; } .q-disc { grid-area: disc; } .q-total { grid-area: total; }
+    .q-factor { grid-area: factor; } .q-price { grid-area: price; } .q-disc { grid-area: disc; } .q-vat { grid-area: vat; } .q-total { grid-area: total; }
     .q-actions { grid-area: actions; justify-content: flex-end; }
     .q-hide-narrow { display: none !important; }
     .q-line-wrap { padding: 10px 0; }

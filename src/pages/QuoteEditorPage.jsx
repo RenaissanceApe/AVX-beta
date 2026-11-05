@@ -24,7 +24,7 @@ import { useRateCard } from '../lib/useCrewRates'
 import ContextThread from '../components/messages/ContextThread'
 import { PageHelp } from '../components/help/HelpParts'
 import {
-  QUOTE_STATUSES, normalizeBody, quoteTotals, emptyPhase, cloneBody, quoteNumber, formatMoney, move, quoteDateRange, localISODate, snapshotFields,
+  QUOTE_STATUSES, normalizeBody, quoteTotals, setAllVatRates, emptyPhase, cloneBody, quoteNumber, formatMoney, move, quoteDateRange, localISODate, snapshotFields,
 } from '../lib/quotes'
 
 // Fields of the quotes table the editor may change (the database sets the rest)
@@ -377,11 +377,12 @@ export default function QuoteEditorPage() {
       </header>
 
       <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 16px' }}>
-        {tab === 'details' && <QuoteDetails quote={quote} gigs={gigs} clients={clients} onChange={updateQuote} onSaveClient={saveClientToContacts} />}
+        {tab === 'details' && <QuoteDetails quote={quote} gigs={gigs} clients={clients} onChange={updateQuote} onSaveClient={saveClientToContacts}
+          onApplyVat={() => { if (window.confirm(t('quote.applyVatConfirm', { pct: quote.vat_rate }))) updateBody(setAllVatRates(body, quote.vat_rate)) }} />}
         {tab === 'summary' && <QuoteSummary quote={quote} body={body} totals={totals} rates={rateCard.rates} onOpenPhase={i => setTab(`phase:${body.phases[i].id}`)} />}
         {tab === 'summary' && <div style={{ marginTop: '18px' }}><ContextThread type="quote" id={quote.id} /></div>}
         {phase && (
-          <PhaseEditor key={phase.id} phase={phase} index={phaseIndex} count={body.phases.length} currency={quote.currency} priceItems={priceItems} rates={rateCard.rates}
+          <PhaseEditor key={phase.id} phase={phase} index={phaseIndex} count={body.phases.length} currency={quote.currency} vatRate={quote.vat_rate} priceItems={priceItems} rates={rateCard.rates}
             onChange={updatePhase}
             onMove={delta => updateBody({ phases: move(body.phases, phaseIndex, delta) })}
             onDuplicate={duplicatePhase}
