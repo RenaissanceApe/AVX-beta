@@ -27,6 +27,7 @@ up front. What each release changed is in [CHANGELOG.md](CHANGELOG.md).
 | Step 9: leave requests (types, approval, holiday days, working week, who is away) | 0.67.0 | [docs/BUSINESS.md](docs/BUSINESS.md) |
 | Step 9b: expenses (ledger with receipts, categories, VAT, claims, recurring costs, links so each cost counts once) | 0.68.0 | [docs/BUSINESS.md](docs/BUSINESS.md) |
 | K0: capture for reports (quote dates and lost reasons, a client on gigs, equipment costs) | 0.64.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
+| K1: reports engine (one revenue rule in SQL and JS, periods, report parts and charts), the Reports area with its Overview, key numbers on Home, Inventory reports counted in the database | 0.69.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
 | Truss load tables (data only, waiting for a second check) | 0.60 | [docs/TRUSS_DATA.md](docs/TRUSS_DATA.md) |
 | Privacy and security check: data map, OWASP review, sign-in failure tests | 0.62.1 | [docs/DATA_MAP.md](docs/DATA_MAP.md), [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) |
 
@@ -42,7 +43,6 @@ the data it counts.
 
 | # | What | Needs | Connect | Plan | Prompt |
 |---|---|---|---|---|---|
-| K1 | **Reports engine** [11]: the definitions, one revenue rule, report parts and charts, the Reports area with its Overview; I7 counted in the database | K0, 9b | Inventory → Reports, labour cost panel, organisation Home, menus, usage counts | ANALYTICS.md | K1 |
 | 10 | **Gig finance overview** [4] | 7, 8, 9b, K1, quotes, subrentals | Dashboard, expenses, reports (K2 builds on it) | BUSINESS.md | S04 |
 | 11 | **Invoices** [1] (hand-off to certified software, VAT per line) | accepted quotes, 10 | Quotes, contacts, guest threads, client links, the revenue rule (K1) | BUSINESS.md | S05 |
 | 12 | Damage charged to the client [15], **payments** [22] | 11, repairs | Repairs, quotes, invoices, reports (K3) | BUSINESS.md | S06 |

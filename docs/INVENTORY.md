@@ -137,7 +137,7 @@ Inventory → **Reports**, for the last 90 days, 12 months or this year, with a 
 |---|---|
 | Use | Days booked on confirmed gigs (prep and return days included) ÷ days owned in the period, up to today |
 | Gigs, last used | Confirmed gigs the item was on in the period; the latest booking that has started |
-| Revenue | Lines of quotes accepted in the period that came from the catalogue, after line, phase and quote discounts; optional phases left out |
+| Revenue | Lines from the catalogue on accepted quotes whose report date (the gig's start date; no gig: the first phase date, else the issue date) is in the period, after line, phase and quote discounts; optional phases left out; euros only (K1) |
 | Revenue ÷ cost | That revenue against the purchase cost of the item's units (return on investment) |
 | Repairs | Repairs opened in the period, their cost and what was charged to clients |
 | Lost | Lost minus found in the period, valued at replacement value |
@@ -145,12 +145,9 @@ Inventory → **Reports**, for the last 90 days, 12 months or this year, with a 
 | Book value | Straight-line depreciation of units with a purchase cost |
 | Not used | Items in stock with no confirmed booking in the period: candidates to sell or stop buying |
 
-No database changes: the report is worked out in the browser from what admins and members can
-already read (`src/lib/reports.js`, tested in `reports.test.js`).
-
-**Known limit (found 2026-11-02):** the tab asks for up to 20,000 rows per list, but the API returns
-at most 1000, so past 1000 units, bookings, accepted quotes or movements in the period the figures
-come out too low. Step K1 ([ANALYTICS.md](ANALYTICS.md)) moves the report into the database.
+Since K1 (0.69.0) the report is counted in the database, `public.equipment_report(org, from,
+until)` ([ANALYTICS.md](ANALYTICS.md), "How K1 works"), with every row whatever the size of the
+organisation; before, the browser worked it out from at most 1000 rows per list.
 
 ## How it builds on what exists
 

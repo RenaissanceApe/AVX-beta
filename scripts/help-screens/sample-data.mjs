@@ -87,6 +87,20 @@ export function sampleData(persona, lang) {
   ]
   const XLR = 'bbbb0000-0000-4000-8000-000000000001', SPK = 'bbbb0000-0000-4000-8000-000000000002', QL1 = 'bbbb0000-0000-4000-8000-000000000004', PWC = 'bbbb0000-0000-4000-8000-000000000003'
   const W1 = 'aaaa0000-0000-4000-8000-000000000001'
+  // Revenue lines for the last 12 months (report_revenue_lines): a few gigs a month, growing
+  const clientsSample = ['Teatro Aveirense', 'Festival Paredes de Coura', 'Câmara Municipal de Braga', 'Altice Arena']
+  const revenueLines = []
+  for (let m = 0; m < 12; m++) {
+    const d = new Date(Date.now() - m * 30 * DAY); d.setDate(Math.min(d.getDate(), 20))
+    const date = d.toISOString().slice(0, 10)
+    const base = 3000 + (11 - m) * 350
+    ;[['rental', 0.55, SPK], ['crew', 0.3, null], ['transport', 0.08, null], ['sale', 0.07, XLR]].forEach(([kind, share, item], k) => {
+      revenueLines.push({ quote_id: `rq${m}`, quote_number: 100 + m, line_id: `rl${m}-${k}`, phase_id: 'p1', kind, item_id: item, description: kind,
+        amount: Math.round(base * share * 100) / 100, currency: 'EUR', report_date: date, phase_start: date,
+        gig_id: m === 0 ? gigId : `rg${m}`, gig_name: m === 0 ? gig.name : `${lang === 'pt' ? 'Evento' : 'Gig'} ${100 + m}`, gig_type_id: null,
+        gig_status: 'confirmed', gig_custom_status_id: null, client_id: null, client_name: clientsSample[m % clientsSample.length] })
+    })
+  }
   const item = (id, name, category, tracking, extra = {}) => ({ id, org_id: orgId, name, category, tracking, kind: 'rental', unit: 'day', unit_price: 10, code: null, archived_at: null, ...extra })
   const items = [
     item(XLR, w.cables, w.cab, 'bulk', { code: 'XLR10', weight_kg: 0.6, unit_price: 2.5 }),
@@ -467,6 +481,16 @@ export function sampleData(persona, lang) {
       ensure_expense_categories: 0,
       draft_recurring_expenses_now: 0,
       supplier_spend: [{ supplier_id: 'sp1', supplier_name: 'Audiomatic', currency: 'EUR', expenses: 3, net: 2140, total: 2632.2, unpaid: 787.2 }],
+      // Reports (K1): sample answers for report_overview, report_revenue_lines and equipment_report
+      report_overview: { today: day(0), gigs_this_month: { total: 6, confirmed: 4 }, revenue_next_30: { EUR: 18450 },
+        waiting: { count: 3, totals: { EUR: 9720 } }, equipment_use_90: 0.38 },
+      report_revenue_lines: revenueLines,
+      equipment_report: [
+        { item_id: SPK, name: w.speaker, category: w.sys, owned: 7, use: 0.46, gigs: 9, last_used: ago(240), revenue: 6720, return_on_cost: 0.32, repairs: 1, repair_cost: 180, charged: 0, lost: 0, lost_value: 0, hired_in: 0, book_value: 14200, cost: 21000, idle: false },
+        { item_id: QL1, name: w.desk, category: w.sys, owned: 1, use: 0.31, gigs: 5, last_used: ago(400), revenue: 2160, return_on_cost: 0.18, repairs: 0, repair_cost: 0, charged: 0, lost: 0, lost_value: 0, hired_in: 360, book_value: 9800, cost: 12000, idle: false },
+        { item_id: XLR, name: w.cables, category: w.cab, owned: 120, use: 0.22, gigs: 11, last_used: ago(240), revenue: 940, return_on_cost: null, repairs: 0, repair_cost: 0, charged: 0, lost: 3, lost_value: 45, hired_in: 0, book_value: 0, cost: 0, idle: false },
+        { item_id: PWC, name: w.powercon, category: w.cab, owned: 40, use: 0, gigs: 0, last_used: null, revenue: 0, return_on_cost: null, repairs: 0, repair_cost: 0, charged: 0, lost: 0, lost_value: 0, hired_in: 0, book_value: 0, cost: 0, idle: true },
+      ],
     },
   }
 }

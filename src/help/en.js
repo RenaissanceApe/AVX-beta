@@ -6,6 +6,10 @@
 
 export default {
   terms: {
+    'net-revenue': { term: 'Net revenue', definition: 'What accepted quotes bring in, excl. VAT: every priced line after its own discount, its phase\'s discount and the quote\'s discount. Optional phases and comments are left out. A quote counts on its gig\'s start date (no gig: its first phase date, else its issue date). Each currency is counted apart.', example: 'A €1,000 line in a phase with 10% off, on a quote with 5% off: €855.', where: 'Reports → Revenue' },
+    estimate: { term: 'Estimate', definition: 'A figure worked out from a fallback because the real one isn\'t there yet, and marked as such: for example a gig\'s revenue taken from its newest sent quote while no quote is accepted. Drafts never count, not even as an estimate.', example: 'Labour panel: "Quoted (estimate: newest sent quote)".', where: 'Reports, gig → Crew → Labour cost' },
+    'comparison-period': { term: 'Comparison period', definition: 'The period a report compares with: the previous period of the same length, or the same period last year. A period that isn\'t over yet is compared day for day, so the 1st to the 5th of this month is set against the 1st to the 5th of the last.', example: 'This quarter so far against the same weeks of last quarter.', where: 'Reports → Revenue' },
+    utilisation: { term: 'Utilisation (equipment use)', definition: 'How much of the time you own equipment it is out on confirmed gigs: days booked (prep and return days included) ÷ days owned, counted up to today.', example: '7 speakers, 90 days, 290 speaker-days booked: 290 ÷ 630 = 46%.', where: 'Reports → Overview, Inventory → Reports' },
     expense: { term: 'Expense', definition: 'A cost of the company with its receipt: who it was paid to, what for, the amount excl. VAT and the VAT, when it is due and when it was paid. Each has a category, and an expense linked to a subrental, repair, crew fee or stock purchase is the actual cost of that record.', example: 'Diesel for the van, Galp, €81.30 + €18.70 VAT, paid by card.', where: 'Organisation → Expenses' },
     'expense-claim': { term: 'Expense claim', definition: 'Something a person on a gig paid themselves (fuel, parking, a part), sent with the receipt. The gig\'s managers approve it or send it back with a note; approved, it shows as "to reimburse" until someone marks it paid.', example: 'Carla claims €26.45 of tolls on the Christmas gig.', where: 'Gig → Crew → Expenses' },
     'recurring-cost': { term: 'Recurring cost', definition: 'A cost that comes back every month, quarter or year, like rent, insurance or leasing. AVX drafts the expense on each date; it only counts once someone confirms it.', example: 'Warehouse rent on the 1st of every month.', where: 'Organisation → Expenses → Recurring' },
@@ -161,6 +165,7 @@ export default {
 
   pages: {
     'org-expenses': { title: 'Expenses', summary: 'Every company cost with its receipt: this month with totals by kind and category, what is unpaid and due, claims to approve and reimburse, recurring costs and (admins) the categories. The CSV is for your accountant; AVX doesn\'t keep the official accounts.' },
+    'org-reports': { title: 'Reports', summary: 'The organisation\'s numbers, counted in the database for admins and members. Overview shows the key numbers; Revenue shows net revenue of accepted quotes for a period, compared with the previous one or last year. "Show details" adds filters, groups, a table, CSV and print, and is remembered on this device.' },
     'org-leave': { title: 'Leave', summary: 'Who in the organisation is away each day, your holiday days and your requests. Admins also decide requests, enter leave for someone and set holiday days and working weeks. Approved leave makes the person busy for gigs and hours.' },
     'my-hours': { title: 'My hours', summary: 'The hours you logged on every gig, at any company, month by month: what is waiting, sent back or approved, and what approved days pay. Download them as a CSV.' },
     'org-hours': { title: 'Hours', summary: 'Everyone\'s logged hours on the organisation\'s gigs, per person and month, with the cost stored when each day was approved. Admins only. Download them as a CSV.' },
@@ -183,6 +188,20 @@ export default {
 
   // guides: Help → Guides and the ? panel. Steps line up with the screenshots in index.js (GUIDES).
   guides: {
+    'office-reports': {
+      title: 'Read the reports',
+      intro: 'See how the company is doing: gigs coming up, revenue, quotes waiting and how much the equipment is used.',
+      steps: [
+        'Open Reports → Overview in the organisation\'s menu. Each tile is one number: gigs this month, confirmed revenue in the next 30 days, quotes waiting for an answer and equipment use over the last 90 days. Tap a tile to see where it comes from.',
+        'Open the Revenue tab. Pick a period (this month, last month, this quarter, this year, the last 12 months or your own dates) and what to compare it with. Each number shows its change with an arrow and a sign.',
+        'Tick "Show details" for the filters (gig status, type, client), the chart by kind of line, and a table grouped by kind, client, gig, gig type or month. Download it as CSV or print it. Every chart has "Show as a table".',
+        'The same key numbers sit at the top of the organisation\'s Home. Fold them away if you don\'t need them; the app remembers.',
+      ],
+      mistakes: [
+        'Revenue counts accepted quotes only, on their gig\'s start date: a quote accepted today for a gig in March counts in March.',
+        'Amounts in different currencies are never added together; the other currencies are listed under the total.',
+      ],
+    },
     'office-expenses': {
       title: 'Keep track of expenses',
       intro: 'Record every cost with its receipt, so you see what the company spends and your accountant gets a clean file.',

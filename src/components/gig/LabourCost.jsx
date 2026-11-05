@@ -23,7 +23,7 @@ export function feeText(f, t, lang) {
 
 // Labour cost on a gig's Crew tab, for the people who run the gig (docs/TOOLS_PLAN.md step 7): what
 // each person costs (the fee agreed with them, else the rate card's suggestion), the total, and
-// the margin against the crew lines of the gig's quote.
+// the margin against the crew lines of the gig's quotes (the revenue rule: all accepted ones).
 export function LabourCost({ gig, members, nameOf, refreshKey, canFinance = false }) {
   const { t, lang } = useI18n()
   const card = useRateCard(gig.org_id)
@@ -38,7 +38,7 @@ export function LabourCost({ gig, members, nameOf, refreshKey, canFinance = fals
     const [f, h, q] = await Promise.all([
       supabase.from('gig_crew_fees').select('user_id, unit, rate, quantity, note').eq('gig_id', gig.id),
       supabase.from('time_entries').select('user_id, status, cost, removed_at').eq('gig_id', gig.id).eq('status', 'approved').is('removed_at', null).limit(2000),
-      gig.org_id ? supabase.from('quotes').select('id, status, body, discount_pct, created_at, updated_at').eq('gig_id', gig.id) : { data: [] },
+      gig.org_id ? supabase.from('quotes').select('id, status, body, discount_pct, currency, sent_at, created_at, updated_at').eq('gig_id', gig.id) : { data: [] },
     ])
     setFees(f.data || [])
     setQuotes(q.data || [])
@@ -99,7 +99,7 @@ export function LabourCost({ gig, members, nameOf, refreshKey, canFinance = fals
             {money(actual, lang)}{actual !== sum.cost && ` (${actual > sum.cost ? '+' : '−'}${money(Math.abs(actual - sum.cost), lang)})`}
           </dd></>
         )}
-        {crew && <><dt>{t('labour.quoted')}</dt><dd style={{ margin: 0, textAlign: 'right' }}>{money(sum.revenue, lang)}</dd></>}
+        {crew && <><dt>{t('labour.quoted')}{crew.estimate && <span style={{ fontSize: '11px', color: colors.muted }}> ({t('labour.estimate')})</span>}</dt><dd style={{ margin: 0, textAlign: 'right' }}>{money(sum.revenue, lang)}</dd></>}
         {crew && (
           <><dt>{t('labour.margin')}</dt>
           <dd style={{ margin: 0, textAlign: 'right', fontWeight: 700, color: sum.margin < 0 ? colors.danger : colors.accentText }}>

@@ -3,6 +3,10 @@
 
 export default {
   terms: {
+    'net-revenue': { term: 'Receita líquida', definition: 'O que os orçamentos aceites rendem, sem IVA: cada linha com preço depois do desconto da linha, da fase e do orçamento. Fases opcionais e comentários ficam de fora. Um orçamento conta na data de início do evento (sem evento: a data da primeira fase, senão a data de emissão). Cada moeda conta à parte.', example: 'Uma linha de 1000 € numa fase com 10% de desconto, num orçamento com 5%: 855 €.', where: 'Relatórios → Receita' },
+    estimate: { term: 'Estimativa', definition: 'Um valor calculado a partir de uma alternativa porque o real ainda não existe, e marcado como tal: por exemplo a receita de um evento tirada do orçamento enviado mais recente enquanto nenhum foi aceite. Rascunhos nunca contam, nem como estimativa.', example: 'Painel do custo da equipa: "Orçamentado (estimativa: orçamento enviado mais recente)".', where: 'Relatórios, evento → Equipa → Custo da equipa' },
+    'comparison-period': { term: 'Período de comparação', definition: 'O período com que um relatório compara: o período anterior com a mesma duração, ou o mesmo período do ano passado. Um período que ainda não terminou compara-se dia a dia: do dia 1 ao dia 5 deste mês contra o dia 1 ao dia 5 do anterior.', example: 'Este trimestre até hoje contra as mesmas semanas do trimestre anterior.', where: 'Relatórios → Receita' },
+    utilisation: { term: 'Taxa de uso (equipamento)', definition: 'Quanto do tempo em que tem o equipamento ele está fora em eventos confirmados: dias reservados (com dias de preparação e devolução) ÷ dias em stock, contados até hoje.', example: '7 colunas, 90 dias, 290 dias-coluna reservados: 290 ÷ 630 = 46%.', where: 'Relatórios → Resumo, Inventário → Relatórios' },
     expense: { term: 'Despesa', definition: 'Um custo da empresa com o comprovativo: a quem foi pago, para quê, o valor sem IVA e o IVA, quando vence e quando foi pago. Tem uma categoria, e uma despesa ligada a um subaluguer, reparação, cachê ou compra de stock é o custo real desse registo.', example: 'Gasóleo da carrinha, Galp, 81,30 € + 18,70 € de IVA, pago com cartão.', where: 'Organização → Despesas' },
     'expense-claim': { term: 'Pedido de reembolso', definition: 'Algo que uma pessoa num evento pagou do seu bolso (combustível, estacionamento, uma peça), enviado com o comprovativo. Os responsáveis do evento aprovam ou devolvem com uma nota; aprovado, fica "a reembolsar" até alguém o marcar como pago.', example: 'A Carla pede 26,45 € de portagens no evento de Natal.', where: 'Evento → Equipa → Despesas' },
     'recurring-cost': { term: 'Custo recorrente', definition: 'Um custo que volta todos os meses, trimestres ou anos, como a renda, o seguro ou o leasing. O AVX prepara a despesa em cada data; só conta depois de alguém a confirmar.', example: 'Renda do armazém no dia 1 de cada mês.', where: 'Organização → Despesas → Recorrentes' },
@@ -158,6 +162,7 @@ export default {
 
   pages: {
     'org-expenses': { title: 'Despesas', summary: 'Todos os custos da empresa com o comprovativo: este mês com totais por tipo e categoria, o que está por pagar, reembolsos para aprovar e pagar, custos recorrentes e (administradores) as categorias. O CSV é para o contabilista; o AVX não faz a contabilidade oficial.' },
+    'org-reports': { title: 'Relatórios', summary: 'Os números da organização, contados na base de dados para administradores e membros. O Resumo mostra os números-chave; a Receita mostra a receita líquida dos orçamentos aceites num período, comparada com o anterior ou com o ano passado. "Mostrar detalhes" junta filtros, grupos, uma tabela, CSV e impressão, e fica lembrado neste aparelho.' },
     'org-leave': { title: 'Ausências', summary: 'Quem na organização está ausente em cada dia, os seus dias de férias e os seus pedidos. Os administradores também decidem pedidos, registam ausências de alguém e definem os dias de férias e as semanas de trabalho. Uma ausência aprovada deixa a pessoa ocupada para eventos e horas.' },
     'my-hours': { title: 'As minhas horas', summary: 'As horas que registou em todos os eventos, em qualquer empresa, mês a mês: o que aguarda, foi devolvido ou aprovado, e o que os dias aprovados pagam. Descarregue-as em CSV.' },
     'org-hours': { title: 'Horas', summary: 'As horas registadas de todos nos eventos da organização, por pessoa e mês, com o custo guardado quando cada dia foi aprovado. Só administradores. Descarregue-as em CSV.' },
@@ -180,6 +185,20 @@ export default {
 
   // guides: Ajuda → Guias e o painel ?. Os passos correspondem às imagens em index.js (GUIDES).
   guides: {
+    'office-reports': {
+      title: 'Ler os relatórios',
+      intro: 'Veja como vai a empresa: eventos a chegar, receita, orçamentos à espera e quanto o equipamento é usado.',
+      steps: [
+        'Abra Relatórios → Resumo no menu da organização. Cada cartão é um número: eventos este mês, receita confirmada nos próximos 30 dias, orçamentos à espera de resposta e uso do equipamento nos últimos 90 dias. Toque num cartão para ver de onde vem.',
+        'Abra o separador Receita. Escolha um período (este mês, mês passado, este trimestre, este ano, os últimos 12 meses ou as suas datas) e com o que o comparar. Cada número mostra a variação com uma seta e um sinal.',
+        'Marque "Mostrar detalhes" para os filtros (estado do evento, tipo, cliente), o gráfico por tipo de linha e uma tabela agrupada por tipo, cliente, evento, tipo de evento ou mês. Descarregue-a em CSV ou imprima-a. Todos os gráficos têm "Ver como tabela".',
+        'Os mesmos números-chave aparecem no topo da página inicial da organização. Recolha-os se não precisar deles; a aplicação lembra-se.',
+      ],
+      mistakes: [
+        'A receita conta só orçamentos aceites, na data de início do evento: um orçamento aceite hoje para um evento em março conta em março.',
+        'Valores em moedas diferentes nunca se somam; as outras moedas aparecem por baixo do total.',
+      ],
+    },
     'office-expenses': {
       title: 'Registar as despesas',
       intro: 'Registe cada custo com o comprovativo, para ver o que a empresa gasta e entregar ao contabilista um ficheiro limpo.',

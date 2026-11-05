@@ -1,0 +1,88 @@
+{
+  "about": "Shared fixtures for the revenue rule (docs/ANALYTICS.md). Checked by src/lib/analytics/revenue.test.js and, copied verbatim, by supabase/tests/reports_k1.sql (a Vitest test keeps the copy equal). Change both twins together.",
+  "gigs": [
+    { "id": "a0000000-0000-4000-8000-000000000001", "name": "Last day of October", "start_date": "2026-10-31", "end_date": "2026-11-02", "status": "confirmed" },
+    { "id": "a0000000-0000-4000-8000-000000000002", "name": "First of November", "start_date": "2026-11-01", "end_date": "2026-11-01", "status": "confirmed" },
+    { "id": "a0000000-0000-4000-8000-000000000003", "name": "No date yet", "start_date": null, "end_date": null, "status": "draft" }
+  ],
+  "quotes": [
+    { "id": "b0000000-0000-4000-8000-000000000001", "title": "Q1 discounts everywhere", "status": "accepted", "gig_id": "a0000000-0000-4000-8000-000000000001",
+      "issue_date": "2026-09-01", "currency": "EUR", "discount_pct": 10, "client_company": "Alpha Events",
+      "body": { "phases": [
+        { "id": "p11", "name": "Show", "start_date": "2026-10-31", "discount_pct": 50, "sections": [{ "id": "s11", "name": "", "lines": [
+          { "id": "l111", "kind": "rental", "description": "Speaker", "qty": 2, "factor": 1, "unit_price": 100 },
+          { "id": "l112", "kind": "crew", "description": "FOH engineer", "qty": 1, "factor": 2, "unit_price": 300 },
+          { "id": "l113", "kind": "comment", "description": "Note", "qty": 1, "factor": 1, "unit_price": 999 }
+        ] }] },
+        { "id": "p12", "name": "Extra day", "optional": true, "discount_pct": 0, "sections": [{ "id": "s12", "name": "", "lines": [
+          { "id": "l121", "kind": "rental", "description": "Speaker", "qty": 9, "factor": 1, "unit_price": 100 }
+        ] }] },
+        { "id": "p13", "name": "Travel", "discount_pct": 0, "sections": [{ "id": "s13", "name": "", "lines": [
+          { "id": "l131", "kind": "transport", "description": "Van", "qty": 120, "factor": 1, "unit_price": 0.45 }
+        ] }] }
+      ] } },
+    { "id": "b0000000-0000-4000-8000-000000000002", "title": "Q2 rounding", "status": "accepted", "gig_id": "a0000000-0000-4000-8000-000000000002",
+      "issue_date": "2026-10-20", "currency": "EUR", "discount_pct": 0, "client_name": "Beatriz",
+      "body": { "phases": [
+        { "id": "p21", "name": "", "discount_pct": 12.5, "sections": [{ "id": "s21", "name": "", "lines": [
+          { "id": "l211", "kind": "other", "description": "Power", "qty": 3, "factor": 1, "unit_price": 33.33, "discount_pct": 5 },
+          { "id": "l212", "kind": "sale", "description": "Gaffer tape", "qty": "2,5", "factor": 1, "unit_price": 10 }
+        ] }] }
+      ] } },
+    { "id": "b0000000-0000-4000-8000-000000000003", "title": "Q3 no gig, dated by its first phase", "status": "accepted", "gig_id": null,
+      "issue_date": "2026-09-15", "currency": "USD", "discount_pct": 0, "client_company": "Gamma Inc",
+      "body": { "phases": [
+        { "id": "p31", "name": "Option", "optional": true, "start_date": "2026-10-01", "discount_pct": 0, "sections": [{ "id": "s31", "name": "", "lines": [
+          { "id": "l311", "kind": "rental", "description": "Screen", "qty": 1, "factor": 1, "unit_price": 500 }
+        ] }] },
+        { "id": "p32", "name": "Day 2", "start_date": "2026-11-15", "discount_pct": 0, "sections": [{ "id": "s32", "name": "", "lines": [
+          { "id": "l321", "kind": "rental", "description": "LED wall", "qty": 1, "factor": 1, "unit_price": 1000 }
+        ] }] },
+        { "id": "p33", "name": "Day 1", "start_date": "2026-11-03", "discount_pct": 0, "sections": [{ "id": "s33", "name": "", "lines": [
+          { "id": "l331", "kind": "crew", "description": "Tech", "qty": 1, "factor": 1, "unit_price": 250 }
+        ] }] }
+      ] } },
+    { "id": "b0000000-0000-4000-8000-000000000004", "title": "Q4 no gig, no dates", "status": "accepted", "gig_id": null,
+      "issue_date": "2026-11-30", "currency": "EUR", "discount_pct": 0,
+      "body": { "phases": [
+        { "id": "p41", "name": "", "discount_pct": 0, "sections": [{ "id": "s41", "name": "", "lines": [
+          { "id": "l411", "kind": "crew", "description": "Free day", "qty": 1, "factor": 1, "unit_price": 200, "discount_pct": 100 },
+          { "id": "l412", "kind": "other", "description": "Admin", "qty": 1, "factor": 1, "unit_price": 50 }
+        ] }] }
+      ] } },
+    { "id": "b0000000-0000-4000-8000-000000000005", "title": "Q5 sent, not counted", "status": "sent", "gig_id": "a0000000-0000-4000-8000-000000000002",
+      "issue_date": "2026-10-20", "currency": "EUR", "discount_pct": 0,
+      "body": { "phases": [{ "id": "p51", "name": "", "discount_pct": 0, "sections": [{ "id": "s51", "name": "", "lines": [
+        { "id": "l511", "kind": "rental", "description": "Desk", "qty": 1, "factor": 1, "unit_price": 700 }
+      ] }] }] } },
+    { "id": "b0000000-0000-4000-8000-000000000006", "title": "Q6 draft, not counted", "status": "draft", "gig_id": "a0000000-0000-4000-8000-000000000002",
+      "issue_date": "2026-10-20", "currency": "EUR", "discount_pct": 0,
+      "body": { "phases": [{ "id": "p61", "name": "", "discount_pct": 0, "sections": [{ "id": "s61", "name": "", "lines": [
+        { "id": "l611", "kind": "rental", "description": "Desk", "qty": 1, "factor": 1, "unit_price": 800 }
+      ] }] }] } },
+    { "id": "b0000000-0000-4000-8000-000000000007", "title": "Q7 declined, not counted", "status": "declined", "gig_id": "a0000000-0000-4000-8000-000000000001",
+      "issue_date": "2026-10-20", "currency": "EUR", "discount_pct": 0,
+      "body": { "phases": [{ "id": "p71", "name": "", "discount_pct": 0, "sections": [{ "id": "s71", "name": "", "lines": [
+        { "id": "l711", "kind": "rental", "description": "Desk", "qty": 1, "factor": 1, "unit_price": 900 }
+      ] }] }] } },
+    { "id": "b0000000-0000-4000-8000-000000000008", "title": "Q8 gig without a date, issued in December", "status": "accepted", "gig_id": "a0000000-0000-4000-8000-000000000003",
+      "issue_date": "2026-12-01", "currency": "EUR", "discount_pct": 0,
+      "body": { "phases": [{ "id": "p81", "name": "", "discount_pct": 0, "sections": [{ "id": "s81", "name": "", "lines": [
+        { "id": "l811", "kind": "rental", "description": "Mic", "qty": 4, "factor": 1, "unit_price": 25 }
+      ] }] }] } }
+  ],
+  "cases": [
+    { "from": "2026-10-01", "until": "2026-11-01",
+      "expect": { "lines": 3, "totals": { "EUR": 408.6 },
+        "amounts": { "l111": 90, "l112": 270, "l131": 48.6 },
+        "dates": { "b0000000-0000-4000-8000-000000000001": "2026-10-31" } } },
+    { "from": "2026-11-01", "until": "2026-12-01",
+      "expect": { "lines": 6, "totals": { "EUR": 155, "USD": 1250 },
+        "amounts": { "l211": 83.12, "l212": 21.88, "l321": 1000, "l331": 250, "l411": 0, "l412": 50 },
+        "dates": { "b0000000-0000-4000-8000-000000000002": "2026-11-01", "b0000000-0000-4000-8000-000000000003": "2026-11-03", "b0000000-0000-4000-8000-000000000004": "2026-11-30" },
+        "phase_start": { "l321": "2026-11-15", "l331": "2026-11-03", "l211": null } } },
+    { "from": "2026-12-01", "until": "2027-01-01",
+      "expect": { "lines": 1, "totals": { "EUR": 100 }, "amounts": { "l811": 100 },
+        "dates": { "b0000000-0000-4000-8000-000000000008": "2026-12-01" } } }
+  ]
+}

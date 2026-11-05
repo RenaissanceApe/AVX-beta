@@ -452,6 +452,29 @@ const SCENES = {
     await box.waitFor()
     return box.locator('ul')
   } },
+  'reports-overview': { persona: 'pm', url: `/org/${ids.org}/reports`, async run(page) {
+    const box = page.locator('section[aria-labelledby="rp-overview"]')
+    await box.waitFor()
+    return box.locator('ul')
+  } },
+  'reports-revenue': { persona: 'pm', url: `/org/${ids.org}/reports?tab=revenue&period=last_12_months`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return fig
+  } },
+  'reports-details': { persona: 'pm', url: `/org/${ids.org}/reports?tab=revenue&period=last_12_months`, async run(page, L) {
+    await page.getByLabel(L('reports.showDetails')).check()
+    await page.locator('#rp-group').selectOption('client')
+    const table = page.locator('table').last()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'home-key-numbers': { persona: 'pm', url: `/org/${ids.org}`, async run(page) {
+    const box = page.locator('section[aria-labelledby="key-numbers"]')
+    await box.locator('ul').waitFor()
+    return box
+  } },
   'crewcall-fee': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
     await page.getByRole('button', { name: L('crewCall.button') }).first().click()
     const dialog = page.getByRole('dialog')

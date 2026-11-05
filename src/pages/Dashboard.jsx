@@ -23,6 +23,7 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import { PageHelp } from '../components/help/HelpParts'
 import EmptyState from '../components/EmptyState'
 import FirstSteps from '../components/FirstSteps'
+import { KeyNumbersStrip } from '../components/reports/OverviewTiles'
 import SimpleHome from '../components/SimpleHome'
 import { useSimpleMode } from '../lib/simpleMode'
 import { useGigLabels, GIG_LABELS_EMBED } from '../lib/gigLabels'
@@ -144,6 +145,7 @@ export default function Dashboard() {
 
             {!loadingGigs && !loadingOrgs && (mode === 'me' || (org && role === 'admin')) && <FirstSteps mode={mode} org={org} gigCount={gigs.length} />}
             {mode === 'me' && <AvailabilityRequests />}
+            {mode === 'org' && org && canCreateGig && !simple && <KeyNumbersStrip orgId={orgId} />}
 
             {(loadingGigs || loadingOrgs) ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>

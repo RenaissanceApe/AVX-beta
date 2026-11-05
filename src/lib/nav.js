@@ -57,6 +57,13 @@ export function navSections({ workspace, role }) {
       { key: 'labels', icon: 'qrCode', to: `${base}/inventory/labels`, minor: true },
     ] })
   }
+  if (canQuote(role)) {
+    // Reports (K1): those who see money (private.can_see_finance); later K steps add their tabs
+    sections.push({ key: 'reports', icon: 'barChart', items: [
+      { key: 'reportsOverview', icon: 'barChart', to: `${base}/reports` },
+      { key: 'reportsRevenue', icon: 'trendingUp', to: `${base}/reports?tab=revenue` },
+    ] })
+  }
   sections.push({ key: 'organisation', icon: 'users', items: [
     { key: 'members', icon: 'users', to: `${base}?panel=members` },
     { key: 'orgTasks', icon: 'listTodo', to: `${base}/tasks` },
