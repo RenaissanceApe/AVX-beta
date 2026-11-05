@@ -7,8 +7,8 @@
 --   one still uses the quote's (quotes.js lineVatRate). The edit counter is not touched, so nobody
 --   with a quote open sees "changed elsewhere".
 -- - private.report_quote_lines (the revenue rule, K1) gains each line's vat_rate at the end. Amounts
---   don't change. report_revenue_lines and gig_finance keep their columns (adding one would need a
---   drop); readers that need VAT read the view.
+--   don't change. report_revenue_lines and gig_finance keep their columns (adding one would mean
+--   recreating them); readers that need VAT read the view.
 -- - organisations.invoice_due_days: the default payment term (Company details), 30 days.
 -- - public.invoices: invoices and credit notes. Admins and members only (can_see_finance), with
 --   two-step sign-in when set up. The AVX number is given by the database and nobody can set or
@@ -41,8 +41,8 @@ language sql immutable set search_path = '' as $$
                 from jsonb_array_elements(s -> 'lines') with ordinality x(l, li)), '[]'::jsonb))
             else s end order by si)
             from jsonb_array_elements(ph -> 'sections') with ordinality y(s, si)), '[]'::jsonb))
-        else ph end order by pi)
-        from jsonb_array_elements(p_body -> 'phases') with ordinality z(ph, pi)), '[]'::jsonb))
+        else ph end order by phi)
+        from jsonb_array_elements(p_body -> 'phases') with ordinality z(ph, phi)), '[]'::jsonb))
   end
 $$;
 revoke execute on function private.with_line_vat(jsonb, numeric) from public, anon, authenticated;
@@ -200,7 +200,7 @@ create policy invoices_update on public.invoices for update to authenticated
   using (private.can_see_finance(org_id)) with check (private.can_see_finance(org_id));
 create policy mfa_required on public.invoices as restrictive for all to authenticated
   using ((select private.mfa_ok())) with check ((select private.mfa_ok()));
--- No delete rule: drafts are removed by marking them (removed_at); sent ones stay
+-- No rule for removing rows: drafts are removed by marking them (removed_at); sent ones stay
 
 -- Only these columns can be written from the app. The number, totals, Moloni's document and the
 -- reminder dates are written by the database or the moloni Edge Function.
@@ -222,13 +222,13 @@ $$;
 
 -- Lines are checked and cleaned on every save (numbers as numbers, rates within 0–100)
 create or replace function private.invoice_clean_lines(p_lines jsonb) returns jsonb
-language plpgsql immutable set search_path = '' as $$
+language plpgsql volatile set search_path = '' as $$
 declare v_out jsonb := '[]'::jsonb; l jsonb; v_rate numeric; v_disc numeric; v_qty numeric; v_price numeric; v_ex text;
 begin
   for l in select * from jsonb_array_elements(p_lines) loop
     if jsonb_typeof(l) <> 'object' or char_length(trim(coalesce(l ->> 'description', ''))) not between 1 and 300
-       or jsonb_typeof(l -> 'qty') <> 'number' or jsonb_typeof(l -> 'unit_price') <> 'number'
-       or jsonb_typeof(l -> 'vat_rate') <> 'number' then
+       or coalesce(jsonb_typeof(l -> 'qty'), '') <> 'number' or coalesce(jsonb_typeof(l -> 'unit_price'), '') <> 'number'
+       or coalesce(jsonb_typeof(l -> 'vat_rate'), '') <> 'number' then
       raise exception 'Bad invoice line' using errcode = '22023';
     end if;
     v_qty := (l ->> 'qty')::numeric; v_price := (l ->> 'unit_price')::numeric; v_rate := (l ->> 'vat_rate')::numeric;
@@ -247,6 +247,8 @@ begin
   end loop;
   return v_out;
 end $$;
+revoke execute on function private.invoice_line_net(jsonb) from public, anon;
+revoke execute on function private.invoice_clean_lines(jsonb) from public, anon, authenticated;
 
 create or replace function private.invoices_before_write() returns trigger
 language plpgsql security definer set search_path = '' as $$
