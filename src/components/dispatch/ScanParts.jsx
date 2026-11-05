@@ -4,11 +4,12 @@ import { Check, AlertTriangle, X, Flashlight, FlashlightOff, Minus, Plus, Volume
 import { canSpeak } from '../../lib/fieldKit'
 import { STEPS } from '../../lib/inventory'
 import { t } from '../../i18n'
-import { btn, btnPrimary, input, colors, tint } from '../ui'
+import { btn, btnPrimary, input, colors } from '../ui'
+import { Segments } from '../gig/StepBars'
 
 export const AMBER = 'var(--warn)'
 const TONE = {
-  ok: { colour: colors.accent, text: colors.accentText, Icon: Check },
+  ok: { colour: colors.accentText, text: colors.accentText, Icon: Check },
   warn: { colour: AMBER, text: AMBER, Icon: AlertTriangle },
   error: { colour: colors.danger, text: colors.danger, Icon: X },
 }
@@ -48,12 +49,13 @@ export function FeedRow({ entry, onUndo }) {
   const { colour, text, Icon } = entry.undone ? { colour: colors.muted, text: colors.muted, Icon: Undo2 } : TONE[entry.tone] || TONE.ok
   const { what, msg, extra } = feedText(entry)
   return (
-    <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', padding: '8px 10px', borderRadius: '10px', marginBottom: '4px',
-      background: tint(colour, 8), border: `1px solid ${tint(colour, 33)}`, fontSize: '13px' }}>
-      <Icon size={15} color={text} style={{ flexShrink: 0, marginTop: '1px' }} />
+    // A log line (DESIGN.md "ScanPanel"): ✓ ⚠ ✕ in their colour, the words in text colour
+    <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', padding: '8px 12px', background: 'var(--panel)',
+      border: '1px solid var(--line)', borderLeft: `2px solid ${colour}`, marginBottom: '-1px', fontSize: '13px' }}>
+      <Icon size={15} color={text} aria-hidden="true" style={{ flexShrink: 0, marginTop: '1px' }} />
       <span style={{ flex: 1, minWidth: 0 }}>
-        {what && <strong style={{ display: 'block', textDecoration: entry.undone ? 'line-through' : 'none' }}>{what}</strong>}
-        <span style={{ color: text }}>{msg}</span>
+        {what && <strong style={{ display: 'block', fontWeight: 600, textDecoration: entry.undone ? 'line-through' : 'none' }}>{what}</strong>}
+        <span style={{ color: entry.undone ? colors.muted : 'var(--text-2)' }}>{msg}</span>
         {r?.ok && !entry.undone && r.planned != null && (
           <span style={{ color: colors.muted }}> · {entry.direction ? t('dispatch.counts', { out: r.out, back: r.back, planned: r.planned }) : t('steps.counts', { done: r.done, planned: r.planned })}</span>
         )}
@@ -78,9 +80,10 @@ export function StepPicker({ steps, step, onChange, big = false }) {
         const hue = stepHue(s)
         return (
           <button key={s} type="button" role="radio" aria-checked={on} onClick={() => onChange(s)} style={{
-            minHeight: big ? '60px' : '48px', padding: '8px 6px', borderRadius: big ? '14px' : '12px', cursor: 'pointer', lineHeight: 1.2,
-            fontSize: big ? (steps.length <= 2 ? '19px' : '16px') : '14px', fontWeight: 700,
-            border: `${big ? 3 : 2}px solid ${on ? hue : colors.border}`, background: on ? tint(hue, big ? 18 : 12) : 'transparent',
+            minHeight: big ? '60px' : '48px', padding: '8px 6px', cursor: 'pointer', lineHeight: 1.2,
+            fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em',
+            fontSize: big ? (steps.length <= 2 ? '17px' : '14px') : '13px', fontWeight: 700,
+            border: `${on ? 2 : 1}px solid ${on ? hue : 'var(--line-strong)'}`, background: on ? 'var(--selection)' : 'transparent',
             color: on ? 'var(--text)' : colors.soft,
           }}>{t(`steps.name.${s}`)}</button>
         )
@@ -163,12 +166,12 @@ export function CameraScanner({ onCode, onClose, tall = false }) {
           {t(`dispatch.camera.${error}`)} <button onClick={onClose} style={{ ...btn, padding: '4px 8px', fontSize: '12px', marginLeft: '6px' }}>{t('common.close')}</button>
         </p>
       ) : (
-        <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', background: '#000', aspectRatio: '4 / 3', maxHeight: tall ? '42vh' : '50vh', margin: '0 auto' }}>
+        <div style={{ position: 'relative', overflow: 'hidden', background: '#000', aspectRatio: '4 / 3', maxHeight: tall ? '42vh' : '50vh', margin: '0 auto' }}>
           <video ref={videoRef} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div aria-hidden style={{ position: 'absolute', inset: '18%', border: `2px solid ${colors.accent}` }} />
+          <ScanBrackets />
           {torchTrack && (
             <button type="button" onClick={toggleTorch} aria-pressed={torch} style={{
-              position: 'absolute', right: '10px', bottom: '10px', minWidth: '52px', minHeight: '52px', borderRadius: '50%',
+              position: 'absolute', right: '10px', bottom: '10px', minWidth: '52px', minHeight: '52px',
               display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
               border: '2px solid #fff', background: torch ? '#fff' : 'rgba(0,0,0,0.55)', color: torch ? '#000' : '#fff',
             }}>
@@ -201,7 +204,7 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
     return () => { document.body.style.overflow = before; window.removeEventListener('keydown', onKey) }
   }, [])
 
-  const big = { minHeight: '56px', fontSize: '17px', fontWeight: 700, justifyContent: 'center', borderRadius: '14px' }
+  const big = { minHeight: '56px', fontSize: '17px', fontWeight: 700, justifyContent: 'center' }
   const toggle = on => ({ ...btn, ...big, flex: '1 1 140px', fontSize: '15px', borderWidth: '2px',
     borderColor: on ? colors.accent : colors.border, background: on ? 'var(--selection)' : 'transparent', color: on ? 'var(--text)' : colors.muted })
   const qty = Math.max(1, Number(quantity) || 1)
@@ -229,8 +232,8 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
           : <button type="button" onClick={() => setCamera(true)} style={{ ...btn, ...big }}>{t('dispatch.cameraOn')}</button>}
 
         <section aria-live="polite" aria-atomic="true" style={{
-          minHeight: '112px', borderRadius: '16px', padding: '14px 16px', display: 'flex', gap: '14px', alignItems: 'center',
-          border: `3px solid ${tone ? tone.colour : colors.border}`, background: tone ? tint(tone.colour, 14) : 'transparent',
+          minHeight: '112px', padding: '14px 16px', display: 'flex', gap: '14px', alignItems: 'center',
+          border: `1px solid ${tone ? tone.colour : colors.border}`, borderLeftWidth: tone ? '4px' : '1px', background: 'var(--panel)',
         }}>
           {busy ? <Loader2 size={40} aria-hidden="true" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
             : tone ? <tone.Icon size={44} aria-hidden="true" color={tone.text} style={{ flexShrink: 0 }} />
@@ -239,7 +242,7 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
             {said ? (
               <>
                 {said.what && <strong style={{ display: 'block', fontSize: '20px', lineHeight: 1.25, overflowWrap: 'anywhere' }}>{said.what}</strong>}
-                <span style={{ display: 'block', fontSize: '18px', fontWeight: 700, color: tone.text, marginTop: '2px' }}>{said.msg}</span>
+                <span style={{ display: 'block', fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginTop: '2px' }}>{said.msg}</span>
                 {!last.undone && said.extra.map(x => <span key={x.text} style={{ display: 'block', fontSize: '15px', color: x.warn ? AMBER : colors.soft, marginTop: '2px' }}>{x.text}</span>)}
               </>
             ) : <span style={{ fontSize: '17px', color: colors.muted }}>{t('scanMode.waiting')}</span>}
@@ -255,9 +258,7 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
           <p style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
             <PackageCheck size={22} aria-hidden="true" /> {t(`steps.progress.${step}`, { done, total })}
           </p>
-          <div aria-hidden="true" style={{ height: '12px', borderRadius: '6px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', background: stepHue(step), width: `${Math.min(100, (100 * done) / Math.max(1, total))}%` }} />
-          </div>
+          <Segments done={done} total={total} />
         </div>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch', flexWrap: 'wrap' }}>
@@ -298,6 +299,19 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+// Square corner brackets over the camera view, in accent (no rounded frame, no shaded surround)
+function ScanBrackets() {
+  const arm = { position: 'absolute', width: '36px', height: '36px', borderColor: 'var(--accent)', borderStyle: 'solid', borderWidth: 0 }
+  return (
+    <div aria-hidden="true" style={{ position: 'absolute', inset: '18%' }}>
+      <span style={{ ...arm, top: 0, left: 0, borderTopWidth: '3px', borderLeftWidth: '3px' }} />
+      <span style={{ ...arm, top: 0, right: 0, borderTopWidth: '3px', borderRightWidth: '3px' }} />
+      <span style={{ ...arm, bottom: 0, left: 0, borderBottomWidth: '3px', borderLeftWidth: '3px' }} />
+      <span style={{ ...arm, bottom: 0, right: 0, borderBottomWidth: '3px', borderRightWidth: '3px' }} />
     </div>
   )
 }

@@ -2,7 +2,6 @@ import { useGigSteps } from '../../lib/useSteps'
 import { stepTotals } from '../../lib/inventory'
 import { t } from '../../i18n'
 import { colors } from '../ui'
-import { stepHue } from '../dispatch/ScanParts'
 
 // Where a gig's equipment is (docs/HELP.md, H5b): one bar per step the organisation uses,
 // "32 of 40 loaded". Shown once anything has been scanned.
@@ -20,16 +19,31 @@ export default function StepBars({ gig }) {
           return (
             <li key={step} style={{ fontSize: '12px' }}>
               <span style={{ display: 'flex', justifyContent: 'space-between', gap: '6px', marginBottom: '3px', color: full ? 'var(--text)' : colors.soft }}>
-                <span style={{ fontWeight: 700 }}>{t(`steps.name.${step}`)}</span>
-                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{t('steps.of', { done, total })}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{t(`steps.name.${step}`)}</span>
+                <span style={{ fontFamily: 'var(--font-mono)' }}><span aria-hidden="true">{done} / {total}</span><span className="sr-only">{t('steps.of', { done, total })}</span></span>
               </span>
-              <span aria-hidden="true" style={{ display: 'block', height: '6px', borderRadius: '3px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)', overflow: 'hidden' }}>
-                <span style={{ display: 'block', height: '100%', background: stepHue(step), width: `${Math.min(100, (100 * done) / Math.max(1, total))}%` }} />
-              </span>
+              <Segments done={done} total={total} />
             </li>
           )
         })}
       </ul>
     </section>
+  )
+}
+
+// One square segment per thing up to 24, then a continuous bar (DESIGN.md "StepBar"): accent-text done, line not yet
+export function Segments({ done, total }) {
+  const on = Math.min(done, total)
+  if (total > 0 && total <= 24) {
+    return (
+      <span aria-hidden="true" style={{ display: 'flex', gap: '2px' }}>
+        {Array.from({ length: total }, (_, i) => <span key={i} style={{ flex: 1, height: '6px', background: i < on ? 'var(--accent-text)' : 'var(--line-strong)' }} />)}
+      </span>
+    )
+  }
+  return (
+    <span aria-hidden="true" style={{ display: 'block', height: '6px', background: 'var(--line-strong)' }}>
+      <span style={{ display: 'block', height: '100%', background: 'var(--accent-text)', width: `${Math.min(100, (100 * on) / Math.max(1, total))}%` }} />
+    </span>
   )
 }

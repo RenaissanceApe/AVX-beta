@@ -290,31 +290,39 @@ function Bookings({ item, owned }) {
       <p style={{ fontSize: '12px', color: tight ? 'var(--warn)' : colors.muted, marginBottom: '8px' }}>
         {tight ? t('inv.daysFullyBooked', { count: tight, days: DAYS }) : t('inv.freeNextDays', { days: DAYS })}
       </p>
+      {/* Square day cells (DESIGN.md "InventoryItem"): line nothing booked, accent-text enough free,
+          warn partly booked, danger fully booked. The day's numbers are in each cell's title and the legend says the words. */}
       <div role="img" aria-label={t('inv.availabilityStrip', { days: DAYS })} style={{ display: 'grid', gridTemplateColumns: `repeat(${DAYS}, 1fr)`, gap: '2px', marginBottom: '4px' }}>
         {days.map(d => (
           <div key={d.day} title={`${fmt(d.day, 'EEE d MMM')}: ${t('inv.freeOn', { free: Math.max(0, d.free), owned })}`} style={{
-            height: '26px', borderRadius: '3px',
-            background: d.free <= 0 ? 'var(--warn-soft)' : d.booked ? `color-mix(in srgb, var(--accent) ${Math.round(25 + 50 * (1 - d.free / Math.max(1, owned)))}%, transparent)` : 'color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)',
+            height: '16px', background: stripColour(d, owned),
           }} />
         ))}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: colors.muted, marginBottom: '10px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: '11px', color: colors.muted, marginBottom: '10px' }}>
         <span>{fmt(days[0].day, 'd MMM')}</span><span>{fmt(days[days.length - 1].day, 'd MMM')}</span>
       </div>
       {bookings.length === 0 ? <p style={{ fontSize: '13px', color: colors.muted }}>{t('inv.noBookings')}</p> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {bookings.map((b, i) => (
             <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'baseline', padding: '7px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px', flexWrap: 'wrap' }}>
-              <span style={{ color: colors.soft, minWidth: '120px' }}>{rangeText(b.starts_at, b.ends_at)}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: colors.soft, minWidth: '120px' }}>{rangeText(b.starts_at, b.ends_at)}</span>
               <span style={{ flex: '1 1 160px', minWidth: 0 }}>
                 {b.gig_id ? <Link to={`/gig/${b.gig_id}?tab=equipment`} style={{ color: 'var(--text)' }}>{b.gig_name}</Link> : '—'}
-                {b.status === 'hold' && <span style={{ fontSize: '11px', color: colors.muted }}> · {t('clash.hold')}</span>}
+                {b.status === 'hold' && <> <StatusBadge small tone="warn">{t('clash.hold')}</StatusBadge></>}
               </span>
-              <strong>× {b.quantity}</strong>
+              <strong style={{ fontFamily: 'var(--font-mono)' }}>× {b.quantity}</strong>
             </div>
           ))}
         </div>
       )}
     </section>
   )
+}
+
+// One day of the availability strip: nothing booked, enough free, partly booked (under a quarter left), fully booked
+function stripColour(d, owned) {
+  if (d.free <= 0) return 'var(--danger)'
+  if (!d.booked) return 'var(--line-strong)'
+  return d.free < Math.max(1, owned) / 4 ? 'var(--warn)' : 'var(--accent-text)'
 }

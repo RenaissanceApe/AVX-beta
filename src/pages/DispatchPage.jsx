@@ -14,7 +14,8 @@ import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { btn, btnPrimary, input, label, card, colors } from '../components/ui'
 import { Hint } from '../components/help/HelpParts'
-import { CameraScanner, FeedRow, ScanMode, StepPicker, feedText, stepHue, AMBER } from '../components/dispatch/ScanParts'
+import { Segments } from '../components/gig/StepBars'
+import { CameraScanner, FeedRow, ScanMode, StepPicker, feedText, AMBER } from '../components/dispatch/ScanParts'
 
 const REPEAT_MS = 2500 // the same code seen again within this time is the same scan
 // On the way back, lines that went out count even if they weren't planned
@@ -221,8 +222,9 @@ export default function DispatchPage() {
           <h2 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <PackageCheck size={16} /> {t(`steps.progress.${step}`, progress)}
           </h2>
-          <div style={{ height: '6px', borderRadius: '3px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)', overflow: 'hidden', marginBottom: '10px' }}>
-            <div style={{ height: '100%', background: stepHue(step), width: `${Math.min(100, (100 * progress.done) / Math.max(1, progress.total))}%` }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '12px', alignItems: 'center', marginBottom: '10px' }}>
+            <Segments done={progress.done} total={progress.total} />
+            <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{progress.done} / {progress.total}</span>
           </div>
           {summary.length === 0 ? <p style={{ fontSize: '13px', color: colors.muted }}>{t('dispatch.nothingPlanned')}</p> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
