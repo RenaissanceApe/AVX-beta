@@ -1,5 +1,44 @@
 # Changelog
 
+## 0.68.0 — Expenses
+
+### Added
+- **Expenses** (step 9b, [docs/BUSINESS.md](docs/BUSINESS.md)). The new **Expenses** page
+  (Organisation → Expenses, for admins and members) records every company cost with its receipt:
+  date, supplier (from Contacts or typed), what for, category, amount excl. VAT, VAT and total,
+  currency, the supplier's invoice number, due date, when and how it was paid, and notes. Add the
+  receipt with the phone camera or as a PDF. Type the amount excl. VAT or the total: the VAT is
+  worked out.
+- **Views, simple first:** this month's costs by kind (job costs, running the company, equipment
+  and vehicles, taxes and other), what is unpaid and due (overdue first), claims, recurring costs.
+  "Show details" adds the VAT, the totals by category and each expense's invoice, dates, link and
+  receipt. Search and filter by kind and category. **CSV for the accountant.**
+- **Categories:** each organisation starts with 23 (hire-in, fuel, tolls, rent, insurance,
+  equipment…); admins rename, add and archive them. Equipment, vehicles and computers are spread
+  over a number of months instead of counting as the month's cost.
+- **VAT:** the organisation recovers VAT (as a VAT-registered company does), so costs count without
+  it, except in categories where VAT can't be recovered (meals and travel to start). An admin can
+  switch this off.
+- **Expense claims:** anyone on a gig (crew too) claims what they paid themselves, from the gig's
+  Crew tab, with a photo of the receipt. The gig's managers approve it or send it back with a note;
+  both sides are notified. Approved claims show as "to reimburse" until someone adds the date they
+  were paid.
+- **Recurring costs** (rent, insurance, leasing): monthly, quarterly or yearly. Each one is drafted
+  on its date for someone to confirm, and only counts once confirmed.
+- **Who sees money:** the organisation's admins and members (decision D23). Crew see only their own
+  claims; a gig's managers see its claims.
+
+### Connected
+- **Each cost counted once:** an expense can be linked to a subrental, a repair, a crew fee or a
+  stock purchase, and then it is that record's actual cost (only one expense per record).
+  Subrentals and repairs show the linked expense next to their planned amount, with "Add expense"
+  until there is one. The labour panel shows a crew fee's invoice as that person's actual cost.
+  Adding bought stock can record the supplier's invoice too.
+- Contacts: each supplier shows what you spent with them this year and what is unpaid.
+- Notifications in the app, by push and in the email summary; the organisation export (three new
+  files: expense categories, expenses and recurring costs); the data map (receipts).
+- Help: a guide with pictures ("Keep track of expenses"), four ⓘ hints and four glossary words.
+
 ## 0.67.0 — Leave
 
 ### Added

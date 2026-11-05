@@ -96,38 +96,33 @@ When a step here is built, its session adds a "How … works" section below in t
 | Feed and export | The calendar feed adds the person's approved leave and unavailable dates as all-day events. Organisation export: `leave_settings`, `work_weeks`, `leave_years` and `leave` files (the export function was renamed `export_org_part_pre_step9` and wrapped) |
 | Reports | `staff_utilisation(org, from, to)` (admins): per member of staff, working days, approved leave days per type, days and hours available, approved hours logged on the organisation's gigs. K7 builds on it |
 
+## How expenses work (step 9b, 0.68.0)
+
+Full expense tracking (D24). AVX doesn't keep the official accounts: the ledger is for running the
+business and handing the accountant a clean file.
+
+| Piece | How it works |
+|---|---|
+| Who sees money | `private.can_see_finance(org)`: the organisation's **admins and members** (D23). Expenses use it; every money report (K1 on) will too |
+| Data | `expenses`: date, supplier (`supplier_id` from Contacts, or a typed `supplier_name`), description, category, amount excl. VAT, VAT rate, VAT amount (worked out, or the invoice's own), `total` (stored, net + VAT), currency, the supplier's invoice number, due date, paid on and how, notes, receipt (`receipt_path`, `receipt_name`), status, `removed_at`. `expense_categories` (per organisation; kind `direct`, `overhead`, `capital` with `spread_months`, or `tax_other`; `vat_recoverable`; archived, never removed). `org_finance_settings` (`recovers_vat`, default yes). `expense_recurrences`. Migration `20261214000000_expenses.sql` |
+| Categories | A starter list of 23 is made the first time someone who sees money opens Expenses (`ensure_expense_categories`): job costs (hire-in, freelance crew, transport and fuel, tolls and parking, travel and accommodation, meals on jobs, consumables, repairs and parts), running the company (rent and utilities, insurance, vehicle leasing and upkeep, software, phone and internet, accountant and legal, marketing, bank fees, office supplies), equipment and vehicles (equipment 60 months, vehicles 48, computers 36) and taxes and other (taxes and fees, fines, other). Starter ones keep a `starter_key` and show in the reader's language until renamed. Meals and travel/accommodation start with VAT "not recoverable". Admins add, edit and archive |
+| VAT | Cost of an expense = amount excl. VAT, plus the VAT when the organisation doesn't recover VAT or the category's VAT isn't recoverable (`costOf` in `src/lib/expenses.js`). Totals are per currency, never added across |
+| Each cost counted once | An expense links to a gig and to at most one of a subrental, a repair, a crew fee (`crew_fee_user_id` with the gig: that person's `gig_crew_fees` row), a bulk stock purchase (`stock_movement_id`) or a unit bought (`stock_unit_id`). One live expense per linked record (unique indexes). Links to another organisation's records, a crew fee that doesn't exist or a record of another gig are refused; a linked subrental or repair fills in its gig. The linked expense is the actual amount; the record's own amount stays the estimate |
+| Statuses | `confirmed` (counts), `draft` (made by a recurring cost; counts once confirmed), and for claims `claimed` (waiting) and `returned` (sent back with a note). Nobody sets a status by hand except confirming a draft; `decide_expense_claim` and the recurring job set the rest |
+| Claims | Anyone on a gig (crew included) adds what they paid themselves, with the receipt, from the gig's Crew tab: it starts `claimed`, links only to its gig, and its owner can't mark it paid. They see only their own claims. The gig's approvers (its PMs and creator, else the organisation's admins) are notified (`expense_claimed`); the gig's managers and those who see money approve or send back with a note (`decide_expense_claim`; nobody approves their own claim unless an organisation admin). Editing a returned claim sends it again. An approved claim with no paid date is **to reimburse**; whoever sees money adds the date it was paid. Notifications `expense_approved` / `expense_returned` |
+| Recurring | `expense_recurrences`: description, supplier, category, amount, VAT rate, how paid, monthly / quarterly / yearly, first and last date. The n-th date is first date + n periods (a 31st falls back to the month's last day and returns). Every morning at 05:47 UTC (`avx-recurring-expenses`, `private.draft_recurring_expenses`) each one due by today (the organisation's time zone) gets its draft, at most 24 a run; a unique index makes each date once, and a removed draft isn't made again. The admins get one `expense_drafted` notification per organisation. Adding one that starts in the past drafts at once (`draft_recurring_expenses_now`) |
+| Receipts | Private bucket `expense-receipts`, `<organisation>/<expense>/<file>`, photos or PDF up to 10 MB. Those who see money read and add; a claim's owner adds to their waiting claim and reads it with the gig's managers. An expense's `receipt_path` must be under its own folder |
+| Screens | `pages/ExpensesPage.jsx` at `/org/:orgId/expenses` (menu: Organisation → Expenses, admins and members): This month (totals excl. VAT by kind, capital also as this month's spread share; "Show details" adds VAT, by category, and each row's invoice, due, paid, link and receipt), Unpaid and due (to reimburse, overdue, unpaid), Claims, Recurring, Categories (admins: categories and "We recover VAT"); search and filters by kind and category; "CSV for the accountant" (confirmed expenses in view, semicolon CSV). `components/expenses/`: `ExpenseForm` (ledger or claim; type the amount excl. VAT or the total), `ExpenseParts`, `ExpenseSettings`, `GigExpenses` (gig Crew tab), `LinkedExpense` |
+| Connected | Subrentals and repairs: their window shows the linked expense (actual vs planned) or "Add expense". Labour panel: a crew fee's linked expense replaces the hours as that person's actual cost (receipt button to add it). Bulk stock "Add → Bought": "Also record the supplier's invoice as an expense". Contacts: each supplier's spend this year and what is unpaid (`supplier_spend`). Organisation export: `expense_categories`, `expenses`, `expense_recurrences` files (export function renamed `export_org_part_pre_step9b` and wrapped, `20261214000001_export_expenses.sql`). DATA_MAP.md: expenses and receipts. Push and email summary texts for the new notifications |
+| Tests | `supabase/tests/expenses.sql` (who adds, reads and approves; other organisations' links refused; one live expense per link; recurring drafts once; export), `src/lib/expenses.test.js` (VAT, recurrence, totals, form, CSV) |
+| Later | K1 and later reports read confirmed expenses (capital spread by `spread_months`), using `can_see_finance`. Step 10 shows a gig's linked expenses as its other costs. Importing the AT e-Fatura purchase-invoices file waits for a sample file (after launch) |
+
 ## Planned
 
 Specs for the business steps still to build, in ROADMAP.md order. Each is a starting point: the
 session that builds it reads its spec, checks it against the code, and **asks the owner the
 questions marked "Ask" before outlining the migration**. When built, the spec is replaced by a
 "How … works" section above.
-
-### 9b · Expenses
-
-Full expense tracking, decided 2026-11-02 ([PENDING.md](PENDING.md) D24). AVX doesn't keep the
-official accounts: the ledger is for running the business and handing the accountant a clean file.
-
-- **Ledger:** date, supplier (from Contacts, or typed), description, category, amount excl. VAT,
-  VAT rate and amount, total, currency, the supplier's invoice number, due date, paid on and how,
-  notes, and a receipt (phone photo or PDF in a private bucket). Removing only marks it
-  (`removed_at`).
-- **Categories** per organisation (admins manage them; a starter list), each of a kind: direct (job
-  costs), overhead (running the company), capital (equipment, vehicles: spread over a number of
-  months, not a cost of the month) or tax/other.
-- **Each cost counted once:** an expense links to a gig and to at most one of a subrental, a repair,
-  a crew fee or a stock purchase (a vehicle after step 23). The linked expense is the actual amount;
-  until then the record's own amount is the estimate.
-- **Recurring** costs (rent, insurance, leasing): monthly, quarterly or yearly; a daily job drafts
-  the next one on its date for someone to confirm.
-- **Who:** `private.can_see_finance(org)` as decided in D23, made here and used by every report
-  later.
-- **Views**, simple first: this month, unpaid and due, by category, with totals; details (VAT,
-  links, receipts) on demand; CSV for the accountant; a file in the organisation export.
-- Ask: D23; the starter categories; whether VAT is recovered (if not, it counts as cost); expense
-  claims by crew and staff (an expense on a gig with a photo, approved by the gig's managers, shown
-  as "to reimburse") now or after the launch; importing the AT e-Fatura purchase-invoices file now
-  or after the launch.
 
 ### 10 · Gig finance overview [4]
 
