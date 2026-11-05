@@ -1,0 +1,5 @@
+/* Shared Lumen & Pixel classes for AVX (DESIGN.md, the AVX design system's bundle.css).
+   Colours only through theme variables (src/theme/tokens.js); every corner is square. */
+
+/* The quiet dot field behind empty states and the sign-in page */
+.avx-dots { background-image: radial-gradient(var(--line) 1.5px, transparent 1.6px); background-size: 16px 16px; }

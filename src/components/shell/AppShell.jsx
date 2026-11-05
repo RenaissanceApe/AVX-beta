@@ -270,9 +270,6 @@ function PhoneTabs({ sections, onAccount }) {
   )
 }
 
-// Faint film grain for the frosted panels (tiny inline SVG, no download)
-const GRAIN = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")"
-
 const SHELL_CSS = `
   .shell { min-height: 100vh; background: ${colors.bg}; color: var(--text); }
   .shell-bar { position: sticky; top: var(--safe-top); z-index: 60; height: 60px; display: flex; align-items: center; gap: 10px;
@@ -290,7 +287,7 @@ const SHELL_CSS = `
   .shell-switch-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .shell-chevron { color: ${colors.soft}; flex-shrink: 0; }
   .shell-orgmark { flex-shrink: 0; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--purple) 90%, transparent), color-mix(in srgb, var(--purple) 90%, transparent)); color: var(--on-accent); }
+    font-family: var(--font-mono); background: transparent; border: 1px solid var(--line-strong); color: var(--text); }
   .shell-orgmark-me { width: 22px; height: 22px; background: var(--accent); color: var(--on-accent); }
   .shell-role { flex-shrink: 0; font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; }
   .shell-role-admin { color: var(--yellow); background: color-mix(in srgb, var(--yellow) 14%, transparent); }
@@ -305,7 +302,7 @@ const SHELL_CSS = `
   .shell-avatar { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--on-accent);
     background: var(--accent); }
   .shell-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 70; border-radius: 18px; padding: 14px; color: var(--text);
-    background-color: color-mix(in srgb, var(--panel) 97%, transparent); background-image: ${GRAIN}, linear-gradient(160deg, color-mix(in srgb, var(--tint, var(--accent)) 12%, transparent), color-mix(in srgb, var(--fg) min(100%, calc(2% * var(--line-k))), transparent) 55%);
+    background: var(--panel);
     border: 1px solid var(--line-strong); animation: shellIn .16s ease; }
   @keyframes shellIn { from { opacity: 0; transform: translateY(-4px) } to { opacity: 1; transform: none } }
   .shell-switch-pop { width: 330px; }
@@ -328,9 +325,8 @@ const SHELL_CSS = `
   .shell-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; min-width: 330px; flex: 1; }
   .shell-panel .shell-cards { grid-template-columns: repeat(var(--cols, 3), 158px); min-width: 0; }
   .shell-card { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 14px; border-radius: 15px; text-decoration: none; color: var(--text);
-    background-image: ${GRAIN}, linear-gradient(145deg, color-mix(in srgb, var(--tint) 22%, transparent), color-mix(in srgb, var(--tint) 5%, transparent) 70%);
-    border: 1px solid color-mix(in srgb, var(--tint) 22%, transparent); transition: transform .15s, border-color .15s, background-color .15s; }
-  .shell-card:hover, .shell-card:focus-visible { transform: translateY(-2px); border-color: color-mix(in srgb, var(--tint) 55%, transparent); background-color: color-mix(in srgb, var(--tint) 6%, transparent); outline: none; }
+    background: var(--panel); border: 1px solid var(--line); transition: border-color .15s, background-color .15s; }
+  .shell-card:hover { border-color: var(--line-strong); }
   .shell-card-icon { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;
     background: color-mix(in srgb, var(--tint) 22%, var(--panel)); color: var(--tint); }
   .shell-card strong { font-size: 14px; }
@@ -359,7 +355,7 @@ const SHELL_CSS = `
     .shell-tab.is-active { color: ${colors.accentText}; }
     .shell-sheet-backdrop { position: fixed; inset: 0; z-index: 80; background: var(--overlay); display: flex; align-items: flex-end; }
     .shell-sheet { width: 100%; max-height: 82vh; overflow-y: auto; border-radius: 22px 22px 0 0; padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
-      background: var(--chrome); background-image: ${GRAIN}; border-top: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent); animation: shellUp .2s ease; }
+      background: var(--chrome); border-top: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent); animation: shellUp .2s ease; }
     @keyframes shellUp { from { transform: translateY(30px); opacity: .6 } to { transform: none; opacity: 1 } }
     .shell-sheet-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
     .shell-sheet-head strong { font-size: 16px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -370,7 +366,6 @@ const SHELL_CSS = `
     .shell-chip.is-active { color: ${colors.accentText}; border-color: color-mix(in srgb, var(--accent) 40%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
     .shell-sheet-section { margin-top: 12px; }
     .shell-cards-sheet { grid-template-columns: 1fr 1fr; min-width: 0; }
-    .shell-cards-sheet .shell-card { background-image: linear-gradient(145deg, color-mix(in srgb, var(--tint) 20%, transparent), color-mix(in srgb, var(--tint) 4%, transparent) 70%); }
     .shell-sheet-foot { margin-top: 16px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent); }
   }
 `

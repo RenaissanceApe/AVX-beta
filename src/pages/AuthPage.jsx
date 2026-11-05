@@ -187,30 +187,12 @@ export default function AuthPage() {
   )
 
   return (
-    <div style={{
+    <div className="avx-dots" style={{
       minHeight: '100vh', background: 'var(--bg)',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
       padding: '24px', fontFamily: 'var(--font-ui)'
     }}>
-      {/* Background grid */}
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 0,
-        backgroundImage: `
-          linear-gradient(color-mix(in srgb, var(--accent) 3%, transparent) 1px, transparent 1px),
-          linear-gradient(90deg, color-mix(in srgb, var(--accent) 3%, transparent) 1px, transparent 1px)
-        `,
-        backgroundSize: '40px 40px',
-        pointerEvents: 'none'
-      }} />
-
-      {/* Glow */}
-      <div style={{
-        position: 'fixed', top: '-20%', left: '50%', transform: 'translateX(-50%)',
-        width: '600px', height: '400px',
-        background: 'radial-gradient(ellipse, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 70%)',
-        pointerEvents: 'none', zIndex: 0
-      }} />
 
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '400px' }}>
         {/* Logo */}
@@ -224,8 +206,8 @@ export default function AuthPage() {
 
         {/* Card */}
         <div style={{
-          background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)',
-          border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)',
+          background: 'var(--panel)',
+          border: '1px solid var(--line)',
           padding: '32px',
         }}>
           {/* Tab switcher */}

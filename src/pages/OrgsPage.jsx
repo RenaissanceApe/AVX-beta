@@ -87,9 +87,10 @@ export default function OrgsPage() {
       )}
       <style>{`
         .orgs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-        .org-card { padding: 16px; border-radius: 16px; background: color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent); border: 1px solid ${colors.border}; }
-        .org-card-mark { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;
-          background: linear-gradient(135deg, color-mix(in srgb, var(--purple) 90%, transparent), color-mix(in srgb, var(--purple) 90%, transparent)); color: var(--on-accent); flex-shrink: 0; }
+        .org-card { padding: 16px; background: var(--panel); border: 1px solid var(--line); transition: border-color .15s; }
+        .org-card:hover { border-color: var(--line-strong); }
+        .org-card-mark { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700;
+          background: transparent; border: 1px solid var(--line-strong); color: var(--text); flex-shrink: 0; }
       `}</style>
     </AppShell>
   )

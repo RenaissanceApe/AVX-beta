@@ -129,4 +129,8 @@ describe('screens stay flat', () => {
   it('has no shadows, blur or glows', async () => {
     expect(await scan(/box-?shadow|boxShadow|backdrop-?filter|backdropFilter|text-?shadow|textShadow|drop-shadow/i)).toEqual([])
   })
+  // Hatching (repeating-linear-gradient) marks unavailable days and is allowed; the dot field lives in brand.css
+  it('has no gradients or grain', async () => {
+    expect(await scan(/(?<!repeating-)linear-gradient|radial-gradient|conic-gradient|linearGradient|radialGradient|feTurbulence/)).toEqual([])
+  })
 })

@@ -13,7 +13,7 @@ export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, 
   const { t, fmt } = useI18n()
   return (
     <>
-      <div style={{ background: 'linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, transparent) 0%, transparent 100%)', borderBottom: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', padding: '14px 16px 0' }}>
+      <div style={{ background: 'var(--bg)', borderBottom: '1px solid var(--line)', padding: '14px 16px 0' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           {/* Where this gig belongs and your place in it: the company, and your role there */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
