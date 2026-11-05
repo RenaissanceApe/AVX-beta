@@ -381,7 +381,7 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
   )
 }
 
-const cellInput = { ...input, minWidth: 0, width: '100%' }
+const cellInput = { ...input, minWidth: 0, width: '100%', paddingLeft: '6px', paddingRight: '6px' }
 
 // A field of an invoice line with its small visible caption (also its accessible name)
 function Cell({ area, caption, children }) {
