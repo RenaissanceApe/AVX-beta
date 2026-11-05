@@ -40,9 +40,9 @@ export function ToastProvider({ children }) {
           return (
             <div key={toast.id} role={toast.kind === 'error' ? 'alert' : 'status'} style={{
               pointerEvents: 'auto', display: 'flex', alignItems: 'flex-start', gap: '10px',
-              background: 'var(--panel)', border: `1px solid ${cfg.border}`, borderRadius: '12px',
+              background: 'var(--panel)', border: `1px solid ${cfg.border}`,
               padding: '12px 14px', color: 'var(--text)', fontSize: '14px', lineHeight: '1.5',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.4)', whiteSpace: 'pre-line', wordBreak: 'break-word'
+              whiteSpace: 'pre-line', wordBreak: 'break-word'
             }}>
               <Icon size={18} color={cfg.color} style={{ flexShrink: 0, marginTop: '1px' }} />
               <div style={{ flex: 1 }}>{toast.message}</div>

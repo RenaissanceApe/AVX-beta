@@ -106,3 +106,27 @@ describe('screens use theme colours', () => {
     expect(found).toEqual([])
   })
 })
+
+// Brand Book v1.2 / DESIGN.md: depth comes from grounds and 1px lines, never from shadows or blur.
+// Only the focus ring (outline) and 2px indicator bars (borders) are allowed.
+describe('screens stay flat', () => {
+  const scan = async (pattern) => {
+    const fs = await import('node:fs')
+    const path = await import('node:path')
+    const found = []
+    const walk = dir => fs.readdirSync(dir, { withFileTypes: true }).forEach(e => {
+      const p = path.join(dir, e.name)
+      if (e.isDirectory()) walk(p)
+      else if (/\.jsx?$/.test(e.name) && !/\.test\./.test(e.name)) {
+        fs.readFileSync(p, 'utf8').split('\n').forEach((line, i) => {
+          if (pattern.test(line)) found.push(`${path.relative(process.cwd(), p)}:${i + 1}`)
+        })
+      }
+    })
+    walk(path.resolve(__dirname, '..'))
+    return found
+  }
+  it('has no shadows, blur or glows', async () => {
+    expect(await scan(/box-?shadow|boxShadow|backdrop-?filter|backdropFilter|text-?shadow|textShadow|drop-shadow/i)).toEqual([])
+  })
+})

@@ -56,8 +56,8 @@ export default function FeedTab({ gigId, posts, userId, isPM, nameOf, onChanged 
       </div>
 
       <div style={{
-        background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)', borderRadius: '14px',
-        padding: '16px', position: 'sticky', bottom: '16px', backdropFilter: 'blur(12px)',
+        background: 'var(--panel)', border: '1px solid var(--line-strong)',
+        padding: '16px', position: 'sticky', bottom: '16px',
       }}>
         <textarea value={text} onChange={e => setText(e.target.value)} aria-label={t('feed.placeholder')}
           onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) post() }}

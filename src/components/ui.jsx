@@ -13,7 +13,7 @@ export const colors = {
   accent: 'var(--accent)', accentText: 'var(--accent-text)', accentDark: 'var(--accent-2)', onAccent: 'var(--on-accent)', danger: 'var(--danger)',
   border: 'var(--line)', line: 'var(--line)', lineStrong: 'var(--line-strong)', fill: 'var(--fill)', hover: 'var(--hover)',
   chrome: 'var(--chrome)', selection: 'var(--selection)', text2: 'var(--text-2)',
-  warn: 'var(--warn)', info: 'var(--info)', dangerSoft: 'var(--danger-soft)', warnSoft: 'var(--warn-soft)', overlay: 'var(--overlay)',
+  warn: 'var(--warn)', info: 'var(--info)', dangerSoft: 'var(--danger-soft)', warnSoft: 'var(--warn-soft)', overlay: 'var(--overlay)', focus: 'var(--focus)',
 }
 
 // A see-through version of a colour (any CSS colour, variables included), e.g. tint(colors.accent, 12)

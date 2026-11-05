@@ -165,7 +165,7 @@ export function CameraScanner({ onCode, onClose, tall = false }) {
       ) : (
         <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', background: '#000', aspectRatio: '4 / 3', maxHeight: tall ? '42vh' : '50vh', margin: '0 auto' }}>
           <video ref={videoRef} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div aria-hidden style={{ position: 'absolute', inset: '18%', border: `2px solid ${colors.accent}`, borderRadius: '14px', boxShadow: '0 0 0 9999px rgba(0,0,0,0.35)' }} />
+          <div aria-hidden style={{ position: 'absolute', inset: '18%', border: `2px solid ${colors.accent}` }} />
           {torchTrack && (
             <button type="button" onClick={toggleTorch} aria-pressed={torch} style={{
               position: 'absolute', right: '10px', bottom: '10px', minWidth: '52px', minHeight: '52px', borderRadius: '50%',

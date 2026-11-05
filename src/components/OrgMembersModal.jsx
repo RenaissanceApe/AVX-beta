@@ -210,7 +210,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
 }
 
 const overlay = {
-  position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+  position: 'fixed', inset: 0, zIndex: 100, background: 'var(--overlay)',
   display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'calc(16px + var(--safe-top)) 16px 16px'
 }
 const panel = {

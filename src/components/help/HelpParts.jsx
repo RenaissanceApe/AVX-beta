@@ -53,8 +53,8 @@ function usePopover() {
 const popStyle = place => ({
   position: 'fixed', zIndex: 300, left: `${place.left}px`, width: `${place.width}px`,
   ...(place.top != null ? { top: `${place.top}px` } : { bottom: `${place.bottom}px` }),
-  background: 'var(--panel)', color: 'var(--text-2)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(14% * var(--line-k))), transparent)', borderRadius: '12px',
-  padding: '12px 14px', fontSize: '13px', lineHeight: 1.55, boxShadow: '0 12px 32px rgba(0,0,0,0.55)',
+  background: 'var(--panel)', color: 'var(--text-2)', border: '1px solid var(--line-strong)',
+  padding: '12px 14px', fontSize: '13px', lineHeight: 1.55,
   textTransform: 'none', letterSpacing: 'normal', fontWeight: 400, textAlign: 'left', whiteSpace: 'normal',
 })
 

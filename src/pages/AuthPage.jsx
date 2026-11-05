@@ -179,7 +179,6 @@ export default function AuthPage() {
           border: 'none', borderRadius: '10px', padding: '13px 32px',
           color: 'var(--on-accent)', fontSize: '15px', fontWeight: '700',
           fontFamily: 'var(--font-ui)', cursor: 'pointer',
-          boxShadow: '0 4px 16px color-mix(in srgb, var(--accent) 30%, transparent)'
         }}>
           {t('auth.signIn')} →
         </button>
@@ -217,14 +216,8 @@ export default function AuthPage() {
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <div style={{
-              width: '36px', height: '36px', background: 'var(--accent)',
-              borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 20px color-mix(in srgb, var(--accent) 40%, transparent)'
-            }}>
-              <AvxMark size={22} style={{ color: 'var(--on-accent)' }} />
-            </div>
-            <span style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text)', letterSpacing: '-0.5px' }}>AVX</span>
+            <AvxMark size={28} style={{ color: 'var(--accent-text)' }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '28px', fontWeight: 700, color: 'var(--text)', letterSpacing: '0.06em' }}>AVX</span>
           </div>
           <p style={{ color: 'var(--muted)', fontSize: '14px', margin: 0 }}>{t('app.tagline')}</p>
         </div>
@@ -233,9 +226,7 @@ export default function AuthPage() {
         <div style={{
           background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)',
           border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)',
-          borderRadius: '20px',
           padding: '32px',
-          backdropFilter: 'blur(20px)',
         }}>
           {/* Tab switcher */}
           <div style={{
@@ -359,8 +350,7 @@ export default function AuthPage() {
               color: 'var(--on-accent)', fontWeight: '700', fontSize: '15px',
               fontFamily: 'var(--font-ui)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              transition: 'all 0.2s',
-              boxShadow: loading ? 'none' : '0 4px 20px color-mix(in srgb, var(--accent) 30%, transparent)',
+              transition: 'background-color .15s',
             }}>
               {loading ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : null}
               {loading ? t('common.pleaseWait') : mode === 'signin' ? t('auth.signIn') : mode === 'reset' ? t('auth.sendReset') : mode === 'magic' ? t('auth.sendMagic') : t('auth.createAccount')}

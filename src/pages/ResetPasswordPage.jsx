@@ -42,14 +42,8 @@ export default function ResetPasswordPage() {
       <div style={{ width: '100%', maxWidth: '400px' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '36px', height: '36px', background: 'var(--accent)',
-              borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 20px color-mix(in srgb, var(--accent) 40%, transparent)'
-            }}>
-              <AvxMark size={22} style={{ color: 'var(--on-accent)' }} />
-            </div>
-            <span style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text)', letterSpacing: '-0.5px' }}>AVX</span>
+            <AvxMark size={28} style={{ color: 'var(--accent-text)' }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '28px', fontWeight: 700, color: 'var(--text)', letterSpacing: '0.06em' }}>AVX</span>
           </div>
         </div>
 

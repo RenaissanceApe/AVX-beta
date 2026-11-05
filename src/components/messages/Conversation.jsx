@@ -572,7 +572,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
             </span>
           </button>
           {showPins && (
-            <div role="list" style={{ position: 'absolute', zIndex: 25, top: '100%', left: 0, right: 0, background: colors.panel, border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', borderRadius: '10px', padding: '4px', boxShadow: '0 12px 28px rgba(0,0,0,0.5)', maxHeight: '50vh', overflowY: 'auto' }}>
+            <div role="list" style={{ position: 'absolute', zIndex: 25, top: '100%', left: 0, right: 0, background: colors.panel, border: '1px solid var(--line-strong)', padding: '4px', maxHeight: '50vh', overflowY: 'auto' }}>
               {pinned.map(p => (
                 <button key={p.id} role="listitem" type="button" onClick={() => jumpTo(p.id)} style={{ ...menuItem, alignItems: 'flex-start', flexDirection: 'column', gap: '2px' }}>
                   <span style={{ fontSize: '11px', color: colors.muted }}>{name(p.author_id)} · {fmt(p.created_at, 'd MMM HH:mm')}</span>
@@ -620,7 +620,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
                 <div style={{
                   background: mine ? MINE : 'color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', borderRadius: '12px', padding: '7px 11px', fontSize: '14px', lineHeight: 1.5,
                   whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', minWidth: 0,
-                  boxShadow: highlight === m.id ? `0 0 0 2px ${colors.accent}` : forMe ? `inset 3px 0 0 ${AMBER}` : 'none', transition: 'box-shadow .3s',
+                  outline: highlight === m.id ? `2px solid ${colors.focus}` : 'none', borderLeft: forMe ? `2px solid ${AMBER}` : undefined, transition: 'outline-color .15s',
                 }}>
                   {removed ? <span style={{ fontStyle: 'italic', color: colors.muted }}>{t(m.removed_by ? 'chat.removedByModerator' : 'chat.removed')}</span> : <>
                     {m.needs_ack && (
@@ -670,7 +670,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
                 {menuFor === m.id && (
                   <div role="menu" className="chat-menu" style={{
                     position: 'absolute', zIndex: 20, bottom: '100%', [mine ? 'right' : 'left']: 0, marginBottom: '4px', minWidth: '210px',
-                    background: colors.panel, border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', borderRadius: '10px', padding: '6px', boxShadow: '0 12px 28px rgba(0,0,0,0.5)',
+                    background: colors.panel, border: '1px solid var(--line-strong)', padding: '6px',
                   }}>
                     {canPost && (
                       <div style={{ display: 'flex', gap: '2px', padding: '2px 2px 6px', borderBottom: `1px solid ${colors.border}`, marginBottom: '4px' }}>
@@ -769,7 +769,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
           {suggestions.length > 0 && (
             <div role="listbox" aria-label={t('chat.mentionSomeone')} style={{
               position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: '4px', zIndex: 15, background: colors.panel,
-              border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', borderRadius: '10px', padding: '4px', boxShadow: '0 12px 28px rgba(0,0,0,0.5)',
+              border: '1px solid var(--line-strong)', padding: '4px',
             }}>
               {suggestions.map((c, i) => (
                 <button key={`${c.label}-${i}`} type="button" role="option" aria-selected={i === mentionIndex}

@@ -77,7 +77,7 @@ export function CameraSync({ session, onUse, onType, onClose }) {
     <Modal title={t('rehearsal.cameraSync')} onClose={onClose} maxWidth={560}>
       <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', background: '#000', aspectRatio: '16 / 9' }}>
         <video ref={video} playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        <div aria-hidden="true" style={{ position: 'absolute', left: '8%', right: '8%', top: '38%', bottom: '38%', border: `3px solid ${state === 'found' ? 'var(--accent)' : '#fff'}`, borderRadius: '8px', boxShadow: '0 0 0 9999px rgba(0,0,0,0.35)' }} />
+        <div aria-hidden="true" style={{ position: 'absolute', left: '8%', right: '8%', top: '38%', bottom: '38%', border: `3px solid ${state === 'found' ? 'var(--accent)' : 'var(--paper)'}` }} />
       </div>
       <canvas ref={canvas} hidden />
       <p role="status" aria-live="polite" style={{ fontSize: '14px', margin: '12px 0', lineHeight: 1.5 }}>

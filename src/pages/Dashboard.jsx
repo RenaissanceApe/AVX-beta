@@ -381,11 +381,11 @@ function GigCard({ gig, onOpen, showCompany, clash }) {
 function Modal({ title, onClose, children }) {
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+      position: 'fixed', inset: 0, zIndex: 100, background: 'var(--overlay)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'calc(24px + var(--safe-top)) 24px 24px'
     }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label={title} style={{
-        background: 'var(--panel)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '18px', padding: '28px', width: '100%', maxWidth: '480px',
+        background: 'var(--panel)', border: '1px solid var(--line-strong)', padding: '28px', width: '100%', maxWidth: '480px',
         animation: 'fadeIn 0.2s ease', maxHeight: 'calc(100vh - 32px - var(--safe-top))', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
@@ -413,7 +413,7 @@ function FieldLabel({ label, children }) {
 const btnPrimary = {
   display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer',
   background: 'var(--accent)', color: 'var(--on-accent)', fontWeight: 700, fontSize: '14px',
-  fontFamily: 'var(--font-ui)', boxShadow: '0 4px 16px color-mix(in srgb, var(--accent) 25%, transparent)', transition: 'all 0.2s'
+  fontFamily: 'var(--font-ui)', transition: 'background-color .15s'
 }
 const btnModal = { ...btnPrimary, width: '100%', justifyContent: 'center', padding: '13px', fontSize: '15px', marginTop: '4px' }
 const modalInput = {

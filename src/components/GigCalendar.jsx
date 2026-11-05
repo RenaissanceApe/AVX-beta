@@ -74,7 +74,7 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
               </div>
               <div className="cal-dots" aria-hidden>
                 {dayGigs.slice(0, 4).map(g => (
-                  <span key={g.id} style={{ width: '7px', height: '7px', borderRadius: '50%', background: STATUS_COLOR[g.status] || colors.muted, boxShadow: clashes(g) ? `0 0 0 2px ${AMBER}` : 'none' }} />
+                  <span key={g.id} style={{ width: '7px', height: '7px', borderRadius: '50%', background: STATUS_COLOR[g.status] || colors.muted, outline: clashes(g) ? `2px solid ${AMBER}` : 'none', outlineOffset: '1px' }} />
                 ))}
               </div>
               <div className="cal-chips" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>

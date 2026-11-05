@@ -108,7 +108,7 @@ export default function NotificationBell() {
       {open && place && (
         <div role="dialog" aria-label={t('notif.bell')} style={{
           position: 'fixed', right: `${place.right}px`, top: `${place.top}px`, width: `${place.width}px`, maxHeight: '70vh', overflowY: 'auto',
-          background: colors.panel, border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '14px', boxShadow: '0 12px 32px rgba(0,0,0,0.5)', zIndex: 200,
+          background: colors.panel, border: '1px solid var(--line-strong)', zIndex: 200,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderBottom: `1px solid ${colors.border}` }}>
             <strong style={{ fontSize: '14px' }}>{t('notif.bell')}</strong>
