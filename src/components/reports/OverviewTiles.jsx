@@ -42,8 +42,11 @@ function TileValue({ tile, overview }) {
   return <div style={{ ...mono, fontSize: '20px', fontWeight: 700 }}>{v}</div>
 }
 
+// A percentage in a tile's line, written the reader's way ("29.4" / "29,4")
+const subVars = (vars, lang) => (vars.pct == null ? vars : { ...vars, pct: Number(vars.pct).toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB') })
+
 export function OverviewTiles({ orgId, overview, compact = false }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const base = `/org/${orgId}`
   return (
     <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${compact ? 140 : 170}px, 1fr))`, gap: '8px' }}>
@@ -54,7 +57,7 @@ export function OverviewTiles({ orgId, overview, compact = false }) {
             <Link to={tile.to(base)} style={{ ...card, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '2px', height: '100%', boxSizing: 'border-box', color: 'var(--text)', textDecoration: 'none' }}>
               <span style={{ fontSize: '12px', color: colors.muted }}>{t(`reports.tile.${tile.key}`)}</span>
               <TileValue tile={tile} overview={overview} />
-              {sub && <span style={{ fontSize: '11px', color: colors.muted }}>{t(`${sub.key}.${sub.vars.count === 1 ? 'one' : 'other'}`, sub.vars)}</span>}
+              {sub && <span style={{ fontSize: '11px', color: colors.muted }}>{sub.vars.count == null ? t(sub.key, subVars(sub.vars, lang)) : t(`${sub.key}.${sub.vars.count === 1 ? 'one' : 'other'}`, sub.vars)}</span>}
               {!compact && <span style={{ fontSize: '11px', color: colors.muted, marginTop: '4px' }}>{t(`reports.tileHint.${tile.key}`)}</span>}
             </Link>
           </li>

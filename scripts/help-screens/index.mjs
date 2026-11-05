@@ -471,6 +471,18 @@ const SCENES = {
     await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
     return table
   } },
+  'gig-finance': { persona: 'pm', url: `/gig/${ids.gig}`, async run(page) {
+    const box = page.locator('section[aria-labelledby="finance-title"]')
+    await box.locator('dl').waitFor()
+    await box.evaluate(el => window.scrollTo(0, document.documentElement.scrollHeight))
+    return box
+  } },
+  'reports-margins': { persona: 'pm', url: `/org/${ids.org}/reports?tab=margins&period=last_12_months`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return fig
+  } },
   'home-key-numbers': { persona: 'pm', url: `/org/${ids.org}`, async run(page) {
     const box = page.locator('section[aria-labelledby="key-numbers"]')
     await box.locator('ul').waitFor()

@@ -3,6 +3,7 @@
 
 export default {
   terms: {
+    'gig-margin': { term: 'Margem do evento', definition: 'O que um evento deixa depois dos custos diretos: a receita (todos os orçamentos aceites, líquidos; nenhum aceite: o orçamento enviado mais recente, uma estimativa) menos a mão de obra, os subalugueres confirmados, as reparações não cobradas ao cliente e as despesas ligadas ao evento. Uma despesa ligada a um subaluguer, reparação ou cachê substitui o valor previsto, para cada custo contar uma só vez. Em euros, sem IVA.', example: 'Receita 4140 € − custos 3391 € = margem 749 € (18,1%).', where: 'Evento → Resumo → Finanças do evento, Relatórios → Margens dos eventos' },
     'net-revenue': { term: 'Receita líquida', definition: 'O que os orçamentos aceites rendem, sem IVA: cada linha com preço depois do desconto da linha, da fase e do orçamento. Fases opcionais e comentários ficam de fora. Um orçamento conta na data de início do evento (sem evento: a data da primeira fase, senão a data de emissão). Cada moeda conta à parte.', example: 'Uma linha de 1000 € numa fase com 10% de desconto, num orçamento com 5%: 855 €.', where: 'Relatórios → Receita' },
     estimate: { term: 'Estimativa', definition: 'Um valor calculado a partir de uma alternativa porque o real ainda não existe, e marcado como tal: por exemplo a receita de um evento tirada do orçamento enviado mais recente enquanto nenhum foi aceite. Rascunhos nunca contam, nem como estimativa.', example: 'Painel do custo da equipa: "Orçamentado (estimativa: orçamento enviado mais recente)".', where: 'Relatórios, evento → Equipa → Custo da equipa' },
     'comparison-period': { term: 'Período de comparação', definition: 'O período com que um relatório compara: o período anterior com a mesma duração, ou o mesmo período do ano passado. Um período que ainda não terminou compara-se dia a dia: do dia 1 ao dia 5 deste mês contra o dia 1 ao dia 5 do anterior.', example: 'Este trimestre até hoje contra as mesmas semanas do trimestre anterior.', where: 'Relatórios → Receita' },
@@ -100,6 +101,7 @@ export default {
 
   hints: {
     'expense-category': 'Escolha para que é o custo. O tipo (custos dos trabalhos, funcionamento da empresa, equipamento, impostos) decide onde conta nos resultados.',
+    'gig-finance': 'Receita, custos e margem deste evento, contados na base de dados. A mão de obra usa as horas aprovadas (ou a fatura) quando existem, senão o cachê acordado, senão a tabela de cachês, marcada como estimativa.',
     'expense-link': 'Se é a fatura de um subaluguer, reparação, cachê ou compra de stock, ligue-a: passa a substituir o valor previsto desse registo, para o custo contar uma só vez.',
     'expense-recurring': 'Com que frequência volta. A despesa fica em rascunho em cada data para alguém confirmar.',
     'expense-kind': 'Os custos dos trabalhos pertencem aos eventos; o funcionamento da empresa são custos gerais; equipamento e viaturas repartem-se por meses; impostos e outros ficam à parte.',
@@ -197,6 +199,20 @@ export default {
       mistakes: [
         'A receita conta só orçamentos aceites, na data de início do evento: um orçamento aceite hoje para um evento em março conta em março.',
         'Valores em moedas diferentes nunca se somam; as outras moedas aparecem por baixo do total.',
+      ],
+    },
+    'office-gig-finance': {
+      title: 'Ver o que um evento rende',
+      intro: 'Veja a receita, os custos e a margem de cada evento, e que eventos perdem dinheiro.',
+      steps: [
+        'Abra um evento: o Resumo mostra "Finanças do evento" (só administradores e membros). A receita vem dos orçamentos aceites; os custos são a mão de obra, os subalugueres confirmados, as reparações não cobradas ao cliente e as despesas ligadas ao evento. O que é estimado diz que é.',
+        'Toque em "Adicionar despesa" para registar um custo deste evento com o comprovativo. Ligada a um subaluguer, reparação ou cachê, substitui o valor previsto.',
+        'Abra Relatórios → Margens dos eventos para todos os eventos que começam num período, com receita, custo e margem. "Mostrar detalhes" acrescenta os filtros (estado, tipo, cliente) e a tabela; descarregue-a em CSV.',
+        'Quando um evento está concluído, os seus gestores podem tocar em "Guardar como cachês acordados": os valores da tabela de cachês ficam como o cachê de cada pessoa, para que uma mudança futura da tabela não altere a margem.',
+      ],
+      mistakes: [
+        'Um evento sem orçamento enviado ou aceite tem custos mas ainda não tem margem; não conta como a perder dinheiro.',
+        'Valores noutras moedas aparecem à parte e nunca se somam aos totais em euros.',
       ],
     },
     'office-expenses': {
