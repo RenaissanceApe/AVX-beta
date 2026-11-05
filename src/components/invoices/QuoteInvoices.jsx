@@ -6,7 +6,7 @@ import { useI18n } from '../../i18n'
 import { btn, colors } from '../ui'
 import { Hint } from '../help/HelpParts'
 import { formatMoney, quoteTotals, round2 } from '../../lib/quotes'
-import { loadInvoices, moloniStatus } from '../../lib/invoiceApi'
+import { loadInvoices } from '../../lib/invoiceApi'
 import InvoiceModal, { InvoiceBadge, invoiceTitle } from './InvoiceModal'
 
 // A quote's invoices (step 11), in its Summary tab: what is invoiced and what is left, each invoice
@@ -14,13 +14,11 @@ import InvoiceModal, { InvoiceBadge, invoiceTitle } from './InvoiceModal'
 export default function QuoteInvoices({ quote, body, prefix, clients = [], dueDays = 30 }) {
   const { t, lang } = useI18n()
   const [list, setList] = useState(null)
-  const [ready, setReady] = useState(false)
   const [open, setOpen] = useState(null)
   const load = useCallback(() => {
     loadInvoices(quote.org_id, { quoteId: quote.id }).then(setList).catch(error => { logger.error('invoices', error, { step: 'quote' }); setList([]) })
   }, [quote.org_id, quote.id])
   useEffect(() => { load() }, [load])
-  useEffect(() => { moloniStatus(quote.org_id).then(s => setReady(!!s?.ready)).catch(() => setReady(false)) }, [quote.org_id])
   if (!list || (quote.status !== 'accepted' && !list.length)) return null
 
   const full = { ...quote, body, prefix }
@@ -61,7 +59,7 @@ export default function QuoteInvoices({ quote, body, prefix, clients = [], dueDa
       </div>
       {open && (
         <InvoiceModal key={open.invoice?.id || open.creditOf?.id || 'new'} orgId={quote.org_id} invoice={open.invoice || null} quote={open.quote || null}
-          client={client} creditOf={open.creditOf || null} dueDays={dueDays} moloniReady={ready}
+          client={client} creditOf={open.creditOf || null} dueDays={dueDays}
           siblings={open.creditOf ? list.filter(i => i.credited_invoice_id === open.creditOf.id) : list}
           onClose={() => setOpen(null)} onSaved={load} onCredit={inv => setOpen({ creditOf: inv })} />
       )}

@@ -30,7 +30,7 @@ up front. What each release changed is in [CHANGELOG.md](CHANGELOG.md).
 | K1: reports engine (one revenue rule in SQL and JS, periods, report parts and charts), the Reports area with its Overview, key numbers on Home, Inventory reports counted in the database | 0.69.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
 | Lumen & Pixel design language: themes, square UI, type, status squares, AVX glyph | 0.70.0 | [DESIGN.md](DESIGN.md) |
 | Step 10: gig finance overview (panel per gig, Reports → Gig margins, margin tiles and card hints, `gig_finance` for K2) | 0.71.0 | [docs/BUSINESS.md](docs/BUSINESS.md) |
-| Step 11: invoices (VAT per line on quotes, drafts from accepted quotes, Moloni hand-off, credit notes, overdue reminders) | 0.72.0 | [docs/BUSINESS.md](docs/BUSINESS.md) |
+| Step 11: invoices (VAT per line on quotes, drafts from accepted quotes, issued in your own invoicing program, credit notes, overdue reminders) | 0.72.0 | [docs/BUSINESS.md](docs/BUSINESS.md) |
 | Truss load tables (data only, waiting for a second check) | 0.60 | [docs/TRUSS_DATA.md](docs/TRUSS_DATA.md) |
 | Privacy and security check: data map, OWASP review, sign-in failure tests | 0.62.1 | [docs/DATA_MAP.md](docs/DATA_MAP.md), [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) |
 
@@ -46,6 +46,7 @@ the data it counts.
 
 | # | What | Needs | Connect | Plan | Prompt |
 |---|---|---|---|---|---|
+| 11b | **Invoicing program connectors**: each organisation picks Moloni, InvoiceXpress, Vendus or TOConline (or stays manual) | 11 | Invoices, Company details | BUSINESS.md | S05b |
 | 12 | Damage charged to the client [15], **payments** [22] | 11, repairs | Repairs, quotes, invoices, reports (K3) | BUSINESS.md | S06 |
 | K2 | **Money: results and margins** [4] [11] | K1, 9b, 10 | Gig finance panel, Overview, gig cards, expenses | ANALYTICS.md | K2 |
 | K3 | **Money: cash, spending and forecast** | K2, 11, 12 | Invoices, payments, expenses, contacts, Overview | ANALYTICS.md | K3 |
@@ -143,8 +144,8 @@ docs/SESSION_PROMPTS.md ("After launch"), plans in [docs/ANALYTICS.md](docs/ANAL
 
 - The email summary goes out once a day, not instantly.
 - Quotes need a connection.
-- Invoices go to Moloni only (other certified programs: type them in and add the number). Moloni's
-  connection needs signing in again after 14 days without use.
+- Invoices are issued by hand in your own certified program, then its number is added in AVX
+  (connectors: step 11b).
 - Availability is checked only for quote lines added from the price list.
 - Gig days are read in Lisbon time (U1).
 - Offline mode is read-only except rehearsal notes and messages, which are sent when back online.

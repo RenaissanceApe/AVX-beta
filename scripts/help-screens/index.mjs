@@ -467,7 +467,7 @@ const SCENES = {
   } },
   'invoice-send': { persona: 'pm', url: `/org/${ids.org}/invoices`, async run(page, L) {
     await page.getByRole('button').filter({ hasText: L('invoice.draftName', { n: 3 }) }).first().click()
-    const send = page.getByRole('dialog').getByRole('button', { name: L('invoice.sendToMoloni') })
+    const send = page.getByRole('dialog').getByRole('button', { name: L('invoice.markSent') })
     await send.evaluate(el => el.scrollIntoView({ block: 'center' }))
     return send
   } },

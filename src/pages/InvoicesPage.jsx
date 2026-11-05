@@ -1,40 +1,38 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, Plus, FileCheck, Search, Link2, Unlink } from 'lucide-react'
+import { ArrowLeft, Loader2, Plus, FileCheck, Search } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { logger, userMessage } from '../lib/logger'
-import { useToast } from '../lib/ToastContext'
+import { logger } from '../lib/logger'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { formatMoney, quoteNumber, localISODate } from '../lib/quotes'
 import { invoiceState, daysOverdue } from '../lib/invoices'
-import { loadInvoices, moloniStatus, moloni } from '../lib/invoiceApi'
+import { loadInvoices } from '../lib/invoiceApi'
 import { useI18n, fmt } from '../i18n'
-import { btn, btnPrimary, input, label, card, colors, Modal } from '../components/ui'
+import { btn, btnPrimary, input, card, colors, Modal } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
-import { PageHelp, HintLabel, Hint } from '../components/help/HelpParts'
+import { PageHelp } from '../components/help/HelpParts'
 import InvoiceModal, { InvoiceBadge, invoiceTitle } from '../components/invoices/InvoiceModal'
 
 const VIEWS = ['open', 'unpaid', 'paid', 'all']
 const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
 
 // Invoices (step 11) at /org/:orgId/invoices, for the organisation's admins and members. AVX
-// prepares each invoice; Moloni (the certified program) issues it. Views: to send (drafts and
-// those waiting in Moloni), unpaid (overdue first), paid, all. Admins connect Moloni here.
+// prepares each invoice; the organisation's own certified invoicing program issues it, and its
+// number is typed back here. Views: to send (drafts and those waiting in the program), unpaid
+// (overdue first), paid, all. Connecting invoicing programs directly is step 11b (the Moloni
+// connector is written but switched off: components/invoices/MoloniPanel.jsx).
 export default function InvoicesPage() {
   const { orgId } = useParams()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const { t, lang } = useI18n()
-  const { notify } = useToast()
   const { roleIn, loading, setWorkspace } = useWorkspace()
   const role = roleIn(orgId)
   const canSee = role === 'admin' || role === 'member'
-  const isAdmin = role === 'admin'
   const view = VIEWS.includes(params.get('view')) ? params.get('view') : 'open'
   const [list, setList] = useState(null)
   const [org, setOrg] = useState(null)
-  const [status, setStatus] = useState(undefined)
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(null) // { invoice } | { quote } | { creditOf }
   const [picking, setPicking] = useState(false)
@@ -43,20 +41,9 @@ export default function InvoicesPage() {
   useEffect(() => { setWorkspace(orgId) }, [orgId, setWorkspace])
   const changed = () => setVersion(v => v + 1)
 
-  // Back from Moloni's sign-in
-  useEffect(() => {
-    const result = params.get('moloni')
-    if (!result) return
-    notify(t(result === 'connected' ? 'invoice.moloni.connectedToast' : 'invoice.moloni.connectFailed'), result === 'connected' ? 'success' : 'error')
-    const next = new URLSearchParams(params)
-    next.delete('moloni')
-    setParams(next, { replace: true })
-  }, [params, setParams, notify, t])
-
   useEffect(() => {
     if (!canSee) return
     supabase.from('organisations').select('id, name, invoice_due_days, quote_number_prefix').eq('id', orgId).single().then(({ data }) => setOrg(data))
-    moloniStatus(orgId).then(setStatus).catch(error => { logger.error('invoices', error, { step: 'moloni_status' }); setStatus(null) })
   }, [canSee, orgId, version])
 
   const load = useCallback(async () => {
@@ -92,7 +79,6 @@ export default function InvoicesPage() {
   }, [list, today, credits])
 
   const setView = v => setParams(v === 'open' ? {} : { view: v }, { replace: true })
-  const ready = !!status?.ready
   const title = t('invoice.pageTitle')
   if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
   if (!canSee) return (
@@ -121,8 +107,6 @@ export default function InvoicesPage() {
           </div>
           <button type="button" onClick={() => setPicking(true)} style={btnPrimary}><Plus size={14} /> {t('invoice.newFromQuote')}</button>
         </div>
-
-        <MoloniPanel orgId={orgId} status={status} isAdmin={isAdmin} onChanged={changed} />
 
         {(sums.unpaid || sums.overdue) && (
           <dl style={{ ...section, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '4px 12px', fontSize: '14px', margin: 0 }}>
@@ -184,106 +168,12 @@ export default function InvoicesPage() {
       {picking && <QuotePicker orgId={orgId} prefix={org?.quote_number_prefix ?? 'Q'} onClose={() => setPicking(false)} onPick={q => { setPicking(false); setOpen({ quote: q }) }} />}
       {open && (
         <InvoiceModal key={open.invoice?.id || open.quote?.id || open.creditOf?.id} orgId={orgId} invoice={open.invoice || null} quote={open.quote || null}
-          client={open.client || open.quote?.client || null} creditOf={open.creditOf || null} dueDays={org?.invoice_due_days ?? 30} moloniReady={ready}
+          client={open.client || open.quote?.client || null} creditOf={open.creditOf || null} dueDays={org?.invoice_due_days ?? 30}
           siblings={open.quote ? (list || []).filter(i => i.quote_id === open.quote.id) : open.creditOf ? siblingsOf(open.creditOf) : []}
           onClose={() => setOpen(null)} onSaved={changed}
           onCredit={inv => setOpen({ creditOf: inv })} />
       )}
     </AppShell>
-  )
-}
-
-// Moloni: connected or not, the company and invoice series used, and (admins) connect / change / disconnect
-function MoloniPanel({ orgId, status, isAdmin, onChanged }) {
-  const { t } = useI18n()
-  const { notify } = useToast()
-  const [busy, setBusy] = useState(false)
-  const [setup, setSetup] = useState(null)
-  if (status === undefined) return null
-  const connect = async () => {
-    setBusy(true)
-    try {
-      const { url } = await moloni('connect', { org_id: orgId })
-      window.location.assign(url)
-    } catch (error) { logger.error('invoices', error, { step: 'moloni_connect' }); notify(userMessage(error), 'error'); setBusy(false) }
-  }
-  const disconnect = async () => {
-    if (!window.confirm(t('invoice.moloni.disconnectConfirm'))) return
-    setBusy(true)
-    try { await moloni('disconnect', { org_id: orgId }); onChanged() } catch (error) { notify(userMessage(error), 'error') } finally { setBusy(false) }
-  }
-  const connected = status?.connected && !status?.expired
-  return (
-    <section style={{ ...section, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }} aria-labelledby="moloni-title">
-      <div style={{ flex: '1 1 240px', minWidth: 0 }}>
-        <h2 id="moloni-title" style={{ fontSize: '15px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {t('invoice.moloni.title')}
-          <Hint id="moloni" label={t('invoice.moloni.title')} />
-        </h2>
-        <p style={{ fontSize: '13px', color: status?.ready ? colors.muted : colors.warn, margin: '2px 0 0' }}>
-          {status?.ready ? t('invoice.moloni.ready', { company: status.company_name, series: status.document_set_name })
-            : status?.expired ? t('invoice.moloni.expired')
-              : connected ? t('invoice.moloni.chooseSeries')
-                : t(isAdmin ? 'invoice.moloni.notConnected' : 'invoice.moloni.notConnectedMember')}
-        </p>
-      </div>
-      {isAdmin && (
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {(!connected) && <button type="button" onClick={connect} disabled={busy} style={btnPrimary}><Link2 size={14} /> {t(status?.expired ? 'invoice.moloni.reconnect' : 'invoice.moloni.connect')}</button>}
-          {connected && <button type="button" onClick={() => setSetup(true)} disabled={busy} style={status?.ready ? btn : btnPrimary}>{t('invoice.moloni.choose')}</button>}
-          {status?.connected && <button type="button" onClick={disconnect} disabled={busy} style={btn}><Unlink size={14} /> {t('invoice.moloni.disconnect')}</button>}
-        </div>
-      )}
-      {setup && <MoloniSetup orgId={orgId} onClose={() => setSetup(null)} onSaved={() => { setSetup(null); onChanged() }} />}
-    </section>
-  )
-}
-
-function MoloniSetup({ orgId, onClose, onSaved }) {
-  const { t } = useI18n()
-  const { notify } = useToast()
-  const [lists, setLists] = useState(null)
-  const [choice, setChoice] = useState({ company_id: '', document_set_id: '' })
-  const [saving, setSaving] = useState(false)
-  const fetchLists = useCallback(async companyId => {
-    setLists(null)
-    try {
-      const res = await moloni('setup', { org_id: orgId, ...(companyId ? { company_id: Number(companyId) } : {}) })
-      setLists(res)
-      setChoice(c => ({ company_id: String(res.company_id ?? ''), document_set_id: companyId ? '' : String(res.document_set_id ?? c.document_set_id ?? '') }))
-    } catch (error) { notify(userMessage(error), 'error'); onClose() }
-  }, [orgId, notify, onClose])
-  useEffect(() => { fetchLists(null) }, [fetchLists])
-  const save = async e => {
-    e.preventDefault()
-    setSaving(true)
-    try {
-      await moloni('save_setup', { org_id: orgId, company_id: Number(choice.company_id), document_set_id: Number(choice.document_set_id) })
-      notify(t('invoice.moloni.saved'), 'success')
-      onSaved()
-    } catch (error) { notify(userMessage(error), 'error') } finally { setSaving(false) }
-  }
-  return (
-    <Modal title={t('invoice.moloni.choose')} onClose={onClose}>
-      {!lists ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : (
-        <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div>
-            <label htmlFor="mo-co" style={label}>{t('invoice.moloni.company')}</label>
-            <select id="mo-co" value={choice.company_id} onChange={e => fetchLists(e.target.value)} required style={{ ...input, cursor: 'pointer' }}>
-              {lists.companies.map(c => <option key={c.company_id} value={c.company_id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <HintLabel htmlFor="mo-set" hint="moloni-series">{t('invoice.moloni.series')}</HintLabel>
-            <select id="mo-set" value={choice.document_set_id} onChange={e => setChoice(c => ({ ...c, document_set_id: e.target.value }))} required style={{ ...input, cursor: 'pointer' }}>
-              <option value="">{t('quote.vatExemptionPick')}</option>
-              {lists.document_sets.map(s => <option key={s.document_set_id} value={s.document_set_id}>{s.name}</option>)}
-            </select>
-          </div>
-          <button type="submit" disabled={saving || !choice.document_set_id} style={btnPrimary}>{t('invoice.moloni.save')}</button>
-        </form>
-      )}
-    </Modal>
   )
 }
 

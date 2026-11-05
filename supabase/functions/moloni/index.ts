@@ -1,4 +1,8 @@
-// moloni: hands AVX invoices to Moloni, the certified invoicing program (step 11). AVX never issues a
+// SWITCHED OFF: not deployed and not called by the app until step 11b (docs/BUSINESS.md "Planned →
+// 11b"), which turns invoicing-program connectors on per organisation and must first test this one
+// against a real Moloni account. Invoicing is manual until then.
+//
+// moloni: hands AVX invoices to Moloni, a certified invoicing program (step 11). AVX never issues a
 // legal invoice: it creates a DRAFT in Moloni; you check and finalise it in Moloni; then "Check
 // Moloni" reads back the number, dates and PDF link. Docs: docs/BUSINESS.md "How invoices work".
 //
@@ -6,8 +10,7 @@
 //   MOLONI_CLIENT_ID      the Developer ID from Moloni's developer area
 //   MOLONI_CLIENT_SECRET  its Client Secret
 // Optional: MOLONI_REDIRECT_URI (default <SUPABASE_URL>/functions/v1/moloni, which must be the
-// redirect address registered with Moloni), APP_URL, and BREVO_API_KEY + DIGEST_FROM for the
-// optional email reminder to the client.
+// redirect address registered with Moloni) and APP_URL.
 //
 // Verify JWT must be OFF for this function: Moloni's sign-in comes back here as a plain browser
 // visit (GET with ?code&state). Every POST checks the caller's own token itself (RLS decides what
@@ -20,12 +23,11 @@
 //   disconnect { org_id }                      admin
 //   push { invoice_id }                        a draft invoice or credit note → a draft in Moloni
 //   sync { invoice_id }                        reads it back once finalised in Moloni → issued
-//   remind { invoice_id }                      emails the client a reminder with the PDF link
+// (The email reminder to a client is the invoice-reminder function, for every organisation.)
 // Tokens live in public.moloni_connections, which only the service role can read. Logs carry
 // step names and ids only.
 
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
-import { claimSend } from '../_shared/send-limits.ts'
 import { fetchWithTimeout, isTimeout } from '../_shared/timeout.ts'
 
 const ALLOWED_ORIGINS = ['https://avx-beta.vercel.app', 'http://localhost:5173', 'http://localhost:4173']
@@ -61,9 +63,6 @@ async function sha256Hex(text: string) {
 function randomToken() {
   const bytes = crypto.getRandomValues(new Uint8Array(24))
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-}
-function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 }
 
 // An error the app shows in plain words (the code picks the message; detail is Moloni's own text)
@@ -338,52 +337,6 @@ async function sync(admin: SupabaseClient, inv: Invoice) {
   return { state: 'issued', legal_number: legal, pdf_url: pdf }
 }
 
-const REMINDER = {
-  en: {
-    subject: 'Payment reminder · invoice {number}',
-    body: 'Hello{name},<br><br>This is a reminder from {org} that invoice {number} of {amount} was due on {due}. If you have already paid it, please ignore this message.',
-    open: 'View the invoice', footer: 'Sent with AVX on behalf of {org}. Reply to this email to contact them.',
-  },
-  pt: {
-    subject: 'Lembrete de pagamento · fatura {number}',
-    body: 'Olá{name},<br><br>A {org} lembra que a fatura {number}, de {amount}, venceu a {due}. Se já a pagou, ignore esta mensagem.',
-    open: 'Ver a fatura', footer: 'Enviado com o AVX em nome de {org}. Responda a este email para os contactar.',
-  },
-}
-const fill = (t: string, v: Record<string, string>) => t.replace(/\{(\w+)\}/g, (_, k) => v[k] ?? '')
-
-async function remind(user: SupabaseClient, admin: SupabaseClient, inv: Invoice) {
-  const email = (inv.client_email || '').trim().toLowerCase()
-  if (inv.kind !== 'invoice' || inv.status !== 'issued' || !inv.pdf_url) throw new Refusal('not_issued', 409)
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Refusal('no_email', 400)
-  const apiKey = env('BREVO_API_KEY'), from = env('DIGEST_FROM')
-  if (!apiKey || !from) throw new Refusal('email_not_configured', 400)
-  const claim = await claimSend(user, 'claim_send', { p_kind: 'quote', p_org: inv.org_id, p_recipient: email })
-  if (claim !== 'ok') throw new Refusal(claim === 'limited' ? 'rate_limited' : 'send_failed', 429)
-  const { data: org } = await admin.from('organisations').select('name, email').eq('id', inv.org_id).maybeSingle()
-  const lang = inv.language === 'en' ? 'en' : 'pt'
-  const s = REMINDER[lang]
-  const amount = new Intl.NumberFormat(lang === 'en' ? 'en-GB' : 'pt-PT', { style: 'currency', currency: inv.currency || 'EUR' }).format(Number(inv.total))
-  const due = inv.due_date ? new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'pt-PT', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(`${inv.due_date}T00:00:00Z`)) : ''
-  const vars = { number: inv.legal_number || String(inv.number), org: escapeHtml(org?.name || 'AVX'), amount, due, name: inv.client_name ? ` ${escapeHtml(inv.client_name)}` : '' }
-  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;color:#111">
-<p>${fill(s.body, vars)}</p>
-<p><a href="${escapeHtml(inv.pdf_url)}" style="display:inline-block;background:#111;color:#fff;padding:10px 18px;text-decoration:none">${s.open}</a></p>
-<p style="font-size:12px;color:#666">${fill(s.footer, vars)}</p></div>`
-  const res = await fetchWithTimeout('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST', headers: { 'api-key': apiKey, 'Content-Type': 'application/json', accept: 'application/json' },
-    body: JSON.stringify({
-      sender: { email: from, name: org?.name || 'AVX' }, to: [{ email }],
-      ...(org?.email ? { replyTo: { email: org.email } } : {}),
-      subject: fill(s.subject, { number: vars.number }), htmlContent: html,
-    }),
-  }).catch(err => { if (isTimeout(err)) throw new Refusal('timeout', 504); throw err })
-  if (!res.ok) { logErr('brevo', { status: res.status }); throw new Refusal('send_failed', 502) }
-  await admin.from('invoices').update({ client_reminded_at: new Date().toISOString() }).eq('id', inv.id)
-  log('reminded', { invoice: inv.id })
-  return { emailed: true }
-}
-
 Deno.serve(async (req) => {
   const origin = req.headers.get('Origin')
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(origin) })
@@ -440,14 +393,14 @@ Deno.serve(async (req) => {
       return json({ ok: true }, 200, origin)
     }
 
-    if (['push', 'sync', 'remind'].includes(action)) {
+    if (['push', 'sync'].includes(action)) {
       const id = String(body.invoice_id ?? '')
       if (!UUID.test(id)) throw new Refusal('invalid', 400)
       // Read as the user: only admins and members of the invoice's organisation get it
       const { data: inv, error } = await user.from('invoices').select('*').eq('id', id).is('removed_at', null).maybeSingle()
       if (isTimeout(error)) throw new Refusal('timeout', 504)
       if (!inv) throw new Refusal('not_found', 404)
-      const result = action === 'push' ? await push(admin, inv as Invoice) : action === 'sync' ? await sync(admin, inv as Invoice) : await remind(user, admin, inv as Invoice)
+      const result = action === 'push' ? await push(admin, inv as Invoice) : await sync(admin, inv as Invoice)
       return json(result, 200, origin)
     }
     return json({ error: 'invalid' }, 400, origin)

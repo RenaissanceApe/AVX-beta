@@ -523,7 +523,6 @@ export function sampleData(persona, lang) {
         margin_this_month: { EUR: 5420 }, margin_pct_this_month: 29.4, negative_margin: 1 },
       report_revenue_lines: revenueLines,
       gig_finance: gigFinance,
-      moloni_status: [{ connected: true, expired: false, company_name: 'Lumen and Pixel, Lda', document_set_name: '2026', ready: true, connected_at: ago(500) }],
       invoice_summary: [{ ref_id: 'q1', currency: 'EUR', invoiced_net: 2120, invoiced: 2607.6, credited: 0, paid: 782.28, outstanding: 1825.32, overdue: 1825.32, to_issue: 66.42, invoices: 3, last_issue: day(-35), last_paid: day(-12) }],
       equipment_report: [
         { item_id: SPK, name: w.speaker, category: w.sys, owned: 7, use: 0.46, gigs: 9, last_used: ago(240), revenue: 6720, return_on_cost: 0.32, repairs: 1, repair_cost: 180, charged: 0, lost: 0, lost_value: 0, hired_in: 0, book_value: 14200, cost: 21000, idle: false },

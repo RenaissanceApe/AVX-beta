@@ -141,9 +141,12 @@ What each gig brings in and costs, for those who see money (admins and members, 
 ## How invoices work (step 11, 0.72.0)
 
 In Portugal only certified invoicing software (AT) may issue an invoice, so AVX **prepares** each
-invoice and **hands it to Moloni** (the owner's certified program, D45), which issues it. Migration
-`20261222000000_invoices.sql`; checks in `supabase/tests/invoices.sql` (no delete statements). The
-owner chose Moloni's API over a file export (Moloni has no documented invoice import).
+invoice and the organisation **issues it in its own certified program**, then types the program's
+number (and PDF link) back into AVX. Invoicing is **manual for every organisation** (D45): AVX is
+sold to companies using different programs, so it isn't tied to one. Connecting the most used
+programs directly is step 11b ("Planned → 11b"); a Moloni connector is written but switched off.
+Migration `20261222000000_invoices.sql`; checks in `supabase/tests/invoices.sql` (no delete
+statements).
 
 | Piece | How it works |
 |---|---|
@@ -152,12 +155,12 @@ owner chose Moloni's API over a file export (Moloni has no documented invoice im
 | Data | `invoices`: AVX `number` (per organisation, given by the trigger; nobody can set or change it: column grants), `kind` invoice or credit_note (`credited_invoice_id`), quote, gig and client links, a copy of the client (name, NIF, address, email), `scope` (all, phases, deposit, rest, credit, custom), `phase_ids`, `deposit_pct`, language, currency, `lines` (cleaned and checked on save), `net`/`vat`/`total` worked out by the trigger (VAT per rate on the sum of its lines, the twin of `invoiceTotals`), notes, issue and due dates, `status`, sent/issued timestamps, `paid_on`, `legal_number` and `pdf_url` (Moloni's), `moloni_document_id`, reminder dates, `removed_at`. `organisations.invoice_due_days` (Company details, default 30). `moloni_connections` (tokens, company, series, the "AVX service" product; no rules or grants, the Edge Function only) |
 | Rules | Admins and members only (`can_see_finance`, two-step sign-in when set up). Status draft → sent → issued → paid (sent → draft and paid → issued undo); overdue is worked out (issued, unpaid, past due), never stored. Only drafts can be changed or removed (marked). Issued needs the program's number; once issued the number and issue date stay. A credit note needs an issued invoice of the same organisation and can't credit more than is left (other non-removed credit notes count); it takes the invoice's currency and is never "paid". An invoice can't total below zero |
 | Maths | `src/lib/invoices.js`: `quoteInvoiceLines` (each priced line, line × phase × quote discount as one %, qty × factor as one quantity, its own VAT; chosen phases may include optional ones), `depositLines` (pct % of each rate's base), `restLines` (the whole quote less each deposit invoice, at its rates), `creditLines`, `invoiceTotals`, `invoiceState`, `dueDateFor`, `invoiceProblems`. An invoice can be a cent away from its quote (it rounds per line, the quote per phase); the window says so |
-| Moloni | Edge Function `moloni` (Verify JWT off: Moloni's sign-in comes back as a browser visit). An admin taps "Connect Moloni" (OAuth, Moloni's own sign-in, no password stored), then chooses the company and invoice series. "Send to Moloni" finds the client by NIF (or adds them; no NIF: final consumer 999999990), uses one "AVX service" product for every line (each with its own name, price, discount and VAT tax, or exemption code), and creates a **draft** (status 0) with `our_reference` "AVX n". You check and finalise it in Moloni; "Check Moloni" reads it back once closed: number (FT/NC series/number), dates and the PDF link, and marks it issued. Credit notes go as Moloni credit notes linked to the original lines; if Moloni's lines can't be matched, AVX asks you to make it in Moloni and type the number. Without Moloni: "I typed it in myself", then the number and PDF link by hand. Euros only to Moloni. Tokens refresh by themselves; 14 days unused, an admin connects again. Secrets: `MOLONI_CLIENT_ID`, `MOLONI_CLIENT_SECRET` |
+| Hand-off | Manual, the same for every organisation: create the invoice in your certified program, tap "Mark as sent to my program", then add the program's number (required to mark it issued) and the link to its PDF. Back to draft is possible while it is only sent. The Moloni connector (Edge Function `moloni`, `components/invoices/MoloniPanel.jsx`, `moloni_connections`, `moloni_status`, `InvoiceModal`'s `moloniReady` branch) is written but **switched off**: not deployed, not imported, untested against a real account; step 11b decides how connectors are turned on |
 | Reminders | `private.remind_overdue_invoices()` every morning (`avx-overdue-invoices`, 07:23 UTC): each overdue invoice notifies the quote's author and the admins (`invoice_overdue`), again a week later while unpaid. "Email the client a reminder" (overdue, with an email and a PDF link) sends one email through Brevo in the invoice's language, counted as a quote email in the send limits |
-| Screens | `pages/InvoicesPage.jsx` at `/org/:orgId/invoices` (menu: Quotes → Invoices): Moloni panel (admins connect, choose, disconnect), overdue and unpaid totals, views To send, Unpaid (overdue first), Paid, All, search, "New invoice from a quote" (accepted quotes). `components/invoices/InvoiceModal.jsx`: what to invoice, client, dates, language, lines (editable in a draft, with VAT and reasons), totals by rate, then the actions for its status (send, check Moloni, number by hand, back to draft, paid, not paid, credit note, email reminder, tell the client in the quote's conversation, open the PDF) |
+| Screens | `pages/InvoicesPage.jsx` at `/org/:orgId/invoices` (menu: Quotes → Invoices): overdue and unpaid totals, views To send, Unpaid (overdue first), Paid, All, search, "New invoice from a quote" (accepted quotes). `components/invoices/InvoiceModal.jsx`: what to invoice, client, dates, language, lines (editable in a draft, with VAT and reasons), totals by rate, then the actions for its status (mark as sent to the program, the program's number and PDF link, back to draft, paid, not paid, credit note, email reminder, tell the client in the quote's conversation, open the PDF) |
 | Connected | Quote editor → Summary: invoiced and left to invoice (excl. VAT), its invoices, "New invoice" (`QuoteInvoices`). Quotes list: "Invoiced €…" per quote. Contacts → Clients: invoiced, unpaid and overdue. Gig finance panel: invoiced, paid, unpaid (overdue), still to issue (`invoice_summary`). Client guest thread: an issued invoice's number, amount, due date and PDF link posted in the quote's conversation on request. Organisation export: `invoices` and `invoice_lines` files (export function renamed `export_org_part_pre_step11` and wrapped). Notifications (app, push, email summary). K3 reads `issue_date`, `due_date`, `paid_on` and `invoice_summary` |
-| Help | Terms invoice, credit note, certified program; ⓘ for the line VAT, NIF, due date, number, Moloni, series and the quote's invoices; page note `org-invoices`; guide `office-invoices` with five pictures |
-| Tests | `invoices.sql`: VAT copy, numbering (can't be given or changed), totals, viewers/crew/other companies see and do nothing, status rules and locks, credit-note limits, `invoice_summary`, Moloni tokens unreadable, overdue reminders once a week, export. Vitest: VAT per line (`quotes.test.js`), invoice and deposit maths (`invoices.test.js`), the revenue fixtures with VAT |
+| Help | Terms invoice, credit note, certified program; ⓘ for the line VAT, NIF, due date, number and the quote's invoices (the Moloni ones are kept for 11b); page note `org-invoices`; guide `office-invoices` with five pictures |
+| Tests | `invoices.sql`: VAT copy, numbering (can't be given or changed), totals, viewers/crew/other companies see and do nothing, status rules and locks, credit-note limits, `invoice_summary`, Moloni tokens unreadable (kept for 11b), overdue reminders once a week, export. Vitest: VAT per line (`quotes.test.js`), invoice and deposit maths (`invoices.test.js`), the revenue fixtures with VAT |
 
 ## Planned
 
@@ -165,6 +168,29 @@ Specs for the business steps still to build, in ROADMAP.md order. Each is a star
 session that builds it reads its spec, checks it against the code, and **asks the owner the
 questions marked "Ask" before outlining the migration**. When built, the spec is replaced by a
 "How … works" section above.
+
+### 11b · Invoicing program connectors
+
+Built once invoices (step 11) are in use. Manual stays available for every organisation, always:
+a connector only saves typing.
+- **Each organisation chooses its program** (Invoices page, admins): none (manual), or one of the
+  connectors below. One connection per organisation; a generic table replaces `moloni_connections`
+  (rename it and add a `provider` column; no drop), and `moloni_status` becomes `invoicing_status`.
+- **First connectors**, the most used certified programs among small Portuguese companies, all with
+  public APIs: **Moloni** (written, switched off; OAuth sign-in), **InvoiceXpress** (API key per
+  account), **Vendus** (API key), **TOConline** (OAuth). Later, if clients ask: Primavera / Jasmin,
+  Cegid, Sage, PHC.
+- **One shape for every connector** (one Edge Function, an adapter per program): send a draft
+  (find or add the client by NIF, lines with their VAT or exemption code), read back the number,
+  dates and PDF link once finalised, and credit notes. AVX always sends **drafts**; you finalise in
+  the program.
+- **Keys** are added by the organisation's admin in the app (stored server-side only) or, for
+  OAuth programs, by signing in to the program; the developer app keys per provider are Supabase
+  secrets the owner adds.
+- Ask: which programs your first customers use, and whether a CSV/SAF-T style export is wanted
+  for programs without a connector.
+- Before turning Moloni on: test it end to end with a real account (deposit minus line, credit
+  notes linked to the invoice's lines, a client created by NIF).
 
 ### 12 · Damage charged to the client [15], payments [22]
 

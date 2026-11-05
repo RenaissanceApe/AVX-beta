@@ -11,12 +11,11 @@
 - **Invoices** (admins and members), under Quotes → Invoices and on each accepted quote's
   Summary. Make an invoice for the whole quote, some phases, a deposit % or, after a deposit, the
   rest (the deposit is deducted). The client comes from Contacts; each line keeps its VAT rate.
-- **Moloni:** an admin connects Moloni once (Moloni's own sign-in) and picks the company and
-  invoice series. "Send to Moloni" makes a draft there (adding the client by NIF if needed); you
-  finalise it in Moloni and "Check Moloni" brings back its number, dates and PDF. AVX never issues
-  an invoice itself: in Portugal only certified programs may. Without Moloni, type the invoice in
-  your program and add its number here.
-- **Status** draft → in Moloni → issued → paid, with overdue worked out from the due date
+- **Issued in your own program:** AVX prepares the invoice; you create it in your certified
+  invoicing program (Moloni, InvoiceXpress, Vendus…), mark it as sent and add the number and PDF
+  link it gave. AVX never issues an invoice itself: in Portugal only certified programs may.
+  Connecting the most used programs directly is planned (step 11b).
+- **Status** draft → sent to your program → issued → paid, with overdue worked out from the due date
   (default 30 days, set in Company details). **Credit notes** against an issued invoice, never
   more than is left on it.
 - **Overdue reminders:** a notification to the quote's author and the admins, then weekly while it

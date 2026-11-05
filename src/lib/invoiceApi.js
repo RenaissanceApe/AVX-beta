@@ -47,18 +47,29 @@ export async function invoiceSummary(orgId, by, ids = null) {
   return data || []
 }
 
+// SWITCHED OFF until step 11b
 export async function moloniStatus(orgId) {
   const { data, error } = await supabase.rpc('moloni_status', { p_org: orgId })
   if (error) throw error
   return data?.[0] || null
 }
 
-// Calls the moloni Edge Function; refusals come back as Error('moloni:<code>') with .detail
+// Emails the client a reminder of an overdue invoice, with its PDF link (invoice-reminder)
+export async function remindClient(invoiceId) {
+  const { data, error } = await supabase.functions.invoke('invoice-reminder', { body: { invoice_id: invoiceId } })
+  if (error) {
+    const b = await errorBody(error)
+    throw new Error(b.error ? `invoice:${b.error}` : error.message)
+  }
+  return data
+}
+
+// SWITCHED OFF until step 11b: the Moloni connector (moloniStatus, moloni). Calls the moloni Edge Function; refusals come back as Error('invoice:<code>') with .detail
 export async function moloni(action, body) {
   const { data, error } = await supabase.functions.invoke('moloni', { body: { action, ...body } })
   if (error) {
     const b = await errorBody(error)
-    const e = new Error(b.error ? `moloni:${b.error}` : error.message)
+    const e = new Error(b.error ? `invoice:${b.error}` : error.message)
     e.detail = b.detail
     throw e
   }

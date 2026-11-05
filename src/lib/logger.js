@@ -67,11 +67,11 @@ export function userMessage(error, fallback) {
   if (/stock_locations_name_uniq/.test(msg)) return t('inv.error.locationTaken')
   if (/Only rental or sale items can have stock/i.test(msg)) return t('inv.error.kind')
   // Invoices (step 11): the database's rules and the moloni Edge Function's refusals
-  const moloni = /^moloni:(\w+)$/.exec(msg)
-  if (moloni) {
-    const key = `invoice.error.${moloni[1]}`
+  const invoiceError = /^invoice:(\w+)$/.exec(msg)
+  if (invoiceError) {
+    const key = `invoice.error.${invoiceError[1]}`
     const text = t(key)
-    return text === key ? t('invoice.error.moloni_error') : text
+    return text === key ? t('error.generic') : text
   }
   if (/Only a draft can be (changed|removed)/i.test(msg)) return t('invoice.error.notDraft')
   if (/credits more than is left/i.test(msg)) return t('invoice.error.creditTooMuch')

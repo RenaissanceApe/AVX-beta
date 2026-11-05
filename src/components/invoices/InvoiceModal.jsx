@@ -11,7 +11,7 @@ import {
   invoiceTotals, invoiceLineNet, quoteInvoiceLines, depositLines, restLines, creditLines, invoiceClient, invoiceProblems,
   invoiceState, dueDateFor, quoteInvoiceGap,
 } from '../../lib/invoices'
-import { createInvoice, saveDraft, updateInvoice, removeDraft, moloni } from '../../lib/invoiceApi'
+import { createInvoice, saveDraft, updateInvoice, removeDraft, moloni, remindClient } from '../../lib/invoiceApi'
 
 const TONES = { draft: 'draft', sent: 'info', issued: 'open', overdue: 'danger', paid: 'ok', credited: 'off' }
 const num = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return Number.isFinite(n) ? n : 0 }
@@ -27,7 +27,8 @@ export const invoiceTitle = (inv, t) => (inv.legal_number || t(inv.kind === 'cre
 
 // One invoice or credit note. New: from a quote (quote, client, invoices already made from it) or,
 // for a credit note, from an issued invoice (creditOf, with its credit notes). Existing: edit the
-// draft, send it to Moloni, read it back, mark it paid, credit it, remind the client.
+// draft, mark it sent to the invoicing program and add its number, mark it paid, credit it, remind
+// the client. moloniReady (send to Moloni, read it back) stays false until step 11b turns connectors on.
 export default function InvoiceModal({ orgId, invoice: initial = null, quote = null, client = null, siblings = [], creditOf = null, dueDays = 30, moloniReady = false, onClose, onSaved, onCredit }) {
   const { t, lang } = useI18n()
   const { notify } = useToast()
@@ -133,7 +134,7 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
     return run('issue', () => updateInvoice(inv.id, { status: 'issued', legal_number: manual.legal_number.trim(), pdf_url: manual.pdf_url.trim() || null }))
   }
   const remind = () => run('remind', async () => {
-    await moloni('remind', { invoice_id: inv.id })
+    await remindClient(inv.id)
     notify(t('invoice.reminded', { email: inv.client_email }), 'success')
     return null
   })
@@ -313,7 +314,7 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
                     {busy === 'push' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('invoice.sendToMoloni')}
                   </button>
                 )}
-                <button type="button" onClick={markSentByHand} disabled={!!busy || problems.length > 0} style={btn}>{t('invoice.markSent')}</button>
+                <button type="button" onClick={markSentByHand} disabled={!!busy || problems.length > 0} style={moloniReady ? btn : btnPrimary}>{t('invoice.markSent')}</button>
                 {!isNew && <button type="button" onClick={remove} disabled={!!busy} style={btnDanger}><Trash2 size={14} /> {t('invoice.removeDraft')}</button>}
               </div>
             </>
