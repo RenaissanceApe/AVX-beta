@@ -2,9 +2,9 @@ import { MapPin, Languages, Award, Link2, Briefcase, BadgeCheck, ShieldCheck } f
 import { useI18n } from '../i18n'
 import { languageName, isExpired } from '../lib/crewProfile'
 import { certStatus, confirmedByOrg } from '../lib/trust'
-import { card, colors, tint } from './ui'
+import { card, colors } from './ui'
 
-const chip = { display: 'inline-block', padding: '3px 9px', borderRadius: '999px', fontSize: '12px', fontWeight: 600, background: tint(colors.accent, 14), color: colors.accentText, margin: '0 6px 6px 0' }
+const chip = { display: 'inline-block', padding: '3px 9px', borderRadius: '999px', fontSize: '12px', fontWeight: 600, background: 'var(--selection)', color: colors.accentText, margin: '0 6px 6px 0' }
 const row = { display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: colors.soft, lineHeight: 1.5, marginTop: '8px' }
 
 // A crew profile as companies (or crew, if the person allows it) see it (docs/CREW_NETWORK.md).

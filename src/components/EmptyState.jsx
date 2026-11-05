@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Plus, BookOpen } from 'lucide-react'
 import { guide as guideText } from '../help'
 import { useI18n } from '../i18n'
-import { btnPrimary, colors, tint } from './ui'
+import { btnPrimary, colors } from './ui'
 
 // A page or tab with nothing in it yet (docs/HELP.md, H4): what goes here, the first thing to do,
 // and the guide that explains it. Every empty screen should teach, not just say "nothing".
@@ -16,7 +16,7 @@ export default function EmptyState({ icon, title, body, action, onAction, action
       {icon && (
         <div aria-hidden="true" style={{
           width: compact ? '48px' : '64px', height: compact ? '48px' : '64px', borderRadius: compact ? '14px' : '18px', color: colors.accentText,
-          background: tint(colors.accent, 10), border: `1px solid ${tint(colors.accent, 20)}`,
+          background: 'var(--selection)', border: `1px solid var(--accent)`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', margin: `0 auto ${compact ? '12px' : '18px'}`,
         }}>{icon}</div>
       )}

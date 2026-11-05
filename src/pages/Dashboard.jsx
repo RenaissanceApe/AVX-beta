@@ -28,6 +28,7 @@ import SimpleHome from '../components/SimpleHome'
 import { useSimpleMode } from '../lib/simpleMode'
 import { useGigLabels, GIG_LABELS_EMBED } from '../lib/gigLabels'
 import { GigLabels } from '../components/gig/parts'
+import { StatusBadge } from '../components/ui'
 import GigLabelFields from '../components/gig/GigLabelFields'
 import GigClientField from '../components/gig/GigClientField'
 import { useCustomFields, mergeValues } from '../lib/customFields'
@@ -248,7 +249,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
             placeholder={t('gigForm.descriptionPlaceholder')} rows={3} style={{ ...modalInput, resize: 'vertical', lineHeight: '1.5' }} />
         </FieldLabel>
         {error && (
-          <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'color-mix(in srgb, var(--danger) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)', color: 'var(--danger)', fontSize: '13px', lineHeight: '1.5' }}>
+          <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: '13px', lineHeight: '1.5' }}>
             {error}
           </div>
         )}
@@ -284,7 +285,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
           {[['list', <List key="i" size={15} />, t('dash.viewList')], ['calendar', <CalendarDays key="i" size={15} />, t('dash.viewCalendar')]].map(([v, icon, labelText]) => (
             <button key={v} onClick={() => setView(v)} aria-pressed={view === v} aria-label={labelText} title={labelText} style={{
               padding: '6px 9px', borderRadius: '7px', border: 'none', cursor: 'pointer', display: 'flex',
-              background: view === v ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent', color: view === v ? 'var(--accent-text)' : 'var(--muted)'
+              background: view === v ? 'var(--selection)' : 'transparent', color: view === v ? 'var(--accent-text)' : 'var(--muted)'
             }}>{icon}</button>
           ))}
         </div>
@@ -292,7 +293,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
           {GIG_FILTERS.map(f => (
             <button key={f.value} role="tab" aria-selected={filter === f.value} onClick={() => setFilter(f.value)} style={{
               padding: '6px 12px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
-              background: filter === f.value ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
+              background: filter === f.value ? 'var(--selection)' : 'transparent',
               color: filter === f.value ? 'var(--accent-text)' : 'var(--muted)'
             }}>
               {t(`gigFilter.${f.value}`)} <span style={{ opacity: 0.7 }}>{counts[f.value]}</span>
@@ -350,10 +351,7 @@ function GigCard({ gig, onOpen, showCompany, clash }) {
           <span style={{ fontWeight: 700, fontSize: '16px' }}>{gig.name}</span>
           <GigLabels gig={gig} />
           {clash && (
-            <span title={t('clash.doubleBookingHint')} style={{
-              fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '20px', color: 'var(--warn)', background: 'color-mix(in srgb, var(--warn) 12%, transparent)',
-              display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em',
-            }}><AlertTriangle size={11} /> {t('clash.doubleBooking')}</span>
+            <StatusBadge tone="warn" title={t('clash.doubleBookingHint')}>{t('clash.doubleBooking')}</StatusBadge>
           )}
         </div>
         <div style={{ display: 'flex', gap: '6px 16px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--muted)' }}>

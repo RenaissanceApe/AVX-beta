@@ -275,7 +275,7 @@ export default function SettingsPage() {
         <button onClick={exportData} disabled={exporting} style={smallBtn}>
           {exporting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={14} />} {t('account.export')}
         </button>
-        <button onClick={deleteAccount} disabled={deleting} style={{ ...smallBtn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--danger) 30%, transparent)', color: 'var(--danger)' }}>
+        <button onClick={deleteAccount} disabled={deleting} style={{ ...smallBtn, background: 'transparent', borderColor: 'var(--danger)', color: 'var(--danger)' }}>
           {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} {t('account.delete')}
         </button>
       </div>
@@ -291,7 +291,7 @@ export default function SettingsPage() {
   }
 
   const signOutBtn = (
-    <button onClick={signOut} style={{ ...smallBtn, background: 'color-mix(in srgb, var(--danger) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--danger) 25%, transparent)', color: 'var(--danger)', width: '100%', justifyContent: 'center' }}>
+    <button onClick={signOut} style={{ ...smallBtn, background: 'var(--danger-soft)', borderColor: 'var(--danger)', color: 'var(--danger)', width: '100%', justifyContent: 'center' }}>
       <LogOut size={14} /> {t('account.signOut')}
     </button>
   )
@@ -354,7 +354,7 @@ const SETTINGS_CSS = `
 @media (min-width: 760px) { .settings { grid-template-columns: 240px minmax(0, 1fr); } .settings-nav { position: sticky; top: 76px; align-self: start; } }
 .settings-link { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 10px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; }
 .settings-link:hover { background: color-mix(in srgb, var(--fg) 6%, transparent); }
-.settings-link.on { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent-text); }
+.settings-link.on { background: var(--selection); color: var(--accent-text); }
 .settings-link:focus-visible, .settings-back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .settings-badge { color: var(--accent-text); }
 .settings-back { display: inline-flex; align-items: center; gap: 4px; color: var(--accent-text); text-decoration: none; font-size: 14px; font-weight: 600; margin-bottom: 12px; }
@@ -372,6 +372,6 @@ const input = {
 }
 const smallBtn = {
   display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 14px', borderRadius: '9px',
-  border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-text)',
+  border: '1px solid var(--accent)', background: 'var(--selection)', color: 'var(--accent-text)',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0
 }

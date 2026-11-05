@@ -10,7 +10,7 @@ import { bookedDays } from '../../lib/crewRates'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n, fmt } from '../../i18n'
 import { HintLabel } from '../help/HelpParts'
-import { Modal, btnPrimary, input, label, colors, tint } from '../ui'
+import { Modal, btnPrimary, input, label, colors, StatusBadge } from '../ui'
 
 export const hoursText = (h, lang) => `${Number(h || 0).toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB', { maximumFractionDigits: 2 })} h`
 export const money = (v, lang) => formatMoney(v, 'EUR', lang)
@@ -19,13 +19,13 @@ export const workedHours = e => {
   return span == null ? 0 : Math.max(0, span - (Number(e.break_minutes) || 0)) / 60
 }
 
-const STATUS_COLOUR = { submitted: 'var(--warn)', approved: 'var(--accent-text)', returned: 'var(--danger)', queued: colors.muted }
+const STATUS_TONE = { submitted: 'open', approved: 'ok', returned: 'danger', queued: 'off' }
 export function StatusChip({ status }) {
   const { t } = useI18n()
-  const c = STATUS_COLOUR[status] || colors.muted
   return (
-    <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: tint(c, 14), color: status === 'queued' ? colors.muted : c, display: 'inline-flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
-      {status === 'queued' && <CloudOff size={11} aria-hidden="true" />}{t(`hours.status.${status}`)}
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+      {status === 'queued' && <CloudOff size={12} color={colors.muted} aria-hidden="true" />}
+      <StatusBadge small tone={STATUS_TONE[status] || 'open'}>{t(`hours.status.${status}`)}</StatusBadge>
     </span>
   )
 }

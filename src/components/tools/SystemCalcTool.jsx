@@ -9,7 +9,7 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { stageSize } from '../../lib/stagePlot'
 import { KINDS, LIMITS, settingsOf, sourcesOf, listenersOf, speedOfSound, delays, listenerReport, coverage, newSource, newListener, nextName } from '../../lib/systemCalc'
 import { t } from '../../i18n'
-import { btn, iconBtn, input, label, card, colors, tint } from '../ui'
+import { btn, iconBtn, input, label, card, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import SystemPlotSvg from './SystemPlotSvg'
@@ -82,7 +82,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
         {sources.length > 0 && <Link to={`/gig/${gig.id}/system`} style={{ ...btn, textDecoration: 'none' }}><Printer size={14} /> {t('inputs.print')}</Link>}
       </div>
       {savedAt && <p role="status" style={{ fontSize: '12px', color: 'var(--warn)', marginBottom: '10px' }}>{t('sys.offline')}</p>}
-      <p style={{ ...card, display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '13px', lineHeight: 1.5, marginBottom: '12px', borderColor: tint(colors.accent, 35) }}>
+      <p style={{ ...card, display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '13px', lineHeight: 1.5, marginBottom: '12px', borderColor: 'var(--accent)' }}>
         <Info size={15} color={colors.accentText} aria-hidden="true" style={{ flexShrink: 0, marginTop: '2px' }} /> {t('sys.estimate')}
       </p>
 

@@ -180,7 +180,7 @@ export function CardPicker({ gigId, onPick, onClose }) {
         {types.map(k => (
           <button key={k} role="tab" aria-selected={type === k} onClick={() => setType(k)} style={{
             padding: '6px 10px', borderRadius: '8px', border: `1px solid ${type === k ? colors.accent : colors.border}`, cursor: 'pointer',
-            background: type === k ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent', color: type === k ? colors.accentText : colors.soft, font: 'inherit', fontSize: '13px', fontWeight: 600,
+            background: type === k ? 'var(--selection)' : 'transparent', color: type === k ? colors.accentText : colors.soft, font: 'inherit', fontSize: '13px', fontWeight: 600,
           }}>{t(`chat.card.${k}`)}</button>
         ))}
       </div>
@@ -215,7 +215,7 @@ export function ReactionBar({ summary, name, onToggle, alignEnd }) {
           aria-label={t('chat.reactionCount', { emoji: r.emoji, count: r.count })}
           style={{
             display: 'flex', alignItems: 'center', gap: '4px', padding: '1px 7px', borderRadius: '10px', font: 'inherit', fontSize: '12px',
-            border: `1px solid ${r.mine ? colors.accent : colors.border}`, background: r.mine ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent)',
+            border: `1px solid ${r.mine ? colors.accent : colors.border}`, background: r.mine ? 'var(--selection)' : 'color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent)',
             color: 'var(--text)', cursor: onToggle ? 'pointer' : 'default', opacity: 1,
           }}>{r.emoji} <span>{r.count}</span></button>
       ))}
@@ -243,7 +243,7 @@ export function HistoryModal({ message, onClose }) {
           ))}
           <li style={{ fontSize: '13px' }}>
             <div style={{ color: colors.accentText, fontSize: '11px' }}>{t('chat.current')}</div>
-            <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', padding: '6px 10px', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', borderRadius: '8px' }}>{message.body}</div>
+            <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', padding: '6px 10px', background: 'var(--selection)', borderRadius: '8px' }}>{message.body}</div>
           </li>
         </ol>
       )}
@@ -350,7 +350,7 @@ export function EventCard({ message: m, mine, actor, answers }) {
   const canAnswer = !mine && !last
 
   return (
-    <div style={{ margin: '8px auto', maxWidth: '420px', padding: '12px 14px', borderRadius: '12px', border: `1px solid ${isCall ? 'color-mix(in srgb, var(--accent) 35%, transparent)' : 'color-mix(in srgb, var(--warn) 35%, transparent)'}`, background: isCall ? 'color-mix(in srgb, var(--accent) 6%, transparent)' : 'color-mix(in srgb, var(--warn) 6%, transparent)' }}>
+    <div style={{ margin: '8px auto', maxWidth: '420px', padding: '12px 14px', borderRadius: '12px', border: `1px solid ${isCall ? 'var(--accent)' : 'var(--warn)'}`, background: isCall ? 'var(--selection)' : 'var(--warn-soft)' }}>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: colors.soft }}>
         <Icon size={16} color={isCall ? colors.accentText : 'var(--warn)'} style={{ flexShrink: 0 }} />
         <span style={{ flex: 1 }}>{heading}</span>

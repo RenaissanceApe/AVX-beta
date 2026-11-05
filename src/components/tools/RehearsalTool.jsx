@@ -13,7 +13,7 @@ import {
 } from '../../lib/rehearsal'
 import { taskFromNote } from '../../lib/tasks'
 import { t, getLanguage, fmt } from '../../i18n'
-import { Modal, btn, btnPrimary, btnDanger, iconBtn, input, label, card, colors, tint } from '../ui'
+import { Modal, btn, btnPrimary, btnDanger, iconBtn, input, label, card, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import { CameraSync, LtcSync, SyncIcons } from './TimecodeSync'
 
@@ -413,7 +413,7 @@ function SessionView({ session: initial, gig, members, nameOf, userId, canNote, 
 function Chip({ on, onClick, children }) {
   return (
     <button type="button" aria-pressed={on} onClick={onClick}
-      style={{ ...btn, padding: '6px 12px', background: on ? tint(colors.accent, 22) : 'transparent', color: on ? colors.accentText : colors.soft }}>
+      style={{ ...btn, padding: '6px 12px', background: on ? 'var(--selection)' : 'transparent', color: on ? colors.accentText : colors.soft }}>
       {children}
     </button>
   )
@@ -554,7 +554,7 @@ function NoteComposer({ tc, session, gig, members, nameOf, defaultDept, offline,
             <textarea id="rh-body" value={form.body} maxLength={2000} rows={3} autoFocus onChange={e => set({ body: e.target.value })} style={{ ...input, resize: 'vertical', flex: 1 }} />
             {Speech && (
               <button type="button" onClick={dictate} aria-pressed={listening} aria-label={listening ? t('rehearsal.stopDictation') : t('rehearsal.dictate')}
-                style={{ ...btn, padding: '10px', background: listening ? tint(colors.danger, 20) : undefined, color: listening ? colors.danger : undefined }}>
+                style={{ ...btn, padding: '10px', background: listening ? 'var(--danger-soft)' : undefined, color: listening ? colors.danger : undefined }}>
                 {listening ? <MicOff size={18} /> : <Mic size={18} />}
               </button>
             )}

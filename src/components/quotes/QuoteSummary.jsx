@@ -1,5 +1,5 @@
 import { useI18n } from '../../i18n'
-import { colors } from '../ui'
+import { colors, StatusBadge } from '../ui'
 import { PRICED_KINDS, formatMoney } from '../../lib/quotes'
 import { quoteCrewMargin } from '../../lib/crewRates'
 import { Hint } from '../help/HelpParts'
@@ -23,7 +23,7 @@ export default function QuoteSummary({ quote, body, totals, rates = [], onOpenPh
             <button key={p.id} onClick={() => onOpenPhase(i)} style={row}>
               <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                 <span style={{ fontWeight: 600 }}>{p.name || t('quote.phaseN', { n: i + 1 })}</span>
-                {p.optional && <span style={optionalTag}>{t('quote.optional')}</span>}
+                {p.optional && <span style={{ marginLeft: '8px' }}><StatusBadge small tone="draft">{t('quote.optional')}</StatusBadge></span>}
                 <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{range(p) || t('quote.noDates')}</span>
               </span>
               {pt.discount > 0 && <span style={{ fontSize: '12px', color: colors.muted }}>−{money(pt.discount)}</span>}
@@ -83,4 +83,3 @@ const row = {
   display: 'flex', alignItems: 'center', gap: '12px', width: '100%', padding: '10px 12px', marginBottom: '6px', borderRadius: '10px',
   background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`, color: 'var(--text)', fontSize: '14px', cursor: 'pointer',
 }
-const optionalTag = { marginLeft: '8px', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', background: 'color-mix(in srgb, var(--warn) 15%, transparent)', color: 'var(--warn)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }

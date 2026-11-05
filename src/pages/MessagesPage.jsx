@@ -115,7 +115,7 @@ function ConversationList({ conversations, openId }) {
         return (
           <Link key={c.id} to={`/messages/${c.id}`} aria-current={c.id === openId ? 'page' : undefined} style={{
             display: 'flex', gap: '10px', alignItems: 'center', padding: '10px', borderRadius: '10px', textDecoration: 'none', color: 'var(--text)',
-            background: c.id === openId ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent', opacity: c.archived ? 0.55 : 1,
+            background: c.id === openId ? 'var(--selection)' : 'transparent', opacity: c.archived ? 0.55 : 1,
           }}>
             <Icon size={16} color={c.unread ? colors.accentText : colors.muted} style={{ flexShrink: 0 }} />
             <span style={{ flex: 1, minWidth: 0 }}>

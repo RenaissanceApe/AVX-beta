@@ -5,7 +5,7 @@ import { readOnSite, saveOnSite } from '../lib/onSite'
 import { useSimpleMode } from '../lib/simpleMode'
 import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
-import { label, colors, tint } from './ui'
+import { label, colors } from './ui'
 
 const THEME_ICONS = { dark: Moon, light: Sun, contrast: Contrast, system: MonitorSmartphone }
 
@@ -20,7 +20,7 @@ export default function AppearanceSettings() {
   const choice = active => ({
     flex: '1 1 0', minWidth: '70px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '10px 6px',
     borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, textAlign: 'center',
-    border: `1px solid ${active ? colors.accent : colors.border}`, background: active ? tint(colors.accent, 12) : 'transparent',
+    border: `1px solid ${active ? colors.accent : colors.border}`, background: active ? 'var(--selection)' : 'transparent',
     color: active ? colors.text : colors.soft,
   })
   const check = { display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px', lineHeight: 1.45 }

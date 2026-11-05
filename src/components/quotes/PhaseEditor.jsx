@@ -126,7 +126,7 @@ function SectionEditor({ section, currency, priceItems, rates, first, last, onCh
             <Plus size={12} /> {t(`lineKind.${kind}`)}
           </button>
         ))}
-        <button onClick={() => setPicking(true)} className="q-add-line" style={{ color: colors.accentText, borderColor: 'color-mix(in srgb, var(--accent) 35%, transparent)' }}>
+        <button onClick={() => setPicking(true)} className="q-add-line" style={{ color: colors.accentText, borderColor: 'var(--accent)' }}>
           <ListPlus size={12} /> {t('prices.fromList')}
         </button>
       </div>
@@ -243,7 +243,7 @@ export const QUOTE_EDITOR_CSS = `
   .q-add-line, .q-add-section { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
     background: transparent; color: var(--soft); border: 1px dashed color-mix(in srgb, var(--fg) min(100%, calc(14% * var(--line-k))), transparent); }
   .q-add-section { padding: 9px 14px; font-size: 13px; width: 100%; justify-content: center; }
-  .q-add-line:hover, .q-add-section:hover { color: var(--accent-text); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+  .q-add-line:hover, .q-add-section:hover { color: var(--accent-text); border-color: var(--accent); }
   /* Tablets and phones in landscape: tighter columns, no up/down buttons (lines still move on desktop) */
   @media (min-width: 761px) and (max-width: 1060px) {
     .q-line { grid-template-columns: 100px minmax(100px,1fr) 50px 70px 48px 74px 48px 82px auto; gap: 4px; }

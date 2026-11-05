@@ -7,9 +7,9 @@ import { t } from '../i18n'
 const ToastContext = createContext({ notify: () => 0, dismiss: () => {} })
 
 const KIND = {
-  success: { icon: CheckCircle, color: 'var(--accent-text)', border: 'color-mix(in srgb, var(--accent) 35%, transparent)' },
-  error:   { icon: AlertCircle, color: 'var(--danger)', border: 'color-mix(in srgb, var(--danger) 35%, transparent)' },
-  info:    { icon: Info,        color: 'var(--info)', border: 'color-mix(in srgb, var(--info) 35%, transparent)' },
+  success: { icon: CheckCircle, color: 'var(--accent-text)', border: 'var(--accent)' },
+  error:   { icon: AlertCircle, color: 'var(--danger)', border: 'var(--danger)' },
+  info:    { icon: Info,        color: 'var(--info)', border: 'var(--line-strong)' },
 }
 
 export function ToastProvider({ children }) {

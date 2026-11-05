@@ -11,7 +11,7 @@ import { quoteNumber, formatMoney } from '../lib/quotes'
 import { useCustomFields, mergeValues } from '../lib/customFields'
 import { CustomFieldInputs } from '../components/CustomFields'
 import { useI18n, t, getLanguage } from '../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../components/ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
 import EmptyState from '../components/EmptyState'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
@@ -133,7 +133,7 @@ export default function ContactsPage() {
         </div>
 
         {tab === 'clients' && unlinked > 0 && (
-          <section style={{ ...card, display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px', borderColor: tint(colors.accent, 35) }}>
+          <section style={{ ...card, display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px', borderColor: 'var(--accent)' }}>
             <FileText size={18} color={colors.accentText} aria-hidden="true" style={{ flexShrink: 0 }} />
             <p style={{ flex: '1 1 260px', fontSize: '13px', lineHeight: 1.6 }}>{t('contacts.fromQuotesText', { count: unlinked })}</p>
             <button onClick={fillFromQuotes} disabled={filling} style={btn}>

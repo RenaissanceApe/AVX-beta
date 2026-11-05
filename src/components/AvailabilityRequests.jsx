@@ -80,7 +80,7 @@ function RequestCard({ request: r, onDone }) {
   }
 
   return (
-    <div style={{ padding: '14px 16px', borderRadius: '14px', background: 'color-mix(in srgb, var(--warn) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--warn) 30%, transparent)' }}>
+    <div style={{ padding: '14px 16px', borderRadius: '14px', background: 'var(--warn-soft)', border: '1px solid var(--warn)' }}>
       <div style={{ fontSize: '13px', color: colors.soft, marginBottom: '4px' }}>
         {t('requests.asks', { name: r.asked_by_name || t('common.someone'), when: ago(r.created_at) })}
       </div>
@@ -97,7 +97,7 @@ function RequestCard({ request: r, onDone }) {
         <button onClick={() => answer('available')} disabled={!!saving} style={btn}>
           {saving === 'available' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />} {t('requests.available')}
         </button>
-        <button onClick={() => answer('unavailable')} disabled={!!saving} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--danger) 35%, transparent)', color: colors.danger }}>
+        <button onClick={() => answer('unavailable')} disabled={!!saving} style={{ ...btn, background: 'transparent', borderColor: 'var(--danger)', color: colors.danger }}>
           {saving === 'unavailable' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <X size={14} />} {t('requests.unavailable')}
         </button>
       </div>

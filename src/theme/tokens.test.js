@@ -59,6 +59,20 @@ describe('themes', () => {
     expect(low).toEqual([])
   })
 
+  it('keep every label colour readable on the chip ground (fill over bg and panel)', () => {
+    const low = []
+    for (const [name, t] of Object.entries(THEMES)) {
+      for (const c of ['muted', 'info', 'accentText', 'danger', 'yellow', 'orange', 'purple', 'pink', 'sky', 'warn', 'text']) {
+        for (const bg of ['bg', 'panel']) {
+          const fill = over(t.fg, t[bg], Math.min(100, DERIVED_PCT.fill * t.lineK))
+          const r = contrast(t[c], fill)
+          if (r < 4.5) low.push(`${name}: ${c} on fill over ${bg} = ${r.toFixed(2)}`)
+        }
+      }
+    }
+    expect(low).toEqual([])
+  })
+
   it('keep status text readable on the danger-soft and warn-soft rows', () => {
     const low = []
     for (const [name, t] of Object.entries(THEMES)) {

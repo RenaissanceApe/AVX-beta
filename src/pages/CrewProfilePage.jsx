@@ -110,7 +110,7 @@ export default function CrewProfilePage() {
     return !!was && was.name === c.name && (was.expires_on || '') === (c.expires_on || '') ? was : null
   }
   const gaps = missing(form)
-  const pressed = on => ({ ...btn, padding: '6px 11px', fontSize: '12px', background: on ? tint(colors.accent, 22) : 'transparent', borderColor: on ? colors.accent : tint(colors.accent, 30) })
+  const pressed = on => ({ ...btn, padding: '6px 11px', fontSize: '12px', background: on ? 'var(--selection)' : 'transparent', borderColor: on ? colors.accent : tint(colors.accent, 30) })
   return (
     <AppShell>
       <form onSubmit={save} noValidate style={{ maxWidth: '720px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>

@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
-import { BASE_STATUSES, LABEL_COLOURS, SUGGESTED_STATUSES, labelStyle, useGigLabels } from '../lib/gigLabels'
+import { BASE_STATUSES, LABEL_COLOURS, SUGGESTED_STATUSES, labelVar, useGigLabels } from '../lib/gigLabels'
 import { useI18n } from '../i18n'
 import { btn, iconBtn, input, label, colors } from './ui'
 
@@ -80,7 +80,7 @@ function LabelList({ org, kind, items, reload }) {
         <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
           {items.map((item, i) => (
             <li key={item.id} style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span aria-hidden="true" style={{ ...labelStyle(item.colour), width: '14px', height: '14px', borderRadius: '50%', flexShrink: 0, border: '2px solid currentColor' }} />
+              <span aria-hidden="true" style={{ background: labelVar(item.colour), width: '12px', height: '12px', flexShrink: 0 }} />
               <input defaultValue={item.name} maxLength={40} aria-label={t('labels.name')} disabled={busy}
                 onBlur={e => { const v = e.target.value.trim(); if (v && v !== item.name) update(item, { name: v }); else e.target.value = item.name }}
                 style={{ ...input, flex: '1 1 140px', minWidth: 0, padding: '6px 10px' }} />

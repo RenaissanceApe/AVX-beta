@@ -11,28 +11,19 @@ import { localToday } from '../../lib/gigs'
 import { LEAVE_TYPES, DEFAULT_WEEK, leaveDays, leaveError, requestLeave } from '../../lib/leave'
 import { useI18n } from '../../i18n'
 import { HintLabel, Hint } from '../help/HelpParts'
-import { Modal, btnPrimary, input, label, colors, tint } from '../ui'
+import { Modal, btnPrimary, input, label, colors, StatusBadge, LabelChip } from '../ui'
 
-const TYPE_COLOUR = { holiday: 'var(--accent-text)', sick: 'var(--danger)', training: 'var(--warn)', other: colors.muted, away: colors.muted }
+// Leave types are labels: a square in the type's colour + its word
+const TYPE_COLOUR = { holiday: 'green', sick: 'red', training: 'orange', other: 'grey', away: 'grey' }
 export function TypeChip({ type }) {
   const { t } = useI18n()
-  const c = TYPE_COLOUR[type] || colors.muted
-  return (
-    <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: tint(c, 14), color: c, whiteSpace: 'nowrap' }}>
-      {t(`leave.type.${type}`)}
-    </span>
-  )
+  return <LabelChip colour={TYPE_COLOUR[type] || 'grey'}>{t(`leave.type.${type}`)}</LabelChip>
 }
 
-const STATUS_COLOUR = { requested: 'var(--warn)', approved: 'var(--accent-text)', refused: 'var(--danger)', cancelled: colors.muted }
+const STATUS_TONE = { requested: 'open', approved: 'ok', refused: 'danger', cancelled: 'off' }
 export function LeaveStatusChip({ status }) {
   const { t } = useI18n()
-  const c = STATUS_COLOUR[status] || colors.muted
-  return (
-    <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', border: `1px solid ${tint(c, 40)}`, color: c, whiteSpace: 'nowrap' }}>
-      {t(`leave.status.${status}`)}
-    </span>
-  )
+  return <StatusBadge small tone={STATUS_TONE[status] || 'open'} struck={status === 'cancelled'}>{t(`leave.status.${status}`)}</StatusBadge>
 }
 
 export const daysText = (n, lang) => Number(n || 0).toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB', { maximumFractionDigits: 1 })

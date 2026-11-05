@@ -10,7 +10,7 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { STEP_M, stageSize } from '../../lib/stagePlot'
 import { BAR_KINDS, FIXTURE_SYMBOLS, barsOf, supplyOf, newBar, nextBarName, layoutFixtures, snapToBar, clampToArea, viewArea, powerSummary, symbolOf } from '../../lib/lightPlot'
 import { t } from '../../i18n'
-import { btn, iconBtn, input, label, card, colors, tint } from '../ui'
+import { btn, iconBtn, input, label, card, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import LightPlotSvg from './LightPlotSvg'
@@ -271,7 +271,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
       </div>
 
       {canEdit && bar && (
-        <div role="group" aria-label={t('plot.selected', { name: bar.name })} style={{ ...card, marginBottom: '12px', borderColor: tint(colors.accent, 45), display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div role="group" aria-label={t('plot.selected', { name: bar.name })} style={{ ...card, marginBottom: '12px', borderColor: 'var(--accent)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <strong style={{ fontSize: '14px' }}>{bar.name} · {t(`light.kind.${bar.kind}`)}</strong>
           <Moves onMove={(dx, dy) => nudge(bar, null, dx, dy)}>
             <button type="button" onClick={() => editBar(bar.id, { rotation: bar.rotation === 90 ? 0 : 90 })} style={btn}><RotateCw size={14} /> {t('plot.rotate')}</button>
@@ -311,7 +311,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
       )}
 
       {canEdit && fixture && (
-        <div role="group" aria-label={t('plot.selected', { name: fixture.name })} style={{ ...card, marginBottom: '12px', borderColor: tint(colors.accent, 45), display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div role="group" aria-label={t('plot.selected', { name: fixture.name })} style={{ ...card, marginBottom: '12px', borderColor: 'var(--accent)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <strong style={{ fontSize: '14px' }}>{fixture.name} · {fixture.fixture_type}</strong>
           <Moves onMove={(dx, dy) => nudge(null, fixture, dx, dy)} disabled={!layout[fixture.id]}>
             {layout[fixture.id] && !layout[fixture.id].auto && layout[fixture.id].bar && (

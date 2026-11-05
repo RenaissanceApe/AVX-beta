@@ -82,7 +82,7 @@ export default function WelcomePage() {
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                   placeholder={t('welcome.passwordPlaceholder', { min: MIN_PASSWORD_LENGTH })} autoComplete="new-password" style={input} required />
                 {error && (
-                  <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'color-mix(in srgb, var(--danger) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)', color: 'var(--danger)', fontSize: '13px' }}>
+                  <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: '13px' }}>
                     {error}
                   </div>
                 )}

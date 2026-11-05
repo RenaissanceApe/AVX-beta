@@ -242,7 +242,7 @@ function UploadModal({ gigId, assets, onClose, onUploaded }) {
             style={{
               border: `2px dashed ${dragOver ? colors.accent : form.file ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)'}`,
               borderRadius: '12px', padding: '24px', textAlign: 'center', cursor: 'pointer',
-              background: dragOver ? 'color-mix(in srgb, var(--accent) 5%, transparent)' : form.file ? 'color-mix(in srgb, var(--accent) 4%, transparent)' : 'color-mix(in srgb, var(--shade) 20%, transparent)',
+              background: dragOver ? 'var(--selection)' : form.file ? 'var(--selection)' : 'color-mix(in srgb, var(--shade) 20%, transparent)',
             }}>
             <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={e => pickFile(e.target.files[0])} />
             {form.file ? (

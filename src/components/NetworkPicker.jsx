@@ -72,7 +72,7 @@ export function NetworkPicker({ gigId, orgId, onPick, hint }) {
 // The person picked, instead of an email field
 export function PickedPerson({ person, onClear }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', borderRadius: '10px', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', borderRadius: '10px', background: 'var(--selection)', border: '1px solid var(--accent)' }}>
       <Users size={14} color={colors.accentText} />
       <span style={{ flex: 1, minWidth: 0, fontWeight: 600, fontSize: '14px' }}>{person.full_name || t('common.someone')}</span>
       {person.busy && <span style={{ fontSize: '12px', color: AMBER, display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('network.busy')}</span>}

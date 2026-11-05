@@ -92,7 +92,7 @@ function Catalogue({ inv, orgId, goLocations }) {
   return (
     <div>
       {inv.activeLocations.length === 0 && (
-        <div style={{ ...card, borderColor: 'color-mix(in srgb, var(--warn) 35%, transparent)', marginBottom: '14px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ ...card, borderColor: 'var(--warn)', marginBottom: '14px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           <MapPin size={16} color="var(--warn)" />
           <span style={{ flex: '1 1 220px', fontSize: '13px', color: colors.soft, lineHeight: 1.5 }}>{t('inv.noLocationsYet')}</span>
           <button onClick={goLocations} style={btn}><Plus size={14} /> {t('inv.addLocation')}</button>
@@ -110,8 +110,8 @@ function Catalogue({ inv, orgId, goLocations }) {
         {['all', 'tracked', 'low', 'archived'].map(f => (
           <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f} style={{
             padding: '5px 11px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
-            border: `1px solid ${filter === f ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : colors.border}`,
-            background: filter === f ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent', color: filter === f ? colors.accentText : f === 'low' && lowCount ? 'var(--warn)' : colors.soft,
+            border: `1px solid ${filter === f ? 'var(--accent)' : colors.border}`,
+            background: filter === f ? 'var(--selection)' : 'transparent', color: filter === f ? colors.accentText : f === 'low' && lowCount ? 'var(--warn)' : colors.soft,
           }}>{t(`inv.filterOpt.${f}`)}{f === 'low' && lowCount ? ` · ${lowCount}` : ''}</button>
         ))}
       </div>

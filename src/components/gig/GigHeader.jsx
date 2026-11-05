@@ -77,7 +77,7 @@ export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, 
                 {counts[key] > 0 && (
                   <span style={{
                     marginLeft: '6px', fontSize: '11px', fontWeight: 700, padding: '1px 6px', borderRadius: '10px',
-                    background: key === 'assets' ? 'color-mix(in srgb, var(--accent) 20%, transparent)' : 'color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)', color: key === 'assets' ? colors.accentText : colors.muted,
+                    background: key === 'assets' ? 'var(--selection)' : 'color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)', color: key === 'assets' ? colors.accentText : colors.muted,
                   }}>{counts[key]}</span>
                 )}
               </button>

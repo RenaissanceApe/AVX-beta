@@ -9,7 +9,7 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { FUNCTIONS, LANGUAGES, languageName } from '../lib/crewProfile'
 import { RADII, EMPTY_FILTERS, searchArgs, gigFilters, crewError, fromSaved } from '../lib/crewSearch'
 import { useI18n } from '../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../components/ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, StatusBadge } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import CrewProfileCard from '../components/CrewProfileCard'
@@ -24,8 +24,9 @@ import { feeText } from '../components/gig/LabourCost'
 
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px' }
-const badge = (tone) => ({ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '12px', fontWeight: 600,
-  background: tint(tone, 14), color: tone })
+// Facts about a person: icon + words on the quiet fill (no colour washes)
+const badge = () => ({ display: 'inline-flex', alignItems: 'center', gap: '4px', height: '22px', padding: '0 8px', fontSize: '12px', fontWeight: 500,
+  background: 'var(--fill)', border: '1px solid var(--line)', color: 'var(--text)' })
 
 // Find crew (docs/CREW_NETWORK.md, N2): an organisation's admins and members search the crew who
 // switched their profile on (and chose to be seen by companies), by function, place and dates, and
@@ -205,8 +206,8 @@ export default function CrewSearchPage() {
                 <CrewProfileCard key={p.user_id} profile={p} name={p.name} orgId={orgId} onConfirm={p.worked_with > 0 ? (c, on) => confirmCert(p, c, on) : null}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
                     {p.km != null && <span style={badge(colors.soft)}><MapPin size={12} aria-hidden="true" /> {t('crewSearch.kmAway', { km: p.km })}</span>}
-                    {p.free === true && <span style={badge(colors.accentText)}><CalendarCheck size={12} aria-hidden="true" /> {t('crewSearch.free')}</span>}
-                    {p.free === false && <span style={badge('var(--warn)')}>{t('crewSearch.busy')}</span>}
+                    {p.free === true && <StatusBadge small tone="ok">{t('crewSearch.free')}</StatusBadge>}
+                    {p.free === false && <StatusBadge small tone="warn">{t('crewSearch.busy')}</StatusBadge>}
                     {p.worked_with > 0 && <span style={badge('var(--sky)')}><Users size={12} aria-hidden="true" /> {t('crewSearch.workedWith', { count: p.worked_with })}</span>}
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>

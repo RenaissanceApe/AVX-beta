@@ -66,8 +66,8 @@ export default function FeedTab({ gigId, posts, userId, isPM, nameOf, onChanged 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button onClick={() => setImportant(v => !v)} aria-pressed={important} style={{
             display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer',
-            background: important ? 'color-mix(in srgb, var(--danger) 15%, transparent)' : 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)',
-            border: important ? '1px solid color-mix(in srgb, var(--danger) 30%, transparent)' : '1px solid color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)',
+            background: important ? 'var(--danger-soft)' : 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)',
+            border: important ? '1px solid var(--danger)' : '1px solid color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)',
             color: important ? colors.danger : colors.muted, fontSize: '12px', fontWeight: 600,
           }}>
             <AlertCircle size={13} /> {important ? t('feed.important') : t('feed.markImportant')}

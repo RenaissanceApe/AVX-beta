@@ -142,7 +142,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
             const canAddToOrg = isOrgAdmin && orgMemberIds && !orgMemberIds.has(m.user_id)
             return (
               <div key={m.user_id} className="crew-row" style={{
-                background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${mine.length ? 'color-mix(in srgb, var(--warn) 35%, transparent)' : colors.border}`, borderRadius: '14px',
+                background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${mine.length ? 'var(--warn)' : colors.border}`, borderRadius: '14px',
                 padding: '14px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '0 14px', animation: 'fadeIn 0.3s ease',
               }}>
                 <Avatar uid={m.user_id} name={name} size={42} />
@@ -334,7 +334,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
           <div>
             <PickedPerson person={picked} onClear={() => setPicked(null)} />
             {picked.busy && (
-              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '8px', color: AMBER, borderColor: 'color-mix(in srgb, var(--warn) 40%, transparent)', background: 'color-mix(in srgb, var(--warn) 10%, transparent)' }}>
+              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '8px', color: AMBER, borderColor: 'var(--warn)', background: 'var(--warn-soft)' }}>
                 {t('ask.first')}
               </button>
             )}
@@ -347,13 +347,13 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
           <input id="inv-email" type="email" value={form.email} onChange={e => { setClashes([]); setForm(f => ({ ...f, email: e.target.value })) }}
             onBlur={checkAvailability} placeholder={t('crew.emailPlaceholder')} style={input} required />
           {clashes.length > 0 && (
-            <div role="status" style={{ marginTop: '8px', padding: '9px 11px', borderRadius: '9px', background: 'color-mix(in srgb, var(--warn) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--warn) 30%, transparent)', fontSize: '12px', color: AMBER, lineHeight: 1.6 }}>
+            <div role="status" style={{ marginTop: '8px', padding: '9px 11px', borderRadius: '9px', background: 'var(--warn-soft)', border: '1px solid var(--warn)', fontSize: '12px', color: AMBER, lineHeight: 1.6 }}>
               <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
                 <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: '2px' }} />
                 {clashes.some(c => c.kind === 'booked') ? t('clash.advice', { name: form.email.trim() }) : t('clash.unavailableAdvice', { name: form.email.trim() })}
               </strong>
               {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '18px' }}>{clashText(c)}</div>)}
-              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '6px', marginLeft: '18px', color: AMBER, borderColor: 'color-mix(in srgb, var(--warn) 40%, transparent)', background: 'color-mix(in srgb, var(--warn) 10%, transparent)' }}>
+              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '6px', marginLeft: '18px', color: AMBER, borderColor: 'var(--warn)', background: 'var(--warn-soft)' }}>
                 {t('ask.first')}
               </button>
             </div>
@@ -379,7 +379,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
           </div>
         </div>
         <div style={{
-          padding: '10px 13px', borderRadius: '9px', background: 'color-mix(in srgb, var(--accent) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 15%, transparent)',
+          padding: '10px 13px', borderRadius: '9px', background: 'var(--selection)', border: '1px solid var(--accent)',
           fontSize: '12px', color: colors.muted, lineHeight: 1.6,
         }}>💡 {t('crew.inviteHint')}</div>
         <button type="submit" disabled={sending || (!picked && !form.email.trim())} style={{ ...btnPrimary, justifyContent: 'center', padding: '13px' }}>

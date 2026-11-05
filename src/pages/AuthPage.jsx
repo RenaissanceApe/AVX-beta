@@ -129,7 +129,7 @@ export default function AuthPage() {
       <div style={{ textAlign: 'center', maxWidth: '380px' }}>
         <div style={{
           width: '72px', height: '72px', borderRadius: '20px', margin: '0 auto 24px',
-          background: 'color-mix(in srgb, var(--accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)',
+          background: 'var(--selection)', border: '1px solid var(--accent)',
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <Mail size={32} color="var(--accent-text)" />
@@ -165,7 +165,7 @@ export default function AuthPage() {
       <div style={{ textAlign: 'center', maxWidth: '380px' }}>
         <div style={{
           width: '72px', height: '72px', borderRadius: '20px', margin: '0 auto 24px',
-          background: 'color-mix(in srgb, var(--accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)',
+          background: 'var(--selection)', border: '1px solid var(--accent)',
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <CheckCircle size={32} color="var(--accent-text)" />
@@ -220,9 +220,9 @@ export default function AuthPage() {
                 flex: 1, padding: '8px', borderRadius: '7px', cursor: 'pointer',
                 fontSize: '13px', fontWeight: '600', fontFamily: 'var(--font-ui)',
                 transition: 'all 0.2s',
-                background: mode === m ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
+                background: mode === m ? 'var(--selection)' : 'transparent',
                 color: mode === m ? 'var(--accent-text)' : 'var(--muted)',
-                border: mode === m ? '1px solid color-mix(in srgb, var(--accent) 25%, transparent)' : '1px solid transparent',
+                border: mode === m ? '1px solid var(--accent)' : '1px solid transparent',
               }}>
                 {m === 'signin' ? t('auth.signIn') : t('auth.createAccount')}
               </button>
@@ -311,7 +311,7 @@ export default function AuthPage() {
             {error && (
               <div role="alert" style={{
                 padding: '10px 14px', borderRadius: '8px',
-                background: 'color-mix(in srgb, var(--danger) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)',
+                background: 'var(--danger-soft)', border: '1px solid var(--danger)',
                 color: 'var(--danger)', fontSize: '13px'
               }}>
                 {error}
@@ -328,7 +328,7 @@ export default function AuthPage() {
             <button type="submit" disabled={loading} style={{
               marginTop: '4px',
               padding: '13px', borderRadius: '10px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-              background: loading ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'var(--accent)',
+              background: loading ? 'var(--selection)' : 'var(--accent)',
               color: 'var(--on-accent)', fontWeight: '700', fontSize: '15px',
               fontFamily: 'var(--font-ui)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',

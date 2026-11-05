@@ -7,7 +7,7 @@ import { pushSupport, currentSubscription } from '../lib/push'
 import { track } from '../lib/usage'
 import { guide as guideText } from '../help'
 import { useI18n } from '../i18n'
-import { card, colors, tint } from './ui'
+import { card, colors } from './ui'
 
 // First steps (docs/HELP.md, H4): a short checklist on the home page until it's done, so a new
 // admin or crew member knows what to do first. Each step ticks itself when it's done, links to
@@ -77,7 +77,7 @@ export default function FirstSteps({ mode, org, gigCount }) {
   const kind = mode === 'org' ? 'admin' : 'crew'
 
   return (
-    <section aria-labelledby="first-steps-title" style={{ ...card, marginBottom: '20px', borderColor: tint(colors.accent, 30), background: tint(colors.accent, 5) }}>
+    <section aria-labelledby="first-steps-title" style={{ ...card, marginBottom: '20px', borderColor: 'var(--accent)', background: 'var(--selection)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
         <Rocket size={16} color={colors.accentText} aria-hidden="true" />
         <h2 id="first-steps-title" style={{ fontSize: '15px', fontWeight: 700, flex: 1 }}>{t('firstSteps.title')}</h2>

@@ -345,9 +345,9 @@ export default function QuoteEditorPage() {
             {canDelete && <button onClick={deleteQuote} style={{ ...btnGhost, color: colors.danger, marginLeft: 'auto' }}><Trash2 size={14} /> {t('common.delete')}</button>}
           </div>
           {saveState === 'conflict' && (
-            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '10px 12px', marginBottom: '10px', borderRadius: '10px', background: 'color-mix(in srgb, var(--warn) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--warn) 30%, transparent)', color: 'var(--yellow)', fontSize: '13px' }}>
+            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '10px 12px', marginBottom: '10px', borderRadius: '10px', background: 'var(--warn-soft)', border: '1px solid var(--warn)', color: 'var(--yellow)', fontSize: '13px' }}>
               <AlertTriangle size={15} /> <span style={{ flex: 1 }}>{t('quote.conflict')}</span>
-              <button onClick={() => window.location.reload()} style={{ ...btn, color: 'var(--yellow)', borderColor: 'color-mix(in srgb, var(--warn) 40%, transparent)', background: 'transparent' }}>{t('quote.reload')}</button>
+              <button onClick={() => window.location.reload()} style={{ ...btn, color: 'var(--yellow)', borderColor: 'var(--warn)', background: 'transparent' }}>{t('quote.reload')}</button>
             </div>
           )}
           {/* The tabs (phases, details, summary) and, between them on screen, the add buttons, which

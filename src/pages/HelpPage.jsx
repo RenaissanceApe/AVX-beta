@@ -88,7 +88,7 @@ export default function HelpPage() {
               {list.map(x => (
                 <div key={x.id} id={`term-${x.id}`} tabIndex={-1} style={{
                   padding: '14px 16px', borderRadius: '12px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)',
-                  border: `1px solid ${x.id === target ? 'color-mix(in srgb, var(--accent) 60%, transparent)' : colors.border}`, outline: 'none',
+                  border: `1px solid ${x.id === target ? 'var(--accent)' : colors.border}`, outline: 'none',
                 }}>
                   <dt style={{ color: 'var(--text)', fontSize: '16px', fontWeight: 700 }}>{x.term}</dt>
                   <dd style={{ fontSize: '15px', lineHeight: 1.6, marginTop: '2px' }}>{x.definition}</dd>

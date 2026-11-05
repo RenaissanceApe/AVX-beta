@@ -52,7 +52,7 @@ export default function JobsPage() {
     loadMine()
   }
 
-  const tabBtn = active => ({ ...btn, background: active ? tint(colors.accent, 22) : 'transparent', borderColor: active ? colors.accent : tint(colors.accent, 30) })
+  const tabBtn = active => ({ ...btn, background: active ? 'var(--selection)' : 'transparent', borderColor: active ? colors.accent : tint(colors.accent, 30) })
   return (
     <AppShell>
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>

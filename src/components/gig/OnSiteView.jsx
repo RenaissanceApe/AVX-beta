@@ -3,7 +3,7 @@ import { Clock, FileText, Flag, Footprints, ListOrdered, ScanLine, FolderOpen, M
 import { todaysSchedule, localDay } from '../../lib/onSite'
 import { dueState, sortTasks } from '../../lib/tasks'
 import { t, fmt } from '../../i18n'
-import { btn, card, colors, tint } from '../ui'
+import { btn, card, colors } from '../ui'
 import ClockInOut from '../hours/ClockInOut'
 
 const shortTime = v => (v ? String(v).slice(0, 5) : '')
@@ -42,7 +42,7 @@ export default function OnSiteView({ gig, schedule, tools, tasks = [], userId, m
       </div>
 
       {why === 'auto' && !noteSeen && (
-        <div role="note" style={{ ...card, display: 'flex', gap: '10px', alignItems: 'flex-start', borderColor: tint(colors.accent, 40) }}>
+        <div role="note" style={{ ...card, display: 'flex', gap: '10px', alignItems: 'flex-start', borderColor: 'var(--accent)' }}>
           <p style={{ flex: 1, fontSize: '13px', lineHeight: 1.5 }}>
             {t('onsite.autoNote')} <Link to="/settings/preferences" style={{ color: colors.accentText }}>{t('onsite.autoNoteLink')}</Link>
           </p>
@@ -67,7 +67,7 @@ export default function OnSiteView({ gig, schedule, tools, tasks = [], userId, m
         {items.length === 0 ? <p style={{ fontSize: '14px', color: colors.muted }}>{t('onsite.nothingToday')}</p> : (
           <ol style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {items.map(s => (
-              <li key={s.id} style={{ display: 'flex', gap: '12px', alignItems: 'baseline', padding: '8px 10px', borderRadius: '10px', background: s.now ? tint(colors.accent, 16) : 'transparent', border: s.next ? `1px dashed ${colors.border}` : '1px solid transparent' }}>
+              <li key={s.id} style={{ display: 'flex', gap: '12px', alignItems: 'baseline', padding: '8px 10px', borderRadius: '10px', background: s.now ? 'var(--selection)' : 'transparent', border: s.next ? `1px dashed ${colors.border}` : '1px solid transparent' }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '17px', minWidth: '4.5em' }}>{shortTime(s.start_time)}</span>
                 <span style={{ flex: 1, minWidth: 0, fontSize: '15px' }}>
                   <strong>{s.title}</strong>{s.location ? <span style={{ color: colors.muted }}> · {s.location}</span> : null}

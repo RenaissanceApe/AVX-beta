@@ -1,4 +1,5 @@
 import { X } from 'lucide-react'
+import { labelVar } from '../lib/labelColours'
 
 // Lumen and Pixel brand system (Brand Book v1.2, DESIGN.md): every corner is square, no gradients,
 // no glows, no blur. Names, labels and numbers in Space Mono (var(--font-mono)); sentences in Inter.
@@ -77,4 +78,29 @@ export function AvxMark({ size = 20, title, style }) {
       <path fill="currentColor" d="M3 0h1v1H3z M1 1h2v1H1z M0 2h5v1H0z M2 3h2v1H2z M1 4h1v1H1z" />
     </svg>
   )
+}
+
+// Every state is a square + the word (DESIGN.md "StatusBadge"). tone: ok · info · warn · danger · open · draft · off;
+// colour: a label colour key for an organisation's own status (its square takes that colour).
+export function StatusBadge({ tone = 'open', colour, small, struck, title, children }) {
+  const cls = `avx-status avx-status--${tone}${small ? ' avx-status--sm' : ''}${struck ? ' avx-status--struck' : ''}`
+  return <span className={cls} title={title} style={colour ? { '--c': labelVar(colour) } : undefined}><span>{children}</span></span>
+}
+
+
+// A label: a square in the label colour + the label's word, on fill. role: Space Mono uppercase, no colour.
+export function LabelChip({ colour, role, large, title, children }) {
+  if (role) return <span className={`avx-chip avx-chip--role${large ? ' avx-chip--lg' : ''}`} title={title}><span>{children}</span></span>
+  return <span className="avx-chip" title={title} style={{ '--c': labelVar(colour) }}><i aria-hidden="true" /><span>{children}</span></span>
+}
+
+// A call time: key (CALL, DOORS…) + time. me: the viewer's own call, with the accent key cell.
+export function CallChip({ label, time, me, small, title }) {
+  return <span className={`avx-call${me ? ' avx-call--me' : ''}${small ? ' avx-call--sm' : ''}`} title={title}><span>{label}</span><b>{time}</b></span>
+}
+
+// A person's initials in a square (never coloured)
+export function Avatar({ name, size = 32 }) {
+  const initials = (name || '?').split(' ').filter(Boolean).map(x => x[0]).join('').toUpperCase().slice(0, 2) || '?'
+  return <span aria-hidden="true" className="avx-avatar" style={{ width: size, height: size, fontSize: Math.round(size * 0.36) }}>{initials}</span>
 }

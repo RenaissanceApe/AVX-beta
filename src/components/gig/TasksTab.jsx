@@ -9,7 +9,7 @@ import { updateIfUnchanged, notifyConflict } from '../../lib/staleSave'
 import { TASK_FIELDS, TEMPLATE_FIELDS, sortTasks, filterTasks } from '../../lib/tasks'
 import { localDay } from '../../lib/onSite'
 import { t } from '../../i18n'
-import { btn, btnPrimary, colors, tint } from '../ui'
+import { btn, btnPrimary, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import { TabHeader } from './parts'
 import { TaskRow, TaskForm } from '../tasks/TaskParts'
@@ -75,7 +75,7 @@ export default function TasksTab({ gig, members, nameOf, userId, canManage, canN
     setTasks(list => list.filter(x => x.id !== task.id))
   }
 
-  const chip = on => ({ ...btn, padding: '6px 12px', background: on ? tint(colors.accent, 22) : 'transparent', color: on ? colors.accentText : colors.soft })
+  const chip = on => ({ ...btn, padding: '6px 12px', background: on ? 'var(--selection)' : 'transparent', color: on ? colors.accentText : colors.soft })
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
       <TabHeader title={t('gig.tab.tasks')} subtitle={t('tasks.subtitle', { count: openCount })}

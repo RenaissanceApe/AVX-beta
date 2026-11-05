@@ -42,7 +42,7 @@ export default function GuideView({ id, compact = false }) {
       </ol>
 
       {g.mistakes.length > 0 && (
-        <section style={{ marginTop: '24px', padding: '14px 16px', borderRadius: '12px', background: 'color-mix(in srgb, var(--warn) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--warn) 30%, transparent)' }}>
+        <section style={{ marginTop: '24px', padding: '14px 16px', borderRadius: '12px', background: 'var(--warn-soft)', border: '1px solid var(--warn)' }}>
           <H style={{ fontSize: '15px', fontWeight: 700, color: 'var(--yellow)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
             <AlertTriangle size={15} aria-hidden="true" /> {t('help.mistakes')}
           </H>

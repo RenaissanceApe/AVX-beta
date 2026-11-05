@@ -7,7 +7,7 @@ import { logger, userMessage } from '../../lib/logger'
 import { formatMoney } from '../../lib/quotes'
 import { receiptUrl, decideClaim, isOverdue, toReimburse, linkOf, categoryName, totalsByCurrency } from '../../lib/expenses'
 import { useI18n, fmt } from '../../i18n'
-import { Modal, btn, btnPrimary, input, colors, tint } from '../ui'
+import { Modal, btn, btnPrimary, input, colors, StatusBadge } from '../ui'
 
 export function ReceiptLink({ path, name }) {
   const { t } = useI18n()
@@ -25,17 +25,12 @@ export function ReceiptLink({ path, name }) {
   )
 }
 
-const CHIP = { draft: 'var(--warn)', claimed: 'var(--warn)', returned: 'var(--danger)', overdue: 'var(--danger)', unpaid: colors.muted, reimburse: 'var(--sky)', paid: 'var(--accent-text)' }
+const CHIP = { draft: 'draft', claimed: 'open', returned: 'danger', overdue: 'danger', unpaid: 'open', reimburse: 'info', paid: 'ok' }
 export function ExpenseChip({ e, today }) {
   const { t } = useI18n()
   const state = e.status === 'draft' ? 'draft' : e.status === 'claimed' ? 'claimed' : e.status === 'returned' ? 'returned'
     : toReimburse(e) ? 'reimburse' : isOverdue(e, today) ? 'overdue' : e.paid_on ? 'paid' : 'unpaid'
-  const c = CHIP[state]
-  return (
-    <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', color: c, border: `1px solid ${tint(c, 40)}`, background: tint(c, 10), whiteSpace: 'nowrap' }}>
-      {t(`expenses.state.${state}`)}
-    </span>
-  )
+  return <StatusBadge small tone={CHIP[state]}>{t(`expenses.state.${state}`)}</StatusBadge>
 }
 
 // "€123,00" per currency, never added across currencies

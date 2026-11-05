@@ -124,7 +124,7 @@ export default function NotificationBell() {
           ) : items.map(n => (
             <button key={n.id} onClick={() => openItem(n)} style={{
               display: 'flex', gap: '10px', width: '100%', textAlign: 'left', padding: '11px 14px', cursor: 'pointer', color: 'var(--text)',
-              background: n.read_at ? 'transparent' : 'color-mix(in srgb, var(--accent) 6%, transparent)', border: 'none', borderBottom: `1px solid ${colors.border}`,
+              background: n.read_at ? 'transparent' : 'var(--selection)', border: 'none', borderBottom: `1px solid ${colors.border}`,
             }}>
               <span aria-hidden style={{ width: '7px', height: '7px', borderRadius: '50%', marginTop: '6px', flexShrink: 0, background: n.read_at ? 'transparent' : colors.accent }} />
               <span style={{ flex: 1, minWidth: 0 }}>

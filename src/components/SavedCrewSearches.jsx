@@ -6,7 +6,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { toSaved } from '../lib/crewSearch'
 import { useI18n } from '../i18n'
-import { btn, iconBtn, input, label, colors, tint } from './ui'
+import { btn, iconBtn, input, label, colors } from './ui'
 
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 
@@ -60,7 +60,7 @@ export default function SavedCrewSearches({ orgId, filters, onApply, openId }) {
     load()
   }
 
-  const chip = { display: 'inline-flex', alignItems: 'center', borderRadius: '999px', border: `1px solid ${tint(colors.accent, 30)}`, overflow: 'hidden' }
+  const chip = { display: 'inline-flex', alignItems: 'center', borderRadius: '999px', border: `1px solid var(--accent)`, overflow: 'hidden' }
   const part = { background: 'none', border: 'none', color: colors.text, font: 'inherit', fontSize: '13px', cursor: 'pointer', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '6px' }
   return (
     <section aria-labelledby="cs-saved" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

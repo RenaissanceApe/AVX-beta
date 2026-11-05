@@ -222,7 +222,7 @@ export function PricePickerModal({ items, onPick, onClose }) {
               <div key={category || '—'}>
                 <div style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: colors.muted, padding: '8px 4px 4px' }}>{category || t('prices.noCategory')}</div>
                 {list.map(item => (
-                  <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: picked.includes(item.id) ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent' }}>
+                  <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: picked.includes(item.id) ? 'var(--selection)' : 'transparent' }}>
                     <input type="checkbox" checked={picked.includes(item.id)} onChange={() => toggle(item.id)} style={{ accentColor: colors.accent }} />
                     <span style={{ flex: 1, fontSize: '14px' }}>{item.name}</span>
                     <span style={{ fontSize: '13px', color: colors.soft, whiteSpace: 'nowrap' }}>{formatMoney(item.unit_price, 'EUR', lang)}</span>

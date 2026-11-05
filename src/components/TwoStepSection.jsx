@@ -106,7 +106,7 @@ export default function TwoStepSection({ label, input, smallBtn }) {
             <p style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
               <ShieldCheck size={16} color="var(--accent-text)" /> {t('mfa.on')}
             </p>
-            <button onClick={turnOff} disabled={busy} style={{ ...smallBtn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--danger) 30%, transparent)', color: 'var(--danger)' }}>
+            <button onClick={turnOff} disabled={busy} style={{ ...smallBtn, background: 'transparent', borderColor: 'var(--danger)', color: 'var(--danger)' }}>
               <ShieldOff size={14} /> {t('mfa.turnOff')}
             </button>
           </>

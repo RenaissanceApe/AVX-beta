@@ -112,12 +112,12 @@ export default function HeldInvites({ org, onSent }) {
   )
 }
 
-const box = { border: '1px solid color-mix(in srgb, var(--warn) 35%, transparent)', borderRadius: '12px', padding: '12px', marginBottom: '16px' }
+const box = { border: '1px solid var(--warn)', borderRadius: '12px', padding: '12px', marginBottom: '16px' }
 const row = { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', padding: '8px 10px', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)', borderRadius: '10px' }
 const select = { padding: '6px 8px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)', borderRadius: '8px', color: 'var(--text)', fontSize: '13px', cursor: 'pointer' }
 const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '4px', display: 'flex', flexShrink: 0 }
 const sendBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px', borderRadius: '9px', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)',
-  background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-text)', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
+  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px', borderRadius: '9px', border: '1px solid var(--accent)',
+  background: 'var(--selection)', color: 'var(--accent-text)', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }
 const plainBtn = { ...sendBtn, background: 'none', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)', color: 'var(--soft)' }

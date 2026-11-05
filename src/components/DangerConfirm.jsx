@@ -53,7 +53,7 @@ export function DangerConfirmModal({ title, name, loadImpact, onConfirm, onClose
 
   return (
     <Modal title={title} onClose={busy ? () => {} : onClose} maxWidth={500}>
-      <div role="alert" style={{ display: 'flex', gap: '10px', padding: '12px 14px', borderRadius: '10px', background: 'color-mix(in srgb, var(--danger) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 35%, transparent)', color: red, fontSize: '13px', lineHeight: 1.55, marginBottom: '14px' }}>
+      <div role="alert" style={{ display: 'flex', gap: '10px', padding: '12px 14px', borderRadius: '10px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', color: red, fontSize: '13px', lineHeight: 1.55, marginBottom: '14px' }}>
         <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '1px' }} />
         <div><strong>{t('danger.irreversible')}</strong> {t('danger.noUndo')}</div>
       </div>
@@ -84,7 +84,7 @@ export function DangerConfirmModal({ title, name, loadImpact, onConfirm, onClose
           <label style={label} htmlFor="danger-name">{t('danger.typeName')}</label>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', padding: '6px 10px', marginBottom: '8px', borderRadius: '6px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)', userSelect: 'all' }}>{name}</div>
           <input id="danger-name" value={typed} onChange={e => setTyped(e.target.value)} autoComplete="off" autoFocus
-            onPaste={e => e.preventDefault()} style={{ ...input, borderColor: typed && !matches ? 'color-mix(in srgb, var(--danger) 50%, transparent)' : undefined }} />
+            onPaste={e => e.preventDefault()} style={{ ...input, borderColor: typed && !matches ? 'var(--danger)' : undefined }} />
           <p style={{ fontSize: '12px', color: colors.muted, margin: '6px 0 14px' }}>{t('danger.noPaste')} {t('danger.lenient')}</p>
           {error && <p role="alert" style={{ color: red, fontSize: '13px', marginBottom: '10px' }}>{error}</p>}
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -105,12 +105,12 @@ export function DangerZone({ description, actionLabel, onAction }) {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
   return (
-    <div style={{ marginTop: '22px', borderTop: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)', paddingTop: '12px' }}>
+    <div style={{ marginTop: '22px', borderTop: '1px solid var(--danger)', paddingTop: '12px' }}>
       <button onClick={() => setOpen(o => !o)} aria-expanded={open} style={{ background: 'none', border: 'none', color: red, fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}>
         {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />} {t('danger.zone')}
       </button>
       {open && (
-        <div style={{ marginTop: '10px', padding: '12px 14px', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: '10px' }}>
+        <div style={{ marginTop: '10px', padding: '12px 14px', border: '1px solid var(--danger)', borderRadius: '10px' }}>
           <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.55, marginBottom: '10px' }}>{description}</p>
           <button onClick={onAction} style={dangerBtn}><Trash2 size={14} /> {actionLabel}</button>
         </div>
@@ -120,5 +120,5 @@ export function DangerZone({ description, actionLabel, onAction }) {
 }
 
 const dangerBtn = {
-  ...btn, background: 'color-mix(in srgb, var(--danger) 15%, transparent)', borderColor: 'color-mix(in srgb, var(--danger) 45%, transparent)', color: red,
+  ...btn, background: 'var(--danger-soft)', borderColor: 'var(--danger)', color: red,
 }

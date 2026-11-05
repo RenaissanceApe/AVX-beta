@@ -12,7 +12,7 @@ import { inputsToEquipment } from '../../lib/tools'
 import { overlaps, packAddresses, bulkFixtures, universeUse, dmxRange, UNIVERSE_SIZE } from '../../lib/dmx'
 import { switchesOn, readDipLayout } from '../../lib/dmxCalc'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 
@@ -117,7 +117,7 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
       </div>
       {savedAt && <p role="status" style={{ fontSize: '12px', color: 'var(--warn)', marginBottom: '10px' }}>{t('dmx.offline')}</p>}
       {bad.size > 0 && (
-        <p role="status" style={{ ...card, borderColor: tint('var(--warn)', 45), color: 'var(--warn)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
+        <p role="status" style={{ ...card, borderColor: 'var(--warn)', color: 'var(--warn)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
           <AlertTriangle size={15} aria-hidden="true" /> {t('dmx.overlapBanner', { count: bad.size })}
         </p>
       )}

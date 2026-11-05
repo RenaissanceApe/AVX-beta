@@ -563,7 +563,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
       {pinned.length > 0 && (
         <div style={{ position: 'relative', padding: '6px 2px', borderBottom: `1px solid ${colors.border}` }}>
           <button type="button" onClick={() => setShowPins(v => !v)} aria-expanded={showPins} style={{
-            display: 'flex', alignItems: 'center', gap: '6px', width: '100%', background: 'color-mix(in srgb, var(--warn) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--warn) 25%, transparent)',
+            display: 'flex', alignItems: 'center', gap: '6px', width: '100%', background: 'var(--warn-soft)', border: '1px solid var(--warn)',
             borderRadius: '8px', padding: '6px 10px', color: 'var(--text)', font: 'inherit', fontSize: '13px', cursor: 'pointer', textAlign: 'left',
           }}>
             <Pin size={13} color={AMBER} style={{ flexShrink: 0 }} />
@@ -704,13 +704,13 @@ export default function Conversation({ conversationId, canPost = true, height = 
               </div>
               {!removed && <ReactionBar summary={summary} name={name} onToggle={canPost ? emoji => react(m, emoji) : null} alignEnd={mine} />}
               {!removed && reports[m.id] && (
-                <div role="note" style={{ maxWidth: '88%', marginTop: '4px', padding: '6px 10px', borderRadius: '8px', background: 'color-mix(in srgb, var(--danger) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', fontSize: '12px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                <div role="note" style={{ maxWidth: '88%', marginTop: '4px', padding: '6px 10px', borderRadius: '8px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', fontSize: '12px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
                   <Flag size={12} color={colors.danger} />
                   <span style={{ flex: 1, minWidth: '160px' }}>
                     {t('chat.moderate.reported', { count: reports[m.id].reports, reasons: reports[m.id].reasons.map(r => t(`chat.report.reason.${r}`)).join(', ') })}
                     {reports[m.id].notes?.length > 0 && <span style={{ color: colors.soft }}> · “{reports[m.id].notes.join('” · “')}”</span>}
                   </span>
-                  <button type="button" onClick={() => moderate(m, true)} style={{ background: 'none', border: '1px solid color-mix(in srgb, var(--danger) 40%, transparent)', color: colors.danger, borderRadius: '6px', padding: '3px 8px', font: 'inherit', fontSize: '12px', cursor: 'pointer' }}>{t('chat.moderate.removeShort')}</button>
+                  <button type="button" onClick={() => moderate(m, true)} style={{ background: 'none', border: '1px solid var(--danger)', color: colors.danger, borderRadius: '6px', padding: '3px 8px', font: 'inherit', fontSize: '12px', cursor: 'pointer' }}>{t('chat.moderate.removeShort')}</button>
                   <button type="button" onClick={() => moderate(m, false)} style={{ background: 'none', border: `1px solid ${colors.border}`, color: colors.soft, borderRadius: '6px', padding: '3px 8px', font: 'inherit', fontSize: '12px', cursor: 'pointer' }}>{t('chat.moderate.keep')}</button>
                 </div>
               )}
@@ -737,7 +737,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
         <form onSubmit={send} style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '8px', position: 'relative' }}
           onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (!editing && e.dataTransfer.files.length) addFiles(e.dataTransfer.files) }}>
           {announce && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text)', marginBottom: '6px', padding: '6px 8px', borderLeft: `3px solid ${AMBER}`, background: 'color-mix(in srgb, var(--warn) 8%, transparent)', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text)', marginBottom: '6px', padding: '6px 8px', borderLeft: `3px solid ${AMBER}`, background: 'var(--warn-soft)', borderRadius: '4px' }}>
               <Megaphone size={13} color={AMBER} /> <span style={{ flex: 1 }}>{t('chat.announceHint')}</span>
               <button type="button" onClick={() => setAnnounce(false)} aria-label={t('chat.announceOff')} style={{ background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', display: 'flex' }}><X size={14} /></button>
             </div>
@@ -753,7 +753,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
           {(files.length > 0 || card) && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
               {card && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '4px 8px', borderRadius: '8px', background: 'color-mix(in srgb, var(--accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '4px 8px', borderRadius: '8px', background: 'var(--selection)', border: '1px solid var(--accent)' }}>
                   <Link2 size={12} /> {t(`chat.card.${card.type}`)}: {card.title}
                   <button type="button" onClick={() => setCard(null)} aria-label={t('chat.removeCard')} style={{ ...smallBtn, padding: 0 }}><X size={12} /></button>
                 </span>
@@ -773,7 +773,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
             }}>
               {suggestions.map((c, i) => (
                 <button key={`${c.label}-${i}`} type="button" role="option" aria-selected={i === mentionIndex}
-                  onMouseDown={e => { e.preventDefault(); pickMention(c) }} style={{ ...menuItem, background: i === mentionIndex ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'none' }}>
+                  onMouseDown={e => { e.preventDefault(); pickMention(c) }} style={{ ...menuItem, background: i === mentionIndex ? 'var(--selection)' : 'none' }}>
                   <strong>@{c.label}</strong> <span style={{ color: colors.muted, fontSize: '12px' }}>{c.hint}</span>
                 </button>
               ))}

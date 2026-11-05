@@ -203,7 +203,7 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
 
   const big = { minHeight: '56px', fontSize: '17px', fontWeight: 700, justifyContent: 'center', borderRadius: '14px' }
   const toggle = on => ({ ...btn, ...big, flex: '1 1 140px', fontSize: '15px', borderWidth: '2px',
-    borderColor: on ? colors.accent : colors.border, background: on ? tint(colors.accent, 14) : 'transparent', color: on ? 'var(--text)' : colors.muted })
+    borderColor: on ? colors.accent : colors.border, background: on ? 'var(--selection)' : 'transparent', color: on ? 'var(--text)' : colors.muted })
   const qty = Math.max(1, Number(quantity) || 1)
   const { done, total } = progress
   const tone = last ? (last.undone ? { colour: colors.muted, text: colors.muted, Icon: Undo2 } : TONE[last.tone] || TONE.ok) : null
@@ -275,7 +275,7 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
           {step === 'returned' && (
             <button type="button" aria-pressed={damaged} onClick={() => setDamaged(!damaged)} style={{
               ...btn, ...big, flex: '1 1 160px', borderWidth: '2px',
-              borderColor: damaged ? AMBER : colors.border, background: damaged ? tint(AMBER, 16) : 'transparent', color: damaged ? AMBER : colors.soft,
+              borderColor: damaged ? AMBER : colors.border, background: damaged ? 'var(--warn-soft)' : 'transparent', color: damaged ? AMBER : colors.soft,
             }}><AlertTriangle size={20} aria-hidden="true" /> {t('scanMode.damaged')}</button>
           )}
         </div>

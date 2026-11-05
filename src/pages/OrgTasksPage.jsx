@@ -12,7 +12,7 @@ import { updateIfUnchanged, notifyConflict } from '../lib/staleSave'
 import { TASK_FIELDS, TEMPLATE_FIELDS, sortTasks, filterTasks, taskPlace } from '../lib/tasks'
 import { localDay } from '../lib/onSite'
 import { useI18n } from '../i18n'
-import { btn, btnPrimary, colors, tint } from '../components/ui'
+import { btn, btnPrimary, colors } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
@@ -117,7 +117,7 @@ export default function OrgTasksPage() {
     </AppShell>
   )
 
-  const chip = on => ({ ...btn, padding: '6px 12px', background: on ? tint(colors.accent, 22) : 'transparent', color: on ? colors.accentText : colors.soft })
+  const chip = on => ({ ...btn, padding: '6px 12px', background: on ? 'var(--selection)' : 'transparent', color: on ? colors.accentText : colors.soft })
   return (
     <AppShell>
       <div style={{ maxWidth: '860px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>

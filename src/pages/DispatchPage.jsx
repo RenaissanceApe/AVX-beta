@@ -249,7 +249,7 @@ export default function DispatchPage() {
               {unitsOut.map(u => <div key={u.unit_id}><span style={{ fontFamily: 'var(--font-mono)' }}>{u.code}</span> · {u.item_name}{u.serial ? ` · ${u.serial}` : ''} · {ago(u.out_since)}</div>)}
             </div>
             {step === 'returned' && (
-              <button onClick={markLost} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--danger) 35%, transparent)', color: colors.danger }}>
+              <button onClick={markLost} style={{ ...btn, background: 'transparent', borderColor: 'var(--danger)', color: colors.danger }}>
                 <X size={14} /> {t('dispatch.markLost', { count: unitsOut.length })}
               </button>
             )}

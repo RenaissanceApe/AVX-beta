@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react'
 import { monthMatrix, gigsOnDay, toDateStr } from '../lib/calendar'
-import { colors, iconBtn, btn, tint } from './ui'
+import { colors, iconBtn, btn } from './ui'
 import { useI18n, fmt } from '../i18n'
-
-const STATUS_COLOR = {
-  draft: 'var(--muted)', confirmed: 'var(--info)', active: 'var(--accent)', completed: 'var(--purple)', archived: 'var(--soft)',
-}
+import { gigStatusLabel } from '../lib/gigLabels'
+import { labelVar } from '../lib/labelColours'
 // Monday-first weekday labels in the current language (2026-06-01 is a Monday)
 const weekdays = () => Array.from({ length: 7 }, (_, i) => fmt(`2026-06-0${i + 1}`, 'EEE'))
 
@@ -17,6 +15,9 @@ const AMBER = 'var(--warn)'
 export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
   const clashes = g => !!clashIds?.has(g.id)
   const { t } = useI18n()
+  // An event is a panel block with a square in the gig's label colour; a draft (a hold) has a dashed edge
+  const square = g => labelVar(gigStatusLabel(g, t).colour)
+  const hold = g => (g.status || 'draft') === 'draft'
   const today = toDateStr(new Date())
   const [selected, setSelected] = useState(null)
   const [cursor, setCursor] = useState(() => {
@@ -46,7 +47,7 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
       `}</style>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
         <button onClick={() => shift(-1)} aria-label={t('calendar.prev')} style={iconBtn}><ChevronLeft size={18} /></button>
-        <h3 style={{ fontSize: '16px', fontWeight: 700, minWidth: '150px', textAlign: 'center' }}>
+        <h3 style={{ fontSize: '15px', fontWeight: 700, minWidth: '170px', textAlign: 'center' }}>
           {fmt(new Date(cursor.year, cursor.month, 1), 'MMMM yyyy')}
         </h3>
         <button onClick={() => shift(1)} aria-label={t('calendar.next')} style={iconBtn}><ChevronRight size={18} /></button>
@@ -54,9 +55,9 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
           style={{ ...btn, padding: '6px 10px', marginLeft: 'auto' }}>{t('common.today')}</button>
       </div>
 
-      <div role="grid" aria-label={t('dash.viewCalendar')} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '4px' }}>
+      <div role="grid" aria-label={t('dash.viewCalendar')} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '2px' }}>
         {weekdays().map(d => (
-          <div key={d} role="columnheader" style={{ fontSize: '11px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', textAlign: 'center', padding: '4px 0' }}>{d}</div>
+          <div key={d} role="columnheader" style={{ fontSize: '10px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.12em', padding: '0 4px 4px' }}>{d}</div>
         ))}
         {weeks.flat().map(day => {
           const dayGigs = gigsOnDay(gigs, day)
@@ -64,30 +65,28 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
           return (
             <div key={day} role="gridcell" className="cal-cell" aria-selected={selected === day}
               onClick={() => setSelected(s => (s === day ? null : day))} style={{
-              minHeight: '76px', padding: '4px', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer',
-              background: inMonth ? 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)' : 'transparent',
-              border: day === selected ? '1px solid var(--text)' : day === today ? `1px solid ${colors.accent}` : `1px solid ${colors.border}`,
-              opacity: inMonth ? 1 : 0.45,
+              minHeight: '76px', padding: '4px', overflow: 'hidden', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '2px',
+              background: inMonth ? 'var(--fill)' : 'transparent',
+              border: day === selected ? '1px solid var(--text)' : day === today ? `1px solid ${colors.accent}` : inMonth ? '1px solid var(--line)' : '1px solid transparent',
+              color: inMonth ? 'var(--text-2)' : 'var(--soft)',
             }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: day === today ? colors.accentText : colors.muted, marginBottom: '3px' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: day === today ? 700 : 400, color: day === today ? colors.accentText : undefined }}>
                 {Number(day.slice(8))}
               </div>
               <div className="cal-dots" aria-hidden>
                 {dayGigs.slice(0, 4).map(g => (
-                  <span key={g.id} style={{ width: '7px', height: '7px', borderRadius: '50%', background: STATUS_COLOR[g.status] || colors.muted, outline: clashes(g) ? `2px solid ${AMBER}` : 'none', outlineOffset: '1px' }} />
+                  <span key={g.id} style={{ width: '7px', height: '7px', background: hold(g) ? 'transparent' : square(g), border: `1px ${hold(g) ? 'dashed' : 'solid'} ${square(g)}`, outline: clashes(g) ? `2px solid ${AMBER}` : 'none', outlineOffset: '1px' }} />
                 ))}
               </div>
               <div className="cal-chips" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {dayGigs.slice(0, 3).map(g => (
-                  <button key={g.id} onClick={e => { e.stopPropagation(); onOpen(g) }} title={clashes(g) ? `${g.name} · ${t('clash.doubleBooking')}` : g.name} style={{
-                    display: 'block', width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
-                    fontSize: '11px', fontWeight: 600, color: 'var(--text)', padding: '2px 4px', borderRadius: '4px',
-                    background: tint(STATUS_COLOR[g.status] || colors.muted, 33), borderLeft: `3px solid ${STATUS_COLOR[g.status] || colors.muted}`,
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    outline: clashes(g) ? `1px solid ${AMBER}` : 'none', outlineOffset: '-1px',
-                  }}>{clashes(g) && <AlertTriangle size={9} color={AMBER} style={{ marginRight: '3px', verticalAlign: '-1px' }} />}{g.name}</button>
+                  <button key={g.id} onClick={e => { e.stopPropagation(); onOpen(g) }} title={clashes(g) ? `${g.name} · ${t('clash.doubleBooking')}` : g.name}
+                    className={`avx-ev${hold(g) ? ' is-hold' : ''}`} style={{ '--c': square(g), width: '100%', textAlign: 'left', cursor: 'pointer', borderColor: clashes(g) ? AMBER : undefined }}>
+                    {clashes(g) ? <AlertTriangle size={9} color={AMBER} aria-hidden="true" style={{ flexShrink: 0 }} /> : <i aria-hidden="true" />}
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</span>
+                  </button>
                 ))}
-                {dayGigs.length > 3 && <span style={{ fontSize: '10px', color: colors.muted }}>{t('calendar.more', { count: dayGigs.length - 3 })}</span>}
+                {dayGigs.length > 3 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: colors.muted }}>{t('calendar.more', { count: dayGigs.length - 3 })}</span>}
               </div>
             </div>
           )
@@ -103,10 +102,10 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
           ) : selectedGigs.map(g => (
             <button key={g.id} onClick={() => onOpen(g)} style={{
               display: 'flex', alignItems: 'center', gap: '8px', width: '100%', textAlign: 'left', cursor: 'pointer',
-              padding: '10px 12px', marginBottom: '6px', borderRadius: '10px', color: 'var(--text)', fontSize: '14px', fontWeight: 600,
-              background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`,
+              padding: '10px 12px', marginBottom: '6px', color: 'var(--text)', fontSize: '14px', fontWeight: 600, minHeight: '44px',
+              background: 'var(--panel)', border: `1px ${hold(g) ? 'dashed' : 'solid'} ${colors.border}`,
             }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: STATUS_COLOR[g.status] || colors.muted, flexShrink: 0 }} />
+              <span aria-hidden="true" style={{ width: '8px', height: '8px', background: square(g), flexShrink: 0 }} />
               <span style={{ flex: 1, minWidth: 0 }}>{g.name}</span>
               {clashes(g) && <span style={{ color: AMBER, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('clash.doubleBooking')}</span>}
             </button>

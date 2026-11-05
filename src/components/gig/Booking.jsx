@@ -11,8 +11,8 @@ import { Term } from '../help/HelpParts'
 
 export const AMBER = 'var(--warn)'
 const box = {
-  marginTop: '8px', padding: '9px 11px', borderRadius: '9px', background: 'color-mix(in srgb, var(--warn) 8%, transparent)',
-  border: '1px solid color-mix(in srgb, var(--warn) 30%, transparent)', fontSize: '12px', color: AMBER, lineHeight: 1.6,
+  marginTop: '8px', padding: '9px 11px', borderRadius: '9px', background: 'var(--warn-soft)',
+  border: '1px solid var(--warn)', fontSize: '12px', color: AMBER, lineHeight: 1.6,
 }
 const smallBtn = { ...btn, padding: '5px 10px', fontSize: '12px' }
 
@@ -36,7 +36,7 @@ export function ClashBox({ name, clashes, request, canAsk, onAsk, onWithdraw }) 
               {t('ask.withdraw')}
             </button>
           ) : (
-            <button type="button" onClick={onAsk} style={{ ...smallBtn, color: AMBER, borderColor: 'color-mix(in srgb, var(--warn) 40%, transparent)', background: 'color-mix(in srgb, var(--warn) 10%, transparent)' }}>
+            <button type="button" onClick={onAsk} style={{ ...smallBtn, color: AMBER, borderColor: 'var(--warn)', background: 'var(--warn-soft)' }}>
               <MessageCircleQuestion size={13} /> {request ? t('ask.again') : t('ask.button')}
             </button>
           )}

@@ -228,7 +228,7 @@ const input = {
 }
 const smallBtn = {
   display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 14px', borderRadius: '9px',
-  border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-text)',
+  border: '1px solid var(--accent)', background: 'var(--selection)', color: 'var(--accent-text)',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0
 }
 const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '4px', display: 'flex', flexShrink: 0 }

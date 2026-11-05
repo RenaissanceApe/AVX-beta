@@ -4,7 +4,7 @@ import { readTimecode, readingsAgree } from '../../lib/tcOcr'
 import { LtcDecoder } from '../../lib/ltc'
 import { framesToMs, tcToFrames, msToTc } from '../../lib/rehearsal'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, colors, card, tint } from '../ui'
+import { Modal, btn, btnPrimary, colors, card } from '../ui'
 
 // Clock sync for the rehearsal companion (docs/TOOLS_PLAN.md §2, R2). Both read on the phone only:
 // no picture or sound leaves it. Each hands back "the timecode right now" for the person to use.
@@ -152,7 +152,7 @@ export function LtcSync({ session, onUse, onClose }) {
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', fontWeight: 700, color: fresh ? 'var(--text)' : colors.muted }}>
           {fresh ? msToTc(latest.ms + (performance.now() - latest.at), session.fps, df) : '--:--:--:--'}
         </div>
-        <div aria-hidden="true" style={{ height: '6px', borderRadius: '3px', background: tint(colors.muted, 25), marginTop: '10px', overflow: 'hidden' }}>
+        <div aria-hidden="true" style={{ height: '6px', borderRadius: '3px', background: 'var(--fill)', marginTop: '10px', overflow: 'hidden' }}>
           <div style={{ width: `${Math.min(100, Math.round(level * 140))}%`, height: '100%', background: colors.accent, transition: 'width 0.1s' }} />
         </div>
       </div>

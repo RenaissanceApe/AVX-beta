@@ -17,10 +17,10 @@ import { KitPanel, CaseContentsModal } from '../components/inventory/KitPanels'
 import ContextThread from '../components/messages/ContextThread'
 import { ItemMaintenance } from '../components/inventory/MaintenancePanels'
 import { MovementList, useNames, LOCATION_ICONS } from './InventoryPage'
-import { btn, btnPrimary, iconBtn, card, label, colors } from '../components/ui'
+import { btn, btnPrimary, iconBtn, card, label, colors, StatusBadge } from '../components/ui'
 import { PageHelp } from '../components/help/HelpParts'
 
-const STATUS_COLOR = { available: colors.accent, repair: 'var(--warn)', lost: colors.danger, retired: colors.muted }
+const STATUS_TONE = { available: 'ok', repair: 'warn', lost: 'danger', retired: 'off' }
 const ghost = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }
 const small = { ...ghost, padding: '5px 9px', fontSize: '12px' }
 
@@ -221,7 +221,7 @@ export default function InventoryItemPage() {
                           ? <Link to={`/gig/${u.out_on_gig}?tab=equipment`} style={{ color: 'var(--sky)' }}>{t('inv.outOn', { gig: u.out_gig?.name || '…' })}</Link>
                           : inv.locationName(u.location_id) || t('inv.noLocation')}
                       </span>
-                      <span style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: STATUS_COLOR[u.status] }}>{t(`inv.unitStatus.${u.status}`)}</span>
+                      <StatusBadge small tone={STATUS_TONE[u.status] || 'open'}>{t(`inv.unitStatus.${u.status}`)}</StatusBadge>
                       {value != null && <span style={{ fontSize: '12px', color: colors.muted, whiteSpace: 'nowrap' }} title={t('inv.bookValueHint')}>{formatMoney(value, 'EUR', lang)}</span>}
                       {item.kit_type === 'case' && (
                         <button onClick={() => setPacking(u)} style={small} title={t('kit.packHint')}><Boxes size={12} /> {t('kit.packed', { count: packedIn[u.id] || 0 })}</button>
@@ -294,7 +294,7 @@ function Bookings({ item, owned }) {
         {days.map(d => (
           <div key={d.day} title={`${fmt(d.day, 'EEE d MMM')}: ${t('inv.freeOn', { free: Math.max(0, d.free), owned })}`} style={{
             height: '26px', borderRadius: '3px',
-            background: d.free <= 0 ? 'color-mix(in srgb, var(--warn) 85%, transparent)' : d.booked ? `color-mix(in srgb, var(--accent) ${Math.round(25 + 50 * (1 - d.free / Math.max(1, owned)))}%, transparent)` : 'color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)',
+            background: d.free <= 0 ? 'var(--warn-soft)' : d.booked ? `color-mix(in srgb, var(--accent) ${Math.round(25 + 50 * (1 - d.free / Math.max(1, owned)))}%, transparent)` : 'color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)',
           }} />
         ))}
       </div>

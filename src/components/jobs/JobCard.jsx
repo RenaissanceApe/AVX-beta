@@ -2,7 +2,7 @@ import { MapPin, CalendarDays, Languages, Award, Building2, BadgeCheck, Banknote
 import { useI18n } from '../../i18n'
 import { languageName } from '../../lib/crewProfile'
 import { payText } from '../../lib/jobs'
-import { card, colors, tint } from '../ui'
+import { card, colors } from '../ui'
 
 const row = { display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: colors.soft, lineHeight: 1.5, marginTop: '6px' }
 const icon = { flexShrink: 0, marginTop: '3px' }
@@ -17,7 +17,7 @@ export default function JobCard({ job: j, children }) {
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
         <h3 style={{ fontSize: '17px', fontWeight: 700, overflowWrap: 'anywhere' }}>{j.title}</h3>
         {j.quantity > 1 && <span style={{ fontSize: '13px', color: colors.muted }}>× {j.quantity}</span>}
-        {j.function_key && <span style={{ padding: '2px 8px', borderRadius: '999px', fontSize: '12px', fontWeight: 600, background: tint(colors.accent, 14), color: colors.accentText }}>{t(`crewFn.${j.function_key}`)}</span>}
+        {j.function_key && <span style={{ padding: '2px 8px', borderRadius: '999px', fontSize: '12px', fontWeight: 600, background: 'var(--selection)', color: colors.accentText }}>{t(`crewFn.${j.function_key}`)}</span>}
       </div>
       {j.org_name && (
         <div style={row}><Building2 size={14} style={icon} aria-hidden="true" />

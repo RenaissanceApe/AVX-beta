@@ -8,7 +8,7 @@ import { track } from '../../lib/usage'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { boxesOf, nextBoxName, patchView, autoAssign, socketCode, MAX_BOX_INPUTS } from '../../lib/patch'
 import { t } from '../../i18n'
-import { btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../ui'
+import { btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 import EmptyState from '../EmptyState'
 
 // The audio patch (docs/FIELD_TOOLS.md, F2): the gig's stage boxes, socket by socket, with the
@@ -101,7 +101,7 @@ export default function PatchTool({ gig, canEdit }) {
       {savedAt && <p role="status" style={{ fontSize: '12px', color: 'var(--warn)', marginBottom: '10px' }}>{t('patch.offline')}</p>}
 
       {view.clashes.length > 0 && (
-        <p role="status" style={{ ...card, borderColor: tint('var(--warn)', 45), color: 'var(--warn)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
+        <p role="status" style={{ ...card, borderColor: 'var(--warn)', color: 'var(--warn)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
           <AlertTriangle size={15} aria-hidden="true" /> {t('patch.clashes', { sockets: view.clashes.join(', ') })}
         </p>
       )}
@@ -143,7 +143,7 @@ export default function PatchTool({ gig, canEdit }) {
                 const here = s.lines[0]
                 return (
                   <li key={s.socket} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 8px', borderRadius: '8px', fontSize: '13px',
-                    border: `1px solid ${clash ? 'var(--warn)' : colors.border}`, background: here ? tint(colors.accent, 7) : 'transparent' }}>
+                    border: `1px solid ${clash ? 'var(--warn)' : colors.border}`, background: here ? 'var(--selection)' : 'transparent' }}>
                     <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, minWidth: '2em', color: colors.accentText }}>{String(s.socket).padStart(2, '0')}</span>
                     {canEdit ? (
                       <select aria-label={t('patch.socketLabel', { socket: socketCode(b.name, s.socket) })} value={here?.id || ''} onChange={e => choose(b, s, e.target.value || null)}

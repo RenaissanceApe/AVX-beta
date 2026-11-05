@@ -4,14 +4,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 
 export const BASE_STATUSES = ['draft', 'confirmed', 'active', 'completed', 'archived']
-export const LABEL_COLOURS = ['grey', 'blue', 'green', 'yellow', 'orange', 'red', 'purple', 'pink', 'sky']
-const VAR = { grey: '--muted', blue: '--info', green: '--accent-text', yellow: '--yellow', orange: '--orange', red: '--danger', purple: '--purple', pink: '--pink', sky: '--sky' }
+import { LABEL_COLOURS, labelVar } from './labelColours'
+export { LABEL_COLOURS, labelVar }
 const BASE_COLOUR = { draft: 'grey', confirmed: 'blue', active: 'green', completed: 'purple', archived: 'grey' }
 
-// Text colour and tint for a badge, from the theme (readable in every theme)
+// Text colour for a label's word or square, from the theme (readable in every theme). No tinted
+// backgrounds: a label is a square + its word (DESIGN.md), never a wash.
 export function labelStyle(colour) {
-  const v = `var(${VAR[colour] || VAR.grey})`
-  return { color: v, background: `color-mix(in srgb, ${v} 14%, transparent)` }
+  return { color: labelVar(colour) }
 }
 
 // Gig queries embed the organisation's status and type with the gig (any reader of the gig may
