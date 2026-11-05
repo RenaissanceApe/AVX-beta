@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.72.0 — Invoices
+
+### Added
+- **VAT per line on quotes:** each line has its own VAT % (a new column). The quote's VAT % is the
+  rate new lines start with, and "Apply this rate to every line" changes them all. A line at 0 %
+  asks for the legal reason (AT code), which the invoicing program needs. When lines differ, the
+  summary and the printed quote show the VAT per rate. Existing quotes kept their rate on every
+  line, so no total changed.
+- **Invoices** (admins and members), under Quotes → Invoices and on each accepted quote's
+  Summary. Make an invoice for the whole quote, some phases, a deposit % or, after a deposit, the
+  rest (the deposit is deducted). The client comes from Contacts; each line keeps its VAT rate.
+- **Moloni:** an admin connects Moloni once (Moloni's own sign-in) and picks the company and
+  invoice series. "Send to Moloni" makes a draft there (adding the client by NIF if needed); you
+  finalise it in Moloni and "Check Moloni" brings back its number, dates and PDF. AVX never issues
+  an invoice itself: in Portugal only certified programs may. Without Moloni, type the invoice in
+  your program and add its number here.
+- **Status** draft → in Moloni → issued → paid, with overdue worked out from the due date
+  (default 30 days, set in Company details). **Credit notes** against an issued invoice, never
+  more than is left on it.
+- **Overdue reminders:** a notification to the quote's author and the admins, then weekly while it
+  stays unpaid; "Email the client a reminder" sends them the PDF link.
+- Help: the terms invoice, credit note and certified program, ⓘ notes, and the guide "Invoice a
+  quote" with pictures; the quote pictures were refreshed.
+
+### Connected
+- Quotes (invoiced and left to invoice on the quote; "Invoiced …" in the list), contacts (each
+  client's invoiced, unpaid and overdue), the client's conversation on the quote (post the issued
+  invoice there), gig finance (invoiced vs paid), notifications and the email summary, the
+  organisation export (`invoices` and `invoice_lines` files), and the revenue rule (each line now
+  carries its VAT rate; amounts unchanged). K3 will read the issue, due and paid dates.
+
 ## 0.71.0 — Gig finance
 
 ### Added
