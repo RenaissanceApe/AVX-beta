@@ -61,7 +61,7 @@ export function navSections({ workspace, role }) {
     { key: 'members', icon: 'users', to: `${base}?panel=members` },
     { key: 'orgTasks', icon: 'listTodo', to: `${base}/tasks` },
     ...(canQuote(role) ? [{ key: 'findCrew', icon: 'search', to: `${base}/crew` }, { key: 'orgJobs', icon: 'handshake', to: `${base}/jobs` }] : []),
-    ...(canQuote(role) ? [{ key: 'orgLeave', icon: 'calendarOff', to: `${base}/leave` }] : []),
+    ...(canQuote(role) ? [{ key: 'orgLeave', icon: 'calendarOff', to: `${base}/leave` }, { key: 'expenses', icon: 'receipt', to: `${base}/expenses` }] : []),
     ...(role === 'admin' ? [{ key: 'orgHours', icon: 'clock', to: `${base}/hours` }] : []),
     ...(role === 'admin' ? [{ key: 'orgSettings', icon: 'settings', to: `${base}?panel=settings` }] : []),
     { key: 'allOrgs', icon: 'building', to: '/orgs', minor: true },

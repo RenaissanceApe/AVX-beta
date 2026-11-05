@@ -17,6 +17,7 @@ import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../
 import { Hint } from '../help/HelpParts'
 import ContextThread from '../messages/ContextThread'
 import SupplierLink from './SupplierLink'
+import LinkedExpense from '../expenses/LinkedExpense'
 
 const AMBER = 'var(--warn)'
 const select = { ...input, appearance: 'auto' }
@@ -190,6 +191,8 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
       )}
       {subrental && (
         <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <LinkedExpense orgId={orgId} kind="subrental" id={subrental.id} planned={total}
+            preset={{ supplier_id: subrental.supplier_id, gig_id: subrental.gig_id || '', description: t('expenses.subrentalDescription', { ref: subrental.reference || supplier?.name || '' }), category_starter: 'hire_in' }} />
           <ContextThread type="supplier" id={subrental.id} height="260px"><SupplierLink subrental={subrental} /></ContextThread>
           <ContextThread type="subrental" id={subrental.id} height="260px" />
         </div>

@@ -55,6 +55,10 @@ export function describeNotification(n, nameOf) {
     case 'hours_submitted':   return t('notif.hoursSubmitted', { actor, gig })
     case 'hours_approved':    return t('notif.hoursApproved', { actor, gig, date: d.work_date ? fmt(d.work_date, 'd MMM') : '' })
     case 'hours_returned':    return t('notif.hoursReturned', { actor, gig, date: d.work_date ? fmt(d.work_date, 'd MMM') : '' }) + (d.note ? `: “${d.note}”` : '')
+    case 'expense_claimed':   return t('notif.expenseClaimed', { actor, gig, description: d.description || '', amount: d.total != null ? formatMoney(d.total, d.currency || 'EUR', getLanguage()) : '' })
+    case 'expense_approved':  return t('notif.expenseApproved', { actor, description: d.description || '', amount: d.total != null ? formatMoney(d.total, d.currency || 'EUR', getLanguage()) : '' })
+    case 'expense_returned':  return t('notif.expenseReturned', { actor, description: d.description || '' }) + (d.note ? `: “${d.note}”` : '')
+    case 'expense_drafted':   return t('notif.expenseDrafted', { count: d.count || 1 })
     case 'leave_requested':
     case 'leave_sick':
     case 'leave_cancelled':
@@ -69,7 +73,7 @@ export function describeNotification(n, nameOf) {
 }
 
 // Kinds that are a direct question to you: they still count when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned', 'leave_requested', 'leave_sick', 'leave_cancelled', 'leave_approved', 'leave_refused'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned', 'leave_requested', 'leave_sick', 'leave_cancelled', 'leave_approved', 'leave_refused', 'expense_claimed', 'expense_approved', 'expense_returned'])
 export const countsAsUnread = (n, mutedOrgIds) => !n.read_at && (!n.org_id || !mutedOrgIds?.has(n.org_id) || DIRECT_KINDS.has(n.kind))
 
 export function notificationLink(n) {
@@ -81,6 +85,8 @@ export function notificationLink(n) {
   if (n.kind === 'job_declined' || n.kind === 'job_match') return '/jobs'
   if (n.kind === 'crew_match' && n.org_id) return `/org/${n.org_id}/crew?search=${n.details?.search_id || ''}`
   if (n.kind.startsWith('leave_') && n.org_id) return `/org/${n.org_id}/leave`
+  if ((n.kind === 'expense_claimed' || n.kind === 'expense_approved' || n.kind === 'expense_returned') && n.details?.gig_id) return `/gig/${n.details.gig_id}?tab=crew`
+  if (n.kind === 'expense_drafted' && n.org_id) return `/org/${n.org_id}/expenses`
   if (n.kind === 'task_assigned') return n.gig_id ? `/gig/${n.gig_id}?tab=tasks` : '/tasks'
   if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `/org/${n.org_id}/inventory?tab=maintenance`

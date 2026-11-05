@@ -6,6 +6,10 @@
 
 export default {
   terms: {
+    expense: { term: 'Expense', definition: 'A cost of the company with its receipt: who it was paid to, what for, the amount excl. VAT and the VAT, when it is due and when it was paid. Each has a category, and an expense linked to a subrental, repair, crew fee or stock purchase is the actual cost of that record.', example: 'Diesel for the van, Galp, €81.30 + €18.70 VAT, paid by card.', where: 'Organisation → Expenses' },
+    'expense-claim': { term: 'Expense claim', definition: 'Something a person on a gig paid themselves (fuel, parking, a part), sent with the receipt. The gig\'s managers approve it or send it back with a note; approved, it shows as "to reimburse" until someone marks it paid.', example: 'Carla claims €26.45 of tolls on the Christmas gig.', where: 'Gig → Crew → Expenses' },
+    'recurring-cost': { term: 'Recurring cost', definition: 'A cost that comes back every month, quarter or year, like rent, insurance or leasing. AVX drafts the expense on each date; it only counts once someone confirms it.', example: 'Warehouse rent on the 1st of every month.', where: 'Organisation → Expenses → Recurring' },
+    'capital-expense': { term: 'Capital expense', definition: 'Equipment, vehicles or computers the company keeps for years. They are spread over a number of months in the results, not counted as the cost of the month they were bought.', example: 'A €1,890 desk spread over 60 months: €31.50 a month.', where: 'Organisation → Expenses → Categories' },
     leave: { term: 'Leave', definition: 'Days off for an organisation\'s staff (admins and members): holiday, sick, training or other. Holiday, training and other wait for an admin to approve them; sick days count at once. Approved leave makes you busy for gigs, Find crew and hours.', example: 'Holiday from Monday 1 to Friday 5 March: 5 working days.', where: 'Organisation → Leave' },
     'holiday-balance': { term: 'Holiday balance', definition: 'The holiday days a member of staff has left in a year: the allowance plus the days carried over, minus approved holiday. Requests still waiting are shown apart.', example: '22 allowance + 2 carried − 9 taken = 15 left.', where: 'Organisation → Leave' },
     'working-week': { term: 'Working week', definition: 'The weekdays a member of staff normally works, and their hours a day. Leave only counts working days, and reports use it to count how much of a person\'s time was booked.', example: 'Monday to Thursday, 9 h a day: a week of holiday is 4 days.', where: 'Organisation → Leave → Edit' },
@@ -94,6 +98,10 @@ export default {
   },
 
   hints: {
+    'expense-category': 'Pick what the cost is for. The kind (job costs, running the company, equipment, taxes) decides where it counts in the results.',
+    'expense-link': 'If this is the invoice for a subrental, repair, crew fee or stock purchase, link it: it then replaces that record\'s planned amount, so the cost is counted once.',
+    'expense-recurring': 'How often it comes back. The expense is drafted on each date for someone to confirm.',
+    'expense-kind': 'Job costs belong to gigs; running the company is overhead; equipment and vehicles are spread over months; taxes and other stay apart.',
     'leave-type': 'Holiday counts against your holiday days. Sick days count at once and the admins are told; holiday, training and other wait for an admin.',
     'leave-half': 'Take only the afternoon of the first day or the morning of the last day. A half day counts 0.5, and you can still log hours on it.',
     'leave-allowance': 'Holiday days per year. The organisation\'s number applies to everyone unless a person has their own (leave it empty to use the organisation\'s).',
@@ -152,6 +160,7 @@ export default {
   },
 
   pages: {
+    'org-expenses': { title: 'Expenses', summary: 'Every company cost with its receipt: this month with totals by kind and category, what is unpaid and due, claims to approve and reimburse, recurring costs and (admins) the categories. The CSV is for your accountant; AVX doesn\'t keep the official accounts.' },
     'org-leave': { title: 'Leave', summary: 'Who in the organisation is away each day, your holiday days and your requests. Admins also decide requests, enter leave for someone and set holiday days and working weeks. Approved leave makes the person busy for gigs and hours.' },
     'my-hours': { title: 'My hours', summary: 'The hours you logged on every gig, at any company, month by month: what is waiting, sent back or approved, and what approved days pay. Download them as a CSV.' },
     'org-hours': { title: 'Hours', summary: 'Everyone\'s logged hours on the organisation\'s gigs, per person and month, with the cost stored when each day was approved. Admins only. Download them as a CSV.' },
@@ -174,6 +183,21 @@ export default {
 
   // guides: Help → Guides and the ? panel. Steps line up with the screenshots in index.js (GUIDES).
   guides: {
+    'office-expenses': {
+      title: 'Keep track of expenses',
+      intro: 'Record every cost with its receipt, so you see what the company spends and your accountant gets a clean file.',
+      steps: [
+        'Open Expenses in the organisation\'s menu. "This month" shows the costs excl. VAT by kind; "Show details" adds the VAT, the categories and each expense\'s links and receipt.',
+        'Tap "Add expense": the date, supplier (from Contacts or typed), what for, the category and the amount excl. VAT or the total. Add the receipt from the phone camera or a PDF. Link it to a gig, or to the subrental, repair, crew fee or stock purchase it pays for.',
+        'Anyone on a gig can claim what they paid themselves: Crew tab → Expenses → "Claim an expense", with a photo of the receipt.',
+        'The gig\'s managers approve claims there (or in Expenses → Claims), or send them back with a note. Approved claims show under "Unpaid and due" as to reimburse until you add the date they were paid.',
+        'Add rent, insurance and leasing once under "Recurring": AVX drafts each one on its date for you to confirm. "CSV for the accountant" downloads the confirmed expenses you see.',
+      ],
+      mistakes: [
+        'A subrental, repair or crew fee can have only one expense: open it from the record to change it.',
+        'Drafts from recurring costs don\'t count until confirmed.',
+      ],
+    },
     'of-leave': {
       title: 'Ask for leave',
       intro: 'Tell the organisation when you\'ll be away, so nobody books you and your holiday days stay right.',

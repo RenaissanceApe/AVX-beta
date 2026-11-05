@@ -416,6 +416,42 @@ const SCENES = {
     await box.evaluate(el => el.scrollIntoView({ block: 'start' }))
     return box
   } },
+  'expenses-month': { persona: 'pm', url: `/org/${ids.org}/expenses`, async run(page, L) {
+    await page.getByLabel(L('expenses.showDetails')).check()
+    const box = page.locator('section[aria-labelledby="exp-list"]')
+    await box.evaluate(el => el.scrollIntoView({ block: 'start' }))
+    return box.locator('dl')
+  } },
+  'expense-add': { persona: 'pm', url: `/org/${ids.org}/expenses`, async run(page, L) {
+    await page.getByRole('button', { name: L('expenses.add') }).first().click()
+    const dialog = page.getByRole('dialog')
+    await dialog.getByLabel(L('expenses.description')).fill(page.lang === 'pt' ? 'Gasóleo da carrinha' : 'Diesel for the van')
+    await dialog.getByLabel(L('expenses.supplierName')).fill('Galp')
+    await dialog.getByLabel(L('expenses.totalWithVat')).fill('100')
+    const receipt = dialog.getByText(L('expenses.addReceipt'))
+    await receipt.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return receipt
+  } },
+  'expense-claim': { persona: 'crew', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
+    await page.getByRole('button', { name: L('expenses.newClaim') }).first().click()
+    const dialog = page.getByRole('dialog')
+    await dialog.getByLabel(L('expenses.description')).fill(page.lang === 'pt' ? 'Estacionamento no Coliseu' : 'Parking at the venue')
+    await dialog.getByLabel(L('expenses.totalWithVat')).fill('12')
+    const send = dialog.getByRole('button', { name: L('expenses.sendClaim') })
+    await send.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return send
+  } },
+  'expense-approve': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
+    const box = page.locator('section[aria-labelledby="gig-expenses"]')
+    await box.waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'start' }))
+    return box.getByRole('button', { name: L('expenses.approve') }).first()
+  } },
+  'expense-recurring': { persona: 'pm', url: `/org/${ids.org}/expenses?view=recurring`, async run(page) {
+    const box = page.locator('section[aria-labelledby="exp-recurring"]')
+    await box.waitFor()
+    return box.locator('ul')
+  } },
   'crewcall-fee': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
     await page.getByRole('button', { name: L('crewCall.button') }).first().click()
     const dialog = page.getByRole('dialog')

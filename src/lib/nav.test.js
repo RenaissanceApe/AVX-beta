@@ -67,3 +67,12 @@ describe('navigation', () => {
     expect(homePath(MY_WORK)).toBe('/me')
   })
 })
+
+describe('expenses in the menu (step 9b)', () => {
+  const keys = role => navSections({ workspace: 'o1', role }).flatMap(s => s.items.map(i => i.key))
+  it('shows Expenses to admins and members only', () => {
+    expect(keys('admin')).toContain('expenses')
+    expect(keys('member')).toContain('expenses')
+    expect(keys('viewer')).not.toContain('expenses')
+  })
+})

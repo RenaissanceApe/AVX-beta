@@ -21,6 +21,7 @@ import PostJobModal from '../jobs/PostJobModal'
 import { useUndoRemove } from '../../lib/undo'
 import { LabourCost, MyFee } from './LabourCost'
 import GigHours from '../hours/GigHours'
+import GigExpenses from '../expenses/GigExpenses'
 
 // Latest request per person: { user_id: request }
 const latestRequests = rows => {
@@ -234,8 +235,9 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
         </div>
       )}
 
-      {isPM ? <LabourCost gig={gig} members={members} nameOf={nameOf} refreshKey={hoursKey} /> : <MyFee gigId={gigId} userId={userId} />}
+      {isPM ? <LabourCost gig={gig} members={members} nameOf={nameOf} refreshKey={hoursKey} canFinance={orgRole === 'admin' || orgRole === 'member'} /> : <MyFee gigId={gigId} userId={userId} />}
       <GigHours gig={gig} members={members} isPM={isPM} userId={userId} nameOf={nameOf} onReviewed={() => setHoursKey(k => k + 1)} />
+      <GigExpenses gig={gig} isPM={isPM} orgRole={orgRole} userId={userId} nameOf={nameOf} />
 
       <style>{`
         .crew-extra { flex-basis: 100%; padding-left: 56px; min-width: 0; }

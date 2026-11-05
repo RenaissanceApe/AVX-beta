@@ -36,6 +36,9 @@ export const PARTS = [
   { part: 'work_weeks', columns: ['name', 'days', 'hours_per_day', 'updated_at'] },
   { part: 'leave_years', columns: ['name', 'year', 'allowance', 'carried', 'note', 'updated_at'] },
   { part: 'leave', columns: ['name', 'type', 'status', 'start_date', 'end_date', 'start_half', 'end_half', 'days', 'note', 'decision_note', 'decided_by', 'decided_at', 'created_at'] },
+  { part: 'expense_categories', columns: ['name', 'kind', 'spread_months', 'vat_recoverable', 'archived_at', 'created_at'] },
+  { part: 'expenses', columns: ['spent_on', 'supplier', 'supplier_tax_id', 'invoice_number', 'description', 'category', 'category_kind', 'amount_net', 'vat_rate', 'vat_amount', 'total', 'currency', 'due_on', 'paid_on', 'paid_how', 'status', 'gig_ref', 'gig', 'linked_to', 'claimed_by', 'review_note', 'receipt', 'notes', 'created_at'] },
+  { part: 'expense_recurrences', columns: ['description', 'supplier', 'category', 'amount_net', 'vat_rate', 'currency', 'paid_how', 'every', 'starts_on', 'ends_on', 'next_on', 'notes', 'created_at'] },
 ]
 
 export const PAGE_SIZE = 5000

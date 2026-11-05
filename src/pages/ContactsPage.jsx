@@ -7,10 +7,10 @@ import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useWorkspace } from '../lib/WorkspaceContext'
-import { quoteNumber } from '../lib/quotes'
+import { quoteNumber, formatMoney } from '../lib/quotes'
 import { useCustomFields, mergeValues } from '../lib/customFields'
 import { CustomFieldInputs } from '../components/CustomFields'
-import { useI18n, t } from '../i18n'
+import { useI18n, t, getLanguage } from '../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../components/ui'
 import EmptyState from '../components/EmptyState'
 import AppShell from '../components/shell/AppShell'
@@ -51,13 +51,15 @@ export default function ContactsPage() {
   useEffect(() => { setWorkspace(orgId) }, [orgId, setWorkspace])
 
   const load = useCallback(async () => {
-    const [c, s, q] = await Promise.all([
+    const [c, s, q, sp] = await Promise.all([
       selectAll(() => supabase.from('clients').select('*').eq('org_id', orgId).order('name').order('id')),
       selectAll(() => supabase.from('suppliers').select('*').eq('org_id', orgId).order('name').order('id')),
       selectAll(() => supabase.rpc('client_quote_counts', { p_org: orgId }).order('client_id')),
+      // Supplier spend this year (step 9b): confirmed expenses per supplier
+      supabase.rpc('supplier_spend', { p_org: orgId, p_from: `${new Date().getFullYear()}-01-01` }),
     ])
-    for (const [step, res] of Object.entries({ clients: c, suppliers: s, quotes: q })) if (res.error) logger.error('contacts', res.error, { step })
-    setLists({ clients: c.data || [], suppliers: s.data || [], counts: q.data || [] })
+    for (const [step, res] of Object.entries({ clients: c, suppliers: s, quotes: q, spend: sp })) if (res.error) logger.error('contacts', res.error, { step })
+    setLists({ clients: c.data || [], suppliers: s.data || [], counts: q.data || [], spend: sp.data || [] })
   }, [orgId])
   useEffect(() => { if (canEdit) load() }, [canEdit, load])
 
@@ -166,6 +168,12 @@ export default function ContactsPage() {
                       </span>
                       <span style={{ display: 'block', fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{[c.contact_name, c.phone, c.email].filter(Boolean).join(' · ') || '—'}</span>
                       {tab === 'clients' && quoteCount.get(c.id) > 0 && <span style={{ display: 'block', fontSize: '12px', color: colors.soft }}>{t('contacts.quoteCount', { count: quoteCount.get(c.id) })}</span>}
+                      {tab === 'suppliers' && (lists.spend || []).filter(r => r.supplier_id === c.id).map(r => (
+                        <span key={r.currency} style={{ display: 'block', fontSize: '12px', color: colors.soft }}>
+                          {t('contacts.spendYear', { amount: formatMoney(r.net, r.currency, getLanguage()) })}
+                          {Number(r.unpaid) > 0 && ` · ${t('contacts.spendUnpaid', { amount: formatMoney(r.unpaid, r.currency, getLanguage()) })}`}
+                        </span>
+                      ))}
                     </button>
                     <button onClick={() => setEditing(c)} aria-label={`${t('common.edit')}: ${c.name}`} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>
                     <button onClick={() => archive(c)} title={c.archived_at ? t('inv.restore') : t('inv.archive')} aria-label={`${c.archived_at ? t('inv.restore') : t('inv.archive')}: ${c.name}`} style={iconBtn}>

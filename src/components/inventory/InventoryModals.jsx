@@ -8,6 +8,7 @@ import { UNITS, parsePrice } from '../../lib/quotes'
 import { TRACKING, KIT_TYPES, STOCK_KINDS, LOCATION_KINDS, UNIT_STATUSES, MOVEMENT_SHAPES, countCorrection } from '../../lib/inventory'
 import { t } from '../../i18n'
 import { Modal, btnPrimary, input, label, colors } from '../ui'
+import ExpenseForm from '../expenses/ExpenseForm'
 import { HintLabel } from '../help/HelpParts'
 import { useCustomFields, mergeValues } from '../../lib/customFields'
 import { CustomFieldInputs } from '../CustomFields'
@@ -187,6 +188,8 @@ export function MovementModal({ item, mode, locationId, locations, stock, onClos
   const [qty, setQty] = useState('')
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
+  const [withExpense, setWithExpense] = useState(false) // step 9b: also record the supplier's invoice
+  const [bought, setBought] = useState(null) // { id, amount } once saved, for the expense form
   const at = id => stock?.byLocation?.[id] || 0
   const shape = mode === 'count' ? { from: false, to: true } : MOVEMENT_SHAPES[kind]
   const n = Number(qty)
@@ -210,7 +213,7 @@ export function MovementModal({ item, mode, locationId, locations, stock, onClos
       row = { kind, quantity: n, from_location_id: shape.from ? from : null, to_location_id: shape.to ? to : null, unit_cost: cost }
     }
     setSaving(true)
-    const { error } = await supabase.from('stock_movements').insert({ ...row, org_id: item.org_id, item_id: item.id, note: note.trim() || null })
+    const { data: saved, error } = await supabase.from('stock_movements').insert({ ...row, org_id: item.org_id, item_id: item.id, note: note.trim() || null }).select('id').single()
     setSaving(false)
     if (error) {
       logger.error('inventory', error, { step: 'movement', kind: row.kind })
@@ -218,8 +221,15 @@ export function MovementModal({ item, mode, locationId, locations, stock, onClos
     }
     track(`inventory:${mode}`)
     onSaved()
+    if (withExpense && row.kind === 'purchase') return setBought({ id: saved.id, amount: cost != null ? Math.round(cost * n * 100) / 100 : undefined })
     onClose()
   }
+
+  if (bought) return (
+    <ExpenseForm orgId={item.org_id} onClose={onClose}
+      preset={{ link_kind: 'stock_movement', link_id: bought.id, link_text: `${n} × ${item.name}`, amount_net: bought.amount, category_starter: 'equipment',
+        description: t('expenses.purchaseDescription', { count: n, item: item.name }) }} />
+  )
 
   // Stock can leave an archived location but never go into one
   const locationSelect = (id, value, setValue, withStock, incoming) => (
@@ -258,6 +268,11 @@ export function MovementModal({ item, mode, locationId, locations, stock, onClos
         <Field id="mv-note" text={t('inv.note')}>
           <input id="mv-note" value={note} onChange={e => setNote(e.target.value)} maxLength={500} placeholder={t('inv.notePlaceholder')} style={input} />
         </Field>
+        {kind === 'purchase' && mode === 'add' && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
+            <input type="checkbox" checked={withExpense} onChange={e => setWithExpense(e.target.checked)} style={{ accentColor: colors.accent }} /> {t('expenses.alsoAddExpense')}
+          </label>
+        )}
         <SaveButton saving={saving} disabled={!valid}>{t('common.save')}</SaveButton>
       </form>
     </Modal>

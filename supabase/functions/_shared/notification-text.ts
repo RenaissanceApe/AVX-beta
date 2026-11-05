@@ -14,7 +14,7 @@ export type Notification = {
 }
 
 // Kinds that are a direct question to the person: sent even when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned', 'leave_requested', 'leave_sick', 'leave_cancelled', 'leave_approved', 'leave_refused'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned', 'leave_requested', 'leave_sick', 'leave_cancelled', 'leave_approved', 'leave_refused', 'expense_claimed', 'expense_approved', 'expense_returned'])
 
 export const STRINGS: Record<Lang, Record<string, string>> = {
   en: {
@@ -84,6 +84,10 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     messageRemoved: 'A moderator removed your message in {where}: “{excerpt}”',
     'reason.spam': 'spam', 'reason.abuse': 'abusive or harassing', 'reason.other': 'other',
     pushTest: 'Notifications are on for this device.',
+    expenseClaimed: '{actor} claimed {amount} on {gig}: {description}',
+    expenseApproved: '{actor} approved your claim of {amount}: {description}',
+    expenseReturned: '{actor} sent back your claim: {description}',
+    expenseDrafted: '{count} recurring cost(s) ready to confirm in Expenses',
     'role.pm': 'Production Manager', 'role.crew': 'Crew', 'role.viewer': 'Viewer',
     'orgRole.admin': 'Admin', 'orgRole.member': 'Member', 'orgRole.viewer': 'Viewer',
     'status.draft': 'Draft', 'status.confirmed': 'Confirmed', 'status.active': 'Active',
@@ -156,6 +160,10 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     messageRemoved: 'Um moderador removeu a sua mensagem em {where}: “{excerpt}”',
     'reason.spam': 'spam', 'reason.abuse': 'abusiva ou ofensiva', 'reason.other': 'outro motivo',
     pushTest: 'As notificações estão ativas neste dispositivo.',
+    expenseClaimed: '{actor} pediu reembolso de {amount} em {gig}: {description}',
+    expenseApproved: '{actor} aprovou o seu pedido de {amount}: {description}',
+    expenseReturned: '{actor} devolveu o seu pedido de reembolso: {description}',
+    expenseDrafted: '{count} custo(s) recorrente(s) para confirmar em Despesas',
     'role.pm': 'Production Manager', 'role.crew': 'Equipa', 'role.viewer': 'Leitor',
     'orgRole.admin': 'Administrador', 'orgRole.member': 'Membro', 'orgRole.viewer': 'Leitor',
     'status.draft': 'Rascunho', 'status.confirmed': 'Confirmado', 'status.active': 'Em curso',
@@ -252,6 +260,13 @@ export function describe(n: Notification, lang: Lang, actorName: string | undefi
       if (d.why === 'mention') return fill(many ? s.messageMentionMany : s.messageMentionOne, vars)
       return d.gig_name ? fill(many ? s.messageReplyMany : s.messageReplyOne, vars) : fill(many ? s.messageDirectMany : s.messageDirectOne, vars)
     }
+    case 'expense_claimed': case 'expense_approved': case 'expense_returned': {
+      const key = n.kind.replace(/_(\w)/g, (_: string, c: string) => c.toUpperCase())
+      const amount = d.total == null ? '' : new Intl.NumberFormat(lang === 'pt' ? 'pt-PT' : 'en-GB', { style: 'currency', currency: String(d.currency || 'EUR') }).format(Number(d.total))
+      const text = fill(s[key], { actor, gig, amount, description: d.description ?? '' })
+      return d.note ? `${text}: “${d.note}”` : text
+    }
+    case 'expense_drafted': return fill(s.expenseDrafted, { count: d.count ?? 1 })
     default: return fill(s.generic, { gig })
   }
 }
@@ -264,6 +279,8 @@ export function linkFor(n: Notification, appUrl: string) {
   if (n.kind === 'job_declined' || n.kind === 'job_match') return `${appUrl}/jobs`
   if (n.kind === 'crew_match' && n.org_id) return `${appUrl}/org/${n.org_id}/crew?search=${n.details?.search_id ?? ''}`
   if (n.kind.startsWith('leave_') && n.org_id) return `${appUrl}/org/${n.org_id}/leave`
+  if (n.kind === 'expense_drafted' && n.org_id) return `${appUrl}/org/${n.org_id}/expenses`
+  if (n.kind.startsWith('expense_') && n.details?.gig_id) return `${appUrl}/gig/${n.details.gig_id}?tab=crew`
   if (n.kind === 'task_assigned') return n.gig_id ? `${appUrl}/gig/${n.gig_id}?tab=tasks` : `${appUrl}/tasks`
   if (n.details?.quote_id) return `${appUrl}/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=maintenance`

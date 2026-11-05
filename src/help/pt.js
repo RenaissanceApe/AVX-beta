@@ -3,6 +3,10 @@
 
 export default {
   terms: {
+    expense: { term: 'Despesa', definition: 'Um custo da empresa com o comprovativo: a quem foi pago, para quê, o valor sem IVA e o IVA, quando vence e quando foi pago. Tem uma categoria, e uma despesa ligada a um subaluguer, reparação, cachê ou compra de stock é o custo real desse registo.', example: 'Gasóleo da carrinha, Galp, 81,30 € + 18,70 € de IVA, pago com cartão.', where: 'Organização → Despesas' },
+    'expense-claim': { term: 'Pedido de reembolso', definition: 'Algo que uma pessoa num evento pagou do seu bolso (combustível, estacionamento, uma peça), enviado com o comprovativo. Os responsáveis do evento aprovam ou devolvem com uma nota; aprovado, fica "a reembolsar" até alguém o marcar como pago.', example: 'A Carla pede 26,45 € de portagens no evento de Natal.', where: 'Evento → Equipa → Despesas' },
+    'recurring-cost': { term: 'Custo recorrente', definition: 'Um custo que volta todos os meses, trimestres ou anos, como a renda, o seguro ou o leasing. O AVX prepara a despesa em cada data; só conta depois de alguém a confirmar.', example: 'Renda do armazém no dia 1 de cada mês.', where: 'Organização → Despesas → Recorrentes' },
+    'capital-expense': { term: 'Investimento', definition: 'Equipamento, viaturas ou computadores que a empresa mantém durante anos. São repartidos por vários meses nos resultados, não contam como custo do mês em que foram comprados.', example: 'Uma mesa de 1890 € repartida por 60 meses: 31,50 € por mês.', where: 'Organização → Despesas → Categorias' },
     leave: { term: 'Ausência', definition: 'Dias de ausência dos funcionários de uma organização (administradores e membros): férias, baixa, formação ou outro. Férias, formação e outro aguardam a aprovação de um administrador; a baixa conta logo. Uma ausência aprovada deixa-o ocupado para eventos, Procurar equipa e horas.', example: 'Férias de segunda 1 a sexta 5 de março: 5 dias úteis.', where: 'Organização → Ausências' },
     'holiday-balance': { term: 'Saldo de férias', definition: 'Os dias de férias que um funcionário ainda tem num ano: o direito mais os dias transitados, menos as férias aprovadas. Os pedidos a aguardar aparecem à parte.', example: '22 de direito + 2 transitados − 9 gozados = faltam 15.', where: 'Organização → Ausências' },
     'working-week': { term: 'Semana de trabalho', definition: 'Os dias da semana em que um funcionário trabalha normalmente e as suas horas por dia. As ausências só contam dias úteis, e os relatórios usam-na para contar quanto do tempo da pessoa foi ocupado.', example: 'Segunda a quinta, 9 h por dia: uma semana de férias são 4 dias.', where: 'Organização → Ausências → Editar' },
@@ -91,6 +95,10 @@ export default {
   },
 
   hints: {
+    'expense-category': 'Escolha para que é o custo. O tipo (custos dos trabalhos, funcionamento da empresa, equipamento, impostos) decide onde conta nos resultados.',
+    'expense-link': 'Se é a fatura de um subaluguer, reparação, cachê ou compra de stock, ligue-a: passa a substituir o valor previsto desse registo, para o custo contar uma só vez.',
+    'expense-recurring': 'Com que frequência volta. A despesa fica em rascunho em cada data para alguém confirmar.',
+    'expense-kind': 'Os custos dos trabalhos pertencem aos eventos; o funcionamento da empresa são custos gerais; equipamento e viaturas repartem-se por meses; impostos e outros ficam à parte.',
     'leave-type': 'As férias contam para os seus dias de férias. A baixa conta logo e os administradores são avisados; férias, formação e outro aguardam um administrador.',
     'leave-half': 'Tire só a tarde do primeiro dia ou a manhã do último. Meio dia conta 0,5 e pode registar horas nele.',
     'leave-allowance': 'Dias de férias por ano. O número da organização aplica-se a todos, a não ser que a pessoa tenha um próprio (deixe vazio para usar o da organização).',
@@ -149,6 +157,7 @@ export default {
   },
 
   pages: {
+    'org-expenses': { title: 'Despesas', summary: 'Todos os custos da empresa com o comprovativo: este mês com totais por tipo e categoria, o que está por pagar, reembolsos para aprovar e pagar, custos recorrentes e (administradores) as categorias. O CSV é para o contabilista; o AVX não faz a contabilidade oficial.' },
     'org-leave': { title: 'Ausências', summary: 'Quem na organização está ausente em cada dia, os seus dias de férias e os seus pedidos. Os administradores também decidem pedidos, registam ausências de alguém e definem os dias de férias e as semanas de trabalho. Uma ausência aprovada deixa a pessoa ocupada para eventos e horas.' },
     'my-hours': { title: 'As minhas horas', summary: 'As horas que registou em todos os eventos, em qualquer empresa, mês a mês: o que aguarda, foi devolvido ou aprovado, e o que os dias aprovados pagam. Descarregue-as em CSV.' },
     'org-hours': { title: 'Horas', summary: 'As horas registadas de todos nos eventos da organização, por pessoa e mês, com o custo guardado quando cada dia foi aprovado. Só administradores. Descarregue-as em CSV.' },
@@ -171,6 +180,21 @@ export default {
 
   // guides: Ajuda → Guias e o painel ?. Os passos correspondem às imagens em index.js (GUIDES).
   guides: {
+    'office-expenses': {
+      title: 'Registar as despesas',
+      intro: 'Registe cada custo com o comprovativo, para ver o que a empresa gasta e entregar ao contabilista um ficheiro limpo.',
+      steps: [
+        'Abra Despesas no menu da organização. "Este mês" mostra os custos sem IVA por tipo; "Mostrar detalhes" junta o IVA, as categorias e as ligações e o comprovativo de cada despesa.',
+        'Toque em "Adicionar despesa": a data, o fornecedor (dos Contactos ou escrito), para quê, a categoria e o valor sem IVA ou o total. Junte o comprovativo com a câmara do telemóvel ou em PDF. Ligue-a a um evento, ou ao subaluguer, reparação, cachê ou compra de stock que paga.',
+        'Quem trabalha num evento pode pedir o reembolso do que pagou: separador Equipa → Despesas → "Pedir reembolso", com uma foto do comprovativo.',
+        'Os responsáveis do evento aprovam aí os pedidos (ou em Despesas → Reembolsos), ou devolvem-nos com uma nota. Os aprovados aparecem em "Por pagar" como a reembolsar até indicar a data em que foram pagos.',
+        'Adicione a renda, o seguro e o leasing uma vez em "Recorrentes": o AVX prepara cada um na sua data para confirmar. "CSV para o contabilista" descarrega as despesas confirmadas que está a ver.',
+      ],
+      mistakes: [
+        'Um subaluguer, reparação ou cachê só pode ter uma despesa: abra-a a partir do registo para a alterar.',
+        'Os rascunhos dos custos recorrentes só contam depois de confirmados.',
+      ],
+    },
     'of-leave': {
       title: 'Pedir uma ausência',
       intro: 'Diga à organização quando vai estar fora, para ninguém o marcar e os seus dias de férias ficarem certos.',
