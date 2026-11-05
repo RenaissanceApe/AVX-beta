@@ -169,7 +169,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
                     )}
                   </div>
                 </div>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                <span className="crew-chips" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                   {booked
                     ? <StatusBadge tone="danger" title={t('clash.badge')}>{t('clash.status')}</StatusBadge>
                     : m.call_time && <CallChip label={t('crew.callKey')} time={shortTime(m.call_time)} title={t('crew.call', { time: shortTime(m.call_time) })} />}
@@ -244,7 +244,10 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
 
       <style>{`
         .crew-extra { flex-basis: 100%; padding-left: 56px; min-width: 0; }
-        @media (max-width: 640px) { .crew-extra { padding-left: 0; } }
+        @media (max-width: 640px) {
+          .crew-extra { padding-left: 0; }
+          .crew-chips { order: 5; flex-basis: 100%; justify-content: flex-start !important; padding-left: 54px; margin-top: 8px; }
+        }
       `}</style>
       {showInvite && <InviteModal gigId={gigId} functionTitle={inviteFor} onClose={() => { setShowInvite(false); setInviteFor('') }} onInvited={onChanged} />}
       {callFor && <CrewCallModal gigId={gigId} gig={gig} preset={callFor} onClose={() => setCallFor(null)} onSent={() => setCallsKey(k => k + 1)} />}

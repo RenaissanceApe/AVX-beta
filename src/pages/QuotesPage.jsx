@@ -163,7 +163,7 @@ export default function QuotesPage() {
                       </span>
                     </span>
                     <QuoteStatusBadge status={q.status} />
-                    <span style={{ fontWeight: 700, fontSize: '15px', minWidth: '100px', textAlign: 'right' }}>{formatMoney(q.total_net, q.currency, lang)}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '14px', minWidth: '100px', textAlign: 'right' }}>{formatMoney(q.total_net, q.currency, lang)}</span>
                   </button>
                 ))}
               </div>
