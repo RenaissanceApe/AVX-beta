@@ -70,7 +70,7 @@ without reading its code first.
 
 | What | Where | What it means for reports |
 |---|---|---|
-| Serial units have purchase date, cost and write-off period; I7 shows revenue ÷ cost | `stock_units`, `src/lib/reports.js` | Equipment profit is half possible today |
+| Serial units have purchase date, cost and write-off period; I7 shows revenue ÷ cost | `stock_units`, `public.equipment_report` (K1) | Equipment profit is half possible today |
 | Bulk, untracked and sale items have no cost; stock sales have no price; inspections have no cost | `price_items`, `stock_movements`, `inspections` | K0 adds them |
 | Quotes record no sent, accepted or declined dates (only the client link's answer time) and no lost reason | `quotes`, `quote_shares` | K0 adds them |
 | Gigs have no client of their own (only through a linked quote) | `gigs` | K0 adds `gigs.client_id` |
