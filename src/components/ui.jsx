@@ -19,7 +19,7 @@ export const tint = (color, percent) => `color-mix(in srgb, ${color} ${percent}%
 
 export const btn = {
   display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px', borderRadius: 0,
-  border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(28% * var(--line-k))), transparent)', background: 'transparent', color: 'var(--text)',
+  border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(38% * var(--line-k))), transparent)', background: 'transparent', color: 'var(--text)',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0,
 }
 export const btnPrimary = {
@@ -32,7 +32,7 @@ export const iconBtn = {
   padding: '6px', display: 'flex', alignItems: 'center', flexShrink: 0, borderRadius: 0,
 }
 export const input = {
-  width: '100%', padding: '10px 12px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)',
+  width: '100%', padding: '10px 12px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(38% * var(--line-k))), transparent)',
   borderRadius: 0, color: 'var(--text)', fontSize: '14px', outline: 'none',
 }
 export const card = {
