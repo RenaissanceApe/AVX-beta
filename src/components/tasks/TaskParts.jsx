@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Pencil, Trash2, CalendarClock, ListChecks, Flag } from 'lucide-react'
 import { dueState, checklistProgress, checklistFromText, toggleItem } from '../../lib/tasks'
 import { t, fmt } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 
 const DUE_COLOUR = { overdue: 'var(--danger)', today: 'var(--warn)', soon: 'var(--accent-text)' }
 
@@ -138,5 +138,5 @@ export function TaskForm({ task, people, nameOf, templates = [], onSave, onClose
 }
 
 export const GigLink = ({ gig }) => (gig
-  ? <Link to={`/gig/${gig.id}?tab=tasks`} style={{ color: colors.accentText, background: tint(colors.accent, 10), borderRadius: '6px', padding: '0 6px' }}>{gig.name}</Link>
+  ? <Link to={`/gig/${gig.id}?tab=tasks`} style={{ color: colors.accentText, background: 'var(--selection)', padding: '0 6px' }}>{gig.name}</Link>
   : null)

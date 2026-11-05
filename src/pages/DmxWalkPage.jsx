@@ -57,10 +57,10 @@ export default function DmxWalkPage() {
           <h1 style={{ fontSize: '14px', color: colors.muted, fontWeight: 600 }} aria-live="polite">{t('dmxWalk.of', { n: at, total: list.length })}{f.position ? ` · ${f.position}` : ''}</h1>
           <section aria-labelledby="walk-name" style={{ ...card, display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', textAlign: 'center', padding: '20px 12px' }}>
             <div>
-              <h2 id="walk-name" style={{ fontSize: '22px', fontWeight: 800 }}>{f.name}</h2>
+              <h2 id="walk-name" style={{ fontSize: '22px', fontWeight: 700 }}>{f.name}</h2>
               <p style={{ fontSize: '13px', color: colors.soft }}>{[f.fixture_type, f.mode, t('dmx.channelsShort', { count: f.footprint })].filter(Boolean).join(' · ')}</p>
             </div>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 'clamp(30px, 10vw, 48px)', fontWeight: 800, lineHeight: 1 }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 'clamp(30px, 10vw, 48px)', fontWeight: 700, lineHeight: 1 }}>
               <span style={{ fontSize: '0.45em', color: colors.muted }}>U{f.universe} · </span>{f.address}
             </p>
             <p style={{ fontSize: '13px', color: colors.muted }}>{t('dmx.channelsRange', { range: dmxRange(f) })}</p>

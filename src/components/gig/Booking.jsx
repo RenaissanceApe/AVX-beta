@@ -10,10 +10,9 @@ import { Modal, btn, btnPrimary, input, label, colors } from '../ui'
 import { Term } from '../help/HelpParts'
 
 export const AMBER = 'var(--warn)'
-const box = {
-  marginTop: '8px', padding: '9px 11px', borderRadius: '9px', background: 'color-mix(in srgb, var(--warn) 8%, transparent)',
-  border: '1px solid color-mix(in srgb, var(--warn) 30%, transparent)', fontSize: '12px', color: AMBER, lineHeight: 1.6,
-}
+// The sentence under a person's name: what and where, and what to do. The icon carries the colour
+// (danger for a booking clash, warn for a self-reported unavailability); the words stay in text colour.
+const box = { marginTop: '8px', fontSize: '13px', color: 'var(--text)', lineHeight: 1.5 }
 const smallBtn = { ...btn, padding: '5px 10px', fontSize: '12px' }
 
 // The warning shown next to someone who is booked elsewhere (or unavailable) during
@@ -23,20 +22,20 @@ export function ClashBox({ name, clashes, request, canAsk, onAsk, onWithdraw }) 
   const booked = clashes.some(c => c.kind === 'booked')
   return (
     <div role="status" style={box}>
-      <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
-        <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: '2px' }} />
+      <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontWeight: 600 }}>
+        <AlertTriangle size={14} aria-hidden="true" color={booked ? 'var(--danger)' : AMBER} style={{ flexShrink: 0, marginTop: '2px' }} />
         {booked ? t('clash.advice', { name }) : t('clash.unavailableAdvice', { name })}
       </strong>
-      {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '18px' }}>{clashText(c)}</div>)}
+      {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '20px', color: 'var(--text-2)' }}>{clashText(c)}</div>)}
       <RequestState request={request} ago={ago} />
       {canAsk && (
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px', paddingLeft: '18px' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px', paddingLeft: '20px' }}>
           {request?.status === 'pending' ? (
-            <button type="button" onClick={onWithdraw} style={{ ...smallBtn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }}>
+            <button type="button" onClick={onWithdraw} style={{ ...smallBtn, color: 'var(--text-2)' }}>
               {t('ask.withdraw')}
             </button>
           ) : (
-            <button type="button" onClick={onAsk} style={{ ...smallBtn, color: AMBER, borderColor: 'color-mix(in srgb, var(--warn) 40%, transparent)', background: 'color-mix(in srgb, var(--warn) 10%, transparent)' }}>
+            <button type="button" onClick={onAsk} style={smallBtn}>
               <MessageCircleQuestion size={13} /> {request ? t('ask.again') : t('ask.button')}
             </button>
           )}
@@ -161,7 +160,7 @@ export function ShiftModal({ gig, member, name, onClose, onSaved }) {
           </button>
           {member.booked_from && (
             <button type="button" disabled={saving} onClick={() => save({ booked_from: null, booked_until: null })}
-              style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }}>
+              style={{ ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }}>
               {t('shift.clear')}
             </button>
           )}
@@ -191,11 +190,11 @@ export function OwnClashWarning({ startDate, endDate, excludeGig = null }) {
   }, [startDate, endDate, excludeGig])
   if (!clashes.length) return null
   return (
-    <div role="status" style={{ ...box, marginTop: 0 }}>
-      <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
-        <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: '2px' }} /> {t('clash.selfWarning')}
+    <div role="status" style={{ ...box, marginTop: 0, padding: '10px 12px', border: '1px solid var(--warn)', background: 'var(--warn-soft)' }}>
+      <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontWeight: 600 }}>
+        <AlertTriangle size={14} aria-hidden="true" color={AMBER} style={{ flexShrink: 0, marginTop: '2px' }} /> {t('clash.selfWarning')}
       </strong>
-      {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '18px' }}>{clashText(c)}</div>)}
+      {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '20px', color: 'var(--text-2)' }}>{clashText(c)}</div>)}
     </div>
   )
 }

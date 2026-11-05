@@ -6,7 +6,7 @@ import { logger } from '../../lib/logger'
 import { OVERVIEW_TILES, moneyLines } from '../../lib/analytics/tiles'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
-import { card, colors } from '../ui'
+import { card, colors, mono } from '../ui'
 
 // The Overview tiles (src/lib/analytics/tiles.js), read in one call (public.report_overview).
 // Shown on Reports → Overview and, folded or not, as the key numbers on the organisation's Home.
@@ -33,13 +33,13 @@ function TileValue({ tile, overview }) {
   if (tile.kind === 'money') {
     const lines = moneyLines(v)
     return lines.map((l, i) => (
-      <div key={l.currency} style={{ fontSize: i ? '13px' : '20px', fontWeight: i ? 600 : 800, color: i ? colors.muted : 'var(--text)' }}>
+      <div key={l.currency} style={{ ...mono, fontSize: i ? '13px' : '20px', fontWeight: i ? 600 : 800, color: i ? colors.muted : 'var(--text)' }}>
         {formatMoney(l.amount, l.currency, lang)}
       </div>
     ))
   }
-  if (tile.kind === 'pct') return <div style={{ fontSize: '20px', fontWeight: 800 }}>{v == null ? '—' : `${Math.round(v * 100)}%`}</div>
-  return <div style={{ fontSize: '20px', fontWeight: 800 }}>{v}</div>
+  if (tile.kind === 'pct') return <div style={{ ...mono, fontSize: '20px', fontWeight: 700 }}>{v == null ? '—' : `${Math.round(v * 100)}%`}</div>
+  return <div style={{ ...mono, fontSize: '20px', fontWeight: 700 }}>{v}</div>
 }
 
 export function OverviewTiles({ orgId, overview, compact = false }) {
@@ -79,14 +79,14 @@ export function KeyNumbersStrip({ orgId }) {
   return (
     <section aria-labelledby="key-numbers" style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: folded ? 0 : '8px' }}>
-        <h2 id="key-numbers" style={{ fontSize: '15px', fontWeight: 800, margin: 0, flex: '1 1 auto' }}>
+        <h2 id="key-numbers" style={{ fontSize: '15px', fontWeight: 700, margin: 0, flex: '1 1 auto' }}>
           <button type="button" onClick={toggle} aria-expanded={!folded}
-            style={{ background: 'none', border: 'none', color: 'var(--text)', font: 'inherit', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            style={{ background: 'none', border: 'none', color: 'var(--text)', font: 'inherit', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '4px', textAlign: 'left', whiteSpace: 'nowrap' }}>
             {folded ? <ChevronRight size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
             {t('reports.keyNumbers')}
           </button>
         </h2>
-        <Link to={`/org/${orgId}/reports`} style={{ fontSize: '13px', color: colors.accentText, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <Link to={`/org/${orgId}/reports`} style={{ fontSize: '13px', color: colors.accentText, display: 'inline-flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
           <BarChart3 size={14} aria-hidden="true" /> {t('reports.allReports')}
         </Link>
       </div>

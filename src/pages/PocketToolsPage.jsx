@@ -14,7 +14,7 @@ export default function PocketToolsPage() {
       <div style={{ maxWidth: '760px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('pocket.title')}</h1>
+            <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('pocket.title')}</h1>
             <PageHelp page="pocket-tools" />
           </div>
           <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginTop: '4px' }}>{t('pocket.intro')}</p>

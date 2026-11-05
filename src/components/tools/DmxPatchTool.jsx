@@ -12,7 +12,7 @@ import { inputsToEquipment } from '../../lib/tools'
 import { overlaps, packAddresses, bulkFixtures, universeUse, dmxRange, UNIVERSE_SIZE } from '../../lib/dmx'
 import { switchesOn, readDipLayout } from '../../lib/dmxCalc'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 
@@ -117,7 +117,7 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
       </div>
       {savedAt && <p role="status" style={{ fontSize: '12px', color: 'var(--warn)', marginBottom: '10px' }}>{t('dmx.offline')}</p>}
       {bad.size > 0 && (
-        <p role="status" style={{ ...card, borderColor: tint('var(--warn)', 45), color: 'var(--warn)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
+        <p role="status" style={{ ...card, borderColor: 'var(--warn)', color: 'var(--warn)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
           <AlertTriangle size={15} aria-hidden="true" /> {t('dmx.overlapBanner', { count: bad.size })}
         </p>
       )}
@@ -130,11 +130,11 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
         return (
           <section key={u.universe} aria-labelledby={`universe-${u.universe}`} style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
-              <h3 id={`universe-${u.universe}`} style={{ fontSize: '15px', fontWeight: 800 }}>{t('dmx.universe', { n: u.universe })}</h3>
+              <h3 id={`universe-${u.universe}`} style={{ fontSize: '15px', fontWeight: 700 }}>{t('dmx.universe', { n: u.universe })}</h3>
               <span style={{ fontSize: '12px', color: u.channels > UNIVERSE_SIZE ? 'var(--warn)' : colors.muted }}>{t('dmx.used', { used: u.channels, total: UNIVERSE_SIZE })}</span>
               {canEdit && <button type="button" onClick={() => repack(u.universe)} disabled={busy} style={{ ...btn, padding: '4px 10px', fontSize: '12px', marginLeft: 'auto' }}><ListRestart size={13} /> {t('dmx.repack')}</button>}
             </div>
-            <div aria-hidden="true" style={{ height: '6px', borderRadius: '3px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)', overflow: 'hidden', marginBottom: '8px' }}>
+            <div aria-hidden="true" style={{ height: '6px', background: 'var(--hover)', overflow: 'hidden', marginBottom: '8px' }}>
               <div style={{ height: '100%', width: `${Math.min(100, (100 * u.channels) / UNIVERSE_SIZE)}%`, background: colors.accent }} />
             </div>
             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -142,7 +142,7 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
                 const clash = bad.has(f.id)
                 return (
                   <li key={f.id} style={{ ...card, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', borderColor: clash ? 'var(--warn)' : undefined }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, minWidth: '5.5em', color: f.address ? colors.accentText : colors.muted }}>{dmxRange(f, t('dmx.noAddress'))}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, minWidth: '5.5em', color: f.address ? colors.accentText : colors.muted }}>{dmxRange(f, t('dmx.noAddress'))}</span>
                     <span style={{ flex: '1 1 160px', minWidth: 0 }}>
                       <strong style={{ display: 'block', fontSize: '14px' }}>{f.name}</strong>
                       <span style={{ fontSize: '12px', color: colors.soft }}>

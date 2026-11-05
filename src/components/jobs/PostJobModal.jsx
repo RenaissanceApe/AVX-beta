@@ -9,7 +9,7 @@ import { CURRENCIES, PAY_PER, emptyPost, postPayload, jobError } from '../../lib
 import { functionRate, jobPay } from '../../lib/crewRates'
 import { useRateCard } from '../../lib/useCrewRates'
 import { useI18n, translate, LANGUAGES as UI_LANGUAGES } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors, tint } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
 import PlaceFinder from '../PlaceFinder'
 
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
@@ -140,7 +140,7 @@ export default function PostJobModal({ gig: givenGig, position, gigs = [], onClo
             {form.languages.length > 0 && (
               <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {form.languages.map(l => (
-                  <li key={l} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 600, background: tint(colors.accent, 16), color: colors.accentText }}>
+                  <li key={l} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, background: 'var(--selection)', color: colors.accentText }}>
                     {languageName(l, lang)}
                     <button type="button" onClick={() => set({ languages: form.languages.filter(x => x !== l) })} aria-label={t('crewProfile.removeLanguage', { name: languageName(l, lang) })} style={{ ...iconBtn, padding: 0, color: 'inherit' }}><X size={13} /></button>
                   </li>

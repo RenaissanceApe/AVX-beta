@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
-  Zap, ChevronDown, Check, Briefcase, List, CalendarDays, CalendarOff, Building2, Plus, FileText, Tags,
+  ChevronDown, Check, Briefcase, List, CalendarDays, CalendarOff, Building2, Plus, FileText, Tags,
   LayoutTemplate, Users, Settings, MoreHorizontal, X, LogOut, BellOff, Package, MapPin, History, QrCode, Wrench, Handshake, BarChart3, HelpCircle, Contact, Search, ListTodo, Clock, Receipt, TrendingUp } from 'lucide-react'
 import { useAuth } from '../../lib/AuthContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
@@ -9,15 +9,13 @@ import { navSections, splitItems, phoneTabs, isActive, homePath, MY_WORK } from 
 import { useI18n } from '../../i18n'
 import NotificationBell from '../NotificationBell'
 import MessagesButton from '../messages/MessagesButton'
-import { colors, iconBtn } from '../ui'
+import { colors, iconBtn, AvxMark } from '../ui'
 
 export const ICONS = {
   briefcase: Briefcase, list: List, calendar: CalendarDays, calendarOff: CalendarOff, building: Building2, plus: Plus,
   fileText: FileText, tags: Tags, layoutTemplate: LayoutTemplate, users: Users, settings: Settings,
   package: Package, mapPin: MapPin, history: History, qrCode: QrCode, wrench: Wrench, listTodo: ListTodo, handshake: Handshake, barChart: BarChart3, contact: Contact, search: Search, clock: Clock, receipt: Receipt, trendingUp: TrendingUp,
 }
-// Each section has its own tint so the menus are easy to tell apart at a glance
-const TINTS = { work: 'var(--accent-text)', gigs: 'var(--accent-text)', quotes: 'var(--sky)', inventory: 'var(--orange)', reports: 'var(--info)', organisation: 'var(--purple)', organisations: 'var(--yellow)' }
 
 // Signed-in screens share this frame: the logo (always home), the workspace switcher,
 // section menus (desktop) or a bottom tab bar (phones), notifications and account.
@@ -42,7 +40,7 @@ export default function AppShell({ children }) {
       <style>{SHELL_CSS}</style>
       <header className="shell-bar">
         <Link to={homePath(workspace)} className="shell-logo" aria-label={`AVX — ${t('nav.home')}`} title={t('nav.home')}>
-          <span className="shell-logo-mark"><Zap size={15} color="var(--on-accent)" fill="var(--on-accent)" /></span>
+          <span className="shell-logo-mark"><AvxMark size={22} /></span>
           <span className="shell-logo-text">AVX</span>
         </Link>
         <span className="shell-divider" aria-hidden="true" />
@@ -80,12 +78,26 @@ export function RoleChip({ role }) {
   return <span className={`shell-role shell-role-${role}`}>{t(`orgRole.${role}`)}</span>
 }
 
-function OrgMark({ name, size = 22 }) {
+// A workspace's monogram: two letters in a square, never in the organisation's own colour
+// (initials of the capitalised words, so "Lumen and Pixel" is LP; one word gives its first two letters)
+export const monogram = name => {
+  const words = (name || '?').trim().split(/\s+/).filter(w => /[\p{L}\d]/u.test(w[0]))
+  const big = words.filter(w => /[\p{Lu}\d]/u.test(w[0]))
+  const pick = big.length > 1 ? big : words
+  const letters = pick.length > 1 ? pick[0][0] + pick[1][0] : (pick[0] || '?').slice(0, 2)
+  return letters.toUpperCase()
+}
+
+function OrgMark({ name, size = 24 }) {
   return (
-    <span className="shell-orgmark" style={{ width: size, height: size, fontSize: size * 0.45 }} aria-hidden="true">
-      {(name || '?').trim().slice(0, 1).toUpperCase()}
+    <span className="shell-orgmark" style={{ width: size, height: size, fontSize: Math.round(size * 0.42) }} aria-hidden="true">
+      {monogram(name)}
     </span>
   )
+}
+
+function MyWorkMark({ size = 24 }) {
+  return <span className="shell-orgmark" style={{ width: size, height: size }} aria-hidden="true"><AvxMark size={Math.round(size * 0.5)} /></span>
 }
 
 // Unread updates in a workspace, or a muted sign
@@ -116,7 +128,7 @@ function WorkspaceSwitcher() {
       {/* Named by what it shows (company, role) so voice control can use the visible words */}
       <button className="shell-switch-btn" onClick={() => setOpen(o => !o)} aria-haspopup="menu" aria-expanded={open}
         title={t('nav.switchWorkspace', { name: currentOrg?.name || t('nav.myWork') })}>
-        {currentOrg ? <OrgMark name={currentOrg.name} /> : <span className="shell-orgmark shell-orgmark-me" aria-hidden="true"><Briefcase size={12} /></span>}
+        {currentOrg ? <OrgMark name={currentOrg.name} /> : <MyWorkMark />}
         <span className="shell-switch-name">{currentOrg?.name || t('nav.myWork')}</span>
         {currentOrg && <RoleChip role={currentOrg.myRole} />}
         {(workspace !== MY_WORK && unreadMyWork > 0) || orgs.some(o => o.id !== workspace && unreadIn(o.id) > 0)
@@ -127,14 +139,14 @@ function WorkspaceSwitcher() {
         <div className="shell-pop shell-switch-pop" role="menu">
           <p className="shell-pop-title">{t('nav.workspaces')}</p>
           <button role="menuitemradio" aria-checked={workspace === MY_WORK} className="shell-ws" onClick={() => pick(MY_WORK)}>
-            <span className="shell-orgmark shell-orgmark-me" aria-hidden="true"><Briefcase size={12} /></span>
+            <MyWorkMark size={32} />
             <span className="shell-ws-text"><strong>{t('nav.myWork')}</strong><small>{t('nav.myWorkDesc')}</small></span>
             <UnreadMark count={unreadMyWork} />
             {workspace === MY_WORK && <Check size={15} color={colors.accentText} />}
           </button>
           {orgs.map(o => (
             <button key={o.id} role="menuitemradio" aria-checked={workspace === o.id} className="shell-ws" onClick={() => pick(o.id)}>
-              <OrgMark name={o.name} />
+              <OrgMark name={o.name} size={32} />
               <span className="shell-ws-text"><strong>{o.name}</strong></span>
               <RoleChip role={o.myRole} />
               <UnreadMark count={unreadIn(o.id)} muted={mutedIds?.has(o.id)} />
@@ -168,7 +180,7 @@ function SectionMenu({ section }) {
   }
   const active = section.items.some(i => isActive(i, location.pathname, location.search))
   const { cards, list } = splitItems(section.items)
-  const tint = TINTS[section.key] || TINTS.work
+  const here = item => isActive(item, location.pathname, location.search)
 
   return (
     <div className="shell-section" ref={ref} onMouseEnter={() => hover(true)} onMouseLeave={() => hover(false)}>
@@ -177,15 +189,15 @@ function SectionMenu({ section }) {
         {t(`nav.section.${section.key}`)} <ChevronDown size={13} className="shell-chevron" />
       </button>
       {open && (
-        <div className="shell-pop shell-panel" style={{ '--tint': tint }}>
-          <div className="shell-cards" style={{ '--cols': cards.length <= 3 ? cards.length : 2 }}>
-            {cards.map(item => <NavCard key={item.key} item={item} tint={tint} onPick={() => setOpen(false)} />)}
+        <div className={`shell-pop shell-panel${list.length ? ' has-list' : ''}`}>
+          <div className="shell-cards" style={{ '--cols': cards.length === 1 ? 1 : 2 }}>
+            {cards.map(item => <NavCard key={item.key} item={item} current={here(item)} onPick={() => setOpen(false)} />)}
           </div>
           {list.length > 0 && (
             <div className="shell-sidelist">
               {list.map(item => {
                 const Icon = ICONS[item.icon] || List
-                return <Link key={item.key} to={item.to} className="shell-sidelink" onClick={() => setOpen(false)}><Icon size={14} /> {t(`nav.${item.key}`)}</Link>
+                return <Link key={item.key} to={item.to} className="shell-sidelink" aria-current={here(item) ? 'page' : undefined} onClick={() => setOpen(false)}><Icon size={16} /> {t(`nav.${item.key}`)}</Link>
               })}
             </div>
           )}
@@ -195,13 +207,12 @@ function SectionMenu({ section }) {
   )
 }
 
-function NavCard({ item, tint, onPick }) {
+function NavCard({ item, current, onPick }) {
   const { t } = useI18n()
   const Icon = ICONS[item.icon] || List
   return (
-    <Link to={item.to} className="shell-card" style={{ '--tint': tint }} onClick={onPick}>
-      <span className="shell-card-icon"><Icon size={18} strokeWidth={2.2} /></span>
-      <strong>{t(`nav.${item.key}`)}</strong>
+    <Link to={item.to} className="shell-card" aria-current={current ? 'page' : undefined} onClick={onPick}>
+      <strong><Icon size={16} aria-hidden="true" /> {t(`nav.${item.key}`)}</strong>
       <small>{t(`nav.${item.key}Desc`)}</small>
     </Link>
   )
@@ -226,12 +237,12 @@ function PhoneTabs({ sections, onAccount }) {
           const active = isActive(tab, location.pathname, location.search)
           return (
             <Link key={tab.key} to={tab.to} className={`shell-tab${active ? ' is-active' : ''}`} aria-current={active ? 'page' : undefined}>
-              <Icon size={20} /> <span>{t(`nav.${tab.key}Short`)}</span>
+              <Icon size={20} aria-hidden="true" /> <span>{t(`nav.${tab.key}Short`)}</span>
             </Link>
           )
         })}
         <button className={`shell-tab${more ? ' is-active' : ''}`} onClick={() => setMore(m => !m)} aria-expanded={more}>
-          <MoreHorizontal size={20} /> <span>{t('nav.more')}</span>
+          <MoreHorizontal size={20} aria-hidden="true" /> <span>{t('nav.more')}</span>
         </button>
       </nav>
       {more && (
@@ -253,8 +264,16 @@ function PhoneTabs({ sections, onAccount }) {
             {sections.map(s => (
               <div key={s.key} className="shell-sheet-section">
                 <p className="shell-pop-title">{t(`nav.section.${s.key}`)}</p>
-                <div className="shell-cards shell-cards-sheet">
-                  {s.items.map(item => <NavCard key={item.key} item={item} tint={TINTS[s.key] || TINTS.work} onPick={() => setMore(false)} />)}
+                <div className="shell-sheet-list">
+                  {s.items.map(item => {
+                    const Icon = ICONS[item.icon] || List
+                    const current = isActive(item, location.pathname, location.search)
+                    return (
+                      <Link key={item.key} to={item.to} className="shell-sheet-link" aria-current={current ? 'page' : undefined} onClick={() => setMore(false)}>
+                        <Icon size={18} aria-hidden="true" /> {t(`nav.${item.key}`)}
+                      </Link>
+                    )
+                  })}
                 </div>
               </div>
             ))}
@@ -270,112 +289,113 @@ function PhoneTabs({ sections, onAccount }) {
   )
 }
 
-// Faint film grain for the frosted panels (tiny inline SVG, no download)
-const GRAIN = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")"
-
 const SHELL_CSS = `
-  .shell { min-height: 100vh; background: ${colors.bg}; color: var(--text); }
-  .shell-bar { position: sticky; top: var(--safe-top); z-index: 60; height: 60px; display: flex; align-items: center; gap: 10px;
-    padding: 0 18px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent); }
-  .shell-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); border-radius: 10px; padding: 4px; }
-  .shell-logo:hover .shell-logo-mark { box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent); }
-  .shell-logo-mark { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 30%, transparent); transition: box-shadow .2s; }
-  .shell-logo-text { font-weight: 800; font-size: 18px; letter-spacing: -0.3px; }
-  .shell-divider { width: 1px; height: 22px; background: color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent); }
+  .shell { min-height: 100vh; background: var(--bg); color: var(--text); }
+  .shell-bar { position: sticky; top: var(--safe-top); z-index: 60; height: 56px; display: flex; align-items: center; gap: 8px;
+    padding: 0 16px; background: var(--chrome); border-bottom: 1px solid var(--line); }
+  .shell-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); padding: 4px; margin-right: 4px; }
+  .shell-logo-mark { display: flex; align-items: center; justify-content: center; color: var(--accent-text); }
+  :root[data-theme="light"] .shell-logo-mark { color: var(--text); }
+  .shell-logo-text { font-family: var(--font-mono); font-weight: 700; font-size: 16px; letter-spacing: 0.06em; }
+  .shell-divider { width: 1px; height: 24px; background: var(--line); }
   .shell-switcher, .shell-section { position: relative; }
-  .shell-switch-btn { display: flex; align-items: center; gap: 8px; max-width: 380px; padding: 6px 10px; border-radius: 10px; cursor: pointer;
-    background: color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent); border: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent); color: var(--text); font-size: 14px; font-weight: 700; }
-  .shell-switch-btn:hover { border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .shell-switch-btn { display: flex; align-items: center; gap: 8px; max-width: 380px; height: 36px; padding: 0 10px 0 6px; cursor: pointer;
+    background: transparent; border: 1px solid var(--line-strong); color: var(--text); font-size: 14px; font-weight: 600; transition: background-color .15s; }
+  .shell-switch-btn:hover, .shell-switch-btn[aria-expanded="true"] { background: var(--hover); }
   .shell-switch-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .shell-chevron { color: ${colors.soft}; flex-shrink: 0; }
-  .shell-orgmark { flex-shrink: 0; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--purple) 90%, transparent), color-mix(in srgb, var(--purple) 90%, transparent)); color: var(--on-accent); }
-  .shell-orgmark-me { width: 22px; height: 22px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--on-accent); }
-  .shell-role { flex-shrink: 0; font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; }
-  .shell-role-admin { color: var(--yellow); background: color-mix(in srgb, var(--yellow) 14%, transparent); }
-  .shell-role-member { color: var(--sky); background: color-mix(in srgb, var(--sky) 14%, transparent); }
-  .shell-role-viewer { color: ${colors.soft}; background: color-mix(in srgb, var(--soft) 14%, transparent); }
-  .shell-sections { display: flex; gap: 2px; margin-left: 8px; }
-  .shell-section-btn { display: flex; align-items: center; gap: 4px; padding: 8px 12px; border-radius: 9px; border: none; cursor: pointer;
-    background: transparent; color: ${colors.soft}; font-size: 14px; font-weight: 600; }
-  .shell-section-btn:hover, .shell-section-btn[aria-expanded="true"] { color: var(--text); background: color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent); }
-  .shell-section-btn.is-active { color: ${colors.accentText}; }
-  .shell-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-  .shell-avatar { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--on-accent);
-    background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
-  .shell-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 70; border-radius: 18px; padding: 14px; color: var(--text);
-    background-color: color-mix(in srgb, var(--panel) 97%, transparent); background-image: ${GRAIN}, linear-gradient(160deg, color-mix(in srgb, var(--tint, var(--accent)) 12%, transparent), color-mix(in srgb, var(--fg) min(100%, calc(2% * var(--line-k))), transparent) 55%);
-    backdrop-filter: blur(22px) saturate(140%); -webkit-backdrop-filter: blur(22px) saturate(140%);
-    border: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent); box-shadow: 0 24px 60px rgba(0,0,0,0.55); animation: shellIn .16s ease; }
-  @keyframes shellIn { from { opacity: 0; transform: translateY(-4px) } to { opacity: 1; transform: none } }
-  .shell-switch-pop { width: 330px; }
-  .shell-pop-title { font-size: 11px; font-weight: 700; color: ${colors.muted}; text-transform: uppercase; letter-spacing: .08em; margin: 2px 6px 8px; }
-  .shell-ws { width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 11px; border: none; cursor: pointer;
+  .shell-chevron { color: var(--muted); flex-shrink: 0; }
+  .shell-orgmark { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700;
+    background: transparent; border: 1px solid var(--line-strong); color: var(--text); line-height: 1; }
+  .shell-role { flex-shrink: 0; display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border: 1px solid var(--line);
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--text); background: transparent; }
+  .shell-sections { display: flex; gap: 2px; margin-left: 8px; align-self: stretch; align-items: center; }
+  .shell-section-btn { position: relative; display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border: none; cursor: pointer;
+    background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; transition: color .15s, background-color .15s; }
+  .shell-section-btn:hover, .shell-section-btn[aria-expanded="true"] { color: var(--text); background: var(--hover); }
+  .shell-section-btn.is-active { color: var(--text); }
+  .shell-section-btn.is-active::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: -10px; height: 2px; background: var(--accent); }
+  .shell-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .shell-avatar { width: 32px; height: 32px; border: 1px solid var(--line-strong); cursor: pointer; font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    color: var(--text); background: var(--fill); margin-left: 4px; }
+  .shell-avatar:hover { background: var(--hover); }
+  .shell-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 70; color: var(--text); background: var(--panel);
+    border: 1px solid var(--line-strong); animation: shellIn .25s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes shellIn { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+  .shell-switch-pop { width: 340px; padding: 6px 0; }
+  .shell-pop-title { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .16em; padding: 6px 16px; }
+  .shell-ws { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 16px; border: none; cursor: pointer;
     background: transparent; color: var(--text); text-align: left; }
-  .shell-ws:hover { background: color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent); }
-  .shell-ws-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .shell-ws-text strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .shell-ws-text small { font-size: 12px; color: ${colors.soft}; }
-  .shell-unread { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: ${colors.accent}; color: var(--on-accent);
-    font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; flex-shrink: 0; }
-  .shell-muted { color: ${colors.muted}; display: inline-flex; flex-shrink: 0; }
-  .shell-unread-dot { width: 7px; height: 7px; border-radius: 50%; background: ${colors.accent}; flex-shrink: 0; }
-  .shell-pop-sep { height: 1px; background: color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent); margin: 8px 4px; }
-  .shell-pop-link { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 9px; color: ${colors.soft}; font-size: 13px; font-weight: 600;
+  .shell-ws:hover { background: var(--hover); }
+  .shell-ws[aria-checked="true"] { background: var(--selection); }
+  .shell-ws-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .shell-ws-text strong { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .shell-ws-text small { font-size: 12px; color: var(--muted); }
+  .shell-unread { min-width: 18px; height: 18px; padding: 0 5px; background: var(--text); color: var(--bg);
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; flex-shrink: 0; }
+  .shell-muted { color: var(--muted); display: inline-flex; flex-shrink: 0; }
+  .shell-unread-dot { width: 8px; height: 8px; background: var(--accent-text); flex-shrink: 0; }
+  .shell-pop-sep { height: 1px; background: var(--line); margin: 6px 0; }
+  .shell-pop-link { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 0 16px; color: var(--text-2); font-size: 13px; font-weight: 500;
     text-decoration: none; background: none; border: none; cursor: pointer; width: 100%; text-align: left; }
-  .shell-pop-link:hover { color: var(--text); background: color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent); }
-  .shell-panel { display: flex; gap: 14px; width: max-content; max-width: min(760px, calc(100vw - 40px)); }
-  .shell-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; min-width: 330px; flex: 1; }
-  .shell-panel .shell-cards { grid-template-columns: repeat(var(--cols, 3), 158px); min-width: 0; }
-  .shell-card { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 14px; border-radius: 15px; text-decoration: none; color: var(--text);
-    background-image: ${GRAIN}, linear-gradient(145deg, color-mix(in srgb, var(--tint) 22%, transparent), color-mix(in srgb, var(--tint) 5%, transparent) 70%);
-    border: 1px solid color-mix(in srgb, var(--tint) 22%, transparent); transition: transform .15s, border-color .15s, background-color .15s; }
-  .shell-card:hover, .shell-card:focus-visible { transform: translateY(-2px); border-color: color-mix(in srgb, var(--tint) 55%, transparent); background-color: color-mix(in srgb, var(--tint) 6%, transparent); outline: none; }
-  .shell-card-icon { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px;
-    background: color-mix(in srgb, var(--tint) 22%, var(--panel)); color: var(--tint); box-shadow: 0 6px 16px color-mix(in srgb, var(--tint) 20%, transparent); }
-  .shell-card strong { font-size: 14px; }
-  .shell-card small { font-size: 12px; color: ${colors.soft}; line-height: 1.4; }
-  .shell-sidelist { display: flex; flex-direction: column; gap: 2px; min-width: 170px; padding-left: 14px; border-left: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent); }
-  .shell-sidelink { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 9px; font-size: 13px; color: ${colors.soft}; text-decoration: none; }
-  .shell-sidelink:hover { color: var(--text); background: color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent); }
+  .shell-pop-link:hover { color: var(--text); background: var(--hover); }
+  .shell-panel { display: grid; grid-template-columns: auto; width: max-content; max-width: min(720px, calc(100vw - 32px)); }
+  .shell-panel.has-list { grid-template-columns: auto 200px; }
+  .shell-cards { display: grid; grid-template-columns: repeat(var(--cols, 2), 240px); gap: 1px; background: var(--line); align-content: start; }
+  .shell-card { display: flex; flex-direction: column; gap: 6px; padding: 16px; text-decoration: none; color: var(--text); background: var(--panel); transition: background-color .15s; }
+  .shell-card:hover { background: var(--hover); }
+  .shell-card strong { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 14px; font-weight: 700; line-height: 18px; }
+  .shell-card[aria-current="page"] strong { color: var(--accent-text); }
+  .shell-card small { font-size: 12.5px; color: var(--muted); line-height: 17px; }
+  .shell-sidelist { display: flex; flex-direction: column; padding: 12px 0; border-left: 1px solid var(--line); }
+  .shell-sidelink { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 0 16px; font-size: 13px; color: var(--text-2); text-decoration: none; }
+  .shell-sidelink:hover { color: var(--text); background: var(--hover); }
+  .shell-sidelink[aria-current="page"] { color: var(--accent-text); }
   .shell-main { padding-bottom: 0; }
   .shell-tabs { display: none; }
-  .shell-icon-btn { background: none; border: none; color: ${colors.soft}; cursor: pointer; display: flex; padding: 4px; }
+  .shell-icon-btn { background: none; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
   @media (max-width: 899px) {
     .shell-help { display: none !important; }
     .shell-sections { display: none; }
-    .shell-bar { padding: 0 12px; gap: 8px; }
+    .shell-bar { height: 52px; padding: 0 12px; gap: 8px; }
     .shell-logo-text { display: none; }
-    .shell-switch-btn { max-width: none; width: 100%; min-width: 0; padding: 6px 8px; }
-    .shell-switch-name { flex: 1; min-width: 0; text-align: left; }
+    .shell-divider { display: none; }
+    .shell-avatar { display: none; }
+    .shell-switch-btn { max-width: none; width: 100%; min-width: 0; height: 40px; padding: 0 8px 0 4px; border-color: transparent; }
+    .shell-switch-name { flex: 1; min-width: 0; text-align: left; font-family: var(--font-mono); font-weight: 700; font-size: 15px; }
     .shell-switch-btn .shell-role { display: none; }
     .shell-switcher { flex: 1; min-width: 0; }
-    .shell-switch-pop { width: calc(100vw - 24px); left: -48px; }
-    .shell-main { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
-    .shell-tabs { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
-      background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent); }
-    .shell-tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; border-radius: 10px; border: none;
-      background: none; color: ${colors.muted}; font-size: 11px; font-weight: 600; text-decoration: none; cursor: pointer; }
-    .shell-tab.is-active { color: ${colors.accentText}; }
-    .shell-sheet-backdrop { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,0.55); display: flex; align-items: flex-end; }
-    .shell-sheet { width: 100%; max-height: 82vh; overflow-y: auto; border-radius: 22px 22px 0 0; padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
-      background: var(--chrome); background-image: ${GRAIN}; border-top: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent); animation: shellUp .2s ease; }
-    @keyframes shellUp { from { transform: translateY(30px); opacity: .6 } to { transform: none; opacity: 1 } }
-    .shell-sheet-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-    .shell-sheet-head strong { font-size: 16px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .shell-sheet-head .shell-role + .shell-icon-btn, .shell-sheet-head strong + .shell-icon-btn { margin-left: auto; }
-    .shell-sheet-ws { display: flex; gap: 6px; overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; margin-bottom: 8px; scrollbar-width: none; }
-    .shell-chip { flex-shrink: 0; padding: 7px 12px; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent); background: color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent);
-      color: ${colors.soft}; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-    .shell-chip.is-active { color: ${colors.accentText}; border-color: color-mix(in srgb, var(--accent) 40%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
-    .shell-sheet-section { margin-top: 12px; }
-    .shell-cards-sheet { grid-template-columns: 1fr 1fr; min-width: 0; }
-    .shell-cards-sheet .shell-card { background-image: linear-gradient(145deg, color-mix(in srgb, var(--tint) 20%, transparent), color-mix(in srgb, var(--tint) 4%, transparent) 70%); }
-    .shell-sheet-foot { margin-top: 16px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent); }
+    .shell-switch-pop { position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 82vh; overflow-y: auto;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom)); border-width: 1px 0 0; animation-name: shellUp; }
+    .shell-ws, .shell-pop-link { min-height: 44px; }
+    .shell-main { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+    .shell-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+      height: calc(64px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
+      background: var(--chrome); border-top: 1px solid var(--line); }
+    .shell-tab { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: none;
+      background: none; color: var(--muted); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      line-height: 12px; text-decoration: none; cursor: pointer; min-width: 0; }
+    .shell-tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
+    .shell-tab.is-active { color: var(--text); }
+    .shell-tab.is-active::before { content: ''; position: absolute; top: -1px; left: 25%; right: 25%; height: 2px; background: var(--accent); }
+    .shell-sheet-backdrop { position: fixed; inset: 0; z-index: 80; background: var(--overlay); display: flex; align-items: flex-end; }
+    .shell-sheet { width: 100%; max-height: 82vh; overflow-y: auto; padding: 8px 0 calc(16px + env(safe-area-inset-bottom));
+      background: var(--panel); border-top: 1px solid var(--line-strong); animation: shellUp .25s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes shellUp { from { transform: translateY(10px); opacity: 0 } to { transform: none; opacity: 1 } }
+    .shell-sheet-head { display: flex; align-items: center; gap: 8px; padding: 0 4px 0 16px; border-bottom: 1px solid var(--line); }
+    .shell-sheet-head strong { font-family: var(--font-mono); font-size: 15px; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .shell-sheet-ws { display: flex; gap: 6px; overflow-x: auto; overflow-y: hidden; padding: 12px 16px; scrollbar-width: none; border-bottom: 1px solid var(--line); }
+    .shell-chip { flex-shrink: 0; min-height: 36px; padding: 0 12px; border: 1px solid var(--line-strong); background: transparent;
+      color: var(--text-2); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+    .shell-chip.is-active { color: var(--text); border-color: var(--accent); background: var(--selection); }
+    .shell-sheet-section { padding-top: 8px; }
+    .shell-sheet-section .shell-pop-title { padding: 8px 16px 4px; }
+    .shell-sheet-list { display: flex; flex-direction: column; }
+    .shell-sheet-link { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 16px; color: var(--text); text-decoration: none; font-size: 14px; }
+    .shell-sheet-link:hover { background: var(--hover); }
+    .shell-sheet-link svg { color: var(--muted); }
+    .shell-sheet-link[aria-current="page"] { color: var(--accent-text); }
+    .shell-sheet-foot { margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--line); }
   }
-  @media (max-width: 899px) and (prefers-reduced-transparency: reduce), (max-width: 899px) and (update: slow) {
-    .shell-bar, .shell-tabs { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--chrome); }
-  }
+  @media (prefers-reduced-motion: reduce) { .shell-pop, .shell-sheet { animation: none; } }
+  :root[data-comfort] .shell-pop, :root[data-comfort] .shell-sheet { animation: none; }
 `

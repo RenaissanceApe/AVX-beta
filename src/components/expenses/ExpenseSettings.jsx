@@ -15,7 +15,7 @@ import { HintLabel } from '../help/HelpParts'
 import { Modal, btn, btnPrimary, btnDanger, iconBtn, input, card, colors } from '../ui'
 
 const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
-const h2 = { fontSize: '15px', fontWeight: 800, margin: 0 }
+const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
 const field = { minWidth: 0, fontSize: '12px', color: colors.soft, display: 'flex', flexDirection: 'column', gap: '4px' }
 const full = { gridColumn: '1 / -1' }
 const li = { display: 'flex', gap: '4px 10px', alignItems: 'center', flexWrap: 'wrap', padding: '9px 0', borderTop: `1px solid ${colors.border}`, fontSize: '14px' }

@@ -19,7 +19,7 @@ export default function ActivityTab({ entries, nameOf }) {
         <ol style={{ listStyle: 'none', display: 'flex', flexDirection: 'column' }}>
           {entries.map(e => (
             <li key={e.id} style={{ display: 'flex', gap: '12px', padding: '10px 0', borderBottom: `1px solid ${colors.border}` }}>
-              <span aria-hidden style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.accent, marginTop: '7px', flexShrink: 0, opacity: 0.7 }} />
+              <span aria-hidden style={{ width: '8px', height: '8px', background: colors.accent, marginTop: '7px', flexShrink: 0, opacity: 0.7 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '14px', lineHeight: 1.5 }}>{describeActivity(e, nameOf)}</div>
                 <time dateTime={e.created_at} title={fmt(e.created_at, 'd MMM yyyy, HH:mm')} style={{ fontSize: '12px', color: colors.muted }}>

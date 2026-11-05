@@ -10,7 +10,7 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { KINDS, CONTACT_KINDS, HELD_KINDS, JOB_KINDS, FIELDS, looksLikeRentman, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, buildRows, dryRun, toPayload, reportCsv, serverMessage } from '../lib/importer'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
-import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors, tint } from '../components/ui'
+import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors } from '../components/ui'
 
 const STEPS = ['choose', 'match', 'check', 'done']
 const KIND_ICONS = { locations: MapPin, items: Package, units: Barcode, kits: Boxes, clients: Building2, suppliers: Truck, crew: Users, gigs: CalendarDays, gig_equipment: PackageCheck, quotes: Receipt }
@@ -79,7 +79,7 @@ export default function ImportPage() {
           <ArrowLeft size={14} /> {t(homeOf(orgId, kind)[1])}
         </Link>
         <div style={{ fontSize: '12px', color: colors.muted }}>{org?.name}</div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px', marginBottom: '4px' }}>{t('imp.title')}</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>{t('imp.title')}</h1>
         <p style={{ fontSize: '14px', color: colors.soft, lineHeight: 1.6, marginBottom: '16px', maxWidth: '640px' }}>{t('imp.subtitle')}</p>
 
         <ol aria-label={t('imp.steps')} style={{ listStyle: 'none', padding: 0, display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '18px' }}>
@@ -87,7 +87,7 @@ export default function ImportPage() {
             const on = s === step, done = STEPS.indexOf(step) > i
             return (
               <li key={s} aria-current={on ? 'step' : undefined} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: on ? 800 : 600,
-                color: on ? colors.accentText : done ? colors.soft : colors.muted, padding: '4px 10px', borderRadius: '20px', border: `1px solid ${on ? tint(colors.accent, 45) : colors.border}` }}>
+                color: on ? colors.accentText : done ? colors.soft : colors.muted, padding: '4px 10px', border: `1px solid ${on ? 'var(--accent)' : colors.border}` }}>
                 <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)' }}>{done ? '✓' : i + 1}</span> {t(`imp.step.${s}`)}
               </li>
             )
@@ -152,7 +152,7 @@ function SwitchChecklist({ orgId, kinds, kind, onPick }) {
   return (
     <section aria-labelledby="switch-title" style={{ ...card, marginBottom: '18px' }}>
       <button type="button" onClick={toggle} aria-expanded={open} style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '8px', background: 'none', border: 'none', padding: 0, color: 'var(--text)', font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
-        <h2 id="switch-title" style={{ fontSize: '15px', fontWeight: 800, flex: 1 }}>{t('imp.switch.title')}</h2>
+        <h2 id="switch-title" style={{ fontSize: '15px', fontWeight: 700, flex: 1 }}>{t('imp.switch.title')}</h2>
         <span style={{ fontSize: '12px', color: colors.soft }}>{t('imp.switch.progress', { done, total: steps.length })}</span>
       </button>
       {open && (
@@ -164,8 +164,8 @@ function SwitchChecklist({ orgId, kinds, kind, onPick }) {
               return (
                 <li key={c.kind}>
                   <button type="button" onClick={() => onPick(c.kind)} aria-pressed={kind === c.kind} style={{
-                    display: 'flex', width: '100%', alignItems: 'center', gap: '8px', padding: '5px 6px', borderRadius: '8px', border: 'none', cursor: 'pointer', font: 'inherit', textAlign: 'left',
-                    background: kind === c.kind ? tint(colors.accent, 12) : 'none', color: 'var(--text)', fontSize: '13px',
+                    display: 'flex', width: '100%', alignItems: 'center', gap: '8px', padding: '5px 6px', border: 'none', cursor: 'pointer', font: 'inherit', textAlign: 'left',
+                    background: kind === c.kind ? 'var(--selection)' : 'none', color: 'var(--text)', fontSize: '13px',
                   }}>
                     <span aria-hidden="true" style={{ width: '18px', textAlign: 'center', color: n ? colors.accentText : colors.muted, fontWeight: 700 }}>{n ? '✓' : i + 1}</span>
                     <span style={{ flex: 1 }}>{t(`imp.kind.${c.kind}`)}</span>
@@ -343,7 +343,7 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
       <ul aria-label={t('imp.step.match')} style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {table.headers.map((h, i) => (
           <li key={h + i} style={{ ...card, padding: '8px 12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '6px 12px', alignItems: 'center',
-            borderColor: mapping[h] ? tint(colors.accent, 35) : undefined }}>
+            borderColor: mapping[h] ? 'var(--accent)' : undefined }}>
             <span style={{ minWidth: 0 }}>
               <strong style={{ display: 'block', fontSize: '14px', overflowWrap: 'anywhere' }}>{h}</strong>
               <span style={{ display: 'block', fontSize: '12px', color: colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{samples(i) || '—'}</span>
@@ -450,8 +450,8 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fi
         <Count label={t('imp.willSkip')} value={run.counts.skip} warn={run.counts.skip > 0} />
       </div>
       {problems.length > 0 && (
-        <section aria-labelledby="imp-problems" style={{ ...card, borderColor: tint('var(--warn)', 40) }}>
-          <h2 id="imp-problems" style={{ fontSize: '14px', fontWeight: 800, marginBottom: '6px' }}>{t('imp.problemsTitle', { count: problems.length })}</h2>
+        <section aria-labelledby="imp-problems" style={{ ...card, borderColor: 'var(--warn)' }}>
+          <h2 id="imp-problems" style={{ fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>{t('imp.problemsTitle', { count: problems.length })}</h2>
           <ul style={{ listStyle: 'none', padding: 0, fontSize: '13px', lineHeight: 1.7, maxHeight: '220px', overflowY: 'auto' }} tabIndex={0} aria-label={t('imp.problemsTitle', { count: problems.length })}>
             {problems.slice(0, 200).map(({ row, p }) => (
               <li key={row}><strong>{t('imp.line', { n: row })}</strong> · {p.field ? `${t(`imp.field.${kind}.${p.field}`)}: ` : ''}{t(`imp.err.${p.reason}`, { value: p.value })}</li>
@@ -497,8 +497,8 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fi
 
 function Count({ label: text, value, hint, warn }) {
   return (
-    <div style={{ ...card, padding: '10px 12px', borderColor: warn ? tint('var(--warn)', 40) : undefined }}>
-      <div style={{ fontSize: '22px', fontWeight: 800, color: warn ? 'var(--warn)' : 'var(--text)' }}>{value}</div>
+    <div style={{ ...card, padding: '10px 12px', borderColor: warn ? 'var(--warn)' : undefined }}>
+      <div style={{ fontSize: '22px', fontWeight: 700, color: warn ? 'var(--warn)' : 'var(--text)' }}>{value}</div>
       <div style={{ fontSize: '12px', color: colors.soft }}>{text}</div>
       {hint && <div style={{ fontSize: '11px', color: colors.muted, marginTop: '2px' }}>{hint}</div>}
     </div>
@@ -520,7 +520,7 @@ function DoneStep({ orgId, kind, result, onAgain }) {
   }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <p role="status" style={{ ...card, display: 'flex', gap: '8px', alignItems: 'center', fontSize: '14px', borderColor: tint(colors.accent, 40) }}>
+      <p role="status" style={{ ...card, display: 'flex', gap: '8px', alignItems: 'center', fontSize: '14px', borderColor: 'var(--accent)' }}>
         <Check size={16} color={colors.accentText} aria-hidden="true" /> {t('imp.doneSummary', { created: result.created, updated: result.updated, unchanged: result.unchanged, skipped: result.skipped })}
       </p>
       {isHeld(kind) && <p style={{ fontSize: '14px', color: colors.soft, lineHeight: 1.6 }}>{t('imp.heldNote')}</p>}
@@ -562,7 +562,7 @@ function History({ orgId }) {
   if (!batches?.length) return null
   return (
     <section aria-labelledby="imp-history" style={{ marginTop: '32px' }}>
-      <h2 id="imp-history" style={{ fontSize: '16px', fontWeight: 800, marginBottom: '8px' }}>{t('imp.history')}</h2>
+      <h2 id="imp-history" style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>{t('imp.history')}</h2>
       <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {batches.map(b => (
           <li key={b.id} style={{ ...card, padding: '8px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', opacity: b.undone_at ? 0.75 : 1 }}>

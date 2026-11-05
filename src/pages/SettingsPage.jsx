@@ -275,7 +275,7 @@ export default function SettingsPage() {
         <button onClick={exportData} disabled={exporting} style={smallBtn}>
           {exporting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={14} />} {t('account.export')}
         </button>
-        <button onClick={deleteAccount} disabled={deleting} style={{ ...smallBtn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--danger) 30%, transparent)', color: 'var(--danger)' }}>
+        <button onClick={deleteAccount} disabled={deleting} style={{ ...smallBtn, background: 'transparent', borderColor: 'var(--danger)', color: 'var(--danger)' }}>
           {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} {t('account.delete')}
         </button>
       </div>
@@ -291,7 +291,7 @@ export default function SettingsPage() {
   }
 
   const signOutBtn = (
-    <button onClick={signOut} style={{ ...smallBtn, background: 'color-mix(in srgb, var(--danger) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--danger) 25%, transparent)', color: 'var(--danger)', width: '100%', justifyContent: 'center' }}>
+    <button onClick={signOut} style={{ ...smallBtn, background: 'var(--danger-soft)', borderColor: 'var(--danger)', color: 'var(--danger)', width: '100%', justifyContent: 'center' }}>
       <LogOut size={14} /> {t('account.signOut')}
     </button>
   )
@@ -302,7 +302,7 @@ export default function SettingsPage() {
       <div className="settings">
         {(wide || !shown) && (
           <nav className="settings-nav" aria-labelledby="settings-title">
-            <h1 id="settings-title" style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.3px' }}>{t('settings.title')}</h1>
+            <h1 id="settings-title" style={{ fontSize: '22px', fontWeight: 700 }}>{t('settings.title')}</h1>
             <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '4px 0 14px', wordBreak: 'break-all' }}>{user?.email}</p>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {sections.map(s => {
@@ -325,7 +325,7 @@ export default function SettingsPage() {
         {shown && (
           <section className="settings-body" aria-labelledby="settings-section-title">
             {!wide && <Link to="/settings" className="settings-back"><ChevronLeft size={16} aria-hidden="true" /> {t('settings.title')}</Link>}
-            <h2 id="settings-section-title" style={{ fontSize: '20px', fontWeight: 800, marginBottom: '6px' }}>{title(shown)}</h2>
+            <h2 id="settings-section-title" style={{ fontSize: '20px', fontWeight: 700, marginBottom: '6px' }}>{title(shown)}</h2>
             <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.5, marginBottom: '20px' }}>{t(`settings.hint.${shown}`)}</p>
             {content[shown]}
           </section>
@@ -352,26 +352,26 @@ function useWide() {
 const SETTINGS_CSS = `
 .settings { max-width: 1040px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 760px) { .settings { grid-template-columns: 240px minmax(0, 1fr); } .settings-nav { position: sticky; top: 76px; align-self: start; } }
-.settings-link { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 10px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; }
+.settings-link { display: flex; align-items: center; gap: 10px; padding: 11px 12px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; }
 .settings-link:hover { background: color-mix(in srgb, var(--fg) 6%, transparent); }
-.settings-link.on { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent-text); }
+.settings-link.on { background: var(--selection); color: var(--accent-text); }
 .settings-link:focus-visible, .settings-back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .settings-badge { color: var(--accent-text); }
 .settings-back { display: inline-flex; align-items: center; gap: 4px; color: var(--accent-text); text-decoration: none; font-size: 14px; font-weight: 600; margin-bottom: 12px; }
 .settings-body { min-width: 0; max-width: 620px; }
 `
 
-const section = { marginBottom: '22px', paddingBottom: '22px', borderBottom: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)' }
+const section = { marginBottom: '22px', paddingBottom: '22px', borderBottom: '1px solid var(--line)' }
 const label = {
   display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--muted)',
-  textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px'
+  fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px'
 }
 const input = {
-  width: '100%', padding: '10px 13px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)',
-  borderRadius: '9px', color: 'var(--text)', fontSize: '14px', outline: 'none'
+  width: '100%', padding: '10px 13px', background: 'var(--shade)', border: '1px solid var(--line)',
+  color: 'var(--text)', fontSize: '14px', outline: 'none'
 }
 const smallBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 14px', borderRadius: '9px',
-  border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent-text)',
+  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 14px', 
+  border: '1px solid var(--accent)', background: 'var(--selection)', color: 'var(--accent-text)',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0
 }

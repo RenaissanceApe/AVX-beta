@@ -53,7 +53,8 @@ const SCENES = {
     return page.locator('section[aria-labelledby="next-gig"]')
   } },
   'call-time': { persona: 'crew', url: `/gig/${ids.gig}`, async run(page, L) {
-    return page.getByText(L('crew.call', { time: '08:00' }), { exact: true }).first().locator('xpath=..')
+    // The viewer's own call: the CallChip with the accent key cell, under their function in the gig header
+    return page.getByTitle(L('crew.call', { time: '08:00' }), { exact: true }).first().locator('xpath=..')
   } },
   'schedule-callsheet': { persona: 'crew', url: `/gig/${ids.gig}?tab=schedule`, async run(page, L) {
     return page.getByRole('button', { name: L('schedule.callSheet') })

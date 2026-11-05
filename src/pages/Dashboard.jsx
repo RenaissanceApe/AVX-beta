@@ -28,6 +28,8 @@ import SimpleHome from '../components/SimpleHome'
 import { useSimpleMode } from '../lib/simpleMode'
 import { useGigLabels, GIG_LABELS_EMBED } from '../lib/gigLabels'
 import { GigLabels } from '../components/gig/parts'
+import { StatusBadge, CallChip } from '../components/ui'
+import { shortTime } from '../lib/schedule'
 import GigLabelFields from '../components/gig/GigLabelFields'
 import GigClientField from '../components/gig/GigClientField'
 import { useCustomFields, mergeValues } from '../lib/customFields'
@@ -129,7 +131,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
               <div style={{ minWidth: 0 }}>
                 <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '0 0 4px 0' }}>{t('dash.welcome', { name: firstName })}</p>
-                <h1 style={{ fontSize: '26px', fontWeight: 800, margin: 0, letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <h1 style={{ fontSize: '26px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                   {mode === 'me' ? t('nav.myWork') : org?.name || '…'}
                   {role && <RoleChip role={role} />}
                   <PageHelp page="home" />
@@ -248,7 +250,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
             placeholder={t('gigForm.descriptionPlaceholder')} rows={3} style={{ ...modalInput, resize: 'vertical', lineHeight: '1.5' }} />
         </FieldLabel>
         {error && (
-          <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'color-mix(in srgb, var(--danger) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)', color: 'var(--danger)', fontSize: '13px', lineHeight: '1.5' }}>
+          <div style={{ padding: '10px 14px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: '13px', lineHeight: '1.5' }}>
             {error}
           </div>
         )}
@@ -275,24 +277,24 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
   const byLabel = g => (!labelFilter.status || g.custom_status_id === labelFilter.status) && (!labelFilter.type || g.gig_type_id === labelFilter.type)
   const counts = countByBucket(gigs.filter(byLabel))
   const visible = filterGigs(gigs, filter, search).filter(byLabel)
-  const filterSelect = { padding: '7px 10px', borderRadius: '10px', fontSize: '13px', color: 'var(--text)', maxWidth: '100%',
-    background: 'color-mix(in srgb, var(--shade) 30%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)' }
+  const filterSelect = { padding: '7px 10px', fontSize: '13px', color: 'var(--text)', maxWidth: '100%',
+    background: 'var(--shade)', border: '1px solid var(--line)' }
   return (
     <div>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
-        <div role="group" aria-label="View" style={{ display: 'flex', gap: '2px', background: 'color-mix(in srgb, var(--shade) 30%, transparent)', borderRadius: '10px', padding: '3px' }}>
+        <div role="group" aria-label="View" style={{ display: 'flex', gap: '2px', background: 'var(--shade)', padding: '3px' }}>
           {[['list', <List key="i" size={15} />, t('dash.viewList')], ['calendar', <CalendarDays key="i" size={15} />, t('dash.viewCalendar')]].map(([v, icon, labelText]) => (
             <button key={v} onClick={() => setView(v)} aria-pressed={view === v} aria-label={labelText} title={labelText} style={{
-              padding: '6px 9px', borderRadius: '7px', border: 'none', cursor: 'pointer', display: 'flex',
-              background: view === v ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent', color: view === v ? 'var(--accent-text)' : 'var(--muted)'
+              padding: '6px 9px', border: 'none', cursor: 'pointer', display: 'flex',
+              background: view === v ? 'var(--selection)' : 'transparent', color: view === v ? 'var(--accent-text)' : 'var(--muted)'
             }}>{icon}</button>
           ))}
         </div>
-        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'color-mix(in srgb, var(--shade) 30%, transparent)', borderRadius: '10px', padding: '3px', overflowX: 'auto', overflowY: 'hidden' }}>
+        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'var(--shade)', padding: '3px', overflowX: 'auto', overflowY: 'hidden' }}>
           {GIG_FILTERS.map(f => (
             <button key={f.value} role="tab" aria-selected={filter === f.value} onClick={() => setFilter(f.value)} style={{
-              padding: '6px 12px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
-              background: filter === f.value ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
+              padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
+              background: filter === f.value ? 'var(--selection)' : 'transparent',
               color: filter === f.value ? 'var(--accent-text)' : 'var(--muted)'
             }}>
               {t(`gigFilter.${f.value}`)} <span style={{ opacity: 0.7 }}>{counts[f.value]}</span>
@@ -300,7 +302,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
           ))}
         </div>}
         <label style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px',
-          background: 'color-mix(in srgb, var(--shade) 30%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)', borderRadius: '10px' }}>
+          background: 'var(--shade)', border: '1px solid var(--line)',  }}>
           <Search size={14} color="var(--muted)" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('dash.searchPlaceholder')} aria-label={t('dash.searchPlaceholder')}
             style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '14px', minWidth: 0 }} />
@@ -325,7 +327,8 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
           {search ? t('dash.noMatch') : t(`dash.noGigs.${filter}`)}
         </p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="gig-list">
+          <style>{GIG_CARD_CSS}</style>
           {visible.map(gig => <GigCard key={gig.id} gig={gig} showCompany={showCompany} clash={!!clashIds?.has(gig.id)} onOpen={() => onOpen(gig)} />)}
         </div>
       )}
@@ -333,59 +336,59 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
   )
 }
 
+// A row in the gig list (DESIGN.md "GigCard"): date block, name, status + label + venue · dates,
+// and on the right the thing this viewer needs: their call time (My work) or a chevron.
 function GigCard({ gig, onOpen, showCompany, clash }) {
+  const multi = gig.end_date && gig.end_date !== gig.start_date
   return (
-    <button onClick={onOpen} className="gig-card"
-      style={{
-        width: '100%', textAlign: 'left', color: 'var(--text)', font: 'inherit',
-        background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)',
-        borderRadius: '14px', padding: '16px 18px', cursor: 'pointer', transition: 'all 0.2s',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px'
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--accent) 25%, transparent)'; e.currentTarget.style.background = 'color-mix(in srgb, var(--accent) 4%, transparent)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)'; e.currentTarget.style.background = 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)' }}
-    >
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
-          <span style={{ fontWeight: 700, fontSize: '16px' }}>{gig.name}</span>
+    <button onClick={onOpen} className="gig-card">
+      <span className="gig-card-date" aria-hidden={gig.start_date ? 'true' : undefined}>
+        {gig.start_date ? <>{fmt(gig.start_date, 'EEE')}<b>{fmt(gig.start_date, 'dd')}</b>{fmt(gig.start_date, 'MMM')}</> : <b>—</b>}
+      </span>
+      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '15px', lineHeight: '20px', overflowWrap: 'anywhere' }}>{gig.name}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px 8px', flexWrap: 'wrap' }}>
           <GigLabels gig={gig} />
-          {clash && (
-            <span title={t('clash.doubleBookingHint')} style={{
-              fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '20px', color: 'var(--warn)', background: 'color-mix(in srgb, var(--warn) 12%, transparent)',
-              display: 'inline-flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase', letterSpacing: '0.05em',
-            }}><AlertTriangle size={11} /> {t('clash.doubleBooking')}</span>
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: '6px 16px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--muted)' }}>
-          {showCompany && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--soft)' }}>
-              <Building2 size={12} /> {gig.company || t('home.otherCompany')}
-              <span style={{ color: 'var(--accent-text)', fontWeight: 600 }}>· {gig.myFunction || t(`gigRoleLong.${gig.myGigRole || 'crew'}`)}</span>
-            </span>
-          )}
-          {gig.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {gig.venue}</span>}
+          {clash && <StatusBadge tone="warn" title={t('clash.doubleBookingHint')}>{t('clash.doubleBooking')}</StatusBadge>}
+          {gig.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--text-2)' }}><MapPin size={13} aria-hidden="true" /> {gig.venue}</span>}
           {gig.start_date && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Calendar size={12} />
-              {fmt(gig.start_date, 'dd MMM yyyy')}
-              {gig.end_date && gig.end_date !== gig.start_date && ` → ${fmt(gig.end_date, 'dd MMM')}`}
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-2)' }}>
+              {fmt(gig.start_date, 'dd MMM yyyy')}{multi && ` → ${fmt(gig.end_date, 'dd MMM')}`}
             </span>
           )}
-        </div>
-      </div>
-      <ChevronRight size={18} color="var(--muted)" />
+        </span>
+        {showCompany && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--muted)' }}>
+            <Building2 size={12} aria-hidden="true" /> {gig.company || t('home.otherCompany')} · {gig.myFunction || t(`gigRoleLong.${gig.myGigRole || 'crew'}`)}
+          </span>
+        )}
+      </span>
+      {gig.myCallTime
+        ? <CallChip me label={t('crew.callKey')} time={shortTime(gig.myCallTime)} title={t('crew.call', { time: shortTime(gig.myCallTime) })} />
+        : <ChevronRight size={18} color="var(--muted)" aria-hidden="true" />}
     </button>
   )
 }
 
+const GIG_CARD_CSS = `
+  .gig-list { display: flex; flex-direction: column; border: 1px solid var(--line); background: var(--panel); }
+  .gig-card { width: 100%; text-align: left; color: var(--text); font: inherit; background: var(--panel); border: none; border-bottom: 1px solid var(--line);
+    padding: 12px 16px 12px 0; cursor: pointer; display: flex; align-items: center; gap: 16px; transition: background-color .15s; }
+  .gig-card:last-child { border-bottom: none; }
+  .gig-card:hover { background: var(--hover); }
+  .gig-card-date { flex-shrink: 0; width: 64px; align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-right: 1px solid var(--line); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .gig-card-date b { font-size: 20px; line-height: 24px; letter-spacing: 0; color: var(--text); }
+`
+
 function Modal({ title, onClose, children }) {
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+      position: 'fixed', inset: 0, zIndex: 100, background: 'var(--overlay)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'calc(24px + var(--safe-top)) 24px 24px'
     }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label={title} style={{
-        background: 'var(--panel)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '18px', padding: '28px', width: '100%', maxWidth: '480px',
+        background: 'var(--panel)', border: '1px solid var(--line-strong)', padding: '28px', width: '100%', maxWidth: '480px',
         animation: 'fadeIn 0.2s ease', maxHeight: 'calc(100vh - 32px - var(--safe-top))', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
@@ -404,19 +407,19 @@ function Modal({ title, onClose, children }) {
 function FieldLabel({ label, children }) {
   return (
     <label style={{ display: 'block' }}>
-      <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</span>
+      <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</span>
       {children}
     </label>
   )
 }
 
 const btnPrimary = {
-  display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-  background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', color: 'var(--on-accent)', fontWeight: 700, fontSize: '14px',
-  fontFamily: 'var(--font-ui)', boxShadow: '0 4px 16px color-mix(in srgb, var(--accent) 25%, transparent)', transition: 'all 0.2s'
+  display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 18px', border: 'none', cursor: 'pointer',
+  background: 'var(--accent)', color: 'var(--on-accent)', fontWeight: 700, fontSize: '14px',
+  fontFamily: 'var(--font-ui)', transition: 'background-color .15s'
 }
 const btnModal = { ...btnPrimary, width: '100%', justifyContent: 'center', padding: '13px', fontSize: '15px', marginTop: '4px' }
 const modalInput = {
-  width: '100%', padding: '10px 13px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)',
-  borderRadius: '9px', color: 'var(--text)', fontSize: '14px', outline: 'none',
+  width: '100%', padding: '10px 13px', background: 'var(--shade)', border: '1px solid var(--line)',
+  color: 'var(--text)', fontSize: '14px', outline: 'none',
 }

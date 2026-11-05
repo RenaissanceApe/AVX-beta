@@ -52,11 +52,11 @@ export default function PatchSheetPage({ kind }) {
     <div className="sheet-page">
       <style>{`
         .sheet-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
-        .sheet { max-width: 900px; margin: 0 auto; background: #fff; color: #111; border-radius: 8px; padding: 28px; font-size: 13px; }
+        .sheet { max-width: 900px; margin: 0 auto; background: #fff; color: #111; padding: 28px; font-size: 13px; }
         .sheet h1 { font-size: 22px; margin-bottom: 2px; }
-        .sheet h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; margin: 20px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; }
+        .sheet h2 { font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; margin: 20px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; }
         .sheet table { width: 100%; border-collapse: collapse; }
-        .sheet th { text-align: left; font-size: 11px; text-transform: uppercase; color: #555; padding: 4px 6px; border-bottom: 1px solid #999; }
+        .sheet th { text-align: left; font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; color: #555; padding: 4px 6px; border-bottom: 1px solid #999; }
         .sheet td { padding: 5px 6px; border-bottom: 1px solid #ddd; vertical-align: top; }
         .sheet .num { font-family: monospace; font-weight: 800; white-space: nowrap; }
         .sheet .muted { color: #555; }
@@ -66,7 +66,7 @@ export default function PatchSheetPage({ kind }) {
           @page { margin: 10mm; }
           body, .sheet-page { background: #fff !important; padding: 0; }
           .toolbar { display: none; }
-          .sheet { border-radius: 0; padding: 0; max-width: none; }
+          .sheet { padding: 0; max-width: none; }
           tr { break-inside: avoid; }
         }
       `}</style>
@@ -75,7 +75,7 @@ export default function PatchSheetPage({ kind }) {
         <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0B7A41', color: '#fff', border: 'none' }}><Printer size={14} /> {t('callsheet.print')}</button>
       </div>
       <article className="sheet">
-        <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.1em' }}>{t(`tools.name.${tool}`)}</div>
+        <div className="muted" style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.1em' }}>{t(`tools.name.${tool}`)}</div>
         <h1>{gig.name}</h1>
         <div>{[gig.venue || t('callsheet.venueTbc'), dates, gig.organisations?.name].filter(Boolean).join(' · ')}</div>
         {kind === 'dmx' ? <DmxSheet rows={rows} t={t} /> : <PatchSheet audio={audio} rows={rows} t={t} />}
@@ -141,6 +141,6 @@ function DmxSheet({ rows, t }) {
 }
 
 const toolbarBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px',
+  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', 
   border: '1px solid #c5ccd4', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }

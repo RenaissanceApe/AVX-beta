@@ -48,8 +48,8 @@ export default function SupplierLinkPage() {
       )}
       {about && (
         <article style={card}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr('supplierPage.title')}</div>
-          <h1 style={{ fontSize: '22px', fontWeight: 800, margin: '2px 0 4px' }}>{org?.name}</h1>
+          <div style={{ fontSize: '12px', color: '#666', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr('supplierPage.title')}</div>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '2px 0 4px' }}>{org?.name}</h1>
           <p style={{ fontSize: '14px', color: '#333', margin: 0 }}>
             {[about.reference && tr('supplierPage.reference', { reference: about.reference }), about.supplier && tr('supplierPage.for', { supplier: about.supplier })].filter(Boolean).join(' · ')}
           </p>
@@ -77,7 +77,7 @@ export default function SupplierLinkPage() {
 }
 
 const page = { minHeight: '100vh', background: '#e9edf1', color: '#111', padding: '16px', fontFamily: "'Inter', sans-serif" }
-const card = { maxWidth: '210mm', margin: '12px auto 0', background: '#fff', borderRadius: '6px', padding: '20px' }
-const th = { textAlign: 'left', fontSize: '11px', textTransform: 'uppercase', color: '#666', padding: '6px', borderBottom: '1px solid #ccc' }
+const card = { maxWidth: '210mm', margin: '12px auto 0', background: '#fff', padding: '20px' }
+const th = { textAlign: 'left', fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: '#666', padding: '6px', borderBottom: '1px solid #ccc' }
 const td = { padding: '7px 6px', borderBottom: '1px solid #eee' }
-const langBtn = { background: 'none', border: '1px solid #c5ccd4', borderRadius: '6px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer', color: '#111' }
+const langBtn = { background: 'none', border: '1px solid #c5ccd4', padding: '4px 8px', fontSize: '12px', cursor: 'pointer', color: '#111' }

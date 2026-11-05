@@ -115,11 +115,11 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
           <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '12px' }}>
             <span style={label}>{t('company.header')}</span>
             {branding.header_image ? (
-              <div style={{ position: 'relative', background: '#fff', borderRadius: '8px', overflow: 'hidden' }}>
+              <div style={{ position: 'relative', background: '#fff', overflow: 'hidden' }}>
                 <img src={branding.header_image} alt={t('company.header')} style={{ display: 'block', width: '100%' }} />
                 {canEdit && (
                   <button type="button" onClick={() => setBranding(b => ({ ...b, header_image: null }))} aria-label={t('company.removeHeader')} title={t('company.removeHeader')}
-                    style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(0,0,0,0.65)', border: 'none', borderRadius: '6px', color: 'var(--text)', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+                    style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(0,0,0,0.65)', border: 'none', color: 'var(--text)', cursor: 'pointer', padding: '4px', display: 'flex' }}>
                     <X size={14} />
                   </button>
                 )}

@@ -9,7 +9,7 @@ import { REPAIR_STATUSES, isOpenRepair, dueState, repairPhotoPath, MAX_PHOTO_BYT
 import { formatMoney, localISODate } from '../../lib/quotes'
 import { taskFromRepair } from '../../lib/tasks'
 import { useI18n, t } from '../../i18n'
-import { Modal, btn, btnPrimary, input, label, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, input, label, card, colors, StatusBadge } from '../ui'
 import LinkedExpense from '../expenses/LinkedExpense'
 import ContextThread from '../messages/ContextThread'
 import { HintLabel } from '../help/HelpParts'
@@ -18,8 +18,8 @@ const AMBER = 'var(--warn)'
 const select = { ...input, appearance: 'auto' }
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }
 const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
-const STATUS_COLOR = { open: AMBER, in_repair: 'var(--sky)', done: colors.accent, written_off: colors.muted }
-const DUE_COLOR = { overdue: colors.danger, soon: AMBER, ok: colors.muted }
+const STATUS_TONE = { open: 'warn', in_repair: 'info', done: 'ok', written_off: 'off' }
+const DUE_TONE = { overdue: 'danger', soon: 'warn', ok: 'off' }
 const REPAIR_SELECT = '*, unit:unit_id(code), gig:gig_id(name)'
 
 const Field = ({ id, text, children }) => <div><label style={label} htmlFor={id}>{text}</label>{children}</div>
@@ -253,7 +253,7 @@ export function InspectionModal({ item, unitId: presetUnit, onClose, onSaved }) 
           {['pass', 'fail'].map(r => (
             <button key={r} type="button" role="radio" aria-checked={form.result === r} onClick={() => setForm(f => ({ ...f, result: r }))} style={{
               ...btn, flex: 1, justifyContent: 'center',
-              ...(form.result === r ? { background: r === 'pass' ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'color-mix(in srgb, var(--danger) 15%, transparent)', borderColor: r === 'pass' ? colors.accent : colors.danger, color: 'var(--text)' } : {}),
+              ...(form.result === r ? { background: r === 'pass' ? 'var(--selection)' : 'var(--danger-soft)', borderColor: r === 'pass' ? colors.accent : colors.danger, color: 'var(--text)' } : {}),
             }}>{t(`inspect.${r}`)}</button>
           ))}
         </div>
@@ -282,7 +282,7 @@ function RepairRow({ r, itemName, onOpen }) {
       </span>
       {r.photo_path && <ImageIcon size={13} color={colors.muted} aria-label={t('repair.photo')} />}
       <span style={{ fontSize: '12px', color: colors.muted, whiteSpace: 'nowrap' }}>{fmt(r.created_at, 'd MMM')}{r.expected_back && isOpenRepair(r) ? ` → ${fmt(r.expected_back, 'd MMM')}` : ''}</span>
-      <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: STATUS_COLOR[r.status] }}>{t(`repair.status.${r.status}`)}</span>
+      <StatusBadge small tone={STATUS_TONE[r.status] || 'open'}>{t(`repair.status.${r.status}`)}</StatusBadge>
     </button>
   )
 }
@@ -301,7 +301,7 @@ function DueRow({ d, orgId, onRecord }) {
           {[d.inspection_kind, d.last_done ? t('inspect.lastDone', { date: fmt(d.last_done, 'd MMM yyyy') }) : t('inspect.never'), d.last_result === 'fail' && t('inspect.lastFailed')].filter(Boolean).join(' · ')}
         </span>
       </span>
-      <span style={{ fontSize: '12px', fontWeight: 700, color: DUE_COLOR[state] }}>{t(`inspect.due.${state}`, { date: fmt(d.due_on, 'd MMM yyyy') })}</span>
+      <StatusBadge small tone={DUE_TONE[state]}>{t(`inspect.due.${state}`, { date: fmt(d.due_on, 'd MMM yyyy') })}</StatusBadge>
       <button onClick={() => onRecord(d)} style={{ ...btn, padding: '5px 9px', fontSize: '12px' }}><ClipboardCheck size={12} /> {t('inspect.record')}</button>
     </div>
   )

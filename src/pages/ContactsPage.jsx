@@ -11,7 +11,7 @@ import { quoteNumber, formatMoney } from '../lib/quotes'
 import { useCustomFields, mergeValues } from '../lib/customFields'
 import { CustomFieldInputs } from '../components/CustomFields'
 import { useI18n, t, getLanguage } from '../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../components/ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
 import EmptyState from '../components/EmptyState'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
@@ -110,7 +110,7 @@ export default function ContactsPage() {
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 0', display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 220px', minWidth: 0 }}>
           <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org?.name}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('contacts.title')}</h1><PageHelp page="contacts" /></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('contacts.title')}</h1><PageHelp page="contacts" /></div>
         </div>
         <Link to={`/org/${orgId}/inventory/import?kind=${tab}`} style={{ ...btn, textDecoration: 'none' }}><Upload size={14} /> {t('contacts.import')}</Link>
         <button onClick={() => setEditing({})} style={btnPrimary}><Plus size={15} /> {t(`contacts.new.${tab}`)}</button>
@@ -133,7 +133,7 @@ export default function ContactsPage() {
         </div>
 
         {tab === 'clients' && unlinked > 0 && (
-          <section style={{ ...card, display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px', borderColor: tint(colors.accent, 35) }}>
+          <section style={{ ...card, display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px', borderColor: 'var(--accent)' }}>
             <FileText size={18} color={colors.accentText} aria-hidden="true" style={{ flexShrink: 0 }} />
             <p style={{ flex: '1 1 260px', fontSize: '13px', lineHeight: 1.6 }}>{t('contacts.fromQuotesText', { count: unlinked })}</p>
             <button onClick={fillFromQuotes} disabled={filling} style={btn}>

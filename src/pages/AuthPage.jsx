@@ -4,7 +4,8 @@ import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { logger, userMessage } from '../lib/logger'
 import { useI18n, LANGUAGES } from '../i18n'
-import { Zap, Eye, EyeOff, ArrowRight, Loader2, Mail, CheckCircle } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight, Loader2, Mail, CheckCircle } from 'lucide-react'
+import { AvxMark } from '../components/ui'
 
 export default function AuthPage() {
   const [mode, setMode] = useState('signin')
@@ -127,13 +128,13 @@ export default function AuthPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'var(--font-ui)' }}>
       <div style={{ textAlign: 'center', maxWidth: '380px' }}>
         <div style={{
-          width: '72px', height: '72px', borderRadius: '20px', margin: '0 auto 24px',
-          background: 'color-mix(in srgb, var(--accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)',
+          width: '72px', height: '72px', margin: '0 auto 24px',
+          background: 'var(--selection)', border: '1px solid var(--accent)',
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <Mail size={32} color="var(--accent-text)" />
         </div>
-        <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text)', marginBottom: '12px' }}>{t('auth.checkEmail')}</h2>
+        <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text)', marginBottom: '12px' }}>{t('auth.checkEmail')}</h2>
         <p style={{ color: 'var(--muted)', fontSize: '15px', lineHeight: '1.7', marginBottom: '8px' }}>
           {t('auth.sentLinkTo')}
         </p>
@@ -148,8 +149,8 @@ export default function AuthPage() {
           </button>.
         </p>
         <button onClick={() => { setAwaitingConfirmation(false); setMode('signin') }} style={{
-          background: 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)',
-          borderRadius: '10px', padding: '11px 24px', color: 'var(--text)', fontSize: '14px',
+          background: 'var(--hover)', border: '1px solid var(--line-strong)',
+          padding: '11px 24px', color: 'var(--text)', fontSize: '14px',
           fontWeight: '600', fontFamily: 'var(--font-ui)', cursor: 'pointer'
         }}>
           {t('auth.backToSignIn')}
@@ -163,22 +164,21 @@ export default function AuthPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'var(--font-ui)' }}>
       <div style={{ textAlign: 'center', maxWidth: '380px' }}>
         <div style={{
-          width: '72px', height: '72px', borderRadius: '20px', margin: '0 auto 24px',
-          background: 'color-mix(in srgb, var(--accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)',
+          width: '72px', height: '72px', margin: '0 auto 24px',
+          background: 'var(--selection)', border: '1px solid var(--accent)',
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <CheckCircle size={32} color="var(--accent-text)" />
         </div>
-        <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text)', marginBottom: '12px' }}>{t('auth.emailConfirmed')}</h2>
+        <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text)', marginBottom: '12px' }}>{t('auth.emailConfirmed')}</h2>
         <p style={{ color: 'var(--muted)', fontSize: '15px', lineHeight: '1.7', marginBottom: '28px' }}>
           {t('auth.verified')}
         </p>
         <button onClick={() => setConfirmed(false)} style={{
-          background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
-          border: 'none', borderRadius: '10px', padding: '13px 32px',
+          background: 'var(--accent)',
+          border: 'none', padding: '13px 32px',
           color: 'var(--on-accent)', fontSize: '15px', fontWeight: '700',
           fontFamily: 'var(--font-ui)', cursor: 'pointer',
-          boxShadow: '0 4px 16px color-mix(in srgb, var(--accent) 30%, transparent)'
         }}>
           {t('auth.signIn')} →
         </button>
@@ -187,68 +187,42 @@ export default function AuthPage() {
   )
 
   return (
-    <div style={{
+    <div className="avx-dots" style={{
       minHeight: '100vh', background: 'var(--bg)',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
       padding: '24px', fontFamily: 'var(--font-ui)'
     }}>
-      {/* Background grid */}
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 0,
-        backgroundImage: `
-          linear-gradient(color-mix(in srgb, var(--accent) 3%, transparent) 1px, transparent 1px),
-          linear-gradient(90deg, color-mix(in srgb, var(--accent) 3%, transparent) 1px, transparent 1px)
-        `,
-        backgroundSize: '40px 40px',
-        pointerEvents: 'none'
-      }} />
-
-      {/* Glow */}
-      <div style={{
-        position: 'fixed', top: '-20%', left: '50%', transform: 'translateX(-50%)',
-        width: '600px', height: '400px',
-        background: 'radial-gradient(ellipse, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 70%)',
-        pointerEvents: 'none', zIndex: 0
-      }} />
 
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '400px' }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <div style={{
-              width: '36px', height: '36px', background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
-              borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 20px color-mix(in srgb, var(--accent) 40%, transparent)'
-            }}>
-              <Zap size={20} color="var(--on-accent)" fill="var(--on-accent)" />
-            </div>
-            <span style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text)', letterSpacing: '-0.5px' }}>AVX</span>
+            <AvxMark size={28} style={{ color: 'var(--accent-text)' }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '28px', fontWeight: 700, color: 'var(--text)', letterSpacing: '0.06em' }}>AVX</span>
           </div>
           <p style={{ color: 'var(--muted)', fontSize: '14px', margin: 0 }}>{t('app.tagline')}</p>
         </div>
 
         {/* Card */}
         <div style={{
-          background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)',
-          border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)',
-          borderRadius: '20px',
+          background: 'var(--panel)',
+          border: '1px solid var(--line)',
           padding: '32px',
-          backdropFilter: 'blur(20px)',
         }}>
           {/* Tab switcher */}
           <div style={{
-            display: 'flex', background: 'color-mix(in srgb, var(--shade) 30%, transparent)',
-            borderRadius: '10px', padding: '4px', marginBottom: '28px'
+            display: 'flex', background: 'var(--shade)',
+            padding: '4px', marginBottom: '28px'
           }}>
             {['signin', 'signup'].map(m => (
               <button key={m} onClick={() => { setMode(m); setError(''); setResetSent(false) }} style={{
-                flex: 1, padding: '8px', borderRadius: '7px', cursor: 'pointer',
+                flex: 1, padding: '8px', cursor: 'pointer',
                 fontSize: '13px', fontWeight: '600', fontFamily: 'var(--font-ui)',
                 transition: 'all 0.2s',
-                background: mode === m ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
+                background: mode === m ? 'var(--selection)' : 'transparent',
                 color: mode === m ? 'var(--accent-text)' : 'var(--muted)',
-                border: mode === m ? '1px solid color-mix(in srgb, var(--accent) 25%, transparent)' : '1px solid transparent',
+                border: mode === m ? '1px solid var(--accent)' : '1px solid transparent',
               }}>
                 {m === 'signin' ? t('auth.signIn') : t('auth.createAccount')}
               </button>
@@ -258,7 +232,7 @@ export default function AuthPage() {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {mode === 'signup' && (
               <div>
-                <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   {t('auth.fullName')}
                 </label>
                 <input
@@ -272,7 +246,7 @@ export default function AuthPage() {
               </div>
             )}
             <div>
-              <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {t('common.email')}
               </label>
               <input
@@ -285,7 +259,7 @@ export default function AuthPage() {
               />
             </div>
             {mode !== 'reset' && mode !== 'magic' && <div>
-              <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {t('auth.password')}
               </label>
               <div style={{ position: 'relative' }}>
@@ -336,8 +310,8 @@ export default function AuthPage() {
 
             {error && (
               <div role="alert" style={{
-                padding: '10px 14px', borderRadius: '8px',
-                background: 'color-mix(in srgb, var(--danger) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)',
+                padding: '10px 14px', 
+                background: 'var(--danger-soft)', border: '1px solid var(--danger)',
                 color: 'var(--danger)', fontSize: '13px'
               }}>
                 {error}
@@ -353,13 +327,12 @@ export default function AuthPage() {
 
             <button type="submit" disabled={loading} style={{
               marginTop: '4px',
-              padding: '13px', borderRadius: '10px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-              background: loading ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'linear-gradient(135deg, var(--accent), var(--accent-2))',
+              padding: '13px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+              background: loading ? 'var(--selection)' : 'var(--accent)',
               color: 'var(--on-accent)', fontWeight: '700', fontSize: '15px',
               fontFamily: 'var(--font-ui)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              transition: 'all 0.2s',
-              boxShadow: loading ? 'none' : '0 4px 20px color-mix(in srgb, var(--accent) 30%, transparent)',
+              transition: 'background-color .15s',
             }}>
               {loading ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : null}
               {loading ? t('common.pleaseWait') : mode === 'signin' ? t('auth.signIn') : mode === 'reset' ? t('auth.sendReset') : mode === 'magic' ? t('auth.sendMagic') : t('auth.createAccount')}
@@ -397,9 +370,9 @@ export default function AuthPage() {
 
 const inputStyle = {
   width: '100%', padding: '11px 14px',
-  background: 'color-mix(in srgb, var(--shade) 30%, transparent)',
-  border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)',
-  borderRadius: '9px', color: 'var(--text)',
+  background: 'var(--shade)',
+  border: '1px solid var(--line)',
+  color: 'var(--text)',
   fontSize: '14px', fontFamily: 'var(--font-ui)',
   outline: 'none', boxSizing: 'border-box',
   transition: 'border-color 0.2s',

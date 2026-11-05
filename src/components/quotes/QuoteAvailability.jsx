@@ -45,7 +45,7 @@ export default function QuoteAvailabilityModal({ quote, body, org, onClose }) {
         <>
           <p style={{ fontSize: '13px', color: colors.soft, marginBottom: '10px' }}>{t('quoteAvail.window', { range: rangeText(win.from, win.until) })}</p>
           <div role="status" style={{ ...card, marginBottom: '12px', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'center',
-            color: short.length ? AMBER : colors.accentText, borderColor: short.length ? 'color-mix(in srgb, var(--warn) 40%, transparent)' : 'color-mix(in srgb, var(--accent) 30%, transparent)' }}>
+            color: short.length ? AMBER : colors.accentText, borderColor: short.length ? 'var(--warn)' : 'var(--accent)' }}>
             {short.length ? <AlertTriangle size={15} /> : <Check size={15} />}
             {short.length ? t('quoteAvail.short', { count: short.length }) : t('quoteAvail.allFree')}
           </div>

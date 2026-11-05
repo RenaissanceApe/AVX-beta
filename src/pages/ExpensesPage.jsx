@@ -20,7 +20,7 @@ import { RecurringPanel, CategorySettings } from '../components/expenses/Expense
 
 const VIEWS = ['month', 'unpaid', 'claims', 'recurring', 'categories']
 const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
-const h2 = { fontSize: '15px', fontWeight: 800, margin: 0 }
+const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
 const DETAILS_KEY = 'avx.expenses.details'
 const readDetails = () => { try { return localStorage.getItem(DETAILS_KEY) === '1' } catch { return false } }
 const writeDetails = v => { try { localStorage.setItem(DETAILS_KEY, v ? '1' : '0') } catch { /* private window */ } }
@@ -117,7 +117,7 @@ export default function ExpensesPage() {
   if (!canSee) return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px' }}>{title}</h1>
+        <h1 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>{title}</h1>
         <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>{t('expenses.noAccess')}</p>
         <button type="button" onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
       </div>
@@ -136,7 +136,7 @@ export default function ExpensesPage() {
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 220px', minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{title}</h1>
+              <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{title}</h1>
               <PageHelp page="org-expenses" />
             </div>
             <p style={{ fontSize: '13px', color: colors.muted, marginTop: '2px' }}>{t('expenses.intro')}</p>
@@ -173,7 +173,7 @@ export default function ExpensesPage() {
             {view === 'month' && list && (
               <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '4px 12px', fontSize: '14px', margin: 0 }}>
                 <dt style={{ fontWeight: 700, minWidth: 0 }}>{t('expenses.monthTotal')}</dt>
-                <dd style={{ margin: 0, fontWeight: 800, textAlign: 'right', whiteSpace: 'nowrap' }}><Totals list={confirmed} lang={lang} what="net" /></dd>
+                <dd style={{ margin: 0, fontWeight: 700, textAlign: 'right', whiteSpace: 'nowrap' }}><Totals list={confirmed} lang={lang} what="net" /></dd>
                 {kindSums.filter(k => k.count).map(k => (
                   <FragmentRow key={k.kind} term={t(`expenses.kind.${k.kind}`)}
                     value={<>{formatMoney(k.cost, 'EUR', lang)}{k.kind === 'capital' && <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{t('expenses.thisMonthShare', { amount: formatMoney(k.monthCost, 'EUR', lang) })}</span>}</>} />

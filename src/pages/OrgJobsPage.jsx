@@ -78,7 +78,7 @@ export default function OrgJobsPage() {
           <div style={{ flex: '1 1 220px', minWidth: 0 }}>
             <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org?.name}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('jobs.orgTitle')}</h1>
+              <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('jobs.orgTitle')}</h1>
               <PageHelp page="org-jobs" />
             </div>
           </div>

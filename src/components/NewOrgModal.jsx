@@ -36,7 +36,7 @@ export default function NewOrgModal({ onClose, onCreated }) {
             maxLength={120} style={input} autoFocus />
         </div>
         {error && (
-          <div role="alert" style={{ padding: '10px 14px', borderRadius: '8px', background: 'color-mix(in srgb, var(--danger) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)', color: colors.danger, fontSize: '13px' }}>
+          <div role="alert" style={{ padding: '10px 14px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', color: colors.danger, fontSize: '13px' }}>
             {error}
           </div>
         )}

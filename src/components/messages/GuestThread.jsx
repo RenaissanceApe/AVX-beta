@@ -70,7 +70,7 @@ export default function GuestThread({ token, lang, defaultName = '', onData }) {
             <div style={{ fontSize: '11px', color: '#777', margin: '0 4px 2px', textAlign: m.guest ? 'right' : 'left' }}>
               {m.name}{!m.guest && org && m.name !== org ? ` · ${org}` : ''} · {fmtIn(lang, m.at, lang === 'pt' ? 'dd-MM HH:mm' : 'd MMM HH:mm')}
             </div>
-            <div style={{ background: m.guest ? '#E7F8EF' : '#F1F3F5', borderRadius: '10px', padding: '8px 11px', fontSize: '14px', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</div>
+            <div style={{ background: m.guest ? '#E7F8EF' : '#F1F3F5', padding: '8px 11px', fontSize: '14px', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</div>
           </div>
         ))}
       </div>
@@ -98,12 +98,12 @@ export default function GuestThread({ token, lang, defaultName = '', onData }) {
 }
 
 const box = {
-  maxWidth: '210mm', margin: '12px auto 0', background: '#fff', color: '#111', borderRadius: '6px', border: '1px solid #d5dbe1',
+  maxWidth: '210mm', margin: '12px auto 0', background: '#fff', color: '#111', border: '1px solid #d5dbe1',
   padding: '16px', fontFamily: "'Inter', sans-serif",
 }
 const labelStyle = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#333' }
-const field = { padding: '9px 11px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '14px', color: '#111', background: '#fff', fontFamily: 'inherit' }
+const field = { padding: '9px 11px', border: '1px solid #ccc', fontSize: '14px', color: '#111', background: '#fff', fontFamily: 'inherit' }
 const sendBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', borderRadius: '6px', border: 'none',
+  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', border: 'none',
   background: '#0B7A41', color: '#fff', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
 }

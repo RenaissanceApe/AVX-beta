@@ -36,7 +36,7 @@ export default function OrgsPage() {
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '28px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '22px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.5px' }}>{t('orgs.title')}</h1><PageHelp page="orgs" /></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '26px', fontWeight: 700 }}>{t('orgs.title')}</h1><PageHelp page="orgs" /></div>
             <p style={{ color: colors.muted, fontSize: '13px', marginTop: '6px', maxWidth: '520px', lineHeight: 1.6 }}>{t('orgs.intro')}</p>
           </div>
           <button onClick={() => setParams({ new: '1' })} style={btnPrimary}><Plus size={15} /> {t('dash.newOrg')}</button>
@@ -69,7 +69,7 @@ export default function OrgsPage() {
 
         {guestOnly.length > 0 && (
           <section style={{ marginTop: '32px' }}>
-            <h2 style={{ fontSize: '12px', fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>{t('orgs.guestTitle')}</h2>
+            <h2 style={{ fontSize: '12px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>{t('orgs.guestTitle')}</h2>
             <p style={{ color: colors.muted, fontSize: '13px', marginBottom: '12px', lineHeight: 1.6 }}>{t('orgs.guestIntro')}</p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {guestOnly.map(c => (
@@ -87,9 +87,10 @@ export default function OrgsPage() {
       )}
       <style>{`
         .orgs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-        .org-card { padding: 16px; border-radius: 16px; background: color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent); border: 1px solid ${colors.border}; }
-        .org-card-mark { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;
-          background: linear-gradient(135deg, color-mix(in srgb, var(--purple) 90%, transparent), color-mix(in srgb, var(--purple) 90%, transparent)); color: var(--on-accent); flex-shrink: 0; }
+        .org-card { padding: 16px; background: var(--panel); border: 1px solid var(--line); transition: border-color .15s; }
+        .org-card:hover { border-color: var(--line-strong); }
+        .org-card-mark { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700;
+          background: transparent; border: 1px solid var(--line-strong); color: var(--text); flex-shrink: 0; }
       `}</style>
     </AppShell>
   )
@@ -107,4 +108,4 @@ function MuteButton({ orgId, name, muted, setMuted }) {
   )
 }
 
-const ghost = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', color: colors.soft }
+const ghost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }

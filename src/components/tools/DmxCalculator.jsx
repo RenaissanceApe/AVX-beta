@@ -80,7 +80,7 @@ function BlockSection({ layout }) {
       <div tabIndex={0} role="region" aria-label={t('dip.blockTitle')} style={{ overflowX: 'auto', maxHeight: '360px', overflowY: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
           <thead>
-            <tr style={{ textAlign: 'left', color: colors.muted, fontSize: '11px', textTransform: 'uppercase' }}>
+            <tr style={{ textAlign: 'left', color: colors.muted, fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
               <th style={{ padding: '4px 6px' }}>#</th><th style={{ padding: '4px 6px' }}>{t('dip.block.universe')}</th>
               <th style={{ padding: '4px 6px' }}>{t('dip.channels')}</th><th style={{ padding: '4px 6px' }}>{t('dip.switchesOn')}</th>
             </tr>

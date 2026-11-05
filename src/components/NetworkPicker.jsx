@@ -31,7 +31,7 @@ export function NetworkPicker({ gigId, orgId, onPick, hint }) {
 
   if (people && !people.length && !query) return null
   return (
-    <div style={{ border: `1px solid ${colors.border}`, borderRadius: '10px', padding: '10px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(2% * var(--line-k))), transparent)' }}>
+    <div style={{ border: `1px solid ${colors.border}`, padding: '10px', background: 'var(--fill)' }}>
       <div style={{ fontSize: '12px', fontWeight: 700, color: colors.soft, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
         <Users size={13} /> {t('network.title')}
       </div>
@@ -46,7 +46,7 @@ export function NetworkPicker({ gigId, orgId, onPick, hint }) {
         <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {people.map(p => (
             <button key={p.user_id} type="button" onClick={() => onPick(p)} disabled={p.already} style={{
-              display: 'flex', gap: '10px', alignItems: 'center', padding: '7px 8px', borderRadius: '8px', border: 'none', textAlign: 'left',
+              display: 'flex', gap: '10px', alignItems: 'center', padding: '7px 8px', border: 'none', textAlign: 'left',
               background: 'transparent', color: 'var(--text)', font: 'inherit', cursor: p.already ? 'default' : 'pointer', width: '100%',
             }}>
               <span style={{ flex: 1, minWidth: 0 }}>
@@ -72,7 +72,7 @@ export function NetworkPicker({ gigId, orgId, onPick, hint }) {
 // The person picked, instead of an email field
 export function PickedPerson({ person, onClear }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', borderRadius: '10px', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 25%, transparent)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', background: 'var(--selection)', border: '1px solid var(--accent)' }}>
       <Users size={14} color={colors.accentText} />
       <span style={{ flex: 1, minWidth: 0, fontWeight: 600, fontSize: '14px' }}>{person.full_name || t('common.someone')}</span>
       {person.busy && <span style={{ fontSize: '12px', color: AMBER, display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('network.busy')}</span>}

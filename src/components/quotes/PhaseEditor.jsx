@@ -93,7 +93,7 @@ function SectionEditor({ section, currency, priceItems, rates, first, last, onCh
         <input value={section.name} onChange={e => onChange({ ...section, name: e.target.value })} aria-label={t('quote.sectionName')}
           placeholder={t('quote.sectionNamePlaceholder')} maxLength={120}
           style={{ ...input, fontWeight: 700, background: 'transparent', border: '1px solid transparent', padding: '6px 8px', flex: 1 }} />
-        <span style={{ fontSize: '13px', fontWeight: 700, color: colors.soft, whiteSpace: 'nowrap' }}>{formatMoney(sectionTotal(section), currency, lang)}</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700, color: 'var(--text-2)', whiteSpace: 'nowrap' }}>{formatMoney(sectionTotal(section), currency, lang)}</span>
         <button onClick={() => onMove(-1)} disabled={first} aria-label={t('quote.moveUp')} title={t('quote.moveUp')} style={iconBtn}><ChevronUp size={15} /></button>
         <button onClick={() => onMove(1)} disabled={last} aria-label={t('quote.moveDown')} title={t('quote.moveDown')} style={iconBtn}><ChevronDown size={15} /></button>
         <button onClick={onRemove} aria-label={t('quote.removeSection')} title={t('quote.removeSection')} style={iconBtn}><Trash2 size={14} /></button>
@@ -126,7 +126,7 @@ function SectionEditor({ section, currency, priceItems, rates, first, last, onCh
             <Plus size={12} /> {t(`lineKind.${kind}`)}
           </button>
         ))}
-        <button onClick={() => setPicking(true)} className="q-add-line" style={{ color: colors.accentText, borderColor: 'color-mix(in srgb, var(--accent) 35%, transparent)' }}>
+        <button onClick={() => setPicking(true)} className="q-add-line" style={{ color: colors.accentText, borderColor: 'var(--accent)' }}>
           <ListPlus size={12} /> {t('prices.fromList')}
         </button>
       </div>
@@ -178,7 +178,7 @@ function LineEditor({ line, currency, rates, first, last, onChange, onMove, onDu
               <input type="number" step="0.5" min="0" max="100" value={line.discount_pct} onChange={e => set({ discount_pct: e.target.value })} aria-label={t('quote.col.discount')} style={numInput} />
             </Cell>
             <Cell className="q-total" label={t('quote.col.total')}>
-              <span style={{ display: 'block', fontWeight: 700, fontSize: '13px', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatMoney(lineTotal(line), currency, lang)}</span>
+              <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '13px', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatMoney(lineTotal(line), currency, lang)}</span>
             </Cell>
           </>
         )}
@@ -224,7 +224,7 @@ function LineMenu({ first, last, onMove, onDuplicate, onRemove }) {
   )
 }
 
-const numInput = { ...input, padding: '7px 6px', textAlign: 'right' }
+const numInput = { ...input, padding: '0 6px', textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: '13px' }
 
 // Layout for the line grid: one row on wide screens, two rows on phones.
 export const QUOTE_EDITOR_CSS = `
@@ -234,16 +234,18 @@ export const QUOTE_EDITOR_CSS = `
   .q-cell { min-width: 0; }
   .q-cell-label { display: none; }
   .q-phase-head { display: flex; gap: 10px; flex-wrap: wrap; }
-  .q-section { background: color-mix(in srgb, var(--fg) min(100%, calc(2.5% * var(--line-k))), transparent); border: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+  .q-section { background: var(--panel); border: 1px solid var(--line); padding: 12px; margin-bottom: 12px; }
   .q-line { display: grid; grid-template-columns: 112px minmax(140px,1fr) 64px 82px 58px 92px 58px 96px auto; gap: 6px; align-items: center; }
   .q-line.q-comment { grid-template-columns: 112px 1fr auto; }
-  .q-line-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 0 2px 4px; }
+  .q-line-head { font-size: 9.5px; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .12em; color: var(--muted); padding: 0 2px 4px; }
+  /* Lines sit on a 32px grid (DESIGN.md "QuoteEditor"); phones get 44px fields below */
+  .q-line input:not([type="checkbox"]), .q-line select { height: 32px; min-height: 32px; padding-top: 0; padding-bottom: 0; }
   .q-line-head .q-total, .q-line-head .q-qty, .q-line-head .q-factor, .q-line-head .q-price, .q-line-head .q-disc { text-align: right; }
-  .q-line-wrap { padding: 4px 0; border-top: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent); }
-  .q-add-line, .q-add-section { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
-    background: transparent; color: var(--soft); border: 1px dashed color-mix(in srgb, var(--fg) min(100%, calc(14% * var(--line-k))), transparent); }
-  .q-add-section { padding: 9px 14px; font-size: 13px; width: 100%; justify-content: center; }
-  .q-add-line:hover, .q-add-section:hover { color: var(--accent-text); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+  .q-line-wrap { padding: 4px 0; border-top: 1px solid var(--line); }
+  .q-add-line, .q-add-section { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+    background: transparent; color: var(--text-2); border: 1px dashed var(--line-strong); }
+  .q-add-section { height: 36px; padding: 0 14px; font-size: 13px; width: 100%; justify-content: center; }
+  .q-add-line:hover, .q-add-section:hover { color: var(--text); border-color: var(--text); }
   /* Tablets and phones in landscape: tighter columns, no up/down buttons (lines still move on desktop) */
   @media (min-width: 761px) and (max-width: 1060px) {
     .q-line { grid-template-columns: 100px minmax(100px,1fr) 50px 70px 48px 74px 48px 82px auto; gap: 4px; }
@@ -260,7 +262,8 @@ export const QUOTE_EDITOR_CSS = `
     .q-hide-narrow { display: none !important; }
     .q-line-wrap { padding: 10px 0; }
     .q-line { row-gap: 8px; align-items: end; }
-    .q-cell-label { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .q-line input:not([type="checkbox"]), .q-line select { height: 44px; min-height: 44px; }
+    .q-cell-label { display: block; font-size: 10px; font-weight: 600; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .q-total .q-cell-label { text-align: right; }
   }
 `

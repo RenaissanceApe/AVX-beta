@@ -9,7 +9,7 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { stageSize } from '../../lib/stagePlot'
 import { KINDS, LIMITS, settingsOf, sourcesOf, listenersOf, speedOfSound, delays, listenerReport, coverage, newSource, newListener, nextName } from '../../lib/systemCalc'
 import { t } from '../../i18n'
-import { btn, iconBtn, input, label, card, colors, tint } from '../ui'
+import { btn, iconBtn, input, label, card, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import SystemPlotSvg from './SystemPlotSvg'
@@ -82,7 +82,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
         {sources.length > 0 && <Link to={`/gig/${gig.id}/system`} style={{ ...btn, textDecoration: 'none' }}><Printer size={14} /> {t('inputs.print')}</Link>}
       </div>
       {savedAt && <p role="status" style={{ fontSize: '12px', color: 'var(--warn)', marginBottom: '10px' }}>{t('sys.offline')}</p>}
-      <p style={{ ...card, display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '13px', lineHeight: 1.5, marginBottom: '12px', borderColor: tint(colors.accent, 35) }}>
+      <p style={{ ...card, display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '13px', lineHeight: 1.5, marginBottom: '12px', borderColor: 'var(--accent)' }}>
         <Info size={15} color={colors.accentText} aria-hidden="true" style={{ flexShrink: 0, marginTop: '2px' }} /> {t('sys.estimate')}
       </p>
 
@@ -121,7 +121,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', flexWrap: 'wrap', marginBottom: canEdit ? '8px' : 0 }}>
                     <strong style={{ fontSize: '14px' }}>{s.name}</strong>
                     <span style={{ fontSize: '12px', color: colors.muted }}>{t(`sys.kind.${s.kind}`)}{s.count > 1 ? ` × ${s.count}` : ''}</span>
-                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontWeight: 800, color: colors.accentText }}>{t('sys.delayMs', { ms: d.ms })}</span>
+                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontWeight: 700, color: colors.accentText }}>{t('sys.delayMs', { ms: d.ms })}</span>
                     {canEdit && <button type="button" onClick={() => removeWithUndo('sources', sources, s.id, s.name)} aria-label={t('inputs.remove', { name: s.name })} style={iconBtn}><Trash2 size={14} /></button>}
                   </div>
                   <p style={{ fontSize: '12px', color: colors.soft, lineHeight: 1.5 }}>
@@ -172,7 +172,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
               <li key={l.id} style={{ ...card, padding: '10px 12px' }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', flexWrap: 'wrap' }}>
                   <strong style={{ fontSize: '14px' }}>{l.name}</strong>
-                  {i === 0 && <span style={{ fontSize: '11px', fontWeight: 800, color: colors.accentText }}>{t('sys.reference')}</span>}
+                  {i === 0 && <span style={{ fontSize: '11px', fontWeight: 700, color: colors.accentText }}>{t('sys.reference')}</span>}
                   <span style={{ marginLeft: 'auto', fontSize: '13px', fontWeight: 700 }}>{total !== null ? t('sys.level', { db: total }) : '—'}</span>
                   {canEdit && <button type="button" onClick={() => removeWithUndo('listeners', listeners, l.id, l.name)} aria-label={t('inputs.remove', { name: l.name })} style={iconBtn}><Trash2 size={14} /></button>}
                 </div>

@@ -140,11 +140,11 @@ function Answer({ token, lang, data, onAnswered }) {
 }
 
 const page = { minHeight: '100vh', background: '#e9edf1', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }
-const notice = { background: '#fff', color: '#111', borderRadius: '10px', padding: '28px', maxWidth: '420px', textAlign: 'center' }
+const notice = { background: '#fff', color: '#111', padding: '28px', maxWidth: '420px', textAlign: 'center' }
 const bar = {
-  maxWidth: '210mm', margin: '12px auto 0', background: '#fff', color: '#111', borderRadius: '6px', border: '2px solid #1EC878',
+  maxWidth: '210mm', margin: '12px auto 0', background: '#fff', color: '#111', border: '2px solid #1EC878',
   padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontFamily: "'Inter', sans-serif",
-  position: 'sticky', bottom: '12px', boxShadow: '0 6px 24px rgba(0,0,0,0.12)',
+  position: 'sticky', bottom: '12px',
 }
 const fieldLabel = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#333' }
-const field = { padding: '9px 11px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '14px', color: '#111', background: '#fff', fontFamily: 'inherit' }
+const field = { padding: '9px 11px', border: '1px solid #ccc', fontSize: '14px', color: '#111', background: '#fff', fontFamily: 'inherit' }

@@ -6,7 +6,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { FIELD_ENTITIES, FIELD_KINDS, useCustomFields, choicesFromText } from '../lib/customFields'
 import { useI18n } from '../i18n'
-import { btn, iconBtn, input, label, colors, tint } from './ui'
+import { btn, iconBtn, input, label, colors } from './ui'
 
 const select = { ...input, appearance: 'auto', width: 'auto', minWidth: 0 }
 
@@ -53,7 +53,7 @@ export default function OrgCustomFieldsSettings({ org }) {
     reload()
   }
 
-  const tab = on => ({ ...btn, padding: '6px 12px', background: on ? tint(colors.accent, 22) : 'transparent', color: on ? colors.accentText : colors.soft })
+  const tab = on => ({ ...btn, padding: '6px 12px', background: on ? 'var(--selection)' : 'transparent', color: on ? colors.accentText : colors.soft })
   return (
     <section aria-labelledby="org-fields" style={{ marginTop: '20px', paddingTop: '16px', borderTop: `1px solid ${colors.border}` }}>
       <h3 id="org-fields" style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><SlidersHorizontal size={13} /> {t('custom.title')}</h3>

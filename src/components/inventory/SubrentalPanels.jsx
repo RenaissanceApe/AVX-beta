@@ -13,7 +13,7 @@ import { useCustomFields, mergeValues } from '../../lib/customFields'
 import { CustomFieldInputs } from '../CustomFields'
 import { toLocalInput } from '../gig/Booking'
 import { useI18n, t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, StatusBadge } from '../ui'
 import { Hint } from '../help/HelpParts'
 import ContextThread from '../messages/ContextThread'
 import SupplierLink from './SupplierLink'
@@ -23,7 +23,7 @@ const AMBER = 'var(--warn)'
 const select = { ...input, appearance: 'auto' }
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }
 const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
-const STATUS_COLOR = { draft: colors.muted, requested: AMBER, confirmed: colors.accent, declined: colors.danger, returned: colors.soft, cancelled: colors.muted }
+const STATUS_TONE = { draft: 'draft', requested: 'open', confirmed: 'ok', declined: 'danger', returned: 'off', cancelled: 'off' }
 export const SUBRENTAL_SELECT = '*, supplier:supplier_id(name, partner_org_id), gig:gig_id(name), lines:subrental_lines(*)'
 const fromLocalInput = v => (v ? new Date(v).toISOString() : null)
 const money = (v, lang) => formatMoney(v, 'EUR', lang)
@@ -150,7 +150,7 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
           </div>
           {supplier?.partner_org_id && <p style={{ ...small, color: 'var(--sky)' }}>{t('sub.partnerHint')}</p>}
           {subrental?.answered_at && (
-            <div style={{ ...card, padding: '10px 12px', fontSize: '13px', borderColor: STATUS_COLOR[subrental.status] }}>
+            <div style={{ ...card, padding: '10px 12px', fontSize: '13px', borderColor: subrental.status === 'declined' ? colors.danger : 'var(--line-strong)' }}>
               <strong>{t('sub.answered', { status: t(`sub.status.${subrental.status}`) })}</strong>
               {subrental.reply_note && <span style={{ color: colors.soft }}> · “{subrental.reply_note}”</span>}
               {subrental.quoted_total != null && <span style={{ color: colors.soft }}> · {money(subrental.quoted_total, lang)}</span>}
@@ -296,7 +296,7 @@ export function SubrentalRow({ s, onOpen }) {
         </span>
       </span>
       <span style={{ fontSize: '12px', color: colors.soft, whiteSpace: 'nowrap' }}>{t('sub.pieces', { count })} · {money(subrentalTotal(s), lang)}</span>
-      <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: STATUS_COLOR[s.status] }}>{t(`sub.status.${s.status}`)}</span>
+      <StatusBadge small tone={STATUS_TONE[s.status] || 'open'} struck={s.status === 'cancelled'}>{t(`sub.status.${s.status}`)}</StatusBadge>
     </button>
   )
 }
@@ -328,11 +328,11 @@ function IncomingRequests({ orgId }) {
       <h2 style={{ fontSize: '17px', fontWeight: 700, margin: '4px 0 8px', display: 'flex', alignItems: 'center', gap: '7px' }}><Inbox size={16} color={colors.accentText} /> {t('sub.incoming')}</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {rows.slice(0, 30).map(r => (
-          <div key={r.id} style={{ ...card, padding: '10px 12px', borderColor: r.status === 'requested' ? 'color-mix(in srgb, var(--warn) 40%, transparent)' : colors.border }}>
+          <div key={r.id} style={{ ...card, padding: '10px 12px', borderColor: r.status === 'requested' ? 'var(--warn)' : colors.border }}>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'baseline', flexWrap: 'wrap' }}>
               <strong style={{ flex: '1 1 200px' }}>{r.from_org}{r.reference ? <span style={{ color: colors.muted, fontWeight: 400 }}> · {r.reference}</span> : null}</strong>
               <span style={{ fontSize: '12px', color: colors.soft }}>{rangeText(r.starts_at, r.ends_at)}</span>
-              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: STATUS_COLOR[r.status] }}>{t(`sub.status.${r.status}`)}</span>
+              <StatusBadge small tone={STATUS_TONE[r.status] || 'open'} struck={r.status === 'cancelled'}>{t(`sub.status.${r.status}`)}</StatusBadge>
             </div>
             <div style={{ fontSize: '13px', color: colors.soft, margin: '4px 0' }}>{(r.lines || []).map(l => `${l.quantity} × ${l.description}`).join(', ')}</div>
             {r.notes && <div style={small}>“{r.notes}”</div>}
@@ -373,7 +373,7 @@ function CrossHireCode({ orgId, isAdmin }) {
       <p style={{ ...small, marginBottom: '8px' }}>{t('sub.ourCodeHint')}</p>
       {code ? (
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <code style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '0.05em', padding: '4px 10px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', borderRadius: '6px' }}>{code}</code>
+          <code style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '0.05em', padding: '4px 10px', background: 'var(--hover)',  }}>{code}</code>
           <button onClick={copy} style={{ ...btn, padding: '5px 9px', fontSize: '12px' }}><Copy size={12} /> {t('sub.copy')}</button>
           {isAdmin && <button onClick={() => load(true)} style={{ ...btn, padding: '5px 9px', fontSize: '12px' }}><RefreshCw size={12} /> {t('sub.newCode')}</button>}
         </div>

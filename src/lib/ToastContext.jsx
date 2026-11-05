@@ -7,9 +7,9 @@ import { t } from '../i18n'
 const ToastContext = createContext({ notify: () => 0, dismiss: () => {} })
 
 const KIND = {
-  success: { icon: CheckCircle, color: 'var(--accent-text)', border: 'color-mix(in srgb, var(--accent) 35%, transparent)' },
-  error:   { icon: AlertCircle, color: 'var(--danger)', border: 'color-mix(in srgb, var(--danger) 35%, transparent)' },
-  info:    { icon: Info,        color: 'var(--info)', border: 'color-mix(in srgb, var(--info) 35%, transparent)' },
+  success: { icon: CheckCircle, color: 'var(--accent-text)', border: 'var(--accent)' },
+  error:   { icon: AlertCircle, color: 'var(--danger)', border: 'var(--danger)' },
+  info:    { icon: Info,        color: 'var(--info)', border: 'var(--line-strong)' },
 }
 
 export function ToastProvider({ children }) {
@@ -40,16 +40,16 @@ export function ToastProvider({ children }) {
           return (
             <div key={toast.id} role={toast.kind === 'error' ? 'alert' : 'status'} style={{
               pointerEvents: 'auto', display: 'flex', alignItems: 'flex-start', gap: '10px',
-              background: 'var(--panel)', border: `1px solid ${cfg.border}`, borderRadius: '12px',
+              background: 'var(--panel)', border: `1px solid ${cfg.border}`,
               padding: '12px 14px', color: 'var(--text)', fontSize: '14px', lineHeight: '1.5',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.4)', whiteSpace: 'pre-line', wordBreak: 'break-word'
+              whiteSpace: 'pre-line', wordBreak: 'break-word'
             }}>
               <Icon size={18} color={cfg.color} style={{ flexShrink: 0, marginTop: '1px' }} />
               <div style={{ flex: 1 }}>{toast.message}</div>
               {toast.action && (
                 <button type="button" onClick={() => { dismiss(toast.id); toast.action.onClick() }} style={{
                   background: 'none', border: 'none', color: 'var(--accent-text)', cursor: 'pointer', padding: '0 4px',
-                  fontWeight: 800, fontSize: '14px', fontFamily: 'inherit', textDecoration: 'underline', textUnderlineOffset: '3px',
+                  fontWeight: 700, fontSize: '14px', fontFamily: 'inherit', textDecoration: 'underline', textUnderlineOffset: '3px',
                 }}>{toast.action.label}</button>
               )}
               <button onClick={() => dismiss(toast.id)} aria-label={t('common.dismiss')} style={{

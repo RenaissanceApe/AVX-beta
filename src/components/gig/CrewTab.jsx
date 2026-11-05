@@ -10,7 +10,7 @@ import { sendInvite, inviteMessage } from '../../lib/invites'
 import { shortTime } from '../../lib/schedule'
 import { clashText, groupByUser } from '../../lib/clashes'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, StatusBadge, CallChip } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import { Avatar, RoleBadge, TabHeader } from './parts'
@@ -140,16 +140,18 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
             const mine = clashes[m.user_id] || []
             const shift = shiftText(m)
             const canAddToOrg = isOrgAdmin && orgMemberIds && !orgMemberIds.has(m.user_id)
+            const booked = mine.some(c => c.kind === 'booked')
             return (
               <div key={m.user_id} className="crew-row" style={{
-                background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${mine.length ? 'color-mix(in srgb, var(--warn) 35%, transparent)' : colors.border}`, borderRadius: '14px',
-                padding: '14px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '0 14px', animation: 'fadeIn 0.3s ease',
+                // A booking clash takes the danger-soft row; a self-reported unavailability only its warn line (DESIGN.md "CrewRow")
+                background: booked ? 'var(--danger-soft)' : 'var(--panel)', border: `1px solid ${booked ? 'var(--danger)' : colors.border}`,
+                padding: '14px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '0 14px', animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               }}>
-                <Avatar uid={m.user_id} name={name} size={42} />
+                <Avatar uid={m.user_id} name={name} size={40} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {name}
-                    {mine.length > 0 && (
+                    {mine.length > 0 && !booked && (
                       <span role="img" aria-label={t('clash.badge')} title={t('clash.badge')} style={{ color: AMBER, display: 'flex' }}><AlertTriangle size={15} /></span>
                     )}
                   </div>
@@ -160,19 +162,19 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
                         <Phone size={11} style={{ verticalAlign: 'middle', marginRight: '3px' }} />{phone}
                       </a>
                     )}
-                    {m.call_time && (
-                      <span style={{ color: colors.accentText, fontWeight: 600, whiteSpace: 'nowrap' }}>
-                        <Clock size={11} style={{ verticalAlign: 'middle', marginRight: '3px' }} />{t('crew.call', { time: shortTime(m.call_time) })}
-                      </span>
-                    )}
                     {shift && (
-                      <span style={{ color: colors.soft, whiteSpace: 'nowrap' }}>
+                      <span style={{ color: colors.soft, whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
                         <CalendarClock size={11} style={{ verticalAlign: 'middle', marginRight: '3px' }} />{t('shift.booked', { range: shift })}
                       </span>
                     )}
                   </div>
                 </div>
-                <RoleBadge role={m.role} large />
+                <span className="crew-chips" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  {booked
+                    ? <StatusBadge tone="danger" title={t('clash.badge')}>{t('clash.status')}</StatusBadge>
+                    : m.call_time && <CallChip label={t('crew.callKey')} time={shortTime(m.call_time)} title={t('crew.call', { time: shortTime(m.call_time) })} />}
+                  <RoleBadge role={m.role} large />
+                </span>
                 {!self && (
                   <Link to={`/messages?to=${m.user_id}`} style={iconBtn} aria-label={t('chat.messageNamed', { name })} title={t('chat.message')}>
                     <MessageCircle size={15} />
@@ -218,13 +220,14 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
           <h3 style={{ ...label, marginBottom: '10px' }}>{t('crew.pending')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {invites.map(inv => (
-              <div key={inv.id} style={{ border: '1px dashed color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div key={inv.id} style={{ border: '1px dashed var(--line-strong)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inv.email}</div>
                   <div style={{ fontSize: '12px', color: colors.muted }}>
                     {inv.function_title || '—'}{inv.call_time ? ` · ${t('crew.call', { time: shortTime(inv.call_time) })}` : ''}
                   </div>
                 </div>
+                <StatusBadge small tone="open">{t('crew.pendingOne')}</StatusBadge>
                 <RoleBadge role={inv.role} />
                 <button onClick={() => cancelInvite(inv)} aria-label={t('crew.cancelInviteFor', { email: inv.email })} title={t('crew.cancelInvite')} style={iconBtn}>
                   <X size={15} />
@@ -241,7 +244,10 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
 
       <style>{`
         .crew-extra { flex-basis: 100%; padding-left: 56px; min-width: 0; }
-        @media (max-width: 640px) { .crew-extra { padding-left: 0; } }
+        @media (max-width: 640px) {
+          .crew-extra { padding-left: 0; }
+          .crew-chips { order: 5; flex-basis: 100%; justify-content: flex-start !important; padding-left: 54px; margin-top: 8px; }
+        }
       `}</style>
       {showInvite && <InviteModal gigId={gigId} functionTitle={inviteFor} onClose={() => { setShowInvite(false); setInviteFor('') }} onInvited={onChanged} />}
       {callFor && <CrewCallModal gigId={gigId} gig={gig} preset={callFor} onClose={() => setCallFor(null)} onSent={() => setCallsKey(k => k + 1)} />}
@@ -257,7 +263,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
   )
 }
 
-const rowBtn = { ...btn, padding: '5px 10px', fontSize: '12px', background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }
+const rowBtn = { ...btn, padding: '5px 10px', fontSize: '12px', color: 'var(--text-2)' }
 
 const EMPTY_INVITE = { email: '', role: 'crew', function_title: '', call_time: '' }
 
@@ -334,7 +340,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
           <div>
             <PickedPerson person={picked} onClear={() => setPicked(null)} />
             {picked.busy && (
-              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '8px', color: AMBER, borderColor: 'color-mix(in srgb, var(--warn) 40%, transparent)', background: 'color-mix(in srgb, var(--warn) 10%, transparent)' }}>
+              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '8px', color: AMBER, borderColor: 'var(--warn)', background: 'var(--warn-soft)' }}>
                 {t('ask.first')}
               </button>
             )}
@@ -347,13 +353,13 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
           <input id="inv-email" type="email" value={form.email} onChange={e => { setClashes([]); setForm(f => ({ ...f, email: e.target.value })) }}
             onBlur={checkAvailability} placeholder={t('crew.emailPlaceholder')} style={input} required />
           {clashes.length > 0 && (
-            <div role="status" style={{ marginTop: '8px', padding: '9px 11px', borderRadius: '9px', background: 'color-mix(in srgb, var(--warn) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--warn) 30%, transparent)', fontSize: '12px', color: AMBER, lineHeight: 1.6 }}>
+            <div role="status" style={{ marginTop: '8px', padding: '9px 11px', background: 'var(--warn-soft)', border: '1px solid var(--warn)', fontSize: '12px', color: AMBER, lineHeight: 1.6 }}>
               <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
                 <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: '2px' }} />
                 {clashes.some(c => c.kind === 'booked') ? t('clash.advice', { name: form.email.trim() }) : t('clash.unavailableAdvice', { name: form.email.trim() })}
               </strong>
               {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '18px' }}>{clashText(c)}</div>)}
-              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '6px', marginLeft: '18px', color: AMBER, borderColor: 'color-mix(in srgb, var(--warn) 40%, transparent)', background: 'color-mix(in srgb, var(--warn) 10%, transparent)' }}>
+              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '6px', marginLeft: '18px', color: AMBER, borderColor: 'var(--warn)', background: 'var(--warn-soft)' }}>
                 {t('ask.first')}
               </button>
             </div>
@@ -379,7 +385,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
           </div>
         </div>
         <div style={{
-          padding: '10px 13px', borderRadius: '9px', background: 'color-mix(in srgb, var(--accent) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 15%, transparent)',
+          padding: '10px 13px', background: 'var(--selection)', border: '1px solid var(--accent)',
           fontSize: '12px', color: colors.muted, lineHeight: 1.6,
         }}>💡 {t('crew.inviteHint')}</div>
         <button type="submit" disabled={sending || (!picked && !form.email.trim())} style={{ ...btnPrimary, justifyContent: 'center', padding: '13px' }}>
@@ -454,7 +460,7 @@ function Positions({ gigId, isPM, userId, members, invites, onInvite, onCall }) 
         {positions.filter(p => !hidden.has(p.id)).map(pos => {
           const filled = filledFor(pos.title)
           return (
-            <div key={pos.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '10px', border: `1px solid ${colors.border}`, background: 'color-mix(in srgb, var(--fg) min(100%, calc(2% * var(--line-k))), transparent)' }}>
+            <div key={pos.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', border: `1px solid ${colors.border}`, background: 'var(--fill)' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: '14px' }}>{pos.title}</div>
                 {pos.notes && <div style={{ fontSize: '12px', color: colors.muted }}>{pos.notes}</div>}

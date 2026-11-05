@@ -32,7 +32,7 @@ function ImageFile({ file }) {
   useEffect(() => { let on = true; signedUrl(file.path).then(u => on && setUrl(u)); return () => { on = false } }, [file.path])
   return (
     <a href={url || undefined} target="_blank" rel="noopener noreferrer" aria-label={file.name} title={file.name}
-      style={{ display: 'block', width: '180px', maxWidth: '100%', aspectRatio: '4 / 3', borderRadius: '8px', overflow: 'hidden', background: 'color-mix(in srgb, var(--shade) 30%, transparent)' }}>
+      style={{ display: 'block', width: '180px', maxWidth: '100%', aspectRatio: '4 / 3', overflow: 'hidden', background: 'var(--shade)' }}>
       {url && <img src={url} alt={file.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
     </a>
   )
@@ -48,8 +48,8 @@ function OtherFile({ file }) {
   }
   return (
     <button type="button" onClick={open} title={t('chat.download', { name: file.name })} style={{
-      display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', borderRadius: '8px', border: `1px solid ${colors.border}`,
-      background: 'color-mix(in srgb, var(--shade) 20%, transparent)', color: 'var(--text)', font: 'inherit', fontSize: '13px', cursor: 'pointer', maxWidth: '100%', textAlign: 'left',
+      display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', border: `1px solid ${colors.border}`,
+      background: 'var(--shade)', color: 'var(--text)', font: 'inherit', fontSize: '13px', cursor: 'pointer', maxWidth: '100%', textAlign: 'left',
     }}>
       <FileText size={16} color={colors.accentText} style={{ flexShrink: 0 }} />
       <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
@@ -111,14 +111,14 @@ export function CardView({ card }) {
     return () => { on = false }
   }, [card.type, card.id])
   const Icon = CARD_ICONS[card.type] || FileText
-  const box = { display: 'flex', gap: '10px', alignItems: 'center', padding: '8px 10px', borderRadius: '10px', border: `1px solid ${colors.border}`, background: 'color-mix(in srgb, var(--shade) 20%, transparent)', margin: '2px 0 4px', color: 'var(--text)', textDecoration: 'none', minWidth: '200px' }
+  const box = { display: 'flex', gap: '10px', alignItems: 'center', padding: '8px 10px', border: `1px solid ${colors.border}`, background: 'var(--shade)', margin: '2px 0 4px', color: 'var(--text)', textDecoration: 'none', minWidth: '200px' }
   if (info === undefined) return <div style={box}><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /></div>
   if (!info) return <div style={{ ...box, color: colors.muted, fontSize: '13px' }}><Lock size={15} /> {t('chat.card.hidden', { type: t(`chat.card.${card.type}`) })}</div>
   return (
     <Link to={info.to} style={box}>
       <Icon size={18} color={colors.accentText} style={{ flexShrink: 0 }} />
       <span style={{ minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: '11px', color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t(`chat.card.${card.type}`)}</span>
+        <span style={{ display: 'block', fontSize: '11px', color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t(`chat.card.${card.type}`)}</span>
         <span style={{ display: 'block', fontWeight: 700, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.title}</span>
         {info.sub && <span style={{ display: 'block', fontSize: '12px', color: colors.soft }}>{info.sub}</span>}
       </span>
@@ -179,8 +179,8 @@ export function CardPicker({ gigId, onPick, onClose }) {
       <div role="tablist" style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '10px' }}>
         {types.map(k => (
           <button key={k} role="tab" aria-selected={type === k} onClick={() => setType(k)} style={{
-            padding: '6px 10px', borderRadius: '8px', border: `1px solid ${type === k ? colors.accent : colors.border}`, cursor: 'pointer',
-            background: type === k ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent', color: type === k ? colors.accentText : colors.soft, font: 'inherit', fontSize: '13px', fontWeight: 600,
+            padding: '6px 10px', border: `1px solid ${type === k ? colors.accent : colors.border}`, cursor: 'pointer',
+            background: type === k ? 'var(--selection)' : 'transparent', color: type === k ? colors.accentText : colors.soft, font: 'inherit', fontSize: '13px', fontWeight: 600,
           }}>{t(`chat.card.${k}`)}</button>
         ))}
       </div>
@@ -193,7 +193,7 @@ export function CardPicker({ gigId, onPick, onClose }) {
           : rows.length === 0 ? <p style={{ color: colors.muted, fontSize: '13px', padding: '12px 4px' }}>{t('chat.shareNone')}</p>
             : rows.map(r => (
               <button key={r.id} type="button" onClick={() => onPick({ type, id: r.id }, r.title)} style={{
-                textAlign: 'left', padding: '8px 10px', borderRadius: '8px', border: 'none', background: 'transparent', color: 'var(--text)', font: 'inherit', cursor: 'pointer',
+                textAlign: 'left', padding: '8px 10px', border: 'none', background: 'transparent', color: 'var(--text)', font: 'inherit', cursor: 'pointer',
               }}>
                 <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{r.title}</span>
                 {r.sub && <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{r.sub}</span>}
@@ -214,8 +214,8 @@ export function ReactionBar({ summary, name, onToggle, alignEnd }) {
           aria-pressed={r.mine} title={r.users.map(name).join(', ')}
           aria-label={t('chat.reactionCount', { emoji: r.emoji, count: r.count })}
           style={{
-            display: 'flex', alignItems: 'center', gap: '4px', padding: '1px 7px', borderRadius: '10px', font: 'inherit', fontSize: '12px',
-            border: `1px solid ${r.mine ? colors.accent : colors.border}`, background: r.mine ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent)',
+            display: 'flex', alignItems: 'center', gap: '4px', padding: '1px 7px', font: 'inherit', fontSize: '12px',
+            border: `1px solid ${r.mine ? colors.accent : colors.border}`, background: r.mine ? 'var(--selection)' : 'var(--fill)',
             color: 'var(--text)', cursor: onToggle ? 'pointer' : 'default', opacity: 1,
           }}>{r.emoji} <span>{r.count}</span></button>
       ))}
@@ -238,12 +238,12 @@ export function HistoryModal({ message, onClose }) {
           {rows.map((r, i) => (
             <li key={i} style={{ fontSize: '13px' }}>
               <div style={{ color: colors.muted, fontSize: '11px' }}>{t('chat.replacedAt', { when: fmt(r.replaced_at, 'd MMM, HH:mm') })}</div>
-              <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', padding: '6px 10px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent)', borderRadius: '8px' }}>{r.body}</div>
+              <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', padding: '6px 10px', background: 'var(--fill)',  }}>{r.body}</div>
             </li>
           ))}
           <li style={{ fontSize: '13px' }}>
             <div style={{ color: colors.accentText, fontSize: '11px' }}>{t('chat.current')}</div>
-            <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', padding: '6px 10px', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', borderRadius: '8px' }}>{message.body}</div>
+            <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', padding: '6px 10px', background: 'var(--selection)',  }}>{message.body}</div>
           </li>
         </ol>
       )}
@@ -350,7 +350,7 @@ export function EventCard({ message: m, mine, actor, answers }) {
   const canAnswer = !mine && !last
 
   return (
-    <div style={{ margin: '8px auto', maxWidth: '420px', padding: '12px 14px', borderRadius: '12px', border: `1px solid ${isCall ? 'color-mix(in srgb, var(--accent) 35%, transparent)' : 'color-mix(in srgb, var(--warn) 35%, transparent)'}`, background: isCall ? 'color-mix(in srgb, var(--accent) 6%, transparent)' : 'color-mix(in srgb, var(--warn) 6%, transparent)' }}>
+    <div style={{ margin: '8px auto', maxWidth: '420px', padding: '12px 14px', border: `1px solid ${isCall ? 'var(--accent)' : 'var(--warn)'}`, background: isCall ? 'var(--selection)' : 'var(--warn-soft)' }}>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: colors.soft }}>
         <Icon size={16} color={isCall ? colors.accentText : 'var(--warn)'} style={{ flexShrink: 0 }} />
         <span style={{ flex: 1 }}>{heading}</span>

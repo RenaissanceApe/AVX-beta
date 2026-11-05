@@ -98,11 +98,11 @@ export default function AssetsTab({ gigId, assets, canUpload, offline = false, o
             const Icon = cfg.icon
             return (
               <div key={a.id} style={{
-                background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`, borderRadius: '14px',
+                background: 'var(--fill)', border: `1px solid ${colors.border}`, 
                 padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', animation: 'fadeIn 0.3s ease',
               }}>
                 <div style={{
-                  width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0,
+                  width: '44px', height: '44px', flexShrink: 0,
                   background: tint(cfg.color, 9), border: `1px solid ${tint(cfg.color, 19)}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}><Icon size={20} color={cfg.color} /></div>
@@ -116,8 +116,8 @@ export default function AssetsTab({ gigId, assets, canUpload, offline = false, o
                   </div>
                 </div>
                 <button onClick={() => onOpen(a)} style={{
-                  display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', flexShrink: 0,
-                  background: 'color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)', color: 'var(--text)',
+                  display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', flexShrink: 0,
+                  background: 'var(--hover)', border: '1px solid var(--line)', color: 'var(--text)',
                   fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                 }}>
                   <Eye size={13} /> {a.version > 1 ? t('assets.openHistory') : t('common.open')}
@@ -211,8 +211,8 @@ function UploadModal({ gigId, assets, onClose, onUploaded }) {
               const sel = form.type === at.value
               return (
                 <button key={at.value} type="button" aria-pressed={sel} onClick={() => setForm(f => ({ ...f, type: at.value }))} style={{
-                  padding: '10px 8px', borderRadius: '10px', cursor: 'pointer', fontSize: '12px', fontWeight: 600,
-                  background: sel ? tint(at.color, 9) : 'color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent)',
+                  padding: '10px 8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600,
+                  background: sel ? tint(at.color, 9) : 'var(--fill)',
                   border: sel ? `1px solid ${tint(at.color, 31)}` : `1px solid ${colors.border}`,
                   color: sel ? at.color : colors.muted,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
@@ -240,9 +240,9 @@ function UploadModal({ gigId, assets, onClose, onUploaded }) {
             onClick={() => fileInputRef.current?.click()}
             onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && fileInputRef.current?.click()}
             style={{
-              border: `2px dashed ${dragOver ? colors.accent : form.file ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)'}`,
-              borderRadius: '12px', padding: '24px', textAlign: 'center', cursor: 'pointer',
-              background: dragOver ? 'color-mix(in srgb, var(--accent) 5%, transparent)' : form.file ? 'color-mix(in srgb, var(--accent) 4%, transparent)' : 'color-mix(in srgb, var(--shade) 20%, transparent)',
+              border: `2px dashed ${dragOver ? colors.accent : form.file ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'var(--line-strong)'}`,
+              padding: '24px', textAlign: 'center', cursor: 'pointer',
+              background: dragOver ? 'var(--selection)' : form.file ? 'var(--selection)' : 'var(--shade)',
             }}>
             <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={e => pickFile(e.target.files[0])} />
             {form.file ? (

@@ -556,15 +556,15 @@ export default function Conversation({ conversationId, canPost = true, height = 
   }
   const me = context.members.find(m => m.user_id === user.id)
   const smallBtn = { background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', padding: '4px', display: 'flex' }
-  const menuItem = { display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '7px 10px', background: 'none', border: 'none', color: 'var(--text)', font: 'inherit', fontSize: '13px', cursor: 'pointer', textAlign: 'left', borderRadius: '6px' }
+  const menuItem = { display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '7px 10px', background: 'none', border: 'none', color: 'var(--text)', font: 'inherit', fontSize: '13px', cursor: 'pointer', textAlign: 'left',  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height, minHeight: '320px' }}>
       {pinned.length > 0 && (
         <div style={{ position: 'relative', padding: '6px 2px', borderBottom: `1px solid ${colors.border}` }}>
           <button type="button" onClick={() => setShowPins(v => !v)} aria-expanded={showPins} style={{
-            display: 'flex', alignItems: 'center', gap: '6px', width: '100%', background: 'color-mix(in srgb, var(--warn) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--warn) 25%, transparent)',
-            borderRadius: '8px', padding: '6px 10px', color: 'var(--text)', font: 'inherit', fontSize: '13px', cursor: 'pointer', textAlign: 'left',
+            display: 'flex', alignItems: 'center', gap: '6px', width: '100%', background: 'var(--warn-soft)', border: '1px solid var(--warn)',
+            padding: '6px 10px', color: 'var(--text)', font: 'inherit', fontSize: '13px', cursor: 'pointer', textAlign: 'left',
           }}>
             <Pin size={13} color={AMBER} style={{ flexShrink: 0 }} />
             <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -572,7 +572,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
             </span>
           </button>
           {showPins && (
-            <div role="list" style={{ position: 'absolute', zIndex: 25, top: '100%', left: 0, right: 0, background: colors.panel, border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', borderRadius: '10px', padding: '4px', boxShadow: '0 12px 28px rgba(0,0,0,0.5)', maxHeight: '50vh', overflowY: 'auto' }}>
+            <div role="list" style={{ position: 'absolute', zIndex: 25, top: '100%', left: 0, right: 0, background: colors.panel, border: '1px solid var(--line-strong)', padding: '4px', maxHeight: '50vh', overflowY: 'auto' }}>
               {pinned.map(p => (
                 <button key={p.id} role="listitem" type="button" onClick={() => jumpTo(p.id)} style={{ ...menuItem, alignItems: 'flex-start', flexDirection: 'column', gap: '2px' }}>
                   <span style={{ fontSize: '11px', color: colors.muted }}>{name(p.author_id)} · {fmt(p.created_at, 'd MMM HH:mm')}</span>
@@ -587,13 +587,13 @@ export default function Conversation({ conversationId, canPost = true, height = 
         role="log" aria-live="polite" style={{ flex: 1, overflowY: 'auto', padding: '8px 4px' }}>
         {hasMore && (
           <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-            <button onClick={earlier} style={{ background: 'none', border: `1px solid ${colors.border}`, color: colors.soft, borderRadius: '8px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}>{t('chat.earlier')}</button>
+            <button onClick={earlier} style={{ background: 'none', border: `1px solid ${colors.border}`, color: colors.soft, padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}>{t('chat.earlier')}</button>
           </div>
         )}
         {messages.length === 0 && <p style={{ textAlign: 'center', color: colors.muted, fontSize: '13px', padding: '30px 10px', lineHeight: 1.6 }}>{emptyText || t('chat.empty')}</p>}
         {layoutMessages(messages).map(row => {
           if (row.type === 'day') return (
-            <div key={row.key} style={{ textAlign: 'center', fontSize: '11px', color: colors.muted, margin: '12px 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{fmt(row.day, 'EEEE, d MMM')}</div>
+            <div key={row.key} style={{ textAlign: 'center', fontSize: '11px', color: colors.muted, margin: '12px 0 6px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{fmt(row.day, 'EEEE, d MMM')}</div>
           )
           const m = row.message
           if (m.kind === 'system' && EVENTS.has(m.payload?.event)) return (
@@ -613,23 +613,23 @@ export default function Conversation({ conversationId, canPost = true, height = 
               {!row.continues && !mine && (
                 <span style={{ fontSize: '12px', fontWeight: 700, color: colors.soft, margin: '0 0 2px 4px' }}>
                   {who(m)}
-                  {m.guest_name && <span style={{ marginLeft: '6px', fontSize: '10px', fontWeight: 700, color: 'var(--warn)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t(`chat.guest.badge.${context.contextType || 'quote'}`)}</span>}
+                  {m.guest_name && <span style={{ marginLeft: '6px', fontSize: '10px', fontWeight: 700, color: 'var(--warn)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t(`chat.guest.badge.${context.contextType || 'quote'}`)}</span>}
                 </span>
               )}
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', flexDirection: mine ? 'row-reverse' : 'row', maxWidth: '88%', position: 'relative' }}>
                 <div style={{
-                  background: mine ? MINE : 'color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', borderRadius: '12px', padding: '7px 11px', fontSize: '14px', lineHeight: 1.5,
+                  background: mine ? MINE : 'var(--line)', padding: '7px 11px', fontSize: '14px', lineHeight: 1.5,
                   whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', minWidth: 0,
-                  boxShadow: highlight === m.id ? `0 0 0 2px ${colors.accent}` : forMe ? `inset 3px 0 0 ${AMBER}` : 'none', transition: 'box-shadow .3s',
+                  outline: highlight === m.id ? `2px solid ${colors.focus}` : 'none', borderLeft: forMe ? `2px solid ${AMBER}` : undefined, transition: 'outline-color .15s',
                 }}>
                   {removed ? <span style={{ fontStyle: 'italic', color: colors.muted }}>{t(m.removed_by ? 'chat.removedByModerator' : 'chat.removed')}</span> : <>
                     {m.needs_ack && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: AMBER, marginBottom: '3px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: AMBER, marginBottom: '3px' }}>
                         <Megaphone size={13} /> {t('chat.announcement')}
                       </div>
                     )}
                     {m.reply_to && (
-                      <div style={{ borderLeft: `3px solid ${colors.accent}`, padding: '2px 8px', marginBottom: '4px', fontSize: '12px', color: colors.soft, background: 'color-mix(in srgb, var(--shade) 15%, transparent)', borderRadius: '4px' }}>
+                      <div style={{ borderLeft: `3px solid ${colors.accent}`, padding: '2px 8px', marginBottom: '4px', fontSize: '12px', color: colors.soft, background: 'var(--shade)',  }}>
                         {quoted ? <><strong>{who(quoted)}</strong> {quoted.deleted_at ? t('chat.removed') : (quoted.body || '').slice(0, 120)}</> : t('chat.earlierMessage')}
                       </div>
                     )}
@@ -637,7 +637,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
                     <Attachments files={m.attachments} />
                     {!isAutoBody(m) && <Body text={m.body} mentionRe={mentionRe} />}
                     {m.needs_ack && (
-                      <div style={{ clear: 'both', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)' }}>
+                      <div style={{ clear: 'both', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--line)' }}>
                         {(mine || context.canManage) && (
                           <button type="button" onClick={() => setStatusFor(m)} style={{ background: 'none', border: 'none', color: colors.soft, font: 'inherit', fontSize: '12px', cursor: 'pointer', padding: 0, textDecoration: 'underline dotted' }}>
                             {ackCounts[m.id] ? t('chat.ackCount', { done: ackCounts[m.id].done, total: ackCounts[m.id].total }) : t('chat.ackWho')}
@@ -645,7 +645,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
                         )}
                         {!mine && (myAcks.has(m.id)
                           ? <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: colors.accentText, fontWeight: 600 }}><CheckCircle2 size={14} /> {t('chat.acked')}</span>
-                          : <button type="button" onClick={() => ack(m)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: colors.accent, color: 'var(--on-accent)', border: 'none', borderRadius: '8px', padding: '6px 10px', font: 'inherit', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                          : <button type="button" onClick={() => ack(m)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: colors.accent, color: 'var(--on-accent)', border: 'none', padding: '6px 10px', font: 'inherit', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
                             <CheckCircle2 size={14} /> {t('chat.ack')}
                           </button>)}
                       </div>
@@ -670,13 +670,13 @@ export default function Conversation({ conversationId, canPost = true, height = 
                 {menuFor === m.id && (
                   <div role="menu" className="chat-menu" style={{
                     position: 'absolute', zIndex: 20, bottom: '100%', [mine ? 'right' : 'left']: 0, marginBottom: '4px', minWidth: '210px',
-                    background: colors.panel, border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', borderRadius: '10px', padding: '6px', boxShadow: '0 12px 28px rgba(0,0,0,0.5)',
+                    background: colors.panel, border: '1px solid var(--line-strong)', padding: '6px',
                   }}>
                     {canPost && (
                       <div style={{ display: 'flex', gap: '2px', padding: '2px 2px 6px', borderBottom: `1px solid ${colors.border}`, marginBottom: '4px' }}>
                         {REACTIONS.map(emoji => (
                           <button key={emoji} role="menuitem" onClick={() => react(m, emoji)} aria-label={t('chat.reactWith', { emoji })}
-                            style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', padding: '3px', borderRadius: '6px' }}>{emoji}</button>
+                            style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', padding: '3px',  }}>{emoji}</button>
                         ))}
                       </div>
                     )}
@@ -704,14 +704,14 @@ export default function Conversation({ conversationId, canPost = true, height = 
               </div>
               {!removed && <ReactionBar summary={summary} name={name} onToggle={canPost ? emoji => react(m, emoji) : null} alignEnd={mine} />}
               {!removed && reports[m.id] && (
-                <div role="note" style={{ maxWidth: '88%', marginTop: '4px', padding: '6px 10px', borderRadius: '8px', background: 'color-mix(in srgb, var(--danger) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', fontSize: '12px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                <div role="note" style={{ maxWidth: '88%', marginTop: '4px', padding: '6px 10px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', fontSize: '12px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
                   <Flag size={12} color={colors.danger} />
                   <span style={{ flex: 1, minWidth: '160px' }}>
                     {t('chat.moderate.reported', { count: reports[m.id].reports, reasons: reports[m.id].reasons.map(r => t(`chat.report.reason.${r}`)).join(', ') })}
                     {reports[m.id].notes?.length > 0 && <span style={{ color: colors.soft }}> · “{reports[m.id].notes.join('” · “')}”</span>}
                   </span>
-                  <button type="button" onClick={() => moderate(m, true)} style={{ background: 'none', border: '1px solid color-mix(in srgb, var(--danger) 40%, transparent)', color: colors.danger, borderRadius: '6px', padding: '3px 8px', font: 'inherit', fontSize: '12px', cursor: 'pointer' }}>{t('chat.moderate.removeShort')}</button>
-                  <button type="button" onClick={() => moderate(m, false)} style={{ background: 'none', border: `1px solid ${colors.border}`, color: colors.soft, borderRadius: '6px', padding: '3px 8px', font: 'inherit', fontSize: '12px', cursor: 'pointer' }}>{t('chat.moderate.keep')}</button>
+                  <button type="button" onClick={() => moderate(m, true)} style={{ background: 'none', border: '1px solid var(--danger)', color: colors.danger, padding: '3px 8px', font: 'inherit', fontSize: '12px', cursor: 'pointer' }}>{t('chat.moderate.removeShort')}</button>
+                  <button type="button" onClick={() => moderate(m, false)} style={{ background: 'none', border: `1px solid ${colors.border}`, color: colors.soft, padding: '3px 8px', font: 'inherit', fontSize: '12px', cursor: 'pointer' }}>{t('chat.moderate.keep')}</button>
                 </div>
               )}
             </div>
@@ -719,7 +719,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
         })}
         {queued.map(q => (
           <div key={q.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', margin: '6px 0' }}>
-            <div style={{ background: MINE, borderRadius: '12px', padding: '7px 11px', maxWidth: '80%', fontSize: '14px', lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word', opacity: 0.65 }}>{q.body}</div>
+            <div style={{ background: MINE, padding: '7px 11px', maxWidth: '80%', fontSize: '14px', lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word', opacity: 0.65 }}>{q.body}</div>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: colors.muted, marginTop: '2px' }}>
               <Clock size={11} /> {t('chat.outbox.waiting')}
               <button type="button" onClick={() => dropQueued(user.id, q.id)} aria-label={t('chat.outbox.cancel')} title={t('chat.outbox.cancel')}
@@ -731,19 +731,19 @@ export default function Conversation({ conversationId, canPost = true, height = 
       {other?.blocked ? (
         <p style={{ fontSize: '13px', color: colors.soft, textAlign: 'center', padding: '10px 8px', borderTop: `1px solid ${colors.border}`, display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
           <Ban size={14} /> {t('chat.block.banner', { name: name(other.id) })}
-          <button type="button" onClick={() => setBlocked(false)} style={{ background: 'none', border: `1px solid ${colors.border}`, color: colors.accentText, borderRadius: '8px', padding: '4px 10px', font: 'inherit', fontSize: '12px', cursor: 'pointer' }}>{t('chat.block.unblock')}</button>
+          <button type="button" onClick={() => setBlocked(false)} style={{ background: 'none', border: `1px solid ${colors.border}`, color: colors.accentText, padding: '4px 10px', font: 'inherit', fontSize: '12px', cursor: 'pointer' }}>{t('chat.block.unblock')}</button>
         </p>
       ) : canPost ? (
         <form onSubmit={send} style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '8px', position: 'relative' }}
           onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); if (!editing && e.dataTransfer.files.length) addFiles(e.dataTransfer.files) }}>
           {announce && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text)', marginBottom: '6px', padding: '6px 8px', borderLeft: `3px solid ${AMBER}`, background: 'color-mix(in srgb, var(--warn) 8%, transparent)', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text)', marginBottom: '6px', padding: '6px 8px', borderLeft: `3px solid ${AMBER}`, background: 'var(--warn-soft)',  }}>
               <Megaphone size={13} color={AMBER} /> <span style={{ flex: 1 }}>{t('chat.announceHint')}</span>
               <button type="button" onClick={() => setAnnounce(false)} aria-label={t('chat.announceOff')} style={{ background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', display: 'flex' }}><X size={14} /></button>
             </div>
           )}
           {(replyTo || editing) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: colors.soft, marginBottom: '6px', padding: '4px 8px', borderLeft: `3px solid ${editing ? AMBER : colors.accent}`, background: 'color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent)', borderRadius: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: colors.soft, marginBottom: '6px', padding: '4px 8px', borderLeft: `3px solid ${editing ? AMBER : colors.accent}`, background: 'var(--fill)',  }}>
               <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {editing ? <strong>{t('chat.editing')}</strong> : <><strong>{t('chat.replyingTo', { name: name(replyTo.author_id) })}</strong> {replyTo.body}</>}
               </span>
@@ -753,13 +753,13 @@ export default function Conversation({ conversationId, canPost = true, height = 
           {(files.length > 0 || card) && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
               {card && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '4px 8px', borderRadius: '8px', background: 'color-mix(in srgb, var(--accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '4px 8px', background: 'var(--selection)', border: '1px solid var(--accent)' }}>
                   <Link2 size={12} /> {t(`chat.card.${card.type}`)}: {card.title}
                   <button type="button" onClick={() => setCard(null)} aria-label={t('chat.removeCard')} style={{ ...smallBtn, padding: 0 }}><X size={12} /></button>
                 </span>
               )}
               {files.map((f, i) => (
-                <span key={`${f.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '4px 8px', borderRadius: '8px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`, maxWidth: '100%' }}>
+                <span key={`${f.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', padding: '4px 8px', background: 'var(--hover)', border: `1px solid ${colors.border}`, maxWidth: '100%' }}>
                   <FileText size={12} /> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>{f.name}</span> <span style={{ color: colors.muted }}>{formatSize(f.size)}</span>
                   <button type="button" onClick={() => setFiles(fs => fs.filter((_, j) => j !== i))} aria-label={t('chat.removeFile', { name: f.name })} style={{ ...smallBtn, padding: 0 }}><X size={12} /></button>
                 </span>
@@ -769,11 +769,11 @@ export default function Conversation({ conversationId, canPost = true, height = 
           {suggestions.length > 0 && (
             <div role="listbox" aria-label={t('chat.mentionSomeone')} style={{
               position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: '4px', zIndex: 15, background: colors.panel,
-              border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', borderRadius: '10px', padding: '4px', boxShadow: '0 12px 28px rgba(0,0,0,0.5)',
+              border: '1px solid var(--line-strong)', padding: '4px',
             }}>
               {suggestions.map((c, i) => (
                 <button key={`${c.label}-${i}`} type="button" role="option" aria-selected={i === mentionIndex}
-                  onMouseDown={e => { e.preventDefault(); pickMention(c) }} style={{ ...menuItem, background: i === mentionIndex ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'none' }}>
+                  onMouseDown={e => { e.preventDefault(); pickMention(c) }} style={{ ...menuItem, background: i === mentionIndex ? 'var(--selection)' : 'none' }}>
                   <strong>@{c.label}</strong> <span style={{ color: colors.muted, fontSize: '12px' }}>{c.hint}</span>
                 </button>
               ))}
@@ -805,9 +805,9 @@ export default function Conversation({ conversationId, canPost = true, height = 
                 if (e.key === 'Escape' && editing) { e.preventDefault(); return resetComposer() }
                 if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send() }
               }}
-              style={{ flex: 1, minWidth: 0, resize: 'none', background: 'color-mix(in srgb, var(--shade) 25%, transparent)', border: `1px solid ${colors.border}`, borderRadius: '10px', padding: '9px 12px', color: 'var(--text)', font: 'inherit', fontSize: '14px', lineHeight: 1.45 }} />
+              style={{ flex: 1, minWidth: 0, resize: 'none', background: 'var(--shade)', border: `1px solid ${colors.border}`, padding: '9px 12px', color: 'var(--text)', font: 'inherit', fontSize: '14px', lineHeight: 1.45 }} />
             <button type="submit" disabled={(!text.trim() && (editing || (!files.length && !card))) || sending} aria-label={editing ? t('chat.saveEdit') : t('chat.send')} title={editing ? t('chat.saveEdit') : t('chat.send')}
-              style={{ background: colors.accent, border: 'none', borderRadius: '10px', width: '42px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--on-accent)', flexShrink: 0 }}>
+              style={{ background: colors.accent, border: 'none', width: '42px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--on-accent)', flexShrink: 0 }}>
               {sending ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : editing ? <Pencil size={16} /> : <Send size={16} />}
             </button>
           </div>

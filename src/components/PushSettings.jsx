@@ -72,7 +72,7 @@ export default function PushSettings() {
         </span>
       </label>
       {on && (
-        <button type="button" onClick={test} disabled={busy} style={{ marginTop: '8px', marginLeft: '26px', background: 'none', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', borderRadius: '8px', color: 'var(--soft)', padding: '5px 10px', fontSize: '12px', cursor: 'pointer' }}>
+        <button type="button" onClick={test} disabled={busy} style={{ marginTop: '8px', marginLeft: '26px', background: 'none', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: 'var(--soft)', padding: '5px 10px', fontSize: '12px', cursor: 'pointer' }}>
           {t('push.test')}
         </button>
       )}

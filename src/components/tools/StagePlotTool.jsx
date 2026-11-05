@@ -11,7 +11,7 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { inputsToEquipment } from '../../lib/tools'
 import { SYMBOLS, SYMBOL_ORDER, STEP_M, stageSize, place, nextRotation, newSpot, plotToInputs, plotChannelCount } from '../../lib/stagePlot'
 import { t } from '../../i18n'
-import { btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../ui'
+import { btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import StagePlotSvg from './StagePlotSvg'
 
@@ -228,7 +228,7 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
       </div>
 
       {canEdit && current && (
-        <div role="group" aria-label={t('plot.selected', { name: nameOf(current) })} style={{ ...card, marginBottom: '12px', borderColor: tint(colors.accent, 45), display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div role="group" aria-label={t('plot.selected', { name: nameOf(current) })} style={{ ...card, marginBottom: '12px', borderColor: 'var(--accent)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <strong style={{ fontSize: '14px' }}>{nameOf(current)}</strong>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
             <button type="button" onClick={() => nudge(current, -STEP_M, 0)} aria-label={t('plot.moveLeft')} style={iconBtn}><ArrowLeft size={16} /></button>

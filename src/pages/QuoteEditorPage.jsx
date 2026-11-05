@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  ArrowLeft, Loader2, Printer, Copy, LayoutTemplate, Trash2, Plus, CalendarPlus, ExternalLink, CheckCircle, AlertTriangle, CloudOff, Download,
+  ArrowLeft, Loader2, Printer, Copy, LayoutTemplate, Trash2, Plus, CalendarPlus, ExternalLink, AlertTriangle, Download,
   History, Send, ListChecks, Package,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -317,7 +317,7 @@ export default function QuoteEditorPage() {
             <button onClick={() => flushThen(() => navigate(`/org/${quote.org_id}/quotes`))} aria-label={t('quote.backToQuotes')} title={t('quote.backToQuotes')} style={iconBtn}><ArrowLeft size={18} /></button>
             <span style={{ fontFamily: 'var(--font-mono)', color: colors.soft, fontSize: '13px' }}>{quoteNumber(quote, prefix)}</span>
             <input value={quote.title} onChange={e => updateQuote({ title: e.target.value })} aria-label={t('quotes.quoteTitle')} maxLength={200}
-              style={{ ...input, flex: '1 1 220px', fontSize: '18px', fontWeight: 800, background: 'transparent', border: '1px solid transparent', padding: '6px 8px' }} />
+              style={{ ...input, flex: '1 1 220px', fontFamily: 'var(--font-mono)', fontSize: '18px', fontWeight: 700, background: 'transparent', border: '1px solid transparent', padding: '6px 8px' }} />
             <select value={quote.status} onChange={e => changeStatus(e.target.value)} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', padding: '7px 10px', cursor: 'pointer' }}>
               {QUOTE_STATUSES.map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
             </select>
@@ -331,7 +331,7 @@ export default function QuoteEditorPage() {
           </div>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', padding: '8px 0 10px' }}>
             <button onClick={() => flushThen(() => navigate(`/quote/${id}/print`))} style={btn}><Printer size={14} /> {t('quote.preview')}</button>
-            <button onClick={() => setModal({ kind: 'send' })} style={btn}><Send size={14} /> {t('send.button')}</button>
+            <button onClick={() => setModal({ kind: 'send' })} style={{ ...btnPrimary, fontSize: '13px', padding: '9px 14px' }}><Send size={14} /> {t('send.button')}</button>
             <button onClick={() => setModal({ kind: 'versions' })} style={btnGhost}><History size={14} /> {t('quoteVersions.button')}</button>
             <button onClick={() => setModal({ kind: 'availability' })} style={btnGhost}><Package size={14} /> {t('quoteAvail.button')}</button>
             <button onClick={duplicateQuote} style={btnGhost}><Copy size={14} /> {t('quote.duplicate')}</button>
@@ -345,24 +345,28 @@ export default function QuoteEditorPage() {
             {canDelete && <button onClick={deleteQuote} style={{ ...btnGhost, color: colors.danger, marginLeft: 'auto' }}><Trash2 size={14} /> {t('common.delete')}</button>}
           </div>
           {saveState === 'conflict' && (
-            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '10px 12px', marginBottom: '10px', borderRadius: '10px', background: 'color-mix(in srgb, var(--warn) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--warn) 30%, transparent)', color: 'var(--yellow)', fontSize: '13px' }}>
-              <AlertTriangle size={15} /> <span style={{ flex: 1 }}>{t('quote.conflict')}</span>
-              <button onClick={() => window.location.reload()} style={{ ...btn, color: 'var(--yellow)', borderColor: 'color-mix(in srgb, var(--warn) 40%, transparent)', background: 'transparent' }}>{t('quote.reload')}</button>
+            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '10px 12px', marginBottom: '10px', background: 'var(--warn-soft)', border: '1px solid var(--warn)', color: 'var(--text)', fontSize: '13px' }}>
+              <AlertTriangle size={15} color="var(--warn)" aria-hidden="true" /> <span style={{ flex: 1 }}>{t('quote.conflict')}</span>
+              <button onClick={() => window.location.reload()} style={btn}>{t('quote.reload')}</button>
             </div>
           )}
           {/* The tabs (phases, details, summary) and, between them on screen, the add buttons, which
               aren't tabs: the tab list takes no box of its own and `order` places the buttons */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'thin' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'thin', marginBottom: '-1px' }}>
             <div role="tablist" aria-label={t('quote.phases')} style={{ display: 'contents' }}>
             {tabs.map(tb => (
-              <button key={tb.key} role="tab" aria-selected={tab === tb.key} onClick={() => setTab(tb.key)} style={tabStyle(tab === tb.key)}>
-                <span style={{ fontStyle: tb.optional ? 'italic' : undefined }}>{tb.label}</span>
-                {tb.amount !== undefined && <span style={{ display: 'block', fontSize: '11px', fontWeight: 500, color: colors.muted }}>{formatMoney(tb.amount, quote.currency, lang)}</span>}
+              <button key={tb.key} role="tab" aria-selected={tab === tb.key} onClick={() => setTab(tb.key)} style={tabStyle(tab === tb.key, tb.optional)}>
+                <span>{tb.label}</span>
+                {(tb.amount !== undefined || tb.optional) && (
+                  <span style={{ display: 'block', fontSize: '11px', fontWeight: 400, letterSpacing: 0, textTransform: 'none', color: colors.muted }}>
+                    {tb.optional ? `${t('quote.optional')} · ` : ''}{tb.amount !== undefined ? formatMoney(tb.amount, quote.currency, lang) : ''}
+                  </span>
+                )}
               </button>
             ))}
               <button role="tab" aria-selected={tab === 'summary'} onClick={() => setTab('summary')} style={{ ...tabStyle(tab === 'summary'), marginLeft: 'auto', order: 2 }}>{t('quote.tab.summary')}</button>
             </div>
-            <button onClick={addPhase} aria-label={t('quote.addPhase')} title={t('quote.addPhase')} style={{ ...tabStyle(false), color: colors.accentText, order: 1 }}><Plus size={15} /></button>
+            <button onClick={addPhase} aria-label={t('quote.addPhase')} title={t('quote.addPhase')} style={{ ...tabStyle(false), color: 'var(--text)', order: 1, alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}><Plus size={15} /></button>
             {templates.length > 0 && (
               <button onClick={() => setModal({ kind: 'insertTemplate' })} title={t('quote.insertTemplate')} style={{ ...tabStyle(false), order: 1, color: colors.soft, display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Download size={13} /> {t('quote.insertTemplateShort')}
@@ -391,12 +395,12 @@ export default function QuoteEditorPage() {
         )}
       </main>
 
-      <footer style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'color-mix(in srgb, var(--bg) 96%, transparent)', borderTop: `1px solid ${colors.border}`, zIndex: 40 }}>
+      <footer style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--chrome)', borderTop: `1px solid ${colors.border}`, zIndex: 40 }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '13px' }}>
           <QuoteStatusBadge status={quote.status} />
-          {totals.optional > 0 && <span style={{ color: colors.muted }}>{t('quote.optionsNotIncluded')}: {formatMoney(totals.optional, quote.currency, lang)}</span>}
-          <span style={{ marginLeft: 'auto', color: colors.soft }}>{t('quote.totalExVat')} <strong style={{ color: 'var(--text)', fontSize: '15px' }}>{formatMoney(totals.net, quote.currency, lang)}</strong></span>
-          <span style={{ color: colors.soft }}>{t('quote.totalIncVat')} <strong style={{ color: colors.accentText, fontSize: '15px' }}>{formatMoney(totals.total, quote.currency, lang)}</strong></span>
+          {totals.optional > 0 && <span style={{ color: colors.muted }}>{t('quote.optionsNotIncluded')}: <span style={{ fontFamily: 'var(--font-mono)' }}>{formatMoney(totals.optional, quote.currency, lang)}</span></span>}
+          <span style={{ marginLeft: 'auto', color: colors.soft }}>{t('quote.totalExVat')} <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)', fontSize: '14px', fontWeight: 400 }}>{formatMoney(totals.net, quote.currency, lang)}</strong></span>
+          <span style={{ color: colors.soft }}>{t('quote.totalIncVat')} <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)', fontSize: '16px' }}>{formatMoney(totals.total, quote.currency, lang)}</strong></span>
         </div>
       </footer>
 
@@ -447,17 +451,18 @@ export default function QuoteEditorPage() {
 
 function SaveIndicator({ state, onRetry }) {
   const { t } = useI18n()
+  // A square + the word (DESIGN.md "QuoteEditor"): accent-text saved, warn unsaved, blinking while saving
   const map = {
-    saved: [CheckCircle, colors.muted, t('quote.saved')],
-    dirty: [Loader2, colors.muted, t('quote.unsaved')],
-    saving: [Loader2, colors.muted, t('quote.saving')],
-    error: [CloudOff, colors.danger, t('quote.saveFailed')],
-    conflict: [AlertTriangle, 'var(--yellow)', t('quote.notSaved')],
+    saved: ['var(--accent-text)', t('quote.saved')],
+    dirty: ['var(--warn)', t('quote.unsaved')],
+    saving: ['var(--muted)', t('quote.saving')],
+    error: ['var(--danger)', t('quote.saveFailed')],
+    conflict: ['var(--warn)', t('quote.notSaved')],
   }
-  const [Icon, color, text] = map[state]
+  const [color, text] = map[state]
   return (
-    <span role="status" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color, whiteSpace: 'nowrap' }}>
-      <Icon size={13} style={state === 'saving' ? { animation: 'spin 1s linear infinite' } : undefined} /> {text}
+    <span role="status" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: state === 'error' ? colors.danger : colors.soft, whiteSpace: 'nowrap' }}>
+      <span aria-hidden="true" style={{ width: '8px', height: '8px', background: color, flexShrink: 0, animation: state === 'saving' ? 'blink 0.6s steps(1, end) infinite' : undefined }} /> {text}
       {state === 'error' && <button onClick={onRetry} style={{ ...iconBtn, color: colors.accentText, fontSize: '12px', padding: '2px 4px' }}>{t('quote.retry')}</button>}
     </span>
   )
@@ -506,9 +511,12 @@ function SaveTemplateModal({ orgId, userId, body, defaultName, onClose, onSaved 
   )
 }
 
-const btnGhost = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', color: colors.soft }
-const tabStyle = active => ({
-  padding: '8px 14px', whiteSpace: 'nowrap', flexShrink: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left',
-  fontSize: '14px', fontWeight: 600, color: active ? colors.accentText : colors.soft,
-  borderBottom: active ? `2px solid ${colors.accent}` : '2px solid transparent',
+const btnGhost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
+// Square phase tabs: fill ground, a 2px accent top edge when selected, dashed when optional (not in the total)
+const tabStyle = (active, optional) => ({
+  padding: '8px 14px', whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer', textAlign: 'left',
+  fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+  color: active ? 'var(--text)' : colors.muted, background: active ? 'var(--panel)' : 'var(--fill)',
+  border: `1px ${optional ? 'dashed' : 'solid'} ${active ? 'var(--line-strong)' : 'var(--line)'}`, borderBottom: active ? '1px solid var(--panel)' : '1px solid var(--line)',
+  borderTop: active ? `2px solid ${colors.accent}` : `1px ${optional ? 'dashed' : 'solid'} var(--line)`,
 })

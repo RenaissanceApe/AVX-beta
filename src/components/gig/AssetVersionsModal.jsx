@@ -98,15 +98,15 @@ export default function AssetVersionsModal({ asset, nameOf, onClose }) {
           </div>
           {preview.kind === 'image' ? (
             <img src={preview.url} alt={t('versions.alt', { name: asset.name, version: preview.version })}
-              style={{ maxWidth: '100%', maxHeight: '65vh', display: 'block', margin: '0 auto', borderRadius: '10px', background: '#fff' }} />
+              style={{ maxWidth: '100%', maxHeight: '65vh', display: 'block', margin: '0 auto', background: '#fff' }} />
           ) : (
             <iframe src={preview.url} title={t('versions.alt', { name: asset.name, version: preview.version })}
-              style={{ width: '100%', height: '65vh', border: 'none', borderRadius: '10px', background: '#fff' }} />
+              style={{ width: '100%', height: '65vh', border: 'none', background: '#fff' }} />
           )}
         </div>
       )}
 
-      <h3 style={{ fontSize: '13px', fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+      <h3 style={{ fontSize: '13px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
         {t('versions.title')} {loading && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite', verticalAlign: 'middle' }} />}
       </h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

@@ -142,7 +142,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
         </div>
       )}
       {short.length > 0 && (
-        <div role="status" style={{ ...card, borderColor: 'color-mix(in srgb, var(--warn) 40%, transparent)', background: 'color-mix(in srgb, var(--warn) 6%, transparent)', marginBottom: '14px', fontSize: '13px', color: AMBER, display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+        <div role="status" style={{ ...card, borderColor: 'var(--warn)', background: 'var(--warn-soft)', marginBottom: '14px', fontSize: '13px', color: AMBER, display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
           <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: '1px' }} />
           <span>{t('equip.shortBanner', { count: short.length })}</span>
         </div>
@@ -161,7 +161,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
               const missing = status[r.id] ? shortBy(r) : 0
               const alts = missing ? alternativesOf(r.item_id, kits.pairs).filter(id => altFree[id]?.available - (onGig[id] || 0) > 0) : []
               return (
-                <div key={r.id} style={{ ...card, padding: '9px 12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', borderColor: missing ? 'color-mix(in srgb, var(--warn) 40%, transparent)' : colors.border }}>
+                <div key={r.id} style={{ ...card, padding: '9px 12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', borderColor: missing ? 'var(--warn)' : colors.border }}>
                   <span style={{ flex: '1 1 200px', minWidth: 0 }}>
                     <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{r.item_name}</span>
                     <span style={{ fontSize: '12px', color: colors.muted }}>
@@ -223,7 +223,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   )
 }
 
-const ghostLink = { ...btn, textDecoration: 'none', background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }
+const ghostLink = { ...btn, textDecoration: 'none', background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
 
 // Saves planned quantities (item_id -> quantity), adding or updating lines
 const saveLines = (gig, lines) => {
@@ -297,7 +297,7 @@ function EquipmentPicker({ gig, org, planned, kits, onClose, onAdded }) {
             const qty = Number(picked[item.id] ?? already[item.id] ?? 1)
             const over = f && on && qty > f.available
             return (
-              <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: on ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'transparent' }}>
+              <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', cursor: 'pointer', background: on ? 'var(--selection)' : 'transparent' }}>
                 <input type="checkbox" checked={on} style={{ accentColor: colors.accent }}
                   onChange={() => setPicked(p => { const n = { ...p }; if (on) delete n[item.id]; else n[item.id] = already[item.id] || 1; return n })} />
                 <span style={{ flex: 1, minWidth: 0 }}>

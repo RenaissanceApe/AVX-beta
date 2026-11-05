@@ -99,8 +99,8 @@ export default function NotificationBell() {
         <Bell size={17} />
         {unread > 0 && (
           <span style={{
-            position: 'absolute', top: '1px', right: '0', minWidth: '16px', height: '16px', padding: '0 4px', borderRadius: '8px',
-            background: colors.accent, color: 'var(--on-accent)', fontSize: '10px', fontWeight: 800, lineHeight: '16px', textAlign: 'center',
+            position: 'absolute', top: '1px', right: '0', minWidth: '16px', height: '16px', padding: '0 4px',
+            background: 'var(--text)', color: 'var(--bg)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, lineHeight: '16px', textAlign: 'center',
           }}>{unread > 9 ? '9+' : unread}</span>
         )}
       </button>
@@ -108,7 +108,7 @@ export default function NotificationBell() {
       {open && place && (
         <div role="dialog" aria-label={t('notif.bell')} style={{
           position: 'fixed', right: `${place.right}px`, top: `${place.top}px`, width: `${place.width}px`, maxHeight: '70vh', overflowY: 'auto',
-          background: colors.panel, border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '14px', boxShadow: '0 12px 32px rgba(0,0,0,0.5)', zIndex: 200,
+          background: colors.panel, border: '1px solid var(--line-strong)', zIndex: 200,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderBottom: `1px solid ${colors.border}` }}>
             <strong style={{ fontSize: '14px' }}>{t('notif.bell')}</strong>
@@ -124,9 +124,9 @@ export default function NotificationBell() {
           ) : items.map(n => (
             <button key={n.id} onClick={() => openItem(n)} style={{
               display: 'flex', gap: '10px', width: '100%', textAlign: 'left', padding: '11px 14px', cursor: 'pointer', color: 'var(--text)',
-              background: n.read_at ? 'transparent' : 'color-mix(in srgb, var(--accent) 6%, transparent)', border: 'none', borderBottom: `1px solid ${colors.border}`,
+              background: n.read_at ? 'transparent' : 'var(--selection)', border: 'none', borderBottom: `1px solid ${colors.border}`,
             }}>
-              <span aria-hidden style={{ width: '7px', height: '7px', borderRadius: '50%', marginTop: '6px', flexShrink: 0, background: n.read_at ? 'transparent' : colors.accent }} />
+              <span aria-hidden style={{ width: '7px', height: '7px', marginTop: '6px', flexShrink: 0, background: n.read_at ? 'transparent' : colors.accent }} />
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'block', fontSize: '13px', lineHeight: 1.5 }}>{describeNotification(n, nameOf)}</span>
                 <span style={{ display: 'block', fontSize: '11px', color: colors.muted, marginTop: '2px' }}>{ago(n.created_at)}</span>

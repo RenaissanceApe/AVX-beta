@@ -10,7 +10,7 @@ import { useUndoRemove } from '../../lib/undo'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { nextChannel, channelGaps, inputsToEquipment, inputCounts } from '../../lib/tools'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, tint } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 
@@ -133,15 +133,15 @@ export default function InputListTool({ gig, canEdit, canPlanEquipment }) {
       ) : (
         <ol style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {shown.map((row, n) => (
-            <li key={row.id} style={{ ...card, padding: '10px 12px', display: 'flex', flexWrap: 'wrap', gap: '6px 12px', alignItems: 'flex-start', borderColor: row.checked ? tint(colors.accent, 45) : undefined }}>
-              <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: '20px', fontWeight: 800, minWidth: '2.2em', textAlign: 'right', color: colors.accentText, lineHeight: 1.2 }}>{row.channel}</span>
+            <li key={row.id} style={{ ...card, padding: '10px 12px', display: 'flex', flexWrap: 'wrap', gap: '6px 12px', alignItems: 'flex-start', borderColor: row.checked ? 'var(--accent)' : undefined }}>
+              <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: '20px', fontWeight: 700, minWidth: '2.2em', textAlign: 'right', color: colors.accentText, lineHeight: 1.2 }}>{row.channel}</span>
               <div style={{ flex: '1 1 180px', minWidth: 0 }}>
                 <strong style={{ display: 'block', fontSize: '15px' }}><span className="sr-only">{t('inputs.channelN', { n: row.channel })}: </span>{row.source}</strong>
                 <span style={{ fontSize: '13px', color: colors.soft, display: 'flex', gap: '4px 10px', flexWrap: 'wrap' }}>
                   {row.mic && <span>{row.mic}</span>}
                   {row.stand && <span>{t('inputs.standShort', { stand: row.stand })}</span>}
                   {row.stage_box && <span>{t('inputs.boxShort', { box: row.stage_box })}</span>}
-                  {row.phantom && <span style={{ fontWeight: 800, color: 'var(--warn)' }}>48V</span>}
+                  {row.phantom && <span style={{ fontWeight: 700, color: 'var(--warn)' }}>48V</span>}
                 </span>
                 {row.notes && <span style={{ display: 'block', fontSize: '12px', color: colors.muted, marginTop: '2px' }}>{row.notes}</span>}
               </div>

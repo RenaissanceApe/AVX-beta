@@ -209,7 +209,7 @@ export default function GigPage() {
     <AppShell>
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center' }}>
         <div style={{ maxWidth: '360px' }}>
-          <h1 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '10px' }}>{t('gig.notAvailableTitle')}</h1>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '10px' }}>{t('gig.notAvailableTitle')}</h1>
           <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>{t('gig.notAvailableBody')}</p>
           <button onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
         </div>

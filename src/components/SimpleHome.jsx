@@ -4,7 +4,7 @@ import { useI18n } from '../i18n'
 import { localToday } from '../lib/gigs'
 import EmptyState from './EmptyState'
 import ReadAloud from './ReadAloud'
-import { btnPrimary, btn, card, colors, tint } from './ui'
+import { btnPrimary, btn, card, colors } from './ui'
 
 const shortTime = v => (v ? String(v).slice(0, 5) : '')
 
@@ -30,18 +30,18 @@ export default function SimpleHome({ gigs, onShowAll }) {
       {!next ? (
         <EmptyState icon={<CalendarDays size={28} />} title={t('simple.noneTitle')} body={t('simple.noneBody')} guide="crew-unavailable" />
       ) : (
-        <section aria-labelledby="next-gig" style={{ ...card, padding: '20px', borderColor: tint(colors.accent, 35) }}>
-          <p style={{ fontSize: '13px', fontWeight: 700, color: colors.accentText, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('simple.next')}</p>
-          <h2 id="next-gig" style={{ fontSize: '24px', fontWeight: 800, margin: '6px 0 4px', lineHeight: 1.2 }}>{next.name}</h2>
+        <section aria-labelledby="next-gig" style={{ ...card, padding: '20px', borderColor: 'var(--line-strong)' }}>
+          <p style={{ fontSize: '13px', fontWeight: 700, color: colors.accentText, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('simple.next')}</p>
+          <h2 id="next-gig" style={{ fontSize: '24px', fontWeight: 700, margin: '6px 0 4px', lineHeight: 1.2 }}>{next.name}</h2>
           <p style={{ fontSize: '16px', color: colors.text, display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <CalendarDays size={16} aria-hidden="true" color={colors.muted} />
             {next.start_date ? fmt(next.start_date, 'EEEE, d MMMM') : t('callsheet.datesTbc')}
           </p>
           {next.venue && <p style={{ fontSize: '15px', color: colors.soft, display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}><MapPin size={15} aria-hidden="true" /> {next.venue}</p>}
           {(next.myCallTime || next.myFunction) && (
-            <div style={{ marginTop: '14px', padding: '12px 14px', borderRadius: '12px', background: tint(colors.accent, 10), display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ marginTop: '14px', padding: '12px 14px', background: 'var(--selection)', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               {next.myCallTime && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '22px', fontWeight: 800, color: colors.accentText }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '22px', fontWeight: 700, color: colors.accentText }}>
                   <Clock size={22} aria-hidden="true" /> {t('crew.call', { time: shortTime(next.myCallTime) })}
                 </span>
               )}
@@ -67,7 +67,7 @@ export default function SimpleHome({ gigs, onShowAll }) {
 
       {later.length > 0 && (
         <section aria-labelledby="later-gigs">
-          <h2 id="later-gigs" style={{ fontSize: '14px', fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>{t('simple.later')}</h2>
+          <h2 id="later-gigs" style={{ fontSize: '14px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>{t('simple.later')}</h2>
           <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {later.slice(0, 5).map(g => (
               <li key={g.id}>

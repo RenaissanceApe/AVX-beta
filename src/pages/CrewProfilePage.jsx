@@ -110,12 +110,12 @@ export default function CrewProfilePage() {
     return !!was && was.name === c.name && (was.expires_on || '') === (c.expires_on || '') ? was : null
   }
   const gaps = missing(form)
-  const pressed = on => ({ ...btn, padding: '6px 11px', fontSize: '12px', background: on ? tint(colors.accent, 22) : 'transparent', borderColor: on ? colors.accent : tint(colors.accent, 30) })
+  const pressed = on => ({ ...btn, padding: '6px 11px', fontSize: '12px', background: on ? 'var(--selection)' : 'transparent', borderColor: on ? colors.accent : tint(colors.accent, 30) })
   return (
     <AppShell>
       <form onSubmit={save} noValidate style={{ maxWidth: '720px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('crewProfile.title')}</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('crewProfile.title')}</h1>
           <PageHelp page="crew-profile" />
         </div>
         <p style={{ ...hint, fontSize: '13px' }}>{t('crewProfile.intro')}</p>

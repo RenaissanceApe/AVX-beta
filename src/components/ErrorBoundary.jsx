@@ -22,12 +22,12 @@ export default class ErrorBoundary extends Component {
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center'
       }}>
         <div style={{ maxWidth: '380px' }}>
-          <h1 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '12px' }}>{t('error.boundaryTitle')}</h1>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '12px' }}>{t('error.boundaryTitle')}</h1>
           <p style={{ color: 'var(--muted)', fontSize: '15px', lineHeight: 1.6, marginBottom: '24px' }}>
             {t('error.boundaryBody')}
           </p>
           <button onClick={() => window.location.assign('/dashboard')} style={{
-            background: 'linear-gradient(135deg, var(--accent), var(--accent-2))', border: 'none', borderRadius: '10px',
+            background: 'var(--accent)', border: 'none', 
             padding: '12px 24px', color: 'var(--on-accent)', fontWeight: 700, fontSize: '15px', cursor: 'pointer',
             fontFamily: 'var(--font-ui)'
           }}>

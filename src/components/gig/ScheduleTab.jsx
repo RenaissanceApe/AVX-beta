@@ -8,7 +8,7 @@ import { groupByDay, shortTime } from '../../lib/schedule'
 import { useUndoRemove } from '../../lib/undo'
 import { updateIfUnchanged, notifyConflict } from '../../lib/staleSave'
 import { useI18n } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, card, label, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
 import EmptyState from '../EmptyState'
 
 const EMPTY = { day: '', start_time: '', end_time: '', title: '', location: '', notes: '' }
@@ -89,29 +89,28 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
       {groups.length === 0 ? (
         <EmptyState icon={<CalendarClock size={28} />} title={t('schedule.empty')} body={canManage ? t('schedule.emptyManager') : t('schedule.emptyCrew')}
           action={canManage ? t('schedule.add') : null} onAction={() => setEditing('new')} guide={canManage ? 'pm-schedule' : 'crew-call-time'} />
-      ) : groups.map(g => (
-        <section key={g.day} style={{ marginBottom: '22px' }}>
-          <h3 style={{ ...label, marginBottom: '10px' }}>{fmt(g.day, 'EEEE, d MMMM yyyy')}</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {g.items.map(item => (
-              <div key={item.id} style={{ ...card, display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                <div style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: colors.accentText, minWidth: '92px', fontSize: '14px' }}>
-                  {shortTime(item.start_time)}{item.end_time ? `–${shortTime(item.end_time)}` : ''}
+      ) : groups.map((g, gi) => (
+        <section key={g.day} className="avx-sched" aria-labelledby={`sch-day-${gi}`}>
+          <div className="avx-sched__day"><h3 id={`sch-day-${gi}`} style={{ ...label, marginBottom: 0 }}>{fmt(g.day, 'EEEE, d MMMM yyyy')}</h3></div>
+          {g.items.map((item, i) => {
+            const when = runState(item, g.items[i + 1])
+            return (
+              <div key={item.id} className={`avx-sched__row${when ? ` is-${when}` : ''}`} aria-current={when === 'now' ? 'time' : undefined}>
+                <div className="avx-sched__time">{shortTime(item.start_time)}{item.end_time ? `–${shortTime(item.end_time)}` : ''}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: '14px' }}>{item.title}</div>
+                  {item.location && <div style={{ fontSize: '12.5px', color: colors.muted, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}><MapPin size={12} aria-hidden="true" /> {item.location}</div>}
+                  {item.notes && <div style={{ fontSize: '13px', color: when === 'done' ? colors.muted : colors.soft, marginTop: '4px', whiteSpace: 'pre-wrap' }}>{item.notes}</div>}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: '15px' }}>{item.title}</div>
-                  {item.location && <div style={{ fontSize: '13px', color: colors.muted, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}><MapPin size={12} /> {item.location}</div>}
-                  {item.notes && <div style={{ fontSize: '13px', color: colors.soft, marginTop: '4px', whiteSpace: 'pre-wrap' }}>{item.notes}</div>}
-                </div>
-                {canManage && (
-                  <div style={{ display: 'flex' }}>
+                {canManage ? (
+                  <div style={{ display: 'flex', marginTop: '-6px' }}>
                     <button onClick={() => setEditing(item)} aria-label={t('schedule.editNamed', { title: item.title })} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>
                     <button onClick={() => remove(item)} aria-label={t('schedule.removeNamed', { title: item.title })} title={t('crew.remove')} style={iconBtn}><Trash2 size={14} /></button>
                   </div>
-                )}
+                ) : <span />}
               </div>
-            ))}
-          </div>
+            )
+          })}
         </section>
       ))}
 
@@ -156,4 +155,17 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
       )}
     </div>
   )
+}
+
+// Whether a running-order item is happening now or done (local time). Without an end time, an item
+// runs until the next one starts.
+function runState(item, next, now = new Date()) {
+  const at = time => new Date(`${item.day}T${String(time).slice(0, 5)}:00`)
+  const start = at(item.start_time)
+  let end = item.end_time ? at(item.end_time) : next ? new Date(`${next.day}T${String(next.start_time).slice(0, 5)}:00`) : null
+  if (end && end <= start) end = new Date(end.getTime() + 86400e3)
+  if (Number.isNaN(start.getTime())) return null
+  if (end && end <= now) return 'done'
+  if (start <= now && (!end || now < end)) return end ? 'now' : null
+  return null
 }

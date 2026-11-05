@@ -20,7 +20,7 @@ import { PageHelp } from '../components/help/HelpParts'
 const TABS = ['catalogue', 'locations', 'movements', 'maintenance', 'subrentals', 'reports']
 const TAB_ICONS = { catalogue: Package, locations: MapPin, movements: History, maintenance: Wrench, subrentals: Handshake, reports: BarChart3 }
 export const LOCATION_ICONS = { warehouse: Warehouse, vehicle: Truck, site: Building2, other: Box }
-const ghost = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }
+const ghost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
 
 // Inventory of one organisation: the catalogue with stock, locations and the stock ledger.
 //   /org/:orgId/inventory (?tab=locations|movements|maintenance|subrentals|reports)
@@ -44,7 +44,7 @@ export default function InventoryPage() {
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
           <div style={{ flex: '1 1 220px', minWidth: 0 }}>
             <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{inv.org?.name}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('inv.title')}</h1><PageHelp page="inventory" /></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('inv.title')}</h1><PageHelp page="inventory" /></div>
           </div>
           <Link to={`/org/${orgId}/inventory/labels`} style={{ ...ghost, textDecoration: 'none' }}><QrCode size={14} /> {t('inv.labels')}</Link>
         </div>
@@ -92,7 +92,7 @@ function Catalogue({ inv, orgId, goLocations }) {
   return (
     <div>
       {inv.activeLocations.length === 0 && (
-        <div style={{ ...card, borderColor: 'color-mix(in srgb, var(--warn) 35%, transparent)', marginBottom: '14px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ ...card, borderColor: 'var(--warn)', marginBottom: '14px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           <MapPin size={16} color="var(--warn)" />
           <span style={{ flex: '1 1 220px', fontSize: '13px', color: colors.soft, lineHeight: 1.5 }}>{t('inv.noLocationsYet')}</span>
           <button onClick={goLocations} style={btn}><Plus size={14} /> {t('inv.addLocation')}</button>
@@ -109,9 +109,9 @@ function Catalogue({ inv, orgId, goLocations }) {
       <div role="group" aria-label={t('inv.filter')} style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '14px' }}>
         {['all', 'tracked', 'low', 'archived'].map(f => (
           <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f} style={{
-            padding: '5px 11px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
-            border: `1px solid ${filter === f ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : colors.border}`,
-            background: filter === f ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'transparent', color: filter === f ? colors.accentText : f === 'low' && lowCount ? 'var(--warn)' : colors.soft,
+            padding: '5px 11px', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+            border: `1px solid ${filter === f ? 'var(--accent)' : colors.border}`,
+            background: filter === f ? 'var(--selection)' : 'transparent', color: filter === f ? colors.accentText : f === 'low' && lowCount ? 'var(--warn)' : colors.soft,
           }}>{t(`inv.filterOpt.${f}`)}{f === 'low' && lowCount ? ` · ${lowCount}` : ''}</button>
         ))}
       </div>
@@ -122,7 +122,7 @@ function Catalogue({ inv, orgId, goLocations }) {
         <p style={{ color: colors.muted, fontSize: '13px', textAlign: 'center', padding: '30px 20px' }}>{t('inv.noMatch')}</p>
       ) : groups.map(([category, list]) => (
         <section key={category || '—'} style={{ marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: colors.muted, marginBottom: '6px' }}>{category || t('prices.noCategory')}</h3>
+          <h3 style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.05em', color: colors.muted, marginBottom: '6px' }}>{category || t('prices.noCategory')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {list.map(item => {
               const s = inv.stock[item.id]
@@ -142,7 +142,7 @@ function Catalogue({ inv, orgId, goLocations }) {
                   </span>
                   {item.tracking !== 'none' && (
                     <span style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 800, fontSize: '16px', color: low ? 'var(--warn)' : 'var(--text)', justifyContent: 'flex-end' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 700, fontSize: '16px', color: low ? 'var(--warn)' : 'var(--text)', justifyContent: 'flex-end' }}>
                         {low && <AlertTriangle size={13} aria-label={t('inv.lowStock')} />}{s?.total || 0}
                       </span>
                       <span style={{ fontSize: '11px', color: colors.muted }}>

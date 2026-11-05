@@ -14,7 +14,8 @@ import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { btn, btnPrimary, input, label, card, colors } from '../components/ui'
 import { Hint } from '../components/help/HelpParts'
-import { CameraScanner, FeedRow, ScanMode, StepPicker, feedText, stepHue, AMBER } from '../components/dispatch/ScanParts'
+import { Segments } from '../components/gig/StepBars'
+import { CameraScanner, FeedRow, ScanMode, StepPicker, feedText, AMBER } from '../components/dispatch/ScanParts'
 
 const REPEAT_MS = 2500 // the same code seen again within this time is the same scan
 // On the way back, lines that went out count even if they weren't planned
@@ -171,11 +172,11 @@ export default function DispatchPage() {
     <AppShell>
       <div style={{ maxWidth: '760px', margin: '0 auto', padding: '16px 16px 60px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <button onClick={() => navigate(`/gig/${id}?tab=equipment`)} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft, padding: '6px 10px' }}><ArrowLeft size={14} /> {gig.name}</button>
-          <button onClick={() => navigate(`/gig/${id}/packing`)} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft, padding: '6px 10px', marginLeft: 'auto' }}><ClipboardList size={14} /> {t('dispatch.packingList')}</button>
+          <button onClick={() => navigate(`/gig/${id}?tab=equipment`)} style={{ ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft, padding: '6px 10px' }}><ArrowLeft size={14} /> {gig.name}</button>
+          <button onClick={() => navigate(`/gig/${id}/packing`)} style={{ ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft, padding: '6px 10px', marginLeft: 'auto' }}><ClipboardList size={14} /> {t('dispatch.packingList')}</button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <h1 style={{ fontSize: '22px', fontWeight: 800, flex: 1 }}>{t('dispatch.title')}</h1>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, flex: 1 }}>{t('dispatch.title')}</h1>
           <button type="button" aria-pressed={kit.sound} onClick={() => setKit({ sound: !kit.sound })} style={btn}>
             {kit.sound ? <Volume2 size={15} /> : <VolumeX size={15} />} {t('scanMode.sound')}
           </button>
@@ -221,8 +222,9 @@ export default function DispatchPage() {
           <h2 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <PackageCheck size={16} /> {t(`steps.progress.${step}`, progress)}
           </h2>
-          <div style={{ height: '6px', borderRadius: '3px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)', overflow: 'hidden', marginBottom: '10px' }}>
-            <div style={{ height: '100%', background: stepHue(step), width: `${Math.min(100, (100 * progress.done) / Math.max(1, progress.total))}%` }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '12px', alignItems: 'center', marginBottom: '10px' }}>
+            <Segments done={progress.done} total={progress.total} />
+            <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{progress.done} / {progress.total}</span>
           </div>
           {summary.length === 0 ? <p style={{ fontSize: '13px', color: colors.muted }}>{t('dispatch.nothingPlanned')}</p> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -249,7 +251,7 @@ export default function DispatchPage() {
               {unitsOut.map(u => <div key={u.unit_id}><span style={{ fontFamily: 'var(--font-mono)' }}>{u.code}</span> · {u.item_name}{u.serial ? ` · ${u.serial}` : ''} · {ago(u.out_since)}</div>)}
             </div>
             {step === 'returned' && (
-              <button onClick={markLost} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--danger) 35%, transparent)', color: colors.danger }}>
+              <button onClick={markLost} style={{ ...btn, background: 'transparent', borderColor: 'var(--danger)', color: colors.danger }}>
                 <X size={14} /> {t('dispatch.markLost', { count: unitsOut.length })}
               </button>
             )}

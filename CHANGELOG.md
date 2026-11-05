@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.70.0 — New look
+
+### Changed
+- **New look: Lumen & Pixel design language (Show, Daylight and Contrast themes, square UI, AVX
+  glyph).** The rules are in [DESIGN.md](DESIGN.md). Nothing you can do changed: same screens,
+  same places, same data; only how it looks.
+- **Three themes** with the same names as before: Show (dark navy, the default), Daylight (light)
+  and Contrast. One electric green marks the one thing to do on a screen; on Daylight that is
+  navy, and green text becomes olive so it stays readable.
+- **Square everywhere, flat everywhere:** no rounded corners, shadows, blur, glows or gradients.
+  Cards, menus and dialogs are separated by thin lines. The sign-in page sits on a quiet dot
+  field.
+- **Two typefaces:** Space Mono names things and holds the numbers (titles, labels, table
+  headings, times, dates, money, quantities, codes); Inter explains. "Readable font" in
+  Appearance still swaps both for Atkinson Hyperlegible. Nunito is gone.
+- **The AVX glyph** replaces the lightning bolt: in the top bar, the sign-in page, the browser tab
+  and the installed app's icon.
+- **Navigation:** the top bar is 56 px with a green bar under the section you're in; menus are
+  square panels with up to four cards; on phones the tab bar has a bar on the current tab and
+  "More" opens a plain list. Each workspace shows a two-letter monogram.
+- **Statuses and labels** are a small square and the word, everywhere (gigs, quotes, units,
+  repairs, subrentals, hours, leave, expenses); a gig's labels keep the nine colours you chose,
+  now as a square beside the name. Calendar gigs are blocks with their label square; drafts
+  (holds) have a dashed edge.
+- **Gigs:** the list shows a date block and, in My work, your call time; your own call is the
+  green "Call" chip in the gig header. Someone booked elsewhere at the same time gets a red
+  "Clash" row with a sentence saying where and what to do. Availability questions show the days
+  as squares and two large answers. The schedule marks what is on now (▶) and greys out what is
+  done.
+- **Quotes:** square phase tabs (dashed for optional phases), lines on a tighter grid with numbers
+  in Space Mono, "Send to client" as the one green button, and the autosave shown as a square.
+- **Inventory and scanning:** a square 14-day availability strip, segment bars with "7 / 12"
+  counts, square corner brackets on the camera and a plain scan log with ✓ ⚠ ✕ and words.
+- **Loading** shows a blinking square instead of a spinning circle.
+- The call sheet, quote document, packing list and QR labels stay white paper with navy ink in
+  every theme.
+- Help: every guide picture redone in both languages.
+
 ## 0.69.0 — Reports
 
 ### Added

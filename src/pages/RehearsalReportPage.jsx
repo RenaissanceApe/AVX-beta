@@ -56,12 +56,12 @@ export default function RehearsalReportPage() {
     <div className="rh-page">
       <style>{`
         .rh-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
-        .sheet { max-width: 1000px; margin: 0 auto; background: #fff; color: #111; border-radius: 8px; padding: 28px; font-size: 13px; }
+        .sheet { max-width: 1000px; margin: 0 auto; background: #fff; color: #111; padding: 28px; font-size: 13px; }
         .sheet h1 { font-size: 22px; margin-bottom: 2px; }
-        .sheet h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 18px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; break-after: avoid; }
+        .sheet h2 { font-size: 12px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 18px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; break-after: avoid; }
         .sheet table { width: 100%; border-collapse: collapse; }
         .sheet th, .sheet td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #ddd; vertical-align: top; }
-        .sheet th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #555; }
+        .sheet th { font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: #555; }
         .sheet tr { break-inside: avoid; }
         .sheet .muted { color: #555; }
         .sheet .tc { font-family: var(--font-mono); white-space: nowrap; font-weight: 700; }
@@ -72,13 +72,13 @@ export default function RehearsalReportPage() {
         .sheet .fix { color: #8A5A00; font-weight: 700; }
         .wrap { overflow-x: auto; }
         .toolbar { max-width: 1000px; margin: 0 auto 12px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-        .toolbar select { padding: 8px 10px; border-radius: 8px; border: 1px solid #c8ced6; background: #fff; color: #111; font-size: 13px; }
+        .toolbar select { padding: 8px 10px; border: 1px solid #c8ced6; background: #fff; color: #111; font-size: 13px; }
         @media (max-width: 600px) { .sheet { padding: 18px 14px; } }
         @media print {
           @page { margin: 12mm; }
           body, .rh-page { background: #fff !important; padding: 0; }
           .toolbar { display: none; }
-          .sheet { border-radius: 0; padding: 0; max-width: none; }
+          .sheet { padding: 0; max-width: none; }
         }
       `}</style>
       <div className="toolbar">
@@ -93,7 +93,7 @@ export default function RehearsalReportPage() {
         </span>
       </div>
       <article className="sheet">
-        <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.1em' }}>{t('rehearsal.reportTitle')}</div>
+        <div className="muted" style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.1em' }}>{t('rehearsal.reportTitle')}</div>
         <h1>{gig.name} · {session.name}</h1>
         <div>{[gig.venue, fmt(session.created_at, 'd MMM yyyy, HH:mm'), gig.organisations?.name, `${Number(session.fps)} fps${df ? ' DF' : ''}`, session.clock && t(`rehearsal.clock.${session.clock}`)].filter(Boolean).join(' · ')}</div>
         <p className="muted" style={{ marginTop: '6px' }}>{t('rehearsal.reportSummary', { count: notes.length, open })}</p>
@@ -127,4 +127,4 @@ export default function RehearsalReportPage() {
   )
 }
 
-const toolbarBtn = { display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', border: '1px solid #c8ced6', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }
+const toolbarBtn = { display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', border: '1px solid #c8ced6', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }
