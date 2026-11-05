@@ -95,7 +95,9 @@ begin
   begin
     insert into invoices (org_id, quote_id, client_name, lines) values (org_a, q_b, 'X', '[]');
     raise exception 'CHECK FAILED: quote of another organisation';
-  exception when others then null; end;   -- the other quote is hidden, or refused
+  exception when others then   -- the other quote is hidden, or refused
+    if sqlerrm like 'CHECK FAILED%' then raise; end if;
+  end;
   reset role;
 
   -- ── Viewers, crew and other companies see and do nothing ───────────────────
