@@ -21,47 +21,12 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–9b (0.54–0.68), K0 (0.64) and K1 (0.69) are built, and their prompts (S01–S03b, K1) removed. Sessions
-S04–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
+Steps 1–10 (0.54–0.71), K0 (0.64) and K1 (0.69) are built, and their prompts (S01–S04, K1) removed. Sessions
+S05–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
-
-## S04 · Step 10: gig finance overview
-
-```
-Build ROADMAP step 10: gig finance overview. Read the ROADMAP row, docs/BUSINESS.md "Planned → 10",
-"How crew rates work" and "How expenses work" (9b), docs/ANALYTICS.md ("Definitions", "How K1
-works"), docs/QUOTES.md (totals), and the subrental and repair tables (docs/INVENTORY.md I5–I6).
-
-Scope:
-- One function, public.gig_finance(org, from, until) (security invoker, checks
-  private.can_see_finance), feeds the panel and the list; K2 builds on it.
-- A finance panel per gig for those who see money (D23):
-  - revenue: every accepted quote of the gig, net, by the K1 rule (none accepted: the newest sent
-    quote, marked estimate);
-  - labour: planned (step 7) and actual (step 8, approved hours);
-  - subrentals: confirmed ones;
-  - repairs charged to the gig;
-  - other costs: expenses linked to the gig (9b); a linked expense replaces the planned amount of
-    its subrental, repair or fee.
-- Margin in money and %, with estimated parts marked.
-- When a gig is completed, offer to save its rate-card labour as agreed fees, so a later rate
-  change doesn't change its margin.
-- The organisation list of gigs with revenue, cost and margin is a report in the Reports area (K1
-  parts: period, filters for status, type and client, CSV); an export file.
-
-Ask me before building: a margin hint on gig cards for those who see money?
-
-Connect: Overview tiles (margin this month, gigs with a negative margin), gig cards, expenses (add
-one from the panel), organisation export; K2 builds on gig_finance.
-
-Done when: database tests for who sees money; the totals checked on fixtures in the database and in
-unit tests; help guide; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
 
 ## S05 · Step 11: invoices
 
@@ -142,10 +107,10 @@ Scope (Reports → Money), simple first with details on demand:
 - One function, public.finance_results(org, from, until, group_by), built on gig_finance,
   report_revenue_lines and the expenses; the browser only formats.
 
-Ask me before building: do repairs not charged count against the gig?; production manager
-grouping (first PM, or shared between PMs?); the tiles.
+Ask me before building: production manager grouping (first PM, or shared between PMs?); the
+tiles. (Repairs not charged to the client count against the gig: decided in step 10.)
 
-Connect: gig finance panel (link to the report), Overview, gig cards (margin hint, if I said yes in
+Connect: gig finance panel (link to the report), Overview, gig cards (the margin hint built in
 step 10), expenses (a category's total opens its list).
 
 Done when: database tests for every figure on fixtures (two currencies kept apart, a gig across

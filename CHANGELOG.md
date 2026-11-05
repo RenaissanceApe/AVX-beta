@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.71.0 — Gig finance
+
+### Added
+- **Gig finance on each gig** (admins and members): the gig's Overview shows what it brings in and
+  what it costs, excl. VAT, in euros. Revenue is every accepted quote of the gig (none accepted:
+  the newest sent quote, marked as an estimate). Costs are labour (approved hours or the crew
+  member's invoice, else the agreed fee, else the rate card), confirmed subrentals, repairs not
+  charged to the client and expenses linked to the gig. An expense linked to a subrental, repair
+  or crew fee replaces its planned amount, so each cost counts once. Margin in money and %, and
+  it says in words when part of it is an estimate.
+- **Add expense** right from the gig's finance panel.
+- **Save as agreed fees:** once a gig is completed, its managers can keep the rate card's amounts
+  as each person's fee, so a later rate change doesn't change the gig's margin.
+- **Reports → Gig margins:** every gig starting in a period with revenue, cost and margin,
+  compared with the previous period or last year; margin by month; "Show details" for the
+  filters (status, type, client) and the table; CSV and print.
+- **Two new key numbers** on Reports → Overview and the organisation's Home: margin of this
+  month's gigs, and how many of them lose money.
+- **Margin on gig cards:** admins and members see "Margin 18%" on each gig that has a quote in the
+  organisation's gig list ("est." when part of it is estimated; red with its minus sign when
+  negative).
+- **Organisation export:** a new `gig_finance` file with every gig's revenue, costs and margin.
+- Help: the term "gig margin", an ⓘ on the panel and the guide "See what a gig earns" with
+  pictures; the Reports pictures show the new tiles.
+
+### Connected
+- Overview tiles and the Home key numbers, gig cards, expenses (add one from the panel), the
+  labour panel's rule (the same in the database), the organisation export. K2 builds on the new
+  `gig_finance` function.
+
 ## 0.70.0 — New look
 
 ### Changed

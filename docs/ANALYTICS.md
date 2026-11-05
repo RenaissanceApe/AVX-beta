@@ -312,7 +312,7 @@ Needs: K1, 9b, 10 (and 8 for actual labour).
   `report_revenue_lines` and the expenses.
 - Tiles: revenue this month against last year, margin % this year, operating result this year,
   gigs with a negative margin.
-- Ask: do repairs not charged count against the gig; production manager grouping; the tiles.
+- Ask: production manager grouping; the tiles. (Repairs not charged to the client count against the gig: decided in step 10, 2026-11-05; `gig_finance` already counts them that way.)
 
 ## K3 · Money: cash, spending and forecast
 

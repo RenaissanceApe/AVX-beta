@@ -292,6 +292,11 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   await page.getByLabel('Show details').check()
   await expect(page.locator('#rp-group')).toBeVisible()
   await expectAccessible(page)
+  // Step 10: the gig margins report, with its table once details are on
+  await page.getByRole('button', { name: 'Gig margins', exact: true }).click()
+  await expect(page).toHaveURL(/tab=margins/)
+  await expect(page.getByText('Gigs with a negative margin')).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
   await page.goto(home)
 })
 

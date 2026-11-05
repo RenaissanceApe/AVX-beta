@@ -115,7 +115,28 @@ business and handing the accountant a clean file.
 | Screens | `pages/ExpensesPage.jsx` at `/org/:orgId/expenses` (menu: Organisation → Expenses, admins and members): This month (totals excl. VAT by kind, capital also as this month's spread share; "Show details" adds VAT, by category, and each row's invoice, due, paid, link and receipt), Unpaid and due (to reimburse, overdue, unpaid), Claims, Recurring, Categories (admins: categories and "We recover VAT"); search and filters by kind and category; "CSV for the accountant" (confirmed expenses in view, semicolon CSV). `components/expenses/`: `ExpenseForm` (ledger or claim; type the amount excl. VAT or the total), `ExpenseParts`, `ExpenseSettings`, `GigExpenses` (gig Crew tab), `LinkedExpense` |
 | Connected | Subrentals and repairs: their window shows the linked expense (actual vs planned) or "Add expense". Labour panel: a crew fee's linked expense replaces the hours as that person's actual cost (receipt button to add it). Bulk stock "Add → Bought": "Also record the supplier's invoice as an expense". Contacts: each supplier's spend this year and what is unpaid (`supplier_spend`). Organisation export: `expense_categories`, `expenses`, `expense_recurrences` files (export function renamed `export_org_part_pre_step9b` and wrapped, `20261214000001_export_expenses.sql`). DATA_MAP.md: expenses and receipts. Push and email summary texts for the new notifications |
 | Tests | `supabase/tests/expenses.sql` (who adds, reads and approves; other organisations' links refused; one live expense per link; recurring drafts once; export), `src/lib/expenses.test.js` (VAT, recurrence, totals, form, CSV) |
-| Later | K1 and later reports read confirmed expenses (capital spread by `spread_months`), using `can_see_finance`. Step 10 shows a gig's linked expenses as its other costs. Importing the AT e-Fatura purchase-invoices file waits for a sample file (after launch) |
+| Later | K1 and later reports read confirmed expenses (capital spread by `spread_months`), using `can_see_finance`. Step 10 shows a gig's linked expenses as its other costs (built, 0.71.0). Importing the AT e-Fatura purchase-invoices file waits for a sample file (after launch) |
+
+## How gig finance works (step 10, 0.71.0)
+
+What each gig brings in and costs, for those who see money (admins and members, D23). Migration
+`20261221000000_gig_finance.sql` (functions and one view, no tables); checks in
+`supabase/tests/gig_finance.sql` (no delete statements).
+
+| Piece | How it works |
+|---|---|
+| `gig_finance(org, from, until, gig)` | One row per gig starting in `[from, until)`, or the one `gig`, or every gig when both dates are empty. Runs as the reader and calls `private.require_finance` (admins and members, with the second sign-in step when set up). Columns: the gig (name, dates, status, own status, type, client), **revenue** (every accepted quote of the gig, net, by the K1 rule; none accepted: the newest sent quote, `revenue_source` `estimate`; none: `none`), **labour** (planned, actual, counted, estimated part, people, people without a rate), **subrentals** (confirmed or returned: the supplier's price, else the lines), **repairs** (on the gig and not charged to the client; those charged are in `repairs_charged`, not counted), **other costs** (confirmed expenses on the gig not linked to a subrental, repair, crew fee of someone on the gig or stock purchase; capital ones left out), cost, estimated cost, **margin** and margin %. A linked expense replaces the planned amount of its subrental, repair or crew fee (and a subrental's expense counts even if the subrental was later cancelled). Euros only, as the labour panel (D42 c); other currencies in `other_currencies`, never added. `plan_cache_mode = force_custom_plan`: a plan cached from one-gig calls made a month of 300 gigs take seconds |
+| Labour | `private.gig_labour(org, gigs)` (security definer, finance check first): totals per gig only, never per person, because fees and approved hours are readable only by a gig's managers. Per person on the gig: actual = an expense linked to their fee (confirmed, EUR), else their approved days' stored cost plus a fixed fee once; planned = the agreed fee, else the rate card (most specific rate, day or half-day rate per booked day, weekend days × the weekend factor), which is the estimated part; counted = actual, else planned. The same rule as the labour panel (`labourLines`, `personActual`) |
+| Expense cost | `private.expense_costs` (a view, `security_invoker`): amount excl. VAT, plus the VAT when the organisation or the category doesn't recover it, as `costOf` in `src/lib/expenses.js` |
+| JS twin | `src/lib/analytics/gigFinance.js` (`gigFinanceRow`, `gigLabour`, `countedQuotes`, `financeTotals`, `filterFinanceRows`, `isEstimate`, `hasMargin`, `cardFees`); `src/lib/analytics/gigFinanceFixtures.json` holds the shared fixtures, checked by `gigFinance.test.js` and copied verbatim into the database test (a Vitest test keeps the copy equal). Change both twins and both files together |
+| Panel | `components/gig/GigFinancePanel.jsx` on the gig's Overview for admins and members (hidden in simple mode): revenue (and how many accepted quotes, or "estimate"), labour (planned and actual, the rate-card part, people without a rate), subrentals, repairs (and what is charged to the client), other costs, total cost, margin and % (red when negative, with the amount's sign; "Part of this is an estimate" in words). "Add expense" opens the expense form with the gig filled in. On a **completed** gig with rate-card labour, its managers get "Save as agreed fees": the rate card's suggestion for each person without a fee is stored in `gig_crew_fees` (with weekend days at a higher rate, one fixed amount, as a crew call offers it), so a later rate change doesn't change the margin |
+| Report | Reports → **Gig margins** (`components/reports/GigMarginsReport.jsx`, tab `margins`): period and comparison, tiles (margin with % of revenue, revenue, cost, gigs with a negative margin out of how many), margin by month (one month: by gig, lowest first), "Show details" for the status, type and client filters and the sortable table; CSV with every column, print. A period not yet over counts gigs starting up to today |
+| Overview tiles | `report_overview` gained `margin_this_month` (EUR), `margin_pct_this_month` and `negative_margin`: gigs starting this month that have a quote (the K1 function was renamed `private.report_overview_pre_step10` and wrapped). Tiles "Margin, gigs this month" and "Gigs losing money this month", on Reports → Overview and the Home strip |
+| Gig cards | On an organisation's gig list, admins and members (not in simple mode) see "Margin 18%" (or "· est.") on each gig that has a quote; red with its minus sign when negative (`useGigMargins`) |
+| Export | Organisation export: a `gig_finance` file with every gig's row (the export function was renamed `export_org_part_pre_step10` and wrapped) |
+| Help | Term "gig margin", ⓘ `gig-finance`, guide `office-gig-finance` with two pictures (`gig-finance`, `reports-margins`); the Overview pictures were refreshed for the two new tiles |
+| Tests | `gig_finance.sql`: the fixtures' totals as a member who manages none of the gigs (and can't read fees or hours directly), the periods, the overview tiles, who may call each function (admin and member yes; viewer, crew, another organisation, anonymous no; the second sign-in step), the export file (admins only), 300 gigs with 5 people each under a second (about 90 ms on the test project). Vitest: the twin on the same fixtures, the totals, filters, estimates and saved fees; the signed-in e2e journey opens Gig margins with axe |
+| K2 | Builds `finance_results` on `gig_finance` |
 
 ## Planned
 
@@ -123,21 +144,6 @@ Specs for the business steps still to build, in ROADMAP.md order. Each is a star
 session that builds it reads its spec, checks it against the code, and **asks the owner the
 questions marked "Ask" before outlining the migration**. When built, the spec is replaced by a
 "How … works" section above.
-
-### 10 · Gig finance overview [4]
-
-- One panel per gig (those who see money, D23): **revenue** (every accepted quote of the gig, net,
-  by the revenue rule in [ANALYTICS.md](ANALYTICS.md); none accepted: the newest sent quote, marked
-  estimate) against **costs**: labour (planned from step 7, actual from step 8 when approved),
-  subrentals (confirmed `subrentals.quoted_total` or their lines), repairs charged to the gig, and
-  **other costs**: expenses linked to the gig (step 9b; a linked expense replaces the planned amount
-  of its subrental, repair or fee).
-- Margin in money and %, with the parts that are still estimates marked as such.
-- When a gig is completed, its rate-card labour can be saved as agreed fees, so a later rate change
-  doesn't change its margin.
-- One function, `gig_finance(org, from, until)`, feeds the panel and an organisation list of gigs
-  with revenue, cost and margin, built as a report in the Reports area (K1): filters by period,
-  status, type and client; CSV. K2 builds on it.
 
 ### 11 · Invoices [1]
 
