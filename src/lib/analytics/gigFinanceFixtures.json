@@ -1,0 +1,131 @@
+{
+  "about": "Shared fixtures for gig finance (step 10, docs/BUSINESS.md). Checked by src/lib/analytics/gigFinance.test.js and, copied verbatim, by supabase/tests/gig_finance.sql (a Vitest test keeps the copy equal). People, categories and records are named by keys (\"pm\" is the gig's creator, added as its PM by the database); the database test gives them real ids. Change both twins together.",
+  "factors": { "weekend": 1.5 },
+  "recovers_vat": true,
+  "categories": [
+    { "key": "transport", "kind": "direct", "vat_recoverable": true },
+    { "key": "meals", "kind": "direct", "vat_recoverable": false },
+    { "key": "kit", "kind": "capital", "vat_recoverable": true }
+  ],
+  "rates": [
+    { "function_title": "Lighting Op", "user": null, "day_rate": 200, "half_day_rate": null, "hour_rate": null },
+    { "function_title": "FOH Engineer", "user": null, "day_rate": 999, "half_day_rate": null, "hour_rate": null },
+    { "function_title": null, "user": "u4", "day_rate": null, "half_day_rate": null, "hour_rate": 30 },
+    { "function_title": "Stagehand", "user": null, "day_rate": 120, "half_day_rate": null, "hour_rate": null, "removed": true }
+  ],
+  "gigs": [
+    { "key": "G1", "name": "Festival", "start_date": "2026-11-06", "end_date": "2026-11-08", "status": "completed" },
+    { "key": "G2", "name": "Estimate only", "start_date": "2026-11-20", "end_date": "2026-11-20", "status": "confirmed" },
+    { "key": "G3", "name": "No quote yet", "start_date": "2026-11-25", "end_date": "2026-11-25", "status": "draft" },
+    { "key": "G4", "name": "Loss maker", "start_date": "2026-11-28", "end_date": "2026-11-28", "status": "confirmed" },
+    { "key": "G5", "name": "October gig", "start_date": "2026-10-30", "end_date": "2026-10-30", "status": "completed" }
+  ],
+  "quotes": [
+    { "key": "QA", "gig": "G1", "status": "accepted", "currency": "EUR", "discount_pct": 10, "sent_at": "2026-10-01T10:00:00Z",
+      "body": { "phases": [{ "id": "p1", "discount_pct": 0, "sections": [{ "id": "s1", "lines": [
+        { "id": "a1", "kind": "rental", "description": "Line array", "qty": 4, "factor": 1, "unit_price": 1000 },
+        { "id": "a2", "kind": "crew", "description": "Crew", "qty": 1, "factor": 1, "unit_price": 600 }
+      ] }] }] } },
+    { "key": "QB", "gig": "G1", "status": "accepted", "currency": "USD", "discount_pct": 0, "sent_at": "2026-10-02T10:00:00Z",
+      "body": { "phases": [{ "id": "p1", "discount_pct": 0, "sections": [{ "id": "s1", "lines": [
+        { "id": "b1", "kind": "rental", "description": "Extra", "qty": 1, "factor": 1, "unit_price": 100 }
+      ] }] }] } },
+    { "key": "QC", "gig": "G1", "status": "sent", "currency": "EUR", "discount_pct": 0, "sent_at": "2026-10-20T10:00:00Z",
+      "body": { "phases": [{ "id": "p1", "discount_pct": 0, "sections": [{ "id": "s1", "lines": [
+        { "id": "c1", "kind": "rental", "description": "Not counted", "qty": 1, "factor": 1, "unit_price": 5000 }
+      ] }] }] } },
+    { "key": "QD", "gig": "G2", "status": "draft", "currency": "EUR", "discount_pct": 0, "sent_at": null,
+      "body": { "phases": [{ "id": "p1", "discount_pct": 0, "sections": [{ "id": "s1", "lines": [
+        { "id": "d1", "kind": "rental", "description": "Draft never counts", "qty": 1, "factor": 1, "unit_price": 9000 }
+      ] }] }] } },
+    { "key": "QE", "gig": "G2", "status": "sent", "currency": "EUR", "discount_pct": 0, "sent_at": "2026-10-01T10:00:00Z",
+      "body": { "phases": [{ "id": "p1", "discount_pct": 0, "sections": [{ "id": "s1", "lines": [
+        { "id": "e1", "kind": "rental", "description": "Older offer", "qty": 1, "factor": 1, "unit_price": 1000 }
+      ] }] }] } },
+    { "key": "QF", "gig": "G2", "status": "sent", "currency": "EUR", "discount_pct": 0, "sent_at": "2026-10-05T10:00:00Z",
+      "body": { "phases": [{ "id": "p1", "discount_pct": 20, "sections": [{ "id": "s1", "lines": [
+        { "id": "f1", "kind": "rental", "description": "Newer offer", "qty": 1, "factor": 1, "unit_price": 1500 }
+      ] }] }] } },
+    { "key": "QG", "gig": "G4", "status": "accepted", "currency": "EUR", "discount_pct": 0, "sent_at": "2026-10-05T10:00:00Z",
+      "body": { "phases": [{ "id": "p1", "discount_pct": 0, "sections": [{ "id": "s1", "lines": [
+        { "id": "g1", "kind": "other", "description": "Small job", "qty": 1, "factor": 1, "unit_price": 100 }
+      ] }] }] } },
+    { "key": "QH", "gig": "G5", "status": "accepted", "currency": "EUR", "discount_pct": 0, "sent_at": "2026-10-05T10:00:00Z",
+      "body": { "phases": [{ "id": "p1", "discount_pct": 0, "sections": [{ "id": "s1", "lines": [
+        { "id": "h1", "kind": "other", "description": "October", "qty": 1, "factor": 1, "unit_price": 500 }
+      ] }] }] } }
+  ],
+  "members": [
+    { "gig": "G1", "user": "pm", "function_title": "Production Manager", "creator": true },
+    { "gig": "G2", "user": "pm", "function_title": "Production Manager", "creator": true },
+    { "gig": "G3", "user": "pm", "function_title": "Production Manager", "creator": true },
+    { "gig": "G4", "user": "pm", "function_title": "Production Manager", "creator": true },
+    { "gig": "G5", "user": "pm", "function_title": "Production Manager", "creator": true },
+    { "gig": "G1", "user": "u1", "function_title": "FOH Engineer" },
+    { "gig": "G1", "user": "u2", "function_title": "lighting op " },
+    { "gig": "G1", "user": "u3", "function_title": "Rigger" },
+    { "gig": "G1", "user": "u4", "function_title": null },
+    { "gig": "G1", "user": "u5", "function_title": "Stagehand" }
+  ],
+  "fees": [
+    { "gig": "G1", "user": "u1", "unit": "day", "rate": 300, "quantity": 3 },
+    { "gig": "G1", "user": "u3", "unit": "fixed", "rate": 400, "quantity": 1 },
+    { "gig": "G1", "user": "u5", "unit": "day", "rate": 150, "quantity": 2 }
+  ],
+  "time_entries": [
+    { "gig": "G1", "user": "u1", "work_date": "2026-11-06", "status": "approved", "cost": 320 },
+    { "gig": "G1", "user": "u1", "work_date": "2026-11-07", "status": "approved", "cost": 330 },
+    { "gig": "G1", "user": "u1", "work_date": "2026-11-08", "status": "submitted", "cost": null },
+    { "gig": "G1", "user": "u3", "work_date": "2026-11-06", "status": "approved", "cost": 20 },
+    { "gig": "G1", "user": "u5", "work_date": "2026-11-06", "status": "approved", "cost": 999 }
+  ],
+  "subrentals": [
+    { "key": "S1", "gig": "G1", "status": "confirmed", "quoted_total": 250, "lines": [] },
+    { "key": "S2", "gig": "G1", "status": "returned", "quoted_total": null, "lines": [{ "quantity": 2, "unit_cost": 40 }, { "quantity": 1, "unit_cost": null }] },
+    { "key": "S3", "gig": "G1", "status": "confirmed", "quoted_total": 500, "lines": [] },
+    { "key": "S4", "gig": "G1", "status": "cancelled", "quoted_total": null, "lines": [{ "quantity": 1, "unit_cost": 100 }] },
+    { "key": "S5", "gig": "G1", "status": "draft", "quoted_total": 999, "lines": [] },
+    { "key": "S6", "gig": "G3", "status": "confirmed", "quoted_total": 100, "lines": [] },
+    { "key": "S7", "gig": "G4", "status": "confirmed", "quoted_total": 300, "lines": [] }
+  ],
+  "repairs": [
+    { "key": "R1", "gig": "G1", "charge_client": false, "cost": 120 },
+    { "key": "R2", "gig": "G1", "charge_client": true, "cost": 300 },
+    { "key": "R3", "gig": "G1", "charge_client": false, "cost": 200 }
+  ],
+  "expenses": [
+    { "key": "X1", "gig": "G1", "status": "confirmed", "amount_net": 100, "vat_amount": 23, "currency": "EUR", "category": "transport" },
+    { "key": "X2", "gig": "G1", "status": "confirmed", "amount_net": 50, "vat_amount": 6.5, "currency": "EUR", "category": "meals" },
+    { "key": "X3", "gig": "G1", "status": "claimed", "amount_net": 70, "vat_amount": 0, "currency": "EUR", "category": null },
+    { "key": "X4", "gig": "G1", "status": "confirmed", "amount_net": 1000, "vat_amount": 230, "currency": "EUR", "category": "kit" },
+    { "key": "X5", "gig": "G1", "status": "confirmed", "amount_net": 40, "vat_amount": 0, "currency": "EUR", "category": null, "removed": true },
+    { "key": "X6", "gig": "G1", "status": "confirmed", "amount_net": 30, "vat_amount": 0, "currency": "GBP", "category": null },
+    { "key": "X7", "gig": "G1", "status": "confirmed", "amount_net": 450, "vat_amount": 103.5, "currency": "EUR", "category": "transport", "subrental": "S3" },
+    { "key": "X8", "gig": "G1", "status": "confirmed", "amount_net": 150, "vat_amount": 34.5, "currency": "EUR", "category": "meals", "repair": "R3" },
+    { "key": "X9", "gig": "G1", "status": "confirmed", "amount_net": 280, "vat_amount": 64.4, "currency": "EUR", "category": "transport", "crew_fee": "u5" }
+  ],
+  "expect": {
+    "G1": { "revenue": 4140, "revenue_source": "accepted", "quotes": 2, "labour_planned": 2400, "labour_actual": 1350, "labour": 2150,
+            "labour_estimated": 800, "people": 6, "people_missing": 2, "subrentals": 780, "repairs": 304.5, "repairs_charged": 300,
+            "other_costs": 156.5, "cost": 3391, "estimated_cost": 800, "margin": 749, "margin_pct": 18.1,
+            "other_currencies": { "revenue": { "USD": 100 }, "costs": { "GBP": 30 } } },
+    "G2": { "revenue": 1200, "revenue_source": "estimate", "quotes": 1, "labour_planned": 0, "labour_actual": null, "labour": 0,
+            "labour_estimated": 0, "people": 1, "people_missing": 1, "subrentals": 0, "repairs": 0, "repairs_charged": 0,
+            "other_costs": 0, "cost": 0, "estimated_cost": 0, "margin": 1200, "margin_pct": 100, "other_currencies": null },
+    "G3": { "revenue": 0, "revenue_source": "none", "quotes": 0, "labour_planned": 0, "labour_actual": null, "labour": 0,
+            "labour_estimated": 0, "people": 1, "people_missing": 1, "subrentals": 100, "repairs": 0, "repairs_charged": 0,
+            "other_costs": 0, "cost": 100, "estimated_cost": 0, "margin": -100, "margin_pct": null, "other_currencies": null },
+    "G4": { "revenue": 100, "revenue_source": "accepted", "quotes": 1, "labour_planned": 0, "labour_actual": null, "labour": 0,
+            "labour_estimated": 0, "people": 1, "people_missing": 1, "subrentals": 300, "repairs": 0, "repairs_charged": 0,
+            "other_costs": 0, "cost": 300, "estimated_cost": 0, "margin": -200, "margin_pct": -200, "other_currencies": null },
+    "G5": { "revenue": 500, "revenue_source": "accepted", "quotes": 1, "labour_planned": 0, "labour_actual": null, "labour": 0,
+            "labour_estimated": 0, "people": 1, "people_missing": 1, "subrentals": 0, "repairs": 0, "repairs_charged": 0,
+            "other_costs": 0, "cost": 0, "estimated_cost": 0, "margin": 500, "margin_pct": 100, "other_currencies": null }
+  },
+  "periods": [
+    { "from": "2026-11-01", "until": "2026-12-01", "gigs": ["G1", "G2", "G3", "G4"] },
+    { "from": "2026-10-01", "until": "2026-11-01", "gigs": ["G5"] },
+    { "from": "2026-11-07", "until": "2026-11-21", "gigs": ["G2"] }
+  ],
+  "overview": { "at": "2026-11-05T12:00:00Z", "margin_this_month": 1749, "margin_pct_this_month": 32.2, "negative_margin": 1 }
+}
