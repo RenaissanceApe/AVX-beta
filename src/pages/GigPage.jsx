@@ -13,6 +13,7 @@ import OverviewTab from '../components/gig/OverviewTab'
 import ScheduleTab from '../components/gig/ScheduleTab'
 import AssetsTab from '../components/gig/AssetsTab'
 import CrewTab from '../components/gig/CrewTab'
+import GigFinancePanel from '../components/gig/GigFinancePanel'
 import EquipmentTab from '../components/gig/EquipmentTab'
 import UpdatesTab from '../components/gig/UpdatesTab'
 import ToolsTab from '../components/gig/ToolsTab'
@@ -251,6 +252,9 @@ export default function GigPage() {
             canUpload={canUpload} isPM={isPM} nameOf={nameOf} setTab={setTab} onOpenAsset={setVersionsAsset}
             openUpload={() => { setTab('assets'); setShowUpload(true) }}
             openInvite={() => { setTab('crew'); setShowInvite(true) }} />
+        )}
+        {tab === 'overview' && !onSiteWhy && !simple && gig.org_id && (orgRole === 'admin' || orgRole === 'member') && (
+          <GigFinancePanel gig={gig} members={members} canManage={isPM} />
         )}
         {tab === 'schedule' && (
           <ScheduleTab gig={gig} items={schedule} canManage={isPM}

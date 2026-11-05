@@ -6,6 +6,7 @@
 
 export default {
   terms: {
+    'gig-margin': { term: 'Gig margin', definition: 'What a gig leaves after its direct costs: its revenue (every accepted quote, net; none accepted: the newest sent quote, an estimate) minus labour, confirmed subrentals, repairs not charged to the client and expenses linked to the gig. An expense linked to a subrental, repair or crew fee replaces its planned amount, so each cost counts once. In euros, excl. VAT.', example: 'Revenue €4,140 − costs €3,391 = margin €749 (18.1%).', where: 'Gig → Overview → Gig finance, Reports → Gig margins' },
     'net-revenue': { term: 'Net revenue', definition: 'What accepted quotes bring in, excl. VAT: every priced line after its own discount, its phase\'s discount and the quote\'s discount. Optional phases and comments are left out. A quote counts on its gig\'s start date (no gig: its first phase date, else its issue date). Each currency is counted apart.', example: 'A €1,000 line in a phase with 10% off, on a quote with 5% off: €855.', where: 'Reports → Revenue' },
     estimate: { term: 'Estimate', definition: 'A figure worked out from a fallback because the real one isn\'t there yet, and marked as such: for example a gig\'s revenue taken from its newest sent quote while no quote is accepted. Drafts never count, not even as an estimate.', example: 'Labour panel: "Quoted (estimate: newest sent quote)".', where: 'Reports, gig → Crew → Labour cost' },
     'comparison-period': { term: 'Comparison period', definition: 'The period a report compares with: the previous period of the same length, or the same period last year. A period that isn\'t over yet is compared day for day, so the 1st to the 5th of this month is set against the 1st to the 5th of the last.', example: 'This quarter so far against the same weeks of last quarter.', where: 'Reports → Revenue' },
@@ -103,6 +104,7 @@ export default {
 
   hints: {
     'expense-category': 'Pick what the cost is for. The kind (job costs, running the company, equipment, taxes) decides where it counts in the results.',
+    'gig-finance': 'Revenue, costs and margin of this gig, counted in the database. Labour uses approved hours (or the invoice) where there are any, else the agreed fee, else the rate card, marked as an estimate.',
     'expense-link': 'If this is the invoice for a subrental, repair, crew fee or stock purchase, link it: it then replaces that record\'s planned amount, so the cost is counted once.',
     'expense-recurring': 'How often it comes back. The expense is drafted on each date for someone to confirm.',
     'expense-kind': 'Job costs belong to gigs; running the company is overhead; equipment and vehicles are spread over months; taxes and other stay apart.',
@@ -200,6 +202,20 @@ export default {
       mistakes: [
         'Revenue counts accepted quotes only, on their gig\'s start date: a quote accepted today for a gig in March counts in March.',
         'Amounts in different currencies are never added together; the other currencies are listed under the total.',
+      ],
+    },
+    'office-gig-finance': {
+      title: 'See what a gig earns',
+      intro: 'Check each gig\'s revenue, costs and margin, and which gigs lose money.',
+      steps: [
+        'Open a gig: its Overview shows "Gig finance" (admins and members only). Revenue comes from its accepted quotes; costs are labour, confirmed subrentals, repairs not charged to the client and expenses linked to the gig. Anything estimated says so.',
+        'Tap "Add expense" to record a cost for this gig with its receipt. Linked to a subrental, repair or crew fee, it replaces that planned amount.',
+        'Open Reports → Gig margins for every gig starting in a period, with revenue, cost and margin. "Show details" adds the filters (status, type, client) and the table; download it as CSV.',
+        'When a gig is completed, its managers can tap "Save as agreed fees": the rate card\'s amounts are kept as each person\'s fee, so a later rate change doesn\'t change the margin.',
+      ],
+      mistakes: [
+        'A gig without a sent or accepted quote has costs but no margin yet; it isn\'t counted as losing money.',
+        'Amounts in other currencies are listed apart and never added to the euro totals.',
       ],
     },
     'office-expenses': {

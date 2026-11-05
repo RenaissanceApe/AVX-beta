@@ -7,6 +7,8 @@ import { supabase } from '../lib/supabase'
 import { selectAll } from '../lib/selectAll'
 import { useAuth } from '../lib/AuthContext'
 import { useWorkspace } from '../lib/WorkspaceContext'
+import { useGigMargins } from '../lib/useGigMargins'
+import { hasMargin, isEstimate } from '../lib/analytics/gigFinance'
 import { logger, userMessage } from '../lib/logger'
 import { MY_WORK, homePath } from '../lib/nav'
 import OrgMembersModal from '../components/OrgMembersModal'
@@ -117,6 +119,8 @@ export default function Dashboard() {
 
   const firstName = (profile?.full_name || user?.email?.split('@')[0] || t('common.you')).split(' ')[0]
   const canCreateGig = role === 'admin' || role === 'member'
+  // Margin hint on gig cards (step 10), for those who see money
+  const margins = useGigMargins(mode === 'org' && canCreateGig && !simple ? orgId : null)
   const notMember = mode === 'org' && !loadingOrgs && !org
 
   return (
@@ -170,7 +174,7 @@ export default function Dashboard() {
               mode === 'me' && simple && !showAll ? <SimpleHome gigs={gigs} onShowAll={() => setShowAll(true)} /> :
               <GigList gigs={gigs} view={view} setView={v => setParam('view', v === 'calendar' ? 'calendar' : null)}
                 filter={gigFilter} setFilter={setGigFilter} search={gigSearch} setSearch={setGigSearch}
-                showCompany={mode === 'me'} clashIds={mode === 'me' ? clashIds : null} onOpen={gig => navigate(`/gig/${gig.id}`)} />
+                showCompany={mode === 'me'} clashIds={mode === 'me' ? clashIds : null} margins={margins} onOpen={gig => navigate(`/gig/${gig.id}`)} />
             )}
           </>
         )}
@@ -263,7 +267,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
   )
 }
 
-function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, onOpen, showCompany, clashIds }) {
+function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, onOpen, showCompany, clashIds, margins }) {
   const [labelFilter, setLabelFilter] = useState({ status: '', type: '' })
   // The organisations' own statuses and types on these gigs, to filter by
   const options = useMemo(() => {
@@ -329,7 +333,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
       ) : (
         <div className="gig-list">
           <style>{GIG_CARD_CSS}</style>
-          {visible.map(gig => <GigCard key={gig.id} gig={gig} showCompany={showCompany} clash={!!clashIds?.has(gig.id)} onOpen={() => onOpen(gig)} />)}
+          {visible.map(gig => <GigCard key={gig.id} gig={gig} showCompany={showCompany} clash={!!clashIds?.has(gig.id)} margin={margins?.get(gig.id)} onOpen={() => onOpen(gig)} />)}
         </div>
       )}
     </div>
@@ -338,7 +342,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
 
 // A row in the gig list (DESIGN.md "GigCard"): date block, name, status + label + venue · dates,
 // and on the right the thing this viewer needs: their call time (My work) or a chevron.
-function GigCard({ gig, onOpen, showCompany, clash }) {
+function GigCard({ gig, onOpen, showCompany, clash, margin }) {
   const multi = gig.end_date && gig.end_date !== gig.start_date
   return (
     <button onClick={onOpen} className="gig-card">
@@ -350,6 +354,11 @@ function GigCard({ gig, onOpen, showCompany, clash }) {
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px 8px', flexWrap: 'wrap' }}>
           <GigLabels gig={gig} />
           {clash && <StatusBadge tone="warn" title={t('clash.doubleBookingHint')}>{t('clash.doubleBooking')}</StatusBadge>}
+          {hasMargin(margin) && margin.margin_pct != null && (
+            <StatusBadge small tone={Number(margin.margin) < 0 ? 'danger' : 'off'} title={t('finance.cardHintTitle')}>
+              {t(isEstimate(margin) ? 'finance.cardHintEstimate' : 'finance.cardHint', { pct: Math.round(Number(margin.margin_pct)) })}
+            </StatusBadge>
+          )}
           {gig.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--text-2)' }}><MapPin size={13} aria-hidden="true" /> {gig.venue}</span>}
           {gig.start_date && (
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-2)' }}>

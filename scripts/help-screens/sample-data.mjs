@@ -101,6 +101,25 @@ export function sampleData(persona, lang) {
         gig_status: 'confirmed', gig_custom_status_id: null, client_id: null, client_name: clientsSample[m % clientsSample.length] })
     })
   }
+  // Gig finance (step 10): the sample gig first (its Overview panel reads the first row), then a
+  // gig a month for Reports → Gig margins
+  const fin = (id, name, start, revenue, labour, subrentals, repairs, other, extra = {}) => {
+    const cost = Math.round((labour + subrentals + repairs + other) * 100) / 100
+    const margin = Math.round((revenue - cost) * 100) / 100
+    return { gig_id: id, gig_name: name, start_date: start, end_date: start, gig_status: 'confirmed', gig_custom_status_id: null, gig_type_id: null,
+      client_id: null, client_name: clientsSample[(extra.n ?? 0) % clientsSample.length], revenue, revenue_source: 'accepted', quotes: 1,
+      labour_planned: labour, labour_actual: null, labour, labour_estimated: 0, people: 4, people_missing: 0, subrentals, repairs, repairs_charged: 0,
+      other_costs: other, cost, estimated_cost: 0, margin, margin_pct: revenue > 0 ? Math.round((margin * 1000) / revenue) / 10 : null, other_currencies: null, ...extra, n: undefined }
+  }
+  const gigFinance = [
+    fin(gigId, gig.name, gig.start_date, 6840, 2150, 780, 120, 356.5, { labour_planned: 2400, labour_actual: 1350, labour_estimated: 800, estimated_cost: 800, people: 6, repairs_charged: 300 }),
+    ...Array.from({ length: 11 }, (_, i) => {
+      const d = new Date(Date.now() - (i + 1) * 30 * DAY); d.setDate(Math.min(d.getDate(), 18))
+      const revenue = 2600 + ((i * 937) % 4200)
+      return fin(`rg${i + 1}`, `${lang === 'pt' ? 'Evento' : 'Gig'} ${101 + i}`, d.toISOString().slice(0, 10), revenue,
+        Math.round(revenue * (0.38 + (i % 3) * 0.12)), i === 6 ? 2900 : i % 4 === 1 ? 900 : 250, i % 5 === 2 ? 640 : 0, 120 + i * 15, { n: i + 1 })
+    }),
+  ]
   const item = (id, name, category, tracking, extra = {}) => ({ id, org_id: orgId, name, category, tracking, kind: 'rental', unit: 'day', unit_price: 10, code: null, archived_at: null, ...extra })
   const items = [
     item(XLR, w.cables, w.cab, 'bulk', { code: 'XLR10', weight_kg: 0.6, unit_price: 2.5 }),
@@ -483,8 +502,10 @@ export function sampleData(persona, lang) {
       supplier_spend: [{ supplier_id: 'sp1', supplier_name: 'Audiomatic', currency: 'EUR', expenses: 3, net: 2140, total: 2632.2, unpaid: 787.2 }],
       // Reports (K1): sample answers for report_overview, report_revenue_lines and equipment_report
       report_overview: { today: day(0), gigs_this_month: { total: 6, confirmed: 4 }, revenue_next_30: { EUR: 18450 },
-        waiting: { count: 3, totals: { EUR: 9720 } }, equipment_use_90: 0.38 },
+        waiting: { count: 3, totals: { EUR: 9720 } }, equipment_use_90: 0.38,
+        margin_this_month: { EUR: 5420 }, margin_pct_this_month: 29.4, negative_margin: 1 },
       report_revenue_lines: revenueLines,
+      gig_finance: gigFinance,
       equipment_report: [
         { item_id: SPK, name: w.speaker, category: w.sys, owned: 7, use: 0.46, gigs: 9, last_used: ago(240), revenue: 6720, return_on_cost: 0.32, repairs: 1, repair_cost: 180, charged: 0, lost: 0, lost_value: 0, hired_in: 0, book_value: 14200, cost: 21000, idle: false },
         { item_id: QL1, name: w.desk, category: w.sys, owned: 1, use: 0.31, gigs: 5, last_used: ago(400), revenue: 2160, return_on_cost: 0.18, repairs: 0, repair_cost: 0, charged: 0, lost: 0, lost_value: 0, hired_in: 360, book_value: 9800, cost: 12000, idle: false },
