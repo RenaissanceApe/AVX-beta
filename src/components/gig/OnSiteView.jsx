@@ -35,7 +35,7 @@ export default function OnSiteView({ gig, schedule, tools, tasks = [], userId, m
     <section aria-labelledby="onsite-title" style={{ display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeIn 0.3s ease' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', flexWrap: 'wrap' }}>
         <div>
-          <h2 id="onsite-title" style={{ fontSize: '20px', fontWeight: 800 }}>{t('onsite.title')}</h2>
+          <h2 id="onsite-title" style={{ fontSize: '20px', fontWeight: 700 }}>{t('onsite.title')}</h2>
           <p style={{ fontSize: '13px', color: colors.muted }}>{fmt(today, 'EEEE d MMMM')}{gig.venue ? ` · ${gig.venue}` : ''}</p>
         </div>
         <button type="button" onClick={onLeave} style={{ ...btn, background: 'transparent' }}><LayoutList size={14} /> {t('onsite.leave')}</button>
@@ -57,7 +57,7 @@ export default function OnSiteView({ gig, schedule, tools, tasks = [], userId, m
           <Clock size={28} color={colors.accentText} aria-hidden="true" />
           <div>
             <div style={{ fontSize: '13px', color: colors.muted }}>{t('onsite.yourCall')}{myMembership.function_title ? ` · ${myMembership.function_title}` : ''}</div>
-            <div style={{ fontSize: '34px', fontWeight: 800, fontFamily: 'var(--font-mono)', lineHeight: 1.1 }}>{shortTime(myMembership.call_time)}</div>
+            <div style={{ fontSize: '34px', fontWeight: 700, fontFamily: 'var(--font-mono)', lineHeight: 1.1 }}>{shortTime(myMembership.call_time)}</div>
           </div>
         </div>
       )}
@@ -68,7 +68,7 @@ export default function OnSiteView({ gig, schedule, tools, tasks = [], userId, m
           <ol style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {items.map(s => (
               <li key={s.id} style={{ display: 'flex', gap: '12px', alignItems: 'baseline', padding: '8px 10px', borderRadius: '10px', background: s.now ? tint(colors.accent, 16) : 'transparent', border: s.next ? `1px dashed ${colors.border}` : '1px solid transparent' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: '17px', minWidth: '4.5em' }}>{shortTime(s.start_time)}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '17px', minWidth: '4.5em' }}>{shortTime(s.start_time)}</span>
                 <span style={{ flex: 1, minWidth: 0, fontSize: '15px' }}>
                   <strong>{s.title}</strong>{s.location ? <span style={{ color: colors.muted }}> · {s.location}</span> : null}
                   {s.now && <span style={{ display: 'block', fontSize: '12px', color: colors.accentText, fontWeight: 700 }}>{t('onsite.now')}</span>}

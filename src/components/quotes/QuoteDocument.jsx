@@ -229,7 +229,7 @@ const QUOTE_PRINT_CSS = `
   .block { margin-top: 9mm; }
   .qh { font-size: 11pt; font-weight: 700; margin: 0 0 4mm; display: flex; align-items: baseline; gap: 8px; position: relative; padding-top: 6px; break-after: avoid; }
   .qh .bar { position: absolute; top: 0; left: 0; width: 15mm; height: 2px; }
-  .qh .opt { font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; background: #fdf0d5; color: #8a5a00; padding: 1px 6px; border-radius: 4px; }
+  .qh .opt { font-size: 8pt; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em; background: #fdf0d5; color: #8a5a00; padding: 1px 6px; border-radius: 4px; }
   .sec { margin-bottom: 6mm; }
   .sec h3 { font-size: 10.5pt; font-weight: 700; margin: 0 0 2mm; break-after: avoid; }
   .lines { width: 100%; border-collapse: collapse; table-layout: fixed; }

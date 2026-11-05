@@ -33,7 +33,7 @@ export default function GigHeader({ gig, crewCount, myMembership, canEdit, tab, 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: '220px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
-                <h1 style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.4px' }}>{gig.name}</h1>
+                <h1 style={{ fontSize: '22px', fontWeight: 700 }}>{gig.name}</h1>
                 <GigLabels gig={gig} />
                 <PageHelp page="gig" />
               </div>

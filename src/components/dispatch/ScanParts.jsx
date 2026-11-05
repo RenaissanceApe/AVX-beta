@@ -79,7 +79,7 @@ export function StepPicker({ steps, step, onChange, big = false }) {
         return (
           <button key={s} type="button" role="radio" aria-checked={on} onClick={() => onChange(s)} style={{
             minHeight: big ? '60px' : '48px', padding: '8px 6px', borderRadius: big ? '14px' : '12px', cursor: 'pointer', lineHeight: 1.2,
-            fontSize: big ? (steps.length <= 2 ? '19px' : '16px') : '14px', fontWeight: 800,
+            fontSize: big ? (steps.length <= 2 ? '19px' : '16px') : '14px', fontWeight: 700,
             border: `${big ? 3 : 2}px solid ${on ? hue : colors.border}`, background: on ? tint(hue, big ? 18 : 12) : 'transparent',
             color: on ? 'var(--text)' : colors.soft,
           }}>{t(`steps.name.${s}`)}</button>
@@ -201,7 +201,7 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
     return () => { document.body.style.overflow = before; window.removeEventListener('keydown', onKey) }
   }, [])
 
-  const big = { minHeight: '56px', fontSize: '17px', fontWeight: 800, justifyContent: 'center', borderRadius: '14px' }
+  const big = { minHeight: '56px', fontSize: '17px', fontWeight: 700, justifyContent: 'center', borderRadius: '14px' }
   const toggle = on => ({ ...btn, ...big, flex: '1 1 140px', fontSize: '15px', borderWidth: '2px',
     borderColor: on ? colors.accent : colors.border, background: on ? tint(colors.accent, 14) : 'transparent', color: on ? 'var(--text)' : colors.muted })
   const qty = Math.max(1, Number(quantity) || 1)
@@ -216,7 +216,7 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
     }}>
       <div style={{ width: '100%', maxWidth: '560px', margin: '0 auto', padding: '12px 16px 20px', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <h1 id="scan-mode-title" ref={titleRef} tabIndex={-1} style={{ flex: 1, minWidth: 0, fontSize: '18px', fontWeight: 800, lineHeight: 1.25, outline: 'none' }}>
+          <h1 id="scan-mode-title" ref={titleRef} tabIndex={-1} style={{ flex: 1, minWidth: 0, fontSize: '18px', fontWeight: 700, lineHeight: 1.25, outline: 'none' }}>
             {t('scanMode.title')}<span style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{gigName}</span>
           </h1>
           <button type="button" onClick={onClose} style={{ ...btn, ...big, minWidth: '96px' }}>{t('scanMode.done')}</button>
@@ -252,7 +252,7 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
         </section>
 
         <div>
-          <p style={{ fontSize: '20px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+          <p style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
             <PackageCheck size={22} aria-hidden="true" /> {t(`steps.progress.${step}`, { done, total })}
           </p>
           <div aria-hidden="true" style={{ height: '12px', borderRadius: '6px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', overflow: 'hidden' }}>

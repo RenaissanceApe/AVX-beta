@@ -130,7 +130,7 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
         return (
           <section key={u.universe} aria-labelledby={`universe-${u.universe}`} style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
-              <h3 id={`universe-${u.universe}`} style={{ fontSize: '15px', fontWeight: 800 }}>{t('dmx.universe', { n: u.universe })}</h3>
+              <h3 id={`universe-${u.universe}`} style={{ fontSize: '15px', fontWeight: 700 }}>{t('dmx.universe', { n: u.universe })}</h3>
               <span style={{ fontSize: '12px', color: u.channels > UNIVERSE_SIZE ? 'var(--warn)' : colors.muted }}>{t('dmx.used', { used: u.channels, total: UNIVERSE_SIZE })}</span>
               {canEdit && <button type="button" onClick={() => repack(u.universe)} disabled={busy} style={{ ...btn, padding: '4px 10px', fontSize: '12px', marginLeft: 'auto' }}><ListRestart size={13} /> {t('dmx.repack')}</button>}
             </div>
@@ -142,7 +142,7 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
                 const clash = bad.has(f.id)
                 return (
                   <li key={f.id} style={{ ...card, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', borderColor: clash ? 'var(--warn)' : undefined }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, minWidth: '5.5em', color: f.address ? colors.accentText : colors.muted }}>{dmxRange(f, t('dmx.noAddress'))}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, minWidth: '5.5em', color: f.address ? colors.accentText : colors.muted }}>{dmxRange(f, t('dmx.noAddress'))}</span>
                     <span style={{ flex: '1 1 160px', minWidth: 0 }}>
                       <strong style={{ display: 'block', fontSize: '14px' }}>{f.name}</strong>
                       <span style={{ fontSize: '12px', color: colors.soft }}>

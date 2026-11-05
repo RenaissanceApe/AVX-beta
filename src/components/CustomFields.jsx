@@ -58,7 +58,7 @@ export function CustomFieldList({ fields, values, title }) {
   if (!rows.length) return null
   return (
     <div>
-      {title && <h3 style={{ fontSize: '13px', fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>{title}</h3>}
+      {title && <h3 style={{ fontSize: '13px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>{title}</h3>}
       <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(90px, max-content) minmax(0, 1fr)', gap: '4px 14px', fontSize: '14px', margin: 0 }}>
         {rows.map(({ f, text }) => (
           <div key={f.id} style={{ display: 'contents' }}>

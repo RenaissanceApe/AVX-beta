@@ -145,7 +145,7 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
   )
 }
 
-const groupHead = { fontSize: '12px', fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }
+const groupHead = { fontSize: '12px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }
 
 function ToolButton({ icon, name, about, onClick }) {
   const Icon = icon

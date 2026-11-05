@@ -48,7 +48,7 @@ export default function AppearanceSettings() {
         <div role="radiogroup" aria-labelledby="appearance-size" style={{ display: 'flex', gap: '6px' }}>
           {SIZE_CHOICES.map((v, i) => (
             <button key={v} type="button" role="radio" aria-checked={a.size === v} onClick={() => change({ size: v })} style={choice(a.size === v)}>
-              <span aria-hidden="true" style={{ fontSize: `${15 + i * 4}px`, fontWeight: 800, lineHeight: 1 }}>A</span> {t(`appearance.sizeOpt.${v}`)}
+              <span aria-hidden="true" style={{ fontSize: `${15 + i * 4}px`, fontWeight: 700, lineHeight: 1 }}>A</span> {t(`appearance.sizeOpt.${v}`)}
             </button>
           ))}
         </div>

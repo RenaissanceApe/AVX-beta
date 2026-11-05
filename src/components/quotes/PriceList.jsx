@@ -51,7 +51,7 @@ export function PriceListTab({ orgId, userId, items, setItems }) {
         <EmptyState icon={<Tags size={26} />} body={t('prices.empty')} action={t('prices.add')} onAction={() => setEditing('new')} guide="of-price-list" />
       ) : byCategory(visible).map(([category, list]) => (
         <section key={category || '—'} style={{ marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: colors.muted, marginBottom: '6px' }}>{category || t('prices.noCategory')}</h3>
+          <h3 style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.05em', color: colors.muted, marginBottom: '6px' }}>{category || t('prices.noCategory')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {list.map(item => (
               <div key={item.id} style={{ ...card, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -220,7 +220,7 @@ export function PricePickerModal({ items, onPick, onClose }) {
           <div style={{ maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '12px' }}>
             {byCategory(visible).map(([category, list]) => (
               <div key={category || '—'}>
-                <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: colors.muted, padding: '8px 4px 4px' }}>{category || t('prices.noCategory')}</div>
+                <div style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: colors.muted, padding: '8px 4px 4px' }}>{category || t('prices.noCategory')}</div>
                 {list.map(item => (
                   <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: picked.includes(item.id) ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent' }}>
                     <input type="checkbox" checked={picked.includes(item.id)} onChange={() => toggle(item.id)} style={{ accentColor: colors.accent }} />

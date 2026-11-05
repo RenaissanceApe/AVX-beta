@@ -114,7 +114,7 @@ export default function CrewSearchPage() {
         <div>
           <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org?.name}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('crewSearch.title')}</h1>
+            <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('crewSearch.title')}</h1>
             <PageHelp page="crew-search" />
           </div>
           <p style={{ ...hint, fontSize: '13px', marginTop: '4px' }}>{t('crewSearch.intro')}</p>

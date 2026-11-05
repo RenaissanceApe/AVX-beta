@@ -18,7 +18,7 @@ export default function CrewProfileCard({ profile: p, name, orgId, onConfirm, ch
   const date = d => fmt(d, 'd MMM yyyy')
   return (
     <div style={{ ...card, padding: '16px' }}>
-      <div style={{ fontSize: '17px', fontWeight: 800, overflowWrap: 'anywhere' }}>{name || t('crewProfile.noName')}</div>
+      <div style={{ fontSize: '17px', fontWeight: 700, overflowWrap: 'anywhere' }}>{name || t('crewProfile.noName')}</div>
       {p.headline && <div style={{ fontSize: '14px', color: colors.soft, marginTop: '2px', overflowWrap: 'anywhere' }}>{p.headline}</div>}
       {(p.functions?.length > 0 || p.other_functions) && (
         <div style={{ marginTop: '10px' }}>

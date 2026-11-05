@@ -54,9 +54,9 @@ export default function PatchSheetPage({ kind }) {
         .sheet-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
         .sheet { max-width: 900px; margin: 0 auto; background: #fff; color: #111; border-radius: 8px; padding: 28px; font-size: 13px; }
         .sheet h1 { font-size: 22px; margin-bottom: 2px; }
-        .sheet h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; margin: 20px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; }
+        .sheet h2 { font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; margin: 20px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; }
         .sheet table { width: 100%; border-collapse: collapse; }
-        .sheet th { text-align: left; font-size: 11px; text-transform: uppercase; color: #555; padding: 4px 6px; border-bottom: 1px solid #999; }
+        .sheet th { text-align: left; font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; color: #555; padding: 4px 6px; border-bottom: 1px solid #999; }
         .sheet td { padding: 5px 6px; border-bottom: 1px solid #ddd; vertical-align: top; }
         .sheet .num { font-family: monospace; font-weight: 800; white-space: nowrap; }
         .sheet .muted { color: #555; }
@@ -75,7 +75,7 @@ export default function PatchSheetPage({ kind }) {
         <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0B7A41', color: '#fff', border: 'none' }}><Printer size={14} /> {t('callsheet.print')}</button>
       </div>
       <article className="sheet">
-        <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.1em' }}>{t(`tools.name.${tool}`)}</div>
+        <div className="muted" style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.1em' }}>{t(`tools.name.${tool}`)}</div>
         <h1>{gig.name}</h1>
         <div>{[gig.venue || t('callsheet.venueTbc'), dates, gig.organisations?.name].filter(Boolean).join(' · ')}</div>
         {kind === 'dmx' ? <DmxSheet rows={rows} t={t} /> : <PatchSheet audio={audio} rows={rows} t={t} />}

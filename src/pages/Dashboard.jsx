@@ -129,7 +129,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
               <div style={{ minWidth: 0 }}>
                 <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '0 0 4px 0' }}>{t('dash.welcome', { name: firstName })}</p>
-                <h1 style={{ fontSize: '26px', fontWeight: 800, margin: 0, letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <h1 style={{ fontSize: '26px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                   {mode === 'me' ? t('nav.myWork') : org?.name || '…'}
                   {role && <RoleChip role={role} />}
                   <PageHelp page="home" />
@@ -352,7 +352,7 @@ function GigCard({ gig, onOpen, showCompany, clash }) {
           {clash && (
             <span title={t('clash.doubleBookingHint')} style={{
               fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '20px', color: 'var(--warn)', background: 'color-mix(in srgb, var(--warn) 12%, transparent)',
-              display: 'inline-flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase', letterSpacing: '0.05em',
+              display: 'inline-flex', alignItems: 'center', gap: '4px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em',
             }}><AlertTriangle size={11} /> {t('clash.doubleBooking')}</span>
           )}
         </div>
@@ -404,7 +404,7 @@ function Modal({ title, onClose, children }) {
 function FieldLabel({ label, children }) {
   return (
     <label style={{ display: 'block' }}>
-      <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</span>
+      <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</span>
       {children}
     </label>
   )

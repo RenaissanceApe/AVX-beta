@@ -26,7 +26,7 @@ export function NumberTile({ label, value, change = null, compareLabel = '', sub
   return (
     <div style={{ ...card, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
       <div style={{ fontSize: '12px', color: colors.muted }}>{label}</div>
-      <div style={{ fontSize: '20px', fontWeight: 800, overflowWrap: 'anywhere' }}>
+      <div style={{ fontSize: '20px', fontWeight: 700, overflowWrap: 'anywhere' }}>
         {value}{estimate && <span style={{ fontSize: '11px', fontWeight: 600, color: colors.muted }}> · {t('reports.estimate')}</span>}
       </div>
       {pct != null && (

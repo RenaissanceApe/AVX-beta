@@ -111,7 +111,7 @@ export default function QuotesPage() {
         {/* Title takes its own line on phones; the buttons wrap below it instead of squeezing it */}
         <div style={{ flex: '1 1 220px', minWidth: 0 }}>
           <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org.name}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('quotes.title')}</h1><PageHelp page="quotes" /></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('quotes.title')}</h1><PageHelp page="quotes" /></div>
         </div>
         <button onClick={() => setShowCompany(true)} style={btn}><Building2 size={14} /> {t('quotes.company')}</button>
         <button onClick={() => setShowNew(true)} style={btnPrimary}><Plus size={15} /> {t('quotes.new')}</button>

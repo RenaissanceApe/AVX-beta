@@ -27,7 +27,7 @@ export default function Dipswitches({ address, layout, onToggle, size = 'normal'
             <span aria-hidden="true" style={{ position: 'relative', width: '100%', height: `${h}px`, borderRadius: '5px', background: '#2A2A2A', display: 'block' }}>
               <span style={{ position: 'absolute', left: '3px', right: '3px', height: `${h / 2 - 3}px`, top: up ? '3px' : `${h / 2}px`, borderRadius: '3px', background: '#F4F4F4' }} />
             </span>
-            <span aria-hidden="true" style={{ fontSize: big ? '13px' : '11px', color: '#fff', fontWeight: 800 }}>{i + 1}</span>
+            <span aria-hidden="true" style={{ fontSize: big ? '13px' : '11px', color: '#fff', fontWeight: 700 }}>{i + 1}</span>
           </>
         )
         const style = { position: 'relative', flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: onToggle && !fn ? 'pointer' : 'default' }
@@ -41,7 +41,7 @@ export default function Dipswitches({ address, layout, onToggle, size = 'normal'
         )
       })}
       </div>
-      <span style={{ color: '#fff', fontSize: big ? '12px' : '10px', fontWeight: 800, textAlign: layout.firstLeft ? 'left' : 'right' }} aria-hidden="true">
+      <span style={{ color: '#fff', fontSize: big ? '12px' : '10px', fontWeight: 700, textAlign: layout.firstLeft ? 'left' : 'right' }} aria-hidden="true">
         {layout.onUp ? 'ON ↑' : 'ON ↓'}
       </span>
     </div>

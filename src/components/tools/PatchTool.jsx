@@ -113,10 +113,10 @@ export default function PatchTool({ gig, canEdit }) {
         return (
           <section key={b.name} aria-labelledby={`box-${i}`} style={{ ...card, marginBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
-              <h3 id={`box-${i}`} style={{ fontSize: '16px', fontWeight: 800, flex: '1 1 120px', display: 'flex', gap: '8px', alignItems: 'baseline' }}>
+              <h3 id={`box-${i}`} style={{ fontSize: '16px', fontWeight: 700, flex: '1 1 120px', display: 'flex', gap: '8px', alignItems: 'baseline' }}>
                 {b.name}
                 <span style={{ fontSize: '12px', fontWeight: 600, color: colors.muted }}>{t('patch.used', { done: box.sockets.filter(s => s.lines.length).length, total: b.inputs })}</span>
-                {b.split && <span style={{ fontSize: '11px', fontWeight: 800, color: colors.accentText }}>{t('patch.splitBadge')}</span>}
+                {b.split && <span style={{ fontSize: '11px', fontWeight: 700, color: colors.accentText }}>{t('patch.splitBadge')}</span>}
               </h3>
               {canEdit && (
                 <>
@@ -144,7 +144,7 @@ export default function PatchTool({ gig, canEdit }) {
                 return (
                   <li key={s.socket} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 8px', borderRadius: '8px', fontSize: '13px',
                     border: `1px solid ${clash ? 'var(--warn)' : colors.border}`, background: here ? tint(colors.accent, 7) : 'transparent' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, minWidth: '2em', color: colors.accentText }}>{String(s.socket).padStart(2, '0')}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, minWidth: '2em', color: colors.accentText }}>{String(s.socket).padStart(2, '0')}</span>
                     {canEdit ? (
                       <select aria-label={t('patch.socketLabel', { socket: socketCode(b.name, s.socket) })} value={here?.id || ''} onChange={e => choose(b, s, e.target.value || null)}
                         style={{ ...input, appearance: 'auto', padding: '4px 6px', fontSize: '13px', minHeight: '32px', flex: 1, minWidth: 0 }}>
@@ -155,7 +155,7 @@ export default function PatchTool({ gig, canEdit }) {
                     ) : (
                       <span style={{ flex: 1, minWidth: 0, color: here ? 'var(--text)' : colors.muted }}>{here ? lineName(here) : t('patch.free')}</span>
                     )}
-                    {here?.phantom && <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--warn)' }}>48V</span>}
+                    {here?.phantom && <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--warn)' }}>48V</span>}
                     {clash && <span title={s.lines.map(lineName).join(', ')} style={{ color: 'var(--warn)' }}><AlertTriangle size={13} aria-label={t('patch.clashOne')} /></span>}
                   </li>
                 )

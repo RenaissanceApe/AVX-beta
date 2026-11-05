@@ -30,7 +30,7 @@ export function StatusBadge({ status }) {
   return (
     <span style={{
       fontSize: '11px', fontWeight: 700, padding: '3px 9px', borderRadius: '20px',
-      color: st.color, background: st.bg, textTransform: 'uppercase', letterSpacing: '0.06em',
+      color: st.color, background: st.bg, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em',
     }}>{t(`status.${status}`)}</span>
   )
 }
@@ -44,7 +44,7 @@ export function GigLabels({ gig }) {
   return (
     <>
       {own.custom
-        ? <span style={{ ...chip, ...labelStyle(own.colour), textTransform: 'uppercase' }}>{own.name}</span>
+        ? <span style={{ ...chip, ...labelStyle(own.colour), fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>{own.name}</span>
         : <StatusBadge status={gig.status} />}
       {type && <span style={{ ...chip, ...labelStyle(type.colour), background: 'transparent', border: '1px solid currentColor' }}>{type.name}</span>}
     </>
@@ -78,7 +78,7 @@ export function RoleBadge({ role, large = false }) {
   return (
     <span style={{
       fontSize: large ? '12px' : '11px', fontWeight: 700, padding: large ? '4px 10px' : '2px 8px', borderRadius: '20px',
-      color: st.color, background: st.bg, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap',
+      color: st.color, background: st.bg, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap',
     }}>{t(`gigRole.${role}`)}</span>
   )
 }
@@ -97,7 +97,7 @@ export function FeedPost({ post, name, large = false, onDelete = null }) {
         {post.is_important && (
           <span style={{
             fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '20px',
-            color: colors.danger, background: 'color-mix(in srgb, var(--danger) 15%, transparent)', textTransform: 'uppercase', letterSpacing: '0.05em',
+            color: colors.danger, background: 'color-mix(in srgb, var(--danger) 15%, transparent)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em',
           }}>{t('feed.important')}</span>
         )}
         <span style={{ fontSize: '11px', color: 'var(--muted)', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{ago(post.created_at)}</span>
@@ -118,7 +118,7 @@ export function SectionTitle({ icon, title }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
       <span style={{ color: colors.muted, display: 'flex' }}>{icon}</span>
-      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{title}</span>
+      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{title}</span>
     </div>
   )
 }

@@ -593,7 +593,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
         {messages.length === 0 && <p style={{ textAlign: 'center', color: colors.muted, fontSize: '13px', padding: '30px 10px', lineHeight: 1.6 }}>{emptyText || t('chat.empty')}</p>}
         {layoutMessages(messages).map(row => {
           if (row.type === 'day') return (
-            <div key={row.key} style={{ textAlign: 'center', fontSize: '11px', color: colors.muted, margin: '12px 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{fmt(row.day, 'EEEE, d MMM')}</div>
+            <div key={row.key} style={{ textAlign: 'center', fontSize: '11px', color: colors.muted, margin: '12px 0 6px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{fmt(row.day, 'EEEE, d MMM')}</div>
           )
           const m = row.message
           if (m.kind === 'system' && EVENTS.has(m.payload?.event)) return (
@@ -613,7 +613,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
               {!row.continues && !mine && (
                 <span style={{ fontSize: '12px', fontWeight: 700, color: colors.soft, margin: '0 0 2px 4px' }}>
                   {who(m)}
-                  {m.guest_name && <span style={{ marginLeft: '6px', fontSize: '10px', fontWeight: 700, color: 'var(--warn)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t(`chat.guest.badge.${context.contextType || 'quote'}`)}</span>}
+                  {m.guest_name && <span style={{ marginLeft: '6px', fontSize: '10px', fontWeight: 700, color: 'var(--warn)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t(`chat.guest.badge.${context.contextType || 'quote'}`)}</span>}
                 </span>
               )}
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', flexDirection: mine ? 'row-reverse' : 'row', maxWidth: '88%', position: 'relative' }}>
@@ -624,7 +624,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
                 }}>
                   {removed ? <span style={{ fontStyle: 'italic', color: colors.muted }}>{t(m.removed_by ? 'chat.removedByModerator' : 'chat.removed')}</span> : <>
                     {m.needs_ack && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: AMBER, marginBottom: '3px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: AMBER, marginBottom: '3px' }}>
                         <Megaphone size={13} /> {t('chat.announcement')}
                       </div>
                     )}

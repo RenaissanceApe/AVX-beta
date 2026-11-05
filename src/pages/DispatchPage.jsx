@@ -175,7 +175,7 @@ export default function DispatchPage() {
           <button onClick={() => navigate(`/gig/${id}/packing`)} style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft, padding: '6px 10px', marginLeft: 'auto' }}><ClipboardList size={14} /> {t('dispatch.packingList')}</button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <h1 style={{ fontSize: '22px', fontWeight: 800, flex: 1 }}>{t('dispatch.title')}</h1>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, flex: 1 }}>{t('dispatch.title')}</h1>
           <button type="button" aria-pressed={kit.sound} onClick={() => setKit({ sound: !kit.sound })} style={btn}>
             {kit.sound ? <Volume2 size={15} /> : <VolumeX size={15} />} {t('scanMode.sound')}
           </button>

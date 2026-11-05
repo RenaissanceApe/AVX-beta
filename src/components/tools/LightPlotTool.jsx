@@ -443,7 +443,7 @@ function PowerPanel({ power, supply, canEdit, onSupply, watts }) {
   const warn = power.over ? colors.danger : 'var(--warn)'
   return (
     <section aria-labelledby="light-power" style={card}>
-      <h3 id="light-power" style={{ fontSize: '15px', fontWeight: 800, marginBottom: '4px' }}>{t('light.powerTitle')}</h3>
+      <h3 id="light-power" style={{ fontSize: '15px', fontWeight: 700, marginBottom: '4px' }}>{t('light.powerTitle')}</h3>
       <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>
         {t('light.powerNote', { volts: supply.volts })}
       </p>

@@ -118,7 +118,7 @@ export function CardView({ card }) {
     <Link to={info.to} style={box}>
       <Icon size={18} color={colors.accentText} style={{ flexShrink: 0 }} />
       <span style={{ minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: '11px', color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t(`chat.card.${card.type}`)}</span>
+        <span style={{ display: 'block', fontSize: '11px', color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t(`chat.card.${card.type}`)}</span>
         <span style={{ display: 'block', fontWeight: 700, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.title}</span>
         {info.sub && <span style={{ display: 'block', fontSize: '12px', color: colors.soft }}>{info.sub}</span>}
       </span>

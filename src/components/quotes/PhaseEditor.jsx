@@ -237,7 +237,7 @@ export const QUOTE_EDITOR_CSS = `
   .q-section { background: color-mix(in srgb, var(--fg) min(100%, calc(2.5% * var(--line-k))), transparent); border: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
   .q-line { display: grid; grid-template-columns: 112px minmax(140px,1fr) 64px 82px 58px 92px 58px 96px auto; gap: 6px; align-items: center; }
   .q-line.q-comment { grid-template-columns: 112px 1fr auto; }
-  .q-line-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 0 2px 4px; }
+  .q-line-head { font-size: 11px; font-weight: 600; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 0 2px 4px; }
   .q-line-head .q-total, .q-line-head .q-qty, .q-line-head .q-factor, .q-line-head .q-price, .q-line-head .q-disc { text-align: right; }
   .q-line-wrap { padding: 4px 0; border-top: 1px solid color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent); }
   .q-add-line, .q-add-section { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
@@ -260,7 +260,7 @@ export const QUOTE_EDITOR_CSS = `
     .q-hide-narrow { display: none !important; }
     .q-line-wrap { padding: 10px 0; }
     .q-line { row-gap: 8px; align-items: end; }
-    .q-cell-label { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .q-cell-label { display: block; font-size: 10px; font-weight: 600; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .q-total .q-cell-label { text-align: right; }
   }
 `

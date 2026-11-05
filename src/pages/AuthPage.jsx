@@ -134,7 +134,7 @@ export default function AuthPage() {
         }}>
           <Mail size={32} color="var(--accent-text)" />
         </div>
-        <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text)', marginBottom: '12px' }}>{t('auth.checkEmail')}</h2>
+        <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text)', marginBottom: '12px' }}>{t('auth.checkEmail')}</h2>
         <p style={{ color: 'var(--muted)', fontSize: '15px', lineHeight: '1.7', marginBottom: '8px' }}>
           {t('auth.sentLinkTo')}
         </p>
@@ -170,7 +170,7 @@ export default function AuthPage() {
         }}>
           <CheckCircle size={32} color="var(--accent-text)" />
         </div>
-        <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text)', marginBottom: '12px' }}>{t('auth.emailConfirmed')}</h2>
+        <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text)', marginBottom: '12px' }}>{t('auth.emailConfirmed')}</h2>
         <p style={{ color: 'var(--muted)', fontSize: '15px', lineHeight: '1.7', marginBottom: '28px' }}>
           {t('auth.verified')}
         </p>
@@ -232,7 +232,7 @@ export default function AuthPage() {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {mode === 'signup' && (
               <div>
-                <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   {t('auth.fullName')}
                 </label>
                 <input
@@ -246,7 +246,7 @@ export default function AuthPage() {
               </div>
             )}
             <div>
-              <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {t('common.email')}
               </label>
               <input
@@ -259,7 +259,7 @@ export default function AuthPage() {
               />
             </div>
             {mode !== 'reset' && mode !== 'magic' && <div>
-              <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {t('auth.password')}
               </label>
               <div style={{ position: 'relative' }}>

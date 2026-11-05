@@ -50,7 +50,7 @@ export default function MyTasksPage() {
     <AppShell>
       <div style={{ maxWidth: '760px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('tasks.myTitle')}</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('tasks.myTitle')}</h1>
           <p style={{ fontSize: '13px', color: colors.muted, marginTop: '4px' }}>{t('tasks.myIntro')}</p>
         </div>
         <div>

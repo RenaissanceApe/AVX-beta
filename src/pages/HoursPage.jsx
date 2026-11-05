@@ -77,7 +77,7 @@ export default function HoursPage() {
   if (isOrg && role !== 'admin') return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px' }}>{title}</h1>
+        <h1 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>{title}</h1>
         <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>{t('hours.noAccess')}</p>
         <button type="button" onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
       </div>
@@ -97,7 +97,7 @@ export default function HoursPage() {
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 220px', minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{title}</h1>
+              <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{title}</h1>
               <PageHelp page={isOrg ? 'org-hours' : 'my-hours'} />
             </div>
             <p style={{ fontSize: '13px', color: colors.muted, marginTop: '2px' }}>{isOrg ? t('hours.orgIntro') : t('hours.pageIntro')}</p>

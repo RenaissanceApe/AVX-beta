@@ -56,7 +56,7 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
 
       <div role="grid" aria-label={t('dash.viewCalendar')} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '4px' }}>
         {weekdays().map(d => (
-          <div key={d} role="columnheader" style={{ fontSize: '11px', fontWeight: 700, color: colors.muted, textTransform: 'uppercase', textAlign: 'center', padding: '4px 0' }}>{d}</div>
+          <div key={d} role="columnheader" style={{ fontSize: '11px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', textAlign: 'center', padding: '4px 0' }}>{d}</div>
         ))}
         {weeks.flat().map(day => {
           const dayGigs = gigsOnDay(gigs, day)

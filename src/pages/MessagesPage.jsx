@@ -79,7 +79,7 @@ export default function MessagesPage() {
   return (
     <AppShell>
       <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '24px 16px 40px' }}>
-        {(!narrow || !id) && <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}><h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('chat.title')}</h1><PageHelp page="messages" /></div>}
+        {(!narrow || !id) && <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('chat.title')}</h1><PageHelp page="messages" /></div>}
         {to ? spinner : narrow ? (id ? open : side) : (
           <div style={{ display: 'grid', gridTemplateColumns: '320px minmax(0, 1fr)', gap: '16px', alignItems: 'start' }}>
             {side}
@@ -128,7 +128,7 @@ function ConversationList({ conversations, openId }) {
               <span style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <span style={{ flex: 1, minWidth: 0, fontSize: '12px', color: c.unread ? colors.soft : colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preview}</span>
                 {c.muted && <BellOff size={12} color={colors.muted} aria-label={t('chat.muted')} />}
-                {c.unread > 0 && <span style={{ minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '9px', background: colors.accent, color: 'var(--on-accent)', fontSize: '11px', fontWeight: 800, lineHeight: '18px', textAlign: 'center' }}>{c.unread > 98 ? '99+' : c.unread}</span>}
+                {c.unread > 0 && <span style={{ minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '9px', background: colors.accent, color: 'var(--on-accent)', fontSize: '11px', fontWeight: 700, lineHeight: '18px', textAlign: 'center' }}>{c.unread > 98 ? '99+' : c.unread}</span>}
               </span>
             </span>
           </Link>

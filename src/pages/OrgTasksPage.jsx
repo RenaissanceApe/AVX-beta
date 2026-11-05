@@ -110,7 +110,7 @@ export default function OrgTasksPage() {
   if (!role) return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px' }}>{t('tasks.orgTitle')}</h1>
+        <h1 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>{t('tasks.orgTitle')}</h1>
         <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>{t('tasks.noAccess')}</p>
         <button type="button" onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
       </div>
@@ -125,7 +125,7 @@ export default function OrgTasksPage() {
           <div style={{ flex: '1 1 220px', minWidth: 0 }}>
             <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org?.name}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('tasks.orgTitle')}</h1>
+              <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('tasks.orgTitle')}</h1>
               <PageHelp page="org-tasks" />
             </div>
           </div>

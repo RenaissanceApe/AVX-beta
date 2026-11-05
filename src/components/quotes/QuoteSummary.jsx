@@ -78,9 +78,9 @@ function Line({ label, value, strong, accent, muted, danger }) {
   )
 }
 
-const h3 = { fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: colors.muted, marginBottom: '8px' }
+const h3 = { fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', color: colors.muted, marginBottom: '8px' }
 const row = {
   display: 'flex', alignItems: 'center', gap: '12px', width: '100%', padding: '10px 12px', marginBottom: '6px', borderRadius: '10px',
   background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`, color: 'var(--text)', fontSize: '14px', cursor: 'pointer',
 }
-const optionalTag = { marginLeft: '8px', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', background: 'color-mix(in srgb, var(--warn) 15%, transparent)', color: 'var(--warn)', textTransform: 'uppercase' }
+const optionalTag = { marginLeft: '8px', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', background: 'color-mix(in srgb, var(--warn) 15%, transparent)', color: 'var(--warn)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }

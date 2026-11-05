@@ -112,9 +112,9 @@ export default function CallSheetPage() {
         .callsheet-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
         .sheet { max-width: 800px; margin: 0 auto; background: #fff; color: #111; border-radius: 8px; padding: 32px; font-size: 13px; }
         .sheet h1 { font-size: 24px; margin-bottom: 2px; }
-        .sheet h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 22px 0 8px; border-bottom: 2px solid #111; padding-bottom: 4px; }
+        .sheet h2 { font-size: 12px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 22px 0 8px; border-bottom: 2px solid #111; padding-bottom: 4px; }
         .sheet table { width: 100%; border-collapse: collapse; }
-        .sheet th { text-align: left; font-size: 11px; text-transform: uppercase; color: #666; padding: 4px 6px; border-bottom: 1px solid #ccc; }
+        .sheet th { text-align: left; font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; color: #666; padding: 4px 6px; border-bottom: 1px solid #ccc; }
         .sheet td { padding: 6px; border-bottom: 1px solid #eee; vertical-align: top; }
         .sheet .time { white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 700; width: 110px; }
         .sheet .muted { color: #666; }
@@ -167,7 +167,7 @@ export default function CallSheetPage() {
       <article className={large ? 'sheet large' : 'sheet'}>
         <header style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
           <div>
-            <div className="muted" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '.1em' }}>{t('schedule.callSheet')}</div>
+            <div className="muted" style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.1em' }}>{t('schedule.callSheet')}</div>
             <h1>{gig.name}</h1>
             <div>{gig.venue || t('callsheet.venueTbc')} · {dates}</div>
           </div>

@@ -40,7 +40,7 @@ export default function HelpPage() {
               style={{ background: 'transparent', color: 'var(--text-2)', border: `1px solid ${colors.border}`, borderRadius: '8px', padding: '4px 8px', fontSize: '13px' }}>
               {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
             </select>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontWeight: 800 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontWeight: 700 }}>
               <AvxMark size={16} style={{ color: 'var(--accent-text)' }} /> {APP_NAME}
             </span>
           </span>
@@ -48,15 +48,15 @@ export default function HelpPage() {
 
         {guideId ? <GuideView id={guideId} /> : (
           <>
-            <h1 style={{ color: 'var(--text)', fontSize: '26px', fontWeight: 800, marginBottom: '20px' }}>{t('help.title')}</h1>
+            <h1 style={{ color: 'var(--text)', fontSize: '26px', fontWeight: 700, marginBottom: '20px' }}>{t('help.title')}</h1>
 
-            <h2 style={{ color: 'var(--text)', fontSize: '21px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h2 style={{ color: 'var(--text)', fontSize: '21px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
               <ListChecks size={21} color="var(--accent-text)" aria-hidden="true" /> {t('help.guides')}
             </h2>
             <p style={{ fontSize: '15px', lineHeight: 1.6, margin: '6px 0 14px' }}>{t('help.guidesIntro')}</p>
             {GUIDE_ROLES.map(role => (
               <section key={role} aria-labelledby={`guides-${role}`} style={{ marginBottom: '18px' }}>
-                <h3 id={`guides-${role}`} style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>{t(`help.role.${role}`)}</h3>
+                <h3 id={`guides-${role}`} style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-2)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>{t(`help.role.${role}`)}</h3>
                 <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {guidesByRole(role).map(id => (
                     <li key={id}>
@@ -72,7 +72,7 @@ export default function HelpPage() {
               </section>
             ))}
 
-            <h2 style={{ color: 'var(--text)', fontSize: '21px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', marginTop: '32px' }}>
+            <h2 style={{ color: 'var(--text)', fontSize: '21px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', marginTop: '32px' }}>
               <BookOpen size={21} color="var(--accent-text)" aria-hidden="true" /> {t('help.glossary')}
             </h2>
             <p style={{ fontSize: '15px', lineHeight: 1.6, margin: '6px 0 18px' }}>{t('help.glossaryIntro')}</p>

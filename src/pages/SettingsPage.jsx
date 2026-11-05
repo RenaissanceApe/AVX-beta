@@ -302,7 +302,7 @@ export default function SettingsPage() {
       <div className="settings">
         {(wide || !shown) && (
           <nav className="settings-nav" aria-labelledby="settings-title">
-            <h1 id="settings-title" style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.3px' }}>{t('settings.title')}</h1>
+            <h1 id="settings-title" style={{ fontSize: '22px', fontWeight: 700 }}>{t('settings.title')}</h1>
             <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '4px 0 14px', wordBreak: 'break-all' }}>{user?.email}</p>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {sections.map(s => {
@@ -325,7 +325,7 @@ export default function SettingsPage() {
         {shown && (
           <section className="settings-body" aria-labelledby="settings-section-title">
             {!wide && <Link to="/settings" className="settings-back"><ChevronLeft size={16} aria-hidden="true" /> {t('settings.title')}</Link>}
-            <h2 id="settings-section-title" style={{ fontSize: '20px', fontWeight: 800, marginBottom: '6px' }}>{title(shown)}</h2>
+            <h2 id="settings-section-title" style={{ fontSize: '20px', fontWeight: 700, marginBottom: '6px' }}>{title(shown)}</h2>
             <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.5, marginBottom: '20px' }}>{t(`settings.hint.${shown}`)}</p>
             {content[shown]}
           </section>
@@ -364,7 +364,7 @@ const SETTINGS_CSS = `
 const section = { marginBottom: '22px', paddingBottom: '22px', borderBottom: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)' }
 const label = {
   display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--muted)',
-  textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px'
+  fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px'
 }
 const input = {
   width: '100%', padding: '10px 13px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)',

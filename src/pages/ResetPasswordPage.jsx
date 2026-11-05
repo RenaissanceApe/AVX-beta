@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
         </div>
 
         <div style={{ background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)', borderRadius: '20px', padding: '32px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text)', margin: '0 0 20px 0' }}>{t('auth.setNewPassword')}</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: '0 0 20px 0' }}>{t('auth.setNewPassword')}</h2>
 
           {authLoading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>

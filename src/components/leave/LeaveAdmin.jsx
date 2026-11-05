@@ -13,7 +13,7 @@ import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors } from '.
 import { TypeChip, daysText } from './LeaveParts'
 
 const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
-const h2 = { fontSize: '15px', fontWeight: 800, margin: 0 }
+const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
 // 1 January 2024 was a Monday: weekday names in the UI language
 const dayName = (d, pattern = 'EEE') => fmt(new Date(2024, 0, d), pattern)
 export function weekText(days, t) {

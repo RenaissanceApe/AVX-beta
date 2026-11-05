@@ -317,7 +317,7 @@ export default function QuoteEditorPage() {
             <button onClick={() => flushThen(() => navigate(`/org/${quote.org_id}/quotes`))} aria-label={t('quote.backToQuotes')} title={t('quote.backToQuotes')} style={iconBtn}><ArrowLeft size={18} /></button>
             <span style={{ fontFamily: 'var(--font-mono)', color: colors.soft, fontSize: '13px' }}>{quoteNumber(quote, prefix)}</span>
             <input value={quote.title} onChange={e => updateQuote({ title: e.target.value })} aria-label={t('quotes.quoteTitle')} maxLength={200}
-              style={{ ...input, flex: '1 1 220px', fontSize: '18px', fontWeight: 800, background: 'transparent', border: '1px solid transparent', padding: '6px 8px' }} />
+              style={{ ...input, flex: '1 1 220px', fontSize: '18px', fontWeight: 700, background: 'transparent', border: '1px solid transparent', padding: '6px 8px' }} />
             <select value={quote.status} onChange={e => changeStatus(e.target.value)} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', padding: '7px 10px', cursor: 'pointer' }}>
               {QUOTE_STATUSES.map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
             </select>

@@ -123,7 +123,7 @@ export default function ReportsTab({ orgId, inv }) {
         {tiles.map(([key, value, sub]) => (
           <div key={key} style={{ ...card, padding: '12px 14px' }}>
             <div style={{ fontSize: '12px', color: colors.muted }}>{t(`report.tile.${key}`)}</div>
-            <div style={{ fontSize: '20px', fontWeight: 800, marginTop: '2px', color: key === 'lostValue' && report.totals.lostValue ? colors.danger : key === 'idle' && report.totals.idle ? AMBER : 'var(--text)' }}>{value}</div>
+            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '2px', color: key === 'lostValue' && report.totals.lostValue ? colors.danger : key === 'idle' && report.totals.idle ? AMBER : 'var(--text)' }}>{value}</div>
             {sub && <div style={{ fontSize: '11px', color: colors.muted }}>{sub}</div>}
           </div>
         ))}
@@ -135,7 +135,7 @@ export default function ReportsTab({ orgId, inv }) {
             <tr>
               {cols.map(c => (
                 <th key={c.key} style={{ padding: '9px 10px', textAlign: c.left ? 'left' : 'right', borderBottom: `1px solid ${colors.border}`, whiteSpace: 'nowrap' }}>
-                  <button onClick={() => setSort(s => ({ key: c.key, dir: s.key === c.key ? -s.dir : (c.left ? 1 : -1) }))} style={{ background: 'none', border: 'none', color: sort.key === c.key ? colors.accentText : colors.muted, font: 'inherit', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px', padding: 0 }}>
+                  <button onClick={() => setSort(s => ({ key: c.key, dir: s.key === c.key ? -s.dir : (c.left ? 1 : -1) }))} style={{ background: 'none', border: 'none', color: sort.key === c.key ? colors.accentText : colors.muted, font: 'inherit', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.04em', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px', padding: 0 }}>
                     {c.label}{sort.key === c.key && (sort.dir > 0 ? <ArrowUp size={11} /> : <ArrowDown size={11} />)}
                   </button>
                 </th>

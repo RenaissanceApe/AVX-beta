@@ -114,7 +114,7 @@ export default function InventoryItemPage() {
         <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: '14px' }}>
           <div style={{ flex: '1 1 260px', minWidth: 0 }}>
             <div style={{ fontSize: '12px', color: colors.muted }}>{[item.category, t(`lineKind.${item.kind}`)].filter(Boolean).join(' · ')}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px', overflowWrap: 'anywhere', minWidth: 0 }}>{item.name}</h1><PageHelp page="inventory-item" /></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 700, overflowWrap: 'anywhere', minWidth: 0 }}>{item.name}</h1><PageHelp page="inventory-item" /></div>
             <div style={{ fontSize: '13px', color: colors.soft, display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px' }}>
               {item.code && <span style={{ fontFamily: 'var(--font-mono)' }}>{item.code}</span>}
               {item.kit_type ? <span style={{ color: colors.accentText }}>{t(`kit.typeOpt.${item.kit_type}`)}</span> : null}
@@ -221,7 +221,7 @@ export default function InventoryItemPage() {
                           ? <Link to={`/gig/${u.out_on_gig}?tab=equipment`} style={{ color: 'var(--sky)' }}>{t('inv.outOn', { gig: u.out_gig?.name || '…' })}</Link>
                           : inv.locationName(u.location_id) || t('inv.noLocation')}
                       </span>
-                      <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: STATUS_COLOR[u.status] }}>{t(`inv.unitStatus.${u.status}`)}</span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: STATUS_COLOR[u.status] }}>{t(`inv.unitStatus.${u.status}`)}</span>
                       {value != null && <span style={{ fontSize: '12px', color: colors.muted, whiteSpace: 'nowrap' }} title={t('inv.bookValueHint')}>{formatMoney(value, 'EUR', lang)}</span>}
                       {item.kit_type === 'case' && (
                         <button onClick={() => setPacking(u)} style={small} title={t('kit.packHint')}><Boxes size={12} /> {t('kit.packed', { count: packedIn[u.id] || 0 })}</button>

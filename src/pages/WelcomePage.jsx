@@ -52,7 +52,7 @@ export default function WelcomePage() {
             }}>
               <AvxMark size={22} style={{ color: 'var(--on-accent)' }} />
             </div>
-            <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text)' }}>AVX</span>
+            <span style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text)' }}>AVX</span>
           </div>
         </div>
 
@@ -63,7 +63,7 @@ export default function WelcomePage() {
             </div>
           ) : !user ? (
             <>
-              <h1 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginBottom: '12px' }}>{t('welcome.expiredTitle')}</h1>
+              <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text)', marginBottom: '12px' }}>{t('welcome.expiredTitle')}</h1>
               <p style={{ color: 'var(--muted)', fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>
                 {t('welcome.expiredBody')}
               </p>
@@ -71,7 +71,7 @@ export default function WelcomePage() {
             </>
           ) : (
             <>
-              <h1 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginBottom: '6px' }}>{t('welcome.title')}</h1>
+              <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>{t('welcome.title')}</h1>
               <p style={{ color: 'var(--muted)', fontSize: '14px', lineHeight: 1.6, marginBottom: '20px', wordBreak: 'break-all' }}>
                 {t('welcome.setUpFor', { email: user.email })}
               </p>

@@ -49,7 +49,7 @@ export function ToastProvider({ children }) {
               {toast.action && (
                 <button type="button" onClick={() => { dismiss(toast.id); toast.action.onClick() }} style={{
                   background: 'none', border: 'none', color: 'var(--accent-text)', cursor: 'pointer', padding: '0 4px',
-                  fontWeight: 800, fontSize: '14px', fontFamily: 'inherit', textDecoration: 'underline', textUnderlineOffset: '3px',
+                  fontWeight: 700, fontSize: '14px', fontFamily: 'inherit', textDecoration: 'underline', textUnderlineOffset: '3px',
                 }}>{toast.action.label}</button>
               )}
               <button onClick={() => dismiss(toast.id)} aria-label={t('common.dismiss')} style={{

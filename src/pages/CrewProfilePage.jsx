@@ -115,7 +115,7 @@ export default function CrewProfilePage() {
     <AppShell>
       <form onSubmit={save} noValidate style={{ maxWidth: '720px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('crewProfile.title')}</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('crewProfile.title')}</h1>
           <PageHelp page="crew-profile" />
         </div>
         <p style={{ ...hint, fontSize: '13px' }}>{t('crewProfile.intro')}</p>

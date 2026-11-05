@@ -79,7 +79,7 @@ export default function ImportPage() {
           <ArrowLeft size={14} /> {t(homeOf(orgId, kind)[1])}
         </Link>
         <div style={{ fontSize: '12px', color: colors.muted }}>{org?.name}</div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px', marginBottom: '4px' }}>{t('imp.title')}</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>{t('imp.title')}</h1>
         <p style={{ fontSize: '14px', color: colors.soft, lineHeight: 1.6, marginBottom: '16px', maxWidth: '640px' }}>{t('imp.subtitle')}</p>
 
         <ol aria-label={t('imp.steps')} style={{ listStyle: 'none', padding: 0, display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '18px' }}>
@@ -152,7 +152,7 @@ function SwitchChecklist({ orgId, kinds, kind, onPick }) {
   return (
     <section aria-labelledby="switch-title" style={{ ...card, marginBottom: '18px' }}>
       <button type="button" onClick={toggle} aria-expanded={open} style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '8px', background: 'none', border: 'none', padding: 0, color: 'var(--text)', font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
-        <h2 id="switch-title" style={{ fontSize: '15px', fontWeight: 800, flex: 1 }}>{t('imp.switch.title')}</h2>
+        <h2 id="switch-title" style={{ fontSize: '15px', fontWeight: 700, flex: 1 }}>{t('imp.switch.title')}</h2>
         <span style={{ fontSize: '12px', color: colors.soft }}>{t('imp.switch.progress', { done, total: steps.length })}</span>
       </button>
       {open && (
@@ -451,7 +451,7 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fi
       </div>
       {problems.length > 0 && (
         <section aria-labelledby="imp-problems" style={{ ...card, borderColor: tint('var(--warn)', 40) }}>
-          <h2 id="imp-problems" style={{ fontSize: '14px', fontWeight: 800, marginBottom: '6px' }}>{t('imp.problemsTitle', { count: problems.length })}</h2>
+          <h2 id="imp-problems" style={{ fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>{t('imp.problemsTitle', { count: problems.length })}</h2>
           <ul style={{ listStyle: 'none', padding: 0, fontSize: '13px', lineHeight: 1.7, maxHeight: '220px', overflowY: 'auto' }} tabIndex={0} aria-label={t('imp.problemsTitle', { count: problems.length })}>
             {problems.slice(0, 200).map(({ row, p }) => (
               <li key={row}><strong>{t('imp.line', { n: row })}</strong> · {p.field ? `${t(`imp.field.${kind}.${p.field}`)}: ` : ''}{t(`imp.err.${p.reason}`, { value: p.value })}</li>
@@ -498,7 +498,7 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fi
 function Count({ label: text, value, hint, warn }) {
   return (
     <div style={{ ...card, padding: '10px 12px', borderColor: warn ? tint('var(--warn)', 40) : undefined }}>
-      <div style={{ fontSize: '22px', fontWeight: 800, color: warn ? 'var(--warn)' : 'var(--text)' }}>{value}</div>
+      <div style={{ fontSize: '22px', fontWeight: 700, color: warn ? 'var(--warn)' : 'var(--text)' }}>{value}</div>
       <div style={{ fontSize: '12px', color: colors.soft }}>{text}</div>
       {hint && <div style={{ fontSize: '11px', color: colors.muted, marginTop: '2px' }}>{hint}</div>}
     </div>
@@ -562,7 +562,7 @@ function History({ orgId }) {
   if (!batches?.length) return null
   return (
     <section aria-labelledby="imp-history" style={{ marginTop: '32px' }}>
-      <h2 id="imp-history" style={{ fontSize: '16px', fontWeight: 800, marginBottom: '8px' }}>{t('imp.history')}</h2>
+      <h2 id="imp-history" style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>{t('imp.history')}</h2>
       <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {batches.map(b => (
           <li key={b.id} style={{ ...card, padding: '8px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', opacity: b.undone_at ? 0.75 : 1 }}>

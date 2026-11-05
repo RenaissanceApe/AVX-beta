@@ -18,7 +18,7 @@ export default function GuideView({ id, compact = false }) {
     <article aria-labelledby={`guide-${id}`}>
       {compact
         ? <h2 id={`guide-${id}`} style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>{g.title}</h2>
-        : <h1 id={`guide-${id}`} style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px' }}>{g.title}</h1>}
+        : <h1 id={`guide-${id}`} style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>{g.title}</h1>}
       <p style={{ fontSize: compact ? '14px' : '15px', lineHeight: 1.6, color: 'var(--text-2)' }}>{g.intro}</p>
 
       <ol style={{ listStyle: 'none', padding: 0, margin: '18px 0 0', display: 'flex', flexDirection: 'column', gap: '18px' }}>
@@ -27,7 +27,7 @@ export default function GuideView({ id, compact = false }) {
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
               <span aria-hidden="true" style={{
                 flexShrink: 0, width: '26px', height: '26px', borderRadius: '50%', background: colors.accent, color: 'var(--on-accent)',
-                fontWeight: 800, fontSize: '14px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 700, fontSize: '14px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               }}>{i + 1}</span>
               <p style={{ fontSize: compact ? '14px' : '15px', lineHeight: 1.6, color: 'var(--text-2)', paddingTop: '2px' }}>
                 <span className="sr-only">{t('help.step', { n: i + 1 })} </span>{text}

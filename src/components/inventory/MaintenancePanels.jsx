@@ -282,7 +282,7 @@ function RepairRow({ r, itemName, onOpen }) {
       </span>
       {r.photo_path && <ImageIcon size={13} color={colors.muted} aria-label={t('repair.photo')} />}
       <span style={{ fontSize: '12px', color: colors.muted, whiteSpace: 'nowrap' }}>{fmt(r.created_at, 'd MMM')}{r.expected_back && isOpenRepair(r) ? ` → ${fmt(r.expected_back, 'd MMM')}` : ''}</span>
-      <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: STATUS_COLOR[r.status] }}>{t(`repair.status.${r.status}`)}</span>
+      <span style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: STATUS_COLOR[r.status] }}>{t(`repair.status.${r.status}`)}</span>
     </button>
   )
 }

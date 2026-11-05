@@ -30,7 +30,7 @@
       html, body, #root { height: 100%; }
       /* Colours come from the theme (src/theme/tokens.js); the fallbacks are the dark theme */
       :root { --font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; --font-mono: 'Space Mono', ui-monospace, monospace; }
-      :root[data-font="readable"] { --font-ui: 'Atkinson Hyperlegible', system-ui, sans-serif; }
+      :root[data-font="readable"] { --font-ui: 'Atkinson Hyperlegible', system-ui, sans-serif; --font-mono: 'Atkinson Hyperlegible', ui-monospace, monospace; }
       html { background: var(--bg, #021829); }
       body { background: var(--bg, #021829); color: var(--text, #F0F1F3); font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
       /* Text size: the whole layout grows with it, separate from the browser's zoom */
@@ -47,6 +47,10 @@
       body { padding: var(--safe-top) var(--safe-right) 0 var(--safe-left); }
       body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: var(--safe-top); background: var(--chrome, #00101C); z-index: 1000; pointer-events: none; }
       input, textarea, select, button { font-family: inherit; }
+      /* Space Mono names things and holds the numbers (titles, table heads, times, codes); Inter explains */
+      h1, h2, h3, th, time, .mono { font-family: var(--font-mono); }
+      h1, h2, h3 { font-weight: 700; }
+      th { font-weight: 700; }
       /* L&P brand system: every corner is square (Brand Book v1.2 §11, DESIGN.md). One rule, so inline radii can't creep back. */
       *, *::before, *::after { border-radius: 0 !important; }
       /* Loading is a blinking square, never a spinning circle */

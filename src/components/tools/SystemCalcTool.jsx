@@ -121,7 +121,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', flexWrap: 'wrap', marginBottom: canEdit ? '8px' : 0 }}>
                     <strong style={{ fontSize: '14px' }}>{s.name}</strong>
                     <span style={{ fontSize: '12px', color: colors.muted }}>{t(`sys.kind.${s.kind}`)}{s.count > 1 ? ` × ${s.count}` : ''}</span>
-                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontWeight: 800, color: colors.accentText }}>{t('sys.delayMs', { ms: d.ms })}</span>
+                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontWeight: 700, color: colors.accentText }}>{t('sys.delayMs', { ms: d.ms })}</span>
                     {canEdit && <button type="button" onClick={() => removeWithUndo('sources', sources, s.id, s.name)} aria-label={t('inputs.remove', { name: s.name })} style={iconBtn}><Trash2 size={14} /></button>}
                   </div>
                   <p style={{ fontSize: '12px', color: colors.soft, lineHeight: 1.5 }}>
@@ -172,7 +172,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
               <li key={l.id} style={{ ...card, padding: '10px 12px' }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', flexWrap: 'wrap' }}>
                   <strong style={{ fontSize: '14px' }}>{l.name}</strong>
-                  {i === 0 && <span style={{ fontSize: '11px', fontWeight: 800, color: colors.accentText }}>{t('sys.reference')}</span>}
+                  {i === 0 && <span style={{ fontSize: '11px', fontWeight: 700, color: colors.accentText }}>{t('sys.reference')}</span>}
                   <span style={{ marginLeft: 'auto', fontSize: '13px', fontWeight: 700 }}>{total !== null ? t('sys.level', { db: total }) : '—'}</span>
                   {canEdit && <button type="button" onClick={() => removeWithUndo('listeners', listeners, l.id, l.name)} aria-label={t('inputs.remove', { name: l.name })} style={iconBtn}><Trash2 size={14} /></button>}
                 </div>

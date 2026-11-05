@@ -62,7 +62,7 @@ export default function TrustAdminPage() {
     <AppShell>
       <div style={{ maxWidth: '880px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px', display: 'flex', alignItems: 'center', gap: '8px' }}><ShieldCheck size={22} aria-hidden="true" /> {t('trust.admin.title')}</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}><ShieldCheck size={22} aria-hidden="true" /> {t('trust.admin.title')}</h1>
           <p style={{ ...hint, fontSize: '13px', marginTop: '4px' }}>{t('trust.admin.intro')}</p>
         </div>
 

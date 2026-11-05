@@ -126,7 +126,7 @@ export default function LegalPage({ doc }) {
           <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--soft)', textDecoration: 'none', fontSize: '14px' }}>
             <ArrowLeft size={14} /> {t('common.back')}
           </Link>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontWeight: 800 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontWeight: 700 }}>
             <AvxMark size={16} style={{ color: 'var(--accent-text)' }} /> {APP_NAME}
           </span>
         </div>

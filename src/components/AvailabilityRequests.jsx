@@ -43,7 +43,7 @@ export default function AvailabilityRequests({ onAnswered }) {
   if (!requests.length) return null
   return (
     <section id="requests" ref={ref} aria-labelledby="requests-title" style={{ marginBottom: '24px' }}>
-      <h2 id="requests-title" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--warn)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <h2 id="requests-title" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--warn)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
         <MessageCircleQuestion size={14} /> {t('requests.title', { count: requests.length })}
       </h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

@@ -110,7 +110,7 @@ export default function ContactsPage() {
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 0', display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 220px', minWidth: 0 }}>
           <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org?.name}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.4px' }}>{t('contacts.title')}</h1><PageHelp page="contacts" /></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('contacts.title')}</h1><PageHelp page="contacts" /></div>
         </div>
         <Link to={`/org/${orgId}/inventory/import?kind=${tab}`} style={{ ...btn, textDecoration: 'none' }}><Upload size={14} /> {t('contacts.import')}</Link>
         <button onClick={() => setEditing({})} style={btnPrimary}><Plus size={15} /> {t(`contacts.new.${tab}`)}</button>

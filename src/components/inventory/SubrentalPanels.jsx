@@ -296,7 +296,7 @@ export function SubrentalRow({ s, onOpen }) {
         </span>
       </span>
       <span style={{ fontSize: '12px', color: colors.soft, whiteSpace: 'nowrap' }}>{t('sub.pieces', { count })} · {money(subrentalTotal(s), lang)}</span>
-      <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: STATUS_COLOR[s.status] }}>{t(`sub.status.${s.status}`)}</span>
+      <span style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: STATUS_COLOR[s.status] }}>{t(`sub.status.${s.status}`)}</span>
     </button>
   )
 }
@@ -332,7 +332,7 @@ function IncomingRequests({ orgId }) {
             <div style={{ display: 'flex', gap: '10px', alignItems: 'baseline', flexWrap: 'wrap' }}>
               <strong style={{ flex: '1 1 200px' }}>{r.from_org}{r.reference ? <span style={{ color: colors.muted, fontWeight: 400 }}> · {r.reference}</span> : null}</strong>
               <span style={{ fontSize: '12px', color: colors.soft }}>{rangeText(r.starts_at, r.ends_at)}</span>
-              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: STATUS_COLOR[r.status] }}>{t(`sub.status.${r.status}`)}</span>
+              <span style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: STATUS_COLOR[r.status] }}>{t(`sub.status.${r.status}`)}</span>
             </div>
             <div style={{ fontSize: '13px', color: colors.soft, margin: '4px 0' }}>{(r.lines || []).map(l => `${l.quantity} × ${l.description}`).join(', ')}</div>
             {r.notes && <div style={small}>“{r.notes}”</div>}

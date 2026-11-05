@@ -106,7 +106,7 @@ export default function AssetVersionsModal({ asset, nameOf, onClose }) {
         </div>
       )}
 
-      <h3 style={{ fontSize: '13px', fontWeight: 700, color: colors.muted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+      <h3 style={{ fontSize: '13px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
         {t('versions.title')} {loading && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite', verticalAlign: 'middle' }} />}
       </h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

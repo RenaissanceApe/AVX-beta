@@ -40,6 +40,8 @@ export const input = {
 export const card = {
   background: 'var(--panel)', border: '1px solid var(--line)', padding: '14px 16px',
 }
+// Anything you could copy into a spreadsheet (times, dates, money, quantities, serials, codes)
+export const mono = { fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums' }
 export const label = {
   display: 'block', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: colors.muted,
   textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: '6px',
