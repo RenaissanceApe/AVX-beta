@@ -1,7 +1,8 @@
 // Crew rates and labour cost (docs/TOOLS_PLAN.md build order step 7). The organisation's rate card
 // (crew_rates), its factors (crew_rate_factors) and the fee agreed with each person on a gig
 // (gig_crew_fees). Pure helpers, unit tested.
-import { quoteTotals, lineTotal, round2 } from './quotes'
+import { lineTotal, round2 } from './quotes'
+import { gigRevenue } from './analytics/revenue'
 
 export const FEE_UNITS = ['day', 'half_day', 'hour', 'fixed']
 export const FACTOR_KEYS = ['overtime', 'weekend', 'night', 'holiday']
@@ -67,15 +68,12 @@ export function labourSummary(lines, revenue) {
   return { cost, missing, revenue, margin, marginPct: revenue ? Math.round((margin / revenue) * 100) : null }
 }
 
-// Crew lines of the quote that counts for a gig (the accepted one, else the newest that isn't
-// declined), after the quote's discount
+// Crew lines of a gig's quotes by the revenue rule (docs/ANALYTICS.md): every accepted quote,
+// after line, phase and quote discounts; with none accepted, the newest sent quote, marked as an
+// estimate. Drafts and declined quotes never count. In euros, as the rest of the panel.
 export function quoteCrewRevenue(quotes) {
-  const list = (quotes || []).filter(q => q.status !== 'declined')
-  const q = list.find(x => x.status === 'accepted') || [...list].sort((a, b) => String(b.updated_at || b.created_at).localeCompare(String(a.updated_at || a.created_at)))[0]
-  if (!q) return null
-  const { byKind } = quoteTotals(q)
-  const pct = Math.min(100, Math.max(0, Number(q.discount_pct) || 0))
-  return { quote: q, revenue: round2((byKind.crew || 0) * (1 - pct / 100)) }
+  const r = gigRevenue(quotes, { kinds: ['crew'], currency: 'EUR' })
+  return r && { quote: r.quotes[0], quotes: r.quotes, revenue: r.revenue, estimate: r.estimate }
 }
 
 // What a form field holds → a number or null ("1 200,50" works)

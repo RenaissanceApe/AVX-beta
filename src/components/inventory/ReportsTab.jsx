@@ -3,7 +3,10 @@ import { Link } from 'react-router-dom'
 import { Loader2, Download, ArrowDown, ArrowUp, Moon } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
-import { inventoryReport, reportCsv } from '../../lib/reports'
+import { reportCsv } from '../../lib/reports'
+import { selectAll } from '../../lib/selectAll'
+import { todayIn, addDaysIso } from '../../lib/analytics/periods'
+import { round2 } from '../../lib/quotes'
 import { formatMoney, localISODate } from '../../lib/quotes'
 import { useI18n, t } from '../../i18n'
 import { btn, input, card, label, colors } from '../ui'
@@ -12,14 +15,24 @@ const PERIODS = ['90d', '12m', 'ytd']
 const AMBER = 'var(--warn)'
 const select = { ...input, appearance: 'auto', width: 'auto', padding: '6px 10px' }
 
-function periodRange(key, now = new Date()) {
-  const until = new Date(now); until.setHours(0, 0, 0, 0); until.setDate(until.getDate() + 1)
-  const from = new Date(until)
-  if (key === '90d') from.setDate(from.getDate() - 90)
-  else if (key === '12m') from.setFullYear(from.getFullYear() - 1)
-  else { from.setMonth(0, 1) }
-  return { from: from.toISOString(), until: until.toISOString(), fromDay: localISODate(from), untilDay: localISODate(until) }
+// The period as dates in the organisation's time zone: from the first day, until the day after today
+function periodRange(key, timeZone) {
+  const today = todayIn(timeZone)
+  const untilDay = addDaysIso(today, 1)
+  const fromDay = key === '90d' ? addDaysIso(untilDay, -90)
+    : key === '12m' ? `${Number(untilDay.slice(0, 4)) - 1}${untilDay.slice(4)}`.replace(/-02-29$/, '-02-28')
+      : `${today.slice(0, 4)}-01-01`
+  return { fromDay, untilDay }
 }
+
+// A row of public.equipment_report in the shape the table uses
+const toRow = r => ({
+  id: r.item_id, name: r.name, category: r.category, owned: r.owned, use: Number(r.use) || 0, gigs: r.gigs,
+  lastUsed: r.last_used ? new Date(r.last_used) : null, revenue: Number(r.revenue) || 0,
+  returnOnCost: r.return_on_cost == null ? null : Number(r.return_on_cost), repairs: r.repairs,
+  repairCost: Number(r.repair_cost) || 0, charged: Number(r.charged) || 0, lost: r.lost, lostValue: Number(r.lost_value) || 0,
+  hiredIn: Number(r.hired_in) || 0, bookValue: Number(r.book_value) || 0, cost: Number(r.cost) || 0, idle: r.idle,
+})
 
 // Inventory → Reports: use, revenue, repairs, losses and value per item (docs/INVENTORY.md, I7)
 export default function ReportsTab({ orgId, inv }) {
@@ -27,35 +40,33 @@ export default function ReportsTab({ orgId, inv }) {
   const [period, setPeriod] = useState('12m')
   const [data, setData] = useState(null)
   const [sort, setSort] = useState({ key: 'revenue', dir: -1 })
-  const range = useMemo(() => periodRange(period), [period])
+  const timeZone = inv.org?.time_zone
+  const range = useMemo(() => periodRange(period, timeZone), [period, timeZone])
 
+  // Counted in the database (public.equipment_report, step K1): every row, whatever the size
   useEffect(() => {
+    let cancelled = false
     setData(null)
-    const { from, until, fromDay, untilDay } = range
-    Promise.all([
-      supabase.from('stock_units').select('item_id, status, purchase_cost, purchase_date, depreciation_months').eq('org_id', orgId).limit(20000),
-      supabase.from('reservations').select('resource_id, quantity, period, gig_id').eq('org_id', orgId).eq('resource_type', 'equipment')
-        .eq('status', 'confirmed').overlaps('period', `[${from},${until})`).limit(20000),
-      supabase.from('quotes').select('body, discount_pct').eq('org_id', orgId).eq('status', 'accepted').gte('issue_date', fromDay).lt('issue_date', untilDay).limit(5000),
-      supabase.from('repairs').select('item_id, quantity, cost, charge_client').eq('org_id', orgId).gte('created_at', from).lt('created_at', until).limit(10000),
-      supabase.from('stock_movements').select('item_id, kind, quantity').eq('org_id', orgId).in('kind', ['lost', 'found']).gte('created_at', from).lt('created_at', until).limit(20000),
-      supabase.from('subrentals').select('lines:subrental_lines(item_id, quantity, unit_cost)').eq('org_id', orgId).in('status', ['confirmed', 'returned'])
-        .lt('starts_at', until).gt('ends_at', from).limit(5000),
-    ]).then(([units, reservations, quotes, repairs, movements, subrentals]) => {
-      for (const [step, res] of Object.entries({ units, reservations, quotes, repairs, movements, subrentals })) {
-        if (res.error) logger.error('reports', res.error, { step })
-      }
-      setData({
-        units: units.data || [], reservations: reservations.data || [], quotes: quotes.data || [],
-        repairs: repairs.data || [], movements: movements.data || [], subrentals: subrentals.data || [],
+    selectAll(() => supabase.rpc('equipment_report', { p_org: orgId, p_from: range.fromDay, p_until: range.untilDay }).order('name').order('item_id'))
+      .then(({ data: rows, error }) => {
+        if (cancelled) return
+        if (error) logger.error('reports', error, { step: 'equipment_report' })
+        setData((rows || []).map(toRow))
       })
-    })
+    return () => { cancelled = true }
   }, [orgId, range])
 
-  const report = useMemo(() => data && inventoryReport({
-    ...data, items: inv.items, from: range.from, until: range.until,
-    owned: Object.fromEntries(Object.entries(inv.stock).map(([id, s]) => [id, s.total || 0])),
-  }), [data, inv.items, inv.stock, range])
+  const report = useMemo(() => {
+    if (!data) return null
+    const sum = key => round2(data.reduce((s, r) => s + (r[key] || 0), 0))
+    return {
+      rows: data,
+      totals: {
+        revenue: sum('revenue'), repairCost: sum('repairCost'), charged: sum('charged'), lostValue: sum('lostValue'),
+        hiredIn: sum('hiredIn'), bookValue: sum('bookValue'), idle: data.filter(r => r.idle).length,
+      },
+    }
+  }, [data])
 
   if (!report) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
   const money = v => formatMoney(v, 'EUR', lang)

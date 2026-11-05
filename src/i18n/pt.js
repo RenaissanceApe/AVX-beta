@@ -1475,7 +1475,7 @@ export default {
   'report.idleRow.one': "{count} em stock · último uso {last}",
   'report.idleRow.other': "{count} em stock · último uso {last}",
   'report.never': "nunca",
-  'report.howCounted': "Como se conta: uso = dias reservados em eventos confirmados (com dias de preparação e devolução) ÷ dias em stock no período, até hoje. Receita = linhas de orçamentos aceites no período que vieram do catálogo, depois de descontos e sem fases opcionais. Receita ÷ custo compara essa receita com o custo de compra das unidades. O valor contabilístico é a depreciação linear das unidades com custo de compra. Reparações e perdas são as registadas no período.",
+  'report.howCounted': "Como se conta: uso = dias reservados em eventos confirmados (com dias de preparação e devolução) ÷ dias em stock no período, até hoje. Receita = linhas do catálogo em orçamentos aceites cujo evento começa no período (sem evento: a data da primeira fase, senão a data de emissão), depois de descontos, sem fases opcionais, em euros. Receita ÷ custo compara essa receita com o custo de compra das unidades. O valor contabilístico é a depreciação linear das unidades com custo de compra. Reparações e perdas são as registadas no período.",
   'network.title': "A sua rede",
   'network.search': "Pesquisar quem já trabalhou consigo",
   'network.none': "Ninguém encontrado entre quem já trabalhou consigo.",

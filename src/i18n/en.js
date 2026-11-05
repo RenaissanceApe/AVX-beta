@@ -1476,7 +1476,7 @@ export default {
   'report.idleRow.one': "{count} owned · last used {last}",
   'report.idleRow.other': "{count} owned · last used {last}",
   'report.never': "never",
-  'report.howCounted': "How it's counted: use = days booked on confirmed gigs (with prep and return days) ÷ days owned in the period, up to today. Revenue = lines of quotes accepted in the period that came from the catalogue, after discounts, without optional phases. Revenue ÷ cost compares that revenue with the purchase cost of the units. Book value is straight-line depreciation of units with a purchase cost. Repairs and losses are those recorded in the period.",
+  'report.howCounted': "How it's counted: use = days booked on confirmed gigs (with prep and return days) ÷ days owned in the period, up to today. Revenue = lines from the catalogue on accepted quotes whose gig starts in the period (no gig: the first phase date, else the issue date), after discounts, without optional phases, in euros. Revenue ÷ cost compares that revenue with the purchase cost of the units. Book value is straight-line depreciation of units with a purchase cost. Repairs and losses are those recorded in the period.",
   'network.title': "Your network",
   'network.search': "Search people you've worked with",
   'network.none': "No one found among people you've worked with.",
