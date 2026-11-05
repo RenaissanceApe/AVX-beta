@@ -37,6 +37,7 @@ const OrgTasksPage = lazy(() => import('./pages/OrgTasksPage'))
 const HoursPage = lazy(() => import('./pages/HoursPage'))
 const LeavePage = lazy(() => import('./pages/LeavePage'))
 const ExpensesPage = lazy(() => import('./pages/ExpensesPage'))
+const ReportsPage = lazy(() => import('./pages/ReportsPage'))
 const TrustAdminPage = lazy(() => import('./pages/TrustAdminPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const ScanPage = lazy(() => import('./pages/ScanPage'))
@@ -153,6 +154,7 @@ function AppRoutes() {
       <Route path="/org/:orgId/hours" element={<ProtectedRoute><Suspense fallback={<Spinner />}><HoursPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/leave" element={<ProtectedRoute><Suspense fallback={<Spinner />}><LeavePage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/expenses" element={<ProtectedRoute><Suspense fallback={<Spinner />}><ExpensesPage /></Suspense></ProtectedRoute>} />
+      <Route path="/org/:orgId/reports" element={<ProtectedRoute><Suspense fallback={<Spinner />}><ReportsPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/tasks" element={<ProtectedRoute><Suspense fallback={<Spinner />}><OrgTasksPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/inventory" element={<ProtectedRoute><Suspense fallback={<Spinner />}><InventoryPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/inventory/import" element={<ProtectedRoute><Suspense fallback={<Spinner />}><ImportPage /></Suspense></ProtectedRoute>} />

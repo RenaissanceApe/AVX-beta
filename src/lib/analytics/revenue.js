@@ -104,3 +104,24 @@ export function gigRevenue(quotes, { kinds = null, currency = null } = {}) {
   const lines = counted.flatMap(q => quoteRevenueLines(q)).filter(l => !kinds || kinds.includes(l.kind))
   return { quotes: counted, estimate, revenue: round2(lines.reduce((s, l) => s + l.amount, 0)) }
 }
+
+// Filters of the report bar: status ('base:<status>' or 'own:<custom status id>'), gig type (an
+// id, or 'none'), client (by name)
+export function filterRevenueLines(rows, { status = '', type = '', client = '' } = {}) {
+  return rows.filter(r => {
+    if (status) {
+      const [kind, value] = status.split(':')
+      if (kind === 'base' && r.gig_status !== value) return false
+      if (kind === 'own' && r.gig_custom_status_id !== value) return false
+    }
+    if (type === 'none' ? r.gig_type_id : type && r.gig_type_id !== type) return false
+    if (client && r.client_name !== client) return false
+    return true
+  })
+}
+
+// The currency with the most revenue (the one tiles and charts show; others are listed apart)
+export function mainCurrency(rows, fallback = 'EUR') {
+  const totals = totalsByCurrency(rows)
+  return Object.entries(totals).sort((a, b) => b[1] - a[1])[0]?.[0] || fallback
+}

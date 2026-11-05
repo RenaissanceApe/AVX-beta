@@ -63,3 +63,21 @@ describe('revenue helpers', () => {
     expect(gigRevenue([{ ...accepted, currency: 'USD' }], { currency: 'EUR' })).toBe(null)
   })
 })
+
+describe('revenue filters', () => {
+  const rows = [
+    { quote_id: 'a', currency: 'EUR', amount: 10, gig_status: 'confirmed', gig_custom_status_id: 's1', gig_type_id: 't1', client_name: 'Alpha' },
+    { quote_id: 'b', currency: 'USD', amount: 50, gig_status: 'draft', gig_custom_status_id: null, gig_type_id: null, client_name: 'Beta' },
+    { quote_id: 'c', currency: 'EUR', amount: 60, gig_status: null, gig_custom_status_id: null, gig_type_id: null, client_name: null },
+  ]
+  it('filters by status, type and client', async () => {
+    const { filterRevenueLines, mainCurrency } = await import('./revenue')
+    expect(filterRevenueLines(rows, { status: 'base:confirmed' }).map(r => r.quote_id)).toEqual(['a'])
+    expect(filterRevenueLines(rows, { status: 'own:s1' }).map(r => r.quote_id)).toEqual(['a'])
+    expect(filterRevenueLines(rows, { type: 'none' }).map(r => r.quote_id)).toEqual(['b', 'c'])
+    expect(filterRevenueLines(rows, { type: 't1' }).map(r => r.quote_id)).toEqual(['a'])
+    expect(filterRevenueLines(rows, { client: 'Beta' }).map(r => r.quote_id)).toEqual(['b'])
+    expect(mainCurrency(rows)).toBe('EUR')
+    expect(mainCurrency([])).toBe('EUR')
+  })
+})
