@@ -99,8 +99,8 @@ export default function NotificationBell() {
         <Bell size={17} />
         {unread > 0 && (
           <span style={{
-            position: 'absolute', top: '1px', right: '0', minWidth: '16px', height: '16px', padding: '0 4px', borderRadius: '8px',
-            background: colors.accent, color: 'var(--on-accent)', fontSize: '10px', fontWeight: 800, lineHeight: '16px', textAlign: 'center',
+            position: 'absolute', top: '1px', right: '0', minWidth: '16px', height: '16px', padding: '0 4px',
+            background: 'var(--text)', color: 'var(--bg)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, lineHeight: '16px', textAlign: 'center',
           }}>{unread > 9 ? '9+' : unread}</span>
         )}
       </button>
