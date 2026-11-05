@@ -5,7 +5,7 @@ built as the **K** steps ("key numbers"), in the order [ROADMAP.md](../ROADMAP.m
 in its own session with its prompt in [SESSION_PROMPTS.md](SESSION_PROMPTS.md). The expenses step
 they need (9b) is specified in [BUSINESS.md](BUSINESS.md).
 
-**Status (2026-11-02): K0 built (0.64.0); the rest planned.** When a K step is built, its section below is
+**Status (2026-11-05): K0 built (0.64.0), K1 built (0.69.0); the rest planned.** When a K step is built, its section below is
 replaced by "How K… works", in the same shape as BUSINESS.md, so the next session can connect to it
 without reading its code first.
 
@@ -51,7 +51,7 @@ without reading its code first.
 | Number | Definition |
 |---|---|
 | **Revenue (net)** | Priced lines of accepted quotes: line total × (1 − phase discount) × (1 − quote discount). Optional phases and comments left out. Excl. VAT, per currency. May differ by a cent from the quote's total (rounding) |
-| **Report date** | Everything that belongs to a gig is dated by the gig's start date, so a gig's margin is never split across months (a tour from March to May counts in March). A quote with no gig: its first phase date, else its issue date. Expenses: their date (capital ones spread over their months). Sales figures use the sent and decided dates; cash figures use invoice, due and payment dates |
+| **Report date** | Everything that belongs to a gig is dated by the gig's start date, so a gig's margin is never split across months (a tour from March to May counts in March). Each revenue line also carries its phase's start date, so dating by phase later (D42) is a change of rule, not of data. A quote with no gig: its first phase date, else its issue date. Expenses: their date (capital ones spread over their months). Sales figures use the sent and decided dates; cash figures use invoice, due and payment dates |
 | **Gig revenue** | All accepted quotes linked to the gig, after line, phase and quote discounts. None accepted: the newest sent quote, marked estimate. Draft quotes never count, not even as an estimate |
 | **Labour cost** | Approved hours × agreed fee or rate (actual) → agreed fee → rate card (estimate). Fixed fees ignore hours |
 | **Direct costs** | Labour; confirmed or returned subrentals (the supplier's price, else the lines); repairs on the gig not charged to the client; gig expenses (kind "direct"); cost of goods sold (sale lines × the item's cost price); transport (after step 23). A linked expense replaces the planned amount |
@@ -274,29 +274,30 @@ are approximate); cost of goods sold uses a sale row's quantity × the item's `c
 (the row's `unit_cost` is the sale price); bulk depreciation uses purchase rows' `unit_cost` over
 the item's `depreciation_months` (60 if empty).
 
-## K1 · Reports engine and the Reports area
+## How K1 works (built in 0.69.0)
 
-Needs: K0, 9b. Just before step 10, its first user.
+The reports engine and the Reports area. Migration `20261220000000_reports_k1.sql` (functions
+and one view, no tables); checks in `supabase/tests/reports_k1.sql` (no delete statements).
 
-- The definitions above, walked through with the owner and changed where they say.
-- **The revenue rule, twice**: `public.report_revenue_lines(org, from, until)` and
-  `src/lib/analytics/revenue.js`: one row per priced line of accepted quotes with its kind, item,
-  quote, gig, client, gig type and status, currency and report date. Shared fixtures
-  (`src/lib/analytics/fixtures.json`) checked by Vitest and by `supabase/tests/reports_k1.sql`.
-- **Periods**: this month, last month, this quarter, this year, last 12 months, custom; the
-  comparison; the organisation's time zone (`src/lib/analytics/periods.js`).
-- **Report parts** (`src/components/reports/`): period and filter bar (status, type, client),
-  group-by, sortable table, CSV (`reportCsv`), print, SVG charts (number tile with change, bar,
-  stacked bar, line, sparkline) with a table alternative; simple first, details on demand.
-- **Reports area**: `/org/:orgId/reports?tab=…`, in the menu for those allowed; an Overview tab
-  with a tile list later steps add to (first tiles: gigs this month, confirmed revenue in the next
-  30 days, value of quotes waiting for an answer, equipment use over 90 days); a key-numbers strip
-  on the organisation's Home (not in simple mode, can be folded).
-- **I7 in the database**: `public.equipment_report(org, from, until)`, the same columns, dated by
-  the rule, without the 1000-row limit; Inventory → Reports reads it.
-- The labour cost panel's revenue follows the rule (all accepted quotes, after phase discounts).
-- Each function answers in under a second on 5,000 quotes made inside a rolled-back test.
-- Ask: the first tiles; Reports as its own menu section or under Organisation.
+| Piece | How it works |
+|---|---|
+| The revenue rule | `private.report_quote_lines` (a view, `security_invoker`): one row per priced line of every quote the reader may see, net after the line, phase and quote discounts, rounded to the cent; optional phases and comments left out; numbers read as `normalizeBody` reads them (a number or text such as "2,5"; qty and factor default to 1). A view rather than a function per quote: Postgres plans it once with the outer query (a function per quote took seconds on 5,000 quotes). `public.report_revenue_lines(org, from, until)` returns the accepted quotes' lines whose **report date** (gig start date, else first dated non-optional phase, else issue date) is in `[from, until)`, with quote, line, phase, kind, item, description, amount, currency, report date, **phase start** (for a later rule that dates by phase, D42), gig (name, type, status, own status) and client (directory name, else the typed company or name). The JS twin is `src/lib/analytics/revenue.js` (`reportRevenueLines`, `quoteReportDate`, `gigRevenue`, `groupRevenue`, `filterRevenueLines`) |
+| Shared fixtures | `src/lib/analytics/fixtures.json`: gigs either side of a month boundary, a gig without a date, every discount, a comma number, optional phases, comments, a 100 % line discount, sent, draft and declined quotes, two currencies. `revenue.test.js` and `reports_k1.sql` check the same expected numbers; the SQL file holds a verbatim copy between `$fixtures$` markers and a Vitest test keeps the copy equal. Change both twins and both files together |
+| Who may | Every function calls `private.require_finance(org)`: `can_see_finance` (admins and members) and the second sign-in step when the person has one; otherwise `42501`. Viewers, crew, other organisations and anonymous calls are refused. All run as the reader (`security invoker`), so the table rules decide what is counted. `set jit = off` on the three public functions (the planner can't tell how many lines a body has) |
+| Periods | `src/lib/analytics/periods.js`: this month, last month, this quarter, this year, last 12 months (this month and the 11 before), custom; today in `organisations.time_zone` (`todayIn`; `private.org_today(org, at)` in SQL). A period is two dates, `until` exclusive, with `asOf` (today + 1 while it runs). Comparison: the previous period of the same length or the same period last year; a period not yet over is compared day for day and the bar says so. `monthsOf` for monthly bars |
+| `equipment_report(org, from, until, currency = 'EUR')` | I7 in the database, the same columns as before (item, owned, use, gigs, last used, revenue, revenue ÷ cost, repairs, repair cost, charged, lost, lost value, hired in, book value, cost, not used). Days from midnight in the organisation's time zone, use up to today. Revenue comes from `report_revenue_lines` (dated by the rule, one currency). Inventory → Reports reads it 1000 rows at a time (`selectAll`), so big organisations get every item |
+| `report_overview(org, at = now())` | The four first tiles in one call: gigs starting this month (and how many confirmed, active or completed), confirmed revenue in the next 30 days (accepted quotes whose report date is from today to today + 29, per currency), quotes waiting (sent, still valid: count and value per currency) and equipment use over the 90 days up to today (owned-weighted). `at` lets the test fix the clock |
+| Report parts | `src/components/reports/`: `ReportParts.jsx` (period and comparison bar, filter bar for gig status, type and client, group-by, sortable table with `aria-sort`, CSV through `reportCsv`, print with the menus hidden, "Show details" remembered per report on the device), `Charts.jsx` (number tile with change, bar, stacked bar, line, sparkline; plain SVG, each with an accessible name and "Show as a table"; series have a shape and a legend label as well as a colour from the theme; the change has an arrow and a sign), `src/lib/analytics/charts.js` (nice scales, positions, series colours) |
+| Reports area | `pages/ReportsPage.jsx` at `/org/:orgId/reports?tab=overview|revenue`, its own menu section (Reports → Overview, Revenue) for admins and members. **Overview**: the tiles of `src/lib/analytics/tiles.js` (`OVERVIEW_TILES`; later steps add theirs), each a link to where the number comes from. **Revenue**: net revenue, accepted quotes and gigs with their change; one chart (by month, or by kind for one month); "Show details" adds the filters, the kind-by-month stacked bar and the table grouped by kind, client, gig, gig type or month, with CSV and print. Money is per currency: tiles and charts show the biggest one, the others are listed under the total. Add a tab by adding it to `REPORT_TABS` |
+| Home | `KeyNumbersStrip` on the organisation's Home: the same tiles, compact, for admins and members, hidden in simple mode, folded or not (remembered on the device), with a link to all reports |
+| Labour cost panel | `quoteCrewRevenue` uses `gigRevenue`: crew lines of every accepted quote of the gig, after phase discounts; with none accepted, the newest sent quote marked "estimate"; drafts never count; euros only, as the rest of the panel |
+| Usage counts | `view:reports:<tab>` when a tab opens, `csv:reports:<tab>` on each CSV |
+| Help | Page note `org-reports`; terms net revenue, estimate, comparison period, utilisation; guide `office-reports` with four pictures (sample answers for the three functions in `scripts/help-screens/sample-data.mjs`) |
+| Tests | `reports_k1.sql` (fixtures, who may call each function, Lisbon and New York month boundaries, the equipment report, each function under a second on 5,000 quotes made inside the rolled-back test: about 0.1 s each on a local Postgres 16); Vitest for periods, comparisons, chart scales, tiles, the revenue twin and filters; the signed-in e2e journey opens Home's key numbers and both tabs with axe |
+
+**For K2 and later:** read money through `report_revenue_lines` (or the view, for quotes that
+aren't accepted), never by adding up quote bodies in the browser; add a tab to `REPORT_TABS` and
+tiles to `OVERVIEW_TILES`; use the report parts and charts; check `private.require_finance`.
 
 ## K2 · Money: results and margins
 

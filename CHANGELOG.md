@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.69.0 — Reports
+
+### Added
+- **Reports** (step K1, [docs/ANALYTICS.md](docs/ANALYTICS.md)), a new menu section for the
+  organisation's admins and members. **Overview** shows four key numbers: gigs this month,
+  confirmed revenue in the next 30 days, the value of quotes waiting for an answer, and equipment
+  use over the last 90 days. Tap one to see where it comes from.
+- **Revenue:** net revenue of accepted quotes for this month, last month, this quarter, this year,
+  the last 12 months or your own dates, compared with the previous period or the same period last
+  year (a period not yet over is compared day for day). Simple first: three numbers with their
+  change and one chart. "Show details" (remembered on your device) adds filters by gig status,
+  type and client, a chart by kind of line, and a table grouped by kind, client, gig, gig type or
+  month, with CSV and print. Every chart can be read as a table.
+- **One revenue rule** everywhere: each priced line of an accepted quote after its line, phase and
+  quote discounts, excl. VAT, without optional phases or comments, dated by the gig's start date
+  (a quote without a gig: its first phase date, else its issue date). It is counted in the
+  database and checked against the same examples in the app and in the database. Currencies are
+  never added together.
+- **Key numbers on the organisation's Home** (not in simple mode), which you can fold away.
+
+### Changed
+- **Inventory → Reports is counted in the database**, so organisations with more than 1000 units,
+  bookings, quotes or movements now get complete figures. Revenue there now follows the revenue
+  rule: a quote counts in the period its gig starts (before, its issue date), every accepted
+  quote counts (before, at most 5,000), and only euro quotes are added (before, other currencies
+  were added in as if they were euros). Days are counted in the organisation's time zone.
+- **Labour cost panel:** "Quoted" now adds the crew lines of every accepted quote of the gig,
+  after phase discounts too. With no accepted quote it uses the newest sent quote and says
+  "estimate"; a draft never counts.
+
+### Connected
+- Inventory → Reports, the labour cost panel, the organisation's Home, the menus (a Reports
+  section) and usage counts (which report tabs are opened and downloaded).
+- Help: a guide with pictures ("Read the reports"), a page note and four glossary words (net
+  revenue, estimate, comparison period, utilisation).
+
 ## 0.68.0 — Expenses
 
 ### Added

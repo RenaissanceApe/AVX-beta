@@ -21,68 +21,12 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–9b (0.54–0.68) and K0 (0.64) are built, and their prompts (S01–S03b) removed. Sessions
+Steps 1–9b (0.54–0.68), K0 (0.64) and K1 (0.69) are built, and their prompts (S01–S03b, K1) removed. Sessions
 S04–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
-
-## K1 · Reports engine and the Reports area
-
-```
-Build ROADMAP step K1: the reports engine and the Reports area. Read the ROADMAP row,
-docs/ANALYTICS.md ("Definitions", "K1"), "How expenses work" in docs/BUSINESS.md (9b,
-private.can_see_finance), docs/INVENTORY.md I7, src/lib/reports.js,
-src/components/inventory/ReportsTab.jsx, src/lib/quotes.js (quoteTotals, lineTotal),
-src/lib/crewRates.js (quoteCrewRevenue), src/lib/nav.js and
-supabase/migrations/20261206000000_client_quote_counts.sql (the pattern: security invoker, the
-table rules decide).
-
-Scope:
-- First walk me through docs/ANALYTICS.md "Definitions"; change it where I say, then build to it.
-- One revenue rule, two twins: public.report_revenue_lines(org, from, until) in SQL and
-  src/lib/analytics/revenue.js: one row per priced line of accepted quotes, net after line, phase
-  and quote discounts, optional phases and comments left out, with kind, item, quote, gig,
-  client, gig type and status, currency and its report date. The same fixtures
-  (src/lib/analytics/fixtures.json) are checked by Vitest and by supabase/tests/reports_k1.sql
-  with the same expected numbers.
-- Periods in the organisation's time zone (organisations.time_zone, never a hard-coded Lisbon):
-  this month, last month, this quarter, this year, last 12 months, custom; compared with the
-  previous period or the same period last year.
-- Every money function checks private.can_see_finance(org) (step 9b).
-- Report parts in src/components/reports/: period and filter bar (status, type, client),
-  group-by, sortable table, CSV (reuse reportCsv), print; charts in plain SVG, no new package
-  (number tile with change, bar, stacked bar, line, sparkline), each with an accessible name and a
-  table to read instead; colours from colors.*, never colour alone. Simple first: a few totals
-  and one chart, "Show details" for the rest, remembered on the device.
-- Reports area: /org/:orgId/reports (?tab=), in the menu for those allowed, an Overview tab with a
-  tile list (src/lib/analytics/tiles.js) that later steps add to. First tiles: gigs this month,
-  confirmed revenue in the next 30 days, value of quotes waiting for an answer, equipment use
-  (90 days). A key-numbers strip on the organisation's Home (hidden in simple mode, can be folded).
-- I7 on the database: public.equipment_report(org, from, until), same columns as today, dated by
-  the rule; Inventory → Reports reads it. Today that tab asks for up to 20,000 rows but the API
-  returns at most 1000, so big organisations get wrong numbers. List in the PR any figure that
-  changes, and why.
-- The labour cost panel's revenue follows the rule (all accepted quotes of the gig, after phase
-  discounts).
-- Usage counts: view:reports:<tab>, csv:reports:<tab>.
-
-Ask me before building: the four first tiles; Reports as its own menu section or under
-Organisation.
-
-Connect: Inventory → Reports, labour cost panel, organisation Home, menus, usage counts.
-
-Done when: the shared fixtures pass in both; database tests (no delete statements) for who may
-call each function (admin, member, viewer, crew, another organisation, two-step) and month
-boundaries in Europe/Lisbon and America/New_York; each function under a second on 5,000 quotes
-generated inside the rolled-back test; unit tests for periods, comparisons, chart scales and CSV;
-e2e for the Reports area with axe; help: page note, terms (net revenue, estimate, comparison
-period, utilisation), guide "office-reports" with screenshots (sample answers for the new
-functions in scripts/help-screens/sample-data.mjs); 320 and 390 px in EN and PT; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
 
 ## S04 · Step 10: gig finance overview
 
