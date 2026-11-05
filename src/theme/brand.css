@@ -68,3 +68,7 @@ svg.lucide-loader-circle > *, svg.lucide-loader > * { display: none; }
 .avx-sched__row.is-now .avx-sched__time::before { content: "▶ "; }
 .avx-sched__row.is-done, .avx-sched__row.is-done .avx-sched__time { color: var(--muted); }
 @media (max-width: 520px) { .avx-sched__row { grid-template-columns: 92px minmax(0, 1fr) auto; padding: 10px 12px; } }
+
+/* Icons: square caps and mitre joins on every lucide icon, set once here (lucide's linecap/linejoin are SVG
+   presentation attributes, which CSS overrides). The set itself moves to Signal Pixel later (ICONS.md, P3). */
+svg.lucide { stroke-linecap: square; stroke-linejoin: miter; }
