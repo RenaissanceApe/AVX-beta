@@ -9,6 +9,7 @@ import { logger, userMessage } from '../lib/logger'
 import { useI18n } from '../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
 import EmptyState from '../components/EmptyState'
+import { invoiceSummary } from '../lib/invoiceApi'
 import { QUOTE_STATUSES, quoteNumber, formatMoney, cloneBody, emptyPhase, localISODate, addDays, quoteTotals } from '../lib/quotes'
 import CompanyDetailsModal from '../components/quotes/CompanyDetailsModal'
 import { PriceListTab } from '../components/quotes/PriceList'
@@ -52,6 +53,7 @@ export default function QuotesPage() {
   const [status, setStatus] = useState('all')
   const [search, setSearch] = useState('')
   const [showNew, setShowNew] = useState(false)
+  const [invoiced, setInvoiced] = useState(new Map()) // quote id → invoiced excl. VAT (step 11)
 
   async function load() {
     const [orgRes, roleRes, quotesRes, templatesRes, pricesRes, clientsRes] = await Promise.all([
@@ -73,6 +75,9 @@ export default function QuotesPage() {
     setPriceItems(pricesRes.data || [])
     setClients(clientsRes.data || [])
     setLoading(false)
+    invoiceSummary(orgId, 'quote')
+      .then(rows => setInvoiced(new Map(rows.filter(r => Number(r.invoiced_net) > 0).map(r => [r.ref_id, Number(r.invoiced_net)]))))
+      .catch(error => logger.error('quotes', error, { step: 'invoiced' }))
   }
   useEffect(() => { load() }, [orgId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -161,6 +166,11 @@ export default function QuotesPage() {
                       <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
                         {[q.client_company || q.client_name, q.issue_date && fmt(q.issue_date, 'd MMM yyyy')].filter(Boolean).join(' · ') || '—'}
                       </span>
+                      {invoiced.has(q.id) && (
+                        <span style={{ display: 'block', fontSize: '12px', color: colors.soft }}>
+                          {t('invoice.invoicedOfQuote', { amount: formatMoney(invoiced.get(q.id), q.currency, lang) })}
+                        </span>
+                      )}
                     </span>
                     <QuoteStatusBadge status={q.status} />
                     <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '14px', minWidth: '100px', textAlign: 'right' }}>{formatMoney(q.total_net, q.currency, lang)}</span>

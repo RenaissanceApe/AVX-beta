@@ -10,6 +10,9 @@ export default {
     utilisation: { term: 'Taxa de uso (equipamento)', definition: 'Quanto do tempo em que tem o equipamento ele está fora em eventos confirmados: dias reservados (com dias de preparação e devolução) ÷ dias em stock, contados até hoje.', example: '7 colunas, 90 dias, 290 dias-coluna reservados: 290 ÷ 630 = 46%.', where: 'Relatórios → Resumo, Inventário → Relatórios' },
     expense: { term: 'Despesa', definition: 'Um custo da empresa com o comprovativo: a quem foi pago, para quê, o valor sem IVA e o IVA, quando vence e quando foi pago. Tem uma categoria, e uma despesa ligada a um subaluguer, reparação, cachê ou compra de stock é o custo real desse registo.', example: 'Gasóleo da carrinha, Galp, 81,30 € + 18,70 € de IVA, pago com cartão.', where: 'Organização → Despesas' },
     'expense-claim': { term: 'Pedido de reembolso', definition: 'Algo que uma pessoa num evento pagou do seu bolso (combustível, estacionamento, uma peça), enviado com o comprovativo. Os responsáveis do evento aprovam ou devolvem com uma nota; aprovado, fica "a reembolsar" até alguém o marcar como pago.', example: 'A Carla pede 26,45 € de portagens no evento de Natal.', where: 'Evento → Equipa → Despesas' },
+    invoice: { term: 'Fatura', definition: 'A conta de um orçamento aceite. O AVX prepara-a (todo o orçamento, algumas fases, um adiantamento ou o resto) e o Moloni, o programa certificado, emite-a com o número legal. Vencida quer dizer emitida, por pagar e depois da data de vencimento.', example: 'FT 2026/44, 3685,08 €, vence 30 dias depois de emitida.', where: 'Orçamentos → Faturas' },
+    'credit-note': { term: 'Nota de crédito', definition: 'Anula toda ou parte de uma fatura emitida, por exemplo um material devolvido ou um desconto acordado depois. Nunca pode creditar mais do que resta na fatura.', example: 'A NC 2026/3 credita 61,50 € da FT 2026/44.', where: 'Uma fatura emitida → Nota de crédito' },
+    'certified-program': { term: 'Programa certificado', definition: 'Em Portugal só programas de faturação certificados pela AT podem emitir faturas. O AVX prepara-as e entrega-as ao seu (o Moloni); nunca emite uma fatura.', example: 'Moloni, InvoiceXpress, Vendus, TOConline.', where: 'Orçamentos → Faturas' },
     'recurring-cost': { term: 'Custo recorrente', definition: 'Um custo que volta todos os meses, trimestres ou anos, como a renda, o seguro ou o leasing. O AVX prepara a despesa em cada data; só conta depois de alguém a confirmar.', example: 'Renda do armazém no dia 1 de cada mês.', where: 'Organização → Despesas → Recorrentes' },
     'capital-expense': { term: 'Investimento', definition: 'Equipamento, viaturas ou computadores que a empresa mantém durante anos. São repartidos por vários meses nos resultados, não contam como custo do mês em que foram comprados.', example: 'Uma mesa de 1890 € repartida por 60 meses: 31,50 € por mês.', where: 'Organização → Despesas → Categorias' },
     leave: { term: 'Ausência', definition: 'Dias de ausência dos funcionários de uma organização (administradores e membros): férias, baixa, formação ou outro. Férias, formação e outro aguardam a aprovação de um administrador; a baixa conta logo. Uma ausência aprovada deixa-o ocupado para eventos, Procurar equipa e horas.', example: 'Férias de segunda 1 a sexta 5 de março: 5 dias úteis.', where: 'Organização → Ausências' },
@@ -129,6 +132,12 @@ export default {
     discount: 'Uma percentagem retirada ao total desta fase, antes do IVA.',
     vat: 'A taxa de IVA com que as novas linhas começam. Cada linha pode ter a sua; “Aplicar esta taxa a todas as linhas” muda-as todas. Exemplo: 23 no continente.',
     'line-vat': 'A taxa de IVA desta linha. A 0% escolha o motivo legal, que o programa de faturação certificado exige. Pergunte ao seu contabilista qual se aplica.',
+    'invoice-tax-id': 'O NIF do cliente. Sem ele, o Moloni usa o número de consumidor final (999999990).',
+    'invoice-due': 'Quando o cliente tem de pagar. As faturas vencidas avisam o autor do orçamento e os administradores todas as semanas. O número de dias por defeito está nos Dados da empresa.',
+    'invoice-legal-number': 'O número que o programa certificado deu à fatura, como FT 2026/12. "Ver no Moloni" preenche-o sozinho.',
+    moloni: 'Ligue a sua conta do Moloni uma vez (um administrador entra no Moloni). O AVX passa a enviar-lhe as faturas como rascunho; finaliza-as no Moloni. Sem uso durante 14 dias, a ligação pede nova entrada.',
+    'moloni-series': 'A série de documentos do Moloni onde entram as novas faturas. Pergunte ao contabilista se tiver mais do que uma.',
+    'quote-invoiced': 'O que já foi faturado deste orçamento (faturas emitidas, menos notas de crédito), sem IVA, e o que falta.',
     validity: 'Durante quantos dias um orçamento novo é válido. Depois disso o cliente ainda o pode ler, mas já não o pode aceitar.',
     'call-time': 'A hora a que esta pessoa tem de chegar. Aparece na folha de serviço e no telemóvel dela.',
     'booking-times': 'As horas para que esta pessoa está marcada. Sem elas, conta como ocupada nos dias inteiros do evento, e trabalhos curtos no mesmo dia pareceriam sobrepostos.',
@@ -165,6 +174,7 @@ export default {
 
   pages: {
     'org-expenses': { title: 'Despesas', summary: 'Todos os custos da empresa com o comprovativo: este mês com totais por tipo e categoria, o que está por pagar, reembolsos para aprovar e pagar, custos recorrentes e (administradores) as categorias. O CSV é para o contabilista; o AVX não faz a contabilidade oficial.' },
+    'org-invoices': { title: 'Faturas', summary: 'As faturas dos orçamentos aceites. O AVX prepara-as; o Moloni, o seu programa certificado, emite-as. Por enviar: rascunhos e as que esperam no Moloni. Por pagar: emitidas, as vencidas primeiro. Os administradores ligam o Moloni aqui.' },
     'org-reports': { title: 'Relatórios', summary: 'Os números da organização, contados na base de dados para administradores e membros. O Resumo mostra os números-chave; a Receita mostra a receita líquida dos orçamentos aceites num período, comparada com o anterior ou com o ano passado. "Mostrar detalhes" junta filtros, grupos, uma tabela, CSV e impressão, e fica lembrado neste aparelho.' },
     'org-leave': { title: 'Ausências', summary: 'Quem na organização está ausente em cada dia, os seus dias de férias e os seus pedidos. Os administradores também decidem pedidos, registam ausências de alguém e definem os dias de férias e as semanas de trabalho. Uma ausência aprovada deixa a pessoa ocupada para eventos e horas.' },
     'my-hours': { title: 'As minhas horas', summary: 'As horas que registou em todos os eventos, em qualquer empresa, mês a mês: o que aguarda, foi devolvido ou aprovado, e o que os dias aprovados pagam. Descarregue-as em CSV.' },
@@ -229,6 +239,21 @@ export default {
       mistakes: [
         'Um subaluguer, reparação ou cachê só pode ter uma despesa: abra-a a partir do registo para a alterar.',
         'Os rascunhos dos custos recorrentes só contam depois de confirmados.',
+      ],
+    },
+    'office-invoices': {
+      title: 'Faturar um orçamento',
+      intro: 'Transforme um orçamento aceite numa fatura no Moloni e acompanhe-a até ser paga. O AVX prepara; o Moloni, o programa certificado, emite.',
+      steps: [
+        'Abra o orçamento aceite → Resumo. "Faturas" mostra o que está faturado e o que falta. Toque em "Nova fatura" (ou Orçamentos → Faturas → "Nova fatura de um orçamento").',
+        'Escolha o que faturar: todo o orçamento, algumas fases, um adiantamento em % ou, depois de um adiantamento, o resto. Cada linha mantém a sua taxa de IVA; as linhas a 0% precisam de motivo.',
+        'Confirme o cliente e as linhas e toque em "Enviar para o Moloni": chega lá como rascunho. Finalize-a no Moloni e depois toque em "Ver no Moloni" para trazer o número e o PDF.',
+        'Faturas mostra o que falta enviar, o que está por pagar (as vencidas primeiro) e o que está pago. As faturas vencidas também o avisam todas as semanas.',
+        'Quando o cliente pagar, toque em "Marcar como paga". Vencida? Envie um lembrete ao cliente. Algo a devolver? Faça uma nota de crédito.',
+      ],
+      mistakes: [
+        'O Moloni não está ligado? Crie a fatura no seu programa, toque em "Criei-a eu no programa" e depois indique o número.',
+        'Uma fatura emitida não pode ser alterada: faça uma nota de crédito.',
       ],
     },
     'of-leave': {

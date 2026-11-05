@@ -13,6 +13,7 @@ import { useI18n } from '../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../components/ui'
 import PhaseEditor, { QUOTE_EDITOR_CSS } from '../components/quotes/PhaseEditor'
 import QuoteDetails from '../components/quotes/QuoteDetails'
+import QuoteInvoices from '../components/invoices/QuoteInvoices'
 import QuoteSummary from '../components/quotes/QuoteSummary'
 import { QuoteStatusBadge } from '../components/quotes/parts'
 import { VersionsModal, SendQuoteModal } from '../components/quotes/QuoteSharing'
@@ -51,6 +52,7 @@ export default function QuoteEditorPage() {
   const [gigs, setGigs] = useState([])
   const [templates, setTemplates] = useState([])
   const [prefix, setPrefix] = useState('Q')
+  const [dueDays, setDueDays] = useState(30)
   const [priceItems, setPriceItems] = useState([])
   const [clients, setClients] = useState([])
   const [notFound, setNotFound] = useState(false)
@@ -79,7 +81,7 @@ export default function QuoteEditorPage() {
         supabase.from('org_members').select('role').eq('org_id', q.org_id).eq('user_id', user.id).maybeSingle(),
         selectAll(() => supabase.from('gigs').select('id, name, start_date, org_id').eq('org_id', q.org_id).order('start_date', { ascending: false, nullsFirst: false }).order('id')),
         supabase.from('quote_templates').select('id, name, description, body').eq('org_id', q.org_id).order('name'),
-        supabase.from('organisations').select('quote_number_prefix').eq('id', q.org_id).maybeSingle(),
+        supabase.from('organisations').select('quote_number_prefix, invoice_due_days').eq('id', q.org_id).maybeSingle(),
         selectAll(() => supabase.from('price_items').select('*').eq('org_id', q.org_id).is('archived_at', null).order('name').order('id')),
         selectAll(() => supabase.from('clients').select('id, org_id, name, contact_name, email, address, tax_id, archived_at').eq('org_id', q.org_id).order('name').order('id')),
       ])
@@ -93,6 +95,7 @@ export default function QuoteEditorPage() {
       setGigs(gigsRes.data || [])
       setTemplates(tplRes.data || [])
       setPrefix(orgRes.data?.quote_number_prefix ?? 'Q')
+      setDueDays(orgRes.data?.invoice_due_days ?? 30)
       setPriceItems(pricesRes.data || [])
       setClients(clientsRes.data || [])
       setTab(b.phases[0] ? `phase:${b.phases[0].id}` : 'details')
@@ -380,6 +383,7 @@ export default function QuoteEditorPage() {
         {tab === 'details' && <QuoteDetails quote={quote} gigs={gigs} clients={clients} onChange={updateQuote} onSaveClient={saveClientToContacts}
           onApplyVat={() => { if (window.confirm(t('quote.applyVatConfirm', { pct: quote.vat_rate }))) updateBody(setAllVatRates(body, quote.vat_rate)) }} />}
         {tab === 'summary' && <QuoteSummary quote={quote} body={body} totals={totals} rates={rateCard.rates} onOpenPhase={i => setTab(`phase:${body.phases[i].id}`)} />}
+        {tab === 'summary' && <QuoteInvoices quote={quote} body={body} prefix={prefix} clients={clients} dueDays={dueDays} />}
         {tab === 'summary' && <div style={{ marginTop: '18px' }}><ContextThread type="quote" id={quote.id} /></div>}
         {phase && (
           <PhaseEditor key={phase.id} phase={phase} index={phaseIndex} count={body.phases.length} currency={quote.currency} vatRate={quote.vat_rate} priceItems={priceItems} rates={rateCard.rates}

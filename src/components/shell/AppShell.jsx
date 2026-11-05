@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ChevronDown, Check, Briefcase, List, CalendarDays, CalendarOff, Building2, Plus, FileText, Tags,
-  LayoutTemplate, Users, Settings, MoreHorizontal, X, LogOut, BellOff, Package, MapPin, History, QrCode, Wrench, Handshake, BarChart3, HelpCircle, Contact, Search, ListTodo, Clock, Receipt, TrendingUp } from 'lucide-react'
+  LayoutTemplate, Users, Settings, MoreHorizontal, X, LogOut, BellOff, Package, MapPin, History, QrCode, Wrench, Handshake, BarChart3, HelpCircle, Contact, Search, ListTodo, Clock, Receipt, FileCheck, TrendingUp } from 'lucide-react'
 import { useAuth } from '../../lib/AuthContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
 import { navSections, splitItems, phoneTabs, isActive, homePath, MY_WORK } from '../../lib/nav'
@@ -14,7 +14,7 @@ import { colors, iconBtn, AvxMark } from '../ui'
 export const ICONS = {
   briefcase: Briefcase, list: List, calendar: CalendarDays, calendarOff: CalendarOff, building: Building2, plus: Plus,
   fileText: FileText, tags: Tags, layoutTemplate: LayoutTemplate, users: Users, settings: Settings,
-  package: Package, mapPin: MapPin, history: History, qrCode: QrCode, wrench: Wrench, listTodo: ListTodo, handshake: Handshake, barChart: BarChart3, contact: Contact, search: Search, clock: Clock, receipt: Receipt, trendingUp: TrendingUp,
+  package: Package, mapPin: MapPin, history: History, qrCode: QrCode, wrench: Wrench, listTodo: ListTodo, handshake: Handshake, barChart: BarChart3, contact: Contact, search: Search, clock: Clock, receipt: Receipt, trendingUp: TrendingUp, fileCheck: FileCheck,
 }
 
 // Signed-in screens share this frame: the logo (always home), the workspace switcher,

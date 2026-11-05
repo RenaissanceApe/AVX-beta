@@ -51,15 +51,17 @@ export default function ContactsPage() {
   useEffect(() => { setWorkspace(orgId) }, [orgId, setWorkspace])
 
   const load = useCallback(async () => {
-    const [c, s, q, sp] = await Promise.all([
+    const [c, s, q, sp, inv] = await Promise.all([
       selectAll(() => supabase.from('clients').select('*').eq('org_id', orgId).order('name').order('id')),
       selectAll(() => supabase.from('suppliers').select('*').eq('org_id', orgId).order('name').order('id')),
       selectAll(() => supabase.rpc('client_quote_counts', { p_org: orgId }).order('client_id')),
       // Supplier spend this year (step 9b): confirmed expenses per supplier
       supabase.rpc('supplier_spend', { p_org: orgId, p_from: `${new Date().getFullYear()}-01-01` }),
+      // Invoiced, unpaid and overdue per client (step 11)
+      supabase.rpc('invoice_summary', { p_org: orgId, p_by: 'client' }),
     ])
-    for (const [step, res] of Object.entries({ clients: c, suppliers: s, quotes: q, spend: sp })) if (res.error) logger.error('contacts', res.error, { step })
-    setLists({ clients: c.data || [], suppliers: s.data || [], counts: q.data || [], spend: sp.data || [] })
+    for (const [step, res] of Object.entries({ clients: c, suppliers: s, quotes: q, spend: sp, invoiced: inv })) if (res.error) logger.error('contacts', res.error, { step })
+    setLists({ clients: c.data || [], suppliers: s.data || [], counts: q.data || [], spend: sp.data || [], invoiced: inv.data || [] })
   }, [orgId])
   useEffect(() => { if (canEdit) load() }, [canEdit, load])
 
@@ -168,6 +170,13 @@ export default function ContactsPage() {
                       </span>
                       <span style={{ display: 'block', fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{[c.contact_name, c.phone, c.email].filter(Boolean).join(' · ') || '—'}</span>
                       {tab === 'clients' && quoteCount.get(c.id) > 0 && <span style={{ display: 'block', fontSize: '12px', color: colors.soft }}>{t('contacts.quoteCount', { count: quoteCount.get(c.id) })}</span>}
+                      {tab === 'clients' && (lists.invoiced || []).filter(r => r.ref_id === c.id && Number(r.invoiced) > 0).map(r => (
+                        <span key={r.currency} style={{ display: 'block', fontSize: '12px', color: colors.soft }}>
+                          {t('contacts.invoiced', { amount: formatMoney(r.invoiced, r.currency, getLanguage()) })}
+                          {Number(r.outstanding) > 0 && ` · ${t('contacts.invoiceUnpaid', { amount: formatMoney(r.outstanding, r.currency, getLanguage()) })}`}
+                          {Number(r.overdue) > 0 && <span style={{ color: colors.danger }}> · {t('contacts.invoiceOverdue', { amount: formatMoney(r.overdue, r.currency, getLanguage()) })}</span>}
+                        </span>
+                      ))}
                       {tab === 'suppliers' && (lists.spend || []).filter(r => r.supplier_id === c.id).map(r => (
                         <span key={r.currency} style={{ display: 'block', fontSize: '12px', color: colors.soft }}>
                           {t('contacts.spendYear', { amount: formatMoney(r.net, r.currency, getLanguage()) })}

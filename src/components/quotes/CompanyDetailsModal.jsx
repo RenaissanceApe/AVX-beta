@@ -20,6 +20,7 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
     quote_terms: org.quote_terms || '',
     default_vat_rate: org.default_vat_rate ?? 23,
     quote_validity_days: org.quote_validity_days ?? 30,
+    invoice_due_days: org.invoice_due_days ?? 30,
     quote_number_prefix: org.quote_number_prefix ?? 'Q',
     quote_next_number: org.quote_next_number ?? '',
   }))
@@ -51,6 +52,7 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
       quote_terms: form.quote_terms.trim() || null,
       default_vat_rate: Number(form.default_vat_rate) || 0,
       quote_validity_days: Math.max(1, Math.round(Number(form.quote_validity_days) || 30)),
+      invoice_due_days: Math.min(365, Math.max(0, Math.round(Number(form.invoice_due_days) || 0))),
       quote_number_prefix: form.quote_number_prefix.trim(),
       quote_next_number: form.quote_next_number === '' ? null : Math.max(1, Math.round(Number(form.quote_next_number) || 1)),
     }
@@ -110,6 +112,10 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
             <div>
               <HintLabel htmlFor="co-valid" hint="validity">{t('company.validityDays')}</HintLabel>
               <input id="co-valid" type="number" min="1" max="365" value={form.quote_validity_days} onChange={e => set('quote_validity_days', e.target.value)} style={input} />
+            </div>
+            <div>
+              <HintLabel htmlFor="co-due" hint="invoice-due">{t('company.invoiceDueDays')}</HintLabel>
+              <input id="co-due" type="number" min="0" max="365" value={form.invoice_due_days} onChange={e => set('invoice_due_days', e.target.value)} style={input} />
             </div>
           </div>
           <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '12px' }}>

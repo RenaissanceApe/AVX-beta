@@ -453,6 +453,37 @@ const SCENES = {
     await box.waitFor()
     return box.locator('ul')
   } },
+  'invoices-list': { persona: 'pm', url: `/org/${ids.org}/invoices?view=all`, async run(page) {
+    const list = page.locator('main ul').first()
+    await list.waitFor()
+    return list
+  } },
+  'invoice-new': { persona: 'pm', url: `/org/${ids.org}/invoices`, async run(page, L) {
+    await page.getByRole('button', { name: L('invoice.newFromQuote') }).first().click()
+    await page.getByRole('dialog').getByRole('button').filter({ hasText: 'Q0143' }).first().click()
+    const dialog = page.getByRole('dialog')
+    await dialog.getByText(L('invoice.scope.deposit')).click()
+    return dialog.locator('fieldset')
+  } },
+  'invoice-send': { persona: 'pm', url: `/org/${ids.org}/invoices`, async run(page, L) {
+    await page.getByRole('button').filter({ hasText: L('invoice.draftName', { n: 3 }) }).first().click()
+    const send = page.getByRole('dialog').getByRole('button', { name: L('invoice.sendToMoloni') })
+    await send.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return send
+  } },
+  'invoice-paid': { persona: 'pm', url: `/org/${ids.org}/invoices?view=unpaid`, async run(page, L) {
+    await page.getByRole('button').filter({ hasText: 'FT 2026/44' }).first().click()
+    const paid = page.getByRole('dialog').getByRole('button', { name: L('invoice.markPaid') })
+    await paid.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return paid.locator('xpath=..')
+  } },
+  'quote-invoices': { persona: 'pm', url: '/quote/q1', async run(page, L) {
+    await page.getByRole('tab', { name: L('quote.tab.summary') }).click()
+    const box = page.locator('section[aria-labelledby="qi-title"]')
+    await box.waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box
+  } },
   'reports-overview': { persona: 'pm', url: `/org/${ids.org}/reports`, async run(page) {
     const box = page.locator('section[aria-labelledby="rp-overview"]')
     await box.waitFor()
