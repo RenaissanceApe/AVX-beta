@@ -52,7 +52,15 @@ async function expectAccessible(page) {
 
 async function deleteAccount(page) {
   await page.goto('/dashboard')
-  await page.getByRole('button', { name: /— Account$/ }).click()
+  // Desktop: the avatar in the top bar. Phones have no avatar (two icons at most, DESIGN.md
+  // "PhoneTabBar"): Account is in the More sheet
+  await expect(page.locator('.shell-bar')).toBeVisible({ timeout: 15_000 })
+  const avatar = page.getByRole('button', { name: /— Account$/ })
+  if (await avatar.isVisible()) await avatar.click()
+  else {
+    await page.locator('.shell-tabs').getByRole('button', { name: 'More' }).click()
+    await page.getByRole('dialog', { name: 'More' }).getByRole('button', { name: 'Account' }).click()
+  }
   await expect(page).toHaveURL(/\/settings/)
   await page.getByRole('link', { name: 'Your data' }).click()
   page.once('dialog', dialog => dialog.accept('DELETE'))
