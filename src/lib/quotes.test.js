@@ -233,3 +233,69 @@ describe('equipment from quotes', () => {
     ] })).toEqual({ from: '2026-11-03', until: '2026-11-06' })
   })
 })
+
+describe('VAT per line (step 11)', () => {
+  it('lines without their own rate use the quote rate, as before', () => {
+    const q = quote([phase([line({ unit_price: 33.33 }), line({ unit_price: 66.67 })], { discount_pct: 7 })], { discount_pct: 3, vat_rate: 23 })
+    const totals = quoteTotals(q)
+    expect(totals.vat).toBe(Math.round(totals.net * 23) / 100)
+    expect(totals.vatByRate).toEqual([{ rate: 23, base: totals.net, vat: totals.vat, exemptions: [] }])
+  })
+  it('a quote migrated to its single rate gives the same totals', () => {
+    const lines = [line({ unit_price: 10.01 }), line({ kind: 'crew', qty: 3, factor: 1.5, unit_price: 99.99, discount_pct: 12.5 })]
+    const before = quoteTotals(quote([phase(lines, { discount_pct: 4 })], { discount_pct: 2.5, vat_rate: 23 }))
+    const after = quoteTotals(quote([phase(lines.map(l => ({ ...l, vat_rate: 23 })), { discount_pct: 4 })], { discount_pct: 2.5, vat_rate: 6 }))
+    expect(after.net).toBe(before.net)
+    expect(after.vat).toBe(before.vat)
+    expect(after.total).toBe(before.total)
+  })
+  it('works out VAT per rate, after phase and quote discounts', () => {
+    const q = quote([phase([
+      line({ unit_price: 1000, vat_rate: 23 }),
+      line({ kind: 'other', unit_price: 200, vat_rate: 6 }),
+      line({ kind: 'transport', unit_price: 100, vat_rate: 0, vat_exemption: 'M40' }),
+    ], { discount_pct: 10 })], { discount_pct: 10 })
+    const totals = quoteTotals(q)
+    expect(totals.net).toBe(1053)
+    expect(totals.vatByRate).toEqual([
+      { rate: 23, base: 810, vat: 186.3, exemptions: [] },
+      { rate: 6, base: 162, vat: 9.72, exemptions: [] },
+      { rate: 0, base: 81, vat: 0, exemptions: ['M40'] },
+    ])
+    expect(totals.vat).toBe(196.02)
+    expect(totals.total).toBe(1249.02)
+    expect(totals.missingExemption).toBe(false)
+  })
+  it('bases always add up to the net, whatever the rounding', () => {
+    const q = quote([phase([
+      line({ unit_price: 0.335, vat_rate: 23 }), line({ unit_price: 0.335, vat_rate: 13 }), line({ unit_price: 0.335, vat_rate: 6 }),
+    ], { discount_pct: 33 })], { discount_pct: 1 })
+    const totals = quoteTotals(q)
+    expect(Math.round(totals.vatByRate.reduce((s, r) => s + r.base, 0) * 100) / 100).toBe(totals.net)
+  })
+  it('flags 0% lines without a reason, and ignores optional phases and comments', () => {
+    const q = quote([
+      phase([line({ unit_price: 50, vat_rate: 0 }), line({ kind: 'comment', unit_price: 999, vat_rate: 6 })]),
+      phase([line({ unit_price: 40, vat_rate: 6 })], { id: 'opt', optional: true }),
+    ])
+    const totals = quoteTotals(q)
+    expect(totals.missingExemption).toBe(true)
+    expect(totals.vatByRate.map(r => r.rate)).toEqual([0])
+  })
+  it('keeps valid rates and reasons, drops bad ones', () => {
+    const b = normalizeBody({ phases: [{ sections: [{ lines: [
+      { vat_rate: '6', vat_exemption: 'X1' }, { vat_rate: 'abc' }, { vat_rate: 140 }, { vat_rate: 0, vat_exemption: 'M07' },
+    ] }] }] })
+    const ls = b.phases[0].sections[0].lines
+    expect(ls.map(l => l.vat_rate)).toEqual([6, undefined, 100, 0])
+    expect(ls.map(l => l.vat_exemption)).toEqual([undefined, undefined, undefined, 'M07'])
+  })
+  it('new lines start with the quote rate; apply-to-all sets every priced line', async () => {
+    const { emptyLine, setAllVatRates, lineFromPriceItem } = await import('./quotes')
+    expect(emptyLine('rental', 23).vat_rate).toBe(23)
+    expect(emptyLine('comment', 23).vat_rate).toBeUndefined()
+    expect(lineFromPriceItem({ name: 'A', kind: 'sale', unit: 'unit', unit_price: 1 }, 6).vat_rate).toBe(6)
+    const body = setAllVatRates({ phases: [phase([line({ vat_rate: 6 }), line({ kind: 'comment' }), line({ vat_rate: 0, vat_exemption: 'M07' })])] }, 13)
+    expect(body.phases[0].sections[0].lines.map(l => [l.vat_rate, l.vat_exemption])).toEqual([[13, undefined], [undefined, undefined], [13, undefined]])
+  })
+})

@@ -40,6 +40,8 @@ export const PARTS = [
   { part: 'expenses', columns: ['spent_on', 'supplier', 'supplier_tax_id', 'invoice_number', 'description', 'category', 'category_kind', 'amount_net', 'vat_rate', 'vat_amount', 'total', 'currency', 'due_on', 'paid_on', 'paid_how', 'status', 'gig_ref', 'gig', 'linked_to', 'claimed_by', 'review_note', 'receipt', 'notes', 'created_at'] },
   { part: 'expense_recurrences', columns: ['description', 'supplier', 'category', 'amount_net', 'vat_rate', 'currency', 'paid_how', 'every', 'starts_on', 'ends_on', 'next_on', 'notes', 'created_at'] },
   { part: 'gig_finance', columns: ['gig_ref', 'gig', 'start_date', 'end_date', 'gig_status', 'client', 'revenue', 'revenue_source', 'quotes', 'labour_planned', 'labour_actual', 'labour', 'labour_estimated', 'subrentals', 'repairs', 'repairs_charged', 'other_costs', 'cost', 'estimated_cost', 'margin', 'margin_pct', 'other_currencies'] },
+  { part: 'invoices', columns: ['avx_number', 'kind', 'legal_number', 'credits', 'status', 'overdue', 'quote_number', 'gig', 'client', 'client_tax_id', 'scope', 'deposit_pct', 'issue_date', 'due_date', 'paid_on', 'currency', 'net', 'vat', 'total', 'pdf_url', 'notes', 'sent_at', 'issued_at', 'removed_at', 'created_at'] },
+  { part: 'invoice_lines', columns: ['avx_number', 'legal_number', 'line', 'kind', 'description', 'qty', 'unit_price', 'discount_pct', 'vat_rate', 'vat_exemption', 'net', 'currency'] },
 ]
 
 export const PAGE_SIZE = 5000

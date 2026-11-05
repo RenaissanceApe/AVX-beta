@@ -66,5 +66,20 @@ export function userMessage(error, fallback) {
   if (/stock_units_serial_uniq/.test(msg)) return t('inv.error.serialTaken')
   if (/stock_locations_name_uniq/.test(msg)) return t('inv.error.locationTaken')
   if (/Only rental or sale items can have stock/i.test(msg)) return t('inv.error.kind')
+  // Invoices (step 11): the database's rules and the moloni Edge Function's refusals
+  const invoiceError = /^invoice:(\w+)$/.exec(msg)
+  if (invoiceError) {
+    const key = `invoice.error.${invoiceError[1]}`
+    const text = t(key)
+    return text === key ? t('error.generic') : text
+  }
+  if (/Only a draft can be (changed|removed)/i.test(msg)) return t('invoice.error.notDraft')
+  if (/credits more than is left/i.test(msg)) return t('invoice.error.creditTooMuch')
+  if (/A credit note needs an issued invoice/i.test(msg)) return t('invoice.error.creditNeedsIssued')
+  if (/certified program's invoice number is needed/i.test(msg)) return t('invoice.error.numberNeeded')
+  if (/An invoice can't be negative/i.test(msg)) return t('invoice.error.negative')
+  if (/Bad invoice line/i.test(msg)) return t('invoice.error.badLine')
+  if (/invoices_dates_check/.test(msg)) return t('invoice.error.dates')
+  if (/invoices_pdf_url_check/.test(msg)) return t('invoice.error.pdfUrl')
   return msg
 }

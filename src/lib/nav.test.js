@@ -37,8 +37,8 @@ describe('navigation', () => {
   it('puts minor and overflow items in the side list', () => {
     const quotes = navSections({ workspace: 'o1', role: 'admin' }).find(s => s.key === 'quotes')
     const { cards, list } = splitItems(quotes.items)
-    expect(cards.map(i => i.key)).toEqual(['quotes', 'contacts', 'priceList', 'templates'])
-    expect(list.map(i => i.key)).toEqual(['company'])
+    expect(cards.map(i => i.key)).toEqual(['quotes', 'invoices', 'contacts', 'priceList'])
+    expect(list.map(i => i.key)).toEqual(['templates', 'company'])
     const many = Array.from({ length: 6 }, (_, i) => ({ key: `k${i}` }))
     expect(splitItems(many).cards).toHaveLength(4)
     expect(splitItems(many).list).toHaveLength(2)
@@ -75,6 +75,8 @@ describe('expenses in the menu (step 9b)', () => {
   it('shows Expenses to admins and members only', () => {
     expect(keys('admin')).toContain('expenses')
     expect(keys('member')).toContain('expenses')
+    expect(keys('member')).toContain('invoices')
+    expect(keys('viewer')).not.toContain('invoices')
     expect(keys('viewer')).not.toContain('expenses')
   })
 })

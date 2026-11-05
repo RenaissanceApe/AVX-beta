@@ -24,6 +24,7 @@ export default function GigFinancePanel({ gig, members, canManage }) {
   const { t, lang } = useI18n()
   const { notify } = useToast()
   const [row, setRow] = useState(null)
+  const [billing, setBilling] = useState([]) // invoiced vs paid (step 11), per currency
   const [failed, setFailed] = useState(false)
   const [adding, setAdding] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -35,6 +36,9 @@ export default function GigFinancePanel({ gig, members, canManage }) {
     if (error) { logger.error('gig-finance', error, { step: 'load', gig: gig.id }); setFailed(true); return }
     setFailed(false)
     setRow(data?.[0] || null)
+    const inv = await supabase.rpc('invoice_summary', { p_org: gig.org_id, p_by: 'gig', p_ids: [gig.id] })
+    if (inv.error) logger.error('gig-finance', inv.error, { step: 'invoices', gig: gig.id })
+    setBilling(inv.data || [])
   }, [gig.org_id, gig.id])
   useEffect(() => { load() }, [load, gig.status])
 
@@ -115,6 +119,13 @@ export default function GigFinancePanel({ gig, members, canManage }) {
           {row.other_currencies.costs && t('finance.otherCurrencyCosts', { list: otherList(row.other_currencies.costs, lang) })}
         </p>
       )}
+      {billing.length > 0 && (
+        <dl aria-label={t('finance.invoicing')} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '4px 12px', fontSize: '13px', margin: '10px 0 0', paddingTop: '8px', borderTop: `1px solid ${colors.border}` }}>
+          {billing.map(b => (
+            <FinanceBilling key={b.currency} b={b} t={t} lang={lang} />
+          ))}
+        </dl>
+      )}
       {noQuote && <p style={{ fontSize: '12px', color: colors.muted, marginTop: '8px' }}>{t('finance.noQuoteBody')}</p>}
       {showSave && <p style={{ fontSize: '12px', color: colors.muted, marginTop: '8px', lineHeight: 1.5 }}>{t('finance.saveFeesWhy')}</p>}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px', alignItems: 'center' }}>
@@ -131,5 +142,19 @@ export default function GigFinancePanel({ gig, members, canManage }) {
           preset={{ gig_id: gig.id, gigs: [{ id: gig.id, name: gig.name, start_date: gig.start_date }] }} />
       )}
     </section>
+  )
+}
+
+// Invoiced vs paid on the gig, VAT included (step 11), in one currency
+function FinanceBilling({ b, t, lang }) {
+  const m = v => formatMoney(Number(v) || 0, b.currency, lang)
+  const amount = { margin: 0, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }
+  return (
+    <>
+      <dt><Term id="invoice">{t('finance.invoiced')}</Term></dt><dd style={amount}>{m(Number(b.invoiced) - Number(b.credited))}</dd>
+      <dt>{t('finance.paid')}</dt><dd style={amount}>{m(b.paid)}</dd>
+      {Number(b.outstanding) > 0 && <><dt style={{ color: Number(b.overdue) > 0 ? colors.danger : undefined }}>{t(Number(b.overdue) > 0 ? 'finance.unpaidOverdue' : 'finance.unpaid', { overdue: m(b.overdue) })}</dt><dd style={amount}>{m(b.outstanding)}</dd></>}
+      {Number(b.to_issue) > 0 && <><dt style={{ color: colors.muted }}>{t('finance.toIssue')}</dt><dd style={{ ...amount, color: colors.muted }}>{m(b.to_issue)}</dd></>}
+    </>
   )
 }

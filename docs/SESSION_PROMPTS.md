@@ -21,44 +21,38 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–10 (0.54–0.71), K0 (0.64) and K1 (0.69) are built, and their prompts (S01–S04, K1) removed. Sessions
-S05–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
+Steps 1–11 (0.54–0.72), K0 (0.64) and K1 (0.69) are built, and their prompts (S01–S05, K1) removed. Sessions
+S05b and S06–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
 
-## S05 · Step 11: invoices
+## S05b · Step 11b: invoicing program connectors
 
 ```
-Build ROADMAP step 11: invoices. Read the ROADMAP row, docs/BUSINESS.md "Planned → 11",
-docs/QUOTES.md, src/lib/quotes.js and the contacts page.
+Build ROADMAP step 11b: invoicing program connectors. Read the ROADMAP row, docs/BUSINESS.md
+"How invoices work" and "Planned → 11b", src/lib/invoiceApi.js, components/invoices/ and
+supabase/functions/moloni/ (written in step 11, switched off).
 
-Important: in Portugal legal invoices must come from certified software (AT). AVX prepares the
-invoice and hands it to a certified program; it never issues a legal invoice itself.
+Invoicing stays manual for every organisation; a connector only saves typing. AVX never issues a
+legal invoice: it sends a draft to the organisation's certified program and reads back the number.
 
 Ask me first, before any design:
-1. Which certified program do I use (InvoiceXpress, Moloni, Vendus, TOConline, other)?
-2. Start with a file export that any program can import, or that program's API?
+1. Which programs do my first customers use? (Planned: Moloni, InvoiceXpress, Vendus, TOConline.)
+2. Also a CSV/SAF-T style export for programs without a connector?
 
 Scope:
-- VAT per line on quotes (today one rate per quote), with old quotes migrated to their single rate.
-  Change report_revenue_lines and src/lib/analytics/revenue.js (K1) with it and rerun their shared
-  fixtures: net revenue must not change.
-- An invoice draft from an accepted quote: all of it, chosen phases, or a deposit %. Client from
-  contacts.
-- Status: draft → sent to the certified program → issued (store its number and a link to the PDF)
-  → paid / overdue.
-- Credit notes against an issued invoice. Overdue reminders (notification, optional email through
-  Brevo).
-- Invoices in the organisation export.
+- Each organisation (admins) picks none (manual) or one program on the Invoices page.
+- A generic connection table (rename moloni_connections, add provider; no drop) and
+  invoicing_status in place of moloni_status.
+- One Edge Function with an adapter per program: send a draft, read back number, dates and PDF
+  link, credit notes. Test Moloni end to end with a real account before turning it on.
+- API keys entered by the organisation's admin are stored server-side only; developer app keys per
+  provider are Supabase secrets I add. List them; never ask me to paste keys.
 
-Connect: quotes (invoiced amount on the quote), contacts, client guest threads, gig finance
-(step 10: invoiced vs paid), reports (K3 reads the issue, due and paid dates).
-
-Done when: database tests (only admins and members, numbering can't be edited by hand); unit
-tests for VAT per line and deposit maths; help guide; PR open. If the API route is chosen, list
-the secrets I must add and never ask me to paste keys.
+Connect: invoices (send / check buttons), Company details, help, organisation export.
+Done when: database tests, unit tests for each adapter's mapping, help guide, PR open.
 Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
 ```

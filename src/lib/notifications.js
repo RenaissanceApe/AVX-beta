@@ -59,6 +59,7 @@ export function describeNotification(n, nameOf) {
     case 'expense_approved':  return t('notif.expenseApproved', { actor, description: d.description || '', amount: d.total != null ? formatMoney(d.total, d.currency || 'EUR', getLanguage()) : '' })
     case 'expense_returned':  return t('notif.expenseReturned', { actor, description: d.description || '' }) + (d.note ? `: “${d.note}”` : '')
     case 'expense_drafted':   return t('notif.expenseDrafted', { count: d.count || 1 })
+    case 'invoice_overdue':   return t('notif.invoiceOverdue', { number: d.number || '', client: d.client || '', count: Number(d.days) || 1 })
     case 'leave_requested':
     case 'leave_sick':
     case 'leave_cancelled':
@@ -87,6 +88,7 @@ export function notificationLink(n) {
   if (n.kind.startsWith('leave_') && n.org_id) return `/org/${n.org_id}/leave`
   if ((n.kind === 'expense_claimed' || n.kind === 'expense_approved' || n.kind === 'expense_returned') && n.details?.gig_id) return `/gig/${n.details.gig_id}?tab=crew`
   if (n.kind === 'expense_drafted' && n.org_id) return `/org/${n.org_id}/expenses`
+  if (n.kind === 'invoice_overdue' && n.org_id) return `/org/${n.org_id}/invoices?view=unpaid`
   if (n.kind === 'task_assigned') return n.gig_id ? `/gig/${n.gig_id}?tab=tasks` : '/tasks'
   if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `/org/${n.org_id}/inventory?tab=maintenance`

@@ -14,7 +14,7 @@ export const clientFields = c => ({
 
 // Client, dates, money settings and texts of a quote. clients: the organisation's contacts
 // directory; onSaveClient: adds the client typed here to it (and links the quote).
-export default function QuoteDetails({ quote, gigs, clients = [], onChange, onSaveClient }) {
+export default function QuoteDetails({ quote, gigs, clients = [], onChange, onSaveClient, onApplyVat }) {
   const { t } = useI18n()
   const [savingClient, setSavingClient] = useState(false)
   const linked = clients.find(c => c.id === quote.client_id)
@@ -97,6 +97,11 @@ export default function QuoteDetails({ quote, gigs, clients = [], onChange, onSa
           <div>
             <HintLabel htmlFor="qd-vat" hint="vat">{t('quote.vatRate')}</HintLabel>
             <input id="qd-vat" type="number" min="0" max="100" step="0.01" value={quote.vat_rate} onChange={e => set('vat_rate', e.target.value)} style={input} />
+            {onApplyVat && (
+              <button type="button" onClick={onApplyVat} style={{ background: 'none', border: 'none', padding: '6px 0', minHeight: '32px', color: colors.accentText, fontSize: '12px', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>
+                {t('quote.applyVat')}
+              </button>
+            )}
           </div>
           <div>
             <label style={label} htmlFor="qd-disc">{t('quote.quoteDiscount')}</label>

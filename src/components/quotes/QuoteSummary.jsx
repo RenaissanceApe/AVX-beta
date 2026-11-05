@@ -61,7 +61,10 @@ export default function QuoteSummary({ quote, body, totals, rates = [], onOpenPh
         <Line label={t('quote.subtotal')} value={money(totals.subtotal)} />
         {totals.discount > 0 && <Line label={t('quote.discountOf', { pct: quote.discount_pct })} value={`−${money(totals.discount)}`} />}
         <Line label={t('quote.totalExVat')} value={money(totals.net)} strong />
-        <Line label={t('quote.vatOf', { pct: quote.vat_rate })} value={money(totals.vat)} />
+        {(totals.vatByRate.length ? totals.vatByRate : [{ rate: Number(quote.vat_rate) || 0, base: 0, vat: 0 }]).map(r => (
+          <Line key={r.rate} label={totals.vatByRate.length > 1 ? t('quote.vatOfBase', { pct: r.rate, base: money(r.base) }) : t('quote.vatOf', { pct: r.rate })} value={money(r.vat)} />
+        ))}
+        {totals.missingExemption && <p style={{ fontSize: '12px', color: 'var(--warn)', margin: '2px 0 6px' }}>{t('quote.vatExemptionMissing')}</p>}
         <Line label={t('quote.totalIncVat')} value={money(totals.total)} strong accent />
         {totals.optional > 0 && <Line label={t('quote.optionsNotIncluded')} value={money(totals.optional)} muted />}
       </section>

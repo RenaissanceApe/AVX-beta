@@ -22,6 +22,10 @@ Quote  (client, dates, VAT, discount on total, terms)
 - **Phase total** = its lines, less the phase discount.
 - **Optional phases** are priced on the quote but not added to the total ("options not included").
 - **Quote total** = all non-optional phases, less the discount on the total, plus VAT.
+- **VAT per line** (0.72): each line has its own VAT % (the VAT column). The quote's VAT % in Details
+  is the rate new lines start with; "Apply this rate to every line" sets them all. A line at 0 %
+  needs the legal reason (AT code), which the certified invoicing program asks for. When lines
+  differ, the summary and the printed quote show VAT per rate. Invoices: docs/BUSINESS.md.
 
 The editor saves by itself about a second after you stop typing. If someone else saves the same quote
 at the same time, you get a "changed elsewhere" notice instead of silently overwriting their work.
@@ -122,7 +126,7 @@ function groups, equipment groups, functions, costs, quotes), not from Rentman's
 | Quote document (number, version, date, expiry, VAT, "no individual prices" layout) | Numbered quote, validity date, VAT, *Show prices per line* |
 
 Deliberately left out for now: inventory and availability, rate cards with time-based price rules,
-per-category discounts and multiple VAT classes per line. Possible next steps are in
+per-category discounts. Possible next steps are in
 ROADMAP.md.
 
 ## Technical notes
