@@ -30,7 +30,7 @@ export default function SimpleHome({ gigs, onShowAll }) {
       {!next ? (
         <EmptyState icon={<CalendarDays size={28} />} title={t('simple.noneTitle')} body={t('simple.noneBody')} guide="crew-unavailable" />
       ) : (
-        <section aria-labelledby="next-gig" style={{ ...card, padding: '20px', borderColor: 'var(--accent)' }}>
+        <section aria-labelledby="next-gig" style={{ ...card, padding: '20px', borderColor: 'var(--line-strong)' }}>
           <p style={{ fontSize: '13px', fontWeight: 700, color: colors.accentText, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('simple.next')}</p>
           <h2 id="next-gig" style={{ fontSize: '24px', fontWeight: 700, margin: '6px 0 4px', lineHeight: 1.2 }}>{next.name}</h2>
           <p style={{ fontSize: '16px', color: colors.text, display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -41,7 +41,7 @@ export default function SimpleHome({ gigs, onShowAll }) {
           {(next.myCallTime || next.myFunction) && (
             <div style={{ marginTop: '14px', padding: '12px 14px', borderRadius: '12px', background: 'var(--selection)', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               {next.myCallTime && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '22px', fontWeight: 700, color: colors.accentText }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '22px', fontWeight: 700, color: colors.accentText }}>
                   <Clock size={22} aria-hidden="true" /> {t('crew.call', { time: shortTime(next.myCallTime) })}
                 </span>
               )}

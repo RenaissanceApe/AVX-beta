@@ -4,7 +4,7 @@ import { localToday } from '../../lib/gigs'
 import { useI18n } from '../../i18n'
 import { useCustomFields } from '../../lib/customFields'
 import { CustomFieldList } from '../CustomFields'
-import { card, colors, tint } from '../ui'
+import { card, colors } from '../ui'
 import { assetType, Avatar, RoleBadge, FeedPost, SectionTitle, SmallBtn, EmptyMini, linkBtn } from './parts'
 
 // Upcoming schedule items: today and later, at most `limit`.
@@ -18,7 +18,7 @@ export default function OverviewTab({ gig, assets, members, posts, schedule, can
   const next = upcoming(schedule)
   const { fields } = useCustomFields(gig.org_id, 'gig')
   const customFilled = fields.some(f => gig.custom_values?.[f.id] != null)
-  const panel = { ...card, padding: '18px 20px', borderRadius: '16px' }
+  const panel = { ...card, padding: '18px 20px' }
   const header = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }
 
   return (
@@ -46,8 +46,8 @@ export default function OverviewTab({ gig, assets, members, posts, schedule, can
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {next.map(s => (
               <div key={s.id} style={{ display: 'flex', gap: '12px', fontSize: '14px', alignItems: 'baseline' }}>
-                <span style={{ color: colors.muted, fontSize: '12px', minWidth: '78px' }}>{fmt(s.day, 'EEE d MMM')}</span>
-                <span style={{ color: colors.accentText, fontWeight: 700, minWidth: '44px', fontVariantNumeric: 'tabular-nums' }}>{shortTime(s.start_time)}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', color: colors.muted, fontSize: '12px', minWidth: '92px' }}>{fmt(s.day, 'EEE d MMM')}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, minWidth: '48px' }}>{shortTime(s.start_time)}</span>
                 <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}</span>
               </div>
             ))}
@@ -67,11 +67,11 @@ export default function OverviewTab({ gig, assets, members, posts, schedule, can
               const Icon = cfg.icon
               return (
                 <button key={a.id} onClick={() => onOpenAsset(a)} style={{
-                  display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '9px', textAlign: 'left',
+                  display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', textAlign: 'left',
                   background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', cursor: 'pointer', color: 'var(--text)', width: '100%',
                 }}>
-                  <span style={{ width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0, background: tint(cfg.color, 9), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon size={14} color={cfg.color} />
+                  <span style={{ width: '28px', height: '28px', flexShrink: 0, border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon size={14} color="var(--muted)" aria-hidden="true" />
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.name}</span>
@@ -100,7 +100,7 @@ export default function OverviewTab({ gig, assets, members, posts, schedule, can
                   <div style={{ fontSize: '13px', fontWeight: 600 }}>{nameOf(m.user_id)}</div>
                   <div style={{ fontSize: '11px', color: colors.muted }}>
                     {m.function_title || t(`gigRoleLong.${m.role}`)}
-                    {m.call_time && <span style={{ color: colors.accentText, marginLeft: '6px' }}>· {shortTime(m.call_time)}</span>}
+                    {m.call_time && <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-2)', marginLeft: '6px' }}>· {shortTime(m.call_time)}</span>}
                   </div>
                 </div>
                 <RoleBadge role={m.role} />

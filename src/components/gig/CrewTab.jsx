@@ -10,7 +10,7 @@ import { sendInvite, inviteMessage } from '../../lib/invites'
 import { shortTime } from '../../lib/schedule'
 import { clashText, groupByUser } from '../../lib/clashes'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, StatusBadge, CallChip } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import { Avatar, RoleBadge, TabHeader } from './parts'
@@ -140,16 +140,18 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
             const mine = clashes[m.user_id] || []
             const shift = shiftText(m)
             const canAddToOrg = isOrgAdmin && orgMemberIds && !orgMemberIds.has(m.user_id)
+            const booked = mine.some(c => c.kind === 'booked')
             return (
               <div key={m.user_id} className="crew-row" style={{
-                background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${mine.length ? 'var(--warn)' : colors.border}`, borderRadius: '14px',
-                padding: '14px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '0 14px', animation: 'fadeIn 0.3s ease',
+                // A booking clash takes the danger-soft row; a self-reported unavailability only its warn line (DESIGN.md "CrewRow")
+                background: booked ? 'var(--danger-soft)' : 'var(--panel)', border: `1px solid ${booked ? 'var(--danger)' : colors.border}`,
+                padding: '14px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '0 14px', animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               }}>
-                <Avatar uid={m.user_id} name={name} size={42} />
+                <Avatar uid={m.user_id} name={name} size={40} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {name}
-                    {mine.length > 0 && (
+                    {mine.length > 0 && !booked && (
                       <span role="img" aria-label={t('clash.badge')} title={t('clash.badge')} style={{ color: AMBER, display: 'flex' }}><AlertTriangle size={15} /></span>
                     )}
                   </div>
@@ -160,19 +162,19 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
                         <Phone size={11} style={{ verticalAlign: 'middle', marginRight: '3px' }} />{phone}
                       </a>
                     )}
-                    {m.call_time && (
-                      <span style={{ color: colors.accentText, fontWeight: 600, whiteSpace: 'nowrap' }}>
-                        <Clock size={11} style={{ verticalAlign: 'middle', marginRight: '3px' }} />{t('crew.call', { time: shortTime(m.call_time) })}
-                      </span>
-                    )}
                     {shift && (
-                      <span style={{ color: colors.soft, whiteSpace: 'nowrap' }}>
+                      <span style={{ color: colors.soft, whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
                         <CalendarClock size={11} style={{ verticalAlign: 'middle', marginRight: '3px' }} />{t('shift.booked', { range: shift })}
                       </span>
                     )}
                   </div>
                 </div>
-                <RoleBadge role={m.role} large />
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  {booked
+                    ? <StatusBadge tone="danger" title={t('clash.badge')}>{t('clash.status')}</StatusBadge>
+                    : m.call_time && <CallChip label={t('crew.callKey')} time={shortTime(m.call_time)} title={t('crew.call', { time: shortTime(m.call_time) })} />}
+                  <RoleBadge role={m.role} large />
+                </span>
                 {!self && (
                   <Link to={`/messages?to=${m.user_id}`} style={iconBtn} aria-label={t('chat.messageNamed', { name })} title={t('chat.message')}>
                     <MessageCircle size={15} />
@@ -218,13 +220,14 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
           <h3 style={{ ...label, marginBottom: '10px' }}>{t('crew.pending')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {invites.map(inv => (
-              <div key={inv.id} style={{ border: '1px dashed color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div key={inv.id} style={{ border: '1px dashed var(--line-strong)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inv.email}</div>
                   <div style={{ fontSize: '12px', color: colors.muted }}>
                     {inv.function_title || '—'}{inv.call_time ? ` · ${t('crew.call', { time: shortTime(inv.call_time) })}` : ''}
                   </div>
                 </div>
+                <StatusBadge small tone="open">{t('crew.pendingOne')}</StatusBadge>
                 <RoleBadge role={inv.role} />
                 <button onClick={() => cancelInvite(inv)} aria-label={t('crew.cancelInviteFor', { email: inv.email })} title={t('crew.cancelInvite')} style={iconBtn}>
                   <X size={15} />
@@ -257,7 +260,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
   )
 }
 
-const rowBtn = { ...btn, padding: '5px 10px', fontSize: '12px', background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }
+const rowBtn = { ...btn, padding: '5px 10px', fontSize: '12px', color: 'var(--text-2)' }
 
 const EMPTY_INVITE = { email: '', role: 'crew', function_title: '', call_time: '' }
 

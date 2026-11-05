@@ -28,7 +28,8 @@ import SimpleHome from '../components/SimpleHome'
 import { useSimpleMode } from '../lib/simpleMode'
 import { useGigLabels, GIG_LABELS_EMBED } from '../lib/gigLabels'
 import { GigLabels } from '../components/gig/parts'
-import { StatusBadge } from '../components/ui'
+import { StatusBadge, CallChip } from '../components/ui'
+import { shortTime } from '../lib/schedule'
 import GigLabelFields from '../components/gig/GigLabelFields'
 import GigClientField from '../components/gig/GigClientField'
 import { useCustomFields, mergeValues } from '../lib/customFields'
@@ -326,7 +327,8 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
           {search ? t('dash.noMatch') : t(`dash.noGigs.${filter}`)}
         </p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="gig-list">
+          <style>{GIG_CARD_CSS}</style>
           {visible.map(gig => <GigCard key={gig.id} gig={gig} showCompany={showCompany} clash={!!clashIds?.has(gig.id)} onOpen={() => onOpen(gig)} />)}
         </div>
       )}
@@ -334,47 +336,50 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
   )
 }
 
+// A row in the gig list (DESIGN.md "GigCard"): date block, name, status + label + venue · dates,
+// and on the right the thing this viewer needs: their call time (My work) or a chevron.
 function GigCard({ gig, onOpen, showCompany, clash }) {
+  const multi = gig.end_date && gig.end_date !== gig.start_date
   return (
-    <button onClick={onOpen} className="gig-card"
-      style={{
-        width: '100%', textAlign: 'left', color: 'var(--text)', font: 'inherit',
-        background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)',
-        borderRadius: '14px', padding: '16px 18px', cursor: 'pointer', transition: 'all 0.2s',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px'
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--accent) 25%, transparent)'; e.currentTarget.style.background = 'color-mix(in srgb, var(--accent) 4%, transparent)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)'; e.currentTarget.style.background = 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)' }}
-    >
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
-          <span style={{ fontWeight: 700, fontSize: '16px' }}>{gig.name}</span>
+    <button onClick={onOpen} className="gig-card">
+      <span className="gig-card-date" aria-hidden={gig.start_date ? 'true' : undefined}>
+        {gig.start_date ? <>{fmt(gig.start_date, 'EEE')}<b>{fmt(gig.start_date, 'dd')}</b>{fmt(gig.start_date, 'MMM')}</> : <b>—</b>}
+      </span>
+      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '15px', lineHeight: '20px', overflowWrap: 'anywhere' }}>{gig.name}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px 8px', flexWrap: 'wrap' }}>
           <GigLabels gig={gig} />
-          {clash && (
-            <StatusBadge tone="warn" title={t('clash.doubleBookingHint')}>{t('clash.doubleBooking')}</StatusBadge>
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: '6px 16px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--muted)' }}>
-          {showCompany && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--soft)' }}>
-              <Building2 size={12} /> {gig.company || t('home.otherCompany')}
-              <span style={{ color: 'var(--accent-text)', fontWeight: 600 }}>· {gig.myFunction || t(`gigRoleLong.${gig.myGigRole || 'crew'}`)}</span>
-            </span>
-          )}
-          {gig.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {gig.venue}</span>}
+          {clash && <StatusBadge tone="warn" title={t('clash.doubleBookingHint')}>{t('clash.doubleBooking')}</StatusBadge>}
+          {gig.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--text-2)' }}><MapPin size={13} aria-hidden="true" /> {gig.venue}</span>}
           {gig.start_date && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Calendar size={12} />
-              {fmt(gig.start_date, 'dd MMM yyyy')}
-              {gig.end_date && gig.end_date !== gig.start_date && ` → ${fmt(gig.end_date, 'dd MMM')}`}
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-2)' }}>
+              {fmt(gig.start_date, 'dd MMM yyyy')}{multi && ` → ${fmt(gig.end_date, 'dd MMM')}`}
             </span>
           )}
-        </div>
-      </div>
-      <ChevronRight size={18} color="var(--muted)" />
+        </span>
+        {showCompany && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--muted)' }}>
+            <Building2 size={12} aria-hidden="true" /> {gig.company || t('home.otherCompany')} · {gig.myFunction || t(`gigRoleLong.${gig.myGigRole || 'crew'}`)}
+          </span>
+        )}
+      </span>
+      {gig.myCallTime
+        ? <CallChip me label={t('crew.callKey')} time={shortTime(gig.myCallTime)} title={t('crew.call', { time: shortTime(gig.myCallTime) })} />
+        : <ChevronRight size={18} color="var(--muted)" aria-hidden="true" />}
     </button>
   )
 }
+
+const GIG_CARD_CSS = `
+  .gig-list { display: flex; flex-direction: column; border: 1px solid var(--line); background: var(--panel); }
+  .gig-card { width: 100%; text-align: left; color: var(--text); font: inherit; background: var(--panel); border: none; border-bottom: 1px solid var(--line);
+    padding: 12px 16px 12px 0; cursor: pointer; display: flex; align-items: center; gap: 16px; transition: background-color .15s; }
+  .gig-card:last-child { border-bottom: none; }
+  .gig-card:hover { background: var(--hover); }
+  .gig-card-date { flex-shrink: 0; width: 64px; align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-right: 1px solid var(--line); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .gig-card-date b { font-size: 20px; line-height: 24px; letter-spacing: 0; color: var(--text); }
+`
 
 function Modal({ title, onClose, children }) {
   return (

@@ -85,7 +85,7 @@ export function SectionTitle({ icon, title }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
       <span style={{ color: colors.muted, display: 'flex' }}>{icon}</span>
-      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{title}</span>
+      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>{title}</span>
     </div>
   )
 }
@@ -93,8 +93,8 @@ export function SectionTitle({ icon, title }) {
 export function SmallBtn({ onClick, icon, label }) {
   return (
     <button onClick={onClick} style={{
-      display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 11px', borderRadius: '8px', cursor: 'pointer',
-      background: 'var(--selection)', border: '1px solid var(--accent)', color: colors.accentText, fontSize: '12px', fontWeight: 600,
+      display: 'flex', alignItems: 'center', gap: '6px', height: '28px', padding: '0 10px', cursor: 'pointer',
+      background: 'transparent', border: '1px solid var(--line-strong)', color: 'var(--text)', fontSize: '12px', fontWeight: 600,
     }}>{icon} {label}</button>
   )
 }

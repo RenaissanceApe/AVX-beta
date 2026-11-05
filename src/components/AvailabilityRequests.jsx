@@ -8,7 +8,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { rangeText } from '../lib/clashes'
 import { useI18n, t } from '../i18n'
-import { btn, input, colors } from './ui'
+import { btn, btnPrimary, input, colors, label } from './ui'
 
 // My work: "are you available?" requests waiting for an answer. Answering notifies
 // whoever asked; nothing is booked until they add you to the gig.
@@ -43,8 +43,8 @@ export default function AvailabilityRequests({ onAnswered }) {
   if (!requests.length) return null
   return (
     <section id="requests" ref={ref} aria-labelledby="requests-title" style={{ marginBottom: '24px' }}>
-      <h2 id="requests-title" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--warn)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <MessageCircleQuestion size={14} /> {t('requests.title', { count: requests.length })}
+      <h2 id="requests-title" style={{ ...label, color: 'var(--text)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <MessageCircleQuestion size={14} color="var(--warn)" aria-hidden="true" /> {t('requests.title', { count: requests.length })}
       </h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {requests.map(r => (
@@ -80,27 +80,52 @@ function RequestCard({ request: r, onDone }) {
   }
 
   return (
-    <div style={{ padding: '14px 16px', borderRadius: '14px', background: 'var(--warn-soft)', border: '1px solid var(--warn)' }}>
-      <div style={{ fontSize: '13px', color: colors.soft, marginBottom: '4px' }}>
+    // The question card (DESIGN.md "AvailabilityAsk"): company eyebrow, the gig in Space Mono, the dates as
+    // square day cells, and two 44px answers side by side with "available" on the thumb side
+    <div style={{ padding: '16px', background: 'var(--panel)', border: '1px solid var(--line-strong)' }}>
+      <div style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+        <Building2 size={12} aria-hidden="true" /> {r.company}
+      </div>
+      <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '16px', lineHeight: '22px', marginBottom: '4px' }}>{r.gig_name}</div>
+      <div style={{ fontSize: '13px', color: colors.soft, marginBottom: '8px' }}>
         {t('requests.asks', { name: r.asked_by_name || t('common.someone'), when: ago(r.created_at) })}
       </div>
-      <div style={{ fontWeight: 700, fontSize: '16px', marginBottom: '4px' }}>{r.gig_name}</div>
-      <div style={{ display: 'flex', gap: '4px 14px', flexWrap: 'wrap', fontSize: '13px', color: colors.muted }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Building2 size={12} /> {r.company}</span>
-        {r.starts_at && <strong style={{ color: 'var(--text)' }}>{rangeText(r.starts_at, r.ends_at)}</strong>}
-        {r.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {r.venue}</span>}
+      <div style={{ display: 'flex', gap: '4px 14px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--text-2)' }}>
+        {r.starts_at && <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>{rangeText(r.starts_at, r.ends_at)}</span>}
+        {r.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={13} aria-hidden="true" /> {r.venue}</span>}
       </div>
-      {r.message && <p style={{ fontSize: '13px', marginTop: '8px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>“{r.message}”</p>}
+      {r.starts_at && <DayStrip from={r.starts_at} until={r.ends_at || r.starts_at} />}
+      {r.message && <p style={{ fontSize: '13px', marginTop: '10px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>“{r.message}”</p>}
       <input value={note} onChange={e => setNote(e.target.value)} maxLength={500} placeholder={t('requests.notePlaceholder')}
-        aria-label={t('requests.note')} style={{ ...input, marginTop: '10px', padding: '8px 10px', fontSize: '13px' }} />
-      <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
-        <button onClick={() => answer('available')} disabled={!!saving} style={btn}>
-          {saving === 'available' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />} {t('requests.available')}
+        aria-label={t('requests.note')} style={{ ...input, marginTop: '12px', padding: '8px 10px', fontSize: '13px' }} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '10px' }}>
+        <button onClick={() => answer('unavailable')} disabled={!!saving} style={{ ...btn, minHeight: '44px', justifyContent: 'center' }}>
+          {saving === 'unavailable' ? <Loader2 size={14} /> : <X size={14} aria-hidden="true" />} {t('requests.unavailable')}
         </button>
-        <button onClick={() => answer('unavailable')} disabled={!!saving} style={{ ...btn, background: 'transparent', borderColor: 'var(--danger)', color: colors.danger }}>
-          {saving === 'unavailable' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <X size={14} />} {t('requests.unavailable')}
+        <button onClick={() => answer('available')} disabled={!!saving} style={{ ...btnPrimary, minHeight: '44px', justifyContent: 'center' }}>
+          {saving === 'available' ? <Loader2 size={14} /> : <Check size={14} aria-hidden="true" />} {t('requests.available')}
         </button>
       </div>
+    </div>
+  )
+}
+
+// The asked-for days as square cells (weekday + day number), up to two weeks
+function DayStrip({ from, until }) {
+  const { fmt } = useI18n()
+  const days = []
+  const start = new Date(String(from).slice(0, 10) + 'T12:00:00')
+  const end = new Date(String(until).slice(0, 10) + 'T12:00:00')
+  for (let d = new Date(start); d <= end && days.length < 14; d.setDate(d.getDate() + 1)) days.push(new Date(d))
+  if (!days.length) return null
+  return (
+    <div aria-hidden="true" style={{ display: 'flex', gap: '2px', marginTop: '10px', flexWrap: 'wrap' }}>
+      {days.map(d => (
+        <span key={d.toISOString()} style={{ width: '40px', padding: '4px 0', textAlign: 'center', background: 'var(--fill)', border: '1px solid var(--line-strong)', fontFamily: 'var(--font-mono)' }}>
+          <span style={{ display: 'block', fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.muted }}>{fmt(d, 'EEE')}</span>
+          <span style={{ display: 'block', fontSize: '15px', fontWeight: 700 }}>{fmt(d, 'd')}</span>
+        </span>
+      ))}
     </div>
   )
 }
