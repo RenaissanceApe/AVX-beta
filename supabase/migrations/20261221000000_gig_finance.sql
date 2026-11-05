@@ -9,8 +9,8 @@
 --   else (private.require_finance).
 -- - public.gig_finance(org, from, until, gig): one row per gig starting in [from, until) (or the
 --   one gig; or every gig when both dates are empty): revenue by the K1 rule, labour, subrentals,
---   repairs, other costs, margin. Runs as the reader. Its JS twin is src/lib/gigFinance.js; both
---   are checked against src/lib/gigFinanceFixtures.json.
+--   repairs, other costs, margin. Runs as the reader. Its JS twin is src/lib/analytics/gigFinance.js; both
+--   are checked against src/lib/analytics/gigFinanceFixtures.json.
 -- - public.report_overview gains two tiles: margin this month and gigs with a negative margin.
 --   The K1 function is renamed private.report_overview_pre_step10 and wrapped.
 -- - The organisation export gains a gig_finance file (export function renamed
