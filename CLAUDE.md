@@ -137,6 +137,11 @@ Each feature set is built in its own session, from its prompt in `docs/SESSION_P
    version bump; mark the step built in `ROADMAP.md` and replace its plan with a "How … works"
    section in its doc; a test line in `docs/PENDING.md` section 2 and new questions in section 3.
    Open the PR (never merge it: the owner does) and give the short summary below.
+6. **Session prompts (every session, before the PR):** check `docs/SESSION_PROMPTS.md` (grep its
+   `## ` and `### ` headings) for a prompt this session carried out, whether it was pasted whole
+   or only in part. If one was, remove that prompt's section in the same PR and update the
+   "built" line at the top of the file, so it only holds prompts still to run. Say in the summary
+   which prompt was removed (or that none matched).
 
 ## Standing rules from the owner
 
