@@ -75,7 +75,7 @@ export function CameraSync({ session, onUse, onType, onClose }) {
 
   return (
     <Modal title={t('rehearsal.cameraSync')} onClose={onClose} maxWidth={560}>
-      <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', background: '#000', aspectRatio: '16 / 9' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', background: '#000', aspectRatio: '16 / 9' }}>
         <video ref={video} playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         <div aria-hidden="true" style={{ position: 'absolute', left: '8%', right: '8%', top: '38%', bottom: '38%', border: `3px solid ${state === 'found' ? 'var(--accent)' : 'var(--paper)'}` }} />
       </div>
@@ -152,7 +152,7 @@ export function LtcSync({ session, onUse, onClose }) {
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', fontWeight: 700, color: fresh ? 'var(--text)' : colors.muted }}>
           {fresh ? msToTc(latest.ms + (performance.now() - latest.at), session.fps, df) : '--:--:--:--'}
         </div>
-        <div aria-hidden="true" style={{ height: '6px', borderRadius: '3px', background: 'var(--fill)', marginTop: '10px', overflow: 'hidden' }}>
+        <div aria-hidden="true" style={{ height: '6px', background: 'var(--fill)', marginTop: '10px', overflow: 'hidden' }}>
           <div style={{ width: `${Math.min(100, Math.round(level * 140))}%`, height: '100%', background: colors.accent, transition: 'width 0.1s' }} />
         </div>
       </div>

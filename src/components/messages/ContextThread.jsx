@@ -47,7 +47,7 @@ export default function ContextThread({ type, id, height = '320px', children }) 
   }
 
   return (
-    <div style={{ border: `1px solid ${colors.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+    <div style={{ border: `1px solid ${colors.border}`, overflow: 'hidden' }}>
       <button type="button" onClick={toggle} aria-expanded={open} style={{
         display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(2% * var(--line-k))), transparent)',
         border: 'none', color: 'var(--text)', font: 'inherit', fontSize: '14px', fontWeight: 600, cursor: 'pointer', textAlign: 'left',

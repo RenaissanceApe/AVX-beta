@@ -108,4 +108,4 @@ function MuteButton({ orgId, name, muted, setMuted }) {
   )
 }
 
-const ghost = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', color: colors.soft }
+const ghost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }

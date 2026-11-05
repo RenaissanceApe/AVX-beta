@@ -39,7 +39,7 @@ export default function SimpleHome({ gigs, onShowAll }) {
           </p>
           {next.venue && <p style={{ fontSize: '15px', color: colors.soft, display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}><MapPin size={15} aria-hidden="true" /> {next.venue}</p>}
           {(next.myCallTime || next.myFunction) && (
-            <div style={{ marginTop: '14px', padding: '12px 14px', borderRadius: '12px', background: 'var(--selection)', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ marginTop: '14px', padding: '12px 14px', background: 'var(--selection)', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               {next.myCallTime && (
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '22px', fontWeight: 700, color: colors.accentText }}>
                   <Clock size={22} aria-hidden="true" /> {t('crew.call', { time: shortTime(next.myCallTime) })}

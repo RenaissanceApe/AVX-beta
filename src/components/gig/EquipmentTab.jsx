@@ -223,7 +223,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   )
 }
 
-const ghostLink = { ...btn, textDecoration: 'none', background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }
+const ghostLink = { ...btn, textDecoration: 'none', background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
 
 // Saves planned quantities (item_id -> quantity), adding or updating lines
 const saveLines = (gig, lines) => {
@@ -297,7 +297,7 @@ function EquipmentPicker({ gig, org, planned, kits, onClose, onAdded }) {
             const qty = Number(picked[item.id] ?? already[item.id] ?? 1)
             const over = f && on && qty > f.available
             return (
-              <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', borderRadius: '8px', cursor: 'pointer', background: on ? 'var(--selection)' : 'transparent' }}>
+              <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', cursor: 'pointer', background: on ? 'var(--selection)' : 'transparent' }}>
                 <input type="checkbox" checked={on} style={{ accentColor: colors.accent }}
                   onChange={() => setPicked(p => { const n = { ...p }; if (on) delete n[item.id]; else n[item.id] = already[item.id] || 1; return n })} />
                 <span style={{ flex: 1, minWidth: 0 }}>

@@ -56,7 +56,7 @@ export default function RehearsalReportPage() {
     <div className="rh-page">
       <style>{`
         .rh-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
-        .sheet { max-width: 1000px; margin: 0 auto; background: #fff; color: #111; border-radius: 8px; padding: 28px; font-size: 13px; }
+        .sheet { max-width: 1000px; margin: 0 auto; background: #fff; color: #111; padding: 28px; font-size: 13px; }
         .sheet h1 { font-size: 22px; margin-bottom: 2px; }
         .sheet h2 { font-size: 12px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 18px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; break-after: avoid; }
         .sheet table { width: 100%; border-collapse: collapse; }
@@ -72,13 +72,13 @@ export default function RehearsalReportPage() {
         .sheet .fix { color: #8A5A00; font-weight: 700; }
         .wrap { overflow-x: auto; }
         .toolbar { max-width: 1000px; margin: 0 auto 12px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-        .toolbar select { padding: 8px 10px; border-radius: 8px; border: 1px solid #c8ced6; background: #fff; color: #111; font-size: 13px; }
+        .toolbar select { padding: 8px 10px; border: 1px solid #c8ced6; background: #fff; color: #111; font-size: 13px; }
         @media (max-width: 600px) { .sheet { padding: 18px 14px; } }
         @media print {
           @page { margin: 12mm; }
           body, .rh-page { background: #fff !important; padding: 0; }
           .toolbar { display: none; }
-          .sheet { border-radius: 0; padding: 0; max-width: none; }
+          .sheet { padding: 0; max-width: none; }
         }
       `}</style>
       <div className="toolbar">
@@ -127,4 +127,4 @@ export default function RehearsalReportPage() {
   )
 }
 
-const toolbarBtn = { display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', border: '1px solid #c8ced6', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }
+const toolbarBtn = { display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', border: '1px solid #c8ced6', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }

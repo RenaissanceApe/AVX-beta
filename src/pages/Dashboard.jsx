@@ -250,7 +250,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
             placeholder={t('gigForm.descriptionPlaceholder')} rows={3} style={{ ...modalInput, resize: 'vertical', lineHeight: '1.5' }} />
         </FieldLabel>
         {error && (
-          <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: '13px', lineHeight: '1.5' }}>
+          <div style={{ padding: '10px 14px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: '13px', lineHeight: '1.5' }}>
             {error}
           </div>
         )}
@@ -277,23 +277,23 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
   const byLabel = g => (!labelFilter.status || g.custom_status_id === labelFilter.status) && (!labelFilter.type || g.gig_type_id === labelFilter.type)
   const counts = countByBucket(gigs.filter(byLabel))
   const visible = filterGigs(gigs, filter, search).filter(byLabel)
-  const filterSelect = { padding: '7px 10px', borderRadius: '10px', fontSize: '13px', color: 'var(--text)', maxWidth: '100%',
-    background: 'color-mix(in srgb, var(--shade) 30%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)' }
+  const filterSelect = { padding: '7px 10px', fontSize: '13px', color: 'var(--text)', maxWidth: '100%',
+    background: 'var(--shade)', border: '1px solid var(--line)' }
   return (
     <div>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
-        <div role="group" aria-label="View" style={{ display: 'flex', gap: '2px', background: 'color-mix(in srgb, var(--shade) 30%, transparent)', borderRadius: '10px', padding: '3px' }}>
+        <div role="group" aria-label="View" style={{ display: 'flex', gap: '2px', background: 'var(--shade)', padding: '3px' }}>
           {[['list', <List key="i" size={15} />, t('dash.viewList')], ['calendar', <CalendarDays key="i" size={15} />, t('dash.viewCalendar')]].map(([v, icon, labelText]) => (
             <button key={v} onClick={() => setView(v)} aria-pressed={view === v} aria-label={labelText} title={labelText} style={{
-              padding: '6px 9px', borderRadius: '7px', border: 'none', cursor: 'pointer', display: 'flex',
+              padding: '6px 9px', border: 'none', cursor: 'pointer', display: 'flex',
               background: view === v ? 'var(--selection)' : 'transparent', color: view === v ? 'var(--accent-text)' : 'var(--muted)'
             }}>{icon}</button>
           ))}
         </div>
-        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'color-mix(in srgb, var(--shade) 30%, transparent)', borderRadius: '10px', padding: '3px', overflowX: 'auto', overflowY: 'hidden' }}>
+        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'var(--shade)', padding: '3px', overflowX: 'auto', overflowY: 'hidden' }}>
           {GIG_FILTERS.map(f => (
             <button key={f.value} role="tab" aria-selected={filter === f.value} onClick={() => setFilter(f.value)} style={{
-              padding: '6px 12px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
+              padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
               background: filter === f.value ? 'var(--selection)' : 'transparent',
               color: filter === f.value ? 'var(--accent-text)' : 'var(--muted)'
             }}>
@@ -302,7 +302,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
           ))}
         </div>}
         <label style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px',
-          background: 'color-mix(in srgb, var(--shade) 30%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)', borderRadius: '10px' }}>
+          background: 'var(--shade)', border: '1px solid var(--line)',  }}>
           <Search size={14} color="var(--muted)" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('dash.searchPlaceholder')} aria-label={t('dash.searchPlaceholder')}
             style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '14px', minWidth: 0 }} />
@@ -414,12 +414,12 @@ function FieldLabel({ label, children }) {
 }
 
 const btnPrimary = {
-  display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+  display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 18px', border: 'none', cursor: 'pointer',
   background: 'var(--accent)', color: 'var(--on-accent)', fontWeight: 700, fontSize: '14px',
   fontFamily: 'var(--font-ui)', transition: 'background-color .15s'
 }
 const btnModal = { ...btnPrimary, width: '100%', justifyContent: 'center', padding: '13px', fontSize: '15px', marginTop: '4px' }
 const modalInput = {
-  width: '100%', padding: '10px 13px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)',
-  borderRadius: '9px', color: 'var(--text)', fontSize: '14px', outline: 'none',
+  width: '100%', padding: '10px 13px', background: 'var(--shade)', border: '1px solid var(--line)',
+  color: 'var(--text)', fontSize: '14px', outline: 'none',
 }

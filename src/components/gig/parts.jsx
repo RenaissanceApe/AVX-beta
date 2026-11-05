@@ -54,16 +54,16 @@ export function FeedPost({ post, name, large = false, onDelete = null }) {
   const { t, ago } = useI18n()
   return (
     <div style={{
-      padding: large ? '14px 16px' : '10px 12px', borderRadius: '12px', animation: 'fadeIn 0.3s ease',
-      background: post.is_important ? 'var(--danger-soft)' : 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)',
-      border: post.is_important ? '1px solid var(--danger)' : '1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)',
+      padding: large ? '14px 16px' : '10px 12px', animation: 'fadeIn 0.3s ease',
+      background: post.is_important ? 'var(--danger-soft)' : 'var(--fill)',
+      border: post.is_important ? '1px solid var(--danger)' : '1px solid var(--line)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px 8px', marginBottom: '6px', flexWrap: 'wrap' }}>
         <Avatar uid={post.user_id} name={name} size={24} />
         <span style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>{name}</span>
         {post.is_important && (
           <span style={{
-            fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '20px',
+            fontSize: '10px', fontWeight: 700, padding: '2px 7px', 
             color: colors.danger, background: 'var(--danger-soft)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em',
           }}>{t('feed.important')}</span>
         )}

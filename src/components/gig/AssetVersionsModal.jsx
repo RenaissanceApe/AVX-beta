@@ -98,10 +98,10 @@ export default function AssetVersionsModal({ asset, nameOf, onClose }) {
           </div>
           {preview.kind === 'image' ? (
             <img src={preview.url} alt={t('versions.alt', { name: asset.name, version: preview.version })}
-              style={{ maxWidth: '100%', maxHeight: '65vh', display: 'block', margin: '0 auto', borderRadius: '10px', background: '#fff' }} />
+              style={{ maxWidth: '100%', maxHeight: '65vh', display: 'block', margin: '0 auto', background: '#fff' }} />
           ) : (
             <iframe src={preview.url} title={t('versions.alt', { name: asset.name, version: preview.version })}
-              style={{ width: '100%', height: '65vh', border: 'none', borderRadius: '10px', background: '#fff' }} />
+              style={{ width: '100%', height: '65vh', border: 'none', background: '#fff' }} />
           )}
         </div>
       )}

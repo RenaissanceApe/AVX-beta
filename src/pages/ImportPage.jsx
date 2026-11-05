@@ -87,7 +87,7 @@ export default function ImportPage() {
             const on = s === step, done = STEPS.indexOf(step) > i
             return (
               <li key={s} aria-current={on ? 'step' : undefined} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: on ? 800 : 600,
-                color: on ? colors.accentText : done ? colors.soft : colors.muted, padding: '4px 10px', borderRadius: '20px', border: `1px solid ${on ? 'var(--accent)' : colors.border}` }}>
+                color: on ? colors.accentText : done ? colors.soft : colors.muted, padding: '4px 10px', border: `1px solid ${on ? 'var(--accent)' : colors.border}` }}>
                 <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)' }}>{done ? '✓' : i + 1}</span> {t(`imp.step.${s}`)}
               </li>
             )
@@ -164,7 +164,7 @@ function SwitchChecklist({ orgId, kinds, kind, onPick }) {
               return (
                 <li key={c.kind}>
                   <button type="button" onClick={() => onPick(c.kind)} aria-pressed={kind === c.kind} style={{
-                    display: 'flex', width: '100%', alignItems: 'center', gap: '8px', padding: '5px 6px', borderRadius: '8px', border: 'none', cursor: 'pointer', font: 'inherit', textAlign: 'left',
+                    display: 'flex', width: '100%', alignItems: 'center', gap: '8px', padding: '5px 6px', border: 'none', cursor: 'pointer', font: 'inherit', textAlign: 'left',
                     background: kind === c.kind ? 'var(--selection)' : 'none', color: 'var(--text)', fontSize: '13px',
                   }}>
                     <span aria-hidden="true" style={{ width: '18px', textAlign: 'center', color: n ? colors.accentText : colors.muted, fontWeight: 700 }}>{n ? '✓' : i + 1}</span>

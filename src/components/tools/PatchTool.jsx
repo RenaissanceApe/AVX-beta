@@ -142,7 +142,7 @@ export default function PatchTool({ gig, canEdit }) {
                 const clash = s.lines.length > 1
                 const here = s.lines[0]
                 return (
-                  <li key={s.socket} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 8px', borderRadius: '8px', fontSize: '13px',
+                  <li key={s.socket} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 8px', fontSize: '13px',
                     border: `1px solid ${clash ? 'var(--warn)' : colors.border}`, background: here ? 'var(--selection)' : 'transparent' }}>
                     <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, minWidth: '2em', color: colors.accentText }}>{String(s.socket).padStart(2, '0')}</span>
                     {canEdit ? (

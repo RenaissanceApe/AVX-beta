@@ -68,7 +68,7 @@ export default function OverviewTab({ gig, assets, members, posts, schedule, can
               return (
                 <button key={a.id} onClick={() => onOpenAsset(a)} style={{
                   display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', textAlign: 'left',
-                  background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', cursor: 'pointer', color: 'var(--text)', width: '100%',
+                  background: 'var(--fill)', border: '1px solid var(--line)', cursor: 'pointer', color: 'var(--text)', width: '100%',
                 }}>
                   <span style={{ width: '28px', height: '28px', flexShrink: 0, border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={14} color="var(--muted)" aria-hidden="true" />

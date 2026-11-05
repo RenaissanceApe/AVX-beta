@@ -373,7 +373,7 @@ function CrossHireCode({ orgId, isAdmin }) {
       <p style={{ ...small, marginBottom: '8px' }}>{t('sub.ourCodeHint')}</p>
       {code ? (
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <code style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '0.05em', padding: '4px 10px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)', borderRadius: '6px' }}>{code}</code>
+          <code style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '0.05em', padding: '4px 10px', background: 'var(--hover)',  }}>{code}</code>
           <button onClick={copy} style={{ ...btn, padding: '5px 9px', fontSize: '12px' }}><Copy size={12} /> {t('sub.copy')}</button>
           {isAdmin && <button onClick={() => load(true)} style={{ ...btn, padding: '5px 9px', fontSize: '12px' }}><RefreshCw size={12} /> {t('sub.newCode')}</button>}
         </div>

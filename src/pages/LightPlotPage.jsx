@@ -58,7 +58,7 @@ export default function LightPlotPage() {
     <div className="lights-page">
       <style>{`
         .lights-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
-        .sheet { max-width: 1000px; margin: 0 auto; background: #fff; color: #111; border-radius: 8px; padding: 28px; font-size: 13px; }
+        .sheet { max-width: 1000px; margin: 0 auto; background: #fff; color: #111; padding: 28px; font-size: 13px; }
         .sheet h1 { font-size: 22px; margin-bottom: 2px; }
         .sheet h2 { font-size: 12px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 18px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; }
         .sheet h3 { font-size: 14px; margin: 10px 0 2px; }
@@ -75,7 +75,7 @@ export default function LightPlotPage() {
           @page { size: landscape; margin: 10mm; }
           body, .lights-page { background: #fff !important; padding: 0; }
           .toolbar { display: none; }
-          .sheet { border-radius: 0; padding: 0; max-width: none; }
+          .sheet { padding: 0; max-width: none; }
           .bar { break-inside: avoid; }
         }
       `}</style>
@@ -172,6 +172,6 @@ function FixtureTable({ list, t, showPosition = false }) {
 }
 
 const toolbarBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px',
+  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', 
   border: '1px solid #c5ccd4', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }

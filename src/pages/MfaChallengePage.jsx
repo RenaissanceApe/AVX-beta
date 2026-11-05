@@ -40,7 +40,7 @@ export default function MfaChallengePage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <form onSubmit={submit} style={{ width: '100%', maxWidth: '360px', background: colors.panel, border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '18px', padding: '26px', color: 'var(--text)' }}>
+      <form onSubmit={submit} style={{ width: '100%', maxWidth: '360px', background: colors.panel, border: '1px solid var(--line-strong)', padding: '26px', color: 'var(--text)' }}>
         <ShieldCheck size={30} color={colors.accentText} />
         <h1 style={{ fontSize: '20px', fontWeight: 700, margin: '12px 0 6px' }}>{t('mfa.challengeTitle')}</h1>
         <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6, marginBottom: '18px' }}>{t('mfa.challengeBody')}</p>

@@ -143,6 +143,10 @@ describe('screens stay flat', () => {
   it('has no shadows, blur or glows', async () => {
     expect(await scan(/box-?shadow|boxShadow|backdrop-?filter|backdropFilter|text-?shadow|textShadow|drop-shadow/i)).toEqual([])
   })
+  // index.html squares every corner (border-radius: 0 !important); inline radii would be dead code
+  it('has no inline corner radii', async () => {
+    expect(await scan(/borderRadius|border-radius/)).toEqual([])
+  })
   // Hatching (repeating-linear-gradient) marks unavailable days and is allowed; the dot field lives in brand.css
   it('has no gradients or grain', async () => {
     expect(await scan(/(?<!repeating-)linear-gradient|radial-gradient|conic-gradient|linearGradient|radialGradient|feTurbulence/)).toEqual([])

@@ -47,7 +47,7 @@ export default function ResetPasswordPage() {
           </div>
         </div>
 
-        <div style={{ background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)', borderRadius: '20px', padding: '32px' }}>
+        <div style={{ background: 'var(--fill)', border: '1px solid var(--line)', padding: '32px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: '0 0 20px 0' }}>{t('auth.setNewPassword')}</h2>
 
           {authLoading ? (
@@ -68,7 +68,7 @@ export default function ResetPasswordPage() {
               <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
                 placeholder={t('auth.confirmPassword')} autoComplete="new-password" style={input} required />
               {error && (
-                <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: '13px' }}>
+                <div style={{ padding: '10px 14px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', color: 'var(--danger)', fontSize: '13px' }}>
                   {error}
                 </div>
               )}
@@ -86,13 +86,13 @@ export default function ResetPasswordPage() {
 
 const input = {
   width: '100%', padding: '11px 14px',
-  background: 'color-mix(in srgb, var(--shade) 30%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)',
-  borderRadius: '9px', color: 'var(--text)', fontSize: '14px',
+  background: 'var(--shade)', border: '1px solid var(--line)',
+  color: 'var(--text)', fontSize: '14px',
   fontFamily: 'var(--font-ui)', outline: 'none', boxSizing: 'border-box',
 }
 
 const btn = {
-  width: '100%', padding: '13px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+  width: '100%', padding: '13px', border: 'none', cursor: 'pointer',
   background: 'var(--accent)',
   color: 'var(--on-accent)', fontWeight: '700', fontSize: '15px', fontFamily: 'var(--font-ui)',
   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',

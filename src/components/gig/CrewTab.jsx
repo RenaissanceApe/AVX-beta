@@ -350,7 +350,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
           <input id="inv-email" type="email" value={form.email} onChange={e => { setClashes([]); setForm(f => ({ ...f, email: e.target.value })) }}
             onBlur={checkAvailability} placeholder={t('crew.emailPlaceholder')} style={input} required />
           {clashes.length > 0 && (
-            <div role="status" style={{ marginTop: '8px', padding: '9px 11px', borderRadius: '9px', background: 'var(--warn-soft)', border: '1px solid var(--warn)', fontSize: '12px', color: AMBER, lineHeight: 1.6 }}>
+            <div role="status" style={{ marginTop: '8px', padding: '9px 11px', background: 'var(--warn-soft)', border: '1px solid var(--warn)', fontSize: '12px', color: AMBER, lineHeight: 1.6 }}>
               <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
                 <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: '2px' }} />
                 {clashes.some(c => c.kind === 'booked') ? t('clash.advice', { name: form.email.trim() }) : t('clash.unavailableAdvice', { name: form.email.trim() })}
@@ -382,7 +382,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
           </div>
         </div>
         <div style={{
-          padding: '10px 13px', borderRadius: '9px', background: 'var(--selection)', border: '1px solid var(--accent)',
+          padding: '10px 13px', background: 'var(--selection)', border: '1px solid var(--accent)',
           fontSize: '12px', color: colors.muted, lineHeight: 1.6,
         }}>💡 {t('crew.inviteHint')}</div>
         <button type="submit" disabled={sending || (!picked && !form.email.trim())} style={{ ...btnPrimary, justifyContent: 'center', padding: '13px' }}>
@@ -457,7 +457,7 @@ function Positions({ gigId, isPM, userId, members, invites, onInvite, onCall }) 
         {positions.filter(p => !hidden.has(p.id)).map(pos => {
           const filled = filledFor(pos.title)
           return (
-            <div key={pos.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '10px', border: `1px solid ${colors.border}`, background: 'color-mix(in srgb, var(--fg) min(100%, calc(2% * var(--line-k))), transparent)' }}>
+            <div key={pos.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', border: `1px solid ${colors.border}`, background: 'var(--fill)' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: '14px' }}>{pos.title}</div>
                 {pos.notes && <div style={{ fontSize: '12px', color: colors.muted }}>{pos.notes}</div>}

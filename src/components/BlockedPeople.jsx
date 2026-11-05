@@ -35,7 +35,7 @@ export default function BlockedPeople({ style }) {
         {rows.map(r => (
           <li key={r.user_id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
             <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.full_name || t('common.someone')}</span>
-            <button type="button" onClick={() => unblock(r)} style={{ background: 'none', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', borderRadius: '8px', color: 'var(--soft)', padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}>
+            <button type="button" onClick={() => unblock(r)} style={{ background: 'none', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: 'var(--soft)', padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}>
               {t('chat.block.unblock')}
             </button>
           </li>

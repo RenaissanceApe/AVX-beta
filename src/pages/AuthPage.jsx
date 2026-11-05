@@ -128,7 +128,7 @@ export default function AuthPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'var(--font-ui)' }}>
       <div style={{ textAlign: 'center', maxWidth: '380px' }}>
         <div style={{
-          width: '72px', height: '72px', borderRadius: '20px', margin: '0 auto 24px',
+          width: '72px', height: '72px', margin: '0 auto 24px',
           background: 'var(--selection)', border: '1px solid var(--accent)',
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
@@ -149,8 +149,8 @@ export default function AuthPage() {
           </button>.
         </p>
         <button onClick={() => { setAwaitingConfirmation(false); setMode('signin') }} style={{
-          background: 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)',
-          borderRadius: '10px', padding: '11px 24px', color: 'var(--text)', fontSize: '14px',
+          background: 'var(--hover)', border: '1px solid var(--line-strong)',
+          padding: '11px 24px', color: 'var(--text)', fontSize: '14px',
           fontWeight: '600', fontFamily: 'var(--font-ui)', cursor: 'pointer'
         }}>
           {t('auth.backToSignIn')}
@@ -164,7 +164,7 @@ export default function AuthPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'var(--font-ui)' }}>
       <div style={{ textAlign: 'center', maxWidth: '380px' }}>
         <div style={{
-          width: '72px', height: '72px', borderRadius: '20px', margin: '0 auto 24px',
+          width: '72px', height: '72px', margin: '0 auto 24px',
           background: 'var(--selection)', border: '1px solid var(--accent)',
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
@@ -176,7 +176,7 @@ export default function AuthPage() {
         </p>
         <button onClick={() => setConfirmed(false)} style={{
           background: 'var(--accent)',
-          border: 'none', borderRadius: '10px', padding: '13px 32px',
+          border: 'none', padding: '13px 32px',
           color: 'var(--on-accent)', fontSize: '15px', fontWeight: '700',
           fontFamily: 'var(--font-ui)', cursor: 'pointer',
         }}>
@@ -212,12 +212,12 @@ export default function AuthPage() {
         }}>
           {/* Tab switcher */}
           <div style={{
-            display: 'flex', background: 'color-mix(in srgb, var(--shade) 30%, transparent)',
-            borderRadius: '10px', padding: '4px', marginBottom: '28px'
+            display: 'flex', background: 'var(--shade)',
+            padding: '4px', marginBottom: '28px'
           }}>
             {['signin', 'signup'].map(m => (
               <button key={m} onClick={() => { setMode(m); setError(''); setResetSent(false) }} style={{
-                flex: 1, padding: '8px', borderRadius: '7px', cursor: 'pointer',
+                flex: 1, padding: '8px', cursor: 'pointer',
                 fontSize: '13px', fontWeight: '600', fontFamily: 'var(--font-ui)',
                 transition: 'all 0.2s',
                 background: mode === m ? 'var(--selection)' : 'transparent',
@@ -310,7 +310,7 @@ export default function AuthPage() {
 
             {error && (
               <div role="alert" style={{
-                padding: '10px 14px', borderRadius: '8px',
+                padding: '10px 14px', 
                 background: 'var(--danger-soft)', border: '1px solid var(--danger)',
                 color: 'var(--danger)', fontSize: '13px'
               }}>
@@ -327,7 +327,7 @@ export default function AuthPage() {
 
             <button type="submit" disabled={loading} style={{
               marginTop: '4px',
-              padding: '13px', borderRadius: '10px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+              padding: '13px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
               background: loading ? 'var(--selection)' : 'var(--accent)',
               color: 'var(--on-accent)', fontWeight: '700', fontSize: '15px',
               fontFamily: 'var(--font-ui)',
@@ -370,9 +370,9 @@ export default function AuthPage() {
 
 const inputStyle = {
   width: '100%', padding: '11px 14px',
-  background: 'color-mix(in srgb, var(--shade) 30%, transparent)',
-  border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)',
-  borderRadius: '9px', color: 'var(--text)',
+  background: 'var(--shade)',
+  border: '1px solid var(--line)',
+  color: 'var(--text)',
   fontSize: '14px', fontFamily: 'var(--font-ui)',
   outline: 'none', boxSizing: 'border-box',
   transition: 'border-color 0.2s',

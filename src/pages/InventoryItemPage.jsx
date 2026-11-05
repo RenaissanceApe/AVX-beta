@@ -21,7 +21,7 @@ import { btn, btnPrimary, iconBtn, card, label, colors, StatusBadge } from '../c
 import { PageHelp } from '../components/help/HelpParts'
 
 const STATUS_TONE = { available: 'ok', repair: 'warn', lost: 'danger', retired: 'off' }
-const ghost = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }
+const ghost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
 const small = { ...ghost, padding: '5px 9px', fontSize: '12px' }
 
 // One catalogue item: details, stock per location (bulk) or per unit (serial), history.

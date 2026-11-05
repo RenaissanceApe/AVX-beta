@@ -160,7 +160,7 @@ export function ShiftModal({ gig, member, name, onClose, onSaved }) {
           </button>
           {member.booked_from && (
             <button type="button" disabled={saving} onClick={() => save({ booked_from: null, booked_until: null })}
-              style={{ ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }}>
+              style={{ ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }}>
               {t('shift.clear')}
             </button>
           )}

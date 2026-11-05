@@ -77,7 +77,7 @@ export default function SupplierLinkPage() {
 }
 
 const page = { minHeight: '100vh', background: '#e9edf1', color: '#111', padding: '16px', fontFamily: "'Inter', sans-serif" }
-const card = { maxWidth: '210mm', margin: '12px auto 0', background: '#fff', borderRadius: '6px', padding: '20px' }
+const card = { maxWidth: '210mm', margin: '12px auto 0', background: '#fff', padding: '20px' }
 const th = { textAlign: 'left', fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: '#666', padding: '6px', borderBottom: '1px solid #ccc' }
 const td = { padding: '7px 6px', borderBottom: '1px solid #eee' }
-const langBtn = { background: 'none', border: '1px solid #c5ccd4', borderRadius: '6px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer', color: '#111' }
+const langBtn = { background: 'none', border: '1px solid #c5ccd4', padding: '4px 8px', fontSize: '12px', cursor: 'pointer', color: '#111' }

@@ -214,20 +214,20 @@ const overlay = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'calc(16px + var(--safe-top)) 16px 16px'
 }
 const panel = {
-  background: 'var(--panel)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', borderRadius: '18px',
+  background: 'var(--panel)', border: '1px solid var(--line-strong)', 
   padding: '24px', width: '100%', maxWidth: '520px', animation: 'fadeIn 0.2s ease', color: 'var(--text)',
   maxHeight: 'calc(100dvh - 32px - var(--safe-top))', overflowY: 'auto',
 }
 const row = {
   display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
-  border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)', borderRadius: '12px'
+  border: '1px solid var(--line)'
 }
 const input = {
-  width: '100%', padding: '10px 12px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)',
-  borderRadius: '9px', color: 'var(--text)', fontSize: '14px', outline: 'none'
+  width: '100%', padding: '10px 12px', background: 'var(--shade)', border: '1px solid var(--line)',
+  color: 'var(--text)', fontSize: '14px', outline: 'none'
 }
 const smallBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 14px', borderRadius: '9px',
+  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 14px', 
   border: '1px solid var(--accent)', background: 'var(--selection)', color: 'var(--accent-text)',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0
 }

@@ -15,7 +15,7 @@ export default function EmptyState({ icon, title, body, action, onAction, action
     <div style={{ textAlign: 'center', padding: compact ? '28px 16px' : '56px 24px' }}>
       {icon && (
         <div aria-hidden="true" style={{
-          width: compact ? '48px' : '64px', height: compact ? '48px' : '64px', borderRadius: compact ? '14px' : '18px', color: colors.accentText,
+          width: compact ? '48px' : '64px', height: compact ? '48px' : '64px', color: colors.accentText,
           background: 'var(--selection)', border: `1px solid var(--accent)`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', margin: `0 auto ${compact ? '12px' : '18px'}`,
         }}>{icon}</div>

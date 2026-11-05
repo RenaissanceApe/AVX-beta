@@ -138,5 +138,5 @@ export function TaskForm({ task, people, nameOf, templates = [], onSave, onClose
 }
 
 export const GigLink = ({ gig }) => (gig
-  ? <Link to={`/gig/${gig.id}?tab=tasks`} style={{ color: colors.accentText, background: 'var(--selection)', borderRadius: '6px', padding: '0 6px' }}>{gig.name}</Link>
+  ? <Link to={`/gig/${gig.id}?tab=tasks`} style={{ color: colors.accentText, background: 'var(--selection)', padding: '0 6px' }}>{gig.name}</Link>
   : null)

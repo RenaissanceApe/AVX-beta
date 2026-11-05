@@ -20,7 +20,7 @@ import { PageHelp } from '../components/help/HelpParts'
 const TABS = ['catalogue', 'locations', 'movements', 'maintenance', 'subrentals', 'reports']
 const TAB_ICONS = { catalogue: Package, locations: MapPin, movements: History, maintenance: Wrench, subrentals: Handshake, reports: BarChart3 }
 export const LOCATION_ICONS = { warehouse: Warehouse, vehicle: Truck, site: Building2, other: Box }
-const ghost = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }
+const ghost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
 
 // Inventory of one organisation: the catalogue with stock, locations and the stock ledger.
 //   /org/:orgId/inventory (?tab=locations|movements|maintenance|subrentals|reports)
@@ -109,7 +109,7 @@ function Catalogue({ inv, orgId, goLocations }) {
       <div role="group" aria-label={t('inv.filter')} style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '14px' }}>
         {['all', 'tracked', 'low', 'archived'].map(f => (
           <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f} style={{
-            padding: '5px 11px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+            padding: '5px 11px', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
             border: `1px solid ${filter === f ? 'var(--accent)' : colors.border}`,
             background: filter === f ? 'var(--selection)' : 'transparent', color: filter === f ? colors.accentText : f === 'low' && lowCount ? 'var(--warn)' : colors.soft,
           }}>{t(`inv.filterOpt.${f}`)}{f === 'low' && lowCount ? ` · ${lowCount}` : ''}</button>

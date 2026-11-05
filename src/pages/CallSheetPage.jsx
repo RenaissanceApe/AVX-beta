@@ -110,7 +110,7 @@ export default function CallSheetPage() {
     <div className="callsheet-page">
       <style>{`
         .callsheet-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
-        .sheet { max-width: 800px; margin: 0 auto; background: #fff; color: #111; border-radius: 8px; padding: 32px; font-size: 13px; }
+        .sheet { max-width: 800px; margin: 0 auto; background: #fff; color: #111; padding: 32px; font-size: 13px; }
         .sheet h1 { font-size: 24px; margin-bottom: 2px; }
         .sheet h2 { font-size: 12px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 22px 0 8px; border-bottom: 2px solid #111; padding-bottom: 4px; }
         .sheet table { width: 100%; border-collapse: collapse; }
@@ -141,7 +141,7 @@ export default function CallSheetPage() {
           @page { margin: 12mm; }
           body, .callsheet-page { background: #fff !important; padding: 0; }
           .toolbar, .toolbar-offline { display: none; }
-          .sheet { border-radius: 0; padding: 0; max-width: none; }
+          .sheet { padding: 0; max-width: none; }
           tr { break-inside: avoid; }
         }
       `}</style>
@@ -222,6 +222,6 @@ export default function CallSheetPage() {
 }
 
 const toolbarBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px',
+  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', 
   border: '1px solid #c5ccd4', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }

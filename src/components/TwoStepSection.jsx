@@ -113,7 +113,7 @@ export default function TwoStepSection({ label, input, smallBtn }) {
         ) : enrolling ? (
           <form onSubmit={confirm}>
             <p style={{ fontSize: '13px', color: 'var(--soft)', lineHeight: 1.6, marginBottom: '10px' }}>{t('mfa.scan')}</p>
-            <img src={enrolling.qr} alt={t('mfa.qrAlt')} width={180} height={180} style={{ background: '#fff', borderRadius: '10px', padding: '8px', display: 'block', marginBottom: '8px' }} />
+            <img src={enrolling.qr} alt={t('mfa.qrAlt')} width={180} height={180} style={{ background: '#fff', padding: '8px', display: 'block', marginBottom: '8px' }} />
             <p style={{ ...hint, marginTop: 0, wordBreak: 'break-all' }}>{t('mfa.manual')} <code style={{ color: 'var(--text)' }}>{enrolling.secret}</code></p>
             <label style={{ ...label, marginTop: '12px' }} htmlFor="mfa-enrol-code">{t('mfa.code')}</label>
             <div style={{ display: 'flex', gap: '8px' }}>

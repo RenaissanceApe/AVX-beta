@@ -475,7 +475,7 @@ function PowerPanel({ power, supply, canEdit, onSupply, watts }) {
               <strong>{supply.phases === 1 ? t('light.single') : `L${p.phase}`}</strong>
               <span style={{ color: p.load > 1 ? colors.danger : p.load > 0.8 ? 'var(--warn)' : undefined }}>{watts(p.watts)} · {t('light.ampsOf', { a: p.amps, max: supply.amps })}</span>
             </span>
-            <span aria-hidden="true" style={{ display: 'block', height: '6px', borderRadius: '3px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)', overflow: 'hidden', marginTop: '3px' }}>
+            <span aria-hidden="true" style={{ display: 'block', height: '6px', background: 'var(--hover)', overflow: 'hidden', marginTop: '3px' }}>
               <span style={{ display: 'block', height: '100%', width: `${Math.min(100, p.load * 100)}%`, background: p.load > 1 ? colors.danger : p.load > 0.8 ? 'var(--warn)' : colors.accent }} />
             </span>
           </li>

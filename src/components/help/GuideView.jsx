@@ -26,7 +26,7 @@ export default function GuideView({ id, compact = false }) {
           <li key={i} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
               <span aria-hidden="true" style={{
-                flexShrink: 0, width: '26px', height: '26px', borderRadius: '50%', background: colors.accent, color: 'var(--on-accent)',
+                flexShrink: 0, width: '26px', height: '26px', background: colors.accent, color: 'var(--on-accent)',
                 fontWeight: 700, fontSize: '14px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               }}>{i + 1}</span>
               <p style={{ fontSize: compact ? '14px' : '15px', lineHeight: 1.6, color: 'var(--text-2)', paddingTop: '2px' }}>
@@ -35,14 +35,14 @@ export default function GuideView({ id, compact = false }) {
             </div>
             {g.shots[i] && (
               <img src={shotUrl(g.shots[i])} alt="" loading="lazy" width={imgWidth} height={Math.round(imgWidth * 844 / 390)}
-                style={{ marginLeft: '36px', width: `${imgWidth}px`, maxWidth: 'calc(100% - 36px)', height: 'auto', borderRadius: '14px', border: `1px solid ${colors.border}`, background: 'var(--bg)' }} />
+                style={{ marginLeft: '36px', width: `${imgWidth}px`, maxWidth: 'calc(100% - 36px)', height: 'auto', border: `1px solid ${colors.border}`, background: 'var(--bg)' }} />
             )}
           </li>
         ))}
       </ol>
 
       {g.mistakes.length > 0 && (
-        <section style={{ marginTop: '24px', padding: '14px 16px', borderRadius: '12px', background: 'var(--warn-soft)', border: '1px solid var(--warn)' }}>
+        <section style={{ marginTop: '24px', padding: '14px 16px', background: 'var(--warn-soft)', border: '1px solid var(--warn)' }}>
           <H style={{ fontSize: '15px', fontWeight: 700, color: 'var(--yellow)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
             <AlertTriangle size={15} aria-hidden="true" /> {t('help.mistakes')}
           </H>
@@ -60,7 +60,7 @@ export default function GuideView({ id, compact = false }) {
           <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {g.terms.map(tid => (
               <li key={tid}>
-                <Link to={`/help#${tid}`} style={{ display: 'inline-block', padding: '5px 10px', borderRadius: '999px', border: `1px solid ${colors.border}`, color: colors.accentText, fontSize: '13px', textDecoration: 'none' }}>
+                <Link to={`/help#${tid}`} style={{ display: 'inline-block', padding: '5px 10px', border: `1px solid ${colors.border}`, color: colors.accentText, fontSize: '13px', textDecoration: 'none' }}>
                   {term(tid)?.term}
                 </Link>
               </li>

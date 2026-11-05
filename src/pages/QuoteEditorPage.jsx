@@ -511,7 +511,7 @@ function SaveTemplateModal({ orgId, userId, body, defaultName, onClose, onSaved 
   )
 }
 
-const btnGhost = { ...btn, background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(10% * var(--line-k))), transparent)', color: colors.soft }
+const btnGhost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
 // Square phase tabs: fill ground, a 2px accent top edge when selected, dashed when optional (not in the total)
 const tabStyle = (active, optional) => ({
   padding: '8px 14px', whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer', textAlign: 'left',

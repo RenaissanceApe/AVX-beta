@@ -134,7 +134,7 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
               <span style={{ fontSize: '12px', color: u.channels > UNIVERSE_SIZE ? 'var(--warn)' : colors.muted }}>{t('dmx.used', { used: u.channels, total: UNIVERSE_SIZE })}</span>
               {canEdit && <button type="button" onClick={() => repack(u.universe)} disabled={busy} style={{ ...btn, padding: '4px 10px', fontSize: '12px', marginLeft: 'auto' }}><ListRestart size={13} /> {t('dmx.repack')}</button>}
             </div>
-            <div aria-hidden="true" style={{ height: '6px', borderRadius: '3px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)', overflow: 'hidden', marginBottom: '8px' }}>
+            <div aria-hidden="true" style={{ height: '6px', background: 'var(--hover)', overflow: 'hidden', marginBottom: '8px' }}>
               <div style={{ height: '100%', width: `${Math.min(100, (100 * u.channels) / UNIVERSE_SIZE)}%`, background: colors.accent }} />
             </div>
             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>

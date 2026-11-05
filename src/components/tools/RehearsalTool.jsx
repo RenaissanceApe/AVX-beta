@@ -650,7 +650,7 @@ function NotePhoto({ path }) {
   if (!url) return null
   return (
     <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '6px' }}>
-      <img src={url} alt={t('rehearsal.photo')} style={{ maxWidth: '160px', maxHeight: '120px', borderRadius: '8px', objectFit: 'cover' }} />
+      <img src={url} alt={t('rehearsal.photo')} style={{ maxWidth: '160px', maxHeight: '120px', objectFit: 'cover' }} />
     </a>
   )
 }

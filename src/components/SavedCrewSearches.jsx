@@ -60,7 +60,7 @@ export default function SavedCrewSearches({ orgId, filters, onApply, openId }) {
     load()
   }
 
-  const chip = { display: 'inline-flex', alignItems: 'center', borderRadius: '999px', border: `1px solid var(--accent)`, overflow: 'hidden' }
+  const chip = { display: 'inline-flex', alignItems: 'center', border: `1px solid var(--accent)`, overflow: 'hidden' }
   const part = { background: 'none', border: 'none', color: colors.text, font: 'inherit', fontSize: '13px', cursor: 'pointer', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '6px' }
   return (
     <section aria-labelledby="cs-saved" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

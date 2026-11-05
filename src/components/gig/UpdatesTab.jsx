@@ -8,7 +8,7 @@ import ActivityTab from './ActivityTab'
 export default function UpdatesTab({ view, setView, feed, activity }) {
   const { t } = useI18n()
   const choice = on => ({
-    padding: '8px 14px', borderRadius: '999px', fontSize: '14px', fontWeight: 700, cursor: 'pointer',
+    padding: '8px 14px', fontSize: '14px', fontWeight: 700, cursor: 'pointer',
     border: `1px solid ${on ? colors.accent : colors.border}`, background: on ? 'var(--selection)' : 'transparent',
     color: on ? 'var(--text)' : colors.soft,
   })

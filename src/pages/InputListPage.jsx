@@ -47,7 +47,7 @@ export default function InputListPage() {
     <div className="inputs-page">
       <style>{`
         .inputs-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
-        .sheet { max-width: 900px; margin: 0 auto; background: #fff; color: #111; border-radius: 8px; padding: 28px; font-size: 13px; }
+        .sheet { max-width: 900px; margin: 0 auto; background: #fff; color: #111; padding: 28px; font-size: 13px; }
         .sheet h1 { font-size: 22px; margin-bottom: 2px; }
         .sheet table { width: 100%; border-collapse: collapse; margin-top: 16px; }
         .sheet th { text-align: left; font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; color: #555; padding: 5px 6px; border-bottom: 2px solid #111; }
@@ -62,7 +62,7 @@ export default function InputListPage() {
           @page { margin: 10mm; }
           body, .inputs-page { background: #fff !important; padding: 0; }
           .toolbar { display: none; }
-          .sheet { border-radius: 0; padding: 0; max-width: none; }
+          .sheet { padding: 0; max-width: none; }
           tr { break-inside: avoid; }
         }
       `}</style>
@@ -105,6 +105,6 @@ export default function InputListPage() {
 }
 
 const toolbarBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px',
+  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', 
   border: '1px solid #c5ccd4', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }

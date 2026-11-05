@@ -68,7 +68,7 @@ export function Hint({ id, label }) {
     <>
       <button ref={button} type="button" onClick={e => { e.preventDefault(); toggle() }} aria-expanded={open} aria-controls={open ? popId : undefined}
         aria-label={label ? t('help.hintFor', { field: label }) : t('help.hint')} title={t('help.hint')}
-        style={{ background: 'none', border: 'none', padding: '2px', margin: '-2px 0', cursor: 'pointer', color: open ? colors.accentText : colors.muted, display: 'inline-flex', verticalAlign: 'middle', borderRadius: '50%' }}>
+        style={{ background: 'none', border: 'none', padding: '2px', margin: '-2px 0', cursor: 'pointer', color: open ? colors.accentText : colors.muted, display: 'inline-flex', verticalAlign: 'middle',  }}>
         <Info size={14} aria-hidden="true" />
       </button>
       {open && <div ref={panel} id={popId} role="note" style={popStyle(place)}>{text}</div>}
@@ -135,7 +135,7 @@ export function PageHelp({ page: pageId }) {
   return (
     <>
       <button ref={button} type="button" onClick={() => setOpen(true)} aria-label={t('help.aboutPage', { page: entry.title })} title={t('help.aboutPage', { page: entry.title })}
-        style={{ background: 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`, borderRadius: '50%', width: '28px', height: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: colors.soft, flexShrink: 0, verticalAlign: 'middle' }}>
+        style={{ background: 'var(--hover)', border: `1px solid ${colors.border}`, width: '28px', height: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: colors.soft, flexShrink: 0, verticalAlign: 'middle' }}>
         <HelpCircle size={16} aria-hidden="true" />
       </button>
       {open && (
@@ -169,8 +169,8 @@ export function PageHelp({ page: pageId }) {
                           {list.map(id => (
                             <li key={id}>
                               <button type="button" onClick={() => setReading(id)} style={{
-                                width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '10px', cursor: 'pointer', textAlign: 'left',
-                                background: 'color-mix(in srgb, var(--fg) min(100%, calc(4% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`, color: 'var(--text)', fontSize: '14px', fontWeight: 600,
+                                width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', cursor: 'pointer', textAlign: 'left',
+                                background: 'var(--fill)', border: `1px solid ${colors.border}`, color: 'var(--text)', fontSize: '14px', fontWeight: 600,
                               }}>
                                 <span style={{ flex: 1 }}>{guide(id).title}</span> <ChevronRight size={15} color={colors.soft} aria-hidden="true" />
                               </button>

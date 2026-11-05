@@ -65,16 +65,16 @@ export default function FeedTab({ gigId, posts, userId, isPM, nameOf, onChanged 
           style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '14px', resize: 'none', lineHeight: 1.6, marginBottom: '10px' }} />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button onClick={() => setImportant(v => !v)} aria-pressed={important} style={{
-            display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer',
-            background: important ? 'var(--danger-soft)' : 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)',
-            border: important ? '1px solid var(--danger)' : '1px solid color-mix(in srgb, var(--fg) min(100%, calc(8% * var(--line-k))), transparent)',
+            display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', cursor: 'pointer',
+            background: important ? 'var(--danger-soft)' : 'var(--hover)',
+            border: important ? '1px solid var(--danger)' : '1px solid var(--line)',
             color: important ? colors.danger : colors.muted, fontSize: '12px', fontWeight: 600,
           }}>
             <AlertCircle size={13} /> {important ? t('feed.important') : t('feed.markImportant')}
           </button>
           <button onClick={post} disabled={posting || !canPost} style={{
-            display: 'flex', alignItems: 'center', gap: '6px', border: 'none', borderRadius: '8px', padding: '8px 16px',
-            background: canPost ? colors.accent : 'color-mix(in srgb, var(--fg) min(100%, calc(5% * var(--line-k))), transparent)',
+            display: 'flex', alignItems: 'center', gap: '6px', border: 'none', padding: '8px 16px',
+            background: canPost ? colors.accent : 'var(--line)',
             color: canPost ? 'var(--on-accent)' : 'var(--muted)', cursor: canPost ? 'pointer' : 'default', fontSize: '13px', fontWeight: 700,
           }}>
             {posting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('feed.post')}

@@ -126,7 +126,7 @@ export default function NotificationBell() {
               display: 'flex', gap: '10px', width: '100%', textAlign: 'left', padding: '11px 14px', cursor: 'pointer', color: 'var(--text)',
               background: n.read_at ? 'transparent' : 'var(--selection)', border: 'none', borderBottom: `1px solid ${colors.border}`,
             }}>
-              <span aria-hidden style={{ width: '7px', height: '7px', borderRadius: '50%', marginTop: '6px', flexShrink: 0, background: n.read_at ? 'transparent' : colors.accent }} />
+              <span aria-hidden style={{ width: '7px', height: '7px', marginTop: '6px', flexShrink: 0, background: n.read_at ? 'transparent' : colors.accent }} />
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'block', fontSize: '13px', lineHeight: 1.5 }}>{describeNotification(n, nameOf)}</span>
                 <span style={{ display: 'block', fontSize: '11px', color: colors.muted, marginTop: '2px' }}>{ago(n.created_at)}</span>

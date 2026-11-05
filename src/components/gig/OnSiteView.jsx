@@ -67,7 +67,7 @@ export default function OnSiteView({ gig, schedule, tools, tasks = [], userId, m
         {items.length === 0 ? <p style={{ fontSize: '14px', color: colors.muted }}>{t('onsite.nothingToday')}</p> : (
           <ol style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {items.map(s => (
-              <li key={s.id} style={{ display: 'flex', gap: '12px', alignItems: 'baseline', padding: '8px 10px', borderRadius: '10px', background: s.now ? 'var(--selection)' : 'transparent', border: s.next ? `1px dashed ${colors.border}` : '1px solid transparent' }}>
+              <li key={s.id} style={{ display: 'flex', gap: '12px', alignItems: 'baseline', padding: '8px 10px', background: s.now ? 'var(--selection)' : 'transparent', border: s.next ? `1px dashed ${colors.border}` : '1px solid transparent' }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '17px', minWidth: '4.5em' }}>{shortTime(s.start_time)}</span>
                 <span style={{ flex: 1, minWidth: 0, fontSize: '15px' }}>
                   <strong>{s.title}</strong>{s.location ? <span style={{ color: colors.muted }}> · {s.location}</span> : null}

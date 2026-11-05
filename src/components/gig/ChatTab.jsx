@@ -48,7 +48,7 @@ export default function ChatTab({ gigId, canPost }) {
   if (failed) return <p style={{ color: colors.muted, fontSize: '14px', textAlign: 'center', padding: '40px 16px' }}>{t('chat.unavailable')}</p>
   if (!mainId) return <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
   const chip = active => ({
-    display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '16px', font: 'inherit', fontSize: '13px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+    display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', font: 'inherit', fontSize: '13px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
     border: `1px solid ${active ? colors.accent : colors.border}`, background: active ? 'var(--selection)' : 'transparent', color: active ? colors.accentText : colors.soft,
   })
   const conversationId = selected === 'all' ? mainId : departmentId

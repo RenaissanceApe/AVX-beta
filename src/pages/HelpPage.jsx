@@ -37,7 +37,7 @@ export default function HelpPage() {
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '12px' }}>
             <label htmlFor="help-lang" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>{t('help.language')}</label>
             <select id="help-lang" value={lang} onChange={e => setLang(e.target.value)}
-              style={{ background: 'transparent', color: 'var(--text-2)', border: `1px solid ${colors.border}`, borderRadius: '8px', padding: '4px 8px', fontSize: '13px' }}>
+              style={{ background: 'transparent', color: 'var(--text-2)', border: `1px solid ${colors.border}`, padding: '4px 8px', fontSize: '13px' }}>
               {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
             </select>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontWeight: 700 }}>
@@ -61,8 +61,8 @@ export default function HelpPage() {
                   {guidesByRole(role).map(id => (
                     <li key={id}>
                       <Link to={`/help/guide/${id}`} style={{
-                        display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderRadius: '12px', textDecoration: 'none',
-                        background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)', border: `1px solid ${colors.border}`, color: 'var(--text)', fontSize: '15px', fontWeight: 600,
+                        display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', textDecoration: 'none',
+                        background: 'var(--fill)', border: `1px solid ${colors.border}`, color: 'var(--text)', fontSize: '15px', fontWeight: 600,
                       }}>
                         <span style={{ flex: 1 }}>{guide(id).title}</span> <ChevronRight size={16} color="var(--soft)" aria-hidden="true" />
                       </Link>
@@ -80,14 +80,14 @@ export default function HelpPage() {
             <div style={{ position: 'relative', marginBottom: '8px' }}>
               <Search size={16} color="var(--soft)" aria-hidden="true" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder={t('help.searchPlaceholder')} aria-label={t('help.search')}
-                style={{ width: '100%', padding: '11px 12px 11px 36px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', borderRadius: '10px', color: 'var(--text)', fontSize: '15px' }} />
+                style={{ width: '100%', padding: '11px 12px 11px 36px', background: 'var(--shade)', border: '1px solid var(--line-strong)', color: 'var(--text)', fontSize: '15px' }} />
             </div>
             <p role="status" style={{ fontSize: '13px', color: 'var(--soft)', marginBottom: '16px' }}>{t('help.termCount', { count: list.length })}</p>
 
             <dl style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {list.map(x => (
                 <div key={x.id} id={`term-${x.id}`} tabIndex={-1} style={{
-                  padding: '14px 16px', borderRadius: '12px', background: 'color-mix(in srgb, var(--fg) min(100%, calc(3% * var(--line-k))), transparent)',
+                  padding: '14px 16px', background: 'var(--fill)',
                   border: `1px solid ${x.id === target ? 'var(--accent)' : colors.border}`, outline: 'none',
                 }}>
                   <dt style={{ color: 'var(--text)', fontSize: '16px', fontWeight: 700 }}>{x.term}</dt>

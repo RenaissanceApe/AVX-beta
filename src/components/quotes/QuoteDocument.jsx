@@ -202,14 +202,14 @@ export default function QuoteDocument({ quote, org = {}, branding = {}, toolbar,
 
 
 export const toolbarBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px',
+  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', 
   border: '1px solid #ccc', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }
 
 const QUOTE_PRINT_CSS = `
   .quote-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
   .toolbar { max-width: 210mm; margin: 0 auto 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .doc { max-width: 210mm; margin: 0 auto; background: #fff; color: #1a1a1a; border-radius: 6px; overflow: hidden;
+  .doc { max-width: 210mm; margin: 0 auto; background: #fff; color: #1a1a1a; overflow: hidden;
     font-family: 'Inter', 'DM Sans', sans-serif; font-weight: 300; font-size: 10.5pt; line-height: 1.45;
     -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .doc .pre { white-space: pre-line; }
@@ -229,7 +229,7 @@ const QUOTE_PRINT_CSS = `
   .block { margin-top: 9mm; }
   .qh { font-size: 11pt; font-weight: 700; margin: 0 0 4mm; display: flex; align-items: baseline; gap: 8px; position: relative; padding-top: 6px; break-after: avoid; }
   .qh .bar { position: absolute; top: 0; left: 0; width: 15mm; height: 2px; }
-  .qh .opt { font-size: 8pt; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em; background: #fdf0d5; color: #8a5a00; padding: 1px 6px; border-radius: 4px; }
+  .qh .opt { font-size: 8pt; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em; background: #fdf0d5; color: #8a5a00; padding: 1px 6px; }
   .sec { margin-bottom: 6mm; }
   .sec h3 { font-size: 10.5pt; font-weight: 700; margin: 0 0 2mm; break-after: avoid; }
   .lines { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -267,7 +267,7 @@ const QUOTE_PRINT_CSS = `
     @page { size: A4; margin: 0; }
     html, body, #root, .quote-page { background: #fff !important; padding: 0 !important; margin: 0 !important; }
     .toolbar, .screen-banner, .screen-foot, .no-print { display: none !important; }
-    .doc { max-width: none; border-radius: 0; overflow: visible; }
+    .doc { max-width: none; overflow: visible; }
     /* Fixed elements repeat on every printed page; the table head/foot reserve their space */
     .print-banner { display: block; position: fixed; top: 0; left: 0; right: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .print-foot { display: block; position: fixed; bottom: 7mm; left: 18mm; right: 18mm; font-family: 'Inter', sans-serif; font-weight: 300; font-size: 8.5pt; color: #666; }

@@ -352,7 +352,7 @@ function useWide() {
 const SETTINGS_CSS = `
 .settings { max-width: 1040px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 760px) { .settings { grid-template-columns: 240px minmax(0, 1fr); } .settings-nav { position: sticky; top: 76px; align-self: start; } }
-.settings-link { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 10px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; }
+.settings-link { display: flex; align-items: center; gap: 10px; padding: 11px 12px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; }
 .settings-link:hover { background: color-mix(in srgb, var(--fg) 6%, transparent); }
 .settings-link.on { background: var(--selection); color: var(--accent-text); }
 .settings-link:focus-visible, .settings-back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -361,17 +361,17 @@ const SETTINGS_CSS = `
 .settings-body { min-width: 0; max-width: 620px; }
 `
 
-const section = { marginBottom: '22px', paddingBottom: '22px', borderBottom: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(6% * var(--line-k))), transparent)' }
+const section = { marginBottom: '22px', paddingBottom: '22px', borderBottom: '1px solid var(--line)' }
 const label = {
   display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--muted)',
   fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px'
 }
 const input = {
-  width: '100%', padding: '10px 13px', background: 'color-mix(in srgb, var(--shade) 40%, transparent)', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(9% * var(--line-k))), transparent)',
-  borderRadius: '9px', color: 'var(--text)', fontSize: '14px', outline: 'none'
+  width: '100%', padding: '10px 13px', background: 'var(--shade)', border: '1px solid var(--line)',
+  color: 'var(--text)', fontSize: '14px', outline: 'none'
 }
 const smallBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 14px', borderRadius: '9px',
+  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 14px', 
   border: '1px solid var(--accent)', background: 'var(--selection)', color: 'var(--accent-text)',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0
 }

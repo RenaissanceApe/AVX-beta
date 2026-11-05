@@ -65,7 +65,7 @@ function Spinner() {
     }}>
       <div role="status" aria-label={t('common.loading')} style={{
         width: '32px', height: '32px', border: '3px solid var(--accent)',
-        borderTopColor: 'var(--accent)', borderRadius: '50%',
+        borderTopColor: 'var(--accent)', 
         animation: 'spin 0.8s linear infinite'
       }} />
     </div>
