@@ -46,25 +46,25 @@ without reading its code first.
    use.
 10. Database test files avoid `delete` statements, so they can run through the Supabase connector.
 
-## Definitions (proposed; agreed with the owner in K1)
+## Definitions (agreed with the owner in K1, 2026-11-05)
 
 | Number | Definition |
 |---|---|
 | **Revenue (net)** | Priced lines of accepted quotes: line total × (1 − phase discount) × (1 − quote discount). Optional phases and comments left out. Excl. VAT, per currency. May differ by a cent from the quote's total (rounding) |
-| **Report date** | Everything that belongs to a gig is dated by the gig's start date, so a gig's margin is never split across months. A quote with no gig: its first phase date, else its issue date. Expenses: their date (capital ones spread over their months). Sales figures use the sent and decided dates; cash figures use invoice, due and payment dates |
-| **Gig revenue** | All accepted quotes linked to the gig. None accepted: the newest sent quote, marked estimate |
+| **Report date** | Everything that belongs to a gig is dated by the gig's start date, so a gig's margin is never split across months (a tour from March to May counts in March). A quote with no gig: its first phase date, else its issue date. Expenses: their date (capital ones spread over their months). Sales figures use the sent and decided dates; cash figures use invoice, due and payment dates |
+| **Gig revenue** | All accepted quotes linked to the gig, after line, phase and quote discounts. None accepted: the newest sent quote, marked estimate. Draft quotes never count, not even as an estimate |
 | **Labour cost** | Approved hours × agreed fee or rate (actual) → agreed fee → rate card (estimate). Fixed fees ignore hours |
 | **Direct costs** | Labour; confirmed or returned subrentals (the supplier's price, else the lines); repairs on the gig not charged to the client; gig expenses (kind "direct"); cost of goods sold (sale lines × the item's cost price); transport (after step 23). A linked expense replaces the planned amount |
 | **Gross margin** | Revenue − direct costs; margin % = gross margin ÷ revenue |
 | **Operating result** | Gross margin − overhead expenses − depreciation (equipment and capital expenses) |
 | **Equipment profit** | Item revenue − depreciation in the period − repairs not charged − inspections − hire-in for the item − losses at replacement value |
 | **Payback** | Revenue since purchase ÷ purchase cost; the date it reached 1 |
-| **Equipment use** | As I7: booked unit-days on confirmed gigs (prep and return days included) ÷ owned unit-days, up to today |
+| **Equipment use** | As I7: booked unit-days on confirmed gigs (prep and return days included) ÷ owned unit-days, up to today. "Last 90 days" means the 90 days up to today |
 | **Staff utilisation** | Booked working days ÷ (working days − leave − public holidays) |
 | **Win rate** | Accepted ÷ (accepted + declined), decided in the period, by count and by value. Quotes past their validity with no answer are "expired" and stay out of the rate |
 | **Crew day** | A calendar day someone is booked on a gig (their booking, else the gig's dates) |
-| **Periods** | Calendar months in the organisation's time zone; weeks start on Monday; compared with the previous period of the same length or the same period last year |
-| **Who sees what** | Money only where `can_see_finance` allows (D23). Per-person money (one person's hours and cost) admins only by default. Crew only ever see their own rows; viewers see no numbers |
+| **Periods** | Calendar months in the organisation's time zone; weeks start on Monday. This month, last month, this quarter, this year, last 12 months (this month and the 11 before it, whole months) or custom. Compared with the previous period of the same length or the same period last year; a period not yet over is compared day for day (1–5 November with 1–5 October), and the report says so |
+| **Who sees what** | Money only where `can_see_finance` allows (D23). Per-person money (one person's hours and cost) admins only by default. Crew only ever see their own rows; viewers see no numbers. So the Reports area and the Home strip, even their tiles without money, are for admins and members only |
 
 ## Starting point (what exists, 2026-11-02)
 
