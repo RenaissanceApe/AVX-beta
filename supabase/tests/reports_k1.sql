@@ -9,7 +9,7 @@
 do $$
 declare
   fx jsonb := $fixtures${
-  "about": "Shared fixtures for the revenue rule (docs/ANALYTICS.md). Checked by src/lib/analytics/revenue.test.js and, copied verbatim, by supabase/tests/reports_k1.sql (a Vitest test keeps the copy equal). Change both twins together.",
+  "about": "Shared fixtures for the revenue rule (docs/ANALYTICS.md). Checked by src/lib/analytics/revenue.test.js and, copied verbatim, by supabase/tests/reports_k1.sql (a Vitest test keeps the copy equal). Change both twins together. Since step 11 each line carries its VAT rate (its own, else the quote's); the net amounts are unchanged.",
   "gigs": [
     { "id": "a0000000-0000-4000-8000-000000000001", "name": "Last day of October", "start_date": "2026-10-31", "end_date": "2026-11-02", "status": "confirmed" },
     { "id": "a0000000-0000-4000-8000-000000000002", "name": "First of November", "start_date": "2026-11-01", "end_date": "2026-11-01", "status": "confirmed" },
@@ -20,19 +20,19 @@ declare
       "issue_date": "2026-09-01", "currency": "EUR", "discount_pct": 10, "client_company": "Alpha Events",
       "body": { "phases": [
         { "id": "p11", "name": "Show", "start_date": "2026-10-31", "discount_pct": 50, "sections": [{ "id": "s11", "name": "", "lines": [
-          { "id": "l111", "kind": "rental", "description": "Speaker", "qty": 2, "factor": 1, "unit_price": 100 },
-          { "id": "l112", "kind": "crew", "description": "FOH engineer", "qty": 1, "factor": 2, "unit_price": 300 },
+          { "id": "l111", "kind": "rental", "description": "Speaker", "qty": 2, "factor": 1, "unit_price": 100, "vat_rate": 23 },
+          { "id": "l112", "kind": "crew", "description": "FOH engineer", "qty": 1, "factor": 2, "unit_price": 300, "vat_rate": 6 },
           { "id": "l113", "kind": "comment", "description": "Note", "qty": 1, "factor": 1, "unit_price": 999 }
         ] }] },
         { "id": "p12", "name": "Extra day", "optional": true, "discount_pct": 0, "sections": [{ "id": "s12", "name": "", "lines": [
           { "id": "l121", "kind": "rental", "description": "Speaker", "qty": 9, "factor": 1, "unit_price": 100 }
         ] }] },
         { "id": "p13", "name": "Travel", "discount_pct": 0, "sections": [{ "id": "s13", "name": "", "lines": [
-          { "id": "l131", "kind": "transport", "description": "Van", "qty": 120, "factor": 1, "unit_price": 0.45 }
+          { "id": "l131", "kind": "transport", "description": "Van", "qty": 120, "factor": 1, "unit_price": 0.45, "vat_rate": 0, "vat_exemption": "M40" }
         ] }] }
       ] } },
     { "id": "b0000000-0000-4000-8000-000000000002", "title": "Q2 rounding", "status": "accepted", "gig_id": "a0000000-0000-4000-8000-000000000002",
-      "issue_date": "2026-10-20", "currency": "EUR", "discount_pct": 0, "client_name": "Beatriz",
+      "issue_date": "2026-10-20", "currency": "EUR", "discount_pct": 0, "vat_rate": 23, "client_name": "Beatriz",
       "body": { "phases": [
         { "id": "p21", "name": "", "discount_pct": 12.5, "sections": [{ "id": "s21", "name": "", "lines": [
           { "id": "l211", "kind": "other", "description": "Power", "qty": 3, "factor": 1, "unit_price": 33.33, "discount_pct": 5 },
@@ -40,7 +40,7 @@ declare
         ] }] }
       ] } },
     { "id": "b0000000-0000-4000-8000-000000000003", "title": "Q3 no gig, dated by its first phase", "status": "accepted", "gig_id": null,
-      "issue_date": "2026-09-15", "currency": "USD", "discount_pct": 0, "client_company": "Gamma Inc",
+      "issue_date": "2026-09-15", "currency": "USD", "discount_pct": 0, "vat_rate": 13, "client_company": "Gamma Inc",
       "body": { "phases": [
         { "id": "p31", "name": "Option", "optional": true, "start_date": "2026-10-01", "discount_pct": 0, "sections": [{ "id": "s31", "name": "", "lines": [
           { "id": "l311", "kind": "rental", "description": "Screen", "qty": 1, "factor": 1, "unit_price": 500 }
@@ -85,12 +85,14 @@ declare
     { "from": "2026-10-01", "until": "2026-11-01",
       "expect": { "lines": 3, "totals": { "EUR": 408.6 },
         "amounts": { "l111": 90, "l112": 270, "l131": 48.6 },
+        "vat": { "l111": 23, "l112": 6, "l131": 0 },
         "dates": { "b0000000-0000-4000-8000-000000000001": "2026-10-31" } } },
     { "from": "2026-11-01", "until": "2026-12-01",
       "expect": { "lines": 6, "totals": { "EUR": 155, "USD": 1250 },
         "amounts": { "l211": 83.12, "l212": 21.88, "l321": 1000, "l331": 250, "l411": 0, "l412": 50 },
         "dates": { "b0000000-0000-4000-8000-000000000002": "2026-11-01", "b0000000-0000-4000-8000-000000000003": "2026-11-03", "b0000000-0000-4000-8000-000000000004": "2026-11-30" },
-        "phase_start": { "l321": "2026-11-15", "l331": "2026-11-03", "l211": null } } },
+        "phase_start": { "l321": "2026-11-15", "l331": "2026-11-03", "l211": null },
+        "vat": { "l321": 13, "l331": 13, "l211": 23 } } },
     { "from": "2026-12-01", "until": "2027-01-01",
       "expect": { "lines": 1, "totals": { "EUR": 100 }, "amounts": { "l811": 100 },
         "dates": { "b0000000-0000-4000-8000-000000000008": "2026-12-01" } } }
@@ -131,9 +133,9 @@ begin
     values ((g ->> 'id')::uuid, org_a, g ->> 'name', (g ->> 'start_date')::date, (g ->> 'end_date')::date, g ->> 'status', a);
   end loop;
   for q in select * from jsonb_array_elements(fx -> 'quotes') loop
-    insert into quotes (id, org_id, title, status, gig_id, issue_date, currency, discount_pct, client_company, client_name, body)
+    insert into quotes (id, org_id, title, status, gig_id, issue_date, currency, discount_pct, vat_rate, client_company, client_name, body)
     values ((q ->> 'id')::uuid, org_a, q ->> 'title', q ->> 'status', (q ->> 'gig_id')::uuid, (q ->> 'issue_date')::date,
-            q ->> 'currency', (q ->> 'discount_pct')::numeric, q ->> 'client_company', q ->> 'client_name', q -> 'body');
+            q ->> 'currency', (q ->> 'discount_pct')::numeric, coalesce((q ->> 'vat_rate')::numeric, 23), q ->> 'client_company', q ->> 'client_name', q -> 'body');
   end loop;
   reset role;
   insert into gig_members (gig_id, user_id, role) values ('a0000000-0000-4000-8000-000000000002', c, 'crew');
@@ -166,6 +168,11 @@ begin
     for k, val in select * from jsonb_each(coalesce(cs -> 'expect' -> 'phase_start', '{}')) loop
       select l.phase_start into d from report_revenue_lines(org_a, (cs ->> 'from')::date, (cs ->> 'until')::date) l where l.line_id = k;
       if d is distinct from (val #>> '{}')::date then raise exception 'CHECK FAILED: phase start of %', k; end if;
+    end loop;
+    -- Step 11: each line's VAT rate (its own, else the quote's), read from the rule's view
+    for k, val in select * from jsonb_each(coalesce(cs -> 'expect' -> 'vat', '{}')) loop
+      select l.vat_rate into amt from private.report_quote_lines l where l.org_id = org_a and l.line_id = k;
+      if amt is distinct from (val #>> '{}')::numeric then raise exception 'CHECK FAILED: VAT rate of % is % (expected %)', k, amt, val; end if;
     end loop;
   end loop;
   -- Each row carries its gig and client

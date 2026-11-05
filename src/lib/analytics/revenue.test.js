@@ -14,6 +14,7 @@ describe('the revenue rule (shared fixtures)', () => {
         expect(rows.filter(r => r.quote_id === quote).every(r => r.report_date === date)).toBe(true)
       }
       for (const [line, date] of Object.entries(c.expect.phase_start || {})) expect(rows.find(r => r.line_id === line)?.phase_start).toBe(date)
+      for (const [line, rate] of Object.entries(c.expect.vat || {})) expect(rows.find(r => r.line_id === line)?.vat_rate).toBe(rate)
     })
   }
 

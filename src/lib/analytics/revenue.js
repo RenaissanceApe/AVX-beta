@@ -1,4 +1,4 @@
-import { normalizeBody, lineTotal, round2 } from '../quotes'
+import { normalizeBody, lineTotal, lineVatRate, round2 } from '../quotes'
 
 // The revenue rule (docs/ANALYTICS.md, "Definitions"). Its twin in the database is
 // public.report_revenue_lines (supabase/migrations/20261220000000_reports_k1.sql); both are
@@ -10,7 +10,8 @@ import { normalizeBody, lineTotal, round2 } from '../quotes'
 // phases and comments are left out. Excl. VAT, in the quote's currency.
 // Report date: the gig's start date; a quote with no gig (or a gig with no date) takes its first
 // dated phase (optional ones skipped), else its issue date. Each line also carries its own
-// phase's start date, for a later rule that dates by phase.
+// phase's start date, for a later rule that dates by phase, and (step 11) its VAT rate: its own,
+// else the quote's. VAT never changes the amount, which stays excl. VAT.
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/
 const pct = v => Math.min(100, Math.max(0, Number(v) || 0))
@@ -39,7 +40,7 @@ export function quoteRevenueLines(quote, gig = null, client = null) {
       out.push({
         quote_id: quote.id, quote_number: quote.number ?? null, line_id: l.id, phase_id: p.id,
         kind: l.kind, item_id: l.item_id || null, description: l.description,
-        amount: round2(lineTotal(l) * factor), currency: quote.currency || 'EUR',
+        amount: round2(lineTotal(l) * factor), currency: quote.currency || 'EUR', vat_rate: lineVatRate(l, quote),
         report_date: reportDate, phase_start: phaseStart,
         gig_id: gig?.id || quote.gig_id || null, gig_name: gig?.name ?? null, gig_type_id: gig?.gig_type_id ?? null,
         gig_status: gig?.status ?? null, gig_custom_status_id: gig?.custom_status_id ?? null,
