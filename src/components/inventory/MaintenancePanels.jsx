@@ -10,6 +10,7 @@ import { formatMoney, localISODate } from '../../lib/quotes'
 import { taskFromRepair } from '../../lib/tasks'
 import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, input, label, card, colors } from '../ui'
+import LinkedExpense from '../expenses/LinkedExpense'
 import ContextThread from '../messages/ContextThread'
 import { HintLabel } from '../help/HelpParts'
 
@@ -179,6 +180,12 @@ export function RepairModal({ orgId, repair, items = [], preset = {}, onClose, o
         <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <button type="button" onClick={makeTask} disabled={taskBusy} style={btn}><ListTodo size={14} /> {t('repair.makeTask')}</button>
           <Link to={`/org/${orgId}/tasks`} style={{ fontSize: '12px', color: colors.accentText }}>{t('repair.seeTasks')}</Link>
+        </div>
+      )}
+      {repair && (
+        <div style={{ marginTop: '12px' }}>
+          <LinkedExpense orgId={orgId} kind="repair" id={repair.id} planned={repair.cost}
+            preset={{ gig_id: repair.gig_id || '', supplier_name: repair.repairer || '', description: t('expenses.repairDescription', { problem: repair.problem.slice(0, 120) }), category_starter: 'repairs_parts' }} />
         </div>
       )}
       {repair && <div style={{ marginTop: '14px' }}><ContextThread type="repair" id={repair.id} height="260px" /></div>}

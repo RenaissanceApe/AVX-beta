@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Coins, Pencil, Loader2, Check } from 'lucide-react'
+import { Coins, Pencil, Loader2, Check, Receipt } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -10,6 +10,7 @@ import { useRateCard } from '../../lib/useCrewRates'
 import { personActual } from '../../lib/timeRegistration'
 import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import ExpenseForm from '../expenses/ExpenseForm'
 
 const money = (v, lang) => formatMoney(v, 'EUR', lang)
 
@@ -23,13 +24,15 @@ export function feeText(f, t, lang) {
 // Labour cost on a gig's Crew tab, for the people who run the gig (docs/TOOLS_PLAN.md step 7): what
 // each person costs (the fee agreed with them, else the rate card's suggestion), the total, and
 // the margin against the crew lines of the gig's quote.
-export function LabourCost({ gig, members, nameOf, refreshKey }) {
+export function LabourCost({ gig, members, nameOf, refreshKey, canFinance = false }) {
   const { t, lang } = useI18n()
   const card = useRateCard(gig.org_id)
   const [fees, setFees] = useState(null)
   const [quotes, setQuotes] = useState([])
   const [hours, setHours] = useState([])
   const [editing, setEditing] = useState(null) // labour line
+  const [invoices, setInvoices] = useState([]) // expenses linked to a crew fee (step 9b): the actual amount
+  const [invoicing, setInvoicing] = useState(null) // labour line
 
   const load = useCallback(async () => {
     const [f, h, q] = await Promise.all([
@@ -40,7 +43,12 @@ export function LabourCost({ gig, members, nameOf, refreshKey }) {
     setFees(f.data || [])
     setQuotes(q.data || [])
     setHours(h.data || [])
-  }, [gig.id, gig.org_id])
+    if (canFinance) {
+      const { data } = await supabase.from('expenses').select('id, crew_fee_user_id, amount_net, currency')
+        .eq('gig_id', gig.id).not('crew_fee_user_id', 'is', null).is('removed_at', null)
+      setInvoices(data || [])
+    }
+  }, [gig.id, gig.org_id, canFinance])
   useEffect(() => { load() }, [load, refreshKey])
 
   if (!fees || !members.length) return null
@@ -48,7 +56,9 @@ export function LabourCost({ gig, members, nameOf, refreshKey }) {
   const crew = quoteCrewRevenue(quotes)
   const sum = labourSummary(lines, crew?.revenue ?? null)
   // Actual cost from approved hours (step 8): each person's stored day costs, a fixed fee once
-  const actualOf = l => personActual(hours.filter(h => h.user_id === l.member.user_id), l.fee)
+  // and an invoice linked to the person's fee (an expense) replaces both as the actual amount
+  const invoiceOf = l => invoices.find(i => i.crew_fee_user_id === l.member.user_id && i.currency === 'EUR')
+  const actualOf = l => (invoiceOf(l) ? Number(invoiceOf(l).amount_net) : personActual(hours.filter(h => h.user_id === l.member.user_id), l.fee))
   const actuals = lines.map(actualOf)
   const actual = actuals.some(a => a != null) ? Math.round(actuals.reduce((s, a) => s + (a || 0), 0) * 100) / 100 : null
 
@@ -72,8 +82,11 @@ export function LabourCost({ gig, members, nameOf, refreshKey }) {
             </span>
             <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>
               {l.total != null ? money(l.total, lang) : '—'}
-              {actualOf(l) != null && <span style={{ display: 'block', fontSize: '12px', fontWeight: 400, color: colors.muted }}>{t('labour.actualShort', { amount: money(actualOf(l), lang) })}</span>}
+              {actualOf(l) != null && <span style={{ display: 'block', fontSize: '12px', fontWeight: 400, color: colors.muted }}>{t(invoiceOf(l) ? 'labour.invoicedShort' : 'labour.actualShort', { amount: money(actualOf(l), lang) })}</span>}
             </span>
+            {canFinance && l.source === 'agreed' && !invoiceOf(l) && (
+              <button type="button" onClick={() => setInvoicing(l)} aria-label={t('labour.addInvoiceFor', { name: nameOf(l.member.user_id) })} style={iconBtn}><Receipt size={14} /></button>
+            )}
             <button type="button" onClick={() => setEditing(l)} aria-label={t('labour.editFor', { name: nameOf(l.member.user_id) })} style={iconBtn}><Pencil size={14} /></button>
           </li>
         ))}
@@ -96,6 +109,12 @@ export function LabourCost({ gig, members, nameOf, refreshKey }) {
       </dl>
       {sum.missing > 0 && <p style={{ fontSize: '12px', color: 'var(--warn)', marginTop: '6px' }}>{t('labour.missing', { count: sum.missing })}</p>}
       {!crew && gig.org_id && <p style={{ fontSize: '12px', color: colors.muted, marginTop: '6px' }}>{t('labour.noQuote')}</p>}
+      {invoicing && (
+        <ExpenseForm orgId={gig.org_id} onClose={() => setInvoicing(null)} onSaved={load}
+          preset={{ gig_id: gig.id, gigs: [{ id: gig.id, name: gig.name, start_date: gig.start_date }], link_kind: 'crew_fee', link_id: invoicing.member.user_id,
+            link_text: nameOf(invoicing.member.user_id), amount_net: invoicing.total, vat_rate: 23, category_starter: 'freelance_crew',
+            description: t('labour.invoiceDescription', { name: nameOf(invoicing.member.user_id), gig: gig.name }) }} />
+      )}
       {editing && (
         <FeeModal gigId={gig.id} line={editing} name={nameOf(editing.member.user_id)} exists={fees.some(f => f.user_id === editing.member.user_id)}
           onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load() }} />

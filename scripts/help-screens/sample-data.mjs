@@ -152,6 +152,31 @@ export function sampleData(persona, lang) {
   const suppliers = [
     { id: 'sp1', org_id: orgId, name: 'Audiomatic', contact_name: 'Rui Costa', phone: '+351 912 000 000', email: 'rui@example.com', partner_org_id: null, archived_at: null },
   ]
+  // Expenses (step 9b): starter categories, this month's costs, a claim by Carla waiting, a recurring rent
+  const ym = new Date().toISOString().slice(0, 7)
+  const cat = (id, key, kind, extra = {}) => ({ id, org_id: orgId, starter_key: key, name: null, kind, spread_months: null, vat_recoverable: true, sort: 0, archived_at: null, ...extra })
+  const expenseCategories = [
+    cat('ec1', 'hire_in', 'direct'), cat('ec2', 'freelance_crew', 'direct'), cat('ec3', 'transport_fuel', 'direct'), cat('ec4', 'tolls_parking', 'direct'),
+    cat('ec5', 'meals_jobs', 'direct', { vat_recoverable: false }), cat('ec6', 'rent_utilities', 'overhead'), cat('ec7', 'insurance', 'overhead'),
+    cat('ec8', 'software', 'overhead'), cat('ec9', 'equipment', 'capital', { spread_months: 60 }), cat('ec10', 'taxes_fees', 'tax_other'),
+  ]
+  const ex = (id, d, extra) => ({ id, org_id: orgId, status: 'confirmed', spent_on: `${ym}-${d}`, supplier_id: null, supplier: null, supplier_name: null, category_id: null, vat_rate: 23,
+    currency: 'EUR', invoice_number: null, due_on: null, paid_on: null, paid_how: null, notes: null, receipt_path: null, receipt_name: null, gig_id: null, gig: null,
+    subrental_id: null, repair_id: null, crew_fee_user_id: null, stock_movement_id: null, stock_unit_id: null, recurrence_id: null, claimed_by: null, review_note: null,
+    removed_at: null, created_at: ago(48), updated_at: ago(48), ...extra, vat_amount: Math.round(extra.amount_net * (extra.vat_rate ?? 23)) / 100 })
+  const expenses = [
+    ex('ex1', '01', { description: tx('Renda do armazém', 'Warehouse rent'), supplier_name: tx('Imobiliária Tejo', 'Tejo Properties'), category_id: 'ec6', amount_net: 1200, paid_on: `${ym}-01`, paid_how: 'direct_debit', recurrence_id: 'rec1' }),
+    ex('ex2', '02', { description: tx('Subaluguer de colunas', 'Speaker hire-in'), supplier_id: 'sp1', supplier: { name: 'Audiomatic', tax_id: null }, category_id: 'ec1', amount_net: 640, invoice_number: 'FT 2026/318', due_on: day(10), subrental_id: 'sr1', gig_id: gigId, gig: { name: 'Marcolino — Natal' } }),
+    ex('ex3', '03', { description: tx('Gasóleo da carrinha', 'Diesel for the van'), supplier_name: 'Galp', category_id: 'ec3', amount_net: 81.3, paid_on: `${ym}-03`, paid_how: 'card', receipt_path: `${orgId}/ex3/r.jpg`, receipt_name: 'talao-galp.jpg' }),
+    ex('ex4', '04', { description: tx('Mesa de mistura Yamaha DM3', 'Yamaha DM3 mixing desk'), supplier_name: 'Thomann', category_id: 'ec9', amount_net: 1890, paid_on: `${ym}-04`, paid_how: 'transfer' }),
+    ex('ex5', '04', { description: tx('Licenças de software', 'Software licences'), supplier_name: 'Adobe', category_id: 'ec8', amount_net: 72.5, due_on: day(-2), invoice_number: 'IE-55120' }),
+    ex('ex6', '05', { description: tx('Portagens A1', 'A1 tolls'), category_id: 'ec4', amount_net: 21.5, vat_rate: 23, gig_id: gigId, gig: { name: 'Marcolino — Natal' }, claimed_by: carla, status: 'claimed', receipt_path: `${orgId}/ex6/r.jpg`, receipt_name: 'via-verde.pdf' }),
+    ex('ex7', '05', { description: tx('Seguro de equipamento', 'Equipment insurance'), supplier_name: 'Fidelidade', category_id: 'ec7', amount_net: 310, vat_rate: 0, status: 'draft', due_on: `${ym}-15`, recurrence_id: 'rec2' }),
+  ]
+  const expenseRecurrences = [
+    { id: 'rec1', org_id: orgId, description: tx('Renda do armazém', 'Warehouse rent'), supplier_id: null, supplier_name: tx('Imobiliária Tejo', 'Tejo Properties'), category_id: 'ec6', amount_net: 1200, vat_rate: 23, currency: 'EUR', paid_how: 'direct_debit', notes: null, every: 'month', starts_on: '2026-01-01', ends_on: null, drafted: 11, next_on: day(26), removed_at: null },
+    { id: 'rec2', org_id: orgId, description: tx('Seguro de equipamento', 'Equipment insurance'), supplier_id: null, supplier_name: 'Fidelidade', category_id: 'ec7', amount_net: 310, vat_rate: 0, currency: 'EUR', paid_how: 'transfer', notes: null, every: 'quarter', starts_on: '2026-02-05', ends_on: null, drafted: 4, next_on: day(90), removed_at: null },
+  ]
   const clients = [
     { id: 'c1', org_id: orgId, name: 'Marcolino Produções', contact_name: 'Marta Lopes', email: 'marta@example.com', phone: '+351 913 000 000', address: null, tax_id: null, notes: null, archived_at: null },
     { id: 'c2', org_id: orgId, name: tx('Câmara Municipal de Sintra', 'Sintra Town Council'), contact_name: tx('Paulo Reis', 'Paulo Reis'), email: 'eventos@example.com', phone: '+351 219 000 000', address: null, tax_id: 'PT 505 000 002', notes: null, archived_at: null },
@@ -312,6 +337,10 @@ export function sampleData(persona, lang) {
       inspections: [],
       suppliers,
       clients,
+      expense_categories: expenseCategories,
+      expenses: persona === 'pm' ? expenses : expenses.filter(e => e.claimed_by === carla),
+      expense_recurrences: expenseRecurrences,
+      org_finance_settings: [{ org_id: orgId, recovers_vat: true }],
       subrentals,
       quotes: [{ ...quote, organisations: org }],
       quote_versions: versions,
@@ -435,6 +464,9 @@ export function sampleData(persona, lang) {
         { item_id: PWC, owned: 40, booked: 0, available: 40 }, { item_id: QL1, owned: 1, booked: 0, available: 1 },
       ],
       announcement_status: [],
+      ensure_expense_categories: 0,
+      draft_recurring_expenses_now: 0,
+      supplier_spend: [{ supplier_id: 'sp1', supplier_name: 'Audiomatic', currency: 'EUR', expenses: 3, net: 2140, total: 2632.2, unpaid: 787.2 }],
     },
   }
 }
