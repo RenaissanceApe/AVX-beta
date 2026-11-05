@@ -276,9 +276,9 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   const home = page.url()
   // The key numbers on the organisation's Home, folded and unfolded
   const strip = page.locator('section[aria-labelledby="key-numbers"]')
-  await expect(strip.getByText('Gigs this month')).toBeVisible({ timeout: 15_000 })
+  await expect(strip.getByText('Gigs this month', { exact: true })).toBeVisible({ timeout: 15_000 })
   await strip.getByRole('button', { name: 'Key numbers' }).click()
-  await expect(strip.getByText('Gigs this month')).toHaveCount(0)
+  await expect(strip.getByText('Gigs this month', { exact: true })).toHaveCount(0)
   await strip.getByRole('button', { name: 'Key numbers' }).click()
   await strip.getByRole('link', { name: 'All reports' }).click()
   await expect(page).toHaveURL(/\/reports$/)
