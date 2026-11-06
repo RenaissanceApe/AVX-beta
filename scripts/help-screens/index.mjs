@@ -527,6 +527,30 @@ const SCENES = {
     await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
     return fig
   } },
+  'money-results': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&period=this_quarter`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'money-details': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&period=this_quarter`, async run(page, L) {
+    await page.getByLabel(L('reports.showDetails')).check()
+    const table = page.locator('table').last()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'money-margins': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&view=margins&by=client&period=this_quarter`, async run(page) {
+    const table = page.locator('table').last()
+    await table.waitFor()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'money-labour': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&view=labour&period=this_quarter`, async run(page) {
+    const table = page.locator('table').last()
+    await table.waitFor()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
   'home-key-numbers': { persona: 'pm', url: `/org/${ids.org}`, async run(page) {
     const box = page.locator('section[aria-labelledby="key-numbers"]')
     await box.locator('ul').waitFor()
@@ -691,7 +715,13 @@ async function newPhone(browser, persona, lang) {
     const single = (req.headers()['accept'] || '').includes('vnd.pgrst.object')
     if (req.method() === 'HEAD') return route.fulfill({ status: 200, headers: { 'access-control-expose-headers': 'content-range', 'access-control-allow-origin': '*', 'content-range': '0-0/0' }, body: '' })
     if (req.method() !== 'GET' && !p.startsWith('/rest/v1/rpc/')) return respond(route, single ? {} : [])
-    if (p.startsWith('/rest/v1/rpc/')) return respond(route, data.rpc[p.slice('/rest/v1/rpc/'.length)] ?? [])
+    if (p.startsWith('/rest/v1/rpc/')) {
+      // A sample answer, or a function of the call's arguments (K2: finance_results by p_group)
+      const answer = data.rpc[p.slice('/rest/v1/rpc/'.length)]
+      let args = {}
+      try { args = JSON.parse(req.postData() || '{}') } catch { /* no body */ }
+      return respond(route, typeof answer === 'function' ? answer(args) : answer ?? [])
+    }
     let rows = applyFilters(data.tables[p.slice('/rest/v1/'.length)] || [], url.searchParams)
     if (p === '/rest/v1/messages') rows = [...rows].sort((a, b) => b.created_at.localeCompare(a.created_at)) // newest first, as the app asks
     return respond(route, single ? rows[0] ?? null : rows)

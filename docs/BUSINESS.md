@@ -136,7 +136,7 @@ What each gig brings in and costs, for those who see money (admins and members, 
 | Export | Organisation export: a `gig_finance` file with every gig's row (the export function was renamed `export_org_part_pre_step10` and wrapped) |
 | Help | Term "gig margin", ⓘ `gig-finance`, guide `office-gig-finance` with two pictures (`gig-finance`, `reports-margins`); the Overview pictures were refreshed for the two new tiles |
 | Tests | `gig_finance.sql`: the fixtures' totals as a member who manages none of the gigs (and can't read fees or hours directly), the periods, the overview tiles, who may call each function (admin and member yes; viewer, crew, another organisation, anonymous no; the second sign-in step), the export file (admins only), 300 gigs with 5 people each under a second (about 90 ms on the test project). Vitest: the twin on the same fixtures, the totals, filters, estimates and saved fees; the signed-in e2e journey opens Gig margins with axe |
-| K2 | Builds `finance_results` on `gig_finance` |
+| K2 | `finance_results` builds on `gig_finance` (built, 0.75.0; docs/ANALYTICS.md, "How K2 works") |
 
 ## How invoices work (step 11, 0.72.0)
 

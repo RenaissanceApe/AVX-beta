@@ -14,6 +14,7 @@ import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
 import { btn, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
+import { Hint } from '../help/HelpParts'
 import { NumberTile, BarChart } from './Charts'
 import { PeriodBar, GroupBy, ReportTable, ExportButtons, DetailsToggle, useDetails, downloadCsv } from './ReportParts'
 
@@ -82,6 +83,7 @@ export default function MoneyReport({ orgId, timeZone, labels, params, setParam 
             {t(`money.view.${v}`)}
           </button>
         ))}
+        <Hint id="money-report" label={t('reports.tab.money')} />
         <span style={{ flex: '1 1 auto' }} />
         {view !== 'labour' && currencies.length > 1 && (
           <label style={{ display: 'flex', flexDirection: 'column', fontSize: '12px', color: colors.muted, gap: '2px' }}>

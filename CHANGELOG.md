@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.75.0 — Money: results and margins
+
+### Added
+- **Reports → Money:** the company's results for a month, quarter, year or your own dates, compared
+  with the period before or the same period last year. It starts simple: revenue, gross margin,
+  operating result, the gigs that lost money and a chart of the operating result by month. "Show
+  details" opens the results line by line: revenue by kind (rental, sale, crew, transport, other),
+  each direct cost (labour, subrentals, repairs not charged to the client, gig expenses, other
+  direct costs, cost of goods sold), overheads by category and depreciation, next to the comparison
+  period. Tap a category to open its expenses for that month.
+- **Margins:** the same numbers grouped by gig type, status, client, kind of line, production
+  manager, month or quarter. A gig with two production managers is shared equally between them, so
+  the rows always add up to the total. "Margin per gig" opens the Gig margins list.
+- **Labour:** planned hours and cost against the hours approved and the cost counted, per gig or per
+  month.
+- **Depreciation:** equipment is now spread over the months it is used: units by their purchase cost
+  and write-off months, bulk purchases by their cost, and capital expenses over their category's
+  months. A unit or purchase paid with an expense counts once, through the expense.
+- **Four new key numbers** on Reports → Overview and your Home: revenue this month against the
+  same days last year, gross margin % this year, operating result this year, and gigs losing money
+  this year. They take the place of the two monthly margin tiles, which live on in Gig margins.
+- What is estimated says so (labour from the rate card, units with no purchase cost), sale items
+  with no cost price are counted and named, and every currency is shown apart. Help guide "See how
+  the company is doing", with pictures, and the terms gross margin, operating result and cost of
+  goods sold.
+
+### Connected
+- A gig's finance panel links to the company results; the Overview and Home show the new tiles;
+  overhead categories open their list in Expenses. Gig cards keep their margin hint: it is the same
+  number the Money report counts per gig (step 10's `gig_finance`), so nothing on the card changed.
+
 ## 0.74.1 — One loading sign, and a plan for room to breathe
 
 ### Changed
