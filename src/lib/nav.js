@@ -63,6 +63,7 @@ export function navSections({ workspace, role }) {
     sections.push({ key: 'reports', icon: 'barChart', items: [
       { key: 'reportsOverview', icon: 'barChart', to: `${base}/reports` },
       { key: 'reportsRevenue', icon: 'trendingUp', to: `${base}/reports?tab=revenue` },
+      { key: 'reportsMoney', icon: 'receipt', to: `${base}/reports?tab=money` },
     ] })
   }
   sections.push({ key: 'organisation', icon: 'users', items: [

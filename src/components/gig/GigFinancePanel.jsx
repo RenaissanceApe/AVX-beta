@@ -136,6 +136,7 @@ export default function GigFinancePanel({ gig, members, canManage }) {
           </button>
         )}
         <Link to={`/org/${gig.org_id}/reports?tab=margins`} style={{ fontSize: '13px', color: colors.accentText }}>{t('finance.allGigs')}</Link>
+        <Link to={`/org/${gig.org_id}/reports?tab=money`} style={{ fontSize: '13px', color: colors.accentText }}>{t('finance.moneyResults')}</Link>
       </div>
       {adding && (
         <ExpenseForm orgId={gig.org_id} onClose={() => setAdding(false)} onSaved={load}

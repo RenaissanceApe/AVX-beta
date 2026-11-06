@@ -38,12 +38,17 @@ function TileValue({ tile, overview }) {
       </div>
     ))
   }
+  if (tile.kind === 'pctValue') return <div style={{ ...mono, fontSize: '20px', fontWeight: 700 }}>{v == null ? '—' : `${Number(v).toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB')}%`}</div>
   if (tile.kind === 'pct') return <div style={{ ...mono, fontSize: '20px', fontWeight: 700 }}>{v == null ? '—' : `${Math.round(v * 100)}%`}</div>
   return <div style={{ ...mono, fontSize: '20px', fontWeight: 700 }}>{v}</div>
 }
 
-// A percentage in a tile's line, written the reader's way ("29.4" / "29,4")
-const subVars = (vars, lang) => (vars.pct == null ? vars : { ...vars, pct: Number(vars.pct).toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB') })
+// A percentage or an amount in a tile's line, written the reader's way ("29.4" / "29,4", "1 200,00 €")
+const subVars = (vars, lang) => ({
+  ...vars,
+  ...(vars.pct == null ? {} : { pct: Number(vars.pct).toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB') }),
+  ...(vars.amount == null ? {} : { amount: formatMoney(vars.amount, vars.currency || 'EUR', lang) }),
+})
 
 export function OverviewTiles({ orgId, overview, compact = false }) {
   const { t, lang } = useI18n()

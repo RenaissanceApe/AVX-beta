@@ -3,7 +3,8 @@
 //
 // Each tile: { key, kind, value(overview), sub?(overview), to(base) }. A sub with a count picks
 // its .one/.other form; without one it is a plain key. `overview` is what
-// public.report_overview returns. kind: 'count' | 'money' (per currency, never added) | 'pct'.
+// public.report_overview returns. kind: 'count' | 'money' (per currency, never added) | 'pct' (a
+// fraction, 0.42) | 'pctValue' (already a percentage, 42.5).
 // Labels are i18n keys reports.tile.<key> and reports.tileHint.<key>.
 
 export const OVERVIEW_TILES = [
@@ -13,10 +14,13 @@ export const OVERVIEW_TILES = [
   { key: 'waitingQuotes', kind: 'money', value: o => o?.waiting?.totals || {},
     sub: o => ({ key: 'reports.tileSub.quotes', vars: { count: o?.waiting?.count ?? 0 } }), to: base => `${base}/quotes` },
   { key: 'equipmentUse90', kind: 'pct', value: o => o?.equipment_use_90 ?? null, to: base => `${base}/inventory?tab=reports` },
-  // Step 10: gigs starting this month that have a quote (public.gig_finance, in euros)
-  { key: 'marginThisMonth', kind: 'money', value: o => o?.margin_this_month || {},
-    sub: o => (o?.margin_pct_this_month != null ? { key: 'reports.tileSub.marginPct', vars: { pct: o.margin_pct_this_month } } : null), to: base => `${base}/reports?tab=margins` },
-  { key: 'negativeMargin', kind: 'count', value: o => o?.negative_margin ?? 0, to: base => `${base}/reports?tab=margins` },
+  // K2 (public.finance_results through report_overview): these four took the place of step 10's two
+  // monthly margin tiles, which live on in Reports → Gig margins
+  { key: 'revenueThisMonth', kind: 'money', value: o => o?.revenue_this_month || {},
+    sub: o => lastYearSub(o), to: base => `${base}/reports?tab=money&compare=last_year` },
+  { key: 'marginPctYear', kind: 'pctValue', value: o => o?.margin_pct_year ?? null, to: base => `${base}/reports?tab=money&period=this_year` },
+  { key: 'operatingResultYear', kind: 'money', value: o => o?.operating_result_year || {}, to: base => `${base}/reports?tab=money&period=this_year` },
+  { key: 'negativeMarginYear', kind: 'count', value: o => o?.negative_margin_year ?? 0, to: base => `${base}/reports?tab=margins&period=this_year` },
 ]
 
 // Money per currency as display lines, the biggest first: [{ currency, amount }]. Empty → one zero
@@ -25,4 +29,12 @@ export function moneyLines(byCurrency, fallback = 'EUR') {
   const lines = Object.entries(byCurrency || {}).map(([currency, amount]) => ({ currency, amount: Number(amount) || 0 }))
     .sort((a, b) => b.amount - a.amount)
   return lines.length ? lines : [{ currency: fallback, amount: 0 }]
+}
+
+// "Same days last year: 1 200,00 €" under this month's revenue, in the biggest currency
+export function lastYearSub(o) {
+  const now = moneyLines(o?.revenue_this_month)[0]
+  const before = o?.revenue_month_last_year || {}
+  if (!(now.currency in before)) return { key: 'reports.tileSub.noLastYear', vars: {} }
+  return { key: 'reports.tileSub.lastYear', vars: { amount: Number(before[now.currency]) || 0, currency: now.currency } }
 }
