@@ -1,18 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, Plus, FileCheck, Search } from 'lucide-react'
+import { ArrowLeft, Loader2, Plus, FileCheck, Search, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { formatMoney, quoteNumber, localISODate } from '../lib/quotes'
 import { invoiceState, daysOverdue } from '../lib/invoices'
-import { loadInvoices } from '../lib/invoiceApi'
+import { loadInvoices, invoicingStatus, invoicingProviders } from '../lib/invoiceApi'
+import { downloadInvoicesCsv } from '../lib/invoiceCsv'
+import { useToast } from '../lib/ToastContext'
 import { useI18n, fmt } from '../i18n'
 import { btn, btnPrimary, input, card, colors, Modal } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
 import InvoiceModal, { InvoiceBadge, invoiceTitle } from '../components/invoices/InvoiceModal'
+import InvoicingPanel from '../components/invoices/InvoicingPanel'
 
 const VIEWS = ['open', 'unpaid', 'paid', 'all']
 const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
@@ -20,8 +23,9 @@ const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection:
 // Invoices (step 11) at /org/:orgId/invoices, for the organisation's admins and members. AVX
 // prepares each invoice; the organisation's own certified invoicing program issues it, and its
 // number is typed back here. Views: to send (drafts and those waiting in the program), unpaid
-// (overdue first), paid, all. Connecting invoicing programs directly is step 11b (the Moloni
-// connector is written but switched off: components/invoices/MoloniPanel.jsx).
+// (overdue first), paid, all. An organisation can connect one invoicing program (step 11b,
+// InvoicingPanel) so drafts are sent there and numbers read back; "CSV" downloads the invoices shown
+// for programs without a connector.
 export default function InvoicesPage() {
   const { orgId } = useParams()
   const navigate = useNavigate()
@@ -37,6 +41,9 @@ export default function InvoicesPage() {
   const [open, setOpen] = useState(null) // { invoice } | { quote } | { creditOf }
   const [picking, setPicking] = useState(false)
   const [version, setVersion] = useState(0)
+  const [program, setProgram] = useState(undefined) // undefined: loading; null: by hand
+  const [providers, setProviders] = useState([])
+  const { notify } = useToast()
   const today = localISODate()
   useEffect(() => { setWorkspace(orgId) }, [orgId, setWorkspace])
   const changed = () => setVersion(v => v + 1)
@@ -45,6 +52,23 @@ export default function InvoicesPage() {
     if (!canSee) return
     supabase.from('organisations').select('id, name, invoice_due_days, quote_number_prefix').eq('id', orgId).single().then(({ data }) => setOrg(data))
   }, [canSee, orgId, version])
+
+  useEffect(() => {
+    if (!canSee) return
+    invoicingStatus(orgId).then(setProgram).catch(error => { logger.error('invoices', error, { step: 'program_status' }); setProgram(null) })
+  }, [canSee, orgId, version])
+  useEffect(() => {
+    if (role === 'admin') invoicingProviders().then(setProviders)
+  }, [role])
+  // Back from a program's sign-in page
+  useEffect(() => {
+    const back = params.get('invoicing')
+    if (!back) return
+    notify(t(back === 'connected' ? 'invoice.program.signedIn' : 'invoice.program.signInFailed'), back === 'connected' ? 'success' : 'error')
+    const next = new URLSearchParams(params)
+    next.delete('invoicing')
+    setParams(next, { replace: true })
+  }, [params, setParams, notify, t])
 
   const load = useCallback(async () => {
     if (!canSee) return
@@ -105,8 +129,15 @@ export default function InvoicesPage() {
             </div>
             <p style={{ fontSize: '13px', color: colors.muted, marginTop: '2px' }}>{t('invoice.intro')}</p>
           </div>
-          <button type="button" onClick={() => setPicking(true)} style={btnPrimary}><Plus size={14} /> {t('invoice.newFromQuote')}</button>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => downloadInvoicesCsv(shown, list || [], `${t('invoice.csvFile')} ${today}`)} disabled={!shown.length} style={btn}>
+              <Download size={14} /> {t('invoice.csv')}
+            </button>
+            <button type="button" onClick={() => setPicking(true)} style={btnPrimary}><Plus size={14} /> {t('invoice.newFromQuote')}</button>
+          </div>
         </div>
+
+        <InvoicingPanel orgId={orgId} status={program} providers={providers} isAdmin={role === 'admin'} onChanged={changed} />
 
         {(sums.unpaid || sums.overdue) && (
           <dl style={{ ...section, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '4px 12px', fontSize: '14px', margin: 0 }}>

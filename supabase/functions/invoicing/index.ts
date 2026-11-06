@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
         const state = `${orgId}.${randomToken()}`
         const fresh = { ...BLANK, org_id: orgId, provider } as unknown as Conn
         const { patch, url: signIn } = await ADAPTERS[provider].connect(context(admin, fresh), body, state)
-        const row = {
+        const row: Record<string, unknown> = {
           ...BLANK, org_id: orgId, provider, ...patch, updated_at: now,
           ...(signIn
             ? { state_hash: await sha256Hex(state), state_user: me.user.id, state_expires_at: new Date(Date.now() + 10 * 60_000).toISOString() }

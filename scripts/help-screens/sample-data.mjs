@@ -241,15 +241,15 @@ export function sampleData(persona, lang) {
     { id: 'inv1', org_id: orgId, number: 1, kind: 'invoice', credited_invoice_id: null, quote_id: 'q1', gig_id: gigId, client_id: 'c1', client_name: 'Marcolino Produções', client_tax_id: '509000000', client_address: 'Rua do Ouro 10, Lisboa', client_email: 'marta@example.com',
       scope: 'deposit', phase_ids: null, deposit_pct: 30, language: lang, currency: 'EUR', lines: [invLine('d1', tx('Adiantamento 30% · orçamento Q0143 · IVA 23%', 'Deposit 30% · quote Q0143 · VAT 23%'), 1, 636, 23)],
       net: 636, vat: 146.28, total: 782.28, notes: null, issue_date: day(-40), due_date: day(-10), status: 'paid', sent_at: ago(960), issued_at: ago(950), paid_on: day(-12),
-      legal_number: 'FT 2026/41', pdf_url: 'https://example.com/ft-2026-41.pdf', moloni_document_id: 41, client_reminded_at: null, removed_at: null, created_at: ago(970), updated_at: ago(300), quote: { id: 'q1', number: 143, title: gig.name, created_by: ricardo }, gig: { id: gigId, name: gig.name } },
+      legal_number: 'FT 2026/41', pdf_url: 'https://example.com/ft-2026-41.pdf', provider: 'invoicexpress', provider_document_id: '41', client_reminded_at: null, removed_at: null, created_at: ago(970), updated_at: ago(300), quote: { id: 'q1', number: 143, title: gig.name, created_by: ricardo }, gig: { id: gigId, name: gig.name } },
     { id: 'inv2', org_id: orgId, number: 2, kind: 'invoice', credited_invoice_id: null, quote_id: 'q1', gig_id: gigId, client_id: 'c1', client_name: 'Marcolino Produções', client_tax_id: '509000000', client_address: 'Rua do Ouro 10, Lisboa', client_email: 'marta@example.com',
       scope: 'rest', phase_ids: null, deposit_pct: null, language: lang, currency: 'EUR', lines: [invLine('a1', w.speaker, 16, 60, 23), invLine('a2', w.desk, 2, 180, 23), invLine('a3', w.sound, 4, 200, 23), { ...invLine('less', tx('Menos adiantamento FT 2026/41', 'Less deposit FT 2026/41'), 1, -636, 23), kind: 'deposit' }],
       net: 1484, vat: 341.32, total: 1825.32, notes: null, issue_date: day(-35), due_date: day(-5), status: 'issued', sent_at: ago(850), issued_at: ago(840), paid_on: null,
-      legal_number: 'FT 2026/44', pdf_url: 'https://example.com/ft-2026-44.pdf', moloni_document_id: 44, client_reminded_at: null, removed_at: null, created_at: ago(860), updated_at: ago(840), quote: { id: 'q1', number: 143, title: gig.name, created_by: ricardo }, gig: { id: gigId, name: gig.name } },
+      legal_number: 'FT 2026/44', pdf_url: 'https://example.com/ft-2026-44.pdf', provider: 'invoicexpress', provider_document_id: '44', client_reminded_at: null, removed_at: null, created_at: ago(860), updated_at: ago(840), quote: { id: 'q1', number: 143, title: gig.name, created_by: ricardo }, gig: { id: gigId, name: gig.name } },
     { id: 'inv3', org_id: orgId, number: 3, kind: 'invoice', credited_invoice_id: null, quote_id: 'q1', gig_id: gigId, client_id: 'c1', client_name: 'Marcolino Produções', client_tax_id: '509000000', client_address: 'Rua do Ouro 10, Lisboa', client_email: 'marta@example.com',
       scope: 'phases', phase_ids: ['p1'], deposit_pct: null, language: lang, currency: 'EUR', lines: [invLine('x1', tx('Transporte extra', 'Extra transport'), 120, 0.45, 23)],
       net: 54, vat: 12.42, total: 66.42, notes: null, issue_date: day(0), due_date: day(30), status: 'draft', sent_at: null, issued_at: null, paid_on: null,
-      legal_number: null, pdf_url: null, moloni_document_id: null, client_reminded_at: null, removed_at: null, created_at: ago(2), updated_at: ago(2), quote: { id: 'q1', number: 143, title: gig.name, created_by: ricardo }, gig: { id: gigId, name: gig.name } },
+      legal_number: null, pdf_url: null, provider: null, provider_document_id: null, client_reminded_at: null, removed_at: null, created_at: ago(2), updated_at: ago(2), quote: { id: 'q1', number: 143, title: gig.name, created_by: ricardo }, gig: { id: gigId, name: gig.name } },
   ]
   const versions = [
     { id: 'v2', quote_id: 'q1', version_no: 2, note: tx('Enviado para marta@example.com', 'Sent to marta@example.com'), total_net: 4280, created_at: ago(48), snapshot: quote },
@@ -523,6 +523,8 @@ export function sampleData(persona, lang) {
         margin_this_month: { EUR: 5420 }, margin_pct_this_month: 29.4, negative_margin: 1 },
       report_revenue_lines: revenueLines,
       gig_finance: gigFinance,
+      // Step 11b: the organisation's invoicing program, connected
+      invoicing_status: [{ provider: 'invoicexpress', connected: true, expired: false, account: 'lumen-pixel', company_name: null, document_set_name: '2026', ready: true, connected_at: ago(2000) }],
       invoice_summary: [{ ref_id: 'q1', currency: 'EUR', invoiced_net: 2120, invoiced: 2607.6, credited: 0, paid: 782.28, outstanding: 1825.32, overdue: 1825.32, to_issue: 66.42, invoices: 3, last_issue: day(-35), last_paid: day(-12) }],
       equipment_report: [
         { item_id: SPK, name: w.speaker, category: w.sys, owned: 7, use: 0.46, gigs: 9, last_used: ago(240), revenue: 6720, return_on_cost: 0.32, repairs: 1, repair_cost: 180, charged: 0, lost: 0, lost_value: 0, hired_in: 0, book_value: 14200, cost: 21000, idle: false },
