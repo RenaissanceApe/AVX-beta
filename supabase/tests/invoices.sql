@@ -1,5 +1,6 @@
 -- Checks for migration 20261222000000_invoices.sql (invoices, step 11).
--- (Updated in step 11b: moloni_status / moloni_connections became invoicing_status / invoicing_connections.)
+-- (Updated in step 11b: moloni_status / moloni_connections became invoicing_status / invoicing_connections;
+-- in step 12: paid is set by recording a payment.)
 -- Run in the TEST project's SQL editor. Rolls itself back; ends with
 --   "ALL INVOICE CHECKS PASSED"  → good
 -- Who: a = admin of Bill Co, m = member, v = viewer, c = crew on the gig (not in the organisation),
@@ -153,9 +154,10 @@ begin
     update invoices set pdf_url = 'http://insecure' where id = i1;
     raise exception 'CHECK FAILED: http PDF link';
   exception when check_violation then null; end;
-  update invoices set status = 'paid' where id = i1;
-  if (select paid_on from invoices where id = i1) is null then raise exception 'CHECK FAILED: paid date'; end if;
-  update invoices set status = 'issued' where id = i1;
+  -- Paid follows the payments (step 12): a payment of the whole amount, then removed
+  insert into invoice_payments (org_id, invoice_id, paid_on, amount) values (org_a, i1, '2026-10-02', 294.4) returning id into who;
+  if (select paid_on from invoices where id = i1) <> '2026-10-02' then raise exception 'CHECK FAILED: paid date'; end if;
+  update invoice_payments set removed_at = now() where id = who;
   if (select paid_on from invoices where id = i1) is not null then raise exception 'CHECK FAILED: paid date kept'; end if;
   -- A draft is removed by marking it; then it's frozen
   update invoices set removed_at = now() where id = i2;
