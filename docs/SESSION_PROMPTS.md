@@ -21,41 +21,12 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–11 (0.54–0.72), K0 (0.64) and K1 (0.69) are built, and their prompts (S01–S05, K1) removed. Sessions
-S05b and S06–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
+Steps 1–11b (0.54–0.73), K0 (0.64) and K1 (0.69) are built, and their prompts (S01–S05b, K1) removed. Sessions
+S06–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
-
-## S05b · Step 11b: invoicing program connectors
-
-```
-Build ROADMAP step 11b: invoicing program connectors. Read the ROADMAP row, docs/BUSINESS.md
-"How invoices work" and "Planned → 11b", src/lib/invoiceApi.js, components/invoices/ and
-supabase/functions/moloni/ (written in step 11, switched off).
-
-Invoicing stays manual for every organisation; a connector only saves typing. AVX never issues a
-legal invoice: it sends a draft to the organisation's certified program and reads back the number.
-
-Ask me first, before any design:
-1. Which programs do my first customers use? (Planned: Moloni, InvoiceXpress, Vendus, TOConline.)
-2. Also a CSV/SAF-T style export for programs without a connector?
-
-Scope:
-- Each organisation (admins) picks none (manual) or one program on the Invoices page.
-- A generic connection table (rename moloni_connections, add provider; no drop) and
-  invoicing_status in place of moloni_status.
-- One Edge Function with an adapter per program: send a draft, read back number, dates and PDF
-  link, credit notes. Test Moloni end to end with a real account before turning it on.
-- API keys entered by the organisation's admin are stored server-side only; developer app keys per
-  provider are Supabase secrets I add. List them; never ask me to paste keys.
-
-Connect: invoices (send / check buttons), Company details, help, organisation export.
-Done when: database tests, unit tests for each adapter's mapping, help guide, PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
 
 ## S06 · Step 12: damage charged to the client, payments
 
