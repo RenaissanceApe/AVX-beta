@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Coins, Pencil, Loader2, Check, Receipt } from 'lucide-react'
+import { Coins, Pencil, Check, Receipt } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -9,7 +9,7 @@ import { FEE_UNITS, labourLines, labourSummary, quoteCrewRevenue, feeTotal, pars
 import { useRateCard } from '../../lib/useCrewRates'
 import { personActual } from '../../lib/timeRegistration'
 import { useI18n } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 import ExpenseForm from '../expenses/ExpenseForm'
 
 const money = (v, lang) => formatMoney(v, 'EUR', lang)
@@ -174,7 +174,7 @@ function FeeModal({ gigId, line, name, exists, onClose, onSaved }) {
         <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{t('labour.feeHint')}</p>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button type="submit" disabled={saving || !ok} style={{ ...btnPrimary, flex: 1, justifyContent: 'center' }}>
-            {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
+            {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('common.save')}
           </button>
           {line.fee && (
             <button type="button" disabled={saving} onClick={() => save({ unit: line.fee.unit, rate: null, quantity: line.fee.quantity, note: null })} style={btn}>{t('labour.useCard')}</button>

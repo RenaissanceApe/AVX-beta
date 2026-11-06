@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Loader2, Search, MapPin } from 'lucide-react'
+import { Search, MapPin } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger } from '../lib/logger'
 import { useI18n } from '../i18n'
-import { btn, input, label as labelStyle, colors } from './ui'
+import { btn, input, label as labelStyle, colors, AvxLoader } from './ui'
 
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 
@@ -36,7 +36,7 @@ export default function PlaceFinder({ id, label, hint: hintText, initialQuery = 
           <input id={id} value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') find(e) }}
             placeholder={t('crewProfile.basePlaceholder')} style={{ ...input, flex: 1, minWidth: 0 }} />
           <button type="button" onClick={find} disabled={finding || query.trim().length < 2} style={btn}>
-            {finding ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={14} />} {t('crewProfile.find')}
+            {finding ? <AvxLoader size={14} /> : <Search size={14} />} {t('crewProfile.find')}
           </button>
         </div>
         {hintText && <p style={{ ...hint, marginTop: '6px' }}>{hintText}</p>}

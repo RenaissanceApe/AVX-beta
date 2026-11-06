@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, Loader2, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
+import { AlertTriangle, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
 import { useI18n } from '../i18n'
 import { userMessage } from '../lib/logger'
-import { Modal, btn, input, label, colors } from './ui'
+import { Modal, btn, input, label, colors, AvxLoader } from './ui'
 
 const WAIT_SECONDS = 5
 const red = 'var(--danger)'
@@ -62,7 +62,7 @@ export function DangerConfirmModal({ title, name, loadImpact, onConfirm, onClose
         <>
           <p style={{ fontSize: '13px', color: colors.soft, marginBottom: '8px' }}>{intro || t('danger.willDelete', { name })}</p>
           {impact === null ? (
-            <Loader2 size={16} color={colors.muted} style={{ animation: 'spin 1s linear infinite' }} />
+            <AvxLoader size={16} color={colors.muted} />
           ) : (
             <ul style={{ margin: '0 0 14px 18px', fontSize: '14px', lineHeight: 1.8 }}>
               {impact.map((line, i) => <li key={i}>{line}</li>)}
@@ -90,7 +90,7 @@ export function DangerConfirmModal({ title, name, loadImpact, onConfirm, onClose
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button onClick={onClose} disabled={busy} style={{ ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }}>{t('danger.cancel')}</button>
             <button onClick={confirm} disabled={!matches || wait > 0 || busy} style={{ ...dangerBtn, opacity: matches && wait <= 0 ? 1 : 0.4 }}>
-              {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />}
+              {busy ? <AvxLoader size={14} /> : <Trash2 size={14} />}
               {wait > 0 ? t('danger.waitSeconds', { count: wait }) : confirmLabel || t('danger.deleteForever')}
             </button>
           </div>

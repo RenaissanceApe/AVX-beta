@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Megaphone, X, Loader2, Send, Users } from 'lucide-react'
+import { Megaphone, X, Send, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { useI18n, t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader } from '../ui'
 import { NetworkPicker } from '../NetworkPicker'
 import { FeeFields, useFeeForm } from './FeeFields'
 import { formatMoney } from '../../lib/quotes'
@@ -101,7 +101,7 @@ export function CrewCallModal({ gigId, gig, preset = {}, onClose, onSent }) {
           <NetworkPicker gigId={gigId} onPick={pick} hint={t('crewCall.networkHint')} />
         </div>
         <button type="submit" disabled={sending || invalid} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {sending ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={15} />} {t('crewCall.send', { count: people.length })}
+          {sending ? <AvxLoader size={15} /> : <Send size={15} />} {t('crewCall.send', { count: people.length })}
         </button>
       </form>
     </Modal>

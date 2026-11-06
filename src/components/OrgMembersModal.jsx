@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { X, Loader2, Send, Trash2, LogOut, MessageCircle } from 'lucide-react'
+import { X, Send, Trash2, LogOut, MessageCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -10,6 +10,7 @@ import { NetworkPicker, addFromNetwork } from './NetworkPicker'
 import HeldInvites from './HeldInvites'
 import { useI18n } from '../i18n'
 import { Hint } from './help/HelpParts'
+import { AvxLoader } from './ui'
 
 // Labels: orgRole.<value>
 const ROLES = [{ value: 'admin' }, { value: 'member' }, { value: 'viewer' }]
@@ -144,7 +145,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
             </select>
             <span style={{ display: 'inline-flex', alignItems: 'center' }}><Hint id="org-role" label={t('org.role')} /></span>
             <button type="submit" disabled={sending || !email.trim()} style={smallBtn}>
-              {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('common.invite')}
+              {sending ? <AvxLoader size={14} /> : <Send size={14} />} {t('common.invite')}
             </button>
           </form>
         )}
@@ -156,7 +157,7 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
 
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-            <Loader2 size={20} color="var(--accent-text)" style={{ animation: 'spin 1s linear infinite' }} />
+            <AvxLoader size={20} color="var(--accent-text)" />
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '45vh', overflowY: 'auto' }}>

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Hash, Users } from 'lucide-react'
+import { Hash, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger, userMessage } from '../../lib/logger'
 import { useToast } from '../../lib/ToastContext'
 import { departmentLabel } from '../../lib/messages'
 import { t } from '../../i18n'
 import Conversation from '../messages/Conversation'
-import { card, colors } from '../ui'
+import { card, colors, AvxLoader } from '../ui'
 
 // The gig's chat (MESSAGING.md, M1–M3): everyone on the gig talks in the main channel, where
 // changes to the gig's status, dates and venue show up too. Each function on the gig (Sound,
@@ -46,7 +46,7 @@ export default function ChatTab({ gigId, canPost }) {
   }
 
   if (failed) return <p style={{ color: colors.muted, fontSize: '14px', textAlign: 'center', padding: '40px 16px' }}>{t('chat.unavailable')}</p>
-  if (!mainId) return <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (!mainId) return <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><AvxLoader size={20} color={colors.accentText} /></div>
   const chip = active => ({
     display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', font: 'inherit', fontSize: '13px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
     border: `1px solid ${active ? colors.accent : colors.border}`, background: active ? 'var(--selection)' : 'transparent', color: active ? colors.accentText : colors.soft,
@@ -65,7 +65,7 @@ export default function ChatTab({ gigId, canPost }) {
           ))}
         </div>
       )}
-      {!conversationId ? <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div> : (
+      {!conversationId ? <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><AvxLoader size={20} color={colors.accentText} /></div> : (
         <Conversation key={conversationId} conversationId={conversationId} canPost={selected === 'all' ? canPost : true} height="62vh"
           emptyText={selected === 'all' ? t('chat.emptyGig') : t('chat.emptyDepartment', { name: departmentLabel(selected, departments.find(d => d.department === selected)?.label, t) })} />
       )}

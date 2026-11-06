@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Printer, RotateCw, Trash2, ListOrdered, PackagePlus, Loader2, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react'
+import { Printer, RotateCw, Trash2, ListOrdered, PackagePlus, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
@@ -11,7 +11,7 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { inputsToEquipment } from '../../lib/tools'
 import { SYMBOLS, SYMBOL_ORDER, STEP_M, stageSize, place, nextRotation, newSpot, plotToInputs, plotChannelCount } from '../../lib/stagePlot'
 import { t } from '../../i18n'
-import { btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import StagePlotSvg from './StagePlotSvg'
 
@@ -187,7 +187,7 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
     notify(todo.length ? t('inputs.addedToEquipment', { count: todo.reduce((s, x) => s + x.add, 0) }) : t('plot.equipmentUpToDate'), 'success')
   }
 
-  if (items === null) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+  if (items === null) return <AvxLoader size={20} color={colors.accentText} />
   const channels = plotChannelCount(shown)
   const nameOf = item => (item.label ? `${t(`plot.kind.${item.kind}`)} · ${item.label}` : t(`plot.kind.${item.kind}`))
 
@@ -296,7 +296,7 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '14px' }}>
           {channels > 0 && (
             <button type="button" onClick={sendToInputs} disabled={busy} style={btnPrimary}>
-              {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ListOrdered size={14} />} {t('plot.toInputs')}
+              {busy ? <AvxLoader size={14} /> : <ListOrdered size={14} />} {t('plot.toInputs')}
             </button>
           )}
           {canPlanEquipment && shown.some(i => i.item_id) && (

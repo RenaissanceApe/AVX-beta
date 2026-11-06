@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Trash2, Loader2, Check, Boxes, Puzzle, Shuffle } from 'lucide-react'
+import { Plus, Trash2, Check, Boxes, Puzzle, Shuffle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
@@ -8,7 +8,7 @@ import { logger, userMessage } from '../../lib/logger'
 import { alternativesOf } from '../../lib/inventory'
 import { useUndoRemove } from '../../lib/undo'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, card, colors, AvxLoader } from '../ui'
 
 const select = { ...input, appearance: 'auto' }
 const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
@@ -106,7 +106,7 @@ function PartList({ orgId, item, kits, kind }) {
           <input type="number" min={1} max={1000} value={qty} onChange={e => setQty(e.target.value)} aria-label={t('inv.quantity')} style={{ ...input, width: '64px', padding: '6px 8px' }} />
         )}
         <button type="submit" disabled={!adding || saving} style={{ ...btn, padding: '6px 10px' }}>
-          {saving ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={13} />} {t('common.add')}
+          {saving ? <AvxLoader size={13} /> : <Plus size={13} />} {t('common.add')}
         </button>
       </form>
     </div>
@@ -156,7 +156,7 @@ export function CaseContentsModal({ caseUnit, kits, onClose, onSaved }) {
   return (
     <Modal title={t('kit.caseContents', { code: caseUnit.code })} onClose={onClose}>
       <p style={{ ...small, marginBottom: '12px' }}>{t('kit.caseContentsHint')}</p>
-      {!units ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : units.length === 0 ? (
+      {!units ? <AvxLoader size={18} color={colors.accentText} /> : units.length === 0 ? (
         <p style={{ ...small, marginBottom: '12px' }}>{contentIds.length ? t('kit.noUnitsToPack') : t('kit.noSerialContents')}</p>
       ) : Object.entries(byItem).map(([itemId, list]) => {
         const want = kits.parts.find(p => p.parent_id === caseUnit.item_id && p.child_id === itemId && p.kind === 'content')?.quantity
@@ -178,7 +178,7 @@ export function CaseContentsModal({ caseUnit, kits, onClose, onSaved }) {
         )
       })}
       <button onClick={save} disabled={!units || saving} style={{ ...btnPrimary, width: '100%', justifyContent: 'center' }}>
-        {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
+        {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('common.save')}
       </button>
     </Modal>
   )

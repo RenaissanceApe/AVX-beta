@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Loader2, Search, Weight, Zap, ScanLine, ClipboardList, Shuffle, Wrench, Handshake } from 'lucide-react'
+import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Search, Weight, Zap, ScanLine, ClipboardList, Shuffle, Wrench, Handshake } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
@@ -12,7 +12,7 @@ import { rangeText } from '../../lib/clashes'
 import { toLocalInput } from './Booking'
 import { useUndoRemove } from '../../lib/undo'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { TabHeader } from './parts'
 import ReportDamageModal from './ReportDamageModal'
@@ -114,7 +114,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
       })
   }, [altKey, gig.id, gig.start_date, gig.end_date]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!lines) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+  if (!lines) return <AvxLoader size={20} color={colors.accentText} />
   const rows = lines.filter(l => !hidden.has(l.id)).map(l => ({ ...l, ...(status[l.id] || {}) }))
   const short = rows.filter(r => status[r.id] && shortBy(r) > 0)
   const weight = rows.reduce((s, r) => s + (Number(r.weight_kg) || 0) * r.quantity, 0)
@@ -284,7 +284,7 @@ function EquipmentPicker({ gig, org, planned, kits, onClose, onAdded }) {
         <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('inv.search')} aria-label={t('inv.search')} autoFocus style={{ ...input, paddingLeft: '32px' }} />
       </div>
-      {!items ? <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : items.length === 0 ? (
+      {!items ? <AvxLoader size={20} color={colors.accentText} /> : items.length === 0 ? (
         <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6 }}>{t('equip.noCatalogue')}</p>
       ) : (
         <div style={{ maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '12px' }}>
@@ -321,7 +321,7 @@ function EquipmentPicker({ gig, org, planned, kits, onClose, onAdded }) {
         </div>
       )}
       <button onClick={add} disabled={!count || saving} style={{ ...btnPrimary, justifyContent: 'center', width: '100%' }}>
-        {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={15} />} {t('equip.addPicked', { count })}
+        {saving ? <AvxLoader size={15} /> : <Plus size={15} />} {t('equip.addPicked', { count })}
       </button>
     </Modal>
   )
@@ -375,7 +375,7 @@ function LineModal({ line, onClose, onSaved }) {
           <input id="eq-notes" value={notes} onChange={e => setNotes(e.target.value)} maxLength={500} style={input} />
         </div>
         <button type="submit" disabled={saving || invalid} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
+          {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('common.save')}
         </button>
       </form>
     </Modal>

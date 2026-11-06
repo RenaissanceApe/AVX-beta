@@ -5,8 +5,8 @@ import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { logger, userMessage } from '../lib/logger'
 import { useToast } from '../lib/ToastContext'
 import { useI18n } from '../i18n'
-import { Loader2, ArrowRight } from 'lucide-react'
-import { AvxMark } from '../components/ui'
+import { ArrowRight } from 'lucide-react'
+import { AvxMark, AvxLoader } from '../components/ui'
 
 // Landing page for invitation emails. The invite link signs the person in;
 // here they choose their display name and a password for future sign-ins.
@@ -59,7 +59,7 @@ export default function WelcomePage() {
         <div style={{ background: 'var(--fill)', border: '1px solid var(--line)', padding: '32px' }}>
           {authLoading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-              <Loader2 size={22} color="var(--accent-text)" style={{ animation: 'spin 1s linear infinite' }} />
+              <AvxLoader size={22} color="var(--accent-text)" />
             </div>
           ) : !user ? (
             <>
@@ -87,7 +87,7 @@ export default function WelcomePage() {
                   </div>
                 )}
                 <button type="submit" disabled={saving} style={btn}>
-                  {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={16} />}
+                  {saving ? <AvxLoader size={16} /> : <ArrowRight size={16} />}
                   {t('common.continue')}
                 </button>
               </form>

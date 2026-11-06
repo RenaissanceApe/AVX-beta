@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, Download, ArrowDown, ArrowUp, Moon } from 'lucide-react'
+import { Download, ArrowDown, ArrowUp, Moon } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
 import { reportCsv } from '../../lib/reports'
@@ -9,7 +9,7 @@ import { todayIn, addDaysIso } from '../../lib/analytics/periods'
 import { round2 } from '../../lib/quotes'
 import { formatMoney, localISODate } from '../../lib/quotes'
 import { useI18n, t } from '../../i18n'
-import { btn, input, card, label, colors } from '../ui'
+import { btn, input, card, label, colors, AvxLoader } from '../ui'
 
 const PERIODS = ['90d', '12m', 'ytd']
 const AMBER = 'var(--warn)'
@@ -68,7 +68,7 @@ export default function ReportsTab({ orgId, inv }) {
     }
   }, [data])
 
-  if (!report) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+  if (!report) return <AvxLoader size={20} color={colors.accentText} />
   const money = v => formatMoney(v, 'EUR', lang)
   const pct = v => `${Math.round(v * 100)}%`
   const cols = [

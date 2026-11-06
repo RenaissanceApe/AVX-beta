@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import jsQR from 'jsqr'
-import { Check, AlertTriangle, X, Flashlight, FlashlightOff, Minus, Plus, Volume2, VolumeX, Speech, Loader2, ScanLine, PackageCheck, Undo2 } from 'lucide-react'
+import { Check, AlertTriangle, X, Flashlight, FlashlightOff, Minus, Plus, Volume2, VolumeX, Speech, ScanLine, PackageCheck, Undo2 } from 'lucide-react'
 import { canSpeak } from '../../lib/fieldKit'
 import { STEPS } from '../../lib/inventory'
 import { t } from '../../i18n'
-import { btn, btnPrimary, input, colors } from '../ui'
+import { btn, btnPrimary, input, colors, AvxLoader } from '../ui'
 import { Segments } from '../gig/StepBars'
 
 export const AMBER = 'var(--warn)'
@@ -235,7 +235,7 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
           minHeight: '112px', padding: '14px 16px', display: 'flex', gap: '14px', alignItems: 'center',
           border: `1px solid ${tone ? tone.colour : colors.border}`, borderLeftWidth: tone ? '4px' : '1px', background: 'var(--panel)',
         }}>
-          {busy ? <Loader2 size={40} aria-hidden="true" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
+          {busy ? <AvxLoader size={40} style={{ flexShrink: 0 }} />
             : tone ? <tone.Icon size={44} aria-hidden="true" color={tone.text} style={{ flexShrink: 0 }} />
             : <ScanLine size={40} aria-hidden="true" color={colors.muted} style={{ flexShrink: 0 }} />}
           <div style={{ flex: 1, minWidth: 0 }}>

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link2, Copy, Mail, Loader2, Ban } from 'lucide-react'
+import { Link2, Copy, Mail, Ban } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { useI18n, t } from '../../i18n'
-import { btn, input, colors } from '../ui'
+import { btn, input, colors, AvxLoader } from '../ui'
 
 // The link a subrental's supplier uses to see the order and write to you, without an account
 // (docs/MESSAGING.md, M4b). Only a hash of it is stored, so it's shown once, when made; making a
@@ -56,7 +56,7 @@ export default function SupplierLink({ subrental }) {
     try { await navigator.clipboard.writeText(url); notify(t('supplierLink.copied'), 'success') } catch { /* the field can be copied by hand */ }
   }
 
-  if (link === undefined) return <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+  if (link === undefined) return <AvxLoader size={14} />
   const small = { ...btn, padding: '6px 10px', fontSize: '12px' }
   const mail = url && email
     ? `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(t('supplierLink.mailSubject', { reference: subrental.reference || '' }))}&body=${encodeURIComponent(t('supplierLink.mailBody', { url }))}`
@@ -76,7 +76,7 @@ export default function SupplierLink({ subrental }) {
       {url && <p style={{ fontSize: '11px', color: colors.muted }}>{t('supplierLink.onlyNow')}</p>}
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
         <button type="button" onClick={make} disabled={busy} style={small}>
-          {busy ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Link2 size={13} />} {link ? t('supplierLink.new') : t('supplierLink.make')}
+          {busy ? <AvxLoader size={13} /> : <Link2 size={13} />} {link ? t('supplierLink.new') : t('supplierLink.make')}
         </button>
         {link && <button type="button" onClick={revoke} disabled={busy} style={{ ...small, color: colors.muted }}><Ban size={13} /> {t('supplierLink.revoke')}</button>}
       </div>

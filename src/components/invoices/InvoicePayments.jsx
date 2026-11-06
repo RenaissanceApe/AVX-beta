@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Loader2, Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger, userMessage } from '../../lib/logger'
 import { useToast } from '../../lib/ToastContext'
 import { useI18n, fmt } from '../../i18n'
-import { btn, btnPrimary, input, label, colors, iconBtn } from '../ui'
+import { btn, btnPrimary, input, label, colors, iconBtn, AvxLoader } from '../ui'
 import { HintLabel } from '../help/HelpParts'
 import { formatMoney, localISODate } from '../../lib/quotes'
 import { PAYMENT_METHODS, invoiceDue, paidSoFar, leftToPay, paymentProblem } from '../../lib/payments'
@@ -80,7 +80,7 @@ export default function InvoicePayments({ orgId, invoice, onChanged }) {
     } finally { setBusy('') }
   }
 
-  if (!payments) return <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} aria-label={t('common.loading')} />
+  if (!payments) return <AvxLoader size={18} color={colors.accentText} label={t('common.loading')} />
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
   return (
@@ -101,7 +101,7 @@ export default function InvoicePayments({ orgId, invoice, onChanged }) {
               </span>
               <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{money(p.amount)}</span>
               <button type="button" onClick={() => remove(p)} disabled={!!busy} aria-label={t('payment.remove')} title={t('payment.remove')} style={iconBtn}>
-                {busy === p.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />}
+                {busy === p.id ? <AvxLoader size={14} /> : <Trash2 size={14} />}
               </button>
             </li>
           ))}
@@ -129,7 +129,7 @@ export default function InvoicePayments({ orgId, invoice, onChanged }) {
           </div>
           <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
             <button type="submit" disabled={!!busy || !!problem} style={btnPrimary}>
-              {busy === 'add' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={14} />}
+              {busy === 'add' ? <AvxLoader size={14} /> : <Plus size={14} />}
               {' '}{num(form.amount) === left ? t('payment.recordAll') : t('payment.record')}
             </button>
             {num(form.amount) !== left && <button type="button" onClick={() => setForm(f => ({ ...f, amount: String(left) }))} style={btn}>{t('payment.fillLeft', { amount: money(left) })}</button>}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Plus, Loader2, Building2, Truck, Search, Upload, Pencil, Archive, ArchiveRestore, Check, Users, FileText } from 'lucide-react'
+import { ArrowLeft, Plus, Building2, Truck, Search, Upload, Pencil, Archive, ArchiveRestore, Check, Users, FileText } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { selectAll } from '../lib/selectAll'
 import { useToast } from '../lib/ToastContext'
@@ -11,7 +11,7 @@ import { quoteNumber, formatMoney } from '../lib/quotes'
 import { useCustomFields, mergeValues } from '../lib/customFields'
 import { CustomFieldInputs } from '../components/CustomFields'
 import { useI18n, t, getLanguage } from '../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../components/ui'
 import EmptyState from '../components/EmptyState'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
@@ -96,7 +96,7 @@ export default function ContactsPage() {
     load()
   }
 
-  if (loading || (canEdit && !lists)) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (loading || (canEdit && !lists)) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (!canEdit) return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
@@ -139,7 +139,7 @@ export default function ContactsPage() {
             <FileText size={18} color={colors.accentText} aria-hidden="true" style={{ flexShrink: 0 }} />
             <p style={{ flex: '1 1 260px', fontSize: '13px', lineHeight: 1.6 }}>{t('contacts.fromQuotesText', { count: unlinked })}</p>
             <button onClick={fillFromQuotes} disabled={filling} style={btn}>
-              {filling ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Users size={14} />} {t('contacts.fromQuotes')}
+              {filling ? <AvxLoader size={14} /> : <Users size={14} />} {t('contacts.fromQuotes')}
             </button>
           </section>
         )}
@@ -199,7 +199,6 @@ export default function ContactsPage() {
 
       {editing && tab === 'clients' && <ClientModal orgId={orgId} client={editing.id ? editing : null} onClose={() => setEditing(null)} onSaved={load} />}
       {editing && tab === 'suppliers' && <SupplierModal orgId={orgId} supplier={editing.id ? editing : null} onClose={() => setEditing(null)} onSaved={load} />}
-      <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </AppShell>
   )
 }
@@ -262,13 +261,13 @@ export function ClientModal({ orgId, client, onClose, onSaved }) {
         <CustomFieldInputs key={fields.length} fields={fields} values={client?.custom_values} idPrefix="cl" onChange={(id, v) => setCustom(c => ({ ...c, [id]: v }))} />
         {client && <p style={small}>{t('contacts.copyNote')}</p>}
         <button type="submit" disabled={saving || !form.name.trim()} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
+          {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('common.save')}
         </button>
       </form>
       {client && (
         <section style={{ marginTop: '18px' }} aria-labelledby="cl-quotes">
           <h2 id="cl-quotes" style={{ ...label, marginBottom: '6px' }}>{t('contacts.quotes')}</h2>
-          {!quotes ? <Loader2 size={16} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+          {!quotes ? <AvxLoader size={16} color={colors.accentText} />
             : quotes.length === 0 ? <p style={small}>{t('contacts.noQuotes')}</p> : (
               <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {quotes.map(q => (

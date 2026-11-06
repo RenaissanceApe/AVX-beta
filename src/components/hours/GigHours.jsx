@@ -1,7 +1,7 @@
 // Hours on a gig's Crew tab (step 8). Crew see and log their own days; the gig's managers see
 // everyone's, log for anyone, approve or send back with a note, and download a CSV.
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Clock, Plus, Pencil, Check, Undo2, Download, Loader2, CheckCheck } from 'lucide-react'
+import { Clock, Plus, Pencil, Check, Undo2, Download, CheckCheck } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -14,7 +14,7 @@ import { useI18n } from '../../i18n'
 import EmptyState from '../EmptyState'
 import { Hint } from '../help/HelpParts'
 import { HoursModal, DayLine, SplitLine, StatusChip, hoursText, money } from './HoursParts'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 
 export default function GigHours({ gig, members, isPM, userId, nameOf, onReviewed }) {
   const { t, lang } = useI18n()
@@ -115,7 +115,7 @@ export default function GigHours({ gig, members, isPM, userId, nameOf, onReviewe
 
       {waiting.length > 1 && (
         <button type="button" onClick={approveAll} disabled={busy === 'all'} style={{ ...btn, marginBottom: '10px' }}>
-          {busy === 'all' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCheck size={14} />} {t('hours.approveAll', { count: waiting.length })}
+          {busy === 'all' ? <AvxLoader size={14} /> : <CheckCheck size={14} />} {t('hours.approveAll', { count: waiting.length })}
         </button>
       )}
 
@@ -160,7 +160,7 @@ export default function GigHours({ gig, members, isPM, userId, nameOf, onReviewe
                         {isPM && e.status === 'submitted' && (
                           <>
                             <button type="button" disabled={busy === e.id} onClick={() => review(e, true)} style={btn}>
-                              {busy === e.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />} {t('hours.approve')}
+                              {busy === e.id ? <AvxLoader size={14} /> : <Check size={14} />} {t('hours.approve')}
                             </button>
                             <button type="button" disabled={busy === e.id} onClick={() => setReturning(e)} style={btn}><Undo2 size={14} /> {t('hours.sendBack')}</button>
                           </>

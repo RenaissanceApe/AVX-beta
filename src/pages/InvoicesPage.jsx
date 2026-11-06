@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, Plus, FileCheck, Search, Download } from 'lucide-react'
+import { ArrowLeft, Plus, FileCheck, Search, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { useWorkspace } from '../lib/WorkspaceContext'
@@ -11,7 +11,7 @@ import { leftToPay, isPartlyPaid, paymentsByInvoice } from '../lib/payments'
 import { downloadInvoicesCsv } from '../lib/invoiceCsv'
 import { useToast } from '../lib/ToastContext'
 import { useI18n, fmt } from '../i18n'
-import { btn, btnPrimary, input, card, colors, Modal } from '../components/ui'
+import { btn, btnPrimary, input, card, colors, Modal, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
@@ -111,7 +111,7 @@ export default function InvoicesPage() {
 
   const setView = v => setParams(v === 'open' ? {} : { view: v }, { replace: true })
   const title = t('invoice.pageTitle')
-  if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (!canSee) return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
@@ -170,7 +170,7 @@ export default function InvoicesPage() {
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('invoice.search')} aria-label={t('invoice.search')} style={{ ...input, paddingLeft: '30px' }} />
           </div>
           {!list ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}><Loader2 size={22} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}><AvxLoader size={22} color={colors.accentText} /></div>
           ) : shown.length === 0 ? (
             <EmptyState compact icon={<FileCheck size={26} />} title={t(`invoice.empty.${view}`)} body={t('invoice.emptyBody')} guide="office-invoices"
               action={t('invoice.newFromQuote')} onAction={() => setPicking(true)} />
@@ -238,7 +238,7 @@ function QuotePicker({ orgId, prefix, onClose, onPick }) {
   return (
     <Modal title={t('invoice.pickQuote')} onClose={onClose}>
       <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('invoice.searchQuotes')} aria-label={t('invoice.searchQuotes')} style={{ ...input, marginBottom: '10px' }} />
-      {!quotes ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : shown.length === 0 ? (
+      {!quotes ? <AvxLoader size={20} /> : shown.length === 0 ? (
         <p style={{ fontSize: '13px', color: colors.muted }}>{t('invoice.noAcceptedQuotes')}</p>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>

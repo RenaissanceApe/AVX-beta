@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Loader2, Send, X, PauseCircle } from 'lucide-react'
+import { Send, X, PauseCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { sendInvite } from '../lib/invites'
 import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
+import { AvxLoader } from './ui'
 
 const ROLES = ['admin', 'member', 'viewer']
 
@@ -103,7 +104,7 @@ export default function HeldInvites({ org, onSent }) {
       </ul>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px', alignItems: 'center' }}>
         <button type="button" onClick={send} disabled={!chosen.length || !!progress} style={sendBtn}>
-          {progress ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
+          {progress ? <AvxLoader size={14} /> : <Send size={14} />}
           {progress ? t('held.sending', { done: progress.done, total: progress.total }) : chosen.length ? t('held.send', { count: chosen.length }) : t('held.selectToSend')}
         </button>
         {chosen.length > 1 && !progress && <button type="button" onClick={() => discard(chosen)} style={plainBtn}>{t('held.discardSelected', { count: chosen.length })}</button>}

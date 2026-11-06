@@ -1,6 +1,6 @@
 // Shared pieces of time registration (step 8): the form for one day, a day's row and its status.
 import { useState } from 'react'
-import { Loader2, Check, CloudOff } from 'lucide-react'
+import { Check, CloudOff } from 'lucide-react'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
@@ -10,7 +10,7 @@ import { bookedDays } from '../../lib/crewRates'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n, fmt } from '../../i18n'
 import { HintLabel } from '../help/HelpParts'
-import { Modal, btnPrimary, input, label, colors, StatusBadge } from '../ui'
+import { Modal, btnPrimary, input, label, colors, StatusBadge, AvxLoader } from '../ui'
 
 export const hoursText = (h, lang) => `${Number(h || 0).toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB', { maximumFractionDigits: 2 })} h`
 export const money = (v, lang) => formatMoney(v, 'EUR', lang)
@@ -163,7 +163,7 @@ export function HoursModal({ gig, member, entry, schedule, userId, takenDays = [
         )}
         <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{t('hours.formHint')}</p>
         <button type="submit" disabled={saving || !ok} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {entry ? t('common.save') : t('hours.send')}
+          {saving ? <AvxLoader size={15} /> : <Check size={15} />} {entry ? t('common.save') : t('hours.send')}
         </button>
       </form>
     </Modal>

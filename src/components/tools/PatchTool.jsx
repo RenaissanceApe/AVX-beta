@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Printer, Trash2, Wand2, AlertTriangle, Loader2 } from 'lucide-react'
+import { Plus, Printer, Trash2, Wand2, AlertTriangle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -8,7 +8,7 @@ import { track } from '../../lib/usage'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { boxesOf, nextBoxName, patchView, autoAssign, socketCode, MAX_BOX_INPUTS } from '../../lib/patch'
 import { t } from '../../i18n'
-import { btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 
 // The audio patch (docs/FIELD_TOOLS.md, F2): the gig's stage boxes, socket by socket, with the
@@ -81,7 +81,7 @@ export default function PatchTool({ gig, canEdit }) {
     load()
   }
 
-  if (audio === null) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+  if (audio === null) return <AvxLoader size={20} color={colors.accentText} />
   const lineName = l => `${l.channel} · ${l.source}`
 
   return (
@@ -171,7 +171,7 @@ export default function PatchTool({ gig, canEdit }) {
           <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>{view.loose.map(lineName).join(' · ')}</p>
           {canEdit && boxes.length > 0 && (
             <button type="button" onClick={fill} disabled={busy} style={{ ...btn, marginTop: '8px' }}>
-              {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Wand2 size={14} />} {t('patch.fill')}
+              {busy ? <AvxLoader size={14} /> : <Wand2 size={14} />} {t('patch.fill')}
             </button>
           )}
         </section>

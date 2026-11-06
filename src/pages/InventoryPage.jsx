@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Plus, Upload, QrCode, Search, Loader2, Package, MapPin, History, ChevronRight, AlertTriangle, Pencil, Archive, ArchiveRestore, Warehouse, Truck, Building2, Box, Wrench, Handshake, BarChart3 } from 'lucide-react'
+import { Plus, Upload, QrCode, Search, Package, MapPin, History, ChevronRight, AlertTriangle, Pencil, Archive, ArchiveRestore, Warehouse, Truck, Building2, Box, Wrench, Handshake, BarChart3 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -13,7 +13,7 @@ import { ItemModal, LocationModal } from '../components/inventory/InventoryModal
 import { MaintenanceTab } from '../components/inventory/MaintenancePanels'
 import { SubrentalsTab } from '../components/inventory/SubrentalPanels'
 import ReportsTab from '../components/inventory/ReportsTab'
-import { btn, btnPrimary, iconBtn, input, card, colors } from '../components/ui'
+import { btn, btnPrimary, iconBtn, input, card, colors, AvxLoader } from '../components/ui'
 import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
 
@@ -31,7 +31,7 @@ export default function InventoryPage() {
   const tab = TABS.includes(params.get('tab')) ? params.get('tab') : 'catalogue'
   const setTab = key => { const next = new URLSearchParams(params); if (key === 'catalogue') next.delete('tab'); else next.set('tab', key); setParams(next, { replace: true }) }
 
-  if (inv.loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (inv.loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (!inv.canManage) return (
     <AppShell>
       <p style={{ maxWidth: '420px', margin: '80px auto', textAlign: 'center', color: colors.muted, fontSize: '14px', lineHeight: 1.6, padding: '0 16px' }}>{t('inv.noAccess')}</p>
@@ -64,7 +64,6 @@ export default function InventoryPage() {
         {tab === 'subrentals' && <SubrentalsTab inv={inv} orgId={orgId} />}
         {tab === 'reports' && <ReportsTab inv={inv} orgId={orgId} />}
       </div>
-      <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </AppShell>
   )
 }
@@ -267,7 +266,7 @@ function Movements({ inv, orgId }) {
     supabase.from('stock_movements').select('*').eq('org_id', orgId).order('created_at', { ascending: false }).limit(200)
       .then(({ data, error }) => { if (error) logger.error('inventory', error, { step: 'movements' }); setRows(data || []) })
   }, [orgId])
-  if (!rows) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+  if (!rows) return <AvxLoader size={20} color={colors.accentText} />
   const itemName = id => inv.items.find(i => i.id === id)?.name || '—'
   return (
     <div>

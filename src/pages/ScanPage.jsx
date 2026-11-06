@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Loader2, ScanLine } from 'lucide-react'
+import { ScanLine } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
-import { btn, colors } from '../components/ui'
+import { btn, colors, AvxLoader } from '../components/ui'
 
 // Where a label's QR code leads: /scan/<code> finds the unit or item in your organisations
 // and opens it. Codes that aren't yours (or don't exist) say so without revealing anything.
@@ -36,7 +36,7 @@ export default function ScanPage() {
     <AppShell>
       <div style={{ maxWidth: '440px', margin: '70px auto', padding: '0 16px', textAlign: 'center' }}>
         {!matches ? (
-          <Loader2 size={26} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+          <AvxLoader size={26} color={colors.accentText} />
         ) : (
           <>
             <ScanLine size={30} color={colors.soft} style={{ marginBottom: '12px' }} />
@@ -59,7 +59,6 @@ export default function ScanPage() {
           </>
         )}
       </div>
-      <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </AppShell>
   )
 }

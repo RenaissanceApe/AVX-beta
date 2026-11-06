@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { CalendarPlus, Copy, RefreshCw, Loader2 } from 'lucide-react'
+import { CalendarPlus, Copy, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
+import { AvxLoader } from './ui'
 
 // The person's gigs in their phone's own calendar (docs/SWITCHING.md, S4): a private feed link the
 // calendar subscribes to (the calendar-feed Edge Function). The link is shown on request, can be
@@ -39,7 +40,7 @@ export default function CalendarFeedSection({ label, input, smallBtn }) {
       <p style={{ color: 'var(--muted)', fontSize: '12px', lineHeight: 1.5, marginBottom: '10px' }}>{t('calFeed.intro')}</p>
       {!token ? (
         <button type="button" onClick={() => load(false)} disabled={busy} style={smallBtn}>
-          {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CalendarPlus size={14} />} {t('calFeed.show')}
+          {busy ? <AvxLoader size={14} /> : <CalendarPlus size={14} />} {t('calFeed.show')}
         </button>
       ) : (
         <>
@@ -51,7 +52,7 @@ export default function CalendarFeedSection({ label, input, smallBtn }) {
             </a>
             <button type="button" onClick={copy} style={smallBtn}><Copy size={14} /> {t('calFeed.copy')}</button>
             <button type="button" onClick={() => load(true)} disabled={busy} style={{ ...smallBtn, background: 'transparent' }}>
-              {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />} {t('calFeed.new')}
+              {busy ? <AvxLoader size={14} /> : <RefreshCw size={14} />} {t('calFeed.new')}
             </button>
           </div>
           <p style={{ color: 'var(--muted)', fontSize: '12px', lineHeight: 1.5, marginTop: '8px' }}>{t('calFeed.private')}</p>

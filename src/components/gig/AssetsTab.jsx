@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Upload, Eye, Trash2, Loader2, CheckCircle, DownloadCloud, CloudOff } from 'lucide-react'
+import { Upload, Eye, Trash2, CheckCircle, DownloadCloud, CloudOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
@@ -8,7 +8,7 @@ import { MAX_UPLOAD_BYTES, storagePath, findAssetToSupersede, formatBytes } from
 import { useI18n } from '../../i18n'
 import { signedUrl } from '../../lib/storage'
 import { saveFileOffline, removeFileOffline, offlineFileIds } from '../../lib/offline'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors, tint } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, tint, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { ASSET_TYPES, assetType, TabHeader } from './parts'
 
@@ -80,7 +80,7 @@ export default function AssetsTab({ gigId, assets, canUpload, offline = false, o
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {!offline && assets.length > 0 && assets.some(a => !savedIds.has(a.id)) && (
               <button onClick={saveAll} disabled={!!bulk} style={btn}>
-                {bulk ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <DownloadCloud size={14} />}
+                {bulk ? <AvxLoader size={14} /> : <DownloadCloud size={14} />}
                 {bulk ? t('offline.savingAll', bulk) : t('offline.saveAll')}
               </button>
             )}
@@ -126,7 +126,7 @@ export default function AssetsTab({ gigId, assets, canUpload, offline = false, o
                   <button onClick={() => toggleOffline(a)} disabled={savingId === a.id} style={{ ...iconBtn, color: savedIds.has(a.id) ? colors.accentText : colors.muted }}
                     aria-pressed={savedIds.has(a.id)} title={savedIds.has(a.id) ? t('offline.remove') : t('offline.keep')}
                     aria-label={savedIds.has(a.id) ? t('offline.remove') : t('offline.keep')}>
-                    {savingId === a.id ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
+                    {savingId === a.id ? <AvxLoader size={15} />
                       : savedIds.has(a.id) ? <CloudOff size={15} /> : <DownloadCloud size={15} />}
                   </button>
                 )}
@@ -263,7 +263,7 @@ function UploadModal({ gigId, assets, onClose, onUploaded }) {
 
         <button onClick={upload} disabled={uploading || !form.file || !form.name.trim()}
           style={{ ...btnPrimary, justifyContent: 'center', padding: '13px', opacity: (!form.file || !form.name.trim()) ? 0.5 : 1 }}>
-          {uploading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Upload size={16} />}
+          {uploading ? <AvxLoader size={16} /> : <Upload size={16} />}
           {uploading ? t('assets.uploading') : t('assets.upload')}
         </button>
       </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Boxes, Pencil, Archive, ArchiveRestore, PackagePlus, PackageMinus, ArrowRightLeft, ClipboardCheck, Plus, QrCode, Loader2, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Boxes, Pencil, Archive, ArchiveRestore, PackagePlus, PackageMinus, ArrowRightLeft, ClipboardCheck, Plus, QrCode, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -17,7 +17,7 @@ import { KitPanel, CaseContentsModal } from '../components/inventory/KitPanels'
 import ContextThread from '../components/messages/ContextThread'
 import { ItemMaintenance } from '../components/inventory/MaintenancePanels'
 import { MovementList, useNames, LOCATION_ICONS } from './InventoryPage'
-import { btn, btnPrimary, iconBtn, card, label, colors, StatusBadge } from '../components/ui'
+import { btn, btnPrimary, iconBtn, card, label, colors, StatusBadge, AvxLoader } from '../components/ui'
 import { PageHelp } from '../components/help/HelpParts'
 
 const STATUS_TONE = { available: 'ok', repair: 'warn', lost: 'danger', retired: 'off' }
@@ -67,7 +67,7 @@ export default function InventoryItemPage() {
   useEffect(() => { if (inv.canManage) loadDetails() }, [itemId, inv.canManage]) // eslint-disable-line react-hooks/exhaustive-deps
   const refresh = () => { inv.reload(); loadDetails() }
 
-  if (inv.loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (inv.loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (!inv.canManage || !item) return (
     <AppShell>
       <div style={{ maxWidth: '420px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
@@ -263,7 +263,6 @@ export default function InventoryItemPage() {
       {addingUnits && <AddUnitsModal item={item} locations={inv.activeLocations} onClose={() => setAddingUnits(false)} onSaved={refresh} />}
       {packing && <CaseContentsModal caseUnit={packing} kits={kits} onClose={() => setPacking(null)} onSaved={loadDetails} />}
       {unit && <UnitModal unit={unit} locations={inv.locations.filter(l => !l.archived_at || l.id === unit.location_id)} onClose={() => setUnit(null)} onSaved={refresh} />}
-      <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </AppShell>
   )
 }

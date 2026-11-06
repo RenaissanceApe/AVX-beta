@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, Send, Contact, MessageCircle, Flag } from 'lucide-react'
+import { Send, Contact, MessageCircle, Flag } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { CURRENCIES, jobError, money } from '../lib/jobs'
 import { useI18n } from '../i18n'
-import { Modal, btn, btnPrimary, input, label, card, colors, tint } from '../components/ui'
+import { Modal, btn, btnPrimary, input, label, card, colors, tint, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import JobCard from '../components/jobs/JobCard'
@@ -73,7 +73,7 @@ export default function JobsPage() {
             <Link to="/me/profile" style={{ ...btnPrimary, textDecoration: 'none' }}><Contact size={15} /> {t('crewProfile.open')}</Link>
           </div>
         ) : !board ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 size={22} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><AvxLoader size={22} color={colors.accentText} /></div>
         ) : (
           <section aria-labelledby="jobs-found" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <h2 id="jobs-found" role="status" style={{ fontSize: '15px', fontWeight: 700 }}>{t('jobs.found', { count: board.total })}</h2>
@@ -100,7 +100,7 @@ export default function JobsPage() {
         ))}
 
         {tab === 'mine' && (!mine ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 size={22} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><AvxLoader size={22} color={colors.accentText} /></div>
         ) : mine.length === 0 ? (
           <p style={hint}>{t('jobs.noApplications')}</p>
         ) : (
@@ -182,7 +182,7 @@ function ApplyModal({ job, onClose, onApplied }) {
         </label>
         <p style={hint}>{needsRate ? t('jobs.ratePrivate') : t('jobs.applyHint')}</p>
         <button type="submit" disabled={sending || !free || (needsRate && !(rateNum >= 0))} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {sending ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={15} />} {t('jobs.sendApplication')}
+          {sending ? <AvxLoader size={15} /> : <Send size={15} />} {t('jobs.sendApplication')}
         </button>
       </form>
     </Modal>

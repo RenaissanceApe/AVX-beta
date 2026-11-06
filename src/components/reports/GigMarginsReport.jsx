@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, Wallet } from 'lucide-react'
+import { Wallet } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { selectAll } from '../../lib/selectAll'
 import { logger } from '../../lib/logger'
@@ -10,7 +10,7 @@ import { shortNumber } from '../../lib/analytics/charts'
 import { BASE_STATUSES } from '../../lib/gigLabels'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
-import { colors } from '../ui'
+import { colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { NumberTile, BarChart } from './Charts'
 import { PeriodBar, FilterBar, ReportTable, ExportButtons, DetailsToggle, useDetails, downloadCsv } from './ReportParts'
@@ -107,7 +107,7 @@ export default function GigMarginsReport({ orgId, timeZone, labels, params, setP
         compare={compare} onCompare={v => setParam('compare', v === 'previous' ? null : v)} range={range} compared={compared} />
 
       {!range ? null : !data ? (
-        <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} aria-label={t('common.loading')} />
+        <AvxLoader size={20} color={colors.accentText} label={t('common.loading')} />
       ) : data.failed ? (
         <p role="alert" style={{ color: colors.danger, fontSize: '13px' }}>{t('reports.loadFailed')}</p>
       ) : (

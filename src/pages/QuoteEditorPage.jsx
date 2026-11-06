@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  ArrowLeft, Loader2, Printer, Copy, LayoutTemplate, Trash2, Plus, CalendarPlus, ExternalLink, AlertTriangle, Download,
+  ArrowLeft, Printer, Copy, LayoutTemplate, Trash2, Plus, CalendarPlus, ExternalLink, AlertTriangle, Download,
   History, Send, ListChecks, Package,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -10,7 +10,7 @@ import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { useI18n } from '../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../components/ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader } from '../components/ui'
 import PhaseEditor, { QUOTE_EDITOR_CSS } from '../components/quotes/PhaseEditor'
 import QuoteDetails from '../components/quotes/QuoteDetails'
 import QuoteInvoices from '../components/invoices/QuoteInvoices'
@@ -200,7 +200,7 @@ export default function QuoteEditorPage() {
   )
   if (!quote) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Loader2 size={26} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+      <AvxLoader size={26} color={colors.accentText} />
     </div>
   )
 
@@ -509,7 +509,7 @@ function SaveTemplateModal({ orgId, userId, body, defaultName, onClose, onSaved 
           <input id="tpl-desc" value={description} onChange={e => setDescription(e.target.value)} maxLength={500} style={input} />
         </div>
         <button type="submit" disabled={saving || !name.trim()} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <LayoutTemplate size={15} />} {t('quote.saveTemplate')}
+          {saving ? <AvxLoader size={15} /> : <LayoutTemplate size={15} />} {t('quote.saveTemplate')}
         </button>
       </form>
     </Modal>

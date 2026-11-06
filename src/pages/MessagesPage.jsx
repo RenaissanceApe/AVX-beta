@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Bell, BellOff, Loader2, MessageCircle, Hash, Users, Megaphone, Search, Bookmark, Plus, Settings, Archive, Package, Eye } from 'lucide-react'
+import { ArrowLeft, Bell, BellOff, MessageCircle, Hash, Users, Megaphone, Search, Bookmark, Plus, Settings, Archive, Package, Eye } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -12,10 +12,10 @@ import { conversationTitle, conversationContext, contextLink } from '../lib/mess
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import Conversation from '../components/messages/Conversation'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../components/ui'
 import { PageHelp } from '../components/help/HelpParts'
 
-const spinner = <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}><Loader2 size={22} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
+const spinner = <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}><AvxLoader size={22} color={colors.accentText} /></div>
 const KIND_ICONS = { direct: MessageCircle, gig: Hash, department: Users, org: Megaphone, context: Package }
 
 function useNarrow() {
@@ -264,7 +264,7 @@ function ChannelModal({ orgs, channel, onClose, onSaved }) {
               <Archive size={14} /> {channel.archived_at ? t('chat.restoreChannel') : t('chat.archiveChannel')}
             </button>
           ) : <span />}
-          <button type="submit" disabled={busy || !title.trim()} style={btnPrimary}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : null}{channel ? t('common.save') : t('chat.createChannel')}</button>
+          <button type="submit" disabled={busy || !title.trim()} style={btnPrimary}>{busy ? <AvxLoader size={14} /> : null}{channel ? t('common.save') : t('chat.createChannel')}</button>
         </div>
       </form>
     </Modal>

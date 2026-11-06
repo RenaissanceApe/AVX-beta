@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Printer, Loader2, Megaphone, Type } from 'lucide-react'
+import { ArrowLeft, Printer, Megaphone, Type } from 'lucide-react'
 import { useI18n } from '../i18n'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import OfflineBanner from '../components/OfflineBanner'
@@ -12,6 +12,7 @@ import { track } from '../lib/usage'
 import { groupByDay, shortTime, sortCrewForCallSheet, callSheetSpeech } from '../lib/schedule'
 import { readAppearance } from '../lib/appearance'
 import ReadAloud from '../components/ReadAloud'
+import { AvxLoader } from '../components/ui'
 
 // Large print (docs/HELP.md, H5): remembered on this device; starts on for people who use a
 // larger text size in Appearance
@@ -93,7 +94,7 @@ export default function CallSheetPage() {
   )
   if (!data) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Loader2 size={26} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
+      <AvxLoader size={26} color="#1EC878" />
     </div>
   )
 
@@ -151,7 +152,7 @@ export default function CallSheetPage() {
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {isPM && (
             <button onClick={publish} disabled={publishing} title={t('callsheet.publishHint')} style={toolbarBtn}>
-              {publishing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Megaphone size={14} />} {t('callsheet.publish')}
+              {publishing ? <AvxLoader size={14} /> : <Megaphone size={14} />} {t('callsheet.publish')}
             </button>
           )}
           <ReadAloud style={toolbarBtn} text={() => callSheetSpeech({ gig, schedule, crew, nameOf, me: user.id }, { t, fmt })} />

@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { Flag, Loader2 } from 'lucide-react'
+import { Flag } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { REPORT_REASONS, trustError } from '../lib/trust'
 import { useI18n } from '../i18n'
-import { Modal, btn, btnDanger, input, label, colors } from './ui'
+import { Modal, btn, btnDanger, input, label, colors, AvxLoader } from './ui'
 
 // Report a crew profile or a job post to AVX (docs/CREW_NETWORK.md, N4). It disappears for the
 // reporter at once; AVX reviews it. For a profile, the reporter can also block the person.
@@ -64,7 +64,7 @@ export default function ReportModal({ kind, target, name, blockUser, onClose, on
         )}
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button type="submit" disabled={sending || !reason} style={btnDanger}>
-            {sending ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Flag size={15} />} {t('trust.report.send')}
+            {sending ? <AvxLoader size={15} /> : <Flag size={15} />} {t('trust.report.send')}
           </button>
           <button type="button" onClick={onClose} style={{ ...btn, background: 'transparent' }}>{t('common.cancel')}</button>
         </div>

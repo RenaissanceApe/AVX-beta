@@ -1,0 +1,56 @@
+# Design refresh: room to breathe
+
+Decided 2026-11-06 (D48). The owner found the whole app too busy. This file holds the assessment
+and the build order. **The rules themselves live in [DESIGN.md](../DESIGN.md)** ("Room to breathe",
+"Home", "Typography", "Layout", "Motion"); every screen session reads them there.
+
+## What makes it busy
+
+Checked against the code (inline styles in `src/**/*.jsx`) and the 119 help screenshots, which are
+the real screens with sample data.
+
+| Suspect | Verdict | Evidence |
+| --- | --- | --- |
+| Colour palette | **Not the cause.** Navy, panel and one green are calm on their own | The noise comes from *how often* green is used, not the colours: 2–4 green fills on one screen (the next-event card: call-time wash, "Call sheet" button, "Available"; Invoices: "New invoice" and the selected "All" filter) |
+| Square corners | **Not the cause**, and brand-locked (Brand Book §11) | Square corners read calm when there is space around them; boxed and cramped, every edge adds a line |
+| Spacing | **Main cause** | 11 different gap values between 2 and 22 px (most used: 8, 6, 10); sections are 20–24 px apart while items inside are 8–12 px apart, so nothing groups; values off the 4 px grid (3, 5, 6, 7, 10, 14, 18, 22) in about 1,400 places |
+| Boxes | **Main cause** | Sections are each wrapped in a bordered card, cards hold bordered cards (members invite list, next-event card), list rows are cards; on a phone the screen becomes a grid of outlines |
+| Too many elements | **Cause** | Page headers carry an intro paragraph plus 2–3 buttons (Invoices, Contacts, Inventory item); cards show 4 buttons in a 2×2 grid; section descriptions repeat what ⓘ already explains |
+| Type | **Contributes** | 15 text sizes in use; most text is 12–13 px (774 places) against a 14 px body; uppercase Space Mono labels at two levels on the same screen ("O SEU PRÓXIMO EVENTO" above the event title) |
+| Loading | Fixed in 0.74.1 | Was 197 spinning icons; now one `<AvxLoader>` |
+
+## The decisions (now in DESIGN.md)
+
+1. Three distances: within 4–8, between items 12–16, between sections 40 phone / 48 desktop.
+2. One box deep: sections are space + heading; cards only for things you open or act on.
+3. One loud thing: one accent fill per screen; selected tabs and filters are a 2 px bar.
+4. Say it once: a header is the title + at most one short line + ⓘ; explanations go behind ⓘ.
+5. Few actions in view: one primary + two secondary in a header, two per card; the rest in ⋯.
+6. Most important first; nothing repeats the top bar on phone.
+7. Seven type sizes; body 14 px.
+8. Comfortable by default; compact only in data grids.
+9. Home is modular (standard: First steps → Availability requests → Key numbers → Events),
+   rearranged per person and workspace; Key numbers are a swipe row on phone; no organisation
+   name on the phone home.
+10. Loading is the AVX Pixel Build everywhere.
+
+## Build order
+
+One session each, in order, from its prompt in [SESSION_PROMPTS.md](SESSION_PROMPTS.md). No
+database changes are expected (the home arrangement is saved on the device, like Appearance). Each
+session regenerates the help screenshots of the guides whose screens it changed, checks 320 and
+390 px in both languages and all three themes, and keeps axe clean.
+
+| Step | Screens | Why this order |
+| --- | --- | --- |
+| **DR1** Foundations + Home | `Section`, `Stack`, `PageHeader`, `SwipeRow`, `MoreMenu` in `ui.jsx`; CSS variables for the spacing steps; a test that stops new off-scale sizes and gaps (counts may only go down); the modular home with Arrange home, the swipe row, the phone header and the slim First steps | Everything after uses the pieces; the home is the first screen everyone sees |
+| **DR2** Gig | Gig header, Overview (next-event card included), Schedule, Crew, Equipment, Feed/Chat tabs | The most used screen |
+| **DR3** Lists | Quotes, Invoices, Inventory, Contacts, Members, Expenses, Hours, Leave, Jobs, Find crew | Same pattern repeated: header, filters, list rows |
+| **DR4** Detail and editors | Quote editor (stays compact in the line grid), Inventory item, Reports, Settings and organisation settings dialogs, Import | Denser screens: apply rules 2–5 without losing data |
+| **DR5** Field and crew | My work, Simple home, On-site, Scan and Dispatch, field tools, Messages, Help | Used standing up and on phones |
+| **DR6** Sweep | Everything left, the ratchet test down to zero, all help screenshots refreshed, the design system artifact brought in line | Finishes the refresh |
+
+## Not changing
+
+The palette, the three themes, square corners, Space Mono + Inter, the 5×5 glyph and the paper
+documents (call sheet, quote document, labels) stay as they are.

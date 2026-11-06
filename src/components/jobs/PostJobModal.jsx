@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Send, MapPin, X } from 'lucide-react'
+import { Send, MapPin, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -9,7 +9,7 @@ import { CURRENCIES, PAY_PER, emptyPost, postPayload, jobError } from '../../lib
 import { functionRate, jobPay } from '../../lib/crewRates'
 import { useRateCard } from '../../lib/useCrewRates'
 import { useI18n, translate, LANGUAGES as UI_LANGUAGES } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader } from '../ui'
 import PlaceFinder from '../PlaceFinder'
 
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
@@ -191,7 +191,7 @@ export default function PostJobModal({ gig: givenGig, position, gigs = [], onClo
         </>}
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button type="submit" disabled={saving || !gig} style={btnPrimary}>
-            {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={15} />} {t('jobs.publish')}
+            {saving ? <AvxLoader size={15} /> : <Send size={15} />} {t('jobs.publish')}
           </button>
           <button type="button" onClick={onClose} style={{ ...btn, background: 'transparent' }}>{t('common.cancel')}</button>
         </div>

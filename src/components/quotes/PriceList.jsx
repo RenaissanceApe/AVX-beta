@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
-import { Plus, Pencil, Trash2, Upload, Loader2, Search, Check, Tags } from 'lucide-react'
+import { Plus, Pencil, Trash2, Upload, Search, Check, Tags } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { useI18n } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { PRICED_KINDS, UNITS, formatMoney, parsePriceImport, parsePrice } from '../../lib/quotes'
 import { updateIfUnchanged, notifyConflict } from '../../lib/staleSave'
@@ -154,7 +154,7 @@ function PriceItemModal({ orgId, userId, item, categories, onClose, onSaved }) {
           <textarea id="pi-details" value={form.details} onChange={e => set('details', e.target.value)} rows={2} maxLength={1000} style={{ ...input, resize: 'vertical' }} />
         </div>
         <button type="submit" disabled={saving} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
+          {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('common.save')}
         </button>
       </form>
     </Modal>
@@ -196,7 +196,7 @@ function ImportModal({ orgId, userId, onClose, onImported }) {
         {parsed.errors.length > 0 && ` · ${t('prices.importSkipped', { lines: parsed.errors.join(', ') })}`}
       </p>
       <button onClick={submit} disabled={saving || !parsed.items.length} style={{ ...btnPrimary, justifyContent: 'center', width: '100%' }}>
-        {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Upload size={15} />} {t('prices.importButton', { count: parsed.items.length })}
+        {saving ? <AvxLoader size={15} /> : <Upload size={15} />} {t('prices.importButton', { count: parsed.items.length })}
       </button>
     </Modal>
   )

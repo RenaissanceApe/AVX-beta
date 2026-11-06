@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Search, Users, X, AlertTriangle, Check, Loader2 } from 'lucide-react'
+import { Search, Users, X, AlertTriangle, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { useI18n, t } from '../i18n'
-import { input, colors } from './ui'
+import { input, colors, AvxLoader } from './ui'
 
 const AMBER = 'var(--warn)'
 
@@ -40,7 +40,7 @@ export function NetworkPicker({ gigId, orgId, onPick, hint }) {
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('network.search')} aria-label={t('network.search')}
           style={{ ...input, paddingLeft: '30px', padding: '8px 10px 8px 30px' }} />
       </div>
-      {!people ? <Loader2 size={16} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : people.length === 0 ? (
+      {!people ? <AvxLoader size={16} color={colors.accentText} /> : people.length === 0 ? (
         <p style={{ fontSize: '12px', color: colors.muted, padding: '4px 2px' }}>{t('network.none')}</p>
       ) : (
         <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>

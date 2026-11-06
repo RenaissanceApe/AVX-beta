@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, X, Loader2, CalendarOff } from 'lucide-react'
+import { Plus, X, CalendarOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -10,7 +10,7 @@ import { localToday } from '../lib/gigs'
 import { LEAVE_TYPES, leaveRange, removeLeave } from '../lib/leave'
 import { useI18n } from '../i18n'
 import { TypeChip, LeaveStatusChip } from './leave/LeaveParts'
-import { btn, iconBtn, input, label, colors } from './ui'
+import { btn, iconBtn, input, label, colors, AvxLoader } from './ui'
 
 // Account → dates you can't work. Only you see the entries; production managers
 // only get a "not available" warning when they add you to a gig on those dates.
@@ -91,7 +91,7 @@ export default function AvailabilitySection() {
         <input value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} maxLength={200}
           placeholder={t('availability.notePlaceholder')} aria-label={t('availability.note')} style={{ ...input, gridColumn: '1 / -1' }} />
         <button type="submit" disabled={saving || !form.start_date} style={{ ...btn, gridColumn: '1 / -1', justifyContent: 'center' }}>
-          {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={14} />} {t('availability.add')}
+          {saving ? <AvxLoader size={14} /> : <Plus size={14} />} {t('availability.add')}
         </button>
       </form>
       {staffOrgs.length > 0 && (

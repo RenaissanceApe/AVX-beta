@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { MessageCircleQuestion, Check, X, Building2, MapPin, Loader2 } from 'lucide-react'
+import { MessageCircleQuestion, Check, X, Building2, MapPin } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -8,7 +8,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { rangeText } from '../lib/clashes'
 import { useI18n, t } from '../i18n'
-import { btn, btnPrimary, input, colors, label } from './ui'
+import { btn, btnPrimary, input, colors, label, AvxLoader } from './ui'
 
 // My work: "are you available?" requests waiting for an answer. Answering notifies
 // whoever asked; nothing is booked until they add you to the gig.
@@ -100,10 +100,10 @@ function RequestCard({ request: r, onDone }) {
         aria-label={t('requests.note')} style={{ ...input, marginTop: '12px', padding: '8px 10px', fontSize: '13px' }} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '10px' }}>
         <button onClick={() => answer('unavailable')} disabled={!!saving} style={{ ...btn, minHeight: '44px', justifyContent: 'center' }}>
-          {saving === 'unavailable' ? <Loader2 size={14} /> : <X size={14} aria-hidden="true" />} {t('requests.unavailable')}
+          {saving === 'unavailable' ? <AvxLoader size={14} /> : <X size={14} aria-hidden="true" />} {t('requests.unavailable')}
         </button>
         <button onClick={() => answer('available')} disabled={!!saving} style={{ ...btnPrimary, minHeight: '44px', justifyContent: 'center' }}>
-          {saving === 'available' ? <Loader2 size={14} /> : <Check size={14} aria-hidden="true" />} {t('requests.available')}
+          {saving === 'available' ? <AvxLoader size={14} /> : <Check size={14} aria-hidden="true" />} {t('requests.available')}
         </button>
       </div>
     </div>

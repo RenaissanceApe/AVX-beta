@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Wallet, Receipt, Loader2, Check } from 'lucide-react'
+import { Wallet, Receipt, Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -9,7 +9,7 @@ import { formatMoney } from '../../lib/quotes'
 import { useRateCard } from '../../lib/useCrewRates'
 import { cardFees, isEstimate } from '../../lib/analytics/gigFinance'
 import { useI18n } from '../../i18n'
-import { btn, card, colors } from '../ui'
+import { btn, card, colors, AvxLoader } from '../ui'
 import { Hint, Term } from '../help/HelpParts'
 import ExpenseForm from '../expenses/ExpenseForm'
 
@@ -66,7 +66,7 @@ export default function GigFinancePanel({ gig, members, canManage }) {
   )
   if (!row) return (
     <section aria-labelledby="finance-title" style={{ ...card, padding: '14px 16px', marginTop: '16px' }}>
-      {heading}<Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite', marginTop: '8px' }} aria-label={t('common.loading')} />
+      {heading}<AvxLoader size={18} color={colors.accentText} style={{ marginTop: '8px' }} label={t('common.loading')} />
     </section>
   )
 
@@ -132,7 +132,7 @@ export default function GigFinancePanel({ gig, members, canManage }) {
         <button type="button" onClick={() => setAdding(true)} style={btn}><Receipt size={14} aria-hidden="true" /> {t('finance.addExpense')}</button>
         {showSave && (
           <button type="button" onClick={saveFees} disabled={saving || !rateCard.loaded} style={btn}>
-            {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} aria-hidden="true" /> : <Check size={14} aria-hidden="true" />} {t('finance.saveFees')}
+            {saving ? <AvxLoader size={14} /> : <Check size={14} aria-hidden="true" />} {t('finance.saveFees')}
           </button>
         )}
         <Link to={`/org/${gig.org_id}/reports?tab=margins`} style={{ fontSize: '13px', color: colors.accentText }}>{t('finance.allGigs')}</Link>

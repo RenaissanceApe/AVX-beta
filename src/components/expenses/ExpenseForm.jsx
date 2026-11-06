@@ -2,7 +2,7 @@
 // on a gig (what they paid themselves, with the receipt). Also opened from a subrental, a repair, a
 // crew fee or a stock purchase with the link and amount filled in.
 import { useEffect, useMemo, useState } from 'react'
-import { Loader2, Save, Send, Paperclip, Trash2 } from 'lucide-react'
+import { Save, Send, Paperclip, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
@@ -17,7 +17,7 @@ import {
 } from '../../lib/expenses'
 import { useI18n, fmt } from '../../i18n'
 import { HintLabel } from '../help/HelpParts'
-import { Modal, btn, btnPrimary, btnDanger, input, colors } from '../ui'
+import { Modal, btn, btnPrimary, btnDanger, input, colors, AvxLoader } from '../ui'
 import { ReceiptLink } from './ExpenseParts'
 
 const field = { minWidth: 0, fontSize: '12px', color: colors.soft, display: 'flex', flexDirection: 'column', gap: '4px' }
@@ -289,7 +289,7 @@ export default function ExpenseForm({ orgId, expense = null, preset = {}, claim 
         <p style={{ ...full, fontSize: '14px', margin: 0 }}><strong>{t('expenses.totalIs', { amount: formatMoney(total, form.currency || 'EUR', lang) })}</strong></p>
         <div style={{ ...full, display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button type="submit" disabled={saving} style={{ ...btnPrimary, flex: '1 1 180px', justifyContent: 'center' }}>
-            {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : isClaim && (!expense || status === 'returned') ? <Send size={14} /> : <Save size={14} />}
+            {saving ? <AvxLoader size={14} /> : isClaim && (!expense || status === 'returned') ? <Send size={14} /> : <Save size={14} />}
             {' '}{isClaim && !expense ? t('expenses.sendClaim') : isClaim && status === 'returned' ? t('expenses.sendAgain') : t('expenses.save')}
           </button>
           {expense && (

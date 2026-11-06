@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Upload, Loader2, MapPin, Package, Barcode, Boxes, AlertTriangle, Check, Download, Undo2, Save, FileText, Building2, Truck, Users, CalendarDays, PackageCheck, Receipt } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Upload, MapPin, Package, Barcode, Boxes, AlertTriangle, Check, Download, Undo2, Save, FileText, Building2, Truck, Users, CalendarDays, PackageCheck, Receipt } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { selectAll } from '../lib/selectAll'
 import { useToast } from '../lib/ToastContext'
@@ -10,7 +10,7 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { KINDS, CONTACT_KINDS, HELD_KINDS, JOB_KINDS, FIELDS, looksLikeRentman, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, buildRows, dryRun, toPayload, reportCsv, serverMessage } from '../lib/importer'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
-import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors } from '../components/ui'
+import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors, AvxLoader } from '../components/ui'
 
 const STEPS = ['choose', 'match', 'check', 'done']
 const KIND_ICONS = { locations: MapPin, items: Package, units: Barcode, kits: Boxes, clients: Building2, suppliers: Truck, crew: Users, gigs: CalendarDays, gig_equipment: PackageCheck, quotes: Receipt }
@@ -69,7 +69,7 @@ export default function ImportPage() {
   const table = useMemo(() => parseTable(source.text, { headerRow }), [source.text, headerRow])
   const restart = nextKind => { setStep('choose'); setSource({ text: '', fileName: null }); setMapping({}); setPresetName(null); setResult(null); if (nextKind) setKind(nextKind) }
 
-  if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (!canImport) return <AppShell><p style={{ maxWidth: '420px', margin: '80px auto', textAlign: 'center', color: colors.muted, fontSize: '14px', lineHeight: 1.6, padding: '0 16px' }}>{t('inv.noAccess')}</p></AppShell>
 
   return (
@@ -114,7 +114,6 @@ export default function ImportPage() {
 
         <History orgId={orgId} key={historyKey} />
       </div>
-      <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </AppShell>
   )
 }
@@ -441,7 +440,7 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fi
     onDone(data)
   }
 
-  if (!run) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+  if (!run) return <AvxLoader size={20} color={colors.accentText} />
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <div role="status" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px' }}>
@@ -488,7 +487,7 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fi
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button type="button" onClick={onBack} style={btn}><ArrowLeft size={14} /> {t('imp.back')}</button>
         <button type="button" onClick={importNow} disabled={busy || !sendable.length} style={btnPrimary}>
-          {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Upload size={14} />} {t('imp.importButton', { count: sendable.length })}
+          {busy ? <AvxLoader size={14} /> : <Upload size={14} />} {t('imp.importButton', { count: sendable.length })}
         </button>
       </div>
     </div>
@@ -612,7 +611,7 @@ function UndoModal({ batch, onClose, onDone, onError }) {
           <input type="checkbox" checked={sure} onChange={e => setSure(e.target.checked)} style={{ accentColor: 'var(--danger)', marginTop: '4px' }} /> {t('imp.undoSure')}
         </label>
         <button type="button" onClick={undo} disabled={!sure || busy} style={{ ...btnDanger, justifyContent: 'center' }}>
-          {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Undo2 size={14} />} {t('imp.undoConfirm')}
+          {busy ? <AvxLoader size={14} /> : <Undo2 size={14} />} {t('imp.undoConfirm')}
         </button>
       </div>
     </Modal>

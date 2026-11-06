@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, MessageCircleQuestion, Loader2, Send, Check, X, Clock } from 'lucide-react'
+import { AlertTriangle, MessageCircleQuestion, Send, Check, X, Clock } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { clashText, rangeText, dayRange } from '../../lib/clashes'
 import { useI18n, t } from '../../i18n'
-import { Modal, btn, btnPrimary, input, label, colors } from '../ui'
+import { Modal, btn, btnPrimary, input, label, colors, AvxLoader } from '../ui'
 import { Term } from '../help/HelpParts'
 
 export const AMBER = 'var(--warn)'
@@ -99,7 +99,7 @@ export function AskAvailabilityModal({ gigId, personId, name, clashes = [], onCl
             placeholder={t('ask.messagePlaceholder')} style={{ ...input, resize: 'vertical', lineHeight: 1.5 }} autoFocus />
         </div>
         <button type="submit" disabled={sending} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {sending ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={15} />} {t('ask.send')}
+          {sending ? <AvxLoader size={15} /> : <Send size={15} />} {t('ask.send')}
         </button>
       </form>
     </Modal>
@@ -156,7 +156,7 @@ export function ShiftModal({ gig, member, name, onClose, onSaved }) {
         {invalid && from && until && <p role="alert" style={{ fontSize: '12px', color: colors.danger }}>{t('shift.invalid')}</p>}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button type="submit" disabled={saving || invalid} style={{ ...btnPrimary, flex: 1, justifyContent: 'center' }}>
-            {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Clock size={15} />} {t('shift.save')}
+            {saving ? <AvxLoader size={15} /> : <Clock size={15} />} {t('shift.save')}
           </button>
           {member.booked_from && (
             <button type="button" disabled={saving} onClick={() => save({ booked_from: null, booked_until: null })}

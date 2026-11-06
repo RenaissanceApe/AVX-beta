@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertCircle, Send, Loader2 } from 'lucide-react'
+import { AlertCircle, Send } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { useI18n } from '../../i18n'
-import { colors } from '../ui'
+import { colors, AvxLoader } from '../ui'
 import { FeedPost, TabHeader } from './parts'
 
 export default function FeedTab({ gigId, posts, userId, isPM, nameOf, onChanged }) {
@@ -77,7 +77,7 @@ export default function FeedTab({ gigId, posts, userId, isPM, nameOf, onChanged 
             background: canPost ? colors.accent : 'var(--line)',
             color: canPost ? 'var(--on-accent)' : 'var(--muted)', cursor: canPost ? 'pointer' : 'default', fontSize: '13px', fontWeight: 700,
           }}>
-            {posting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('feed.post')}
+            {posting ? <AvxLoader size={14} /> : <Send size={14} />} {t('feed.post')}
           </button>
         </div>
       </div>

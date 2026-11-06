@@ -103,14 +103,14 @@ typography:
     lineHeight: 34px
   title:
     fontFamily: "'Space Mono', 'Courier New', monospace"
-    fontSize: 20px
+    fontSize: 22px
     fontWeight: 700
-    lineHeight: 26px
+    lineHeight: 28px
   heading:
     fontFamily: "'Space Mono', 'Courier New', monospace"
-    fontSize: 15px
+    fontSize: 16px
     fontWeight: 700
-    lineHeight: 20px
+    lineHeight: 22px
   body:
     fontFamily: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
     fontSize: 14px
@@ -120,7 +120,7 @@ typography:
     fontFamily: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
     fontSize: 13px
     fontWeight: 400
-    lineHeight: 18px
+    lineHeight: 20px
   button:
     fontFamily: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
     fontSize: 13px
@@ -152,13 +152,16 @@ rounded:
   none: 0px
 
 spacing:
-  space-1: 4px
-  space-2: 8px
-  space-3: 12px
-  space-4: 16px
-  space-5: 24px
-  space-6: 32px
-  space-7: 48px
+  # The only gaps, paddings and margins a screen uses (see "Room to breathe")
+  space-1: 4px    # inside a control: icon to its word
+  space-2: 8px    # between lines of one item (name, meta)
+  space-3: 12px   # between items in a group: rows, fields, buttons in a row
+  space-4: 16px   # card padding on phone; heading to its content
+  space-5: 24px   # between groups inside a section; card padding on desktop; page gutter on desktop
+  space-6: 32px   # above a page's first section, below the page header
+  space-7: 48px   # between sections on desktop
+  section-phone: 40px
+  section-desktop: 48px
 
 sizes:
   control-sm: 28px
@@ -242,6 +245,17 @@ components:
     borderColor: "{colors.line-strong}"
     scrim: "{colors.overlay}"
     rounded: "{rounded.none}"
+  loader:
+    shape: "the AVX glyph, 11 cells, built one cell every 50 ms in reading order; whole at 600 ms; clears at 1400 ms; 1.6 s loop"
+    color: "currentColor (accent-text on the app-start screen)"
+    size: "multiple of 5 px (10, 15, 20, 25, 40)"
+    reducedMotion: "the still mark, no loop"
+  home-module:
+    spacing: "{spacing.section-phone} / {spacing.section-desktop} between modules"
+    header: "{typography.heading} + optional link on the right"
+  swipe-row:
+    phone: "horizontal scroll-snap row, tiles 44% of the row so the next one shows cut off, 12px gap"
+    desktop: "grid, 3 columns"
   paper:
     backgroundColor: "{colors.paper}"
     textColor: "{colors.ink}"
@@ -255,16 +269,16 @@ components:
 
 AVX is a Lumen and Pixel product: the **AV production copilot**. Companies run gigs, quotes and inventory in an **organisation** workspace; freelancers see every gig they're on, at any company, in **My work**. Roles decide what anyone sees — org admin / member / viewer, gig PM / crew / viewer (`src/lib/nav.js`). The structure is built and stays; the visual language is being replaced.
 
-The look in one breath: navy dark by default, one electric green for the one action that matters, Space Mono for names and numbers, Inter for sentences, square corners, 1px lines instead of shadows, and no glow, blur or gradient anywhere in the UI.
+The look in one breath: navy dark by default, one electric green for the one action that matters, Space Mono for names and numbers, Inter for sentences, square corners, 1px lines instead of shadows, and no glow, blur or gradient anywhere in the UI. **Calm comes from space, not from softer shapes:** few boxes, generous gaps between sections, one loud thing per screen (decided 2026-11-06, "Room to breathe" below).
 
 ## Where things live in code
 
 | What | File |
 | --- | --- |
 | Theme values (`THEMES`, `themeCss()`, `contrast()`) | `src/theme/tokens.js` + `tokens.test.js` |
-| Shared styles (`btn`, `btnPrimary`, `btnDanger`, `iconBtn`, `input`, `label`, `card`, `Modal`, `AvxMark`) | `src/components/ui.jsx` |
+| Shared styles (`btn`, `btnPrimary`, `btnDanger`, `iconBtn`, `input`, `label`, `card`, `Modal`, `AvxMark`, `AvxLoader`) | `src/components/ui.jsx` |
 | Fonts | `src/main.jsx` (@fontsource Inter, Space Mono, Atkinson Hyperlegible) |
-| Global CSS: `--font-ui`, radius reset, keyframes | `index.html` |
+| Global CSS: `--font-ui`, radius reset, keyframes (incl. the loader's Pixel Build) | `index.html` |
 | Navigation model | `src/lib/nav.js` |
 | Shell, top bar, mega-menus, phone tabs | `src/components/shell/AppShell.jsx` |
 | Strings | `src/i18n/en.js`, `src/i18n/pt.js` |
@@ -299,9 +313,53 @@ Derived (computed with `color-mix` from `--fg`): `line` 7% × lineK, **`line-str
 
 Space Mono 400/700 for titles, uppercase labels (11px, 700, 0.16em), table heads and **all data** — times, dates, money (`1 020,00 €`), quantities, serials, codes, timecode. Inter 400–700 for sentences, buttons, inputs, nav (`--font-ui`). Readable font swaps both for Atkinson Hyperlegible. Nunito is gone.
 
+**Seven sizes, no others** (2026-11-06; the code used 15):
+
+| Size | Font | Use |
+| --- | --- | --- |
+| 28 / 22 px | Space Mono 700 | page title, desktop / phone (one per page) |
+| 24 px | Space Mono 700 | a big number: key numbers, totals, a call time |
+| 20 px | Space Mono 400 | timecode and clocks in field tools only |
+| 16 px | Space Mono 700 | section heading |
+| 14 px | Inter | body: sentences, names in lists, buttons, inputs (16 px inputs on phone) |
+| 13 px | Inter / Space Mono | metadata under a name, hints, table cells |
+| 11 px | Space Mono 700 caps | labels: field labels, table heads, status words |
+
+12 px goes to 13; 10, 15, 17, 18, 21 and 26 go to the nearest size above. Uppercase Space Mono labels are one level only: a section uses a 16 px heading *or* an 11 px eyebrow, never both, and a card has no eyebrow above its own title.
+
 ## Layout
 
-4px grid. Top bar 56px, phone top bar 52px, tab bar 64px + safe area. Controls 36px desktop, 44px on phone and anything used standing (scan, availability answers, Comfort mode). Rows 44px; quote lines and dense tables 32px. Page padding 24px / 16px phone.
+4px grid, and only the steps in `spacing` (4 · 8 · 12 · 16 · 24 · 32 · 40/48): no 2, 3, 5, 6, 7, 10, 14, 18 or 22. Top bar 56px, phone top bar 52px, tab bar 64px + safe area. Controls 36px desktop, 44px on phone and anything used standing (scan, availability answers, Comfort mode). Rows 52px with a name + meta line, 44px single line; quote lines and dense tables 32px (the only compact places). Page gutter 24px desktop / 16px phone; content column 960px max; the page header sits 32px above the first section.
+
+## Room to breathe
+
+Decided 2026-11-06 after the owner found every screen busy. The cause is not the palette or the square corners (both are the brand and stay); it is **too many boxes, gaps that are all small and all different, more than one loud thing per screen, explanations printed on the page, and every action shown at once**. Measured in the code: 15 text sizes, gaps of 2–14 px in 11 different values, section spacing of 20–24 px (barely more than the 8–12 px inside a section), several green fills per screen. The plan that applies this screen by screen is in [docs/DESIGN_REFRESH.md](docs/DESIGN_REFRESH.md). Every new or touched screen follows these rules:
+
+1. **Space shows the structure.** Three distances only: *within* an item 4–8, *between* items 12–16, *between sections* 40 phone / 48 desktop. The gap between sections is at least three times the gap inside one, so grouping reads without a border. Use the `Section` and `Stack` helpers in `ui.jsx` (from DR1) instead of inline margins.
+2. **One box deep.** A page section is a heading and its content on the page ground, not a card. Use a card (`panel` + 1px `line`) only for a thing you can open or act on as a whole: a gig, a tile, a dialog. A card never holds a bordered card; inside it, separate with space or one hairline. Lists are rows with hairlines between them, not a card per row.
+3. **One loud thing.** One accent fill per screen: the primary action. Selected tabs, filters and segmented buttons use `text` + a 2px `accent` bar, never an accent fill. "Done" and "available" are an `accent-text` square + word, not a fill. The `selection` wash marks one thing only (the current row, "now", your own call).
+4. **Say it once, in the right place.** A page header is the title, at most one short line (one line on a 320px phone), the ⓘ (`PageHelp`) and actions. Longer explanations, role descriptions and "what this section is" go behind ⓘ (`Hint`) or into the empty state, not above the content. A section has no description line unless it changes what you do.
+5. **Few actions in view.** A page header shows one primary and at most two secondary buttons; the rest go in a ⋯ menu (`More actions`). A card or row shows at most two buttons; the rest in its ⋯. On phone the secondary buttons in a header become the ⋯ menu.
+6. **Most important first, then less.** Each screen states what the person came for and puts it first; numbers and history after, unless the person reorders (Home). Repeated context is dropped: no title that repeats the top bar on phone.
+7. **Bigger, fewer sizes.** The seven type sizes above. Body is 14px; nothing under 11px.
+8. **Density is chosen, not accidental.** Comfortable (default): rows 44–52px, the spacing above. Compact (32px rows, 8px gaps) only in data grids: quote lines, tables, patch and input lists. Comfort mode (44px targets) still applies on top.
+
+**Checking a screen:** squint at it at 390px. You should see the title, two to four section blocks with clear gaps, and one green thing. If you see a grid of outlines or more than one green block, it isn't done.
+
+## Home
+
+The home is built from **modules** in a column, 40/48px apart, each with a 16px heading and an optional link on the right:
+
+| Module | Who | Notes |
+| --- | --- | --- |
+| First steps | organisation admins, My work | until all done or closed; a single row "First steps · 3 of 4 · next: Invite your team →" that opens the list; no accent border or fill; finished steps hidden |
+| Availability requests | My work | questions waiting for your answer |
+| Key numbers | admins and members (not Simple mode) | the six tiles; **phone: a sideways swipe row** (scroll-snap, the next tile shows cut off, focusable region with a label, arrow keys scroll); desktop: 3-column grid |
+| Events | everyone | list / calendar, filters and search |
+
+**Standard order:** First steps → Availability requests → Key numbers → Events. Anyone can change it: **Arrange home** (a link at the end of the home) opens a sheet with each module, ↑ / ↓ buttons, a show/hide switch and "Back to the standard". First steps is not in the sheet: it stays on top until finished or closed. Saved per person and per workspace on this device (like Appearance), so a manager who wants events first moves Events up once. New modules join at their standard place.
+
+**Header:** desktop: greeting line (13px), organisation name as the title with the role chip and ⓘ, New event on the right. **Phone: no organisation name** (the top bar already shows it): the greeting as the title line with the role chip and ⓘ, then New event. The role description moves into the role chip's ⓘ.
 
 ## Elevation & Depth
 
@@ -330,6 +388,8 @@ Mapped to the screens in the app; full specs and previews in the design system a
 - **InventoryItem / StepBar / ScanPanel / QRLabel** — 14-day availability strip, unit statuses, square counters "7 / 12", camera brackets and log with ✓ ⚠ ✕ + words.
 - **Chat** — no bubbles, square avatars, announcements with a `warn` edge and acknowledgements.
 - **Banner / Offline bar / Toast / Dialog / EmptyState + First steps / StatTile / DataTable / TimecodeClock / ToolCard / JobCard / AppearancePicker / FieldHint / StatusBadge / LabelChip**.
+- **AvxLoader** — the one loading sign (see Motion).
+- **PageHeader / Section / Stack / SwipeRow / MoreMenu** (from DR1) — the layout pieces that carry "Room to breathe": the header rule, section spacing and headings, the item gaps, the phone swipe row, and the ⋯ menu for actions past the visible ones.
 
 ## Iconography
 
@@ -337,7 +397,9 @@ Target: the L&P **Signal Pixel** set (24 grid, 2px, square caps, mitre joins, on
 
 ## Motion
 
-100ms press (1px down) · 150ms hover/colour · 250ms tabs, dialogs, menus with `cubic-bezier(0.16,1,0.3,1)` and a 10px rise · loading = blinking square (`@keyframes blink`), never a spinner. `prefers-reduced-motion` and Comfort mode turn it off.
+100ms press (1px down) · 150ms hover/colour · 250ms tabs, dialogs, menus with `cubic-bezier(0.16,1,0.3,1)` and a 10px rise. `prefers-reduced-motion` and Comfort mode turn movement off.
+
+**Loading is one thing everywhere: `<AvxLoader>`** (`ui.jsx`, CSS in `index.html`), the Brand Book's *Pixel Build* on the AVX glyph: the 11 cells appear one every 50 ms in reading order, the mark is whole at 600 ms, holds, clears at 1400 ms and builds again (1.6 s loop). Same sign while the app opens (40px, `accent-text`), while a page or section loads, and inside a busy button (15px, the button's text colour). Sizes are multiples of 5px so each cell is whole pixels. Give it `label` when it is the only thing on screen (it becomes `role="status"`); next to a word that already says what is happening, leave the label off. Reduced motion and Comfort mode show the still mark. **Never** a spinner, a rotating icon or a progress ring; the only other loading-style motion is the 8px blinking square of an autosave status.
 
 ## Voice
 
@@ -345,12 +407,17 @@ Operational, terse, second person; every string in EN and PT. Buttons are verb +
 
 ## Do's and Don'ts
 
-- Do keep one accent-filled thing per view (primary button, or your own call).
+- Do keep one accent-filled thing per view (primary button, or your own call). Selected tabs and filters are a 2px bar, not a fill.
+- Do separate sections with 40/48px of space and a heading, not a card around each one.
+- Do put explanations behind ⓘ; a page header has at most one short line under the title.
 - Do pair every status colour with a word and every warning with an icon + sentence.
 - Do use Space Mono for anything you could copy into a spreadsheet.
 - Do check all three themes and both languages before you finish.
 - Don't add `box-shadow`, `backdrop-filter`, `text-shadow`, glows or gradients.
 - Don't round anything, including avatars and the logo.
+- Don't put a bordered card inside a card, or one card per list row.
+- Don't use spacing or text sizes off the scales (no 6, 10 or 14px gaps; no 12, 15 or 18px text).
+- Don't add a spinner or rotating icon: loading is `<AvxLoader>`.
 - Don't fill cards, rows or calendar blocks with label or status colours.
 - Don't use lime as text on white: that's `accent-text` olive in Daylight.
 - Don't hard-code hex values in screens (tests fail) — add a token if one is missing, with a test.

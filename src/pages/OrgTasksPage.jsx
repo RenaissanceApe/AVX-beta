@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, Plus, ListTodo, Wrench } from 'lucide-react'
+import { ArrowLeft, Plus, ListTodo, Wrench } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -12,7 +12,7 @@ import { updateIfUnchanged, notifyConflict } from '../lib/staleSave'
 import { TASK_FIELDS, TEMPLATE_FIELDS, sortTasks, filterTasks, taskPlace } from '../lib/tasks'
 import { localDay } from '../lib/onSite'
 import { useI18n } from '../i18n'
-import { btn, btnPrimary, colors } from '../components/ui'
+import { btn, btnPrimary, colors, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
@@ -106,7 +106,7 @@ export default function OrgTasksPage() {
     setTasks(list => list.filter(x => x.id !== task.id))
   }
 
-  if (loading || (role && !tasks)) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (loading || (role && !tasks)) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (!role) return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>

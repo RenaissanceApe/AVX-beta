@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { UserPlus, X, Clock, Phone, Loader2, Send, AlertTriangle, Plus, Briefcase, Trash2, CalendarClock, UserCheck, MessageCircle, Megaphone, Search } from 'lucide-react'
+import { UserPlus, X, Clock, Phone, Send, AlertTriangle, Plus, Briefcase, Trash2, CalendarClock, UserCheck, MessageCircle, Megaphone, Search } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
@@ -10,7 +10,7 @@ import { sendInvite, inviteMessage } from '../../lib/invites'
 import { shortTime } from '../../lib/schedule'
 import { clashText, groupByUser } from '../../lib/clashes'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors, StatusBadge, CallChip } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, StatusBadge, CallChip, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import { Avatar, RoleBadge, TabHeader } from './parts'
@@ -389,7 +389,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
           fontSize: '12px', color: colors.muted, lineHeight: 1.6,
         }}>💡 {t('crew.inviteHint')}</div>
         <button type="submit" disabled={sending || (!picked && !form.email.trim())} style={{ ...btnPrimary, justifyContent: 'center', padding: '13px' }}>
-          {sending ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={16} />} {t('crew.addToGig')}
+          {sending ? <AvxLoader size={16} /> : <Send size={16} />} {t('crew.addToGig')}
         </button>
       </form>
     </Modal>

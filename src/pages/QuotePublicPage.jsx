@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Loader2, Printer, Check, X, FileDown } from 'lucide-react'
+import { Printer, Check, X, FileDown } from 'lucide-react'
 import { loadSharedQuote, answerSharedQuote } from '../lib/quoteSharing'
 import { quoteNumber } from '../lib/quotes'
 import { useI18n, translate, fmtIn } from '../i18n'
 import QuoteDocument, { toolbarBtn } from '../components/quotes/QuoteDocument'
 import { downloadQuotePdf } from '../lib/quotePdf'
 import GuestThread from '../components/messages/GuestThread'
+import { AvxLoader } from '../components/ui'
 
 // The page a client opens from a quote link: no account needed. Shows the version
 // that was sent, in the quote's language, with Accept / Decline, and a conversation with the
@@ -31,7 +32,7 @@ export default function QuotePublicPage() {
 
   if (!data) return (
     <div style={page}>
-      <Loader2 size={26} color="#555" style={{ animation: 'spin 1s linear infinite' }} />
+      <AvxLoader size={26} color="#555" />
     </div>
   )
   if (!data.quote) return (
@@ -129,7 +130,7 @@ function Answer({ token, lang, data, onAnswered }) {
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             <button type="button" onClick={() => setChoice(null)} style={toolbarBtn}>{tr('publicQuote.back')}</button>
             <button type="submit" disabled={busy || !name.trim()} style={{ ...toolbarBtn, background: choice === 'accept' ? '#0B7A41' : '#111', borderColor: 'transparent', color: '#fff' }}>
-              {busy && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
+              {busy && <AvxLoader size={14} />}
               {tr(choice === 'accept' ? 'publicQuote.confirmAccept' : 'publicQuote.confirmDecline')}
             </button>
           </div>

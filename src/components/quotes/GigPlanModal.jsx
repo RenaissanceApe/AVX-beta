@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CalendarClock, Users, Loader2, Check, Package } from 'lucide-react'
+import { CalendarClock, Users, Check, Package } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -8,7 +8,7 @@ import { expandPlan, broughtList } from '../../lib/inventory'
 import { useKits } from '../../lib/useInventory'
 import { track } from '../../lib/usage'
 import { useI18n } from '../../i18n'
-import { Modal, btnPrimary, input, label, colors } from '../ui'
+import { Modal, btnPrimary, input, label, colors, AvxLoader } from '../ui'
 
 const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 const row = { display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderTop: `1px solid ${colors.border}` }
@@ -104,7 +104,7 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
   return (
     <Modal title={t('plan.title', { gig: gig.name })} onClose={onClose} maxWidth={600}>
       <p style={{ ...small, marginBottom: '14px' }}>{t('plan.intro')}</p>
-      {loading ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : (
+      {loading ? <AvxLoader size={18} color={colors.accentText} /> : (
         <>
           <h3 style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><CalendarClock size={13} /> {t('plan.schedule')}</h3>
           {schedule.length === 0 ? <p style={{ ...small, marginBottom: '14px' }}>{t('plan.noDates')}</p> : (
@@ -151,7 +151,7 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
           )}
 
           <button onClick={add} disabled={saving || (!chosenItems.length && !chosenPositions.length && !chosenGear.length)} style={{ ...btnPrimary, width: '100%', justifyContent: 'center' }}>
-            {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />}
+            {saving ? <AvxLoader size={15} /> : <Check size={15} />}
             {t('plan.addAll', { items: chosenItems.length, positions: chosenPositions.length, gear: chosenGear.length })}
           </button>
         </>

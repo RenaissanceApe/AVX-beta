@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
-import { ShieldCheck, ShieldOff, Loader2 } from 'lucide-react'
+import { ShieldCheck, ShieldOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { useI18n } from '../i18n'
 import { track } from '../lib/usage'
 import { Hint } from './help/HelpParts'
+import { AvxLoader } from './ui'
 
 // Account → Two-step sign-in: turn an authenticator app (Google Authenticator, 1Password,
 // Authy…) on or off. With it on, signing in also needs a 6-digit code from the app.
@@ -100,7 +101,7 @@ export default function TwoStepSection({ label, input, smallBtn }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}><span style={{ ...label, marginBottom: 0 }}>{t('mfa.title')}</span><Hint id="two-step" label={t('mfa.title')} /></div>
-      {factor === undefined ? <Loader2 size={16} color="var(--accent-text)" style={{ animation: 'spin 1s linear infinite' }} />
+      {factor === undefined ? <AvxLoader size={16} color="var(--accent-text)" />
         : factor ? (
           <>
             <p style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
@@ -120,14 +121,14 @@ export default function TwoStepSection({ label, input, smallBtn }) {
               <input id="mfa-enrol-code" value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 inputMode="numeric" autoComplete="one-time-code" placeholder="123456" style={{ ...input, fontFamily: 'var(--font-mono)', letterSpacing: '0.2em' }} />
               <button type="submit" disabled={busy || code.length !== 6} style={smallBtn}>
-                {busy && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />} {t('mfa.confirm')}
+                {busy && <AvxLoader size={14} />} {t('mfa.confirm')}
               </button>
             </div>
           </form>
         ) : (
           <>
             <button onClick={start} disabled={busy} style={smallBtn}>
-              {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={14} />} {t('mfa.turnOn')}
+              {busy ? <AvxLoader size={14} /> : <ShieldCheck size={14} />} {t('mfa.turnOn')}
             </button>
             <p style={hint}>{t('mfa.hint')}</p>
           </>

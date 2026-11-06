@@ -8,6 +8,7 @@ import { flushQueuedHours } from './lib/hours'
 import { ToastProvider } from './lib/ToastContext'
 import { I18nProvider, t } from './i18n'
 import ErrorBoundary from './components/ErrorBoundary'
+import { AvxLoader } from './components/ui'
 import AuthPage from './pages/AuthPage'
 import Dashboard from './pages/Dashboard'
 import OrgsPage from './pages/OrgsPage'
@@ -58,17 +59,14 @@ const MessagesPage = lazy(() => import('./pages/MessagesPage'))
 const QuotePublicPage = lazy(() => import('./pages/QuotePublicPage'))
 const SupplierLinkPage = lazy(() => import('./pages/SupplierLinkPage'))
 
+// While the app opens: the AVX glyph building cell by cell (AvxLoader, DESIGN.md "Motion")
 function Spinner() {
   return (
     <div style={{
       minHeight: '100vh', background: 'var(--bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
-      <div role="status" aria-label={t('common.loading')} style={{
-        width: '32px', height: '32px', border: '3px solid var(--accent)',
-        borderTopColor: 'var(--accent)', 
-        animation: 'spin 0.8s linear infinite'
-      }} />
+      <AvxLoader size={40} color="var(--accent-text)" label={t('common.loading')} />
     </div>
   )
 }

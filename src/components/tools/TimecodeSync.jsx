@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Camera, AudioLines, Check, RotateCcw, Keyboard, Loader2 } from 'lucide-react'
+import { Camera, AudioLines, Check, RotateCcw, Keyboard } from 'lucide-react'
 import { readTimecode, readingsAgree } from '../../lib/tcOcr'
 import { LtcDecoder } from '../../lib/ltc'
 import { framesToMs, tcToFrames, msToTc } from '../../lib/rehearsal'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, colors, card } from '../ui'
+import { Modal, btn, btnPrimary, colors, card, AvxLoader } from '../ui'
 
 // Clock sync for the rehearsal companion (docs/TOOLS_PLAN.md §2, R2). Both read on the phone only:
 // no picture or sound leaves it. Each hands back "the timecode right now" for the person to use.
@@ -157,7 +157,7 @@ export function LtcSync({ session, onUse, onClose }) {
         </div>
       </div>
       <p role="status" aria-live="polite" style={{ fontSize: '14px', lineHeight: 1.5, marginBottom: '8px' }}>
-        {state === 'denied' ? t('rehearsal.micDenied') : state === 'starting' ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite', verticalAlign: 'middle' }} /> {t('rehearsal.micStarting')}</>
+        {state === 'denied' ? t('rehearsal.micDenied') : state === 'starting' ? <><AvxLoader size={14} style={{ verticalAlign: 'middle' }} /> {t('rehearsal.micStarting')}</>
           : fresh ? t('rehearsal.ltcReceiving', { fps: Math.round(latest.fps * 100) / 100 }) : t('rehearsal.ltcWaiting')}
       </p>
       {fpsOff && <p style={{ fontSize: '13px', color: colors.danger, marginBottom: '8px' }}>{t('rehearsal.ltcFpsOff', { ltc: Math.round(latest.fps), session: Number(session.fps) })}</p>}

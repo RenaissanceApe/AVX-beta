@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
-  Plus, Calendar, MapPin, ChevronRight, Building2, Loader2, X, ArrowRight, Search, List, CalendarDays, Briefcase, AlertTriangle,
+  Plus, Calendar, MapPin, ChevronRight, Building2, X, ArrowRight, Search, List, CalendarDays, Briefcase, AlertTriangle,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { selectAll } from '../lib/selectAll'
@@ -30,7 +30,7 @@ import SimpleHome from '../components/SimpleHome'
 import { useSimpleMode } from '../lib/simpleMode'
 import { useGigLabels, GIG_LABELS_EMBED } from '../lib/gigLabels'
 import { GigLabels } from '../components/gig/parts'
-import { StatusBadge, CallChip } from '../components/ui'
+import { StatusBadge, CallChip, AvxLoader } from '../components/ui'
 import { shortTime } from '../lib/schedule'
 import GigLabelFields from '../components/gig/GigLabelFields'
 import GigClientField from '../components/gig/GigClientField'
@@ -155,7 +155,7 @@ export default function Dashboard() {
 
             {(loadingGigs || loadingOrgs) ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
-                <Loader2 size={24} color="var(--accent-text)" style={{ animation: 'spin 1s linear infinite' }} />
+                <AvxLoader size={24} color="var(--accent-text)" />
               </div>
             ) : gigs.length === 0 ? (
               mode === 'me' ? (
@@ -190,7 +190,7 @@ export default function Dashboard() {
       {mode === 'org' && org && params.get('new') === 'gig' && canCreateGig && (
         <NewGigModal orgId={org.id} onClose={() => setParam('new', null)} onCreated={gig => navigate(`/gig/${gig.id}`)} />
       )}
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } } @keyframes fadeIn { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }`}</style>
+      <style>{`@keyframes fadeIn { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }`}</style>
     </AppShell>
   )
 }
@@ -259,7 +259,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
           </div>
         )}
         <button onClick={create} disabled={saving || !form.name.trim()} style={btnModal}>
-          {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={16} />}
+          {saving ? <AvxLoader size={16} /> : <ArrowRight size={16} />}
           {t('dash.createGig')}
         </button>
       </div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Printer, PackagePlus, Loader2, RotateCcw } from 'lucide-react'
+import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Printer, PackagePlus, RotateCcw } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
@@ -10,7 +10,7 @@ import { useUndoRemove } from '../../lib/undo'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { nextChannel, channelGaps, inputsToEquipment, inputCounts } from '../../lib/tools'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 
@@ -106,7 +106,7 @@ export default function InputListTool({ gig, canEdit, canPlanEquipment }) {
     notify(todo.length ? t('inputs.addedToEquipment', { count: todo.reduce((s, x) => s + x.add, 0) }) : t('inputs.equipmentUpToDate'), 'success')
   }
 
-  if (inputs === null) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+  if (inputs === null) return <AvxLoader size={20} color={colors.accentText} />
   const linked = shown.some(i => i.item_id)
 
   return (
@@ -168,7 +168,7 @@ export default function InputListTool({ gig, canEdit, canPlanEquipment }) {
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '14px' }}>
           {canPlanEquipment && linked && (
             <button type="button" onClick={addToEquipment} disabled={busy} style={btn}>
-              {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <PackagePlus size={14} />} {t('inputs.toEquipment')}
+              {busy ? <AvxLoader size={14} /> : <PackagePlus size={14} />} {t('inputs.toEquipment')}
             </button>
           )}
           {counts.checked > 0 && <button type="button" onClick={clearChecks} style={btn}><RotateCcw size={14} /> {t('inputs.clearChecks')}</button>}
@@ -263,7 +263,7 @@ function InputForm({ gig, row, items, firstFree, onClose, onSaved }) {
           <input id="input-notes" maxLength={300} value={form.notes} onChange={e => set({ notes: e.target.value })} style={input} />
         </div>
         <button type="submit" disabled={saving || !form.source.trim()} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {saving && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />} {t('common.save')}
+          {saving && <AvxLoader size={15} />} {t('common.save')}
         </button>
       </form>
     </Modal>

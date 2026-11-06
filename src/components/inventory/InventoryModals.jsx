@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Loader2 } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -7,7 +7,7 @@ import { track } from '../../lib/usage'
 import { UNITS, parsePrice } from '../../lib/quotes'
 import { TRACKING, KIT_TYPES, STOCK_KINDS, LOCATION_KINDS, UNIT_STATUSES, MOVEMENT_SHAPES, countCorrection } from '../../lib/inventory'
 import { t } from '../../i18n'
-import { Modal, btnPrimary, input, label, colors } from '../ui'
+import { Modal, btnPrimary, input, label, colors, AvxLoader } from '../ui'
 import ExpenseForm from '../expenses/ExpenseForm'
 import { HintLabel } from '../help/HelpParts'
 import { useCustomFields, mergeValues } from '../../lib/customFields'
@@ -26,7 +26,7 @@ const select = { ...input, cursor: 'pointer' }
 const numberOrNull = v => (String(v ?? '').trim() === '' ? null : parsePrice(v))
 const SaveButton = ({ saving, disabled, children }) => (
   <button type="submit" disabled={saving || disabled} style={{ ...btnPrimary, justifyContent: 'center' }}>
-    {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {children}
+    {saving ? <AvxLoader size={15} /> : <Check size={15} />} {children}
   </button>
 )
 

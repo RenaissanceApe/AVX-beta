@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Printer, Plus, Trash2, Loader2, AlertTriangle, Info } from 'lucide-react'
+import { Printer, Plus, Trash2, AlertTriangle, Info } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -9,7 +9,7 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { stageSize } from '../../lib/stagePlot'
 import { KINDS, LIMITS, settingsOf, sourcesOf, listenersOf, speedOfSound, delays, listenerReport, coverage, newSource, newListener, nextName } from '../../lib/systemCalc'
 import { t } from '../../i18n'
-import { btn, iconBtn, input, label, card, colors } from '../ui'
+import { btn, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import SystemPlotSvg from './SystemPlotSvg'
@@ -69,7 +69,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
     notify(t('undo.removed', { name }), 'success', { action: { label: t('common.undo'), onClick: () => save({ [key]: before }) } })
   }
 
-  if (show === null) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+  if (show === null) return <AvxLoader size={20} color={colors.accentText} />
   const nameOf = id => sources.find(s => s.id === id)?.name || '—'
 
   return (

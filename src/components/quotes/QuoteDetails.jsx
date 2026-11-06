@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { UserPlus, Loader2, Check } from 'lucide-react'
+import { UserPlus, Check } from 'lucide-react'
 import { useI18n } from '../../i18n'
-import { input, label, colors, btn } from '../ui'
+import { input, label, colors, btn, AvxLoader } from '../ui'
 import { HintLabel } from '../help/HelpParts'
 
 // A client from the contacts directory as the quote's client fields. The quote keeps its own
@@ -53,7 +53,7 @@ export default function QuoteDetails({ quote, gigs, clients = [], onChange, onSa
           </div>
           {!linked && typed && onSaveClient && (
             <button type="button" onClick={saveClient} disabled={savingClient} style={btn}>
-              {savingClient ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <UserPlus size={14} />} {t('contacts.saveToContacts')}
+              {savingClient ? <AvxLoader size={14} /> : <UserPlus size={14} />} {t('contacts.saveToContacts')}
             </button>
           )}
           {linked && (

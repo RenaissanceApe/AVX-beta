@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, Clock, Download, ChevronDown, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Clock, Download, ChevronDown, ChevronRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { logger } from '../lib/logger'
@@ -9,7 +9,7 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { HOURS_COLUMNS, HOURS_QUEUE_CHANGED, readQueuedHours, downloadHoursCsv } from '../lib/hours'
 import { totals } from '../lib/timeRegistration'
 import { useI18n, fmt } from '../i18n'
-import { btn, btnPrimary, input, label, card, colors } from '../components/ui'
+import { btn, btnPrimary, input, label, card, colors, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
@@ -73,7 +73,7 @@ export default function HoursPage() {
   }, [isOrg, entries, names])
 
   const title = isOrg ? t('hours.orgTitle') : t('hours.pageTitle')
-  if (isOrg && loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (isOrg && loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (isOrg && role !== 'admin') return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
@@ -110,7 +110,7 @@ export default function HoursPage() {
         </div>
 
         {!entries ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><Loader2 size={22} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><AvxLoader size={22} color={colors.accentText} /></div>
         ) : entries.length === 0 && waitingQueue.length === 0 ? (
           <EmptyState icon={<Clock size={28} />} title={t('hours.monthEmptyTitle')} body={isOrg ? t('hours.orgEmptyBody') : t('hours.myEmptyBody')} guide="crew-hours" />
         ) : (

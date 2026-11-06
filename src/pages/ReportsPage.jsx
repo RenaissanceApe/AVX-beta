@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { useGigLabels } from '../lib/gigLabels'
 import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
-import { btn, btnPrimary, colors } from '../components/ui'
+import { btn, btnPrimary, colors, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import { OverviewTiles, useOverview } from '../components/reports/OverviewTiles'
@@ -41,7 +41,7 @@ export default function ReportsPage() {
   const setTab = v => setParams(v === 'overview' ? {} : { tab: v }, { replace: true })
 
   const title = t('reports.pageTitle')
-  if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (!canSee) return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
@@ -75,7 +75,7 @@ export default function ReportsPage() {
 
         {tab === 'overview' && (
           overview.loading || (!overview.data && !overview.error)
-            ? <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} aria-label={t('common.loading')} />
+            ? <AvxLoader size={20} color={colors.accentText} label={t('common.loading')} />
             : overview.error
               ? <p role="alert" style={{ color: colors.danger, fontSize: '13px' }}>{t('reports.loadFailed')}</p>
               : (

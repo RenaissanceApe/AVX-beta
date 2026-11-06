@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Send, Loader2, MessageSquare } from 'lucide-react'
+import { Send, MessageSquare } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
 import { translate, fmtIn } from '../../i18n'
+import { AvxLoader } from '../ui'
 
 const NAME_KEY = 'avx.guestName'
 const readName = () => { try { return localStorage.getItem(NAME_KEY) || '' } catch { return '' } }
@@ -89,7 +90,7 @@ export default function GuestThread({ token, lang, defaultName = '', onData }) {
             {tr('guest.privacy', { org })} <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#555' }}>{tr('guest.privacyLink')}</a>
           </span>
           <button type="submit" disabled={sending || !name.trim() || !text.trim()} style={sendBtn}>
-            {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {tr('guest.send')}
+            {sending ? <AvxLoader size={14} /> : <Send size={14} />} {tr('guest.send')}
           </button>
         </div>
       </form>

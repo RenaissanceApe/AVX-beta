@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { ShieldCheck, Loader2, LogOut } from 'lucide-react'
+import { ShieldCheck, LogOut } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { logger } from '../lib/logger'
 import { useI18n } from '../i18n'
-import { btnPrimary, input, label, colors } from '../components/ui'
+import { btnPrimary, input, label, colors, AvxLoader } from '../components/ui'
 
 // Second step of sign-in for people who turned on an authenticator app: until the
 // 6-digit code is accepted, the database shows them nothing (see migration
@@ -50,7 +50,7 @@ export default function MfaChallengePage() {
           style={{ ...input, fontSize: '22px', letterSpacing: '0.3em', textAlign: 'center', fontFamily: 'var(--font-mono)' }} />
         {error && <p role="alert" style={{ color: colors.danger, fontSize: '13px', marginTop: '8px' }}>{error}</p>}
         <button type="submit" disabled={busy || code.length !== 6 || !factorId} style={{ ...btnPrimary, width: '100%', justifyContent: 'center', marginTop: '14px' }}>
-          {busy ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={16} />} {t('mfa.verify')}
+          {busy ? <AvxLoader size={16} /> : <ShieldCheck size={16} />} {t('mfa.verify')}
         </button>
         <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.6, marginTop: '16px' }}>{t('mfa.lostDevice')}</p>
         <button type="button" onClick={signOut} style={{ background: 'none', border: 'none', color: colors.soft, fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px', padding: 0 }}>

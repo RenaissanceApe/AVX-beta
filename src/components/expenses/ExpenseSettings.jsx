@@ -1,7 +1,7 @@
 // Expenses (step 9b): recurring costs (for everyone who sees money) and the organisation's
 // categories and VAT setting (admins).
 import { useCallback, useEffect, useState } from 'react'
-import { Plus, Pencil, Loader2, Repeat, Save, Archive, ArchiveRestore } from 'lucide-react'
+import { Plus, Pencil, Repeat, Save, Archive, ArchiveRestore } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -12,7 +12,7 @@ import { KINDS, EVERY, PAID_HOW, DEFAULT_VAT, categoryName, upcomingDates, vatOf
 import { useI18n, fmt } from '../../i18n'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
-import { Modal, btn, btnPrimary, btnDanger, iconBtn, input, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, btnDanger, iconBtn, input, card, colors, AvxLoader } from '../ui'
 
 const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
 const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
@@ -118,7 +118,7 @@ function RecurringForm({ orgId, rec, categories, suppliers, onClose, onSaved }) 
           </p>
         )}
         <button type="submit" disabled={saving} style={{ ...btnPrimary, ...full, justifyContent: 'center' }}>
-          {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />} {t('expenses.save')}
+          {saving ? <AvxLoader size={14} /> : <Save size={14} />} {t('expenses.save')}
         </button>
       </form>
     </Modal>
@@ -158,7 +158,7 @@ export function RecurringPanel({ orgId, categories, version, onChanged }) {
       </div>
       <p style={{ fontSize: '13px', color: colors.muted, margin: 0, lineHeight: 1.5 }}>{t('expenses.recurringIntro')}</p>
       {!list ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}><Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}><AvxLoader size={20} color={colors.accentText} /></div>
       ) : list.length === 0 ? (
         <EmptyState compact icon={<Repeat size={26} />} title={t('expenses.recurringNone')} body={t('expenses.recurringNoneBody')}
           action={t('expenses.recurringAdd')} onAction={() => setEditing('new')} />

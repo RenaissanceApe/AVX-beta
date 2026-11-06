@@ -53,8 +53,34 @@
       th { font-weight: 700; }
       /* L&P brand system: every corner is square (Brand Book v1.2 §11, DESIGN.md). One rule, so inline radii can't creep back. */
       *, *::before, *::after { border-radius: 0 !important; }
-      /* Loading is a blinking square, never a spinning circle */
+      /* Loading is a blinking square (status dots) or the AVX Pixel Build below, never a spinner */
       @keyframes blink { 50% { opacity: 0 } }
+      /* Loading: the AVX glyph's Pixel Build (Brand Book §09; <AvxLoader> in components/ui.jsx). One cell every 50 ms in
+         reading order, whole at 600 ms, clear at 1400 ms, 1.6 s loop. Reduced motion and Comfort mode: the still mark. */
+      @keyframes avxBuild0 { 0% { opacity: 0 } 3.125% { opacity: 1 } 87.5% { opacity: 0 } }
+      .avx-loader rect:nth-child(1) { animation: avxBuild0 1.6s step-end infinite; }
+      @keyframes avxBuild1 { 0% { opacity: 0 } 6.25% { opacity: 1 } 87.5% { opacity: 0 } }
+      .avx-loader rect:nth-child(2) { animation: avxBuild1 1.6s step-end infinite; }
+      @keyframes avxBuild2 { 0% { opacity: 0 } 9.375% { opacity: 1 } 87.5% { opacity: 0 } }
+      .avx-loader rect:nth-child(3) { animation: avxBuild2 1.6s step-end infinite; }
+      @keyframes avxBuild3 { 0% { opacity: 0 } 12.5% { opacity: 1 } 87.5% { opacity: 0 } }
+      .avx-loader rect:nth-child(4) { animation: avxBuild3 1.6s step-end infinite; }
+      @keyframes avxBuild4 { 0% { opacity: 0 } 15.625% { opacity: 1 } 87.5% { opacity: 0 } }
+      .avx-loader rect:nth-child(5) { animation: avxBuild4 1.6s step-end infinite; }
+      @keyframes avxBuild5 { 0% { opacity: 0 } 18.75% { opacity: 1 } 87.5% { opacity: 0 } }
+      .avx-loader rect:nth-child(6) { animation: avxBuild5 1.6s step-end infinite; }
+      @keyframes avxBuild6 { 0% { opacity: 0 } 21.875% { opacity: 1 } 87.5% { opacity: 0 } }
+      .avx-loader rect:nth-child(7) { animation: avxBuild6 1.6s step-end infinite; }
+      @keyframes avxBuild7 { 0% { opacity: 0 } 25% { opacity: 1 } 87.5% { opacity: 0 } }
+      .avx-loader rect:nth-child(8) { animation: avxBuild7 1.6s step-end infinite; }
+      @keyframes avxBuild8 { 0% { opacity: 0 } 28.125% { opacity: 1 } 87.5% { opacity: 0 } }
+      .avx-loader rect:nth-child(9) { animation: avxBuild8 1.6s step-end infinite; }
+      @keyframes avxBuild9 { 0% { opacity: 0 } 31.25% { opacity: 1 } 87.5% { opacity: 0 } }
+      .avx-loader rect:nth-child(10) { animation: avxBuild9 1.6s step-end infinite; }
+      @keyframes avxBuild10 { 0% { opacity: 0 } 34.375% { opacity: 1 } 87.5% { opacity: 0 } }
+      .avx-loader rect:nth-child(11) { animation: avxBuild10 1.6s step-end infinite; }
+      @media (prefers-reduced-motion: reduce) { .avx-loader rect { animation: none !important; } }
+      :root[data-comfort] .avx-loader rect { animation: none; }
       button:disabled { opacity: 0.5; cursor: not-allowed; }
       /* Inputs at 16px+ stop iOS Safari from zooming in on focus */
       @media (max-width: 640px) { input, textarea, select { font-size: 16px !important; } }
@@ -67,7 +93,6 @@
       /* Text fields always show the ring while focused (inline styles turn the default outline off) */
       :is(input, textarea, select):focus { outline: 2px solid var(--focus, #33FB31) !important; outline-offset: 0; }
       .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-      @keyframes spin { to { transform: rotate(360deg) } }
       @keyframes fadeIn { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: translateY(0) } }
       @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
     </style>

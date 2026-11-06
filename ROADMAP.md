@@ -113,6 +113,18 @@ a few minutes of setup from you (QA.md, "Build order and when you step in"):
 | IM3 The database part (migration outlined for your yes first): one undo for the import and what it added, picking the exact record when two share a name, restoring archived equipment, fixes remembered with a saved matching, undo saying what's in use, equipment counted in bulk switched to per unit when its units are imported | Finishes "nothing changes until Import, and one undo takes it all back"; ends a known limitation | IM3 |
 | IM4 History import (D26): past jobs as completed gigs, quotes with their accepted or declined status and dates (migration outlined for your yes first) | Year-on-year reports work from the day a company switches | IM4 |
 
+**Design refresh: room to breathe** ([docs/DESIGN_REFRESH.md](docs/DESIGN_REFRESH.md); rules in
+[DESIGN.md](DESIGN.md)), decided 2026-11-06 (D48). Run in order, in any gap; no database changes:
+
+| What | Why | Prompt |
+|---|---|---|
+| DR1 Foundations + Home: layout pieces (Section, Stack, PageHeader, SwipeRow, MoreMenu), spacing variables, a test that stops new off-scale sizes and gaps; the modular home (Arrange home), key numbers as a swipe row on phone, no organisation name on the phone home, slim First steps | Every screen is busy; the pieces make the rules easy to follow, and the home is seen first | DR1 |
+| DR2 The gig page | The most used screen | DR2 |
+| DR3 Lists: quotes, invoices, inventory, contacts, members, expenses, hours, leave, jobs, Find crew | One pattern repeated across many screens | DR3 |
+| DR4 Detail pages and editors: quote editor, inventory item, reports, settings, import | Dense screens: fewer boxes and actions without losing data | DR4 |
+| DR5 Field and crew: My work, Simple home, On-site, scan and dispatch, field tools, messages, help | Used standing up, on phones | DR5 |
+| DR6 Sweep: the rest, the test down to zero, all help screenshots, the design system artifact | Finishes the refresh | DR6 |
+
 ## End of the build
 
 1. **Final test pass** from [docs/PENDING.md](docs/PENDING.md) section 2 (run once, by you).
