@@ -67,7 +67,9 @@ export default function MoneyReport({ orgId, timeZone, labels, params, setParam 
   const compareLabel = t(`reports.compareShort.${compare}`)
   const est = estimates(row)
   const empty = data && !data.failed && !data.cur.some(r => Number(r.revenue) || Number(r.direct_costs) || Number(r.overheads) || Number(r.depreciation))
-  const setView = v => { setParam('view', v === 'results' ? null : v); setParam('by', null) }
+  // One change to the address only: two in a row would overwrite each other. A grouping that
+  // doesn't belong to the new view is ignored (see `group` above).
+  const setView = v => setParam('view', v === 'results' ? null : v)
   const name = r => groupName(r, group, { t, labels })
 
   return (
