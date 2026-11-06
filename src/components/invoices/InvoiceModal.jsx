@@ -30,8 +30,8 @@ export const invoiceTitle = (inv, t) => (inv.legal_number || t(inv.kind === 'cre
 // One invoice or credit note. New: from a quote (quote, client, invoices already made from it) or,
 // for a credit note, from an issued invoice (creditOf, with its credit notes). Existing: edit the
 // draft (adding the gig's repairs charged to the client), mark it sent to the invoicing program and
-// add its number, record payments (step 12), credit it, remind the client. When the organisation has connected its program (step 11b), "Send to <program>" makes
-// the draft there and "Check <program>" reads the number back; typing it by hand always stays.
+// add its number, record payments (step 12), credit it, remind the client. When the organisation
+// has connected its program (step 11b), "Send to <program>" makes the draft there and "Check <program>" reads the number back; typing it by hand always stays.
 export default function InvoiceModal({ orgId, invoice: initial = null, quote = null, client = null, siblings = [], creditOf = null, dueDays = 30, onClose, onSaved, onCredit }) {
   const { t, lang } = useI18n()
   const { notify } = useToast()

@@ -21,35 +21,12 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–11b (0.54–0.73), K0 (0.64) and K1 (0.69) are built, and their prompts (S01–S05b, K1) removed. Sessions
-S06–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
+Steps 1–12 (0.54–0.74), K0 (0.64) and K1 (0.69) are built, and their prompts (S01–S06, K1) removed. Sessions
+S07–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
-
-## S06 · Step 12: damage charged to the client, payments
-
-```
-Build ROADMAP step 12: repairs charged to the client and payments. Read the ROADMAP row,
-docs/BUSINESS.md "Planned → 12" and the invoices section written by step 11.
-
-Scope:
-- Repairs with charge_client become lines to add to the gig's next invoice draft (once).
-- Record payments against invoices (date, amount, method, note); partial payments; the invoice
-  turns paid when covered.
-- Optionally a payment link on invoices.
-
-Ask me before building: payment links now or later; if now, which provider (Stripe, or Portuguese
-methods first: MB Way and Multibanco references through easypay or ifthenpay)?
-
-Connect: repairs, invoices, gig finance, client portal later (step 26), reports (K3: paid per
-month, overdue).
-
-Done when: database tests; help guide; PR open; any provider secret listed for me to add.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
 
 ## K2 · Money: results and margins
 
