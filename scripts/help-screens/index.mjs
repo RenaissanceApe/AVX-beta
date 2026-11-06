@@ -471,6 +471,11 @@ const SCENES = {
     await send.evaluate(el => el.scrollIntoView({ block: 'center' }))
     return send
   } },
+  'invoicing-program': { persona: 'pm', url: `/org/${ids.org}/invoices`, async run(page) {
+    const box = page.locator('section[aria-labelledby="program-title"]')
+    await box.waitFor()
+    return box
+  } },
   'invoice-paid': { persona: 'pm', url: `/org/${ids.org}/invoices?view=unpaid`, async run(page, L) {
     await page.getByRole('button').filter({ hasText: 'FT 2026/44' }).first().click()
     const paid = page.getByRole('dialog').getByRole('button', { name: L('invoice.markPaid') })

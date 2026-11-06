@@ -108,7 +108,7 @@ export const GUIDES = {
   'of-leave': { role: 'office', pages: ['org-leave', 'home'], terms: ['leave', 'holiday-balance'], shots: ['leave-ask', null, null] },
   'ad-leave': { role: 'admin', pages: ['org-leave', 'orgs'], terms: ['leave', 'holiday-balance', 'working-week'], shots: ['leave-requests', 'leave-balances', null] },
   'office-expenses': { role: 'office', pages: ['org-expenses', 'gig', 'contacts'], terms: ['expense', 'expense-claim', 'recurring-cost', 'capital-expense'], shots: ['expenses-month', 'expense-add', 'expense-claim', 'expense-approve', 'expense-recurring'] },
-  'office-invoices': { role: 'office', pages: ['org-invoices', 'quote', 'contacts'], terms: ['invoice', 'credit-note', 'certified-program', 'vat'], shots: ['quote-invoices', 'invoice-new', 'invoice-send', 'invoices-list', 'invoice-paid'] },
+  'office-invoices': { role: 'office', pages: ['org-invoices', 'quote', 'contacts'], terms: ['invoice', 'credit-note', 'certified-program', 'invoicing-connection', 'vat'], shots: ['quote-invoices', 'invoice-new', 'invoice-send', 'invoicing-program', 'invoices-list', 'invoice-paid'] },
   'office-gig-finance': { role: 'office', pages: ['gig', 'org-reports'], terms: ['gig-margin', 'estimate', 'net-revenue'], shots: ['gig-finance', null, 'reports-margins', null] },
   'office-reports': { role: 'office', pages: ['org-reports', 'home', 'inventory'], terms: ['net-revenue', 'comparison-period', 'utilisation', 'estimate'], shots: ['reports-overview', 'reports-revenue', 'reports-details', 'home-key-numbers'] },
   'pm-labour-cost': { role: 'admin', pages: ['orgs', 'gig', 'org-jobs'], terms: ['crew-call'], shots: ['org-rates', 'gig-labour', 'quote-crew-total', 'crewcall-fee', 'job-pay', 'quote-crew-margin'] },

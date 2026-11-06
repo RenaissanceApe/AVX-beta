@@ -1,4 +1,5 @@
 -- Checks for migration 20261222000000_invoices.sql (invoices, step 11).
+-- (Updated in step 11b: moloni_status / moloni_connections became invoicing_status / invoicing_connections.)
 -- Run in the TEST project's SQL editor. Rolls itself back; ends with
 --   "ALL INVOICE CHECKS PASSED"  → good
 -- Who: a = admin of Bill Co, m = member, v = viewer, c = crew on the gig (not in the organisation),
@@ -114,8 +115,8 @@ begin
     get diagnostics n = row_count;
     if n <> 0 then raise exception 'CHECK FAILED: % changes an invoice', who; end if;
     begin
-      perform * from moloni_status(org_a);
-      raise exception 'CHECK FAILED: % reads the Moloni status', who;
+      perform * from invoicing_status(org_a);
+      raise exception 'CHECK FAILED: % reads the invoicing status', who;
     exception when insufficient_privilege then null; end;
     reset role;
   end loop;
@@ -200,11 +201,11 @@ begin
   if n <> 1 then raise exception 'CHECK FAILED: gig summary'; end if;
   select count(*) into n from invoice_summary(org_a, 'client', array[cl_a]);
   if n <> 1 then raise exception 'CHECK FAILED: client summary'; end if;
-  select count(*) into n from moloni_status(org_a);
-  if n <> 0 then raise exception 'CHECK FAILED: Moloni status without a connection'; end if;
+  select count(*) into n from invoicing_status(org_a);
+  if n <> 0 then raise exception 'CHECK FAILED: invoicing status without a connection'; end if;
   begin
-    perform * from moloni_connections;
-    raise exception 'CHECK FAILED: member reads Moloni tokens';
+    perform * from invoicing_connections;
+    raise exception 'CHECK FAILED: member reads invoicing keys';
   exception when insufficient_privilege then null; end;
   reset role;
 

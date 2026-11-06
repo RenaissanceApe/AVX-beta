@@ -1,7 +1,8 @@
-// Invoices in the database and the moloni Edge Function (step 11). The maths is in invoices.js.
+// Invoices in the database, and the invoicing Edge Function that talks to the organisation's
+// certified program (steps 11 and 11b). The maths is in invoices.js.
 import { supabase } from './supabase'
 
-export const INVOICE_SELECT = 'id, org_id, number, kind, credited_invoice_id, quote_id, gig_id, client_id, client_name, client_tax_id, client_address, client_email, scope, phase_ids, deposit_pct, language, currency, lines, net, vat, total, notes, issue_date, due_date, status, sent_at, issued_at, paid_on, legal_number, pdf_url, moloni_document_id, client_reminded_at, removed_at, created_at, updated_at, quote:quotes(id, number, title, created_by), gig:gigs(id, name)'
+export const INVOICE_SELECT = 'id, org_id, number, kind, credited_invoice_id, quote_id, gig_id, client_id, client_name, client_tax_id, client_address, client_email, scope, phase_ids, deposit_pct, language, currency, lines, net, vat, total, notes, issue_date, due_date, status, sent_at, issued_at, paid_on, legal_number, pdf_url, provider, provider_document_id, client_reminded_at, removed_at, created_at, updated_at, quote:quotes(id, number, title, created_by), gig:gigs(id, name)'
 
 // Fields the app may write (the database gives the number and works out the totals)
 const DRAFT_FIELDS = ['client_id', 'client_name', 'client_tax_id', 'client_address', 'client_email', 'scope', 'phase_ids', 'deposit_pct', 'language', 'currency', 'lines', 'notes', 'issue_date', 'due_date']
@@ -47,9 +48,10 @@ export async function invoiceSummary(orgId, by, ids = null) {
   return data || []
 }
 
-// SWITCHED OFF until step 11b
-export async function moloniStatus(orgId) {
-  const { data, error } = await supabase.rpc('moloni_status', { p_org: orgId })
+// The organisation's invoicing program (step 11b): { provider, connected, expired, account,
+// company_name, document_set_name, ready, connected_at }, or null when it works by hand
+export async function invoicingStatus(orgId) {
+  const { data, error } = await supabase.rpc('invoicing_status', { p_org: orgId })
   if (error) throw error
   return data?.[0] || null
 }
@@ -64,9 +66,10 @@ export async function remindClient(invoiceId) {
   return data
 }
 
-// SWITCHED OFF until step 11b: the Moloni connector (moloniStatus, moloni). Calls the moloni Edge Function; refusals come back as Error('invoice:<code>') with .detail
-export async function moloni(action, body) {
-  const { data, error } = await supabase.functions.invoke('moloni', { body: { action, ...body } })
+// Calls the invoicing Edge Function (connect, setup, save_setup, disconnect, push, sync). Refusals
+// come back as Error('invoice:<code>') with .detail (the program's own words, when it gave any)
+export async function invoicing(action, body = {}) {
+  const { data, error } = await supabase.functions.invoke('invoicing', { body: { action, ...body } })
   if (error) {
     const b = await errorBody(error)
     const e = new Error(b.error ? `invoice:${b.error}` : error.message)
@@ -75,3 +78,10 @@ export async function moloni(action, body) {
   }
   return data
 }
+
+// The programs the owner has switched on; none when the function isn't there yet
+export async function invoicingProviders() {
+  try { return (await invoicing('providers')).providers || [] } catch { return [] }
+}
+
+export const PROGRAM_NAMES = { moloni: 'Moloni', invoicexpress: 'InvoiceXpress', toconline: 'TOConline' }

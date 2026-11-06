@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Loader2, Plus, Trash2, Send, RefreshCw, ExternalLink, Mail, MessageSquare, Check, Undo2, FileMinus } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger, userMessage } from '../../lib/logger'
@@ -11,7 +11,7 @@ import {
   invoiceTotals, invoiceLineNet, quoteInvoiceLines, depositLines, restLines, creditLines, invoiceClient, invoiceProblems,
   invoiceState, dueDateFor, quoteInvoiceGap,
 } from '../../lib/invoices'
-import { createInvoice, saveDraft, updateInvoice, removeDraft, moloni, remindClient } from '../../lib/invoiceApi'
+import { createInvoice, saveDraft, updateInvoice, removeDraft, invoicing, invoicingStatus, remindClient, PROGRAM_NAMES } from '../../lib/invoiceApi'
 
 const TONES = { draft: 'draft', sent: 'info', issued: 'open', overdue: 'danger', paid: 'ok', credited: 'off' }
 const num = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return Number.isFinite(n) ? n : 0 }
@@ -28,8 +28,9 @@ export const invoiceTitle = (inv, t) => (inv.legal_number || t(inv.kind === 'cre
 // One invoice or credit note. New: from a quote (quote, client, invoices already made from it) or,
 // for a credit note, from an issued invoice (creditOf, with its credit notes). Existing: edit the
 // draft, mark it sent to the invoicing program and add its number, mark it paid, credit it, remind
-// the client. moloniReady (send to Moloni, read it back) stays false until step 11b turns connectors on.
-export default function InvoiceModal({ orgId, invoice: initial = null, quote = null, client = null, siblings = [], creditOf = null, dueDays = 30, moloniReady = false, onClose, onSaved, onCredit }) {
+// the client. When the organisation has connected its program (step 11b), "Send to <program>" makes
+// the draft there and "Check <program>" reads the number back; typing it by hand always stays.
+export default function InvoiceModal({ orgId, invoice: initial = null, quote = null, client = null, siblings = [], creditOf = null, dueDays = 30, onClose, onSaved, onCredit }) {
   const { t, lang } = useI18n()
   const { notify } = useToast()
   const [inv, setInv] = useState(initial)
@@ -42,6 +43,15 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
   const [depositPct, setDepositPct] = useState('30')
   const quoteLabel = quote ? quoteNumber(quote, quote.prefix ?? 'Q') : ''
   const kindName = k => t(`lineKind.${k}`)
+  // The connected invoicing program, if any (null: by hand)
+  const [program, setProgram] = useState(null)
+  useEffect(() => {
+    let live = true
+    invoicingStatus(orgId).then(s => { if (live) setProgram(s) }).catch(() => {})
+    return () => { live = false }
+  }, [orgId])
+  const programReady = !!program?.ready
+  const programName = p => PROGRAM_NAMES[p] || p
 
   const [draft, setDraft] = useState(() => {
     if (!isNew) return { ...initial, lines: initial.lines || [] }
@@ -90,7 +100,9 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
       return next
     } catch (error) {
       logger.error('invoices', error, { step })
-      notify(userMessage(error), 'error')
+      // The program's own words, when it refused something
+      const detail = typeof error?.detail === 'string' ? error.detail.slice(0, 200) : ''
+      notify(detail ? `${userMessage(error)} (${detail})` : userMessage(error), 'error')
       return null
     } finally {
       setBusy('')
@@ -107,12 +119,12 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
   const save = () => run('save', () => (isNew ? createInvoice(orgId, payload()) : saveDraft(inv.id, payload())))
   const saveIfChanged = async () => (isNew ? save() : editable ? saveDraft(inv.id, payload()) : inv)
 
-  async function sendToMoloni() {
+  async function sendToProgram() {
     const saved = await run('save', saveIfChanged)
     if (!saved) return
     await run('push', async () => {
-      await moloni('push', { invoice_id: saved.id })
-      notify(t('invoice.pushed'), 'success')
+      await invoicing('push', { invoice_id: saved.id })
+      notify(t('invoice.program.pushed', { program: programName(program.provider) }), 'success')
       const { data } = await supabase.from('invoices').select('*').eq('id', saved.id).single()
       return { ...saved, ...data }
     })
@@ -122,9 +134,10 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
     if (saved) await run('sent', () => updateInvoice(saved.id, { status: 'sent' }))
   }
   const check = () => run('sync', async () => {
-    const res = await moloni('sync', { invoice_id: inv.id })
-    if (res.state === 'draft') { notify(t('invoice.stillDraftInMoloni')); return null }
-    if (res.state === 'missing') { notify(t('invoice.missingInMoloni'), 'error'); return null }
+    const res = await invoicing('sync', { invoice_id: inv.id })
+    const name = programName(inv.provider)
+    if (res.state === 'draft') { notify(t('invoice.program.stillDraft', { program: name })); return null }
+    if (res.state === 'missing') { notify(t('invoice.program.missing', { program: name }), 'error'); return null }
     notify(t('invoice.issuedToast', { number: res.legal_number }), 'success')
     const { data } = await supabase.from('invoices').select('*').eq('id', inv.id).single()
     return { ...inv, ...data }
@@ -306,15 +319,15 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
         <div style={{ ...sectionStyle, display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {editable && (
             <>
-              <p style={{ fontSize: '12px', color: colors.muted, margin: 0 }}>{t(moloniReady ? 'invoice.sendHint' : 'invoice.sendHintNoMoloni')}</p>
+              <p style={{ fontSize: '12px', color: colors.muted, margin: 0 }}>{programReady ? t('invoice.program.sendHint', { program: programName(program.provider) }) : t('invoice.sendHintNoMoloni')}</p>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button type="button" onClick={save} disabled={!!busy || !lines.length} style={btn}>{busy === 'save' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />} {t('invoice.saveDraft')}</button>
-                {moloniReady && (
-                  <button type="button" onClick={sendToMoloni} disabled={!!busy || problems.length > 0 || draft.currency !== 'EUR'} style={btnPrimary}>
-                    {busy === 'push' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('invoice.sendToMoloni')}
+                {programReady && (
+                  <button type="button" onClick={sendToProgram} disabled={!!busy || problems.length > 0 || draft.currency !== 'EUR'} style={btnPrimary}>
+                    {busy === 'push' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('invoice.program.send', { program: programName(program.provider) })}
                   </button>
                 )}
-                <button type="button" onClick={markSentByHand} disabled={!!busy || problems.length > 0} style={moloniReady ? btn : btnPrimary}>{t('invoice.markSent')}</button>
+                <button type="button" onClick={markSentByHand} disabled={!!busy || problems.length > 0} style={programReady ? btn : btnPrimary}>{t('invoice.markSent')}</button>
                 {!isNew && <button type="button" onClick={remove} disabled={!!busy} style={btnDanger}><Trash2 size={14} /> {t('invoice.removeDraft')}</button>}
               </div>
             </>
@@ -322,10 +335,10 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
 
           {inv?.status === 'sent' && (
             <>
-              <p style={{ fontSize: '13px', margin: 0 }}>{t(inv.moloni_document_id ? 'invoice.sentMoloni' : 'invoice.sentByHand')}</p>
+              <p style={{ fontSize: '13px', margin: 0 }}>{inv.provider ? t('invoice.program.waiting', { program: programName(inv.provider) }) : t('invoice.sentByHand')}</p>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {inv.moloni_document_id && moloniReady && (
-                  <button type="button" onClick={check} disabled={!!busy} style={btnPrimary}>{busy === 'sync' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />} {t('invoice.checkMoloni')}</button>
+                {inv.provider && program?.provider === inv.provider && (
+                  <button type="button" onClick={check} disabled={!!busy} style={btnPrimary}>{busy === 'sync' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />} {t('invoice.program.check', { program: programName(inv.provider) })}</button>
                 )}
                 <button type="button" onClick={() => run('draft', () => updateInvoice(inv.id, { status: 'draft' }))} disabled={!!busy} style={btn}><Undo2 size={14} /> {t('invoice.backToDraft')}</button>
               </div>

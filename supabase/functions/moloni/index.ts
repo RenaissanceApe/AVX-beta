@@ -1,3 +1,5 @@
+// SUPERSEDED in step 11b by the invoicing function (supabase/functions/invoicing, moloni.ts adapter).
+// Never deployed; kept until the owner removes it (docs/PENDING.md).
 // SWITCHED OFF: not deployed and not called by the app until step 11b (docs/BUSINESS.md "Planned →
 // 11b"), which turns invoicing-program connectors on per organisation and must first test this one
 // against a real Moloni account. Invoicing is manual until then.

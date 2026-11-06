@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.73.0 — Invoicing program connectors
+
+### Added
+- **Connect your invoicing program** (admins, Invoices → Invoicing program): Moloni, InvoiceXpress
+  or TOConline, one per organisation. "Send to …" makes the invoice a draft in your program; you
+  check and finalise it there; "Check …" brings back its number, dates and PDF link. Credit notes
+  too. AVX still never issues an invoice itself, and adding the number by hand always works.
+- Each program is switched on only after it has been tested with a real account, so at first the
+  panel may offer none.
+- **Keys stay on the server:** the InvoiceXpress API key and TOConline's secret are stored where
+  nobody can read them back in the app, admins included.
+- **CSV of invoices** on the Invoices page: the invoices shown, one row per line, to import into a
+  program without a connector.
+- Help: the term "invoicing connection", ⓘ notes for the program and its keys, and a new step and
+  picture in the guide "Invoice a quote"; the invoice pictures were refreshed.
+
+### Not included
+- Vendus: its connection would issue the legal invoice straight away (it has no drafts), so it
+  stays by hand or CSV.
+
+### Connected
+- Invoices (send and check buttons), Company details (names the program), the organisation export
+  (an `invoicing-connection` file without keys; the program on each invoice) and help.
+
 ## 0.72.0 — Invoices
 
 ### Added

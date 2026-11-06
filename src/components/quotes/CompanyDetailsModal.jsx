@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Loader2, CheckCircle, ImagePlus, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
@@ -6,6 +7,7 @@ import { logger, userMessage } from '../../lib/logger'
 import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, input, label, colors } from '../ui'
 import { HintLabel } from '../help/HelpParts'
+import { invoicingStatus, PROGRAM_NAMES } from '../../lib/invoiceApi'
 
 const FIELDS = ['legal_name', 'tax_id', 'address', 'email', 'phone', 'website']
 const MAX_HEADER_BYTES = 320 * 1024 // stored as a data: URL (base64 adds a third)
@@ -26,6 +28,9 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
   }))
   const [branding, setBranding] = useState({ header_image: null, brand_color: '#1EC878' })
   const [saving, setSaving] = useState(false)
+  // The invoicing program (step 11b), set on the Invoices page; viewers don't see it
+  const [program, setProgram] = useState(undefined)
+  useEffect(() => { invoicingStatus(org.id).then(setProgram).catch(() => setProgram(undefined)) }, [org.id])
 
   useEffect(() => {
     supabase.from('org_branding').select('header_image, brand_color').eq('org_id', org.id).maybeSingle()
@@ -118,6 +123,14 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
               <input id="co-due" type="number" min="0" max="365" value={form.invoice_due_days} onChange={e => set('invoice_due_days', e.target.value)} style={input} />
             </div>
           </div>
+          {program !== undefined && (
+            <p style={{ fontSize: '13px', color: colors.muted, margin: 0 }}>
+              {program?.provider
+                ? t(program.ready ? 'company.programConnected' : 'company.programUnfinished', { program: PROGRAM_NAMES[program.provider] })
+                : t('company.programManual')}{' '}
+              <Link to={`/org/${org.id}/invoices`} onClick={onClose} style={{ color: colors.accentText }}>{t('company.programChange')}</Link>
+            </p>
+          )}
           <div style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '12px' }}>
             <span style={label}>{t('company.header')}</span>
             {branding.header_image ? (
