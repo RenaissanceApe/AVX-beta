@@ -337,7 +337,7 @@ Target: the L&P **Signal Pixel** set (24 grid, 2px, square caps, mitre joins, on
 
 ## Motion
 
-100ms press (1px down) · 150ms hover/colour · 250ms tabs, dialogs, menus with `cubic-bezier(0.16,1,0.3,1)` and a 10px rise · loading = blinking square (`@keyframes blink`), never a spinner. `prefers-reduced-motion` and Comfort mode turn it off.
+100ms press (1px down) · 150ms hover/colour · 250ms tabs, dialogs, menus with `cubic-bezier(0.16,1,0.3,1)` and a 10px rise · loading = blinking square (`@keyframes blink`), never a spinner; the app-start loader is the AVX glyph's Pixel Build (one cell per 50 ms, 1.6 s loop, `App.jsx`). `prefers-reduced-motion` and Comfort mode turn it off.
 
 ## Voice
 

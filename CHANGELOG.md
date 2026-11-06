@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.74.1 — A calmer loading screen
+
+### Changed
+- While the app opens, the loading sign is now the AVX mark building itself square by square
+  (the brand's "Pixel Build"), then starting again, instead of a fast-spinning square. With
+  reduced motion or Comfort mode on, the mark shows still.
+
 ## 0.74.0 — Repairs charged to the client, and payments
 
 ### Added

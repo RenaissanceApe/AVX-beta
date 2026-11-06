@@ -58,17 +58,32 @@ const MessagesPage = lazy(() => import('./pages/MessagesPage'))
 const QuotePublicPage = lazy(() => import('./pages/QuotePublicPage'))
 const SupplierLinkPage = lazy(() => import('./pages/SupplierLinkPage'))
 
+// Loading: the AVX glyph builds cell by cell ("Pixel Build", Brand Book §09 Motion): one cell every
+// 50 ms in reading order, hold, clear, repeat (1.6 s loop). Reduced motion and Comfort mode show the
+// whole mark still.
+const GLYPH_CELLS = [[3, 0], [1, 1], [2, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [2, 3], [3, 3], [1, 4]]
+const BUILD_LOOP_MS = 1600
+const BUILD_STEP_MS = 50
+const BUILD_CLEAR_AT = 87.5 // % of the loop: the mark stays whole until here, then clears
+const pct = n => +(n * 100).toFixed(3)
+const buildCss = GLYPH_CELLS.map((_, i) =>
+  `@keyframes avxBuild${i} { 0% { opacity: 0 } ${pct(((i + 1) * BUILD_STEP_MS) / BUILD_LOOP_MS)}% { opacity: 1 } ${BUILD_CLEAR_AT}% { opacity: 0 } }
+  .avx-loader rect:nth-child(${i + 1}) { animation: avxBuild${i} ${BUILD_LOOP_MS}ms step-end infinite; }`
+).join('\n') + `
+  @media (prefers-reduced-motion: reduce) { .avx-loader rect { animation: none !important; } }
+  :root[data-comfort] .avx-loader rect { animation: none; }`
+
 function Spinner() {
   return (
     <div style={{
       minHeight: '100vh', background: 'var(--bg)',
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
-      <div role="status" aria-label={t('common.loading')} style={{
-        width: '32px', height: '32px', border: '3px solid var(--accent)',
-        borderTopColor: 'var(--accent)', 
-        animation: 'spin 0.8s linear infinite'
-      }} />
+      <style>{buildCss}</style>
+      <svg className="avx-loader" role="status" aria-label={t('common.loading')} width="40" height="40"
+        viewBox="0 0 5 5" shapeRendering="crispEdges" style={{ display: 'block', color: 'var(--accent-text)' }}>
+        {GLYPH_CELLS.map(([x, y]) => <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="currentColor" />)}
+      </svg>
     </div>
   )
 }
