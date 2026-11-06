@@ -6,12 +6,12 @@
 -- - moloni_connections (step 11, unused) is renamed invoicing_connections and gains a provider and
 --   the keys some programs need. Still no rules and no grants: only the Edge Function (service role)
 --   reads it, so nobody in the app, admins included, can read a key back.
--- - invoicing_status() replaces moloni_status() (which loses its grant; nothing is dropped).
+-- - invoicing_status() replaces moloni_status() (which loses its grant; it is kept).
 -- - invoices.provider / provider_document_id: which program a sent draft went to, and its id there.
 --   Written by the Edge Function only (no column grants); cleared when an invoice is back to draft.
 -- - The organisation export gains an invoicing_connection file (no keys) and the invoices file
 --   gains the program.
--- Checks: supabase/tests/invoicing_connectors.sql (no delete statements).
+-- Checks: supabase/tests/invoicing_connectors.sql (nothing destructive).
 
 -- ── Connections ──────────────────────────────────────────────────────────────
 alter table if exists public.moloni_connections rename to invoicing_connections;
