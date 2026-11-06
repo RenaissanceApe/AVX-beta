@@ -1,11 +1,18 @@
 # Changelog
 
-## 0.74.1 — A calmer loading screen
+## 0.74.1 — One loading sign, and a plan for room to breathe
 
 ### Changed
-- While the app opens, the loading sign is now the AVX mark building itself square by square
-  (the brand's "Pixel Build"), then starting again, instead of a fast-spinning square. With
-  reduced motion or Comfort mode on, the mark shows still.
+- Everything that loads now shows the same sign: the AVX mark building itself square by square
+  (the brand's "Pixel Build"), then starting again. This replaces the fast-spinning square while
+  the app opens and the spinning circles on pages, sections and busy buttons (about 200 of them).
+  With reduced motion or Comfort mode on, the mark shows still.
+
+### Planned
+- A design refresh to give every screen more room: more space between sections, fewer boxes,
+  one green thing per screen, explanations behind ⓘ and fewer buttons in view. The rules are in
+  DESIGN.md and the order of work (DR1–DR6, starting with a home you can rearrange) in
+  docs/DESIGN_REFRESH.md. Nothing on screen changes yet apart from the loading sign.
 
 ## 0.74.0 — Repairs charged to the client, and payments
 
