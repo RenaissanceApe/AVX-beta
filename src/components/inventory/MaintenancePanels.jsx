@@ -12,7 +12,7 @@ import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, input, label, card, colors, StatusBadge } from '../ui'
 import LinkedExpense from '../expenses/LinkedExpense'
 import ContextThread from '../messages/ContextThread'
-import { HintLabel } from '../help/HelpParts'
+import { Hint, HintLabel } from '../help/HelpParts'
 
 const AMBER = 'var(--warn)'
 const select = { ...input, appearance: 'auto' }
@@ -20,7 +20,7 @@ const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15
 const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 const STATUS_TONE = { open: 'warn', in_repair: 'info', done: 'ok', written_off: 'off' }
 const DUE_TONE = { overdue: 'danger', soon: 'warn', ok: 'off' }
-const REPAIR_SELECT = '*, unit:unit_id(code), gig:gig_id(name)'
+const REPAIR_SELECT = '*, unit:unit_id(code), gig:gig_id(name), invoice:invoice_id(number, legal_number)'
 
 const Field = ({ id, text, children }) => <div><label style={label} htmlFor={id}>{text}</label>{children}</div>
 const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`)
@@ -162,9 +162,13 @@ export function RepairModal({ orgId, repair, items = [], preset = {}, onClose, o
           <Field id="rp-cost" text={t('repair.cost')}><input id="rp-cost" inputMode="decimal" value={form.cost} onChange={set('cost')} style={input} /></Field>
           <Field id="rp-back" text={t('repair.expectedBack')}><input id="rp-back" type="date" value={form.expected_back} onChange={set('expected_back')} style={input} /></Field>
         </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: colors.soft, cursor: 'pointer' }}>
-          <input type="checkbox" checked={form.charge_client} onChange={set('charge_client')} style={{ accentColor: colors.accent }} /> {t('repair.chargeClient')}
-        </label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: colors.soft, cursor: 'pointer' }}>
+            <input type="checkbox" checked={form.charge_client} onChange={set('charge_client')} disabled={!!repair?.invoice_id} style={{ accentColor: colors.accent }} /> {t('repair.chargeClient')}
+          </label>
+          <Hint id="repair-charge-client" />
+        </div>
+        {repair?.invoice_id && <p style={{ ...small, margin: 0 }}>{t('repair.billedOn', { number: repair.invoice?.legal_number || `#${repair.invoice?.number ?? ''}` })}</p>}
         {(form.status === 'done' || form.status === 'written_off' || repair?.outcome) && (
           <Field id="rp-outcome" text={t('repair.outcome')}><input id="rp-outcome" value={form.outcome} onChange={set('outcome')} maxLength={1000} style={input} /></Field>
         )}
@@ -277,7 +281,7 @@ function RepairRow({ r, itemName, onOpen }) {
           {r.unit?.code ? <span style={{ fontFamily: 'var(--font-mono)' }}>{r.unit.code}</span> : t('repair.quantity', { count: r.quantity })}
         </span>
         <span style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>
-          {[r.problem, r.gig?.name && t('repair.fromGig', { gig: r.gig.name }), r.repairer, r.cost != null && formatMoney(r.cost, 'EUR', lang), r.charge_client && t('repair.charged')].filter(Boolean).join(' · ')}
+          {[r.problem, r.gig?.name && t('repair.fromGig', { gig: r.gig.name }), r.repairer, r.cost != null && formatMoney(r.cost, 'EUR', lang), r.charge_client && t('repair.charged'), r.charge_client && (r.invoice_id ? t('repair.billedOn', { number: r.invoice?.legal_number || `#${r.invoice?.number ?? ''}` }) : t('repair.notBilled'))].filter(Boolean).join(' · ')}
         </span>
       </span>
       {r.photo_path && <ImageIcon size={13} color={colors.muted} aria-label={t('repair.photo')} />}

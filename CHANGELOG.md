@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.74.0 — Repairs charged to the client, and payments
+
+### Added
+- **Payments on invoices:** open an issued invoice and record each payment that comes in: the date,
+  the amount, how it was paid (bank transfer, MB Way, Multibanco, card, cash, cheque, other) and a
+  note. Part payments add up; the invoice turns paid by itself when the payments (and any credit
+  notes) cover it, dated the last payment. "Mark as paid" now records a payment of whatever is
+  left. Recorded one by mistake? Remove it and the invoice goes back to unpaid. A payment can't be
+  more than is left to pay or dated in the future.
+- **Repairs charged to the client:** a repair marked "Charge the client for this" now waits in the
+  gig's invoice draft under "Repairs to charge the client"; "Add to invoice" adds it as a line at
+  the repair's cost (change the price if you like). Each repair can be on one invoice only; the
+  repair shows "billed on invoice …" or "not billed yet".
+- Invoices you had already marked paid were each given one payment of their full amount ("Other",
+  on their paid date), so the totals still add up.
+- Help: the terms "payment" and "repair charged to the client", ⓘ notes for the payment amount,
+  the repairs in an invoice draft and "Charge the client for this", and a new guide "Charge repairs
+  and record payments" with two pictures; the guide "Invoice a quote" now points to payments.
+
+### Changed
+- An invoice can no longer be set to paid (or back) directly: it follows its payments.
+- The unpaid and overdue totals (Invoices page, a gig's finance panel, Contacts → Clients) count
+  only what is still left to pay, so part payments show.
+- Overdue reminders skip invoices with nothing left to pay.
+
+### Connected
+- Repairs (billed on which invoice), invoices (payments section, repairs in the draft), the
+  Invoices list ("… left to pay"), gig finance and Contacts (paid and outstanding now include part
+  payments), the organisation export (an `invoice-payments` file), and a `payments_by_month`
+  function for the cash reports (K3). The client portal (step 26) will show payments later.
+
+### Not included
+- Payment links (MB Way, Multibanco references, Stripe): left for the client portal (step 26).
+
 ## 0.73.0 — Invoicing program connectors
 
 ### Added

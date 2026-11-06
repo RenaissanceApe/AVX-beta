@@ -177,6 +177,12 @@ export function sampleData(persona, lang) {
   const repairs = [
     { id: 'r1', org_id: orgId, item_id: SPK, unit_id: units[2].id, unit: { code: units[2].code }, quantity: 1, gig_id: gigId, gig: { name: gig.name }, status: 'in_repair', problem: tx('Grelha amolgada, driver a vibrar', 'Dented grille, rattling driver'), photo_path: null, repairer: 'AudioFix', cost: 85, charge_client: false, expected_back: day(4), created_at: ago(120) },
     { id: 'r2', org_id: orgId, item_id: XLR, unit_id: null, unit: null, quantity: 3, gig_id: null, gig: null, status: 'open', problem: tx('Fichas soltas', 'Loose connectors'), photo_path: null, repairer: null, cost: null, charge_client: false, expected_back: null, created_at: ago(20) },
+    { id: 'r3', org_id: orgId, item_id: SPK, unit_id: units[1].id, unit: { code: units[1].code }, item: { name: w.speaker }, quantity: 1, gig_id: gigId, gig: { name: gig.name }, status: 'done', problem: tx('Grelha partida na descarga', 'Grille broken at the get-out'), photo_path: null, repairer: 'AudioFix', cost: 180, charge_client: true, invoice_id: null, invoice: null, expected_back: null, created_at: ago(90) },
+  ]
+  // Payments (step 12): the deposit paid in full, part of the final invoice paid
+  const payments = [
+    { id: 'pay1', org_id: orgId, invoice_id: 'inv1', paid_on: day(-12), amount: 782.28, method: 'transfer', note: null, removed_at: null, created_at: ago(290), created_by: ricardo },
+    { id: 'pay2', org_id: orgId, invoice_id: 'inv2', paid_on: day(-3), amount: 500, method: 'mbway', note: tx('Primeira parte, o resto no fim do mês', 'First part, the rest at the end of the month'), removed_at: null, created_at: ago(70), created_by: ricardo },
   ]
   const due = [
     { item_id: SPK, item_name: w.speaker, inspection_kind: tx('Teste elétrico (PAT)', 'Electrical test (PAT)'), unit_id: units[0].id, unit_code: units[0].code, last_done: day(-370), last_result: 'pass', due_on: day(-5) },
@@ -393,6 +399,7 @@ export function sampleData(persona, lang) {
       subrentals,
       quotes: [{ ...quote, organisations: org }],
       invoices: persona === 'pm' ? invoices : [],
+      invoice_payments: persona === 'pm' ? payments : [],
       quote_versions: versions,
       quote_shares: [{ id: 'sh1', status: 'accepted', sent_to: 'marta@example.com', emailed: true, created_at: ago(48), expires_at: `${day(28)}T00:00:00Z`, viewed_at: ago(40), responded_at: ago(30), responder_name: 'Marta Lopes', responder_note: null, quote_versions: { version_no: 2 } }],
       quote_templates: [],
@@ -525,7 +532,7 @@ export function sampleData(persona, lang) {
       gig_finance: gigFinance,
       // Step 11b: the organisation's invoicing program, connected
       invoicing_status: [{ provider: 'invoicexpress', connected: true, expired: false, account: 'lumen-pixel', company_name: null, document_set_name: '2026', ready: true, connected_at: ago(2000) }],
-      invoice_summary: [{ ref_id: 'q1', currency: 'EUR', invoiced_net: 2120, invoiced: 2607.6, credited: 0, paid: 782.28, outstanding: 1825.32, overdue: 1825.32, to_issue: 66.42, invoices: 3, last_issue: day(-35), last_paid: day(-12) }],
+      invoice_summary: [{ ref_id: 'q1', currency: 'EUR', invoiced_net: 2120, invoiced: 2607.6, credited: 0, paid: 1282.28, outstanding: 1325.32, overdue: 1325.32, to_issue: 66.42, invoices: 3, last_issue: day(-35), last_paid: day(-12) }],
       equipment_report: [
         { item_id: SPK, name: w.speaker, category: w.sys, owned: 7, use: 0.46, gigs: 9, last_used: ago(240), revenue: 6720, return_on_cost: 0.32, repairs: 1, repair_cost: 180, charged: 0, lost: 0, lost_value: 0, hired_in: 0, book_value: 14200, cost: 21000, idle: false },
         { item_id: QL1, name: w.desk, category: w.sys, owned: 1, use: 0.31, gigs: 5, last_used: ago(400), revenue: 2160, return_on_cost: 0.18, repairs: 0, repair_cost: 0, charged: 0, lost: 0, lost_value: 0, hired_in: 360, book_value: 9800, cost: 12000, idle: false },

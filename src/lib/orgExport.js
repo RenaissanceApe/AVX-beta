@@ -43,6 +43,7 @@ export const PARTS = [
   { part: 'invoices', columns: ['avx_number', 'kind', 'legal_number', 'credits', 'status', 'overdue', 'quote_number', 'gig', 'client', 'client_tax_id', 'scope', 'deposit_pct', 'issue_date', 'due_date', 'paid_on', 'currency', 'net', 'vat', 'total', 'pdf_url', 'notes', 'sent_at', 'issued_at', 'removed_at', 'created_at', 'program'] },
   { part: 'invoice_lines', columns: ['avx_number', 'legal_number', 'line', 'kind', 'description', 'qty', 'unit_price', 'discount_pct', 'vat_rate', 'vat_exemption', 'net', 'currency'] },
   { part: 'invoicing_connection', columns: ['program', 'account', 'company', 'series', 'connected_at'] },
+  { part: 'invoice_payments', columns: ['avx_number', 'legal_number', 'paid_on', 'amount', 'currency', 'method', 'note', 'created_at', 'removed_at'] },
 ]
 
 export const PAGE_SIZE = 5000

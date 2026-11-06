@@ -478,9 +478,17 @@ const SCENES = {
   } },
   'invoice-paid': { persona: 'pm', url: `/org/${ids.org}/invoices?view=unpaid`, async run(page, L) {
     await page.getByRole('button').filter({ hasText: 'FT 2026/44' }).first().click()
-    const paid = page.getByRole('dialog').getByRole('button', { name: L('invoice.markPaid') })
-    await paid.evaluate(el => el.scrollIntoView({ block: 'center' }))
-    return paid.locator('xpath=..')
+    const box = page.getByRole('dialog').locator('section[aria-labelledby="pay-inv2"]')
+    await box.waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box
+  } },
+  'invoice-repairs': { persona: 'pm', url: `/org/${ids.org}/invoices`, async run(page, L) {
+    await page.getByRole('button').filter({ hasText: L('invoice.draftName', { n: 3 }) }).first().click()
+    const box = page.getByRole('dialog').locator('section[aria-labelledby="inv-repairs"]')
+    await box.waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box
   } },
   'quote-invoices': { persona: 'pm', url: '/quote/q1', async run(page, L) {
     await page.getByRole('tab', { name: L('quote.tab.summary') }).click()

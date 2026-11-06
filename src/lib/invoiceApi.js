@@ -85,3 +85,36 @@ export async function invoicingProviders() {
 }
 
 export const PROGRAM_NAMES = { moloni: 'Moloni', invoicexpress: 'InvoiceXpress', toconline: 'TOConline' }
+
+// ── Payments (step 12) ──────────────────────────────────────────────────────
+const PAYMENT_SELECT = 'id, invoice_id, paid_on, amount, method, note, created_at, created_by'
+
+// Payments of the given invoices (not removed), or of every invoice of the organisation
+export async function loadPayments(orgId, invoiceIds = null) {
+  let q = supabase.from('invoice_payments').select(PAYMENT_SELECT).eq('org_id', orgId).is('removed_at', null)
+  if (invoiceIds) q = q.in('invoice_id', invoiceIds)
+  const { data, error } = await q.order('paid_on').limit(5000)
+  if (error) throw error
+  return data || []
+}
+
+// The database turns the invoice paid when its payments cover it
+export async function recordPayment(orgId, invoiceId, { paid_on: paidOn, amount, method, note }) {
+  const { error } = await supabase.from('invoice_payments')
+    .insert({ org_id: orgId, invoice_id: invoiceId, paid_on: paidOn, amount, method, note: note || null })
+  if (error) throw error
+}
+
+export async function removePayment(id) {
+  const { error } = await supabase.from('invoice_payments').update({ removed_at: new Date().toISOString() }).eq('id', id)
+  if (error) throw error
+}
+
+// A gig's repairs charged to the client, with the invoice each is billed on
+export async function loadChargedRepairs(gigId) {
+  const { data, error } = await supabase.from('repairs')
+    .select('id, problem, cost, charge_client, status, invoice_id, created_at, item:item_id(name), unit:unit_id(code)')
+    .eq('gig_id', gigId).eq('charge_client', true).order('created_at').limit(500)
+  if (error) throw error
+  return data || []
+}

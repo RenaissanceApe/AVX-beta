@@ -6,7 +6,8 @@ import { logger } from '../lib/logger'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { formatMoney, quoteNumber, localISODate } from '../lib/quotes'
 import { invoiceState, daysOverdue } from '../lib/invoices'
-import { loadInvoices, invoicingStatus, invoicingProviders } from '../lib/invoiceApi'
+import { loadInvoices, loadPayments, invoicingStatus, invoicingProviders } from '../lib/invoiceApi'
+import { leftToPay, isPartlyPaid, paymentsByInvoice } from '../lib/payments'
 import { downloadInvoicesCsv } from '../lib/invoiceCsv'
 import { useToast } from '../lib/ToastContext'
 import { useI18n, fmt } from '../i18n'
@@ -36,6 +37,7 @@ export default function InvoicesPage() {
   const canSee = role === 'admin' || role === 'member'
   const view = VIEWS.includes(params.get('view')) ? params.get('view') : 'open'
   const [list, setList] = useState(null)
+  const [payments, setPayments] = useState({}) // { invoice_id: [payment] }
   const [org, setOrg] = useState(null)
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(null) // { invoice } | { quote } | { creditOf }
@@ -72,7 +74,11 @@ export default function InvoicesPage() {
 
   const load = useCallback(async () => {
     if (!canSee) return
-    try { setList(await loadInvoices(orgId)) } catch (error) { logger.error('invoices', error, { step: 'list' }); setList([]) }
+    try {
+      const [invoices, ps] = await Promise.all([loadInvoices(orgId), loadPayments(orgId)])
+      setPayments(paymentsByInvoice(ps))
+      setList(invoices)
+    } catch (error) { logger.error('invoices', error, { step: 'list' }); setList([]) }
   }, [canSee, orgId])
   useEffect(() => { load() }, [load, version])
 
@@ -97,10 +103,11 @@ export default function InvoicesPage() {
       const k = state === 'overdue' ? 'overdue' : i.status === 'issued' ? 'unpaid' : null
       if (!k) continue
       out[k] = out[k] || {}
-      out[k][i.currency] = Math.round(((out[k][i.currency] || 0) + Number(i.total)) * 100) / 100
+      const left = leftToPay(i, { credits, payments: payments[i.id] })
+      out[k][i.currency] = Math.round(((out[k][i.currency] || 0) + left) * 100) / 100
     }
     return out
-  }, [list, today, credits])
+  }, [list, today, credits, payments])
 
   const setView = v => setParams(v === 'open' ? {} : { view: v }, { replace: true })
   const title = t('invoice.pageTitle')
@@ -181,6 +188,7 @@ export default function InvoicesPage() {
                         </span>
                         <span style={{ display: 'block', fontSize: '12px', color: colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {[i.client_name, i.quote?.title, i.due_date && i.kind === 'invoice' && i.status !== 'paid' ? t(late ? 'invoice.lateBy' : 'invoice.dueOn', { date: fmt(i.due_date, 'd MMM'), count: late }) : null,
+                            isPartlyPaid(i, { credits, payments: payments[i.id] }) ? t('payment.leftShort', { amount: formatMoney(leftToPay(i, { credits, payments: payments[i.id] }), i.currency, lang) }) : null,
                             i.paid_on ? t('invoice.paidOnShort', { date: fmt(i.paid_on, 'd MMM') }) : null].filter(Boolean).join(' · ')}
                         </span>
                       </span>

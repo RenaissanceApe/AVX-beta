@@ -182,20 +182,31 @@ sending would issue the invoice.
 | Connected | Invoices (send / check), Company details, help (term "invoicing connection", ⓘ for the program, InvoiceXpress account and keys, the guide step and picture "invoicing-program"), organisation export (`invoicing_connection` file without keys; `program` on `invoices`) |
 | Not checked yet | No real account was used in this session: each adapter follows its program's published API. TOConline's draft credit notes and the exact JSON:API content type, InvoiceXpress' credit-note body key and Moloni's deposit-minus line are to be confirmed in the end-to-end test (PENDING T76) before the program goes into `INVOICING_PROVIDERS` |
 
+## How repair charges and payments work (step 12, 0.74.0)
+
+A repair the client should pay for becomes a line on the gig's invoice, once; payments are recorded
+against issued invoices, and an invoice is **paid when its payments cover it**. Migration
+`20261224000000_repair_charges_payments.sql`; checks in `supabase/tests/payments.sql` (and
+`invoices.sql`, updated: "paid" is set by a payment now). No delete statements.
+
+| Piece | How it works |
+|---|---|
+| Charged repairs | `repairs.invoice_id`: the invoice that bills it. An invoice line may carry `repair_id` (kind `repair`; `invoice_clean_lines` keeps both). After every save of an invoice, `private.invoices_after_step12` links the repairs its lines name and frees those taken out (or all of them when the draft is removed). Refused: a repair of another organisation or not marked "charge client" (22023), or already on another live invoice (23505). From the app the link can't be written, and a billed repair stays "charge client" (`repairs_invoice_guard`, which lets the database's own functions through). Credit notes never carry repairs. The price starts at the repair's cost and is edited like any line; gig finance still leaves charged repairs out of costs (`repairs_charged`) |
+| Payments | `invoice_payments`: invoice, `paid_on`, `amount` (> 0), `method` (transfer, mbway, multibanco, card, cash, cheque, other), `note`, `removed_at`/`removed_by`, `created_by`. Admins and members (`can_see_finance`, two-step sign-in when set up). Only issued or paid invoices (not credit notes); not in the future; never more than is left (`invoice_due` − `invoice_paid`, the invoice row locked while checking). A payment can't be edited (only `removed_at` is granted), and a removed one stays removed |
+| Paid follows the payments | `private.sync_invoice_paid` after each payment, and after a credit note is issued or removed: paid when payments > 0 and ≥ total − issued credit notes, `paid_on` = the last payment's date; otherwise issued. From the app, `status` can't be moved to or from paid and `paid_on` can't be changed (`invoices_payment_status`, which runs after `invoices_before_write` by name order). A fully credited invoice with no payment stays issued and shows "Credited" |
+| Totals | `invoice_summary` keeps its columns: `paid` = payments received (part payments too), `outstanding` and `overdue` = what is left on issued invoices, `last_paid` = the last payment. `payments_by_month(org, from, until)` gives money received per month and currency (for K3). Overdue reminders skip invoices with nothing left and carry `left` in their details |
+| JS twin | `src/lib/payments.js`: `invoiceDue`, `paidSoFar`, `leftToPay`, `isPartlyPaid`, `paymentProblem`, `paymentsByInvoice`, `repairLine`, `repairsToBill` (tests in `payments.test.js`) |
+| Screens | Invoice window → **Payments** (`InvoicePayments.jsx`) on issued invoices: to pay after credit notes, paid so far, left to pay, the payments (remove with the bin), and the form (date, amount starting at what is left, method, note; the button reads "Mark as paid" when the amount is all that is left). A gig's invoice draft → **Repairs to charge the client** (`ChargedRepairs.jsx`) with "Add to invoice". Invoices list: "… left to pay" on part-paid invoices; the unpaid and overdue totals count what is left. Maintenance: a charged repair says "billed on invoice …" or "not billed yet", and its "Charge the client" box is locked once billed |
+| Existing data | Each invoice already marked paid got one payment of its full amount (method "other", its paid date) |
+| Connected | Repairs, invoices, Invoices list, gig finance and Contacts (through `invoice_summary`), organisation export (`invoice_payments` file; export function renamed `export_org_part_pre_step12` and wrapped), help (terms "payment" and "repair charged to the client", ⓘ `invoice-payment`, `invoice-repairs`, `repair-charge-client`, guide `office-payments` with two pictures). Client portal (step 26): payments and payment links later |
+| Not built | Payment links (MB Way, Multibanco references through easypay or ifthenpay, or Stripe): left for the client portal (step 26), which gives the client a page to pay on and the webhook that records the payment |
+
 ## Planned
 
 Specs for the business steps still to build, in ROADMAP.md order. Each is a starting point: the
 session that builds it reads its spec, checks it against the code, and **asks the owner the
 questions marked "Ask" before outlining the migration**. When built, the spec is replaced by a
 "How … works" section above.
-
-### 12 · Damage charged to the client [15], payments [22]
-
-- Repairs marked "charge client" (`repairs.charge_client`) appear as lines to add to the gig's next
-  invoice draft (step 11's draft lines, `InvoiceModal`).
-- **Payments:** record payments against invoices (date, amount, method); later a payment link
-  (Ask: Stripe, or Portuguese methods first: MB Way, Multibanco references through a provider such
-  as easypay or ifthenpay).
 
 ### 16 · E-signature [16]
 
