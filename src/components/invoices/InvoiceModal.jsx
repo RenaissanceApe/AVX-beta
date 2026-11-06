@@ -12,6 +12,8 @@ import {
   invoiceState, dueDateFor, quoteInvoiceGap,
 } from '../../lib/invoices'
 import { createInvoice, saveDraft, updateInvoice, removeDraft, invoicing, invoicingStatus, remindClient, PROGRAM_NAMES } from '../../lib/invoiceApi'
+import InvoicePayments from './InvoicePayments'
+import ChargedRepairs from './ChargedRepairs'
 
 const TONES = { draft: 'draft', sent: 'info', issued: 'open', overdue: 'danger', paid: 'ok', credited: 'off' }
 const num = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return Number.isFinite(n) ? n : 0 }
@@ -27,8 +29,8 @@ export const invoiceTitle = (inv, t) => (inv.legal_number || t(inv.kind === 'cre
 
 // One invoice or credit note. New: from a quote (quote, client, invoices already made from it) or,
 // for a credit note, from an issued invoice (creditOf, with its credit notes). Existing: edit the
-// draft, mark it sent to the invoicing program and add its number, mark it paid, credit it, remind
-// the client. When the organisation has connected its program (step 11b), "Send to <program>" makes
+// draft (adding the gig's repairs charged to the client), mark it sent to the invoicing program and
+// add its number, record payments (step 12), credit it, remind the client. When the organisation has connected its program (step 11b), "Send to <program>" makes
 // the draft there and "Check <program>" reads the number back; typing it by hand always stays.
 export default function InvoiceModal({ orgId, invoice: initial = null, quote = null, client = null, siblings = [], creditOf = null, dueDays = 30, onClose, onSaved, onCredit }) {
   const { t, lang } = useI18n()
@@ -87,7 +89,6 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
 
   const [busy, setBusy] = useState('')
   const [manual, setManual] = useState({ legal_number: '', pdf_url: '' })
-  const [paidOn, setPaidOn] = useState(today)
   const set = changes => setDraft(d => ({ ...d, ...changes }))
   const setLine = (i, changes) => set({ lines: draft.lines.map((l, j) => (j === i ? { ...l, ...changes } : l)) })
   const money = v => formatMoney(v, draft.currency || 'EUR', lang)
@@ -297,6 +298,12 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
               style={{ ...btn, marginTop: '6px' }}><Plus size={14} /> {t('invoice.addLine')}</button>
           )}
           {builtLines && <p style={{ fontSize: '12px', color: colors.muted, margin: '6px 0 0' }}>{t('invoice.editAfterSave')}</p>}
+          {editable && !builtLines && !isCredit && !isNew && draft.gig_id && (
+            <div style={{ marginTop: '8px' }}>
+              <ChargedRepairs gigId={draft.gig_id} invoiceId={inv.id} lines={draft.lines} language={draft.language} currency={draft.currency}
+                vatRate={draft.lines.find(l => l.kind !== 'deposit')?.vat_rate ?? 23} onAdd={line => set({ lines: [...draft.lines, line] })} />
+            </div>
+          )}
           <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '4px 12px', fontSize: '14px', margin: '10px 0 0' }}>
             <dt>{t('invoice.net')}</dt><dd style={{ margin: 0, textAlign: 'right' }}>{money(totals.net)}</dd>
             {totals.byRate.map(r => (
@@ -365,18 +372,11 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
                 {inv.paid_on && <FragRow term={t('invoice.paidOn')} value={fmt(inv.paid_on, 'd MMM yyyy')} />}
                 {inv.client_reminded_at && <FragRow term={t('invoice.lastReminder')} value={fmt(inv.client_reminded_at, 'd MMM yyyy')} />}
               </dl>
+              {inv.kind === 'invoice' && (
+                <InvoicePayments orgId={orgId} invoice={inv} onChanged={next => { const merged = { ...inv, ...next }; setInv(merged); setDraft({ ...merged, lines: merged.lines || [] }); onSaved?.(merged) }} />
+              )}
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                 {inv.pdf_url && <a href={inv.pdf_url} target="_blank" rel="noopener noreferrer" style={{ ...btn, textDecoration: 'none' }}><ExternalLink size={14} /> {t('invoice.openPdf')}</a>}
-                {inv.kind === 'invoice' && inv.status === 'issued' && (
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', flexWrap: 'wrap', flexBasis: '100%' }}>
-                    <div>
-                      <label htmlFor="inv-paid" style={label}>{t('invoice.paidOn')}</label>
-                      <input id="inv-paid" type="date" value={paidOn} max={today} onChange={e => setPaidOn(e.target.value)} style={{ ...input, width: 'auto' }} />
-                    </div>
-                    <button type="button" onClick={() => run('paid', () => updateInvoice(inv.id, { status: 'paid', paid_on: paidOn || today }))} disabled={!!busy} style={btnPrimary}><Check size={14} /> {t('invoice.markPaid')}</button>
-                  </div>
-                )}
-                {inv.status === 'paid' && <button type="button" onClick={() => run('unpaid', () => updateInvoice(inv.id, { status: 'issued' }))} disabled={!!busy} style={btn}><Undo2 size={14} /> {t('invoice.notPaid')}</button>}
                 {inv.kind === 'invoice' && onCredit && <button type="button" onClick={() => onCredit(inv)} disabled={!!busy} style={btn}><FileMinus size={14} /> {t('invoice.creditNote')}</button>}
                 {state === 'overdue' && inv.client_email && inv.pdf_url && (
                   <button type="button" onClick={remind} disabled={!!busy} style={btn}>{busy === 'remind' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Mail size={14} />} {t('invoice.emailReminder')}</button>

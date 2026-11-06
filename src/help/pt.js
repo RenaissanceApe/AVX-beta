@@ -12,6 +12,8 @@ export default {
     'expense-claim': { term: 'Pedido de reembolso', definition: 'Algo que uma pessoa num evento pagou do seu bolso (combustível, estacionamento, uma peça), enviado com o comprovativo. Os responsáveis do evento aprovam ou devolvem com uma nota; aprovado, fica "a reembolsar" até alguém o marcar como pago.', example: 'A Carla pede 26,45 € de portagens no evento de Natal.', where: 'Evento → Equipa → Despesas' },
     invoice: { term: 'Fatura', definition: 'A conta de um orçamento aceite. O AVX prepara-a (todo o orçamento, algumas fases, um adiantamento ou o resto) e o seu programa de faturação certificado emite-a com o número legal, que indica no AVX. Vencida quer dizer emitida, por pagar e depois da data de vencimento.', example: 'FT 2026/44, 3685,08 €, vence 30 dias depois de emitida.', where: 'Orçamentos → Faturas' },
     'credit-note': { term: 'Nota de crédito', definition: 'Anula toda ou parte de uma fatura emitida, por exemplo um material devolvido ou um desconto acordado depois. Nunca pode creditar mais do que resta na fatura.', example: 'A NC 2026/3 credita 61,50 € da FT 2026/44.', where: 'Uma fatura emitida → Nota de crédito' },
+    payment: { term: 'Pagamento', definition: 'Dinheiro recebido por uma fatura emitida: a data, o valor, como foi pago (transferência, MB Way, Multibanco, cartão, numerário, cheque, outro) e uma nota. Os pagamentos somam-se; a fatura fica paga quando cobrem o total menos as notas de crédito emitidas, e volta a ficar por pagar se um pagamento for removido. Um pagamento não pode ser maior do que o que falta pagar.', example: 'FT 2026/44, 1825,32 €: 500 € por MB Way, o resto por transferência no fim do mês.', where: 'Uma fatura emitida → Pagamentos' },
+    'charged-repair': { term: 'Reparação cobrada ao cliente', definition: 'Uma reparação marcada "Cobrar ao cliente", por um dano que o cliente causou. Aparece no rascunho da fatura do evento para adicionar como linha, e só pode estar numa fatura. Não conta como custo na margem do evento.', example: 'Grelha partida na descarga, 180 €, adicionada à fatura final do evento.', where: 'Inventário → Manutenção, o rascunho da fatura de um evento' },
     'certified-program': { term: 'Programa certificado', definition: 'Em Portugal só programas de faturação certificados pela AT podem emitir faturas. O AVX prepara-as e emite-as no seu; o AVX nunca emite uma fatura. O Moloni, o InvoiceXpress e o TOConline podem ser ligados para que os rascunhos vão para lá e os números voltem.', example: 'Moloni, InvoiceXpress, Vendus, TOConline.', where: 'Orçamentos → Faturas' },
     'invoicing-connection': { term: 'Ligação ao programa de faturação', definition: 'Uma ligação entre o AVX e o programa certificado da sua organização. Com ela, o AVX envia cada fatura para lá como rascunho e, depois de a finalizar no programa, lê o número, as datas e o link do PDF. Só poupa escrita: indicar o número à mão funciona sempre.', example: 'Enviar para o InvoiceXpress → finalizar lá → Verificar no InvoiceXpress: FT A/6.', where: 'Orçamentos → Faturas → Programa de faturação' },
     'recurring-cost': { term: 'Custo recorrente', definition: 'Um custo que volta todos os meses, trimestres ou anos, como a renda, o seguro ou o leasing. O AVX prepara a despesa em cada data; só conta depois de alguém a confirmar.', example: 'Renda do armazém no dia 1 de cada mês.', where: 'Organização → Despesas → Recorrentes' },
@@ -135,6 +137,9 @@ export default {
     'line-vat': 'A taxa de IVA desta linha. A 0% escolha o motivo legal, que o programa de faturação certificado exige. Pergunte ao seu contabilista qual se aplica.',
     'invoice-tax-id': 'O NIF do cliente, impresso na fatura. Sem ele, os programas de faturação usam o número de consumidor final (999999990).',
     'invoice-due': 'Quando o cliente tem de pagar. As faturas vencidas avisam o autor do orçamento e os administradores todas as semanas. O número de dias por defeito está nos Dados da empresa.',
+    'invoice-payment': 'O que o cliente pagou desta vez. Começa no que falta pagar; altere-o para um pagamento parcial. Quando os pagamentos cobrem a fatura, ela fica paga na data do último.',
+    'invoice-repairs': 'Reparações deste evento marcadas "Cobrar ao cliente" e que ainda não estão noutra fatura. A linha começa no custo da reparação; altere o preço na linha antes de enviar a fatura.',
+    'repair-charge-client': 'Para danos que o cliente causou. A reparação aparece então no rascunho da fatura do evento para adicionar como linha, uma só vez. Depois de estar numa fatura não pode ser desmarcada; tire primeiro a linha do rascunho.',
     'invoice-legal-number': 'O número que o programa de faturação certificado deu à fatura, como FT 2026/12. Indique também o link para o PDF, para o abrir e lembrar o cliente.',
     moloni: 'Ligue a sua conta do Moloni uma vez (um administrador entra no Moloni). O AVX passa a enviar-lhe as faturas como rascunho; finaliza-as no Moloni. Sem uso durante 14 dias, a ligação pede nova entrada.',
     'invoicing-program': 'O programa certificado com que a sua organização emite faturas. Ligado, o AVX envia cada fatura para lá como rascunho e lê o número de volta. Um programa por organização; liga-o um administrador. Não está na lista, ou não tem ligação? Continue a indicar os números à mão, ou descarregue as faturas em CSV.',
@@ -216,6 +221,19 @@ export default {
         'Valores em moedas diferentes nunca se somam; as outras moedas aparecem por baixo do total.',
       ],
     },
+    'office-payments': {
+      title: 'Cobrar reparações e registar pagamentos',
+      intro: 'Cobre ao cliente os danos que causou e acompanhe o que cada fatura recebeu até estar paga.',
+      steps: [
+        'Um dano que o cliente deve pagar? Abra a reparação (Inventário → Manutenção) e marque "Cobrar ao cliente". Depois abra o rascunho da fatura do evento: a reparação espera em "Reparações a cobrar ao cliente". Toque em "Adicionar à fatura", confirme o preço e guarde. Uma reparação só pode estar numa fatura.',
+        'Quando o dinheiro chegar, abra a fatura emitida. Em Pagamentos, indique a data, o valor e como foi pago. Para um pagamento parcial altere o valor; para o resto toque em "Marcar como paga".',
+        'A lista de Faturas mostra o que ainda falta pagar nas faturas pagas em parte, e os totais por pagar contam só o que falta. Uma fatura fica paga quando os pagamentos (e as notas de crédito) a cobrem. Registou um por engano? Remova-o com o caixote: a fatura volta a ficar por pagar.',
+      ],
+      mistakes: [
+        'Um pagamento não pode ser maior do que o que falta pagar, nem ter data no futuro.',
+        '"Paga" segue os pagamentos: não há botão para desfazer além de remover um pagamento.',
+      ],
+    },
     'office-gig-finance': {
       title: 'Ver o que um evento rende',
       intro: 'Veja a receita, os custos e a margem de cada evento, e que eventos perdem dinheiro.',
@@ -254,7 +272,7 @@ export default {
         'Confirme o cliente e as linhas, crie a fatura no seu programa certificado (Moloni, InvoiceXpress, Vendus…) e toque em "Marcar como enviada ao programa". Depois indique o número que ele deu e o link para o PDF.',
         'Ligou o seu programa (um administrador, no topo de Faturas: Programa de faturação)? Toque antes em "Enviar para o …": o rascunho vai para lá. Finalize-o no programa e toque em "Verificar no …" para trazer o número, as datas e o PDF.',
         'Faturas mostra o que falta enviar, o que está por pagar (as vencidas primeiro) e o que está pago. As faturas vencidas também o avisam todas as semanas. O seu programa não tem ligação? "CSV" descarrega as faturas mostradas, uma linha por linha da fatura, para importar lá.',
-        'Quando o cliente pagar, toque em "Marcar como paga". Vencida? Envie um lembrete ao cliente. Algo a devolver? Faça uma nota de crédito.',
+        'Quando o cliente pagar, registe o pagamento em Pagamentos ("Marcar como paga" para todo o valor em falta; também pagamentos parciais). Vencida? Envie um lembrete ao cliente. Algo a devolver? Faça uma nota de crédito.',
       ],
       mistakes: [
         'Só o programa de faturação emite a fatura legal: até indicar o número, a fatura no AVX é um rascunho.',

@@ -15,6 +15,8 @@ export default {
     'expense-claim': { term: 'Expense claim', definition: 'Something a person on a gig paid themselves (fuel, parking, a part), sent with the receipt. The gig\'s managers approve it or send it back with a note; approved, it shows as "to reimburse" until someone marks it paid.', example: 'Carla claims €26.45 of tolls on the Christmas gig.', where: 'Gig → Crew → Expenses' },
     invoice: { term: 'Invoice', definition: 'The bill for an accepted quote. AVX prepares it (all of the quote, some phases, a deposit or the rest) and your certified invoicing program issues it with its legal number, which you add in AVX. Overdue means issued, unpaid and past its due date.', example: 'FT 2026/44, €3,685.08, due 30 days after it was issued.', where: 'Quotes → Invoices' },
     'credit-note': { term: 'Credit note', definition: 'Cancels all or part of an issued invoice, for example a returned item or a discount agreed afterwards. It can never credit more than is left on the invoice.', example: 'NC 2026/3 credits €61.50 of FT 2026/44.', where: 'An issued invoice → Credit note' },
+    payment: { term: 'Payment', definition: 'Money received against an issued invoice: the date, the amount, how it was paid (transfer, MB Way, Multibanco, card, cash, cheque, other) and a note. Payments add up; the invoice turns paid when they cover its total less its issued credit notes, and goes back to unpaid if a payment is removed. A payment can\'t be more than is left to pay.', example: 'FT 2026/44, €1,825.32: €500 by MB Way, the rest by transfer at the end of the month.', where: 'An issued invoice → Payments' },
+    'charged-repair': { term: 'Repair charged to the client', definition: 'A repair marked "Charge the client for this", for damage the client caused. It shows in the gig\'s invoice draft to add as a line, and can be on one invoice only. It doesn\'t count as a cost in the gig\'s margin.', example: 'Grille broken at the get-out, €180, added to the gig\'s final invoice.', where: 'Inventory → Maintenance, a gig\'s invoice draft' },
     'certified-program': { term: 'Certified program', definition: 'In Portugal only invoicing software certified by the tax authority (AT) may issue invoices. AVX prepares them and you issue them in yours; it never issues an invoice itself. Moloni, InvoiceXpress and TOConline can be connected so drafts go there and their numbers come back.', example: 'Moloni, InvoiceXpress, Vendus, TOConline.', where: 'Quotes → Invoices' },
     'invoicing-connection': { term: 'Invoicing connection', definition: 'A link between AVX and your organisation\'s certified program. With it, AVX sends each invoice there as a draft and, once you finalise it in the program, reads back its number, dates and PDF link. It only saves typing: adding the number by hand always works.', example: 'Send to InvoiceXpress → finalise it there → Check InvoiceXpress: FT A/6.', where: 'Quotes → Invoices → Invoicing program' },
     'recurring-cost': { term: 'Recurring cost', definition: 'A cost that comes back every month, quarter or year, like rent, insurance or leasing. AVX drafts the expense on each date; it only counts once someone confirms it.', example: 'Warehouse rent on the 1st of every month.', where: 'Organisation → Expenses → Recurring' },
@@ -138,6 +140,9 @@ export default {
     'line-vat': 'This line’s VAT rate. At 0% choose the legal reason, which the certified invoicing program needs. Ask your accountant which applies.',
     'invoice-tax-id': 'The client\'s tax number (NIF), printed on the invoice. Without one, invoicing programs use the final consumer number (999999990).',
     'invoice-due': 'When the client has to pay. Overdue invoices notify the quote\'s author and the admins each week. The default number of days is in Company details.',
+    'invoice-payment': 'What the client paid this time. It starts at what is left to pay; change it for a part payment. Once the payments cover the invoice, it turns paid on the date of the last one.',
+    'invoice-repairs': 'Repairs on this gig marked "Charge the client for this" and not on another invoice yet. The line starts at the repair\'s cost; change the price in the line before you send the invoice.',
+    'repair-charge-client': 'For damage the client caused. The repair then shows in the gig\'s invoice draft to add as a line, once. After it is on an invoice this can\'t be unticked; take the line out of the draft first.',
     'invoice-legal-number': 'The number your certified invoicing program gave the invoice, such as FT 2026/12. Add the link to its PDF too, so you can open it and remind the client.',
     moloni: 'Connect your Moloni account once (an admin signs in to Moloni). AVX then sends invoices there as drafts; you finalise them in Moloni. Unused for 14 days, the connection needs signing in again.',
     'invoicing-program': 'The certified program your organisation issues invoices with. Connected, AVX sends each invoice there as a draft and reads its number back. One program per organisation; an admin connects it. Not listed, or no connector? Keep adding numbers by hand, or download the invoices as CSV.',
@@ -219,6 +224,19 @@ export default {
         'Amounts in different currencies are never added together; the other currencies are listed under the total.',
       ],
     },
+    'office-payments': {
+      title: 'Charge repairs and record payments',
+      intro: 'Bill the client for damage they caused, and follow what each invoice has received until it is paid.',
+      steps: [
+        'Damage the client should pay for? Open the repair (Inventory → Maintenance) and tick "Charge the client for this". Then open the gig\'s invoice draft: the repair waits under "Repairs to charge the client". Tap "Add to invoice", check the price and save. A repair can be on one invoice only.',
+        'When money comes in, open the issued invoice. Under Payments, add the date, the amount and how it was paid. For a part payment change the amount; for the rest tap "Mark as paid".',
+        'The Invoices list shows what is still left to pay on part-paid invoices, and the unpaid totals count only what is left. An invoice turns paid when its payments (and credit notes) cover it. Recorded one by mistake? Remove it with the bin: the invoice goes back to unpaid.',
+      ],
+      mistakes: [
+        'A payment can\'t be more than is left to pay, or dated in the future.',
+        '"Paid" follows the payments: there is no button to undo it except removing a payment.',
+      ],
+    },
     'office-gig-finance': {
       title: 'See what a gig earns',
       intro: 'Check each gig\'s revenue, costs and margin, and which gigs lose money.',
@@ -257,7 +275,7 @@ export default {
         'Check the client and lines, create the invoice in your certified program (Moloni, InvoiceXpress, Vendus…) and tap "Mark as sent to my program". Then add the number it gave and the link to its PDF.',
         'Connected your program (an admin, at the top of Invoices: Invoicing program)? Tap "Send to …" instead: the draft goes there. Finalise it in the program, then tap "Check …" to bring back its number, dates and PDF.',
         'Invoices lists what is still to send, what is unpaid (overdue first) and what is paid. Overdue invoices also notify you each week. No connector for your program? "CSV" downloads the invoices shown, one row per line, to import there.',
-        'When the client pays, tap "Mark as paid". Overdue? Email the client a reminder. Something to give back? Make a credit note.',
+        'When the client pays, record the payment under Payments ("Mark as paid" for the whole amount left; part payments too). Overdue? Email the client a reminder. Something to give back? Make a credit note.',
       ],
       mistakes: [
         'Only your invoicing program issues the legal invoice: until you add its number, the invoice in AVX is a draft.',
