@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Bookmark, BookmarkPlus, Bell, BellOff, X, Loader2 } from 'lucide-react'
+import { Bookmark, BookmarkPlus, Bell, BellOff, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { toSaved } from '../lib/crewSearch'
 import { useI18n } from '../i18n'
-import { btn, iconBtn, input, label, colors } from './ui'
+import { btn, iconBtn, input, label, colors, AvxLoader } from './ui'
 
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
 
@@ -97,7 +97,7 @@ export default function SavedCrewSearches({ orgId, filters, onApply, openId }) {
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', padding: '10px 0' }}>
             <input type="checkbox" checked={alert} onChange={e => setAlert(e.target.checked)} style={{ accentColor: 'var(--accent)' }} /> {t('crewSearch.saved.alert')}
           </label>
-          <button type="submit" disabled={busy || !name.trim()} style={btn}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <BookmarkPlus size={14} />} {t('crewSearch.saved.confirm')}</button>
+          <button type="submit" disabled={busy || !name.trim()} style={btn}>{busy ? <AvxLoader size={14} /> : <BookmarkPlus size={14} />} {t('crewSearch.saved.confirm')}</button>
           <button type="button" onClick={() => setSaving(false)} style={{ ...iconBtn, padding: '10px' }} aria-label={t('common.cancel')}><X size={16} /></button>
           <p style={{ ...hint, flexBasis: '100%' }}>{t('crewSearch.saved.hint')}</p>
         </form>

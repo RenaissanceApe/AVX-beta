@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, CheckCircle, ImagePlus, X } from 'lucide-react'
+import { CheckCircle, ImagePlus, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { useI18n } from '../../i18n'
-import { Modal, btn, btnPrimary, input, label, colors } from '../ui'
+import { Modal, btn, btnPrimary, input, label, colors, AvxLoader } from '../ui'
 import { HintLabel } from '../help/HelpParts'
 import { invoicingStatus, PROGRAM_NAMES } from '../../lib/invoiceApi'
 
@@ -178,7 +178,7 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
         </fieldset>
         {canEdit && (
           <button type="submit" disabled={saving} style={{ ...btnPrimary, justifyContent: 'center' }}>
-            {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={15} />} {t('common.saveChanges')}
+            {saving ? <AvxLoader size={15} /> : <CheckCircle size={15} />} {t('common.saveChanges')}
           </button>
         )}
       </form>

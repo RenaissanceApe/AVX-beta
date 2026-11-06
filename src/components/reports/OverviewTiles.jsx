@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ChevronRight, BarChart3, Loader2 } from 'lucide-react'
+import { ChevronDown, ChevronRight, BarChart3 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
 import { OVERVIEW_TILES, moneyLines } from '../../lib/analytics/tiles'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
-import { card, colors, mono } from '../ui'
+import { card, colors, mono, AvxLoader } from '../ui'
 
 // The Overview tiles (src/lib/analytics/tiles.js), read in one call (public.report_overview).
 // Shown on Reports → Overview and, folded or not, as the key numbers on the organisation's Home.
@@ -94,7 +94,7 @@ export function KeyNumbersStrip({ orgId }) {
         </Link>
       </div>
       {!folded && (loading || !data
-        ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} aria-label={t('common.loading')} />
+        ? <AvxLoader size={18} color={colors.accentText} label={t('common.loading')} />
         : <OverviewTiles orgId={orgId} overview={data} compact />)}
     </section>
   )

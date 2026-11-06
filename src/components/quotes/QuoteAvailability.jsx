@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, Check, Loader2 } from 'lucide-react'
+import { AlertTriangle, Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
 import { quoteEquipment, quoteEquipmentDates, normalizeBody } from '../../lib/quotes'
@@ -7,7 +7,7 @@ import { quoteWindow, shortBy } from '../../lib/inventory'
 import { rangeText } from '../../lib/clashes'
 import { track } from '../../lib/usage'
 import { t } from '../../i18n'
-import { Modal, card, colors } from '../ui'
+import { Modal, card, colors, AvxLoader } from '../ui'
 
 const AMBER = 'var(--warn)'
 
@@ -40,7 +40,7 @@ export default function QuoteAvailabilityModal({ quote, body, org, onClose }) {
       ) : !needs.length ? (
         <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6 }}>{t('quoteAvail.noItems')}</p>
       ) : !rows ? (
-        <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+        <AvxLoader size={20} color={colors.accentText} />
       ) : (
         <>
           <p style={{ fontSize: '13px', color: colors.soft, marginBottom: '10px' }}>{t('quoteAvail.window', { range: rangeText(win.from, win.until) })}</p>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Plus, ArrowLeft, Play, Pause, RotateCcw, Clock, Flag, Mic, MicOff, Camera, Check, Trash2, FileText, Download, Loader2, Square, CloudOff, ListTodo } from 'lucide-react'
+import { Plus, ArrowLeft, Play, Pause, RotateCcw, Clock, Flag, Mic, MicOff, Camera, Check, Trash2, FileText, Download, Square, CloudOff, ListTodo } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -13,7 +13,7 @@ import {
 } from '../../lib/rehearsal'
 import { taskFromNote } from '../../lib/tasks'
 import { t, getLanguage, fmt } from '../../i18n'
-import { Modal, btn, btnPrimary, btnDanger, iconBtn, input, label, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, btnDanger, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { CameraSync, LtcSync, SyncIcons } from './TimecodeSync'
 
@@ -73,7 +73,7 @@ export default function RehearsalTool({ gig, members, nameOf, userId, canNote, c
         </div>
         {canNote && !offline && <button type="button" onClick={() => setCreating(true)} style={btnPrimary}><Plus size={14} /> {t('rehearsal.new')}</button>}
       </div>
-      {sessions === null ? <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+      {sessions === null ? <AvxLoader size={20} color={colors.accentText} />
         : sessions.length === 0 ? (
           <EmptyState icon={<Flag size={28} />} title={t('rehearsal.emptyTitle')} body={canNote ? t('rehearsal.emptyBody') : t('rehearsal.emptyReader')}
             action={canNote && !offline ? t('rehearsal.new') : null} onAction={() => setCreating(true)} guide="crew-rehearsal" />
@@ -350,7 +350,7 @@ function SessionView({ session: initial, gig, members, nameOf, userId, canNote, 
         <span style={{ fontSize: '12px', color: colors.muted, marginLeft: 'auto' }} aria-live="polite">{t('rehearsal.count', { count: shown.length })}</span>
       </div>
 
-      {notes === null ? <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : (
+      {notes === null ? <AvxLoader size={20} color={colors.accentText} /> : (
         <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {pending.map(n => <NoteRow key={n.id} note={n} session={session} nameOf={nameOf} />)}
           {shown.map(n => (
@@ -583,7 +583,7 @@ function NoteComposer({ tc, session, gig, members, nameOf, defaultDept, offline,
         {offline && <p style={{ fontSize: '12px', color: colors.muted, display: 'flex', gap: '6px', alignItems: 'center' }}><CloudOff size={14} /> {t('rehearsal.offlineNote')}</p>}
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button type="button" onClick={onCancel} style={{ ...btn, background: 'transparent' }}>{t('common.cancel')}</button>
-          <button type="submit" disabled={busy || (!form.body.trim() && !file)} style={btnPrimary}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />} {t('rehearsal.saveNote')}</button>
+          <button type="submit" disabled={busy || (!form.body.trim() && !file)} style={btnPrimary}>{busy ? <AvxLoader size={14} /> : <Check size={14} />} {t('rehearsal.saveNote')}</button>
         </div>
       </form>
     </Modal>

@@ -1,7 +1,7 @@
 // Leave (step 9), admins only: requests waiting for a decision, and everyone's holiday balance
 // and working week for a year.
 import { useCallback, useEffect, useState } from 'react'
-import { Check, X, Loader2, Pencil, Save } from 'lucide-react'
+import { Check, X, Pencil, Save } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -9,7 +9,7 @@ import { track } from '../../lib/usage'
 import { DEFAULT_ALLOWANCE, DEFAULT_WEEK, WEEKDAYS, decideLeave, leaveError, leaveRange } from '../../lib/leave'
 import { useI18n, fmt } from '../../i18n'
 import { HintLabel } from '../help/HelpParts'
-import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors, AvxLoader } from '../ui'
 import { TypeChip, daysText } from './LeaveParts'
 
 const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
@@ -81,7 +81,7 @@ export function LeaveRequests({ orgId, version, onChanged }) {
             ) : (
               <span style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button type="button" disabled={busy === l.id} onClick={() => decide(l.id, true)} style={btnPrimary}>
-                  {busy === l.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />} {t('leave.approve')}
+                  {busy === l.id ? <AvxLoader size={14} /> : <Check size={14} />} {t('leave.approve')}
                 </button>
                 <button type="button" disabled={busy === l.id} onClick={() => setRefusing({ id: l.id, note: '' })} style={btnDanger}><X size={14} /> {t('leave.refuse')}</button>
               </span>
@@ -148,7 +148,7 @@ export function LeaveBalances({ orgId, version, onChanged }) {
         <button type="submit" disabled={String(savedOrgDays ?? DEFAULT_ALLOWANCE) === orgDays} style={btn}><Save size={14} /> {t('common.save')}</button>
       </form>
       {!rows ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '16px' }}><Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '16px' }}><AvxLoader size={20} color={colors.accentText} /></div>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column' }}>
           {rows.map(r => (
@@ -240,7 +240,7 @@ function PersonLeaveForm({ orgId, year, row, onSaved, onClose }) {
           <input id="leave-hours" type="number" min={0.5} max={24} step={0.25} value={hours} onChange={e => setHours(e.target.value)} style={input} />
         </div>
         <button type="submit" disabled={saving} style={{ ...btnPrimary, gridColumn: '1 / -1', justifyContent: 'center' }}>
-          {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />} {t('common.save')}
+          {saving ? <AvxLoader size={14} /> : <Save size={14} />} {t('common.save')}
         </button>
       </form>
     </Modal>

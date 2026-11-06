@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, Search, MapPin, X, CalendarCheck, Megaphone, Handshake, Users, Flag, Lock } from 'lucide-react'
+import { ArrowLeft, Search, MapPin, X, CalendarCheck, Megaphone, Handshake, Users, Flag, Lock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
@@ -9,7 +9,7 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { FUNCTIONS, LANGUAGES, languageName } from '../lib/crewProfile'
 import { RADII, EMPTY_FILTERS, searchArgs, gigFilters, crewError, fromSaved } from '../lib/crewSearch'
 import { useI18n } from '../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, StatusBadge } from '../components/ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, StatusBadge, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import CrewProfileCard from '../components/CrewProfileCard'
@@ -99,7 +99,7 @@ export default function CrewSearchPage() {
     search(null, 0, next)
   }
 
-  if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (!canSearch) return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
@@ -191,7 +191,7 @@ export default function CrewSearchPage() {
           </label>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             <button type="submit" disabled={searching} style={btnPrimary}>
-              {searching ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={15} />} {t('crewSearch.search')}
+              {searching ? <AvxLoader size={15} /> : <Search size={15} />} {t('crewSearch.search')}
             </button>
             <button type="button" onClick={() => { setFilters({ ...EMPTY_FILTERS, ...(gig ? gigFilters(gig) : {}) }); setResult(null) }} style={{ ...btn, background: 'transparent' }}>{t('crewSearch.reset')}</button>
           </div>
@@ -234,7 +234,7 @@ export default function CrewSearchPage() {
             </div>
             {result.more && (
               <div><button type="button" onClick={e => search(e, result.results.length)} disabled={searching} style={btn}>
-                {searching ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : null} {t('crewSearch.more')}
+                {searching ? <AvxLoader size={14} /> : null} {t('crewSearch.more')}
               </button></div>
             )}
             <p style={hint}>{t('crewSearch.privacy')}</p>
@@ -308,7 +308,7 @@ function ContactModal({ gig, person, kind, defaultTitle, onClose, onSent }) {
         </div>
         <p style={hint}>{kind === 'offer' ? t('crewSearch.offerHint') : t('crewSearch.askHint')}</p>
         <button type="submit" disabled={sending || (kind === 'offer' && (!title.trim() || fee.bad))} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {sending ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : kind === 'offer' ? <Handshake size={15} /> : <CalendarCheck size={15} />}
+          {sending ? <AvxLoader size={15} /> : kind === 'offer' ? <Handshake size={15} /> : <CalendarCheck size={15} />}
           {' '}{kind === 'offer' ? t('crewSearch.sendOffer') : t('crewSearch.sendAsk')}
         </button>
         <Link to={`/gig/${gig.id}`} style={{ ...hint, color: colors.accentText }}>{t('crewSearch.openGig')}</Link>

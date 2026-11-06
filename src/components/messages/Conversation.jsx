@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Send, Reply, X, Loader2, Paperclip, Link2, MoreHorizontal, Pencil, Trash2, History, Copy, FileText, Pin, PinOff, Bookmark, BookmarkCheck, Megaphone, CheckCircle2, Clock, Flag, ShieldX, Ban, Volume2 } from 'lucide-react'
+import { Send, Reply, X, Paperclip, Link2, MoreHorizontal, Pencil, Trash2, History, Copy, FileText, Pin, PinOff, Bookmark, BookmarkCheck, Megaphone, CheckCircle2, Clock, Flag, ShieldX, Ban, Volume2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
@@ -17,7 +17,7 @@ import { OUTBOX_CHANGED, readOutbox, queueMessage, dropQueued, flushOutbox } fro
 import { useI18n, t, fmt as fmtDate, getLanguage } from '../../i18n'
 import { money } from '../../lib/jobs'
 import { Attachments, CardView, CardPicker, ReactionBar, HistoryModal, AckStatusModal, EventCard, ReportModal } from './MessageParts'
-import { colors } from '../ui'
+import { colors, AvxLoader } from '../ui'
 
 const PAGE = 50
 const MINE = 'color-mix(in srgb, var(--accent) 14%, transparent)'
@@ -547,7 +547,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
     requestAnimationFrame(() => textarea.current?.focus())
   }
 
-  if (!messages) return <div style={{ padding: '24px', display: 'flex', justifyContent: 'center' }}><Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (!messages) return <div style={{ padding: '24px', display: 'flex', justifyContent: 'center' }}><AvxLoader size={20} color={colors.accentText} /></div>
   const byId = Object.fromEntries(messages.map(m => [m.id, m]))
   const answersFor = {}
   for (const m of messages) {
@@ -808,7 +808,7 @@ export default function Conversation({ conversationId, canPost = true, height = 
               style={{ flex: 1, minWidth: 0, resize: 'none', background: 'var(--shade)', border: `1px solid ${colors.border}`, padding: '9px 12px', color: 'var(--text)', font: 'inherit', fontSize: '14px', lineHeight: 1.45 }} />
             <button type="submit" disabled={(!text.trim() && (editing || (!files.length && !card))) || sending} aria-label={editing ? t('chat.saveEdit') : t('chat.send')} title={editing ? t('chat.saveEdit') : t('chat.send')}
               style={{ background: colors.accent, border: 'none', width: '42px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--on-accent)', flexShrink: 0 }}>
-              {sending ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : editing ? <Pencil size={16} /> : <Send size={16} />}
+              {sending ? <AvxLoader size={16} /> : editing ? <Pencil size={16} /> : <Send size={16} />}
             </button>
           </div>
         </form>

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { Loader2, Eye, Download, ExternalLink } from 'lucide-react'
+import { Eye, Download, ExternalLink } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { formatBytes } from '../../lib/files'
 import { versionChain, previewKind } from '../../lib/versions'
 import { useI18n } from '../../i18n'
-import { Modal, btn, card, colors } from '../ui'
+import { Modal, btn, card, colors, AvxLoader } from '../ui'
 
 import { signedUrl } from '../../lib/storage'
 import { offlineFileUrl } from '../../lib/offline'
@@ -107,7 +107,7 @@ export default function AssetVersionsModal({ asset, nameOf, onClose }) {
       )}
 
       <h3 style={{ fontSize: '13px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
-        {t('versions.title')} {loading && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite', verticalAlign: 'middle' }} />}
+        {t('versions.title')} {loading && <AvxLoader size={12} style={{ verticalAlign: 'middle' }} />}
       </h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {versions.map((v, i) => (
@@ -126,7 +126,7 @@ export default function AssetVersionsModal({ asset, nameOf, onClose }) {
               <button onClick={() => showPreview(v)} disabled={busy === v.id} style={btn}><Eye size={13} /> {t('common.preview')}</button>
             )}
             <button onClick={() => download(v)} disabled={busy === v.id} style={btn}>
-              {busy === v.id ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={13} />} {t('common.download')}
+              {busy === v.id ? <AvxLoader size={13} /> : <Download size={13} />} {t('common.download')}
             </button>
           </div>
         ))}

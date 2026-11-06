@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Download, Loader2, MessageSquare } from 'lucide-react'
+import { Download, MessageSquare } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { formatSize } from '../lib/messages'
 import { useI18n } from '../i18n'
-import { btn, input, label, colors } from './ui'
+import { btn, input, label, colors, AvxLoader } from './ui'
 import { DangerConfirmModal } from './DangerConfirm'
 
 export const RETENTION_PERIODS = [90, 180, 365, 730]
@@ -115,7 +115,7 @@ export default function OrgMessagesSettings({ org }) {
       <p style={hint}>{t('orgMessages.hint')}</p>
       <div>
         <button type="button" onClick={exportAll} disabled={exporting} style={btn}>
-          {exporting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={14} />} {t('orgMessages.export')}
+          {exporting ? <AvxLoader size={14} /> : <Download size={14} />} {t('orgMessages.export')}
         </button>
         <p style={{ ...hint, marginTop: '6px' }}>{t('orgMessages.exportHint')}</p>
       </div>

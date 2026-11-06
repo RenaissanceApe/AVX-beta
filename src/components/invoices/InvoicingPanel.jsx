@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Loader2, Link2, Unlink, ListChecks } from 'lucide-react'
+import { Link2, Unlink, ListChecks } from 'lucide-react'
 import { logger, userMessage } from '../../lib/logger'
 import { useToast } from '../../lib/ToastContext'
 import { invoicing, PROGRAM_NAMES } from '../../lib/invoiceApi'
 import { useI18n } from '../../i18n'
-import { btn, btnPrimary, input, label, card, colors, Modal } from '../ui'
+import { btn, btnPrimary, input, label, card, colors, Modal, AvxLoader } from '../ui'
 import { HintLabel, Hint } from '../help/HelpParts'
 
 // The invoicing program panel on the Invoices page (step 11b). Everyone who sees invoices sees
@@ -123,7 +123,7 @@ function ConnectForm({ provider, busy, onConnect, onCancel }) {
       <p style={{ fontSize: '12px', color: colors.muted, margin: 0 }}>{t('invoice.program.keysSafe')}</p>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button type="submit" disabled={busy} style={btnPrimary}>
-          {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Link2 size={14} />} {t(provider === 'invoicexpress' ? 'invoice.program.connect' : 'invoice.program.signIn', { program: name })}
+          {busy ? <AvxLoader size={14} /> : <Link2 size={14} />} {t(provider === 'invoicexpress' ? 'invoice.program.connect' : 'invoice.program.signIn', { program: name })}
         </button>
         <button type="button" onClick={onCancel} disabled={busy} style={btn}>{t('common.cancel')}</button>
       </div>
@@ -158,7 +158,7 @@ function SeriesModal({ orgId, provider, onClose, onSaved }) {
   }
   return (
     <Modal title={t('invoice.program.series')} onClose={onClose}>
-      {!lists ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : (
+      {!lists ? <AvxLoader size={20} /> : (
         <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {lists.companies && (
             <div>

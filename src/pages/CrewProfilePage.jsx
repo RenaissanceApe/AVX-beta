@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Loader2, Plus, X, CheckCircle, MapPin, Eye, Upload, AlertTriangle } from 'lucide-react'
+import { Plus, X, CheckCircle, MapPin, Eye, Upload, AlertTriangle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
@@ -9,7 +9,7 @@ import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
 import { FUNCTIONS, LANGUAGES, TRAVEL, MAX, travelKey, fromTravelKey, languageName, missing, toRow } from '../lib/crewProfile'
 import { certStatus, proofPath, trustError } from '../lib/trust'
-import { btn, btnPrimary, btnDanger, iconBtn, input, label, card, colors, tint } from '../components/ui'
+import { btn, btnPrimary, btnDanger, iconBtn, input, label, card, colors, tint, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import CrewProfileCard from '../components/CrewProfileCard'
@@ -101,7 +101,7 @@ export default function CrewProfilePage() {
     track('crewProfile:removed')
   }
 
-  if (!form) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (!form) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
 
   const changed = JSON.stringify(form) !== saved
   // A certificate as last saved (proofs and marks belong to that version)
@@ -255,7 +255,7 @@ export default function CrewProfilePage() {
 
         <div style={{ position: 'sticky', bottom: '12px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', ...card, padding: '10px 12px' }}>
           <button type="submit" disabled={saving || !changed} style={btnPrimary}>
-            {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={15} />} {t('common.saveChanges')}
+            {saving ? <AvxLoader size={15} /> : <CheckCircle size={15} />} {t('common.saveChanges')}
           </button>
           <span role="status" style={hint}>{changed ? t('crewProfile.unsaved') : form.enabled ? t('crewProfile.statusOn') : t('crewProfile.statusOff')}</span>
         </div>

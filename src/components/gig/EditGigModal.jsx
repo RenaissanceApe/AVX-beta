@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Loader2, CheckCircle } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { useI18n } from '../../i18n'
-import { Modal, btnPrimary, input, label } from '../ui'
+import { Modal, btnPrimary, input, label, AvxLoader } from '../ui'
 import GigLabelFields from './GigLabelFields'
 import GigClientField from './GigClientField'
 import { useGigLabels } from '../../lib/gigLabels'
@@ -118,7 +118,7 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
             rows={3} maxLength={5000} style={{ ...input, resize: 'vertical', lineHeight: 1.5 }} />
         </div>
         <button type="submit" disabled={saving || !form.name.trim()} style={{ ...btnPrimary, justifyContent: 'center', padding: '13px' }}>
-          {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={16} />} {t('common.saveChanges')}
+          {saving ? <AvxLoader size={16} /> : <CheckCircle size={16} />} {t('common.saveChanges')}
         </button>
       </form>
       {canDelete && (

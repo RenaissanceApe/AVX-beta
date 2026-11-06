@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { Loader2, CheckCircle } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { removeGigFiles } from '../lib/storage'
 import { selectAll } from '../lib/selectAll'
 import { useI18n } from '../i18n'
-import { Modal, btnPrimary, input, label, colors } from './ui'
+import { Modal, btnPrimary, input, label, colors, AvxLoader } from './ui'
 import { DangerZone, DangerConfirmModal } from './DangerConfirm'
 import OrgMessagesSettings from './OrgMessagesSettings'
 import OrgExportSettings from './OrgExportSettings'
@@ -99,7 +99,7 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
         </div>
         <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginTop: '-4px' }}>{t('orgSettings.equipmentDaysHint')}</p>
         <button type="submit" disabled={saving || !name.trim() || !changed} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={15} />} {t('common.saveChanges')}
+          {saving ? <AvxLoader size={15} /> : <CheckCircle size={15} />} {t('common.saveChanges')}
         </button>
         <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('orgSettings.companyHint')}</p>
       </form>

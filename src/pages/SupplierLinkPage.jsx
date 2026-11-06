@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
 import { useI18n, translate } from '../i18n'
 import { rangeText } from '../lib/clashes'
 import GuestThread from '../components/messages/GuestThread'
+import { AvxLoader } from '../components/ui'
 
 // The page a subrental's supplier opens from the link they were sent (/s/<token>): no account
 // needed. Shows what is being hired (items and quantities, no prices) and a conversation with
@@ -39,7 +39,7 @@ export default function SupplierLinkPage() {
           <button key={l} onClick={() => setLang(l)} aria-pressed={lang === l} style={{ ...langBtn, fontWeight: lang === l ? 700 : 400 }}>{l.toUpperCase()}</button>
         ))}
       </div>
-      {about === undefined && <div style={{ textAlign: 'center', padding: '40px' }}><Loader2 size={24} color="#555" style={{ animation: 'spin 1s linear infinite' }} /></div>}
+      {about === undefined && <div style={{ textAlign: 'center', padding: '40px' }}><AvxLoader size={24} color="#555" /></div>}
       {about === null && (
         <div style={card}>
           <h1 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>{tr('supplierPage.notFoundTitle')}</h1>

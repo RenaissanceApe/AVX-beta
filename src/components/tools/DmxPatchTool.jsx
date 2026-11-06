@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Printer, Pencil, Trash2, AlertTriangle, Loader2, PackagePlus, ListRestart, Footprints, ToggleLeft } from 'lucide-react'
+import { Plus, Printer, Pencil, Trash2, AlertTriangle, PackagePlus, ListRestart, Footprints, ToggleLeft } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
@@ -12,7 +12,7 @@ import { inputsToEquipment } from '../../lib/tools'
 import { overlaps, packAddresses, bulkFixtures, universeUse, dmxRange, UNIVERSE_SIZE } from '../../lib/dmx'
 import { switchesOn, readDipLayout } from '../../lib/dmxCalc'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 
@@ -97,7 +97,7 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
     notify(todo.length ? t('inputs.addedToEquipment', { count: todo.reduce((s, x) => s + x.add, 0) }) : t('dmx.equipmentUpToDate'), 'success')
   }
 
-  if (fixtures === null) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+  if (fixtures === null) return <AvxLoader size={20} color={colors.accentText} />
 
   return (
     <section aria-labelledby="dmx-title">
@@ -284,7 +284,7 @@ export function FixtureForm({ gig, fixture, existing, catalogue, defaults, onClo
         )}
         {isNew && <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('dmx.addHint')}</p>}
         <button type="submit" disabled={saving} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {saving && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />} {isNew ? t('dmx.addButton', { count: Number(form.count) || 1 }) : t('common.save')}
+          {saving && <AvxLoader size={15} />} {isNew ? t('dmx.addButton', { count: Number(form.count) || 1 }) : t('common.save')}
         </button>
       </form>
     </Modal>

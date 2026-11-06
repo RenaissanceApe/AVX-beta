@@ -5,8 +5,8 @@ import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { logger, userMessage } from '../lib/logger'
 import { useToast } from '../lib/ToastContext'
 import { useI18n } from '../i18n'
-import { Loader2, ArrowRight } from 'lucide-react'
-import { AvxMark } from '../components/ui'
+import { ArrowRight } from 'lucide-react'
+import { AvxMark, AvxLoader } from '../components/ui'
 
 // Landing page for the password reset email. supabase-js exchanges the token in the
 // URL for a session automatically, so by the time the form is shown the user is signed in.
@@ -52,7 +52,7 @@ export default function ResetPasswordPage() {
 
           {authLoading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-              <Loader2 size={22} color="var(--accent-text)" style={{ animation: 'spin 1s linear infinite' }} />
+              <AvxLoader size={22} color="var(--accent-text)" />
             </div>
           ) : !user ? (
             <>
@@ -73,7 +73,7 @@ export default function ResetPasswordPage() {
                 </div>
               )}
               <button type="submit" disabled={saving} style={btn}>
-                {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={16} />}
+                {saving ? <AvxLoader size={16} /> : <ArrowRight size={16} />}
                 {t('auth.savePassword')}
               </button>
             </form>

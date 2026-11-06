@@ -2,14 +2,14 @@
 // to the gig's hours (queued when there's no connection). Break, travel and km are added after.
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Timer, LogIn, LogOut, Loader2 } from 'lucide-react'
+import { Timer, LogIn, LogOut } from 'lucide-react'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { saveHours } from '../../lib/hours'
 import { localDay } from '../../lib/onSite'
 import { useI18n, fmt } from '../../i18n'
-import { btnPrimary, card, colors } from '../ui'
+import { btnPrimary, card, colors, AvxLoader } from '../ui'
 
 const key = (userId, gigId) => `avx.clockIn.${userId}.${gigId}`
 const read = k => { try { return JSON.parse(localStorage.getItem(k) || 'null') } catch { return null } }
@@ -58,7 +58,7 @@ export default function ClockInOut({ gig, userId }) {
       </div>
       {clock ? (
         <button type="button" onClick={clockOut} disabled={busy} style={{ ...btnPrimary, fontSize: '16px', padding: '12px 18px' }}>
-          {busy ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <LogOut size={16} />} {t('hours.clockOut')}
+          {busy ? <AvxLoader size={16} /> : <LogOut size={16} />} {t('hours.clockOut')}
         </button>
       ) : (
         <button type="button" onClick={clockIn} style={{ ...btnPrimary, fontSize: '16px', padding: '12px 18px' }}><LogIn size={16} /> {t('hours.clockIn')}</button>

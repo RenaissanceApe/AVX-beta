@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Camera, CameraOff, ScanLine, Check, X, Loader2, PackageCheck, ClipboardList, Maximize2, Volume2, VolumeX } from 'lucide-react'
+import { ArrowLeft, Camera, CameraOff, ScanLine, Check, X, PackageCheck, ClipboardList, Maximize2, Volume2, VolumeX } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useWorkspace } from '../lib/WorkspaceContext'
@@ -12,7 +12,7 @@ import { useGigSteps } from '../lib/useSteps'
 import { useFieldKit, beep, buzz, speak } from '../lib/fieldKit'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
-import { btn, btnPrimary, input, label, card, colors } from '../components/ui'
+import { btn, btnPrimary, input, label, card, colors, AvxLoader } from '../components/ui'
 import { Hint } from '../components/help/HelpParts'
 import { Segments } from '../components/gig/StepBars'
 import { CameraScanner, FeedRow, ScanMode, StepPicker, feedText, AMBER } from '../components/dispatch/ScanParts'
@@ -148,7 +148,7 @@ export default function DispatchPage() {
     loadProgress()
   }
 
-  if (gig === null || allowed === null) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (gig === null || allowed === null) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (!gig || !allowed) return (
     <AppShell>
       <div style={{ maxWidth: '420px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
@@ -165,7 +165,6 @@ export default function DispatchPage() {
       <ScanMode gigName={gig.name} steps={steps} step={step} setStep={setStep} quantity={quantity} setQuantity={setQuantity}
         damaged={damaged} setDamaged={setDamaged} onScan={scan} onUndo={undo} last={feed[0]} busy={busy} progress={progress}
         kit={kit} setKit={setKit} onClose={closeScanMode} />
-      <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </>
   )
   return (
@@ -200,7 +199,7 @@ export default function DispatchPage() {
               <input id="scan-qty" type="number" min={1} max={100000} value={quantity} onChange={e => setQuantity(e.target.value)} style={input} />
             </div>
             <button type="submit" disabled={busy || !code.trim()} style={btnPrimary}>
-              {busy ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <ScanLine size={15} />} {t('dispatch.record')}
+              {busy ? <AvxLoader size={15} /> : <ScanLine size={15} />} {t('dispatch.record')}
             </button>
             <button type="button" onClick={() => setCamera(c => !c)} style={btn}>{camera ? <CameraOff size={15} /> : <Camera size={15} />} {camera ? t('dispatch.cameraOff') : t('dispatch.cameraOn')}</button>
           </form>
@@ -259,7 +258,6 @@ export default function DispatchPage() {
           </section>
         )}
       </div>
-      <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </AppShell>
   )
 }

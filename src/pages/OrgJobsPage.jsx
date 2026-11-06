@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, Plus, ChevronDown, ChevronRight, Star, XCircle, Megaphone, Users, AlertTriangle, BadgeCheck } from 'lucide-react'
+import { ArrowLeft, Plus, ChevronDown, ChevronRight, Star, XCircle, Megaphone, Users, AlertTriangle, BadgeCheck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
@@ -9,7 +9,7 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { jobError, money } from '../lib/jobs'
 import { trustError } from '../lib/trust'
 import { useI18n } from '../i18n'
-import { Modal, btn, btnPrimary, card, colors } from '../components/ui'
+import { Modal, btn, btnPrimary, card, colors, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import JobCard from '../components/jobs/JobCard'
@@ -60,7 +60,7 @@ export default function OrgJobsPage() {
     load()
   }
 
-  if (loading || (canUse && !posts)) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (loading || (canUse && !posts)) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (!canUse) return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
@@ -162,7 +162,7 @@ function Applicants({ post, orgId }) {
     notify(t(on ? 'trust.cert.confirmed' : 'trust.cert.unconfirmed', { name: cert.name }), 'success')
   }
 
-  if (!list) return <div style={{ padding: '12px' }}><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (!list) return <div style={{ padding: '12px' }}><AvxLoader size={18} /></div>
   if (!list.length) return <p style={{ ...hint, marginTop: '8px' }}>{t('jobs.noApplicants')}</p>
   return (
     <>
@@ -210,7 +210,7 @@ function OfferModal({ post, application: a, busy, onClose, onOffer }) {
           note={t(`jobs.offerFeeFrom.${from}`, { rate: a.day_rate != null ? money(Number(a.day_rate), a.currency || post.currency, lang) : '' })} />
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button type="submit" disabled={busy || fee.bad} style={btnPrimary}>
-            {busy ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Megaphone size={15} />} {t('jobs.offer')}
+            {busy ? <AvxLoader size={15} /> : <Megaphone size={15} />} {t('jobs.offer')}
           </button>
           <button type="button" onClick={onClose} style={{ ...btn, background: 'transparent' }}>{t('common.cancel')}</button>
         </div>

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Loader2, ShieldCheck, Check, X, FileText, Flag, Building2, Undo2 } from 'lucide-react'
+import { ShieldCheck, Check, X, FileText, Flag, Building2, Undo2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
-import { btn, btnPrimary, btnDanger, card, colors } from '../components/ui'
+import { btn, btnPrimary, btnDanger, card, colors, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 
 const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
@@ -49,7 +49,7 @@ export default function TrustAdminPage() {
 
   const date = d => fmt(d, 'd MMM yyyy')
   if (denied) return <AppShell><p style={{ maxWidth: '420px', margin: '80px auto', textAlign: 'center', color: colors.muted, padding: '0 16px', lineHeight: 1.6 }}>{t('trust.admin.denied')}</p></AppShell>
-  if (!q) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (!q) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
 
   // Reports grouped by what they are about (one decision covers them all)
   const groups = Object.values(q.reports.reduce((m, r) => {

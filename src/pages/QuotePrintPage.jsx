@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Printer, Loader2, History, FileDown } from 'lucide-react'
+import { ArrowLeft, Printer, History, FileDown } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { useI18n } from '../i18n'
 import { quoteNumber } from '../lib/quotes'
 import QuoteDocument, { toolbarBtn } from '../components/quotes/QuoteDocument'
 import { downloadQuotePdf } from '../lib/quotePdf'
+import { AvxLoader } from '../components/ui'
 
 // Print preview of a quote: the live quote, or a saved version with ?v=<version id>.
 // Print → "Save as PDF" to send it.
@@ -52,7 +53,7 @@ export default function QuotePrintPage() {
   )
   if (!data) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Loader2 size={26} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} />
+      <AvxLoader size={26} color="#1EC878" />
     </div>
   )
 

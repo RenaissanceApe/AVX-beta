@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, Loader2, MapPin, Printer, CalendarClock } from 'lucide-react'
+import { Plus, Pencil, Trash2, MapPin, Printer, CalendarClock } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
@@ -8,7 +8,7 @@ import { groupByDay, shortTime } from '../../lib/schedule'
 import { useUndoRemove } from '../../lib/undo'
 import { updateIfUnchanged, notifyConflict } from '../../lib/staleSave'
 import { useI18n } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 
 const EMPTY = { day: '', start_time: '', end_time: '', title: '', location: '', notes: '' }
@@ -148,7 +148,7 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
                 rows={3} maxLength={1000} style={{ ...input, resize: 'vertical', lineHeight: 1.5 }} />
             </div>
             <button type="submit" disabled={saving} style={{ ...btnPrimary, justifyContent: 'center' }}>
-              {saving && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />} {t('common.save')}
+              {saving && <AvxLoader size={15} />} {t('common.save')}
             </button>
           </form>
         </Modal>

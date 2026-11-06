@@ -80,6 +80,22 @@ export function AvxMark({ size = 20, title, style }) {
   )
 }
 
+// The one loading sign (DESIGN.md "Motion"): the AVX glyph building cell by cell, looping (CSS in index.html).
+// Colour follows the text around it unless given. With label it is announced (role="status"); without, it is
+// decoration next to words that already say what is happening.
+const GLYPH_CELLS = [[3, 0], [1, 1], [2, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [2, 3], [3, 3], [1, 4]]
+// The size snaps to a multiple of 5 px so every cell is whole pixels (no seams between cells).
+export function AvxLoader({ size = 18, color, label, style }) {
+  const px = Math.max(10, Math.round(size / 5) * 5)
+  return (
+    <svg className="avx-loader" width={px} height={px} viewBox="0 0 5 5" shapeRendering="crispEdges"
+      role={label ? 'status' : undefined} aria-label={label} aria-hidden={label ? undefined : 'true'}
+      style={{ display: 'inline-block', flexShrink: 0, verticalAlign: 'middle', color, ...style }}>
+      {GLYPH_CELLS.map(([x, y]) => <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="currentColor" />)}
+    </svg>
+  )
+}
+
 // Every state is a square + the word (DESIGN.md "StatusBadge"). tone: ok · info · warn · danger · open · draft · off;
 // colour: a label colour key for an organisation's own status (its square takes that colour).
 export function StatusBadge({ tone = 'open', colour, small, struck, title, children }) {

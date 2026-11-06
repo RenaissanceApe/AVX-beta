@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Printer, Loader2 } from 'lucide-react'
+import { ArrowLeft, Printer } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import { settingsOf, sourcesOf, listenersOf, speedOfSound, delays, listenerReport, coverage } from '../lib/systemCalc'
 import { useI18n } from '../i18n'
 import SystemPlotSvg from '../components/tools/SystemPlotSvg'
+import { AvxLoader } from '../components/ui'
 
 // Printable sound system sheet (docs/FIELD_TOOLS.md, F4): the plan, each source with its delay
 // and coverage, and each listening position with its level and arrival checks, all marked as
@@ -39,7 +40,7 @@ export default function SystemCalcPage() {
   }, [id])
 
   if (error) return <div style={{ padding: '40px', textAlign: 'center' }}>{t('callsheet.notAvailable')} <button onClick={() => navigate('/dashboard')} style={toolbarBtn}>{t('common.back')}</button></div>
-  if (!data) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 size={26} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (!data) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><AvxLoader size={26} color="#1EC878" /></div>
 
   const { gig, stage, system } = data
   const settings = settingsOf(system), sources = sourcesOf(system), listeners = listenersOf(system)

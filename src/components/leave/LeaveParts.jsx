@@ -1,7 +1,7 @@
 // Shared pieces of leave requests (step 9): the type and status chips and the form to ask for
 // leave (or, for an admin, to enter it for someone).
 import { useEffect, useMemo, useState } from 'react'
-import { Loader2, Send } from 'lucide-react'
+import { Send } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
@@ -11,7 +11,7 @@ import { localToday } from '../../lib/gigs'
 import { LEAVE_TYPES, DEFAULT_WEEK, leaveDays, leaveError, requestLeave } from '../../lib/leave'
 import { useI18n } from '../../i18n'
 import { HintLabel, Hint } from '../help/HelpParts'
-import { Modal, btnPrimary, input, label, colors, StatusBadge, LabelChip } from '../ui'
+import { Modal, btnPrimary, input, label, colors, StatusBadge, LabelChip, AvxLoader } from '../ui'
 
 // Leave types are labels: a square in the type's colour + its word
 const TYPE_COLOUR = { holiday: 'green', sick: 'red', training: 'orange', other: 'grey', away: 'grey' }
@@ -129,7 +129,7 @@ export function LeaveForm({ orgId, people, onSaved, onClose }) {
           </p>
         )}
         <button type="submit" disabled={saving || !form.from} style={{ ...btnPrimary, gridColumn: '1 / -1', justifyContent: 'center' }}>
-          {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {needsApproval ? t('leave.send') : t('leave.save')}
+          {saving ? <AvxLoader size={14} /> : <Send size={14} />} {needsApproval ? t('leave.send') : t('leave.save')}
         </button>
       </form>
     </Modal>

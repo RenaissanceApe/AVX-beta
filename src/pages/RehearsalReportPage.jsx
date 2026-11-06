@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Printer, Loader2 } from 'lucide-react'
+import { ArrowLeft, Printer } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import { DEPARTMENTS, byDepartment, msToTc } from '../lib/rehearsal'
 import { useI18n } from '../i18n'
+import { AvxLoader } from '../components/ui'
 
 // Printable rehearsal notes (docs/TOOLS_PLAN.md §2, R1): one section per department, notes in
 // timecode order, open ones first to read. ?dept=lighting prints one department.
@@ -44,7 +45,7 @@ export default function RehearsalReportPage() {
   }, [id, sessionId])
 
   if (error) return <div style={{ padding: '40px', textAlign: 'center' }}>{t('callsheet.notAvailable')} <button onClick={() => navigate('/dashboard')} style={toolbarBtn}>{t('common.back')}</button></div>
-  if (!data) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 size={26} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (!data) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><AvxLoader size={26} color="#1EC878" /></div>
 
   const { gig, session, notes, names } = data
   const df = session.frame_count === 'df'

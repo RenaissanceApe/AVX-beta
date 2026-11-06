@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Loader2, Plus, Trash2, Send, RefreshCw, ExternalLink, Mail, MessageSquare, Check, Undo2, FileMinus } from 'lucide-react'
+import { Plus, Trash2, Send, RefreshCw, ExternalLink, Mail, MessageSquare, Check, Undo2, FileMinus } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger, userMessage } from '../../lib/logger'
 import { useToast } from '../../lib/ToastContext'
 import { useI18n, translate, fmt } from '../../i18n'
-import { Modal, btn, btnPrimary, btnDanger, input, label, colors, iconBtn, StatusBadge } from '../ui'
+import { Modal, btn, btnPrimary, btnDanger, input, label, colors, iconBtn, StatusBadge, AvxLoader } from '../ui'
 import { HintLabel } from '../help/HelpParts'
 import { VAT_EXEMPTIONS, normalizeBody, formatMoney, localISODate, quoteNumber } from '../../lib/quotes'
 import {
@@ -328,10 +328,10 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
             <>
               <p style={{ fontSize: '12px', color: colors.muted, margin: 0 }}>{programReady ? t('invoice.program.sendHint', { program: programName(program.provider) }) : t('invoice.sendHintNoMoloni')}</p>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button type="button" onClick={save} disabled={!!busy || !lines.length} style={btn}>{busy === 'save' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />} {t('invoice.saveDraft')}</button>
+                <button type="button" onClick={save} disabled={!!busy || !lines.length} style={btn}>{busy === 'save' ? <AvxLoader size={14} /> : <Check size={14} />} {t('invoice.saveDraft')}</button>
                 {programReady && (
                   <button type="button" onClick={sendToProgram} disabled={!!busy || problems.length > 0 || draft.currency !== 'EUR'} style={btnPrimary}>
-                    {busy === 'push' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('invoice.program.send', { program: programName(program.provider) })}
+                    {busy === 'push' ? <AvxLoader size={14} /> : <Send size={14} />} {t('invoice.program.send', { program: programName(program.provider) })}
                   </button>
                 )}
                 <button type="button" onClick={markSentByHand} disabled={!!busy || problems.length > 0} style={programReady ? btn : btnPrimary}>{t('invoice.markSent')}</button>
@@ -345,7 +345,7 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
               <p style={{ fontSize: '13px', margin: 0 }}>{inv.provider ? t('invoice.program.waiting', { program: programName(inv.provider) }) : t('invoice.sentByHand')}</p>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {inv.provider && program?.provider === inv.provider && (
-                  <button type="button" onClick={check} disabled={!!busy} style={btnPrimary}>{busy === 'sync' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />} {t('invoice.program.check', { program: programName(inv.provider) })}</button>
+                  <button type="button" onClick={check} disabled={!!busy} style={btnPrimary}>{busy === 'sync' ? <AvxLoader size={14} /> : <RefreshCw size={14} />} {t('invoice.program.check', { program: programName(inv.provider) })}</button>
                 )}
                 <button type="button" onClick={() => run('draft', () => updateInvoice(inv.id, { status: 'draft' }))} disabled={!!busy} style={btn}><Undo2 size={14} /> {t('invoice.backToDraft')}</button>
               </div>
@@ -379,7 +379,7 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
                 {inv.pdf_url && <a href={inv.pdf_url} target="_blank" rel="noopener noreferrer" style={{ ...btn, textDecoration: 'none' }}><ExternalLink size={14} /> {t('invoice.openPdf')}</a>}
                 {inv.kind === 'invoice' && onCredit && <button type="button" onClick={() => onCredit(inv)} disabled={!!busy} style={btn}><FileMinus size={14} /> {t('invoice.creditNote')}</button>}
                 {state === 'overdue' && inv.client_email && inv.pdf_url && (
-                  <button type="button" onClick={remind} disabled={!!busy} style={btn}>{busy === 'remind' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Mail size={14} />} {t('invoice.emailReminder')}</button>
+                  <button type="button" onClick={remind} disabled={!!busy} style={btn}>{busy === 'remind' ? <AvxLoader size={14} /> : <Mail size={14} />} {t('invoice.emailReminder')}</button>
                 )}
                 {inv.quote_id && <button type="button" onClick={tellClient} disabled={!!busy} style={btn}><MessageSquare size={14} /> {t('invoice.tellClient')}</button>}
               </div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, CalendarOff, Plus, UserPlus, X } from 'lucide-react'
+import { ArrowLeft, CalendarOff, Plus, UserPlus, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -9,7 +9,7 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { localToday } from '../lib/gigs'
 import { awayByDay, monthBounds, leaveRange, removeLeave, addDays } from '../lib/leave'
 import { useI18n, fmt } from '../i18n'
-import { btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
+import { btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
@@ -78,7 +78,7 @@ export default function LeavePage() {
   }
 
   const title = t('leave.pageTitle')
-  if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><Loader2 size={24} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div></AppShell>
+  if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (!isStaff) return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
@@ -125,7 +125,7 @@ export default function LeavePage() {
             </div>
           </div>
           {!entries ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}><Loader2 size={22} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}><AvxLoader size={22} color={colors.accentText} /></div>
           ) : days.length === 0 ? (
             <EmptyState compact icon={<CalendarOff size={26} />} title={t('leave.nobodyAway')} body={t('leave.nobodyAwayBody')} guide="of-leave" />
           ) : (

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, ListTodo } from 'lucide-react'
+import { ListTodo } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -8,7 +8,7 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import { TASK_FIELDS, sortTasks, filterTasks } from '../lib/tasks'
 import { localDay } from '../lib/onSite'
 import { useI18n } from '../i18n'
-import { btn, colors } from '../components/ui'
+import { btn, colors, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { TaskRow, GigLink } from '../components/tasks/TaskParts'
@@ -57,7 +57,7 @@ export default function MyTasksPage() {
           <button type="button" aria-pressed={open} onClick={() => setOpen(o => !o)}
             style={{ ...btn, padding: '6px 12px', background: open ? 'var(--selection)' : 'transparent', color: open ? colors.accentText : colors.soft }}>{t('tasks.openOnly')}</button>
         </div>
-        {tasks === null ? <Loader2 size={22} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+        {tasks === null ? <AvxLoader size={22} color={colors.accentText} />
           : shown.length === 0 ? <EmptyState icon={<ListTodo size={28} />} title={t('tasks.myEmptyTitle')} body={t('tasks.myEmptyBody')} />
             : (
               <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>

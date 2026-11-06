@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FileText, Download, Calendar, Clock, Package, Receipt, Lock, Loader2, Search, ClipboardList, UserPlus, HelpCircle } from 'lucide-react'
+import { FileText, Download, Calendar, Clock, Package, Receipt, Lock, Search, ClipboardList, UserPlus, HelpCircle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger, userMessage } from '../../lib/logger'
 import { useToast } from '../../lib/ToastContext'
@@ -8,7 +8,7 @@ import { track } from '../../lib/usage'
 import { rangeText } from '../../lib/clashes'
 import { formatSize, dayRange } from '../../lib/messages'
 import { useI18n, t, fmt } from '../../i18n'
-import { Modal, input, btn, btnPrimary, colors } from '../ui'
+import { Modal, input, btn, btnPrimary, colors, AvxLoader } from '../ui'
 import { callFeeText } from '../gig/CrewCalls'
 
 // Pieces of a message (docs/MESSAGING.md, M2): files, object cards, reactions, earlier versions.
@@ -54,7 +54,7 @@ function OtherFile({ file }) {
       <FileText size={16} color={colors.accentText} style={{ flexShrink: 0 }} />
       <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
       <span style={{ color: colors.muted, fontSize: '11px', whiteSpace: 'nowrap' }}>{formatSize(file.size)}</span>
-      {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={14} color={colors.muted} />}
+      {busy ? <AvxLoader size={14} /> : <Download size={14} color={colors.muted} />}
     </button>
   )
 }
@@ -112,7 +112,7 @@ export function CardView({ card }) {
   }, [card.type, card.id])
   const Icon = CARD_ICONS[card.type] || FileText
   const box = { display: 'flex', gap: '10px', alignItems: 'center', padding: '8px 10px', border: `1px solid ${colors.border}`, background: 'var(--shade)', margin: '2px 0 4px', color: 'var(--text)', textDecoration: 'none', minWidth: '200px' }
-  if (info === undefined) return <div style={box}><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (info === undefined) return <div style={box}><AvxLoader size={14} /></div>
   if (!info) return <div style={{ ...box, color: colors.muted, fontSize: '13px' }}><Lock size={15} /> {t('chat.card.hidden', { type: t(`chat.card.${card.type}`) })}</div>
   return (
     <Link to={info.to} style={box}>
@@ -189,7 +189,7 @@ export function CardPicker({ gigId, onPick, onClose }) {
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('chat.shareSearch')} aria-label={t('chat.shareSearch')} style={{ ...input, paddingLeft: '30px' }} />
       </div>
       <div style={{ maxHeight: '320px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        {!rows ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite', margin: '16px auto' }} />
+        {!rows ? <AvxLoader size={18} color={colors.accentText} style={{ margin: '16px auto' }} />
           : rows.length === 0 ? <p style={{ color: colors.muted, fontSize: '13px', padding: '12px 4px' }}>{t('chat.shareNone')}</p>
             : rows.map(r => (
               <button key={r.id} type="button" onClick={() => onPick({ type, id: r.id }, r.title)} style={{
@@ -233,7 +233,7 @@ export function HistoryModal({ message, onClose }) {
   }, [message.id])
   return (
     <Modal title={t('chat.history')} onClose={onClose}>
-      {!rows ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : (
+      {!rows ? <AvxLoader size={18} color={colors.accentText} /> : (
         <ol style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {rows.map((r, i) => (
             <li key={i} style={{ fontSize: '13px' }}>
@@ -272,7 +272,7 @@ export function AckStatusModal({ message, onClose }) {
   return (
     <Modal title={t('chat.ackTitle')} onClose={onClose}>
       <p style={{ fontSize: '13px', color: colors.soft, marginBottom: '12px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{(message.body || '').slice(0, 300)}</p>
-      {!rows ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : (
+      {!rows ? <AvxLoader size={18} color={colors.accentText} /> : (
         <>
           <p style={{ fontSize: '13px', fontWeight: 700, marginBottom: '6px' }}>{t('chat.ackCount', { done: done.length, total: rows.length })}</p>
           <ul style={{ listStyle: 'none' }}>{waiting.map(r => row(r, false))}{done.map(r => row(r, true))}</ul>
@@ -368,10 +368,10 @@ export function EventCard({ message: m, mine, actor, answers }) {
       {canAnswer && (
         <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
           <button type="button" disabled={!!busy} onClick={() => (isCall ? answerCall(true) : answerAvailability('available'))} style={{ ...btnPrimary, padding: '8px 14px', fontSize: '13px' }}>
-            {busy === 'accept' || busy === 'available' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : t(isCall ? 'chat.ev.accept' : 'requests.available')}
+            {busy === 'accept' || busy === 'available' ? <AvxLoader size={14} /> : t(isCall ? 'chat.ev.accept' : 'requests.available')}
           </button>
           <button type="button" disabled={!!busy} onClick={() => (isCall ? answerCall(false) : answerAvailability('unavailable'))} style={{ ...btn, padding: '8px 14px', fontSize: '13px' }}>
-            {busy === 'decline' || busy === 'unavailable' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : t(isCall ? 'chat.ev.decline' : 'requests.unavailable')}
+            {busy === 'decline' || busy === 'unavailable' ? <AvxLoader size={14} /> : t(isCall ? 'chat.ev.decline' : 'requests.unavailable')}
           </button>
         </div>
       )}
@@ -419,7 +419,7 @@ export function ReportModal({ message, direct, onClose, onBlock }) {
           aria-label={t('chat.report.note')} style={{ ...input, resize: 'vertical', font: 'inherit' }} />
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
           {direct && onBlock && <button type="button" onClick={onBlock} style={{ ...btn, marginRight: 'auto' }}>{t('chat.block.action')}</button>}
-          <button type="submit" disabled={busy} style={btnPrimary}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : null}{t('chat.report.send')}</button>
+          <button type="submit" disabled={busy} style={btnPrimary}>{busy ? <AvxLoader size={14} /> : null}{t('chat.report.send')}</button>
         </div>
       </form>
     </Modal>

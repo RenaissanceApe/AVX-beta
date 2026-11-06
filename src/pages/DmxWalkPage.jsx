@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Settings2 } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Settings2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import { dmxRange } from '../lib/dmx'
 import { switchesOn, readDipLayout, saveDipLayout } from '../lib/dmxCalc'
 import { useI18n } from '../i18n'
-import { btn, colors, card } from '../components/ui'
+import { btn, colors, card, AvxLoader } from '../components/ui'
 import Dipswitches, { DipLayoutForm } from '../components/tools/Dipswitches'
 
 const FIELDS = 'id, name, fixture_type, mode, footprint, universe, address, position, sort'
@@ -36,7 +36,7 @@ export default function DmxWalkPage() {
     })
   }, [id])
 
-  if (!list) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}><Loader2 size={26} color="var(--accent-text)" style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (!list) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}><AvxLoader size={26} color="var(--accent-text)" /></div>
   const back = () => navigate(`/gig/${id}?tab=tools&tool=dmx_patch`)
   const at = Math.min(n, Math.max(1, list.length))
   const f = list[at - 1]

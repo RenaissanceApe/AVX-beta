@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Plus, Trash2, Loader2, Check, X, Handshake, Truck, Inbox, Link2, Copy, RefreshCw, Archive, ArchiveRestore, Pencil } from 'lucide-react'
+import { Plus, Trash2, Check, X, Handshake, Truck, Inbox, Link2, Copy, RefreshCw, Archive, ArchiveRestore, Pencil } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
@@ -13,7 +13,7 @@ import { useCustomFields, mergeValues } from '../../lib/customFields'
 import { CustomFieldInputs } from '../CustomFields'
 import { toLocalInput } from '../gig/Booking'
 import { useI18n, t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, StatusBadge } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, StatusBadge, AvxLoader } from '../ui'
 import { Hint } from '../help/HelpParts'
 import ContextThread from '../messages/ContextThread'
 import SupplierLink from './SupplierLink'
@@ -118,7 +118,7 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
 
   return (
     <Modal title={subrental ? t('sub.edit') : t('sub.new')} onClose={onClose} maxWidth={720}>
-      {!suppliers ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} /> : (
+      {!suppliers ? <AvxLoader size={18} color={colors.accentText} /> : (
         <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div style={grid}>
             <Field id="sb-supplier" text={`${t('sub.supplier')} *`}>
@@ -185,7 +185,7 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
           </div>
           <Field id="sb-notes" text={t('inv.note')}><input id="sb-notes" value={form.notes} onChange={set('notes')} maxLength={1000} style={input} /></Field>
           <button type="submit" disabled={saving || invalid} style={{ ...btnPrimary, justifyContent: 'center' }}>
-            {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
+            {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('common.save')}
           </button>
         </form>
       )}
@@ -277,7 +277,7 @@ export function SupplierModal({ orgId, supplier, onClose, onSaved }) {
           </div>
         )}
         <button type="submit" disabled={saving || !form.name.trim()} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
+          {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('common.save')}
         </button>
       </form>
     </Modal>
@@ -411,7 +411,7 @@ export function SubrentalsTab({ orgId, inv }) {
     if (!error) load()
   }
 
-  if (!subs) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+  if (!subs) return <AvxLoader size={20} color={colors.accentText} />
   const now = new Date().toISOString()
   const current = subs.filter(s => isOpenSubrental(s) && s.ends_at >= now).sort((a, b) => a.starts_at.localeCompare(b.starts_at))
   const past = subs.filter(s => !current.includes(s))

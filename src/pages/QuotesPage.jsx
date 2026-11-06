@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Plus, Loader2, FileText, LayoutTemplate, Building2, Trash2, Search, Tags } from 'lucide-react'
+import { ArrowLeft, Plus, FileText, LayoutTemplate, Building2, Trash2, Search, Tags } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { selectAll } from '../lib/selectAll'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { useI18n } from '../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../components/ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../components/ui'
 import EmptyState from '../components/EmptyState'
 import { invoiceSummary } from '../lib/invoiceApi'
 import { QUOTE_STATUSES, quoteNumber, formatMoney, cloneBody, emptyPhase, localISODate, addDays, quoteTotals } from '../lib/quotes'
@@ -96,7 +96,7 @@ export default function QuotesPage() {
 
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Loader2 size={26} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+      <AvxLoader size={26} color={colors.accentText} />
     </div>
   )
   if (!org || !['admin', 'member'].includes(role)) return (
@@ -306,7 +306,7 @@ function NewQuoteModal({ org, templates, clients = [], onClose, onCreated }) {
           </div>
         </div>
         <button type="submit" disabled={saving || !form.title.trim()} style={{ ...btnPrimary, justifyContent: 'center', padding: '12px' }}>
-          {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={16} />} {t('quotes.create')}
+          {saving ? <AvxLoader size={16} /> : <Plus size={16} />} {t('quotes.create')}
         </button>
       </form>
     </Modal>

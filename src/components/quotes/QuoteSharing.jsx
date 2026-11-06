@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { History, Eye, RotateCcw, Loader2, Save, Send, Copy, Check, Link2, Ban, Mail } from 'lucide-react'
+import { History, Eye, RotateCcw, Save, Send, Copy, Check, Link2, Ban, Mail } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -8,7 +8,7 @@ import { quotePdfBase64, quotePdfName } from '../../lib/quotePdf'
 import { track } from '../../lib/usage'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
@@ -73,11 +73,11 @@ export function VersionsModal({ quoteId, prepare, currency, onRestore, onClose }
         <label htmlFor="ver-note" style={{ position: 'absolute', left: '-9999px' }}>{t('quoteVersions.note')}</label>
         <input id="ver-note" value={note} onChange={e => setNote(e.target.value)} maxLength={200} placeholder={t('quoteVersions.notePlaceholder')} style={{ ...input, flex: '1 1 220px' }} />
         <button type="submit" disabled={busy === 'save'} style={btn}>
-          {busy === 'save' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={14} />} {t('quoteVersions.save')}
+          {busy === 'save' ? <AvxLoader size={14} /> : <Save size={14} />} {t('quoteVersions.save')}
         </button>
       </form>
       {versions === null
-        ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+        ? <AvxLoader size={18} color={colors.accentText} />
         : versions.length === 0
           ? <p style={small}>{t('quoteVersions.empty')}</p>
           : (
@@ -93,7 +93,7 @@ export function VersionsModal({ quoteId, prepare, currency, onRestore, onClose }
                   </div>
                   <a href={`/quote/${quoteId}/print?v=${v.id}`} target="_blank" rel="noreferrer" aria-label={t('quoteVersions.viewN', { n: v.version_no })} title={t('quoteVersions.view')} style={iconBtn}><Eye size={16} /></a>
                   <button onClick={() => restore(v)} disabled={!!busy} aria-label={t('quoteVersions.restoreN', { n: v.version_no })} title={t('quoteVersions.restore')} style={iconBtn}>
-                    {busy === v.id ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <RotateCcw size={16} />}
+                    {busy === v.id ? <AvxLoader size={16} /> : <RotateCcw size={16} />}
                   </button>
                 </div>
               ))}
@@ -231,7 +231,7 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
           )}
           {!emailOk && <p role="alert" style={{ ...small, color: colors.danger }}>{t('send.badEmail')}</p>}
           <button type="submit" disabled={sending || !emailOk} style={{ ...btnPrimary, justifyContent: 'center' }}>
-            {sending ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : byEmail ? <Send size={15} /> : <Link2 size={15} />}
+            {sending ? <AvxLoader size={15} /> : byEmail ? <Send size={15} /> : <Link2 size={15} />}
             {byEmail ? t('send.sendEmail') : t('send.createLink')}
           </button>
         </form>
@@ -239,7 +239,7 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
 
       <h3 style={{ ...label, marginBottom: '8px' }}>{t('send.history')}</h3>
       {shares === null
-        ? <Loader2 size={18} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+        ? <AvxLoader size={18} color={colors.accentText} />
         : shares.length === 0
           ? <p style={small}>{t('send.noHistory')}</p>
           : (

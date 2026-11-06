@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { MessagesSquare, ChevronDown, ChevronRight, Loader2, Eye } from 'lucide-react'
+import { MessagesSquare, ChevronDown, ChevronRight, Eye } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { t } from '../../i18n'
-import { colors } from '../ui'
+import { colors, AvxLoader } from '../ui'
 import Conversation from './Conversation'
 
 // The team's conversation about one thing — an equipment item, a repair, a subrental
@@ -55,7 +55,7 @@ export default function ContextThread({ type, id, height = '320px', children }) 
         {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         <MessagesSquare size={16} color={colors.accentText} />
         <span style={{ flex: 1 }}>{guest ? t(`chat.guest.title.${type}`) : t('chat.context.title')}</span>
-        {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+        {busy ? <AvxLoader size={14} />
           : count > 0 && <span style={{ fontSize: '12px', fontWeight: 400, color: colors.muted }}>{t('chat.context.count', { count })}</span>}
       </button>
       {open && (guest || children) && (

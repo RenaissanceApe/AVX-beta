@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { Loader2, Send } from 'lucide-react'
+import { Send } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { t } from '../../i18n'
 import { uploadRepairPhoto, PhotoInput } from '../inventory/MaintenancePanels'
-import { Modal, btnPrimary, input, label, colors } from '../ui'
+import { Modal, btnPrimary, input, label, colors, AvxLoader } from '../ui'
 
 const select = { ...input, appearance: 'auto' }
 
@@ -71,7 +71,7 @@ export default function ReportDamageModal({ gig, lines, onClose }) {
         </div>
         <PhotoInput file={file} setFile={setFile} />
         <button type="submit" disabled={saving || !problem.trim()} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={15} />} {t('report.send')}
+          {saving ? <AvxLoader size={15} /> : <Send size={15} />} {t('report.send')}
         </button>
       </form>
     </Modal>

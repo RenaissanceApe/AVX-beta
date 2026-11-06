@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, HardHat } from 'lucide-react'
+import { ArrowLeft, HardHat } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { logger } from '../lib/logger'
 import { useI18n } from '../i18n'
 import { useToast } from '../lib/ToastContext'
-import { btn, btnPrimary, colors } from '../components/ui'
+import { btn, btnPrimary, colors, AvxLoader } from '../components/ui'
 import GigHeader, { GIG_TABS, TAB_ALIASES } from '../components/gig/GigHeader'
 import { useSimpleMode, SIMPLE_GIG_TABS } from '../lib/simpleMode'
 import OverviewTab from '../components/gig/OverviewTab'
@@ -189,7 +189,7 @@ export default function GigPage() {
   if (loading && !data) return (
     <AppShell>
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Loader2 size={28} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+        <AvxLoader size={28} color={colors.accentText} />
       </div>
     </AppShell>
   )

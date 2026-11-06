@@ -1,13 +1,13 @@
 // Shared pieces of expenses (step 9b): the receipt link, status chip, one row of a list, the totals
 // line and the approve / send back buttons for a claim.
 import { useEffect, useState } from 'react'
-import { Paperclip, Check, Undo2, Loader2, Link2 } from 'lucide-react'
+import { Paperclip, Check, Undo2, Link2 } from 'lucide-react'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { formatMoney } from '../../lib/quotes'
 import { receiptUrl, decideClaim, isOverdue, toReimburse, linkOf, categoryName, totalsByCurrency } from '../../lib/expenses'
 import { useI18n, fmt } from '../../i18n'
-import { Modal, btn, btnPrimary, input, colors, StatusBadge } from '../ui'
+import { Modal, btn, btnPrimary, input, colors, StatusBadge, AvxLoader } from '../ui'
 
 export function ReceiptLink({ path, name }) {
   const { t } = useI18n()
@@ -101,7 +101,7 @@ export function ClaimActions({ e, onDone }) {
     <span style={{ display: 'flex', gap: '6px', flex: '1 1 100%', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
       <button type="button" disabled={busy} onClick={() => setAsking(true)} style={btn}><Undo2 size={14} /> {t('expenses.sendBack')}</button>
       <button type="button" disabled={busy} onClick={() => decide(true)} style={{ ...btnPrimary, padding: '8px 14px', fontSize: '13px' }}>
-        {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />} {t('expenses.approve')}
+        {busy ? <AvxLoader size={14} /> : <Check size={14} />} {t('expenses.approve')}
       </button>
       {asking && (
         <Modal title={t('expenses.sendBackTitle')} onClose={() => setAsking(false)}>

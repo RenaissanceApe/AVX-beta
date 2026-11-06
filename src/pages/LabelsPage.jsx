@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import QRCode from 'qrcode'
-import { ArrowLeft, Printer, Loader2 } from 'lucide-react'
+import { ArrowLeft, Printer } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { selectAll } from '../lib/selectAll'
 import { logger } from '../lib/logger'
@@ -10,6 +10,7 @@ import { scanUrl, LABEL_SIZES } from '../lib/inventory'
 import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
 import { toolbarBtn } from '../components/quotes/QuoteDocument'
+import { AvxLoader } from '../components/ui'
 
 const SIZE_KEY = 'avx.labelSize'
 const ids = value => (value || '').split(',').filter(id => /^[0-9a-f-]{36}$/i.test(id)).slice(0, 500)
@@ -76,7 +77,7 @@ export default function LabelsPage() {
         <button onClick={() => { track('inventory:labels-printed'); window.print() }} disabled={!labels?.length} style={toolbarBtn}><Printer size={14} /> {t('inv.print')}</button>
       </div>
       {!labels ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}><Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} /></div>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}><AvxLoader size={24} /></div>
       ) : labels.length === 0 ? (
         <p className="no-print" style={{ textAlign: 'center', padding: '60px 16px', color: '#555', fontSize: '14px' }}>{t('inv.noLabels')}</p>
       ) : (
@@ -95,7 +96,6 @@ export default function LabelsPage() {
         </div>
       )}
       <style>{`
-        @keyframes spin { to { transform: rotate(360deg) } }
         .label-sheet { display: grid; gap: 0; justify-content: center; padding: 16px 0 40px; }
         .label { box-sizing: border-box; background: #fff; border: 1px dashed #c8ccd4; padding: 3mm; display: flex; gap: 3mm; align-items: center; overflow: hidden; }
         .label-qr svg { width: 100%; height: 100%; display: block; }

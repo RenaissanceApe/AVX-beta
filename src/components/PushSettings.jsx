@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { BellRing, Loader2 } from 'lucide-react'
+import { BellRing } from 'lucide-react'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { pushSupport, currentSubscription, turnOn, turnOff, sendTest } from '../lib/push'
 import { t } from '../i18n'
+import { AvxLoader } from './ui'
 
 // Account → Notifications on this device (docs/MESSAGING.md, M5a). Per device: each phone or
 // computer turns them on for itself.
@@ -66,7 +67,7 @@ export default function PushSettings() {
           style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
         <span>
           <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {t('push.title')} {busy && <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />}
+            {t('push.title')} {busy && <AvxLoader size={13} />}
           </span>
           <span style={hint}>{t('push.hint')}</span>
         </span>

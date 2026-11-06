@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Loader2, CheckCircle } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { logger, userMessage } from '../lib/logger'
 import { useI18n } from '../i18n'
-import { Modal, btnPrimary, input, label, colors } from './ui'
+import { Modal, btnPrimary, input, label, colors, AvxLoader } from './ui'
 
 // Create an organisation; the creator becomes its admin (database trigger).
 export default function NewOrgModal({ onClose, onCreated }) {
@@ -41,7 +41,7 @@ export default function NewOrgModal({ onClose, onCreated }) {
           </div>
         )}
         <button type="submit" disabled={saving || !name.trim()} style={{ ...btnPrimary, justifyContent: 'center', padding: '13px' }}>
-          {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={16} />} {t('dash.createOrg')}
+          {saving ? <AvxLoader size={16} /> : <CheckCircle size={16} />} {t('dash.createOrg')}
         </button>
       </form>
     </Modal>

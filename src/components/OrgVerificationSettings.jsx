@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { BadgeCheck, Loader2, ShieldCheck, Send } from 'lucide-react'
+import { BadgeCheck, ShieldCheck, Send } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
@@ -7,7 +7,7 @@ import { track } from '../lib/usage'
 import { countryName } from '../lib/crewProfile'
 import { VIES_COUNTRIES, isoFor, splitVat, trustError } from '../lib/trust'
 import { useI18n } from '../i18n'
-import { btn, input, label, colors } from './ui'
+import { btn, input, label, colors, AvxLoader } from './ui'
 
 // Organisation settings → Verification (docs/CREW_NETWORK.md, N4): check the company's EU VAT
 // number with VIES (the vies-check function), or ask AVX for a manual check. A verified company
@@ -91,7 +91,7 @@ export default function OrgVerificationSettings({ org, onChanged }) {
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <button type="submit" disabled={!!busy || !country || !number.trim()} style={btn}>
-                {busy === 'vies' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={14} />} {t('trust.verify.checkVies')}
+                {busy === 'vies' ? <AvxLoader size={14} /> : <ShieldCheck size={14} />} {t('trust.verify.checkVies')}
               </button>
             </div>
           </form>
@@ -107,7 +107,7 @@ export default function OrgVerificationSettings({ org, onChanged }) {
               <>
                 <textarea id="verify-note" rows={3} value={note} onChange={e => setNote(e.target.value)} maxLength={1000} placeholder={t('trust.verify.manualPlaceholder')} style={{ ...input, resize: 'vertical' }} />
                 <div><button type="submit" disabled={!!busy || !note.trim()} style={btn}>
-                  {busy === 'manual' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {t('trust.verify.manualSend')}
+                  {busy === 'manual' ? <AvxLoader size={14} /> : <Send size={14} />} {t('trust.verify.manualSend')}
                 </button></div>
               </>
             )}

@@ -4,8 +4,8 @@ import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { logger, userMessage } from '../lib/logger'
 import { useI18n, LANGUAGES } from '../i18n'
-import { Eye, EyeOff, ArrowRight, Loader2, Mail, CheckCircle } from 'lucide-react'
-import { AvxMark } from '../components/ui'
+import { Eye, EyeOff, ArrowRight, Mail, CheckCircle } from 'lucide-react'
+import { AvxMark, AvxLoader } from '../components/ui'
 
 export default function AuthPage() {
   const [mode, setMode] = useState('signin')
@@ -334,7 +334,7 @@ export default function AuthPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               transition: 'background-color .15s',
             }}>
-              {loading ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : null}
+              {loading ? <AvxLoader size={18} /> : null}
               {loading ? t('common.pleaseWait') : mode === 'signin' ? t('auth.signIn') : mode === 'reset' ? t('auth.sendReset') : mode === 'magic' ? t('auth.sendMagic') : t('auth.createAccount')}
               {!loading && <ArrowRight size={16} />}
             </button>
@@ -361,9 +361,6 @@ export default function AuthPage() {
         </div>
       </div>
 
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg) } }
-      `}</style>
     </div>
   )
 }

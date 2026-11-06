@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loader2, LogOut, CheckCircle, Download, Trash2, Contact, ShieldCheck, ChevronRight, ChevronLeft, User, KeyRound, CalendarOff, Bell, Palette, Shield, CalendarDays, Archive } from 'lucide-react'
+import { LogOut, CheckCircle, Download, Trash2, Contact, ShieldCheck, ChevronRight, ChevronLeft, User, KeyRound, CalendarOff, Bell, Palette, Shield, CalendarDays, Archive } from 'lucide-react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { removeGigFiles } from '../lib/storage'
 import PushSettings from '../components/PushSettings'
@@ -15,6 +15,7 @@ import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import AppShell from '../components/shell/AppShell'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
+import { AvxLoader } from '../components/ui'
 
 // The sections of the settings page, in order (the AVX reviews one only for AVX admins)
 export const SETTINGS_SECTIONS = ['profile', 'security', 'availability', 'notifications', 'preferences', 'privacy', 'calendar', 'data']
@@ -198,7 +199,7 @@ export default function SettingsPage() {
           <button type="submit"
             disabled={savingName || !fullName.trim() || (fullName.trim() === profile?.full_name && phone.trim() === (profile?.phone || ''))}
             style={smallBtn}>
-            {savingName ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={14} />} {t('common.save')}
+            {savingName ? <AvxLoader size={14} /> : <CheckCircle size={14} />} {t('common.save')}
           </button>
         </div>
         <p style={{ color: 'var(--muted)', fontSize: '12px', marginTop: '6px' }}>{t('account.phoneHint')}</p>
@@ -220,7 +221,7 @@ export default function SettingsPage() {
           placeholder={t('auth.confirmPassword')} autoComplete="new-password" style={{ ...input, marginBottom: '8px' }} />
         {passwordError && <p style={{ color: 'var(--danger)', fontSize: '13px', marginBottom: '8px' }}>{passwordError}</p>}
         <button type="submit" disabled={savingPassword || !password} style={smallBtn}>
-          {savingPassword && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />} {t('account.updatePassword')}
+          {savingPassword && <AvxLoader size={14} />} {t('account.updatePassword')}
         </button>
       </form>
       <div style={section}>
@@ -273,10 +274,10 @@ export default function SettingsPage() {
       <span style={label}>{t('account.yourData')}</span>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button onClick={exportData} disabled={exporting} style={smallBtn}>
-          {exporting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={14} />} {t('account.export')}
+          {exporting ? <AvxLoader size={14} /> : <Download size={14} />} {t('account.export')}
         </button>
         <button onClick={deleteAccount} disabled={deleting} style={{ ...smallBtn, background: 'transparent', borderColor: 'var(--danger)', color: 'var(--danger)' }}>
-          {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} {t('account.delete')}
+          {deleting ? <AvxLoader size={14} /> : <Trash2 size={14} />} {t('account.delete')}
         </button>
       </div>
       <p style={{ color: 'var(--muted)', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }}>

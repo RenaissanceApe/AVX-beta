@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Wrench, ClipboardCheck, Camera, Loader2, Check, Plus, AlertTriangle, Image as ImageIcon, ListTodo } from 'lucide-react'
+import { Wrench, ClipboardCheck, Camera, Check, Plus, AlertTriangle, Image as ImageIcon, ListTodo } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -9,7 +9,7 @@ import { REPAIR_STATUSES, isOpenRepair, dueState, repairPhotoPath, MAX_PHOTO_BYT
 import { formatMoney, localISODate } from '../../lib/quotes'
 import { taskFromRepair } from '../../lib/tasks'
 import { useI18n, t } from '../../i18n'
-import { Modal, btn, btnPrimary, input, label, card, colors, StatusBadge } from '../ui'
+import { Modal, btn, btnPrimary, input, label, card, colors, StatusBadge, AvxLoader } from '../ui'
 import LinkedExpense from '../expenses/LinkedExpense'
 import ContextThread from '../messages/ContextThread'
 import { Hint, HintLabel } from '../help/HelpParts'
@@ -177,7 +177,7 @@ export function RepairModal({ orgId, repair, items = [], preset = {}, onClose, o
         )}
         {!repair?.photo_path && <PhotoInput file={file} setFile={setFile} />}
         <button type="submit" disabled={saving || invalid} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
+          {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('common.save')}
         </button>
       </form>
       {repair && isOpenRepair(repair) && (
@@ -264,7 +264,7 @@ export function InspectionModal({ item, unitId: presetUnit, onClose, onSaved }) 
         <Field id="in-notes" text={t('inv.note')}><input id="in-notes" value={form.notes} onChange={set('notes')} maxLength={1000} style={input} /></Field>
         {form.result === 'fail' && <p role="alert" style={{ fontSize: '12px', color: AMBER }}>{t('inspect.failHint')}</p>}
         <button type="submit" disabled={saving || (serial && !unitId) || !costOk} style={{ ...btnPrimary, justifyContent: 'center' }}>
-          {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />} {t('common.save')}
+          {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('common.save')}
         </button>
       </form>
     </Modal>
@@ -346,7 +346,7 @@ export function MaintenanceTab({ orgId, inv }) {
   }
   useEffect(() => { load() }, [orgId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!repairs) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+  if (!repairs) return <AvxLoader size={20} color={colors.accentText} />
   const open = repairs.filter(isOpenRepair)
   const closed = repairs.filter(r => !isOpenRepair(r)).slice(0, 30)
   const dueSoon = due.filter(d => dueState(d.due_on) !== 'ok')

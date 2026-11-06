@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Printer, RotateCw, Trash2, Plus, Loader2, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, AlertTriangle, Undo2, LogOut } from 'lucide-react'
+import { Printer, RotateCw, Trash2, Plus, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, AlertTriangle, Undo2, LogOut } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
@@ -10,7 +10,7 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { STEP_M, stageSize } from '../../lib/stagePlot'
 import { BAR_KINDS, FIXTURE_SYMBOLS, barsOf, supplyOf, newBar, nextBarName, layoutFixtures, snapToBar, clampToArea, viewArea, powerSummary, symbolOf } from '../../lib/lightPlot'
 import { t } from '../../i18n'
-import { btn, iconBtn, input, label, card, colors } from '../ui'
+import { btn, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import LightPlotSvg from './LightPlotSvg'
@@ -234,7 +234,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
     changeFixture(f.id, { plot_x: null, plot_y: null, ...(wasBar ? { position: null } : {}) }, { now: true })
   }
 
-  if (show === null) return <Loader2 size={20} color={colors.accentText} style={{ animation: 'spin 1s linear infinite' }} />
+  if (show === null) return <AvxLoader size={20} color={colors.accentText} />
   const onBar = b => fixtures.filter(f => (f.position || '').toLowerCase() === b.name.toLowerCase())
   const watts = w => (w >= 1000 ? `${Math.round(w / 100) / 10} kW` : `${w} W`)
 

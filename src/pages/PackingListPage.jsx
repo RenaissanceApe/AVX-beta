@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Printer, Loader2 } from 'lucide-react'
+import { ArrowLeft, Printer } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { activeSteps, lineStep, stepCounts } from '../lib/inventory'
 import { useI18n } from '../i18n'
+import { AvxLoader } from '../components/ui'
 
 // Printable packing list: what goes to the gig, by category, with packing notes, what's
 // already been scanned out and back, and how far each line has got through the organisation's
@@ -35,7 +36,7 @@ export default function PackingListPage() {
   }, [id])
 
   if (error) return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>{t('callsheet.notAvailable')} <button onClick={() => navigate('/dashboard')} style={toolbarBtn}>{t('common.back')}</button></div>
-  if (!data) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 size={26} color="#1EC878" style={{ animation: 'spin 1s linear infinite' }} /></div>
+  if (!data) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><AvxLoader size={26} color="#1EC878" /></div>
 
   const { gig, rows, units, counts } = data
   const steps = activeSteps(gig.organisations?.equipment_steps || null)
