@@ -3,6 +3,10 @@
 
 export default {
   terms: {
+    'cash-position': { term: 'Posição de tesouraria', definition: 'O dinheiro a receber menos o dinheiro a pagar, por mês à frente: o que falta pagar em faturas emitidas pela data de vencimento, menos despesas por pagar, reembolsos a fazer e custos recorrentes pelas suas. Com IVA, como se move no banco. Os valores atrasados contam neste mês.', example: 'Novembro: 20 910 € a receber − 7710 € a pagar = 13 200 €.', where: 'Relatórios → Dinheiro → Tesouraria' },
+    'overdue-age': { term: 'Atrasos por antiguidade', definition: 'As faturas em atraso agrupadas pelos dias que passaram do vencimento: 0–30, 31–60, 61–90 e mais de 90 dias, contados pela data da organização. Só conta o que falta pagar (depois de pagamentos parciais e notas de crédito).', example: 'Uma fatura que venceu a 31 de agosto, 230 € pagos de 1230 €: 1000 € em "31–60 dias" a 15 de outubro.', where: 'Relatórios → Dinheiro → Tesouraria' },
+    'win-rate': { term: 'Taxa de sucesso', definition: 'Orçamentos aceites ÷ (aceites + recusados) nos últimos 12 meses, por número e por valor. Os que expiraram sem resposta ficam de fora. Aparece ao lado dos orçamentos à espera de resposta, nunca multiplicada na previsão.', example: '15 aceites e 9 recusados: 62%.', where: 'Relatórios → Dinheiro → Previsão' },
+    'budget-target': { term: 'Limite e objetivo', definition: 'Um valor mensal que define: um limite para uma categoria de despesa (comparado com o gasto) ou um objetivo de receita (comparado com a receita aceite). Num período maior o valor é multiplicado pelos meses.', example: 'Limite de transporte 900 € por mês: o de um trimestre é 2700 €; gastar 3100 € é 400 € acima.', where: 'Relatórios → Dinheiro → Previsão' },
     'gig-margin': { term: 'Margem do evento', definition: 'O que um evento deixa depois dos custos diretos: a receita (todos os orçamentos aceites, líquidos; nenhum aceite: o orçamento enviado mais recente, uma estimativa) menos a mão de obra, os subalugueres confirmados, as reparações não cobradas ao cliente e as despesas ligadas ao evento. Uma despesa ligada a um subaluguer, reparação ou cachê substitui o valor previsto, para cada custo contar uma só vez. Em euros, sem IVA.', example: 'Receita 4140 € − custos 3391 € = margem 749 € (18,1%).', where: 'Evento → Resumo → Finanças do evento, Relatórios → Margens dos eventos' },
     'gross-margin': { term: 'Margem bruta', definition: 'A receita menos os custos diretos: mão de obra, subalugueres, reparações não cobradas ao cliente, despesas dos eventos, outras despesas diretas e o custo das mercadorias vendidas. A margem % é a margem bruta ÷ receita. Contada por moeda, sem IVA.', example: 'Receita 48 600 € − custos diretos 24 410 € = margem bruta 24 190 € (49,8%).', where: 'Relatórios → Dinheiro' },
     'operating-result': { term: 'Resultado operacional', definition: 'O que a empresa guarda depois de todos os custos de funcionamento: a margem bruta menos os gastos gerais (renda, seguros, software, impostos e outros custos de funcionamento) e as amortizações. Não é a contabilidade oficial: os números do contabilista podem ser diferentes.', example: 'Margem bruta 24 190 € − gastos gerais 13 900 € − amortizações 3900 € = 6390 €.', where: 'Relatórios → Dinheiro, Relatórios → Resumo' },
@@ -109,6 +113,10 @@ export default {
   },
 
   hints: {
+    'cash-report': 'A tesouraria de toda a empresa, com IVA: faturado, recebido e pago por mês, faturas em atraso por antiguidade, o saldo de cada cliente e a posição de tesouraria nos próximos três meses (a receber − a pagar).',
+    'spending-report': 'Despesas confirmadas pelo custo, por categoria, fornecedor, evento ou mês, face ao período de comparação. As maiores variações aparecem primeiro.',
+    'forecast-report': 'A receita aceite dos próximos eventos por mês nos próximos três meses. Os orçamentos à espera de resposta aparecem à parte, com a taxa de sucesso ao lado, nunca multiplicados.',
+    'finance-targets': 'Um limite mensal para uma categoria de despesa, ou um objetivo mensal de receita. O progresso aparece para o período escolhido acima.',
     'expense-category': 'Escolha para que é o custo. O tipo (custos dos trabalhos, funcionamento da empresa, equipamento, impostos) decide onde conta nos resultados.',
     'gig-finance': 'Receita, custos e margem deste evento, contados na base de dados. A mão de obra usa as horas aprovadas (ou a fatura) quando existem, senão o cachê acordado, senão a tabela de cachês, marcada como estimativa.',
     'money-report': 'Resultados de toda a empresa, contados na base de dados: receita, custos diretos e margem bruta, depois gastos gerais e amortizações até ao resultado operacional. Margens agrupa-os por tipo de evento, estado, cliente, tipo de linha ou diretor de produção; Mão de obra compara as horas planeadas e aprovadas.',
@@ -236,6 +244,22 @@ export default {
       mistakes: [
         'Um pagamento não pode ser maior do que o que falta pagar, nem ter data no futuro.',
         '"Paga" segue os pagamentos: não há botão para desfazer além de remover um pagamento.',
+      ],
+    },
+    'office-cash': {
+      title: 'Acompanhar a tesouraria da empresa',
+      intro: 'Veja quem lhe deve o quê, o que tem de pagar, quanto dinheiro trazem os próximos três meses, para onde vai o dinheiro e o que aí vem.',
+      steps: [
+        'Abra Relatórios → Dinheiro → Tesouraria. Os quadros mostram o que está em atraso agora e o que se espera receber e pagar nos próximos três meses; o gráfico é a posição de tesouraria de cada um desses meses.',
+        'Mais abaixo, as faturas em atraso aparecem por antiguidade (0–30, 31–60, 61–90, mais de 90 dias); "Faturas por pagar" abre a lista para as cobrar. O saldo de cada cliente vem a seguir. "Mostrar detalhes" junta os próximos meses linha a linha e o faturado, adiantamentos, notas de crédito, recebido e pago por mês.',
+        'Mude para Gastos e agrupe por categoria, fornecedor, evento ou mês. As maiores variações face ao período de comparação aparecem primeiro; "Mostrar detalhes" abre a tabela completa, e uma categoria abre as suas despesas.',
+        'Mude para Previsão para ver a receita aceite dos próximos eventos por mês, com os orçamentos ainda à espera e a taxa de sucesso ao lado. Por baixo, defina um limite mensal para uma categoria de despesa ou um objetivo de receita e siga o progresso.',
+        'O Resumo e o seu Início mostram quatro quadros de tesouraria: em atraso agora, a receber em 30 dias, despesas a pagar em 14 dias e receita confirmada nos próximos três meses.',
+      ],
+      mistakes: [
+        'Os valores de tesouraria incluem IVA (é o que se move no banco); os resultados e os gastos não incluem o IVA que recupera.',
+        'Uma fatura só conta na tesouraria depois de emitida; rascunhos e faturas apenas enviadas para o seu programa não.',
+        'Os orçamentos à espera de resposta nunca são somados à receita confirmada.',
       ],
     },
     'office-money': {

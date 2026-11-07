@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, FileCheck, Search, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
@@ -153,6 +153,12 @@ export default function InvoicesPage() {
                 value={Object.entries(sums[k]).map(([c, v]) => formatMoney(v, c, lang)).join(' · ')} />
             ))}
           </dl>
+        )}
+        {/* K3: overdue by age and the cash position */}
+        {(sums.unpaid || sums.overdue) && (
+          <p style={{ margin: 0, fontSize: '13px' }}>
+            <Link to={`/org/${orgId}/reports?tab=money&view=cash`} style={{ color: colors.accentText }}>{t('invoice.byAge')}</Link>
+          </p>
         )}
 
         <nav aria-label={t('invoice.views')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>

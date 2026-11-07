@@ -21,6 +21,13 @@ export const OVERVIEW_TILES = [
   { key: 'marginPctYear', kind: 'pctValue', value: o => o?.margin_pct_year ?? null, to: base => `${base}/reports?tab=money&period=this_year` },
   { key: 'operatingResultYear', kind: 'money', value: o => o?.operating_result_year || {}, to: base => `${base}/reports?tab=money&period=this_year` },
   { key: 'negativeMarginYear', kind: 'count', value: o => o?.negative_margin_year ?? 0, to: base => `${base}/reports?tab=margins&period=this_year` },
+  // K3 (public.report_overview → private.open_invoices, expenses, the revenue rule). A fifth tile,
+  // crew fees to pay, comes with K8.
+  { key: 'overdueNow', kind: 'money', value: o => o?.overdue_now || {},
+    sub: o => ({ key: 'reports.tileSub.invoices', vars: { count: o?.overdue_count ?? 0 } }), to: base => `${base}/invoices?view=unpaid` },
+  { key: 'cashIn30', kind: 'money', value: o => o?.cash_in_30 || {}, to: base => `${base}/reports?tab=money&view=cash` },
+  { key: 'expensesDue14', kind: 'money', value: o => o?.expenses_due_14 || {}, to: base => `${base}/expenses?view=unpaid` },
+  { key: 'revenueNext3m', kind: 'money', value: o => o?.revenue_next_3m || {}, to: base => `${base}/reports?tab=money&view=forecast` },
 ]
 
 // Money per currency as display lines, the biggest first: [{ currency, amount }]. Empty → one zero

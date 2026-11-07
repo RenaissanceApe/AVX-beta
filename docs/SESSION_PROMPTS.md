@@ -21,48 +21,12 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69) and K2 (0.75) are built, and their prompts (S01–S06, K1, K2) removed. Sessions
+Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75) and K3 (0.76) are built, and their prompts (S01–S06, K1, K2, K3) removed. Sessions
 S07–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
-
-## K3 · Money: cash, spending and forecast
-
-```
-Build ROADMAP step K3: money, cash, spending and forecast. Read the ROADMAP row,
-docs/ANALYTICS.md ("Definitions", "Decided", "K3"), "How K2 works", "How expenses work" (9b),
-and how steps 11 and 12 built invoices, credit notes and payments (docs/BUSINESS.md).
-
-Scope (Reports → Money), simple first with details on demand:
-- Cash in: invoiced and paid per month (with VAT, labelled), overdue invoices by age (0–30, 31–60,
-  61–90, over 90 days), expected cash in by due date, balance per client, deposits, credit notes.
-- Cash out: expenses paid per month, unpaid expenses by due date, recurring costs coming up; crew
-  fees to pay once K8 marks them (leave the tile for K8).
-- Cash position: money expected in minus money expected out, per month ahead.
-- Spending: by category, supplier, gig and month; the biggest changes against the comparison
-  period.
-- Forecast: confirmed revenue of upcoming gigs per month; quotes waiting for an answer shown apart,
-  with the win rate beside them (not multiplied in unless I say so).
-- Budgets and targets, if I want them: a monthly budget per expense category and a revenue target,
-  with progress tiles.
-- Tiles: overdue now, cash expected in 30 days, unpaid expenses due in 14 days, confirmed revenue
-  in the next 3 months.
-
-Ask me before building: budgets and targets yes or no; weight the forecast by win rate?; how many
-months ahead for the cash position.
-
-Connect: invoices (overdue list), payments, expenses, Contacts (client balance, supplier spend),
-Overview; the client portal (step 26) shows the client's balance from this function (name it in
-docs/BUSINESS.md "Planned → 26").
-
-Done when: database tests (partial payments, credit notes, overdue by the organisation's date,
-recurring costs counted once, only those who see money can call it); help guide "office-cash";
-PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
 
 ## K4 · Sales and clients
 

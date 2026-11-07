@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.76.0 — Money: cash, spending and forecast
+
+### Added
+- **Reports → Money → Cash:** who owes you what and what you have to pay. Tiles for what is
+  overdue now and what is expected in and out over the next three months; a chart of the cash
+  position for each of those months (expected in − expected out). Overdue invoices are grouped by
+  age (0–30, 31–60, 61–90, over 90 days, by your organisation's date), each client has a balance,
+  and recurring costs coming up are listed. "Show details" adds the months ahead line by line and
+  invoiced, deposits, credit notes, received and paid out per month. Cash figures include VAT.
+- **Spending:** confirmed expenses by category, supplier, gig or month, against the comparison
+  period, with the five biggest changes listed first.
+- **Forecast:** accepted revenue of upcoming gigs per month for the next three months. Quotes
+  waiting for an answer are shown apart, with the win rate beside them, never multiplied in.
+- **Budgets and targets:** set a monthly budget for an expense category or a monthly revenue
+  target and follow its progress for any period; "over budget" is said in words.
+- **Four new key numbers** on Reports → Overview and your Home: overdue now, cash expected in 30
+  days, expenses due in 14 days and confirmed revenue in the next three months.
+- Help guide "Follow the company's cash", with pictures, and the terms cash position, overdue by
+  age, win rate, budget and target.
+
+### Connected
+- Invoices, Expenses → Unpaid and due, and Contacts (clients and suppliers) link to the new views.
+  A recurring cost counts once per date, whether it is still to come or already drafted. The client
+  portal (step 26) will show a client's balance from the same function.
+
 ## 0.75.0 — Money: results and margins
 
 ### Added

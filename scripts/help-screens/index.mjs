@@ -551,6 +551,31 @@ const SCENES = {
     await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
     return table
   } },
+  // K3: Reports → Money, Cash / Spending / Forecast
+  'money-cash': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&view=cash&period=this_quarter`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('section[aria-labelledby="cash-position"]')
+  } },
+  'money-cash-details': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&view=cash&period=this_quarter`, async run(page) {
+    const box = page.locator('section[aria-labelledby="cash-overdue"]')
+    await box.locator('figure').waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box
+  } },
+  'money-spending': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&view=spending&period=this_quarter`, async run(page) {
+    const box = page.locator('section[aria-labelledby="sp-changes"]')
+    await box.waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box
+  } },
+  'money-forecast': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&view=forecast&period=this_quarter`, async run(page) {
+    const box = page.locator('section[aria-labelledby="targets"]')
+    await box.locator('ul').waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box.locator('ul')
+  } },
   'home-key-numbers': { persona: 'pm', url: `/org/${ids.org}`, async run(page) {
     const box = page.locator('section[aria-labelledby="key-numbers"]')
     await box.locator('ul').waitFor()
