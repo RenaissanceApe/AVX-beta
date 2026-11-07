@@ -16,6 +16,8 @@ import { btn, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { Hint } from '../help/HelpParts'
 import { NumberTile, BarChart } from './Charts'
+import CashReport from './CashReport'
+import { CASH_VIEWS } from '../../lib/analytics/cash'
 import { PeriodBar, GroupBy, ReportTable, ExportButtons, DetailsToggle, useDetails, downloadCsv } from './ReportParts'
 
 // One call of public.finance_results (counted in the database), 1000 rows at a time
@@ -32,6 +34,7 @@ export default function MoneyReport({ orgId, timeZone, labels, params, setParam 
   const [details, toggleDetails] = useDetails('money')
   const view = MONEY_VIEWS.includes(params.get('view')) ? params.get('view') : 'results'
   const groups = view === 'labour' ? LABOUR_GROUPS : MARGIN_GROUPS
+  const cashView = CASH_VIEWS.includes(view)
   const group = view === 'results' ? 'month' : groups.includes(params.get('by')) ? params.get('by') : groups[0]
   const period = periodKey(params.get('period'))
   const compare = comparisonKey(params.get('compare'))
@@ -44,7 +47,7 @@ export default function MoneyReport({ orgId, timeZone, labels, params, setParam 
   const compared = useMemo(() => comparisonRange(range, compare), [range, compare])
 
   useEffect(() => {
-    if (!range) return
+    if (!range || cashView) return
     let cancelled = false
     setData(null)
     Promise.all([loadRows(orgId, range, 'total'), loadRows(orgId, compared, 'total'), loadRows(orgId, range, group)]).then(([cur, prev, grouped]) => {
@@ -54,7 +57,7 @@ export default function MoneyReport({ orgId, timeZone, labels, params, setParam 
       setData({ cur: cur.data || [], prev: prev.data || [], grouped: grouped.data || [], failed: !!error })
     })
     return () => { cancelled = true }
-  }, [orgId, range, compared, group, view])
+  }, [orgId, range, compared, group, view, cashView])
 
   const currencies = currenciesOf(data?.cur)
   const currency = view === 'labour' ? 'EUR' : currencies.includes(picked) ? picked : (currencies[0] || 'EUR')
@@ -85,9 +88,9 @@ export default function MoneyReport({ orgId, timeZone, labels, params, setParam 
             {t(`money.view.${v}`)}
           </button>
         ))}
-        <Hint id="money-report" label={t('reports.tab.money')} />
+        {!cashView && <Hint id="money-report" label={t('reports.tab.money')} />}
         <span style={{ flex: '1 1 auto' }} />
-        {view !== 'labour' && currencies.length > 1 && (
+        {!cashView && view !== 'labour' && currencies.length > 1 && (
           <label style={{ display: 'flex', flexDirection: 'column', fontSize: '12px', color: colors.muted, gap: '2px' }}>
             {t('reports.currency')}
             <select value={currency} onChange={e => setPicked(e.target.value)} style={{ ...btn, padding: '6px 8px' }}>
@@ -97,7 +100,9 @@ export default function MoneyReport({ orgId, timeZone, labels, params, setParam 
         )}
       </div>
 
-      {!range ? null : !data ? (
+      {!range ? null : cashView ? (
+        <CashReport view={view} {...{ orgId, range, compared, compareLabel, params, setParam, today }} />
+      ) : !data ? (
         <AvxLoader size={20} color={colors.accentText} label={t('common.loading')} />
       ) : data.failed ? (
         <p role="alert" style={{ color: colors.danger, fontSize: '13px' }}>{t('reports.loadFailed')}</p>

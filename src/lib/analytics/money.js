@@ -2,7 +2,8 @@
 // counts in the database; these helpers only pick, order and label its rows for the screen.
 // One row per group and currency: money is never added across currencies.
 
-export const MONEY_VIEWS = ['results', 'margins', 'labour']
+// K3 added cash, spending and forecast (src/lib/analytics/cash.js, components/reports/CashReport.jsx)
+export const MONEY_VIEWS = ['results', 'margins', 'labour', 'cash', 'spending', 'forecast']
 export const MARGIN_GROUPS = ['gig_type', 'status', 'client', 'kind', 'pm', 'month', 'quarter']
 export const LABOUR_GROUPS = ['gig', 'month']
 export const KINDS = ['rental', 'sale', 'crew', 'transport', 'other']
