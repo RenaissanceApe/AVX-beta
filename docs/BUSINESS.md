@@ -252,7 +252,9 @@ step 23.
 ### 26 · Client portal [13], online booking requests [14]
 
 - **Portal:** one link per client (token) listing their quotes, invoices, shared documents and the
-  conversations they already have through quote links, and their balance (from K3's cash function).
+  conversations they already have through quote links, and their balance from K3's
+  `client_balance(org, client)` (docs/ANALYTICS.md, "How K3 works"): it runs as the reader, so the
+  portal calls it through a security-definer wrapper that checks the client's token first.
 - **Booking requests:** a public form per organisation (dry hire): pick catalogue items and dates,
   see indicative availability, send → a draft quote and a notification. Spam protection.
 
