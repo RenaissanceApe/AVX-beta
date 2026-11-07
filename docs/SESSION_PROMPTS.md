@@ -21,47 +21,12 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–12 (0.54–0.74), K0 (0.64) and K1 (0.69) are built, and their prompts (S01–S06, K1) removed. Sessions
+Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69) and K2 (0.75) are built, and their prompts (S01–S06, K1, K2) removed. Sessions
 S07–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
-
-## K2 · Money: results and margins
-
-```
-Build ROADMAP step K2: money, results and margins. Read the ROADMAP row, docs/ANALYTICS.md
-("Definitions", "K2"), "How K1 works", "How expenses work" (9b), the gig finance section step 10
-wrote in docs/BUSINESS.md (gig_finance) and how step 8 stores approved hours.
-
-Scope (Reports → Money), simple first with details on demand:
-- Results per month, quarter or year, with the comparison: revenue by line kind (rental, sale,
-  crew, transport, other); direct costs: labour (approved hours, else agreed fee, else rate card,
-  marked estimate), subrentals, repairs not charged to the client, gig expenses, cost of goods
-  sold (sale lines × the item's cost price); gross margin in money and %; then overheads
-  (overhead expenses by category) and depreciation (equipment and capital expenses) → operating
-  result; the estimated share of each.
-- Margin by gig (step 10's list), by gig type, status, client, line kind and production manager.
-- Planned against actual labour, per gig and per period, in hours and money.
-- Tiles: revenue this month against last year, margin % this year, operating result this year,
-  gigs with a negative margin.
-- One function, public.finance_results(org, from, until, group_by), built on gig_finance,
-  report_revenue_lines and the expenses; the browser only formats.
-
-Ask me before building: production manager grouping (first PM, or shared between PMs?); the
-tiles. (Repairs not charged to the client count against the gig: decided in step 10.)
-
-Connect: gig finance panel (link to the report), Overview, gig cards (the margin hint built in
-step 10), expenses (a category's total opens its list).
-
-Done when: database tests for every figure on fixtures (two currencies kept apart, a gig across
-two months, a quote with no gig, a capital expense spread over its months, a cost linked to an
-expense counted once, estimate flags, who may call it); unit tests; help guide "office-money"
-with screenshots; 320/390 px EN/PT; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
 
 ## K3 · Money: cash, spending and forecast
 

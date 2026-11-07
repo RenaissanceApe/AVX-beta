@@ -33,6 +33,7 @@ up front. What each release changed is in [CHANGELOG.md](CHANGELOG.md).
 | Step 11: invoices (VAT per line on quotes, drafts from accepted quotes, issued in your own invoicing program, credit notes, overdue reminders) | 0.72.0 | [docs/BUSINESS.md](docs/BUSINESS.md) |
 | Step 11b: invoicing program connectors (Moloni, InvoiceXpress, TOConline: drafts sent, numbers read back; each switched on after a real-account test), CSV of invoices | 0.73.0 | [docs/BUSINESS.md](docs/BUSINESS.md) |
 | Step 12: repairs charged to the client (added once to the gig's invoice draft), payments against invoices (part payments, paid when covered) | 0.74.0 | [docs/BUSINESS.md](docs/BUSINESS.md) |
+| K2: money, results and margins (Reports → Money: results with overheads and depreciation, margins by type, status, client, kind and PM, planned against actual labour; `finance_results`; four money tiles) | 0.75.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
 | Truss load tables (data only, waiting for a second check) | 0.60 | [docs/TRUSS_DATA.md](docs/TRUSS_DATA.md) |
 | Privacy and security check: data map, OWASP review, sign-in failure tests | 0.62.1 | [docs/DATA_MAP.md](docs/DATA_MAP.md), [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) |
 
@@ -48,7 +49,6 @@ the data it counts.
 
 | # | What | Needs | Connect | Plan | Prompt |
 |---|---|---|---|---|---|
-| K2 | **Money: results and margins** [4] [11] | K1, 9b, 10 | Gig finance panel, Overview, gig cards, expenses | ANALYTICS.md | K2 |
 | K3 | **Money: cash, spending and forecast** | K2, 11, 12 | Invoices, payments, expenses, contacts, Overview | ANALYTICS.md | K3 |
 | K4 | **Sales and clients** | K0, K1, 10 | Quotes list, contacts, Overview | ANALYTICS.md | K4 |
 | K5 | **Equipment money**: profit, payback, buy or keep hiring in | K0, K1 | Inventory → Reports, item page, subrentals, Overview | ANALYTICS.md | K5 |

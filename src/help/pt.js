@@ -4,6 +4,9 @@
 export default {
   terms: {
     'gig-margin': { term: 'Margem do evento', definition: 'O que um evento deixa depois dos custos diretos: a receita (todos os orçamentos aceites, líquidos; nenhum aceite: o orçamento enviado mais recente, uma estimativa) menos a mão de obra, os subalugueres confirmados, as reparações não cobradas ao cliente e as despesas ligadas ao evento. Uma despesa ligada a um subaluguer, reparação ou cachê substitui o valor previsto, para cada custo contar uma só vez. Em euros, sem IVA.', example: 'Receita 4140 € − custos 3391 € = margem 749 € (18,1%).', where: 'Evento → Resumo → Finanças do evento, Relatórios → Margens dos eventos' },
+    'gross-margin': { term: 'Margem bruta', definition: 'A receita menos os custos diretos: mão de obra, subalugueres, reparações não cobradas ao cliente, despesas dos eventos, outras despesas diretas e o custo das mercadorias vendidas. A margem % é a margem bruta ÷ receita. Contada por moeda, sem IVA.', example: 'Receita 48 600 € − custos diretos 24 410 € = margem bruta 24 190 € (49,8%).', where: 'Relatórios → Dinheiro' },
+    'operating-result': { term: 'Resultado operacional', definition: 'O que a empresa guarda depois de todos os custos de funcionamento: a margem bruta menos os gastos gerais (renda, seguros, software, impostos e outros custos de funcionamento) e as amortizações. Não é a contabilidade oficial: os números do contabilista podem ser diferentes.', example: 'Margem bruta 24 190 € − gastos gerais 13 900 € − amortizações 3900 € = 6390 €.', where: 'Relatórios → Dinheiro, Relatórios → Resumo' },
+    'cost-of-goods-sold': { term: 'Custo das mercadorias vendidas', definition: 'O que lhe custaram as coisas que vendeu: a quantidade de cada linha de venda × o preço de custo do artigo. Uma linha de venda cujo artigo não tem preço de custo não é contada, e o relatório diz quantas são.', example: '3 rolos de fita vendidos, preço de custo 20 € cada: 60 €.', where: 'Relatórios → Dinheiro' },
     'net-revenue': { term: 'Receita líquida', definition: 'O que os orçamentos aceites rendem, sem IVA: cada linha com preço depois do desconto da linha, da fase e do orçamento. Fases opcionais e comentários ficam de fora. Um orçamento conta na data de início do evento (sem evento: a data da primeira fase, senão a data de emissão). Cada moeda conta à parte.', example: 'Uma linha de 1000 € numa fase com 10% de desconto, num orçamento com 5%: 855 €.', where: 'Relatórios → Receita' },
     estimate: { term: 'Estimativa', definition: 'Um valor calculado a partir de uma alternativa porque o real ainda não existe, e marcado como tal: por exemplo a receita de um evento tirada do orçamento enviado mais recente enquanto nenhum foi aceite. Rascunhos nunca contam, nem como estimativa.', example: 'Painel do custo da equipa: "Orçamentado (estimativa: orçamento enviado mais recente)".', where: 'Relatórios, evento → Equipa → Custo da equipa' },
     'comparison-period': { term: 'Período de comparação', definition: 'O período com que um relatório compara: o período anterior com a mesma duração, ou o mesmo período do ano passado. Um período que ainda não terminou compara-se dia a dia: do dia 1 ao dia 5 deste mês contra o dia 1 ao dia 5 do anterior.', example: 'Este trimestre até hoje contra as mesmas semanas do trimestre anterior.', where: 'Relatórios → Receita' },
@@ -108,6 +111,7 @@ export default {
   hints: {
     'expense-category': 'Escolha para que é o custo. O tipo (custos dos trabalhos, funcionamento da empresa, equipamento, impostos) decide onde conta nos resultados.',
     'gig-finance': 'Receita, custos e margem deste evento, contados na base de dados. A mão de obra usa as horas aprovadas (ou a fatura) quando existem, senão o cachê acordado, senão a tabela de cachês, marcada como estimativa.',
+    'money-report': 'Resultados de toda a empresa, contados na base de dados: receita, custos diretos e margem bruta, depois gastos gerais e amortizações até ao resultado operacional. Margens agrupa-os por tipo de evento, estado, cliente, tipo de linha ou diretor de produção; Mão de obra compara as horas planeadas e aprovadas.',
     'expense-link': 'Se é a fatura de um subaluguer, reparação, cachê ou compra de stock, ligue-a: passa a substituir o valor previsto desse registo, para o custo contar uma só vez.',
     'expense-recurring': 'Com que frequência volta. A despesa fica em rascunho em cada data para alguém confirmar.',
     'expense-kind': 'Os custos dos trabalhos pertencem aos eventos; o funcionamento da empresa são custos gerais; equipamento e viaturas repartem-se por meses; impostos e outros ficam à parte.',
@@ -184,7 +188,7 @@ export default {
   pages: {
     'org-expenses': { title: 'Despesas', summary: 'Todos os custos da empresa com o comprovativo: este mês com totais por tipo e categoria, o que está por pagar, reembolsos para aprovar e pagar, custos recorrentes e (administradores) as categorias. O CSV é para o contabilista; o AVX não faz a contabilidade oficial.' },
     'org-invoices': { title: 'Faturas', summary: 'As faturas dos orçamentos aceites. O AVX prepara-as; o seu programa de faturação certificado emite-as e indica aqui o número. Por enviar: rascunhos e as enviadas ao programa. Por pagar: emitidas, as vencidas primeiro. Um administrador pode ligar o seu programa de faturação (Moloni, InvoiceXpress, TOConline) para que os rascunhos vão para lá e os números voltem; "CSV" descarrega as faturas mostradas.' },
-    'org-reports': { title: 'Relatórios', summary: 'Os números da organização, contados na base de dados para administradores e membros. O Resumo mostra os números-chave; a Receita mostra a receita líquida dos orçamentos aceites num período, comparada com o anterior ou com o ano passado. "Mostrar detalhes" junta filtros, grupos, uma tabela, CSV e impressão, e fica lembrado neste aparelho.' },
+    'org-reports': { title: 'Relatórios', summary: 'Os números da organização, contados na base de dados para administradores e membros. O Resumo mostra os números-chave; a Receita mostra a receita líquida dos orçamentos aceites num período, comparada com o anterior ou com o ano passado; o Dinheiro mostra os resultados, as margens e a mão de obra da empresa. "Mostrar detalhes" junta filtros, grupos, uma tabela, CSV e impressão, e fica lembrado neste aparelho.' },
     'org-leave': { title: 'Ausências', summary: 'Quem na organização está ausente em cada dia, os seus dias de férias e os seus pedidos. Os administradores também decidem pedidos, registam ausências de alguém e definem os dias de férias e as semanas de trabalho. Uma ausência aprovada deixa a pessoa ocupada para eventos e horas.' },
     'my-hours': { title: 'As minhas horas', summary: 'As horas que registou em todos os eventos, em qualquer empresa, mês a mês: o que aguarda, foi devolvido ou aprovado, e o que os dias aprovados pagam. Descarregue-as em CSV.' },
     'org-hours': { title: 'Horas', summary: 'As horas registadas de todos nos eventos da organização, por pessoa e mês, com o custo guardado quando cada dia foi aprovado. Só administradores. Descarregue-as em CSV.' },
@@ -232,6 +236,22 @@ export default {
       mistakes: [
         'Um pagamento não pode ser maior do que o que falta pagar, nem ter data no futuro.',
         '"Paga" segue os pagamentos: não há botão para desfazer além de remover um pagamento.',
+      ],
+    },
+    'office-money': {
+      title: 'Ver como está a empresa',
+      intro: 'Veja os resultados da empresa num mês, trimestre ou ano: o que entrou, quanto custou o trabalho, quanto custou manter a empresa e o que sobra.',
+      steps: [
+        'Abra Relatórios → Dinheiro. Escolha o período e com o que o comparar. Os quadros mostram a receita, a margem bruta, o resultado operacional e os eventos com prejuízo; o gráfico mostra o resultado operacional por mês.',
+        'Toque em "Mostrar detalhes": os resultados abrem linha a linha (receita por tipo, cada custo direto, gastos gerais por categoria) ao lado do período de comparação. Toque numa categoria para abrir as suas despesas.',
+        'Mude para Margens e agrupe por tipo de evento, estado, cliente, tipo de linha ou diretor de produção para ver onde se ganha dinheiro. "Margem por evento" abre a lista de eventos.',
+        'Mude para Mão de obra para comparar as horas e o custo planeados com as horas aprovadas, por evento ou por mês.',
+        'Descarregue o CSV ou imprima. O Resumo e o seu Início mostram os quatro quadros de dinheiro deste mês e deste ano.',
+      ],
+      mistakes: [
+        'Só os orçamentos aceites contam como receita: um evento com custos mas sem orçamento aceite baixa a margem até o orçamento ser aceite.',
+        'O que é estimado (mão de obra da tabela de cachês, unidades sem custo de compra) diz-se; artigos vendidos sem preço de custo não contam como custo.',
+        'Cada moeda aparece à parte e nunca é somada. Isto não é a contabilidade oficial.',
       ],
     },
     'office-gig-finance': {

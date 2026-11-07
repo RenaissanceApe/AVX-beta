@@ -5,7 +5,7 @@ built as the **K** steps ("key numbers"), in the order [ROADMAP.md](../ROADMAP.m
 in its own session with its prompt in [SESSION_PROMPTS.md](SESSION_PROMPTS.md). The expenses step
 they need (9b) is specified in [BUSINESS.md](BUSINESS.md).
 
-**Status (2026-11-05): K0 built (0.64.0), K1 built (0.69.0); the rest planned.** When a K step is built, its section below is
+**Status (2026-11-06): K0 built (0.64.0), K1 built (0.69.0), K2 built (0.75.0); the rest planned.** When a K step is built, its section below is
 replaced by "How K… works", in the same shape as BUSINESS.md, so the next session can connect to it
 without reading its code first.
 
@@ -299,20 +299,34 @@ and one view, no tables); checks in `supabase/tests/reports_k1.sql` (no delete s
 aren't accepted), never by adding up quote bodies in the browser; add a tab to `REPORT_TABS` and
 tiles to `OVERVIEW_TILES`; use the report parts and charts; check `private.require_finance`.
 
-## K2 · Money: results and margins
+## How K2 works (built in 0.75.0)
 
-Needs: K1, 9b, 10 (and 8 for actual labour).
+Results and margins for the whole company. Migration `20261225000000_finance_results.sql`
+(functions and one view, no tables); checks in `supabase/tests/finance_results.sql` (no delete
+statements). Decided with the owner on 2026-11-06: a gig with several production managers is shared
+equally between them; Results count accepted quotes only (as the Revenue tab); the four K2 tiles
+replace step 10's two monthly margin tiles. Defaults to confirm: PENDING D49.
 
-- **Results** per month, quarter or year, with the comparison: revenue by line kind; direct costs
-  (labour, subrentals, repairs not charged, gig expenses, cost of goods sold); gross margin in money
-  and %; overheads by category and depreciation → operating result; the estimated share of each.
-- **Margin** by gig (step 10's list), gig type, status, client, line kind and production manager.
-- **Labour**: planned against actual, per gig and per period, in hours and money.
-- One function, `public.finance_results(org, from, until, group_by)`, on `gig_finance`,
-  `report_revenue_lines` and the expenses.
-- Tiles: revenue this month against last year, margin % this year, operating result this year,
-  gigs with a negative margin.
-- Ask: production manager grouping; the tiles. (Repairs not charged to the client count against the gig: decided in step 10, 2026-11-05; `gig_finance` already counts them that way.)
+| Piece | How it works |
+|---|---|
+| `finance_results(org, from, until, group_by)` | One row per group and currency (never added across currencies). `group_by`: `total`, `month`, `quarter`, `year`, `gig`, `gig_type`, `status` (`base:<status>` or `own:<id>`), `client` (client id, else `name:<typed name>`), `kind`, `pm`. Rows with an empty `group_key` hold what has no such group (not on a gig, no client, overheads and depreciation for `kind`), so every grouping adds up to the total (checked in the test). Runs as the reader, calls `private.require_finance`; `jit = off`, `plan_cache_mode = force_custom_plan`. The browser passes `asOf` as `until`, so a period not yet over counts up to today |
+| Revenue | `report_revenue_lines` (accepted quotes only), by line kind: `revenue_rental`, `_sale`, `_crew`, `_transport`, `_other`; dated as K1 dates it (gig start date; no gig: first phase date, else issue date) |
+| Direct costs | From `gig_finance` for the gigs starting in the period (euros): `labour` (and `labour_estimated`, `labour_planned`, `labour_actual`), `subrentals`, `repairs` (not charged to the client), `gig_expenses` (step 10's other costs; a gig's costs in other currencies land here in their currency). `cogs`: each accepted sale line's quantity (the view `private.report_quote_lines` gained `qty`) × the item's `cost_price`, in euros; `cogs_missing` counts sale lines whose item has no cost price. `other_direct`: confirmed expenses of kind direct (or no category) not on a gig, or linked to a stock purchase, on their date; and confirmed or returned subrentals with no gig and no linked expense, on their start date |
+| Overheads | Confirmed expenses of kind `overhead` or `tax_other` not on a gig, on their date; `overheads_by_category` = `[{category_id, name, starter_key, amount}]`, biggest first |
+| Depreciation | `private.depreciation_lines(org, from, until)` (runs as the reader, finance check): per month and currency, an equal share each month from the month it starts, prorated by the days of each month inside the period. Units: `purchase_cost` (else the item's `cost_price`, counted in `depreciation_estimated`) over the unit's months, else the item's, else 60, from `purchase_date` (else when added), stopping after the month of `disposed_on`. Bulk purchases: `unit_cost × quantity` over the item's months (60 if empty), from the movement's date. Capital expenses: their cost over the category's `spread_months` (60 if empty), from their date. A unit or bulk purchase with a confirmed expense linked counts once, through the expense |
+| Results | `direct_costs`, `gross_margin`, `margin_pct` (when there is revenue), `operating_result` = gross margin − overheads − depreciation, `estimated` = rate-card labour + estimated depreciation |
+| Labour | `private.gig_labour_hours(org, gigs)` (security definer, finance check, totals per gig only): planned days (booked days, as the labour panel), planned hours (an hourly agreed fee's quantity, else days × `crew_rate_factors.overtime_after_hours`, 10 when not set), actual hours (the `worked` hours of approved days). In `days_planned`, `hours_planned`, `hours_actual` |
+| Gig counts | On the euro rows: `gigs`, `gigs_negative` (a quote and a negative step 10 margin), `gigs_without_accepted` (costs but no accepted quote: their costs count, their revenue doesn't) |
+| PM grouping | Each gig's members with role `pm` share it equally (`1 / number of PMs`); `group_label` is their name |
+| Overview tiles | `report_overview` gained `revenue_this_month` and `revenue_month_last_year` (per currency, the 1st up to today and the same days a year earlier), `margin_pct_year` (euros), `operating_result_year` (per currency) and `negative_margin_year`, this year up to today (step 10's function renamed `private.report_overview_pre_k2` and wrapped; its keys stay). `OVERVIEW_TILES`: `revenueThisMonth` (with "Same days last year"), `marginPctYear`, `operatingResultYear`, `negativeMarginYear`; step 10's `marginThisMonth` and `negativeMargin` left the tiles (Gig margins still has them) |
+| Screen | `components/reports/MoneyReport.jsx`, tab `money` of `REPORT_TABS`, menu Reports → Money. Views (`?view=`): **Results** (tiles with the comparison, operating result by month, or the steps from revenue to result for one month; the statement, with "Show details" adding revenue by kind, each direct cost, overheads by category linked to Expenses and the comparison column; what is estimated, in words), **Margins** (`?by=` gig type, status, client, kind, PM, month, quarter; chart, table, CSV; "Margin per gig" opens Gig margins), **Labour** (`?by=` gig or month: hours planned and approved, labour planned, actual and counted). A currency picker when there is more than one (labour is euros). Helpers in `src/lib/analytics/money.js` (unit tested); the browser only picks and labels rows |
+| Connected | Gig finance panel: "Company results" link. Overview and Home: the four tiles. Expenses: `?month=YYYY-MM&category=<id>` opens a month filtered to a category (the report's links). Gig cards: unchanged; their margin is `gig_finance`'s, the same per-gig number the report builds on |
+| Help | Terms gross margin, operating result, cost of goods sold (depreciation already existed); ⓘ `money-report`; guide `office-money` with four pictures (`money-results`, `money-details`, `money-margins`, `money-labour`) and the refreshed Overview picture; the screenshot script's mocks can now answer by the call's arguments |
+| Tests | `finance_results.sql`: every figure on its own fixtures (two currencies apart, a gig across two months, a quote with no gig, a capital expense spread over its months, a unit and a subrental each paid by an expense counted once, estimate flags, cost of goods sold with a missing cost price, each grouping adding up to the total, the overview tiles, who may call each function, 300 gigs under a second); Vitest for the helpers and tiles; the signed-in e2e journey opens the three views with axe |
+
+**For K3 and later:** read results through `finance_results` (or `private.depreciation_lines` for
+depreciation alone), never by adding up rows in the browser; add groupings to its `group_by` list
+and the test's "adds up to the total" loop together.
 
 ## K3 · Money: cash, spending and forecast
 

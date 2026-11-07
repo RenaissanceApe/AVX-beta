@@ -38,12 +38,13 @@ export default function ExpensesPage() {
   const canSee = role === 'admin' || role === 'member'
   const isAdmin = role === 'admin'
   const view = VIEWS.includes(params.get('view')) && (params.get('view') !== 'categories' || isAdmin) ? params.get('view') : 'month'
-  const [month, setMonth] = useState(fmt(new Date(), 'yyyy-MM'))
+  // Reports → Money opens a category's list with ?month=YYYY-MM&category=<id>
+  const [month, setMonth] = useState(() => (/^\d{4}-\d{2}$/.test(params.get('month') || '') ? params.get('month') : fmt(new Date(), 'yyyy-MM')))
   const [list, setList] = useState(null)
   const [categories, setCategories] = useState([])
   const [recovers, setRecovers] = useState(true)
   const [names, setNames] = useState({})
-  const [filter, setFilter] = useState({ category: '', kind: '', search: '' })
+  const [filter, setFilter] = useState(() => ({ category: params.get('category') || '', kind: '', search: '' }))
   const [details, setDetails] = useState(readDetails)
   const [editing, setEditing] = useState(null) // expense | 'new'
   const [version, setVersion] = useState(0)

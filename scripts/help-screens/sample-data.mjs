@@ -120,6 +120,42 @@ export function sampleData(persona, lang) {
         Math.round(revenue * (0.38 + (i % 3) * 0.12)), i === 6 ? 2900 : i % 4 === 1 ? 900 : 250, i % 5 === 2 ? 640 : 0, 120 + i * 15, { n: i + 1 })
     }),
   ]
+  // Reports → Money (K2): finance_results answers by grouping. A quarter's totals, split by month,
+  // client or gig; an earlier period (the comparison) is a little lower.
+  const moneyBase = { revenue: 48600, revenue_rental: 27800, revenue_sale: 3100, revenue_crew: 13400, revenue_transport: 4300, revenue_other: 0,
+    labour: 15200, labour_estimated: 1800, labour_planned: 15900, labour_actual: 11800, days_planned: 124, hours_planned: 1240, hours_actual: 960,
+    subrentals: 4800, repairs: 640, gig_expenses: 2150, other_direct: 380, cogs: 1240, overheads: 13900, depreciation: 3900, depreciation_estimated: 300, gigs: 14 }
+  const cats = [['rent_utilities', 6000], ['vehicle_running', 3600], ['insurance', 1800], ['accountant_legal', 1550], ['software', 950]]
+  const moneyRow = (key, label, f, { company = true, negative = 0, noAccepted = 0 } = {}) => {
+    const r = Object.fromEntries(Object.entries(moneyBase).map(([k, v]) => [k, Math.round(v * f * 100) / 100]))
+    if (!company) { r.overheads = 0; r.depreciation = 0; r.depreciation_estimated = 0 }
+    r.direct_costs = Math.round((r.labour + r.subrentals + r.repairs + r.gig_expenses + r.other_direct + r.cogs) * 100) / 100
+    r.gross_margin = Math.round((r.revenue - r.direct_costs) * 100) / 100
+    r.operating_result = Math.round((r.gross_margin - r.overheads - r.depreciation) * 100) / 100
+    return { group_key: key, group_label: label, currency: 'EUR', ...r, cogs_missing: 0, gigs: Math.round(r.gigs),
+      margin_pct: r.revenue ? Math.round(r.gross_margin * 1000 / r.revenue) / 10 : null, estimated: r.labour_estimated + r.depreciation_estimated,
+      overheads_by_category: company ? cats.map(([k, v]) => ({ category_id: `cat-${k}`, name: null, starter_key: k, amount: Math.round(v * f * 100) / 100 })) : [],
+      gigs_negative: negative, gigs_without_accepted: noAccepted }
+  }
+  const financeResults = ({ p_group = 'total', p_from = '' } = {}) => {
+    const f = p_from < day(-80) ? 0.88 : 1
+    if (p_group === 'month') {
+      const first = new Date(`${p_from}T00:00:00Z`)
+      return [0, 1, 2].map(i => {
+        const d = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + i, 1)).toISOString().slice(0, 7)
+        return d > day(0).slice(0, 7) ? null : moneyRow(d, null, f * [0.36, 0.41, 0.23][i])
+      }).filter(Boolean)
+    }
+    if (p_group === 'client') {
+      return [...clientsSample.map((c, i) => moneyRow(`cl${i}`, c, f * [0.34, 0.27, 0.22, 0.17][i], { company: false, negative: i === 3 ? 1 : 0 })),
+        { ...moneyRow(null, null, 0), overheads: 13900 * f, depreciation: 3900 * f, operating_result: -17800 * f }]
+    }
+    if (p_group === 'gig') {
+      return gigFinance.slice(0, 6).map((g, i) => ({ ...moneyRow(g.gig_id, g.gig_name, f * [0.16, 0.12, 0.1, 0.09, 0.08, 0.07][i], { company: false }),
+        hours_actual: [0, 96, 120, 64, 88, 40][i], labour_actual: i ? Math.round(moneyBase.labour_actual * [0.16, 0.12, 0.1, 0.09, 0.08, 0.07][i]) : null }))
+    }
+    return [moneyRow('total', null, f, { negative: 2, noAccepted: 1 })]
+  }
   const item = (id, name, category, tracking, extra = {}) => ({ id, org_id: orgId, name, category, tracking, kind: 'rental', unit: 'day', unit_price: 10, code: null, archived_at: null, ...extra })
   const items = [
     item(XLR, w.cables, w.cab, 'bulk', { code: 'XLR10', weight_kg: 0.6, unit_price: 2.5 }),
@@ -527,7 +563,10 @@ export function sampleData(persona, lang) {
       // Reports (K1): sample answers for report_overview, report_revenue_lines and equipment_report
       report_overview: { today: day(0), gigs_this_month: { total: 6, confirmed: 4 }, revenue_next_30: { EUR: 18450 },
         waiting: { count: 3, totals: { EUR: 9720 } }, equipment_use_90: 0.38,
-        margin_this_month: { EUR: 5420 }, margin_pct_this_month: 29.4, negative_margin: 1 },
+        margin_this_month: { EUR: 5420 }, margin_pct_this_month: 29.4, negative_margin: 1,
+        revenue_this_month: { EUR: 17480 }, revenue_month_last_year: { EUR: 14920 }, margin_pct_year: 47.6,
+        operating_result_year: { EUR: 21340 }, negative_margin_year: 4 },
+      finance_results: financeResults,
       report_revenue_lines: revenueLines,
       gig_finance: gigFinance,
       // Step 11b: the organisation's invoicing program, connected

@@ -7,6 +7,9 @@
 export default {
   terms: {
     'gig-margin': { term: 'Gig margin', definition: 'What a gig leaves after its direct costs: its revenue (every accepted quote, net; none accepted: the newest sent quote, an estimate) minus labour, confirmed subrentals, repairs not charged to the client and expenses linked to the gig. An expense linked to a subrental, repair or crew fee replaces its planned amount, so each cost counts once. In euros, excl. VAT.', example: 'Revenue €4,140 − costs €3,391 = margin €749 (18.1%).', where: 'Gig → Overview → Gig finance, Reports → Gig margins' },
+    'gross-margin': { term: 'Gross margin', definition: 'Revenue minus direct costs: labour, subrentals, repairs not charged to the client, gig expenses, other direct expenses and the cost of goods sold. The margin % is the gross margin ÷ revenue. Counted per currency, excl. VAT.', example: 'Revenue €48,600 − direct costs €24,410 = gross margin €24,190 (49.8%).', where: 'Reports → Money' },
+    'operating-result': { term: 'Operating result', definition: 'What the company keeps after every cost of running it: the gross margin minus overheads (rent, insurance, software, taxes and other running costs) and depreciation. Not the official accounts: your accountant\'s figures may differ.', example: 'Gross margin €24,190 − overheads €13,900 − depreciation €3,900 = €6,390.', where: 'Reports → Money, Reports → Overview' },
+    'cost-of-goods-sold': { term: 'Cost of goods sold', definition: 'What the things you sold cost you: each sale line\'s quantity × the item\'s cost price. A sale line whose item has no cost price isn\'t counted, and the report says how many there are.', example: '3 rolls of tape sold, cost price €20 each: €60.', where: 'Reports → Money' },
     'net-revenue': { term: 'Net revenue', definition: 'What accepted quotes bring in, excl. VAT: every priced line after its own discount, its phase\'s discount and the quote\'s discount. Optional phases and comments are left out. A quote counts on its gig\'s start date (no gig: its first phase date, else its issue date). Each currency is counted apart.', example: 'A €1,000 line in a phase with 10% off, on a quote with 5% off: €855.', where: 'Reports → Revenue' },
     estimate: { term: 'Estimate', definition: 'A figure worked out from a fallback because the real one isn\'t there yet, and marked as such: for example a gig\'s revenue taken from its newest sent quote while no quote is accepted. Drafts never count, not even as an estimate.', example: 'Labour panel: "Quoted (estimate: newest sent quote)".', where: 'Reports, gig → Crew → Labour cost' },
     'comparison-period': { term: 'Comparison period', definition: 'The period a report compares with: the previous period of the same length, or the same period last year. A period that isn\'t over yet is compared day for day, so the 1st to the 5th of this month is set against the 1st to the 5th of the last.', example: 'This quarter so far against the same weeks of last quarter.', where: 'Reports → Revenue' },
@@ -111,6 +114,7 @@ export default {
   hints: {
     'expense-category': 'Pick what the cost is for. The kind (job costs, running the company, equipment, taxes) decides where it counts in the results.',
     'gig-finance': 'Revenue, costs and margin of this gig, counted in the database. Labour uses approved hours (or the invoice) where there are any, else the agreed fee, else the rate card, marked as an estimate.',
+    'money-report': 'Results for the whole company, counted in the database: revenue, direct costs and gross margin, then overheads and depreciation to the operating result. Margins groups them by gig type, status, client, kind of line or production manager; Labour compares planned and approved hours.',
     'expense-link': 'If this is the invoice for a subrental, repair, crew fee or stock purchase, link it: it then replaces that record\'s planned amount, so the cost is counted once.',
     'expense-recurring': 'How often it comes back. The expense is drafted on each date for someone to confirm.',
     'expense-kind': 'Job costs belong to gigs; running the company is overhead; equipment and vehicles are spread over months; taxes and other stay apart.',
@@ -187,7 +191,7 @@ export default {
   pages: {
     'org-expenses': { title: 'Expenses', summary: 'Every company cost with its receipt: this month with totals by kind and category, what is unpaid and due, claims to approve and reimburse, recurring costs and (admins) the categories. The CSV is for your accountant; AVX doesn\'t keep the official accounts.' },
     'org-invoices': { title: 'Invoices', summary: 'Invoices for your accepted quotes. AVX prepares them; your certified invoicing program issues them, and you add the number here. To send: drafts and those sent to the program. Unpaid: issued, overdue first. An admin can connect your invoicing program (Moloni, InvoiceXpress, TOConline) so drafts go there and numbers come back; "CSV" downloads the invoices shown.' },
-    'org-reports': { title: 'Reports', summary: 'The organisation\'s numbers, counted in the database for admins and members. Overview shows the key numbers; Revenue shows net revenue of accepted quotes for a period, compared with the previous one or last year. "Show details" adds filters, groups, a table, CSV and print, and is remembered on this device.' },
+    'org-reports': { title: 'Reports', summary: 'The organisation\'s numbers, counted in the database for admins and members. Overview shows the key numbers; Revenue shows net revenue of accepted quotes for a period, compared with the previous one or last year; Money shows the company\'s results, margins and labour. "Show details" adds filters, groups, a table, CSV and print, and is remembered on this device.' },
     'org-leave': { title: 'Leave', summary: 'Who in the organisation is away each day, your holiday days and your requests. Admins also decide requests, enter leave for someone and set holiday days and working weeks. Approved leave makes the person busy for gigs and hours.' },
     'my-hours': { title: 'My hours', summary: 'The hours you logged on every gig, at any company, month by month: what is waiting, sent back or approved, and what approved days pay. Download them as a CSV.' },
     'org-hours': { title: 'Hours', summary: 'Everyone\'s logged hours on the organisation\'s gigs, per person and month, with the cost stored when each day was approved. Admins only. Download them as a CSV.' },
@@ -235,6 +239,22 @@ export default {
       mistakes: [
         'A payment can\'t be more than is left to pay, or dated in the future.',
         '"Paid" follows the payments: there is no button to undo it except removing a payment.',
+      ],
+    },
+    'office-money': {
+      title: 'See how the company is doing',
+      intro: 'Check the company\'s results for a month, quarter or year: what came in, what the work cost, what running the company cost, and what is left.',
+      steps: [
+        'Open Reports → Money. Pick the period and what to compare it with. The tiles show revenue, gross margin, operating result and the gigs that lost money; the chart shows the operating result by month.',
+        'Tap "Show details": the results open line by line (revenue by kind, each direct cost, overheads by category) next to the comparison period. Tap a category to open its expenses.',
+        'Switch to Margins and group by gig type, status, client, kind of line or production manager to see where the money is made. "Margin per gig" opens the list of gigs.',
+        'Switch to Labour to compare planned hours and cost with the hours approved, per gig or per month.',
+        'Download the CSV or print. The Overview and your Home show the four money tiles for this month and this year.',
+      ],
+      mistakes: [
+        'Only accepted quotes count as revenue: a gig with costs but no accepted quote lowers the margin until its quote is accepted.',
+        'Anything estimated (rate-card labour, units with no purchase cost) says so; sale items with no cost price aren\'t counted as a cost.',
+        'Each currency is shown apart and never added. This isn\'t the official accounts.',
       ],
     },
     'office-gig-finance': {
