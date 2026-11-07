@@ -30,7 +30,7 @@ create table if not exists public.finance_targets (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   removed_at timestamptz,
-  constraint finance_targets_kind_check check ((kind = 'budget') = (category_id is not null))
+  constraint finance_targets_category_check check ((kind = 'budget') = (category_id is not null))
 );
 create index if not exists finance_targets_org_idx on public.finance_targets (org_id) where removed_at is null;
 -- One live budget per category and currency, one live revenue target per currency
@@ -54,8 +54,7 @@ grant update (amount, removed_at) on public.finance_targets to authenticated;
 create or replace function private.finance_targets_before() returns trigger
 language plpgsql security invoker set search_path = '' as $$
 begin
-  if new.category_id is not null and not exists (
-       select 1 from public.expense_categories c where c.id = new.category_id and c.org_id = new.org_id) then
+  if not private.finance_refs_ok(new.org_id, null, new.category_id) then
     raise exception 'Category of another organisation' using errcode = '22023';
   end if;
   if tg_op = 'INSERT' then
@@ -65,7 +64,7 @@ begin
   new.updated_at := now();
   return new;
 end $$;
-create trigger finance_targets_before before insert or update on public.finance_targets
+create or replace trigger finance_targets_before before insert or update on public.finance_targets
   for each row execute function private.finance_targets_before();
 
 -- ── Open invoices ────────────────────────────────────────────────────────────
@@ -103,7 +102,8 @@ language sql stable security invoker set search_path = '' as $$
   select r.id, r.description, d.due, r.currency, round(r.amount_net + round(r.amount_net * r.vat_rate / 100, 2), 2)
     from public.expense_recurrences r
     cross join lateral (
-      select private.add_periods(r.starts_on, r.every, r.drafted + n) as due
+      -- the same date as private.add_periods (not granted to the app)
+      select (r.starts_on + make_interval(months => (r.drafted + n) * case r.every when 'month' then 1 when 'quarter' then 3 else 12 end))::date as due
         from generate_series(0, 60) n
     ) d
    where r.org_id = p_org and r.removed_at is null

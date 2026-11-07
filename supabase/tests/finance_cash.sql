@@ -195,8 +195,9 @@ begin
     select k.amount into got from k3 k where k.section = 'position' and k.month = r.mo::date and k.currency = r.cur;
     if got is distinct from r.amt then raise exception 'CHECK FAILED: position % %: %', r.mo, r.cur, got; end if;
   end loop;
-  -- Six months ahead: the recurring cost counts once per date (Oct draft + Nov–Mar projected = 6)
-  select count(*), sum(amount) into n, got from cash_report(org_a, '2026-10-01', '2026-11-01', 6, at_) where section = 'recurring';
+  -- Six months ahead: Cloud storage counts once per date (Oct draft + Nov–Mar projected = 6 × 123)
+  select count(*), sum(amount) into n, got from cash_report(org_a, '2026-10-01', '2026-11-01', 6, at_)
+   where section = 'recurring' and group_key = r1::text;
   if n <> 6 or got <> 738 then raise exception 'CHECK FAILED: six months of recurring: % rows, %', n, got; end if;
   -- Insurance's January date shows once the window reaches it: 1000
   select sum(amount) into got from cash_report(org_a, '2026-10-01', '2026-11-01', 4, at_) where section = 'recurring' and group_key = r2::text;
