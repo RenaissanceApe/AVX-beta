@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Wallet } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { selectAll } from '../../lib/selectAll'
+import { selectReport } from '../../lib/selectAll'
 import { logger } from '../../lib/logger'
 import { periodRange, comparisonRange, change, monthsOf, todayIn, periodKey, comparisonKey } from '../../lib/analytics/periods'
 import {
@@ -22,7 +22,7 @@ import { PeriodBar, GroupBy, ReportTable, ExportButtons, DetailsToggle, useDetai
 
 // One call of public.finance_results (counted in the database), 1000 rows at a time
 function loadRows(orgId, range, group) {
-  return selectAll(() => supabase.rpc('finance_results', { p_org: orgId, p_from: range.from, p_until: range.asOf || range.until, p_group: group })
+  return selectReport(() => supabase.rpc('finance_results', { p_org: orgId, p_from: range.from, p_until: range.asOf || range.until, p_group: group })
     .order('group_key', { nullsFirst: false }).order('currency'))
 }
 
