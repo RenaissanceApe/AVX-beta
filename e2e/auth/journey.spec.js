@@ -1,13 +1,15 @@
 import { test, expect } from '@playwright/test'
+import { RUN, PASSWORD } from './accounts.js'
 import AxeBuilder from '@axe-core/playwright'
 
 // Signed-in journeys against the Supabase TEST project (never production).
 // Run with E2E_AUTH=1 and the test project's URL/key — see docs/TESTING.md.
 // Each run signs up brand-new users and deletes them at the end, so runs don't
-// depend on each other and the test project doesn't fill up.
+// depend on each other and the test project doesn't fill up. If a test fails before that,
+// CI's sweep step deletes what this run made (scripts/e2e-sweep.mjs).
 
-const run = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
-const PASSWORD = 'e2e-Password-123'
+// The run tag and password are shared with the sweep step (accounts.js, scripts/e2e-sweep.mjs)
+const run = RUN
 const pm = { name: `E2E PM ${run}`, email: `e2e-pm-${run}@example.com` }
 const tech = { name: `E2E Tech ${run}`, email: `e2e-tech-${run}@example.com` }
 // Invited by email before having an account

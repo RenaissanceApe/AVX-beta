@@ -53,8 +53,23 @@ E2E_AUTH=1 npm run test:e2e
 npm run build            # rebuild without the exports before deploying anything
 ```
 
-If a run is interrupted, leftover `e2e-…@example.com` users can be removed in the test project →
-Authentication → Users.
+Every account a run creates is `e2e-<role>-<run>@example.com` (`e2e/auth/accounts.js`). In CI the
+run tag is the GitHub run (`E2E_RUN`), and the step "Sweep this run's test accounts" runs after the
+tests, even when one failed, and deletes exactly that run's accounts the way a person deletes their
+own (Settings → Your data): their organisations and gig files go too. It only signs in to that
+run's addresses, so it never touches anything else, and it refuses the production project.
+
+To sweep by hand (a run interrupted locally, or accounts a worker made with the tag `<step>`):
+
+```bash
+export VITE_SUPABASE_URL=https://idvebeadnrxudfgortzg.supabase.co
+export VITE_SUPABASE_ANON_KEY=<test project anon key>
+npm run e2e:sweep -- <tag>        # e.g. gh42513535881-1, or K4
+```
+
+Locally, set `E2E_RUN=<your tag>` before `npm run test:e2e` so you know which tag to sweep. An
+account the sweep can't delete (it says which) can be removed in the test project → Authentication
+→ Users.
 
 ### Database access rules
 

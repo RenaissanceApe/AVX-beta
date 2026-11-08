@@ -78,11 +78,18 @@ What a worker does differently from a solo session. Everything else in CLAUDE.md
    project is for this. Put the outline in the PR under *For the owner*. **Never touch
    production**; the Dispatcher applies to production at the end, after your yes. Edge Functions:
    same, deploy to test only.
-7. **Report** in the PR description, using every section of the PR template, and file an issue for
+7. **Test accounts:** CI cleans up after itself. Every signed-in test run tags its accounts with
+   the run, and the "Sweep this run's test accounts" step deletes exactly those, even when a test
+   failed. If you create accounts on the test project yourself (to try something by hand), use
+   `e2e-worker-<step>@example.com` (or `worker2`, `worker3`) with the password in
+   `e2e/auth/accounts.js`, and before opening your PR run
+   `npm run e2e:sweep -- <step>` with the test project's URL and anon key set (docs/TESTING.md).
+   Say in *Tests run* that you did. Never delete accounts or rows any other way.
+8. **Report** in the PR description, using every section of the PR template, and file an issue for
    each *should fix* or *urgent* finding (see "Reports" below).
-8. **When done**, message the Dispatcher: `Done: <step>, PR #<n>`. Then stay available: the
+9. **When done**, message the Dispatcher: `Done: <step>, PR #<n>`. Then stay available: the
    Dispatcher may send fixes back. When it does, fix them on the same branch and push.
-9. If your PR can't be merged because `test` moved on, merge `origin/test` into your branch,
+10. If your PR can't be merged because `test` moved on, merge `origin/test` into your branch,
    resolve the conflicts, run `npm run check` and push.
 
 ## Reports
@@ -158,7 +165,9 @@ the live app: the worker messages the Dispatcher at once, and the Dispatcher tel
 
 5. **Watch.** Subscribe to each worker's PR when it opens. On a red check, send the worker the
    failing check's name and the first error lines, nothing more. On an urgent finding, tell the
-   owner at once. As a fallback, check each worker every hour.
+   owner at once. If a run's **sweep step** fails (test accounts left behind), send the worker its
+   log lines: the worker deletes what's left with `npm run e2e:sweep -- <tag>` (the tag is in
+   the log). As a fallback, check each worker every hour.
 6. **Integrate.** Merge each green worker PR into `test` (squash), one at a time. If the next one
    now conflicts, ask its worker to merge `origin/test` and push. When a line of the set is merged,
    dispatch the next line.
