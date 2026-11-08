@@ -408,20 +408,31 @@ D50 kept. Costs are in euros, as in K2; another currency shows its revenue only.
 through `private.equipment_hire_lines`, units' owned periods through `private.equipment_units`),
 never by adding up rows in the browser.
 
-## K6 · Warehouse and upkeep
+## How K6 works (built in the "Money reports" set)
 
-Needs: K5.
+Warehouse and upkeep. Migration `20261231000000_warehouse_numbers.sql` (two columns, a trigger and
+functions; only adds); checks in `supabase/tests/warehouse_numbers.sql` (no destructive statements).
+Decided with the owner on 2026-11-08: **"prepped" = scanned out**; the **idle period is 12 months**.
+Defaults D42, D44, D49, D50 kept. Cancelled gigs (K7) hold no equipment and are left out of demand
+and dispatch.
 
-- **Demand against stock**: the busiest moment booked against what was owned then (from the
-  ledger and unit history), days short, how often it was hired in; idle stock and "sell?"
-  candidates (no confirmed booking in 12 months, with book value).
-- **Suppliers**: hire-in spend per supplier, requests confirmed or declined, time to answer.
-- **Damage and loss**: repairs per item, gig and client; time from reported to repaired; cost and
-  what was charged back; losses per gig and client; inspections due, overdue and their cost.
-- **Dispatch**: per gig, scanned out against planned and back against out, still missing; scans per
-  day (warehouse workload); how many days before the gig gear left.
-- Tiles: items short in the next 30 days, units in repair, inspections overdue.
-- Ask: which dispatch steps count as "prepped"; the idle period.
+| Piece | How it works |
+|---|---|
+| Who may | `private.require_ops` (K7): the organisation's admins and members, second sign-in step when set up. Security definer, like K7's reports. Money (book value, spend, repair and loss costs) only where `private.can_see_finance`, else `null` and the screen hides those columns |
+| Request times | `subrentals.requested_at` (set when the status becomes `requested`) and `decided_at` (when a request goes from requested to confirmed or declined: the supplier's `answered_at`, else now). Written only by the trigger `subrentals_times` (after `subrentals_before`); nothing is backfilled: older requests use `created_at` and `answered_at` |
+| `private.warehouse_demand_rows(org, from, until)` | Per stock item (rental or sale, tracked, not a set: a set on a gig becomes its contents): **booked** = equipment reservations not cancelled (holds included, as the availability check; their periods include prep and return days); **owned on a day** = units owned that day (K5's `private.equipment_units`: purchase date, else added, until lost or retired) + the bulk ledger up to that day (`private.equipment_bulk_moves`); units in repair still count; **hired in** at a moment = confirmed or returned subrental lines covering it (not on a cancelled gig). Each day's busiest moment is found at the starts of the bookings running that day. Returns the peak (booked, when, owned then, hired then, short then), `days_over` (booked > owned), `days_short` (booked > owned + hired), `max_short`, `first_short` |
+| `warehouse_demand(org, from, until, at)` | jsonb `{ today, from, until, money, items }`: those rows for every stock item owned or booked, plus `owned` now, `hire_ins` / `hired_units` (subrentals with the item overlapping the period), `last_confirmed`, `idle` (owned now, no confirmed booking from 12 months ago onwards; future bookings count) and `book_value` (live units' cost less K5 depreciation so far, plus bulk purchases' cost less theirs for the share still owned; `book_value_estimated` when a unit uses the item's cost price). At most 400 days |
+| `warehouse_suppliers(org, from, until, at)` | Requests (not drafts) dated like hire-in (gig start, else their start): per supplier and in total, requests, confirmed (with returned), declined, waiting, cancelled, answered and the median time to answer (answer − sent); `spend` from K5's `private.equipment_hire_lines` (euros) |
+| `warehouse_damage(org, from, until, at)` | Repairs reported in the period: count, units, open, done, written off, median and average days to repair (done ones), cost (a confirmed linked expense in euros replaces it, as K5), charged back (cost of "charge client" repairs), invoiced; per item, per gig (with client) and per client. Losses: units lost in the period on the gig they last went out to with no later return (undone scans left out), bulk lost − found; value = replacement value, else cost, less any payout. Inspections from `private.maintenance_due_all` (never inspected = due today): overdue (before today), due now, due in 30 days, never; done, failed and cost in the period; per item |
+| `warehouse_dispatch(org, from, until, at)` | Gigs starting in the period (not cancelled) with gear planned or scanned: planned, out, back, `short_out` (planned − out per item), `missing` (out − back per item; totals count ended gigs), first out scan and `lead_days` (start date − its day; negative = after the start), lead buckets; scans per day (not undone, not on cancelled gigs) and the busiest day |
+| `report_overview_k6(org, at)` | K6's own tile function: `items_short_30` (items with a day still short from today to 29 days ahead), `units_in_repair` (`stock_totals.in_repair`), `inspections_overdue`, `never_inspected`. `OVERVIEW_TILES`: `itemsShort30` (opens Demand for the next 30 days), `unitsInRepair` (Inventory → Maintenance), `inspectionsOverdue` (Damage and loss). The morning reminders still notify due inspections; K6 sends nothing |
+| Screen | `components/reports/WarehouseReport.jsx`, tab `warehouse` of `REPORT_TABS` (menu Reports → Warehouse). Views `?view=demand|suppliers|damage|dispatch`, this month by default; "Show details" adds the tables: Demand's filter `?show=short|idle|all`, Damage's grouping `?by=item|gig|client`, losses and inspections due, Dispatch per gig and the lead-time chart. CSV and print. Helpers `src/lib/analytics/warehouse.js` (unit tested) |
+| Connected | Inventory → Maintenance: "Repair and inspection numbers"; Inventory → Subrentals: "Supplier numbers"; dispatch page: "Dispatch numbers" (admins and members); Overview and Home: the three tiles; Demand's hire-in count opens Reports → Equipment → Buy or hire in for the item |
+| Help | Terms demand against stock, idle stock; ⓘ `warehouse-report`; guide `warehouse-numbers` with four pictures (`wh-demand`, `wh-suppliers`, `wh-damage`, `wh-dispatch`) and the refreshed Overview picture |
+| Tests | `warehouse_numbers.sql`: past stock from the ledger (10 mics, 4 lost mid-month), a subrental covering part of a booking (days over 4, still short 3), a cancelled gig's booking and scan left out, idle items with book value (units and bulk), supplier answers (24 h and 6 h → median 15) and spend, repairs per gig and client, a unit lost after its return scan was undone, inspections overdue and never done, dispatch per gig with an undone scan left out, the tiles, who may call each function (admin, member; viewer, another organisation, anonymous refused), a too-long period, the request-time trigger. Vitest for the helpers and tiles; the signed-in e2e journey opens the four views with axe |
+
+**For later steps:** demand against stock is `private.warehouse_demand_rows`; read hire-in cost
+through K5's `private.equipment_hire_lines`.
 
 ## How K7 works (built with the "Money reports" set)
 

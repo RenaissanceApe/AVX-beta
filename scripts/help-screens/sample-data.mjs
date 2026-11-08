@@ -697,6 +697,59 @@ export function sampleData(persona, lang) {
       report_revenue_lines: revenueLines,
       gig_finance: gigFinance,
       // Reports → Operations (K7): answers for each month of the asked period
+      // Reports → Warehouse (K6)
+      report_overview_k6: { items_short_30: 2, units_in_repair: 3, inspections_overdue: 4, never_inspected: 1 },
+      warehouse_demand: {
+        today: day(0), money: true,
+        items: [
+          { item_id: SPK, name: w.speaker, category: 'Audio', tracking: 'serial', owned: 8, peak_booked: 12, peak_day: day(-9), owned_at_peak: 8, hired_at_peak: 4, short_at_peak: 0, days_over: 3, days_short: 1, max_short: 2, hire_ins: 2, hired_units: 6, last_confirmed: day(-7), idle: false, book_value: 9600, book_value_estimated: false },
+          { item_id: XLR, name: w.cables, category: tx('Cabos', 'Cables'), tracking: 'bulk', owned: 120, peak_booked: 140, peak_day: day(6), owned_at_peak: 120, hired_at_peak: 0, short_at_peak: 20, days_over: 2, days_short: 2, max_short: 20, hire_ins: 0, hired_units: 0, last_confirmed: day(-3), idle: false, book_value: 410, book_value_estimated: false },
+          { item_id: QL1, name: w.desk, category: 'Audio', tracking: 'serial', owned: 2, peak_booked: 2, peak_day: day(-14), owned_at_peak: 2, hired_at_peak: 0, short_at_peak: 0, days_over: 0, days_short: 0, max_short: 0, hire_ins: 0, hired_units: 0, last_confirmed: day(-14), idle: false, book_value: 14200, book_value_estimated: false },
+          { item_id: PWC, name: w.powercon, category: tx('Cabos', 'Cables'), tracking: 'bulk', owned: 40, peak_booked: 0, owned_at_peak: null, hired_at_peak: 0, short_at_peak: 0, days_over: 0, days_short: 0, max_short: 0, hire_ins: 0, hired_units: 0, last_confirmed: day(-420), idle: true, book_value: 180, book_value_estimated: true },
+        ],
+      },
+      warehouse_suppliers: {
+        today: day(0), money: true,
+        totals: { requests: 9, confirmed: 6, declined: 2, waiting: 1, cancelled: 0, answered: 8, median_answer_hours: 5.5, spend: 2340 },
+        suppliers: [
+          { supplier_id: 'sp1', name: 'Audiomatic', requests: 5, confirmed: 4, declined: 1, waiting: 0, cancelled: 0, answered: 5, median_answer_hours: 3, spend: 1640 },
+          { supplier_id: 'sp2', name: 'LuzPro Aluguer', requests: 3, confirmed: 2, declined: 0, waiting: 1, cancelled: 0, answered: 2, median_answer_hours: 26, spend: 700 },
+          { supplier_id: 'sp3', name: 'Palco Norte', requests: 1, confirmed: 0, declined: 1, waiting: 0, cancelled: 0, answered: 1, median_answer_hours: 50, spend: 0 },
+        ],
+      },
+      warehouse_damage: {
+        today: day(0), money: true,
+        repairs: { count: 7, units: 9, open: 3, done: 4, written_off: 0, median_days: 6.5, average_days: 8.2, charged_count: 2, invoiced_count: 1, cost: 645, charged: 265 },
+        by_item: [
+          { item_id: SPK, name: w.speaker, repairs: 3, units: 3, open: 1, median_days: 9, cost: 435, charged: 180 },
+          { item_id: XLR, name: w.cables, repairs: 3, units: 5, open: 2, median_days: 2, cost: 60, charged: 0 },
+          { item_id: QL1, name: w.desk, repairs: 1, units: 1, open: 0, median_days: 14, cost: 150, charged: 85 },
+        ],
+        by_gig: [{ gig_id: gigId, name: gig.name, start_date: day(-20), client: 'Teatro Aveirense', repairs: 2, cost: 265, charged: 180, lost: 1, lost_value: 1450 }],
+        by_client: [{ client_id: 'cl0', name: 'Teatro Aveirense', repairs: 2, cost: 265, charged: 180, lost: 1, lost_value: 1450 }, { client_id: null, name: null, repairs: 5, cost: 380, charged: 85, lost: 0, lost_value: 0 }],
+        losses: { units: 1, bulk: 6, on_gigs: 1, value: 1510, items: [{ item_id: XLR, name: w.cables, units: 6, value: 60 }, { item_id: SPK, name: w.speaker, units: 1, value: 1450 }] },
+        inspections: { overdue: 4, due_now: 5, never: 1, due_30: 6, done: 12, failed: 1, cost: 240,
+          items: [{ item_id: XLR, name: w.cables, overdue: 1, due_30: 0, never: 1, next_due: day(-40) }, { item_id: SPK, name: w.speaker, overdue: 3, due_30: 5, never: 0, next_due: day(-12) }, { item_id: PWC, name: w.powercon, overdue: 0, due_30: 1, never: 0, next_due: day(18) }] },
+      },
+      warehouse_dispatch: ({ p_from, p_until }) => {
+        const scans = []
+        for (let d = new Date(`${p_from}T00:00:00Z`), i = 0; d.toISOString().slice(0, 10) < p_until; d.setUTCDate(d.getUTCDate() + 1), i++) {
+          if (i % 7 === 5 || i % 7 === 6) continue
+          scans.push({ day: d.toISOString().slice(0, 10), scans: 6 + ((i * 7) % 23), units: 40 + i, scans_out: 4, scans_in: 2 })
+        }
+        return {
+          today: day(0),
+          totals: { gigs: 6, planned: 412, out: 398, back: 380, short_out: 14, missing: 9, gigs_missing: 2, scans: scans.reduce((n, r) => n + r.scans, 0),
+            busiest_day: scans.length ? { day: scans[3]?.day || scans[0].day, scans: 28 } : null, median_lead_days: 1,
+            lead: { after: 0, same_day: 2, one: 3, two_three: 1, more: 0 } },
+          gigs: [
+            { gig_id: gigId, name: gig.name, start_date: day(-20), end_date: day(-18), ended: true, planned: 96, out: 96, back: 90, short_out: 0, missing: 6, lead_days: 1 },
+            { gig_id: 'g-jazz', name: 'Jazz no Parque', start_date: day(-8), end_date: day(-8), ended: true, planned: 54, out: 50, back: 47, short_out: 4, missing: 3, lead_days: 0 },
+            { gig_id: 'g-gala', name: 'Gala Sintra', start_date: day(4), end_date: day(4), ended: false, planned: 62, out: 52, back: 0, short_out: 10, missing: 52, lead_days: 2 },
+          ],
+          scans_by_day: scans,
+        }
+      },
       report_overview_k7: { crew_days_month: 46, open_positions_14: 3, overdue_tasks: 2, hours_waiting: { days: 5, hours: 47.5 } },
       ops_activity: ({ p_from, p_until }) => {
         const months = []

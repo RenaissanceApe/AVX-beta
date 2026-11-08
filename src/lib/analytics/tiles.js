@@ -10,6 +10,8 @@
 // function in OVERVIEW_SOURCES and merges them), so a K step can add tiles without changing
 // report_overview.
 
+import { todayIn, addDaysIso } from './periods'
+
 export const OVERVIEW_TILES = [
   { key: 'gigsThisMonth', kind: 'count', value: o => o?.gigs_this_month?.total ?? 0,
     sub: o => ({ key: 'reports.tileSub.confirmed', vars: { count: o?.gigs_this_month?.confirmed ?? 0 } }), to: base => `${base}?view=calendar` },
@@ -47,6 +49,13 @@ export const OVERVIEW_TILES = [
   { key: 'worstEarnerYear', kind: 'money', source: 'report_overview_k5', value: o => earner(o?.worst_earner_year),
     sub: o => earnerSub(o?.worst_earner_year), to: base => `${base}/reports?tab=equipment&period=this_year&sort=profit_asc` },
   { key: 'hireInYear', kind: 'money', source: 'report_overview_k5', value: o => o?.hire_in_year || {}, to: base => `${base}/reports?tab=equipment&view=buy` },
+  // K6 (public.report_overview_k6, its own function next to report_overview)
+  { key: 'itemsShort30', source: 'report_overview_k6', kind: 'count', value: o => o?.items_short_30 ?? 0,
+    to: base => next30Link(base) },
+  { key: 'unitsInRepair', source: 'report_overview_k6', kind: 'count', value: o => o?.units_in_repair ?? 0, to: base => `${base}/inventory?tab=maintenance` },
+  { key: 'inspectionsOverdue', source: 'report_overview_k6', kind: 'count', value: o => o?.inspections_overdue ?? 0,
+    sub: o => (Number(o?.never_inspected) ? { key: 'reports.tileSub.neverInspected', vars: { count: Number(o.never_inspected) } } : null),
+    to: base => `${base}/reports?tab=warehouse&view=damage` },
   // K7 (public.report_overview_k7, its own function next to report_overview)
   { key: 'crewDaysMonth', source: 'report_overview_k7', kind: 'count', value: o => o?.crew_days_month ?? 0, to: base => `${base}/reports?tab=operations&view=people` },
   { key: 'openPositions14', source: 'report_overview_k7', kind: 'count', value: o => o?.open_positions_14 ?? 0, to: base => `${base}/reports?tab=operations&view=staffing&period=this_month` },
@@ -74,6 +83,13 @@ export function winRateSub(o) {
   if (!w || !Number(w.decided)) return { key: 'reports.tileSub.noDecided', vars: {} }
   if (w.by_value == null) return { key: 'reports.tileSub.decided', vars: { count: Number(w.decided) } }
   return { key: 'reports.tileSub.byValue', vars: { pct: Math.round(Number(w.by_value) * 100) } }
+}
+
+// Reports → Warehouse → Demand over the next 30 days (today in the browser's time zone), items over stock
+// (a custom period's `until` is its last day, so today + 29)
+export function next30Link(base, now = new Date(), timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone) {
+  const from = todayIn(timeZone, now)
+  return `${base}/reports?tab=warehouse&period=custom&from=${from}&until=${addDaysIso(from, 29)}&show=short`
 }
 
 // An item's profit as a tile's money, and its name as the line under it (K5)

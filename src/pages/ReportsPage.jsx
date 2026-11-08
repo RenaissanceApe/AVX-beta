@@ -15,10 +15,11 @@ import MoneyReport from '../components/reports/MoneyReport'
 import SalesReport from '../components/reports/SalesReport'
 import EquipmentReport from '../components/reports/EquipmentReport'
 import OperationsReport from '../components/reports/OperationsReport'
+import WarehouseReport from '../components/reports/WarehouseReport'
 import { PrintStyles } from '../components/reports/ReportParts'
 
 // Later K steps add their tabs here (and their tiles in src/lib/analytics/tiles.js)
-export const REPORT_TABS = ['overview', 'revenue', 'money', 'margins', 'sales', 'equipment', 'operations']
+export const REPORT_TABS = ['overview', 'revenue', 'money', 'margins', 'sales', 'equipment', 'warehouse', 'operations']
 
 // Reports (step K1) at /org/:orgId/reports?tab=…, for those who see money (admins and members,
 // private.can_see_finance). Everything is counted in the database (docs/ANALYTICS.md).
@@ -96,6 +97,7 @@ export default function ReportsPage() {
         {tab === 'operations' && <OperationsReport orgId={orgId} timeZone={org?.time_zone} labels={labels} params={params} setParam={setParam} isAdmin={role === 'admin'} />}
         {tab === 'margins' && <GigMarginsReport orgId={orgId} timeZone={org?.time_zone} labels={labels} params={params} setParam={setParam} />}
         {tab === 'equipment' && <EquipmentReport orgId={orgId} timeZone={org?.time_zone} params={params} setParam={setParam} />}
+        {tab === 'warehouse' && <WarehouseReport orgId={orgId} timeZone={org?.time_zone} params={params} setParam={setParam} />}
       </div>
     </AppShell>
   )

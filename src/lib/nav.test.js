@@ -31,6 +31,8 @@ describe('navigation', () => {
     expect(member).toEqual(expect.arrayContaining(['reportsOverview', 'reportsRevenue', 'reportsMoney', 'reportsSales']))
     expect(viewer).not.toContain('reportsOverview')
     expect(member).toContain('reportsOperations')
+    expect(member).toContain('reportsWarehouse')
+    expect(viewer).not.toContain('reportsWarehouse')
     expect(viewer).not.toContain('reportsOperations')
     expect(viewer).toContain('members')
     expect(viewer).toContain('orgTasks')
