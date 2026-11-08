@@ -35,6 +35,12 @@ up front. What each release changed is in [CHANGELOG.md](CHANGELOG.md).
 | Step 12: repairs charged to the client (added once to the gig's invoice draft), payments against invoices (part payments, paid when covered) | 0.74.0 | [docs/BUSINESS.md](docs/BUSINESS.md) |
 | K2: money, results and margins (Reports → Money: results with overheads and depreciation, margins by type, status, client, kind and PM, planned against actual labour; `finance_results`; four money tiles) | 0.75.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
 | K3: money, cash, spending and forecast (Reports → Money: cash position three months ahead, overdue by age, client balances, spending with the biggest changes, forecast with the win rate beside it, budgets and a revenue target; four cash tiles) | 0.76.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
+| K4: sales and clients (Reports → Sales: quotes waiting and to follow up, win rate by period, gig type, client, author, lost reason or a choice field; clients with revenue, margin, gigs, new and returning; a numbers card in Contacts; a follow-up filter in Quotes; three tiles) | 0.77.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
+| K5: equipment money (Reports → Equipment: profit per item, category and unit, payback, buy or keep hiring in, purchase-cost coverage; item numbers card; "buy instead?" on subrentals; three tiles) | 0.77.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
+| K6: warehouse and upkeep (Reports → Warehouse: demand against stock and idle gear, suppliers, damage and loss with inspections, dispatch; three tiles) | 0.77.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
+| K7: operations and people (Reports → Operations: activity, people, staffing, tasks; gig wrap-up; person page for admins; a "cancelled" gig status; four tiles) | 0.77.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
+| K8: crew numbers (My numbers in My work, year statement per company, fee paid and received, Expenses → Crew to pay, crew fees in the cash position; a tile) | 0.77.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
+| K9: report extras (weekly key-numbers email for admins, saved views pinned to the Overview, monthly management pack PDF, read-only accountant link) | 0.77.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
 | Truss load tables (data only, waiting for a second check) | 0.60 | [docs/TRUSS_DATA.md](docs/TRUSS_DATA.md) |
 | Privacy and security check: data map, OWASP review, sign-in failure tests | 0.62.1 | [docs/DATA_MAP.md](docs/DATA_MAP.md), [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) |
 
@@ -50,12 +56,6 @@ the data it counts.
 
 | # | What | Needs | Connect | Plan | Prompt |
 |---|---|---|---|---|---|
-| K4 | **Sales and clients** | K0, K1, 10 | Quotes list, contacts, Overview | ANALYTICS.md | K4 |
-| K5 | **Equipment money**: profit, payback, buy or keep hiring in | K0, K1 | Inventory → Reports, item page, subrentals, Overview | ANALYTICS.md | K5 |
-| K6 | **Warehouse and upkeep** numbers | K5 | Maintenance, subrentals, dispatch, Overview | ANALYTICS.md | K6 |
-| K7 | **Operations and people** | K1, 8, 9 | Crew tab, tasks, gig wrap-up page, Overview, data map | ANALYTICS.md | K7 |
-| K8 | **Crew numbers** in My work, fee paid, year statement | K1, 7b, 8, 9b | My work, labour cost panel, My fee, K3, step 27 | ANALYTICS.md | K8 |
-| K9 | Report extras, only those you pick: weekly email, saved views, monthly PDF, accountant link | K2–K8 | Email summary, Overview | ANALYTICS.md | K9 |
 | 13 | **A1** speaker library | catalogue | F4 sound calculator; later P1 and RG3 | TOOLS_PLAN.md §6 | S07 |
 | 14 | **MVR/GDTF import** [29] and MVR export | light plot, DMX patch | Fixture weights and power for P1 and RG1 | TOOLS_PLAN.md, FIELD_TOOLS.md | S08 |
 | 15 | **P1–P2** power and cables (with the 2026-11-03 additions: loads typed by hand, a connected status, fill-to-reserve) | light plot, 13, 14 | Light plot power estimate, gig equipment (distros, cables), labels (U5: distros and cables) | TOOLS_PLAN.md §4, "Decided (2026-11-03)" | S09, S10 |

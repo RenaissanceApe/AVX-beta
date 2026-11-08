@@ -1,5 +1,183 @@
 # Changelog
 
+## 0.77.0 — Money reports: sales, equipment, warehouse, operations, crew numbers and extras
+
+### K4: Sales and clients
+
+#### Added
+- **Reports → Sales → Waiting:** the quotes sent and still without an answer, as of today: their
+  value, how many the client opened, which expire within 7 days, and a chart of their value by age
+  (0–7, 8–14, 15–30, over 30 days). Below it, the **follow-up list**: quotes sent 7 or more days ago,
+  still valid and with no answer, each one a tap away. Quotes past their validity are named apart
+  (they stay out of the win rate). "Show details" lists every waiting quote with its sent date,
+  validity and who made it.
+- **Win rate:** quotes accepted ÷ (accepted + declined), by count and by value, for the period you
+  pick and against the comparison period, grouped by month, quarter, gig type, client, who made the
+  quote, lost reason or one of your own "choice" fields (such as a sales channel). Also the median
+  time from sending to the answer, the average quote value, the discounts given on accepted quotes
+  (list price against what they were accepted for) and why quotes were lost.
+- **Clients:** each client's revenue, margin, gigs and average gig for the period; "Show details"
+  adds quotes, win rate and the first, last and next gig. Tiles show what the top 5 clients bring
+  and how many clients are new or returning.
+- **Three new key numbers** on Reports → Overview and your Home: quotes to follow up, win rate over
+  the last 90 days and the top client this year.
+- Help guide "Follow up quotes and see what sells", with pictures, and the terms follow-up, time to
+  decide, discounts given, new and returning clients.
+
+#### Connected
+- **Quotes:** a "To follow up" choice in the status filter (also opened from the report and the
+  new tile).
+- **Contacts:** each client's card shows its numbers for the last 12 months (revenue, margin, gigs,
+  average gig, quotes, win rate, first, last and next gig), with a link to Reports → Sales.
+- **Overview:** the "Quotes waiting for an answer" tile now opens Reports → Sales.
+
+### K5: Equipment money
+
+#### Added
+- **Reports → Equipment: what your gear earns.** Profit per item, category or unit in any period:
+  revenue minus depreciation, repairs not charged to the client, inspections, hire-in for the
+  item and losses at replacement value (less any payout). A set's revenue is shared out to its
+  contents by their day prices; rental lines typed by hand show as "not linked to an item: N%".
+  Labour is not shared out to equipment. Tiles compare with the previous period or last year;
+  the chart shows the best and worst items; "Show details" groups by item, category or unit
+  (a unit bought mid-period gets a smaller share).
+- **Payback** per item and unit: revenue since purchase against the purchase cost, the day it
+  paid for itself, or when it will at the pace of the last 12 months.
+- **Buy or keep hiring in:** what each item cost to hire in over the last 12 months against the
+  cost to buy as many as you hired at once (cost price, else replacement value), and the months
+  that would take to pay back.
+- **Purchase costs:** how many items and units have a purchase cost, with a list of the items to
+  fill in.
+- **A Numbers card on each item page:** revenue so far, payback, use over 12 months and the next
+  bookings.
+- **Three new key numbers** on Reports → Overview and your Home: best and worst earner this year,
+  and hire-in spend this year.
+- Help guide "See what your equipment earns", with pictures, and the terms equipment profit,
+  payback, and buy or keep hiring in.
+
+#### Connected
+- Inventory → Reports now opens Reports → Equipment; the old use-and-value table is its
+  "Use and value" view (the menu item and the equipment-use tile point there too).
+- Inventory → Subrentals lists items hired in during the last 12 months with a "Buy instead?"
+  link to that item in "Buy or hire in".
+- The item page shows the Numbers card (admins and members).
+- Overview and Home: the three tiles, read from their own function (`report_overview_k5`); the
+  Overview now calls `report_overview` plus any function a tile names as its `source`.
+
+### K6: Warehouse and upkeep
+
+#### Added
+- **Reports → Warehouse** (admins and members): four views for any period, days still to come
+  included. *Demand*: for each item, the busiest moment booked against what you owned that day
+  (from the stock history) and what you hired in for it, the days over stock, the days still short
+  after hiring in and how often it was hired in; idle gear (no confirmed booking in 12 months) with
+  its book value, as candidates to sell. *Suppliers*: hire-in spend per supplier, requests confirmed
+  or declined and how long suppliers take to answer. *Damage and loss*: repairs per item, gig and
+  client, how long they took, their cost and what was charged back; losses per gig and client;
+  inspections overdue, due in 30 days, never done, and their cost. *Dispatch*: per gig, scanned out
+  against planned, back against out and still missing; how many days before the gig gear left;
+  scans per day (the warehouse's workload). CSV and print. Money shows only for those who see it.
+- Three Overview tiles: items short in the next 30 days, units in repair, inspections overdue
+  (with how many were never inspected).
+- Hire requests now remember when they were sent and when they were answered, so the time to answer
+  can be counted.
+- Help: terms demand against stock, idle stock; ⓘ on the Warehouse report; guide "See how the
+  warehouse is doing" with four new pictures and the refreshed Overview and Home pictures.
+
+#### Connected
+- Inventory → Maintenance: "Repair and inspection numbers" (admins and members).
+- Inventory → Subrentals: "Supplier numbers" next to the suppliers.
+- Dispatch page: "Dispatch numbers" for the organisation's admins and members.
+- Overview and Home: the three tiles. The morning reminders keep notifying inspections that are due;
+  nothing new is sent.
+- Menu: Reports → Warehouse.
+
+### K7: Operations and people
+
+#### Added
+- **Reports → Operations** (admins and members): four views for any period. *Activity*: gigs and
+  gig days per month by status or type, cancellations, the busiest days and how far ahead gigs are
+  booked. *People*: crew days (and the share done by freelancers), hours approved against planned,
+  overtime, night, weekend and holiday hours, hours waiting for approval and how long approval
+  takes; admins also get one row per person with utilisation and leave. *Staffing*: positions open
+  and filled by gig date, how long they took to fill, crew-call answers and job posts. *Tasks*:
+  open, overdue and done on time, per gig (and per person for admins). CSV and print.
+- **Gig wrap-up**: a printable page per gig once it has ended, with planned against actual hours
+  (each person for the gig's managers and admins), the money for those who see it, what came back
+  damaged, was lost or isn't back yet, open tasks, and notes for next time.
+- **Person page** (admins only): one person's days, hours and cost with the organisation, their
+  gigs, and for staff their utilisation and holiday left.
+- A **"Cancelled" gig status**, so cancellations can be counted. A cancelled gig holds no crew or
+  equipment, isn't a clash, leaves the calendar feed and sits with the archived gigs.
+- Four Overview tiles: crew days this month, open positions in the next 14 days, overdue tasks,
+  hours waiting for approval.
+- Help: terms crew day, staff utilisation, time to fill, gig wrap-up; guide "See how the work went".
+
+#### Connected
+- Gig page: "Open the wrap-up" once the gig has ended (managers, admins and members).
+- Crew tab: admins open each person's page from their row.
+- Organisation → Tasks: a link to Reports → Operations → Tasks.
+- Overview and Home: the four tiles. Data map: a row for per-person reports.
+
+#### Changed
+- The suggested own status "Cancelled" now stands for the new built-in status (it stood for
+  Archived). Existing organisations' statuses are unchanged.
+
+### K8: Crew numbers
+
+#### Added
+- **My numbers in My work:** your own work on AVX in a year, at every company: gigs, days and hours
+  (approved and waiting), overtime, what you earned (approved hours at your fee, else the agreed fee
+  once the gig is over) and what is booked, what is not paid yet, km and travel time, earnings by
+  month, per company, your busiest months and functions, the job posts you applied to and the crew
+  calls you answered, and expense claims still to be paid back to you. Only your own rows; a company
+  shows only its name. Three tiles on My work: earned this month, not yet paid, booked days in the
+  next 30 days.
+- **Year statement** per company: one row per month with the totals, then each gig. Download it as a
+  CSV or print it for your tax return.
+- **Fee paid:** in a gig's labour cost panel, those who see money tap "Mark paid" on an agreed fee. It
+  records the payment as an expense linked to the fee (or adds the date to the invoice already
+  recorded), so it counts once, and tells the person it was paid and on which date (not the amount).
+  The person sees "Paid on …" on their fee and can mark it received.
+- **Expenses → Crew to pay:** agreed fees on gigs that are over and not marked paid, with "Mark paid".
+  Admins see everyone; members see the gigs they manage.
+- **A new key number** on Reports → Overview and your Home: crew fees to pay.
+- **Reports → Money → Cash** counts crew fees to pay (agreed fees on finished gigs with no invoice
+  yet) in what goes out this month; a fee whose invoice is recorded counts once, through the invoice.
+- Help guide "See what you earned and get your year statement", with pictures, and the terms fee paid
+  and year statement.
+
+#### Connected
+- My work (tiles and menu), the labour cost panel (paid), My fee (paid on, received), Expenses (Crew to
+  pay), Reports → Overview and Home (crew fees to pay tile). Step 27 will reuse the monthly summary
+  (`my_monthly_summary`).
+
+### K9: Report extras
+
+#### Added
+- **Weekly key numbers by email (admins, opt-in):** in Settings → Notifications, admins can turn on
+  an email every Monday morning with the key numbers of each organisation they run: revenue this
+  month and in the next 30 days, quotes waiting and to follow up, overdue invoices, money expected
+  in, bills due, crew fees to pay, open crew positions, items short and overdue tasks. Each line links
+  to its report. Off for everyone until they turn it on.
+- **Saved views:** "Save this view" on every report tab keeps the report with its period and filters
+  under a name. Pinned views show on Reports → Overview; "Manage" lists all of them to pin, unpin or
+  remove. Only you see your saved views.
+- **Monthly management pack:** on Reports → Overview, pick a month that is over and download one PDF
+  with the key numbers, the month's money against the month before, sales, the top clients and the
+  best and worst earning equipment.
+- **A read-only link for your accountant (admins):** on Reports → Overview, make a link to one
+  period's money (results by month, invoiced, received, paid out and spending by category). Choose
+  how long it works (7, 30 or 90 days); revoke it at any time. An expired or revoked link shows
+  nothing. AVX keeps only a fingerprint of the link, so it is shown once.
+- Help guide "Saved views, the monthly pack and the accountant link", with pictures, and the terms
+  saved view, management pack, accountant link and weekly key numbers.
+
+#### Connected
+- Email summary (the weekly email uses its Brevo sender and secrets, and Settings → Notifications),
+  Reports → Overview (saved views, pack, accountant links), notification settings (the weekly
+  opt-in, admins only).
+
 ## 0.76.1 — Reports try again when the server is slow
 
 ### Fixed
