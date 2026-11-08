@@ -611,8 +611,9 @@ begin
   ), crew as (
     select pl.* from pl join public.gig_members gm on gm.gig_id = pl.gig_id and gm.user_id = pl.user_id where gm.role <> 'viewer'
   ), disp as (
-    select d.item_id, d.unit_id, d.direction, d.quantity, d.condition, d.note, d.created_at
-    from public.gig_dispatch d where d.gig_id = p_gig
+    -- undone scans don't count (equipment steps); rows of one scan share a time, so order by id
+    select d.id, d.item_id, d.unit_id, d.direction, d.quantity, d.condition, d.note, d.created_at
+    from public.gig_dispatch d where d.gig_id = p_gig and d.undone_at is null
   )
   select jsonb_build_object(
     'gig', jsonb_build_object('id', v_gig.id, 'org_id', v_gig.org_id, 'name', v_gig.name, 'venue', v_gig.venue,
@@ -650,7 +651,7 @@ begin
         from public.stock_units u join public.price_items i on i.id = u.item_id
         where u.status = 'lost'
           and exists (select 1 from disp o where o.unit_id = u.id and o.direction = 'out'
-                      and not exists (select 1 from disp b where b.unit_id = u.id and b.direction = 'in' and b.created_at > o.created_at))), '[]'::jsonb),
+                      and not exists (select 1 from disp b where b.unit_id = u.id and b.direction = 'in' and b.id > o.id))), '[]'::jsonb),
     'tasks', jsonb_build_object(
         'open', (select count(*) from public.tasks t where t.gig_id = p_gig and t.removed_at is null and t.status = 'open'),
         'done', (select count(*) from public.tasks t where t.gig_id = p_gig and t.removed_at is null and t.status = 'done'),
