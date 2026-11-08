@@ -17,6 +17,7 @@ import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import { QuoteStatusBadge } from '../components/quotes/parts'
 import { SupplierModal } from '../components/inventory/SubrentalPanels'
+import ClientNumbers from '../components/reports/ClientNumbers'
 import { updateIfUnchanged, notifyConflict } from '../lib/staleSave'
 
 const TABS = ['clients', 'suppliers']
@@ -267,6 +268,8 @@ export function ClientModal({ orgId, client, onClose, onSaved }) {
           {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('common.save')}
         </button>
       </form>
+      {/* K4: the client's numbers (admins and members; hidden for anyone the database refuses) */}
+      {client && <ClientNumbers orgId={orgId} clientId={client.id} />}
       {client && (
         <section style={{ marginTop: '18px' }} aria-labelledby="cl-quotes">
           <h2 id="cl-quotes" style={{ ...label, marginBottom: '6px' }}>{t('contacts.quotes')}</h2>

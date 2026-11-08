@@ -6,6 +6,10 @@ export default {
     'cash-position': { term: 'Posição de tesouraria', definition: 'O dinheiro a receber menos o dinheiro a pagar, por mês à frente: o que falta pagar em faturas emitidas pela data de vencimento, menos despesas por pagar, reembolsos a fazer e custos recorrentes pelas suas. Com IVA, como se move no banco. Os valores atrasados contam neste mês.', example: 'Novembro: 20 910 € a receber − 7710 € a pagar = 13 200 €.', where: 'Relatórios → Dinheiro → Tesouraria' },
     'overdue-age': { term: 'Atrasos por antiguidade', definition: 'As faturas em atraso agrupadas pelos dias que passaram do vencimento: 0–30, 31–60, 61–90 e mais de 90 dias, contados pela data da organização. Só conta o que falta pagar (depois de pagamentos parciais e notas de crédito).', example: 'Uma fatura que venceu a 31 de agosto, 230 € pagos de 1230 €: 1000 € em "31–60 dias" a 15 de outubro.', where: 'Relatórios → Dinheiro → Tesouraria' },
     'win-rate': { term: 'Taxa de sucesso', definition: 'Orçamentos aceites ÷ (aceites + recusados) nos últimos 12 meses, por número e por valor. Os que expiraram sem resposta ficam de fora. Aparece ao lado dos orçamentos à espera de resposta, nunca multiplicada na previsão.', example: '15 aceites e 9 recusados: 62%.', where: 'Relatórios → Dinheiro → Previsão' },
+    "follow-up": { term: "Acompanhamento", definition: "Um orçamento enviado há 7 dias ou mais, ainda válido e sem resposta: altura de ligar ou escrever ao cliente.", example: "Enviado a 1 de outubro, sem resposta a 8 de outubro: acompanhar.", where: "Relatórios → Vendas → À espera; Orçamentos → \"A acompanhar\"" },
+    "time-to-decision": { term: "Tempo até decidir", definition: "Os dias desde o envio de um orçamento até à resposta do cliente (aceite ou recusado). O relatório mostra a mediana: metade dos orçamentos foi decidida mais depressa, metade mais devagar.", example: "Respostas ao fim de 2, 5 e 12 dias: mediana de 5 dias.", where: "Relatórios → Vendas → Taxa de sucesso" },
+    "discount-given": { term: "Descontos dados", definition: "Quanto custariam os orçamentos aceites aos preços de tabela, menos o valor por que foram aceites: descontos de linha, fase e orçamento juntos. Sem IVA.", example: "Linhas de 1000 € aceites por 900 €: 100 € dados.", where: "Relatórios → Vendas → Taxa de sucesso" },
+    "new-client": { term: "Clientes novos e que voltaram", definition: "Um cliente é novo num período quando o seu primeiro evento começa nele, e voltou quando tem um evento no período e já tinha tido outro antes. Os eventos em rascunho não contam.", example: "Primeiro evento em março: novo em março; outro em junho: voltou em junho.", where: "Relatórios → Vendas → Clientes" },
     'budget-target': { term: 'Limite e objetivo', definition: 'Um valor mensal que define: um limite para uma categoria de despesa (comparado com o gasto) ou um objetivo de receita (comparado com a receita aceite). Num período maior o valor é multiplicado pelos meses.', example: 'Limite de transporte 900 € por mês: o de um trimestre é 2700 €; gastar 3100 € é 400 € acima.', where: 'Relatórios → Dinheiro → Previsão' },
     'gig-margin': { term: 'Margem do evento', definition: 'O que um evento deixa depois dos custos diretos: a receita (todos os orçamentos aceites, líquidos; nenhum aceite: o orçamento enviado mais recente, uma estimativa) menos a mão de obra, os subalugueres confirmados, as reparações não cobradas ao cliente e as despesas ligadas ao evento. Uma despesa ligada a um subaluguer, reparação ou cachê substitui o valor previsto, para cada custo contar uma só vez. Em euros, sem IVA.', example: 'Receita 4140 € − custos 3391 € = margem 749 € (18,1%).', where: 'Evento → Resumo → Finanças do evento, Relatórios → Margens dos eventos' },
     'gross-margin': { term: 'Margem bruta', definition: 'A receita menos os custos diretos: mão de obra, subalugueres, reparações não cobradas ao cliente, despesas dos eventos, outras despesas diretas e o custo das mercadorias vendidas. A margem % é a margem bruta ÷ receita. Contada por moeda, sem IVA.', example: 'Receita 48 600 € − custos diretos 24 410 € = margem bruta 24 190 € (49,8%).', where: 'Relatórios → Dinheiro' },
@@ -114,6 +118,8 @@ export default {
 
   hints: {
     'cash-report': 'A tesouraria de toda a empresa, com IVA: faturado, recebido e pago por mês, faturas em atraso por antiguidade, o saldo de cada cliente e a posição de tesouraria nos próximos três meses (a receber − a pagar).',
+    "sales-report": "Vendas, contadas na base de dados: orçamentos à espera de resposta e os que precisam de acompanhamento, a taxa de sucesso em número e em valor (por período, tipo de evento, cliente, quem fez o orçamento, motivo da perda ou um dos seus campos de escolha) e o que traz cada cliente.",
+    "client-numbers": "A receita e a margem deste cliente (orçamentos aceites), eventos, orçamentos e taxa de sucesso nos últimos 12 meses, e o primeiro, último e próximo evento. Só os administradores e membros o veem.",
     'spending-report': 'Despesas confirmadas pelo custo, por categoria, fornecedor, evento ou mês, face ao período de comparação. As maiores variações aparecem primeiro.',
     'forecast-report': 'A receita aceite dos próximos eventos por mês nos próximos três meses. Os orçamentos à espera de resposta aparecem à parte, com a taxa de sucesso ao lado, nunca multiplicados.',
     'finance-targets': 'Um limite mensal para uma categoria de despesa, ou um objetivo mensal de receita. O progresso aparece para o período escolhido acima.',
@@ -244,6 +250,21 @@ export default {
       mistakes: [
         'Um pagamento não pode ser maior do que o que falta pagar, nem ter data no futuro.',
         '"Paga" segue os pagamentos: não há botão para desfazer além de remover um pagamento.',
+      ],
+    },
+    'office-sales': {
+      title: "Acompanhar orçamentos e ver o que vende",
+      intro: "Veja que orçamentos estão à espera de resposta e precisam de um telefonema, quantos orçamentos ganha e porque perde alguns, e o que traz cada cliente.",
+      steps: [
+        "Abra Relatórios → Vendas. \"À espera\" mostra os orçamentos enviados ainda sem resposta: o valor, quantos precisam de acompanhamento (enviados há 7 dias ou mais), quantos o cliente abriu e quais expiram em breve. A lista em baixo tem os que deve acompanhar; toque num para o abrir, ou em \"Abrir na lista de orçamentos\".",
+        "Passe para \"Taxa de sucesso\" e escolha um período. Os blocos mostram a taxa de sucesso em número e em valor, o tempo mediano até decidir, o orçamento médio e os descontos dados. Agrupe por mês, tipo de evento, cliente, quem fez o orçamento, motivo da perda ou um dos seus campos de escolha; em baixo, \"Porque se perderam orçamentos\" lista os motivos.",
+        "Passe para Clientes para ver a receita, a margem, os eventos e o evento médio de cada cliente; os blocos mostram o que trazem os 5 maiores e quantos clientes são novos ou voltaram. \"Mostrar detalhes\" junta orçamentos, taxa de sucesso e o primeiro, último e próximo evento.",
+        "Em Contactos, abra um cliente para ver os mesmos números dos últimos 12 meses na sua ficha.",
+      ],
+      mistakes: [
+        "Os orçamentos que passaram a validade sem resposta estão expirados: ficam fora da taxa de sucesso e dos acompanhamentos. Marque-os como recusados (com um motivo) ou envie uma nova versão.",
+        "Os clientes só contam quando o orçamento ou evento está associado a um cliente dos Contactos; um nome escrito no orçamento conta à parte.",
+        "Os valores são sem IVA e nunca somados entre moedas; as contagens incluem todas as moedas.",
       ],
     },
     'office-cash': {
