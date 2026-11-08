@@ -53,8 +53,11 @@ async function expectAccessible(page) {
 // A report view has finished loading: no loading sign left, and no "couldn't be loaded" message.
 // The report functions are heavy for the small test database, so the journey lets each view
 // finish before opening the next instead of stacking their calls (which ran into its 8 s limit).
+// A report that hits a slow moment on the test database tries once more by itself (selectReport
+// in src/lib/selectAll.js), so the wait allows two slow requests; a failure that repeats still
+// shows "couldn't be loaded" and fails the test.
 async function reportLoaded(page) {
-  await expect(page.getByRole('status', { name: 'Loading', exact: true })).toHaveCount(0, { timeout: 30_000 })
+  await expect(page.getByRole('status', { name: 'Loading', exact: true })).toHaveCount(0, { timeout: 45_000 })
   await expect(page.getByText("The report couldn't be loaded. Try again in a moment.")).toHaveCount(0)
 }
 
@@ -276,6 +279,8 @@ test('an admin asks for leave, approves it and sees it as approved', async ({ pa
 })
 
 test('an admin reads the reports: overview tiles, revenue with details, and the key numbers at home', async ({ page }) => {
+  // Many report views in one test, each of which may wait for one retry on a slow database
+  test.slow()
   await english(page)
   await signIn(page, pm)
   await page.getByTitle(/Workspace:/).click()
