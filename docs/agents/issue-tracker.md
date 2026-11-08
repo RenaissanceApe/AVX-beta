@@ -2,6 +2,10 @@
 
 Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
 
+**In Claude Code cloud sessions** `gh` can't create or edit issues: use the GitHub connector tools
+instead (`issue_write` to create or edit, `add_issue_comment`, `issue_read`, `list_issues`), with
+owner `RenaissanceApe` and repo `AVX-beta`. The labels and conventions below are the same.
+
 ## Conventions
 
 - **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.

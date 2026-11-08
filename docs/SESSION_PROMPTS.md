@@ -14,6 +14,10 @@ connects, documents and opens a PR. **It never merges**; you do. Then the next p
 Every prompt ends with the same two lines on purpose: they keep a session from drifting into the
 next step.
 
+**Several steps at once:** a Dispatcher session can run a group of steps in parallel, one worker
+session each, and hand you one PR at the end ([PARALLEL.md](PARALLEL.md)). Then the release
+worker, not each session, removes the prompts carried out.
+
 **When a step's plan changes** (a new decision, a question answered), edit its prompt here and its
 plan in the doc it names, in the same commit.
 

@@ -45,7 +45,8 @@ supabase/
 scripts/help-screens/  generates help screenshots (sample data only)
 e2e/                Playwright tests (e2e/auth/ = signed-in)
 docs/               design notes per feature area; docs/PENDING.md = things waiting on the owner;
-                    docs/SESSION_PROMPTS.md = the prompt for each remaining feature session
+                    docs/SESSION_PROMPTS.md = the prompt for each remaining feature session;
+                    docs/PARALLEL.md = several sessions building one feature set at once
 ROADMAP.md          what is built and the build order (the only list of what comes next)
 ```
 
@@ -99,7 +100,10 @@ if a guide's screen changed (see `GUIDES` in `src/help/index.js`). Help componen
 
 ## Releases and git
 
-- `main` deploys to production on merge. Work on a branch, open a PR, merge with squash.
+- `main` deploys to production on merge. Work on a branch, open a PR, merge with squash. In a
+  parallel feature set, worker PRs go into `test` (squash) and `test` goes into `main` with a merge
+  commit (docs/PARALLEL.md).
+- Every PR description fills in each section of `.github/pull_request_template.md`.
 - A shipping PR bumps `version` in `package.json` and adds a section at the top of
   `CHANGELOG.md` (plain language, same style as the previous entry).
 - Commit message style: `<What changed> (<step>) — <version>`, with `(WIP)` for partial commits.
@@ -107,8 +111,11 @@ if a guide's screen changed (see `GUIDES` in `src/help/index.js`). Help componen
 
 ## How to work
 
-- **Stay in scope:** change only the lines the task needs. List other improvements you spot in
-  the final summary instead of making them.
+- **Stay in scope:** change only the lines the task needs. Problems and improvements you spot
+  but don't make go in the PR's **Found, not changed** section (where, why, and a severity:
+  urgent, should fix, nice to have), not only in the chat: the owner may never open this session.
+  Open a GitHub issue labelled `needs-triage` for each *should fix* or *urgent* one (search open
+  issues first), and link it from the PR.
 - **Simplest thing that works:** add abstractions, options or new packages only when the task
   asks for them. Propose a new dependency and wait for a yes before installing it.
 - **Ask when a request has two reasonable readings**; otherwise proceed and state your
@@ -136,12 +143,29 @@ Each feature set is built in its own session, from its prompt in `docs/SESSION_P
    390 px in both languages for new screens; help guide and screenshots; CHANGELOG section and
    version bump; mark the step built in `ROADMAP.md` and replace its plan with a "How … works"
    section in its doc; a test line in `docs/PENDING.md` section 2 and new questions in section 3.
-   Open the PR (never merge it: the owner does) and give the short summary below.
+   Open the PR with every section of the PR template filled in (never merge it: the owner does)
+   and give the short summary below.
 6. **Session prompts (every session, before the PR):** check `docs/SESSION_PROMPTS.md` (grep its
    `## ` and `### ` headings) for a prompt this session carried out, whether it was pasted whole
    or only in part. If one was, remove that prompt's section in the same PR and update the
    "built" line at the top of the file, so it only holds prompts still to run. Say in the summary
    which prompt was removed (or that none matched).
+
+## In a parallel feature set
+
+If your first message says you are a **worker** started by the Dispatcher, follow
+docs/PARALLEL.md, "Worker rules". In short, what changes from the steps above:
+- Branch from `origin/test` and open the PR into `test`.
+- Your questions were answered in your first message: don't stop to ask. Take the safest reading
+  of anything new, note it under *Needs your decision*, and message the Dispatcher only if you
+  can't go on.
+- Don't edit `package.json`'s version, `CHANGELOG.md`, `ROADMAP.md`, `docs/PENDING.md` or
+  `docs/SESSION_PROMPTS.md`; write what you'd add to them in `docs/notes/<step>.md`.
+- Migrations: use the date the Dispatcher gave you, only add, and apply to the **test** project
+  without waiting for a yes. Never touch production; the Dispatcher does that at the end, after
+  the owner's yes.
+- Urgent findings (security, data loss, live app broken): message the Dispatcher at once.
+- When done, message the Dispatcher `Done: <step>, PR #<n>` and fix what it sends back.
 
 ## Standing rules from the owner
 
