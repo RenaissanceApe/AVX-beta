@@ -8,6 +8,11 @@
 - Merge with **squash**; the branch is deleted automatically after merge.
   Don't start a second branch for something that depends on unmerged work — finish and merge first.
 - Unfinished ideas go in [ROADMAP.md](ROADMAP.md), not in long-lived branches.
+- **Parallel feature sets** ([docs/PARALLEL.md](docs/PARALLEL.md)) are the one exception: worker
+  PRs go into `test` (squash), and `test` goes into `main` with a **merge commit** so the two stay
+  in line.
+- Fill in every section of the PR template, including **Found, not changed**: what you noticed
+  and left alone, with a severity, and an issue for anything that should be fixed.
 
 ## Before opening a PR
 

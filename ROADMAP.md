@@ -114,7 +114,7 @@ a few minutes of setup from you (QA.md, "Build order and when you step in"):
 | IM4 History import (D26): past jobs as completed gigs, quotes with their accepted or declined status and dates (migration outlined for your yes first) | Year-on-year reports work from the day a company switches | IM4 |
 
 **Design refresh: room to breathe** ([docs/DESIGN_REFRESH.md](docs/DESIGN_REFRESH.md); rules in
-[DESIGN.md](DESIGN.md)), decided 2026-11-06 (D48). Run in order, in any gap; no database changes:
+[DESIGN.md](DESIGN.md)), decided 2026-11-06 (D48). DR1 first, then DR2–DR5 (together in a feature set, D50, or in order), then DR6; any gap; no database changes:
 
 | What | Why | Prompt |
 |---|---|---|
