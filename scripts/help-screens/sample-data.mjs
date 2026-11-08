@@ -381,11 +381,17 @@ export function sampleData(persona, lang) {
     return acc
   }, {}))
 
+  // K9: last year's months on the accountant's page
+  const linkMonths = Array.from({ length: 12 }, (_, i) => {
+    const revenue = 14000 + ((i * 3700) % 9000), direct = Math.round(revenue * 0.46), over = 3100
+    return { month: `${yr - 1}-${String(i + 1).padStart(2, '0')}`, currency: 'EUR', revenue, direct_costs: direct, gross_margin: revenue - direct, overheads: over, depreciation: 900, operating_result: revenue - direct - over - 900, estimated: i === 10 ? 640 : 0 }
+  })
+
   return {
     me, names, persona,
     user: { id: me, email: persona === 'pm' ? 'ricardo@example.com' : 'carla@example.com', aud: 'authenticated', role: 'authenticated', user_metadata: { full_name: names[me] }, app_metadata: {} },
     tables: {
-      profiles: Object.keys(names).map(id => ({ id, full_name: names[id], phone: phones[id], language: lang, findable: 'managers', email_digest: true })),
+      profiles: Object.keys(names).map(id => ({ id, full_name: names[id], phone: phones[id], language: lang, findable: 'managers', email_digest: true, weekly_numbers: id === ricardo })),
       organisations: [org],
       org_members: persona === 'pm'
         ? [{ org_id: orgId, user_id: ricardo, role: 'admin', organisations: org, joined_at: '2026-01-10T10:00:00Z' }, { org_id: orgId, user_id: duarte, role: 'member', organisations: org }]
@@ -548,6 +554,17 @@ export function sampleData(persona, lang) {
       conversations: convs.map(c => ({ id: c.id, kind: c.kind, gig_id: c.gig_id, org_id: c.org_id || null, title: c.title || null, department: null, audience: c.kind === 'org' ? 'everyone' : null, admins_post: c.kind === 'org', archived_at: null, gigs: c.gig_id ? { name: gig.name } : null, organisations: c.org_id ? { name: 'Lumen and Pixel' } : null })),
       conversation_members: [{ user_id: carla }, { user_id: ricardo }, { user_id: duarte }],
       conversation_state: [{ muted: false }],
+      // K9: Ricardo's saved views and the accountant links of Lumen and Pixel
+      report_views: persona === 'pm' ? [
+        { id: 'rv1', name: tx('Tesouraria deste ano', 'Cash this year'), tab: 'money', query: 'view=cash&period=this_year', pinned: true, created_at: ago(400) },
+        { id: 'rv2', name: tx('Orçamentos a acompanhar', 'Quotes to follow up'), tab: 'sales', query: 'view=waiting', pinned: true, created_at: ago(300) },
+        { id: 'rv3', name: tx('Material: o que mais rende', 'Best earning gear'), tab: 'equipment', query: 'period=this_year', pinned: true, created_at: ago(200) },
+        { id: 'rv4', name: tx('Margens do trimestre', 'Margins this quarter'), tab: 'margins', query: 'period=this_quarter', pinned: false, created_at: ago(100) },
+      ] : [],
+      report_links: persona === 'pm' ? [
+        { id: 'rl1', label: tx('Contabilista – Marta Silva', 'Accountant – Marta Silva'), period_from: `${yr - 1}-01-01`, period_until: `${yr}-01-01`, expires_at: `${day(21)}T10:00:00Z`, revoked_at: null, last_viewed_at: ago(30), views: 3, created_at: ago(9 * 24) },
+        { id: 'rl2', label: tx('Auditoria IVA 3.º trimestre', 'VAT audit, 3rd quarter'), period_from: `${yr}-07-01`, period_until: `${yr}-10-01`, expires_at: `${day(-12)}T10:00:00Z`, revoked_at: null, last_viewed_at: ago(20 * 24), views: 1, created_at: ago(40 * 24) },
+      ] : [],
     },
     rpc: {
       // K8: Carla's own numbers (My numbers, the year statement, her fee on the gig)
@@ -822,7 +839,30 @@ export function sampleData(persona, lang) {
       item_money_card: { today: day(0), owned: 7, lifetime_revenue: { EUR: 23940 },
         payback: { cost: 21000, revenue: 23940, ratio: 1.14, since: '2024-03-01', paid_back_on: day(-60), expected_on: null, estimated: false },
         use_12m: 0.41, upcoming: 3, next_bookings: [{ gig_id: gigId, gig_name: gig.name, starts_at: `${day(24)}T08:00:00Z`, quantity: 6 }] },
+      create_report_link: { id: 'rl3', token: 'sample-link-token-not-real-0000', expires_at: `${day(30)}T10:00:00Z` },
       report_overview_k5: { best_earner_year: { item_id: SPK, name: w.speaker, amount: 11420 }, worst_earner_year: { item_id: QL1, name: w.desk, amount: -840 }, hire_in_year: { EUR: 5760 } },
+    },
+    // Edge Functions the screens call (by name); anything else answers {}
+    functions: {
+      'report-link-public': {
+        state: 'ok',
+        report: {
+          org: { name: 'Lumen and Pixel', legal_name: 'Lumen and Pixel, Lda.' }, label: tx('Contabilista – Marta Silva', 'Accountant – Marta Silva'),
+          from: `${yr - 1}-01-01`, until: `${yr}-01-01`, expires_at: `${day(21)}T10:00:00Z`, at: ago(0),
+          months: linkMonths,
+          total: [Object.fromEntries([['currency', 'EUR'], ...['revenue', 'direct_costs', 'gross_margin', 'overheads', 'depreciation', 'operating_result', 'estimated'].map(k => [k, linkMonths.reduce((sum, m) => sum + m[k], 0)])])],
+          cash: Array.from({ length: 12 }, (_, i) => [
+            { section: 'invoiced', month: `${yr - 1}-${String(i + 1).padStart(2, '0')}-01`, currency: 'EUR', amount: Math.round((14000 + ((i * 3700) % 9000)) * 1.23) },
+            { section: 'received', month: `${yr - 1}-${String(i + 1).padStart(2, '0')}-01`, currency: 'EUR', amount: Math.round((13000 + ((i * 2900) % 9000)) * 1.23) },
+            { section: 'paid_out', month: `${yr - 1}-${String(i + 1).padStart(2, '0')}-01`, currency: 'EUR', amount: 9200 + i * 150 },
+          ]).flat(),
+          spending: [
+            { category: tx('Renda', 'Rent'), starter_key: null, currency: 'EUR', amount: 21600 },
+            { category: tx('Subalugueres', 'Hire-in'), starter_key: null, currency: 'EUR', amount: 14320 },
+            { category: tx('Combustível', 'Fuel'), starter_key: null, currency: 'EUR', amount: 6210 },
+          ],
+        },
+      },
     },
   }
 }

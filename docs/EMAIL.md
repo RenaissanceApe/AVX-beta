@@ -105,3 +105,19 @@ After that it runs every morning at about 08:20 Lisbon time (07:23 UTC). Brevo's
 with counts only (`sent`, `optedOut`, `failed`); a `brevo` line with `status: 401` means a wrong API key,
 `400` usually means the sender isn't verified. Brevo → *Transactional* → **Logs** shows each email's
 delivery status.
+
+## Weekly key numbers (Brevo)
+
+Admins can turn on **Settings → Notifications → Weekly key numbers**. Every Monday morning the
+`send-key-numbers` Edge Function emails each of them the key numbers of each organisation they run
+(revenue this month and in the next 30 days, quotes waiting and to follow up, overdue invoices,
+money expected in, bills due, crew fees to pay, open positions, items short, overdue tasks), in their
+language, with a link to each report. It is off for everyone until they turn it on.
+
+It uses the same `BREVO_API_KEY`, `DIGEST_FROM` and `DIGEST_SECRET` as the daily summary, so once
+that works there is nothing more to set up. GitHub → Actions → *Weekly key numbers* → *Run workflow*
+with **dry run** ticked counts the emails without sending. At most one email per person,
+organisation and week, and the weekly emails count towards the project's daily email cap.
+
+**Logs:** Supabase → Edge Functions → `send-key-numbers` shows one line per run with counts only
+(`sent`, `empty`, `limited`, `failed`).

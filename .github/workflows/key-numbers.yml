@@ -1,0 +1,38 @@
+name: Weekly key numbers
+
+# Every Monday, asks the send-key-numbers Edge Function to email the key numbers to the admins who
+# turned them on (Settings → Notifications), through Brevo. Uses the daily summary's DIGEST_SECRET and
+# does nothing until it is set — see docs/EMAIL.md, "Weekly key numbers".
+on:
+  schedule:
+    - cron: '41 7 * * 1' # Mondays 07:41 UTC (08:41 Lisbon summer time)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Count emails without sending'
+        type: boolean
+        default: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Call send-key-numbers
+        env:
+          DIGEST_SECRET: ${{ secrets.DIGEST_SECRET }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+        run: |
+          if [ -z "$DIGEST_SECRET" ]; then
+            echo "DIGEST_SECRET is not set; skipping (see docs/EMAIL.md)."
+            exit 0
+          fi
+          set -a; . ./.env; set +a
+          url="$VITE_SUPABASE_URL/functions/v1/send-key-numbers"
+          [ "$DRY_RUN" = "1" ] && url="$url?dry=1"
+          status=$(curl -sS -o response.json -w '%{http_code}' -X POST "$url" \
+            -H "x-digest-secret: $DIGEST_SECRET" -H 'Content-Type: application/json' -d '{}')
+          echo "send-key-numbers responded with HTTP $status"
+          cat response.json; echo
+          test "$status" = "200"

@@ -525,6 +525,38 @@ const SCENES = {
     await box.waitFor()
     return box.locator('ul')
   } },
+  // K9: saved views, the monthly pack, the accountant's links and page, the weekly email setting
+  'views-save': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&period=this_year`, async run(page, L) {
+    await page.getByRole('button', { name: L('reports.views.save') }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog.waitFor()
+    return dialog.locator('form')
+  } },
+  'views-pinned': { persona: 'pm', url: `/org/${ids.org}/reports`, async run(page) {
+    const box = page.locator('section[aria-labelledby="rp-views"]')
+    await box.locator('ul').waitFor()
+    return box
+  } },
+  'reports-pack': { persona: 'pm', url: `/org/${ids.org}/reports`, async run(page) {
+    const box = page.locator('section[aria-labelledby="rp-pack"]')
+    await box.waitFor()
+    return box
+  } },
+  'accountant-links': { persona: 'pm', url: `/org/${ids.org}/reports`, async run(page) {
+    const box = page.locator('section[aria-labelledby="rp-links"]')
+    await box.locator('ul').waitFor()
+    return box
+  } },
+  'accountant-page': { persona: 'pm', url: '/r/sample-link-token-not-real-0000', async run(page) {
+    const table = page.locator('table').first()
+    await table.waitFor()
+    return table
+  } },
+  'weekly-numbers': { persona: 'pm', url: '/settings/notifications', async run(page, L) {
+    const box = page.getByText(L('account.weeklyNumbers'))
+    await box.waitFor()
+    return box.locator('xpath=ancestor::label')
+  } },
   'reports-revenue': { persona: 'pm', url: `/org/${ids.org}/reports?tab=revenue&period=last_12_months`, async run(page) {
     const fig = page.locator('figure').first()
     await fig.waitFor()
@@ -866,7 +898,7 @@ async function newPhone(browser, persona, lang) {
     if (p.startsWith('/auth/v1/user')) return respond(route, data.user)
     if (p.startsWith('/auth/v1/')) return respond(route, {})
     if (p.startsWith('/storage/')) return respond(route, { signedURL: '/x' })
-    if (p.startsWith('/functions/')) return respond(route, {})
+    if (p.startsWith('/functions/')) return respond(route, data.functions?.[p.split('/').pop()] ?? {})
     const single = (req.headers()['accept'] || '').includes('vnd.pgrst.object')
     if (req.method() === 'HEAD') return route.fulfill({ status: 200, headers: { 'access-control-expose-headers': 'content-range', 'access-control-allow-origin': '*', 'content-range': '0-0/0' }, body: '' })
     if (req.method() !== 'GET' && !p.startsWith('/rest/v1/rpc/')) return respond(route, single ? {} : [])
