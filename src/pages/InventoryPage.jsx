@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Plus, Upload, QrCode, Search, Package, MapPin, History, ChevronRight, AlertTriangle, Pencil, Archive, ArchiveRestore, Warehouse, Truck, Building2, Box, Wrench, Handshake, BarChart3 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
@@ -12,7 +12,6 @@ import AppShell from '../components/shell/AppShell'
 import { ItemModal, LocationModal } from '../components/inventory/InventoryModals'
 import { MaintenanceTab } from '../components/inventory/MaintenancePanels'
 import { SubrentalsTab } from '../components/inventory/SubrentalPanels'
-import ReportsTab from '../components/inventory/ReportsTab'
 import { btn, btnPrimary, iconBtn, input, card, colors, AvxLoader } from '../components/ui'
 import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
@@ -62,7 +61,8 @@ export default function InventoryPage() {
         {tab === 'movements' && <Movements inv={inv} orgId={orgId} />}
         {tab === 'maintenance' && <MaintenanceTab inv={inv} orgId={orgId} />}
         {tab === 'subrentals' && <SubrentalsTab inv={inv} orgId={orgId} />}
-        {tab === 'reports' && <ReportsTab inv={inv} orgId={orgId} />}
+        {/* K5: Inventory → Reports is Reports → Equipment (one screen; I7's table is its "Use and value" view) */}
+        {tab === 'reports' && <Navigate to={`/org/${orgId}/reports?tab=equipment`} replace />}
       </div>
     </AppShell>
   )
