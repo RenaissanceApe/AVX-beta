@@ -4,13 +4,13 @@ import { ChevronDown, ChevronRight, BarChart3 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
 import { retryOnce } from '../../lib/selectAll'
-import { OVERVIEW_TILES, moneyLines } from '../../lib/analytics/tiles'
+import { OVERVIEW_TILES, OVERVIEW_SOURCES, moneyLines } from '../../lib/analytics/tiles'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
 import { card, colors, mono, AvxLoader } from '../ui'
 
-// The Overview tiles (src/lib/analytics/tiles.js), read from public.report_overview (and K7's own
-// public.report_overview_k7).
+// The Overview tiles (src/lib/analytics/tiles.js), read from public.report_overview and the
+// functions later steps add next to it (each tile's `source`), merged into one object.
 // Shown on Reports → Overview and, folded or not, as the key numbers on the organisation's Home.
 
 export function useOverview(orgId, enabled = true) {
@@ -19,15 +19,12 @@ export function useOverview(orgId, enabled = true) {
     if (!orgId || !enabled) return
     let cancelled = false
     setState(s => ({ ...s, loading: true }))
-    Promise.all([
-      retryOnce(() => supabase.rpc('report_overview', { p_org: orgId })),
-      // K7's tiles come from their own function; if it fails, the other tiles still show
-      retryOnce(() => supabase.rpc('report_overview_k7', { p_org: orgId })),
-    ]).then(([{ data, error }, k7]) => {
+    Promise.all(OVERVIEW_SOURCES.map(fn => retryOnce(() => supabase.rpc(fn, { p_org: orgId })))).then(results => {
       if (cancelled) return
+      const error = results.find(r => r.error)?.error || null
       if (error) logger.error('reports', error, { step: 'overview' })
-      if (k7.error) logger.error('reports', k7.error, { step: 'overview:k7' })
-      setState({ data: data ? { ...data, k7: k7.data || null } : null, error: error || null, loading: false })
+      const data = error ? null : Object.assign({}, ...results.map(r => r.data || {}))
+      setState({ data, error, loading: false })
     })
     return () => { cancelled = true }
   }, [orgId, enabled])
@@ -62,7 +59,7 @@ export function OverviewTiles({ orgId, overview, compact = false }) {
   const base = `/org/${orgId}`
   return (
     <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${compact ? 140 : 170}px, 1fr))`, gap: '8px' }}>
-      {OVERVIEW_TILES.filter(tile => !tile.hide?.(overview)).map(tile => {
+      {OVERVIEW_TILES.map(tile => {
         const sub = tile.sub?.(overview)
         return (
           <li key={tile.key} style={{ minWidth: 0 }}>

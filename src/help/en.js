@@ -9,6 +9,10 @@ export default {
     'cash-position': { term: 'Cash position', definition: 'Money expected in minus money expected out, per month ahead: what is left to pay on issued invoices by their due date, minus unpaid expenses, claims to reimburse and recurring costs by theirs. With VAT, as it moves in the bank. Late amounts count in this month.', example: 'November: €20,910 expected in − €7,710 expected out = €13,200.', where: 'Reports → Money → Cash' },
     'overdue-age': { term: 'Overdue by age', definition: 'Overdue invoices grouped by how many days past their due date they are: 0–30, 31–60, 61–90 and over 90 days, counted by the organisation\'s own date. Only what is left to pay counts (after part payments and credit notes).', example: 'An invoice due on 31 August, €230 of €1,230 paid: €1,000 in "31–60 days" on 15 October.', where: 'Reports → Money → Cash' },
     'win-rate': { term: 'Win rate', definition: 'Accepted quotes ÷ (accepted + declined) over the last 12 months, by count and by value. Quotes that expired with no answer stay out. Shown beside the quotes waiting for an answer, never multiplied into the forecast.', example: '15 accepted and 9 declined: 62%.', where: 'Reports → Money → Forecast' },
+    "follow-up": { term: "Follow-up", definition: "A quote sent 7 or more days ago that is still valid and has no answer yet: time to call or write to the client.", example: "Sent on 1 October, no answer by 8 October: follow it up.", where: "Reports → Sales → Waiting; Quotes → \"To follow up\"" },
+    "time-to-decision": { term: "Time to decide", definition: "The days from sending a quote to the client's answer (accepted or declined). The report shows the median: half the quotes were decided faster, half slower.", example: "Answers after 2, 5 and 12 days: median 5 days.", where: "Reports → Sales → Win rate" },
+    "discount-given": { term: "Discounts given", definition: "What accepted quotes would have cost at their list prices, minus what they were accepted for: line, phase and quote discounts together. Excl. VAT.", example: "Lines worth €1,000 accepted for €900: €100 given.", where: "Reports → Sales → Win rate" },
+    "new-client": { term: "New and returning clients", definition: "A client is new in a period when their first gig ever starts in it, and returning when they have a gig in the period and had one before it. Draft gigs don't count.", example: "First gig in March: new in March; another in June: returning in June.", where: "Reports → Sales → Clients" },
     'budget-target': { term: 'Budget and target', definition: 'A monthly amount you set: a budget for an expense category (spending compared with it) or a revenue target (accepted revenue compared with it). For a longer period the amount is multiplied by its months.', example: 'Transport budget €900 a month: a quarter\'s budget is €2,700; €3,100 spent is €400 over.', where: 'Reports → Money → Forecast' },
     'gig-margin': { term: 'Gig margin', definition: 'What a gig leaves after its direct costs: its revenue (every accepted quote, net; none accepted: the newest sent quote, an estimate) minus labour, confirmed subrentals, repairs not charged to the client and expenses linked to the gig. An expense linked to a subrental, repair or crew fee replaces its planned amount, so each cost counts once. In euros, excl. VAT.', example: 'Revenue €4,140 − costs €3,391 = margin €749 (18.1%).', where: 'Gig → Overview → Gig finance, Reports → Gig margins' },
     'crew-day': { term: 'Crew day', definition: 'A calendar day someone is booked on a gig: their own booking times, else the gig\'s dates. Viewers aren\'t booked and cancelled gigs don\'t count.', example: 'Two people on a three-day gig, one of them booked for two days: 3 + 2 = 5 crew days.', where: 'Reports → Operations, the person page, the gig wrap-up' },
@@ -121,6 +125,8 @@ export default {
 
   hints: {
     'cash-report': 'Cash for the whole company, with VAT: invoiced, received and paid out per month, overdue invoices by age, each client\'s balance, and the cash position for the next three months (expected in − expected out).',
+    "sales-report": "Sales, counted in the database: quotes waiting for an answer and the ones to follow up, the win rate by count and by value (per period, gig type, client, who made the quote, lost reason or one of your choice fields), and what each client brings.",
+    "client-numbers": "This client's revenue and margin (accepted quotes), gigs, quotes and win rate over the last 12 months, and their first, last and next gig. Only admins and members see it.",
     'spending-report': 'Confirmed expenses at their cost, by category, supplier, gig or month, against the comparison period. The biggest changes are listed first.',
     'forecast-report': 'Accepted revenue of upcoming gigs per month for the next three months. Quotes waiting for an answer are shown apart, with the win rate beside them, never multiplied in.',
     'finance-targets': 'A monthly budget for an expense category, or a monthly revenue target. Progress is shown for the period chosen above.',
@@ -254,6 +260,21 @@ export default {
       mistakes: [
         'A payment can\'t be more than is left to pay, or dated in the future.',
         '"Paid" follows the payments: there is no button to undo it except removing a payment.',
+      ],
+    },
+    'office-sales': {
+      title: "Follow up quotes and see what sells",
+      intro: "See which quotes are waiting for an answer and need a call, how many quotes you win and why you lose some, and what each client brings.",
+      steps: [
+        "Open Reports → Sales. Waiting shows the quotes sent and still without an answer: their value, how many need a follow-up (sent 7 or more days ago), how many the client opened and which expire soon. The list below has the ones to follow up; tap one to open it, or \"Open in the quote list\".",
+        "Switch to Win rate and pick a period. The tiles show the win rate by count and by value, the median time to decide, the average quote and the discounts given. Group by month, gig type, client, who made the quote, lost reason or one of your choice fields; below, \"Why quotes were lost\" lists the reasons.",
+        "Switch to Clients for each client's revenue, margin, gigs and average gig; the tiles show what the top 5 bring and how many clients are new or returning. \"Show details\" adds quotes, win rate and the first, last and next gig.",
+        "In Contacts, open a client to see the same numbers for the last 12 months on its card.",
+      ],
+      mistakes: [
+        "Quotes past their validity with no answer are expired: they are out of the win rate and out of the follow-ups. Mark them declined (with a reason) or send a new version.",
+        "Clients count only when the quote or gig is linked to a client in Contacts; a name typed on a quote counts apart.",
+        "Amounts are excl. VAT and never added across currencies; counts include every currency.",
       ],
     },
     'office-cash': {

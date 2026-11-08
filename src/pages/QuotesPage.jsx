@@ -10,6 +10,8 @@ import { useI18n } from '../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../components/ui'
 import EmptyState from '../components/EmptyState'
 import { invoiceSummary } from '../lib/invoiceApi'
+import { needsFollowUp, dayIn, FOLLOW_UP_DAYS } from '../lib/analytics/sales'
+import { todayIn } from '../lib/analytics/periods'
 import { QUOTE_STATUSES, quoteNumber, formatMoney, cloneBody, emptyPhase, localISODate, addDays, quoteTotals } from '../lib/quotes'
 import CompanyDetailsModal from '../components/quotes/CompanyDetailsModal'
 import { PriceListTab } from '../components/quotes/PriceList'
@@ -50,7 +52,8 @@ export default function QuotesPage() {
     setParams(next)
   }
   useEffect(() => { setWorkspace(orgId) }, [orgId, setWorkspace])
-  const [status, setStatus] = useState('all')
+  // K4: ?status=follow_up (from Reports → Sales and the Overview tile) opens the follow-up filter
+  const [status, setStatus] = useState(() => (['follow_up', ...QUOTE_STATUSES].includes(params.get('status')) ? params.get('status') : 'all'))
   const [search, setSearch] = useState('')
   const [showNew, setShowNew] = useState(false)
   const [invoiced, setInvoiced] = useState(new Map()) // quote id → invoiced excl. VAT (step 11)
@@ -59,7 +62,7 @@ export default function QuotesPage() {
     const [orgRes, roleRes, quotesRes, templatesRes, pricesRes, clientsRes] = await Promise.all([
       supabase.from('organisations').select('*').eq('id', orgId).maybeSingle(),
       supabase.from('org_members').select('role').eq('org_id', orgId).eq('user_id', user.id).maybeSingle(),
-      selectAll(() => supabase.from('quotes').select('id, number, title, status, client_name, client_company, issue_date, valid_until, total_net, currency, gig_id, updated_at')
+      selectAll(() => supabase.from('quotes').select('id, number, title, status, client_name, client_company, issue_date, valid_until, sent_at, total_net, currency, gig_id, updated_at')
         .eq('org_id', orgId).order('number', { ascending: false }).order('id')),
       supabase.from('quote_templates').select('id, name, description, body, created_by, updated_at').eq('org_id', orgId).order('name'),
       selectAll(() => supabase.from('price_items').select('*').eq('org_id', orgId).is('archived_at', null).order('name').order('id')),
@@ -83,7 +86,10 @@ export default function QuotesPage() {
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return quotes.filter(x => (status === 'all' || x.status === status)
+    const today = todayIn(org?.time_zone)
+    const match = x => (status === 'all' || x.status === status
+      || (status === 'follow_up' && needsFollowUp(x, today, { sentDay: dayIn(x.sent_at, org?.time_zone) })))
+    return quotes.filter(x => match(x)
       && (!q || [x.title, x.client_name, x.client_company, quoteNumber(x, org?.quote_number_prefix ?? 'Q')].some(v => (v || '').toLowerCase().includes(q))))
   }, [quotes, status, search, org])
 
@@ -146,6 +152,7 @@ export default function QuotesPage() {
               <select value={status} onChange={e => setStatus(e.target.value)} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', cursor: 'pointer' }}>
                 <option value="all">{t('quotes.allStatuses')}</option>
                 {QUOTE_STATUSES.map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
+                <option value="follow_up">{t('quotes.followUp', { days: FOLLOW_UP_DAYS })}</option>
               </select>
             </div>
 

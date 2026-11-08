@@ -355,20 +355,28 @@ rate beside them and never multiplied in; the cash position looks **3 months** a
 **For K4 and later:** read cash through `cash_report` and `client_balance`, spending through
 `spending`; K8 adds crew fees to pay as another `expected_out` part.
 
-## K4 · Sales and clients
+## How K4 works (built in this feature set)
 
-Needs: K0, K1, 10.
+Sales and clients. Migration `20261227000000_sales_clients.sql` (functions only, no tables); checks
+in `supabase/tests/sales_clients.sql` (no delete statements). Decided with the owner on 2026-11-08:
+a quote needs a **follow-up after 7 days** with no answer (`FOLLOW_UP_DAYS` in
+`src/lib/analytics/sales.js`); the win rate **per person** is for admins and members (both see money,
+D23); the win rate can be grouped by a **custom field of kind "choice"**.
 
-- **Waiting for an answer**: quotes by age and status (sent, opened by the client, expiring soon)
-  with their value; a follow-up list (sent more than N days ago, no answer).
-- **Win rate** by count and value per period, gig type, client and quote author; time from sent to
-  decision (median); lost reasons; average quote value; discounts given (gross against net).
-- **Clients**: revenue, margin, gigs, quotes, win rate, first, last and next gig, average gig
-  value; new and returning clients; what the top 5 clients bring. A numbers card on the client in
-  Contacts.
-- Tiles: quotes waiting (value), win rate over 90 days, top client this year.
-- Ask: N days for follow-ups; win rate per person for members too, or admins only; grouping by a
-  custom field of kind "choice".
+| Piece | How it works |
+|---|---|
+| `private.sales_quotes(org)` | One row per quote that left draft: value (the K1 revenue rule, `private.report_quote_lines`), gross (`private.sales_quote_gross`: priced lines before line, phase and quote discounts, optional phases and comments left out), client key (the gig's client first, then the quote's, as `finance_results`; only a client of this organisation; else `name:<typed company or name>`), author (`created_by`), sent and decided dates in the organisation's time zone, lost reason, and the custom values of its gig and client. Runs as the reader, finance check |
+| `sales_waiting(org, days = 7, at)` | Each quote with status Sent: value, days waiting, days left, `opened` (any of its client links viewed), `expiring` (valid until today to 7 days ahead), `expired` (past its validity), `follow_up` (sent `days` or more days ago and still valid). The JS twin of `follow_up` is `needsFollowUp` |
+| `sales_win_rate(org, from, until, group_by)` | Quotes accepted or declined with a decided date in the period, per group and currency: decided, accepted, declined, values, win rate by count and by value, median days from sent to decided, average quote value, gross and discount of the accepted ones. Quotes still sent (expired ones too) are never in it. `group_by`: `total`, `month`, `quarter`, `gig_type`, `client`, `author`, `lost_reason`, `field:<id>` (a live "choice" field on gigs or clients of this organisation; others are refused). An empty `group_key` holds what has no such group, so every grouping adds up to the total (checked) |
+| `sales_clients(org, from, until, client, at)` | Per client and currency: revenue and gross margin (`finance_results` by client), gigs starting in the period and the average gig, quotes sent, decided and won (by count over every currency, by value in the row's currency), first gig, last gig up to today, next gig, `is_new` (first gig in the period) and `is_returning` (a gig in the period and one before). Gigs in draft (and `cancelled`, once K7 adds it) are left out. Counts and gig dates are the same on every row of a client; `client_key` '' holds revenue with no client. `p_client` gives one client (the Contacts card) |
+| `report_overview_k4(org, at)` | The K4 tiles, next to `report_overview` (not a wrapper): `follow_up` {count, totals}, `win_rate_90` {decided, by_count, by_value, currency} (decided in the 90 days up to today), `top_client_year` {key, name, currency, amount, share}. `useOverview` calls every tile's `source` (`OVERVIEW_SOURCES` in `tiles.js`) and merges the answers |
+| Screen | `components/reports/SalesReport.jsx`, tab `sales` of `REPORT_TABS`, menu Reports → Sales. Views (`?view=`): **Waiting** (as of today: tiles, value by age, the follow-up list linking each quote and the quote list's filter; details: every waiting quote with sent date, validity and author; a note on expired quotes), **Win rate** (`?by=` month, quarter, gig type, client, made by, lost reason or a choice field; tiles with the comparison: win rate by count and by value, median time to decide, average quote, discounts given; chart and table; lost reasons), **Clients** (tiles: what the top 5 bring, clients with gigs, new, returning; top 10 chart; table with revenue, margin, gigs, average gig; details: quotes, win rate, first, last and next gig). Currency picker when there's more than one; counts add up across currencies, money never. Helpers in `src/lib/analytics/sales.js` (unit tested on the same quotes as the database test) |
+| Connected | Quotes list: a "To follow up" filter (`?status=follow_up`, client side with `needsFollowUp`, by the organisation's date). Contacts: a numbers card on each client (`ClientNumbers`, last 12 months; hidden for anyone the database refuses) linking to Reports → Sales. Overview and Home: three tiles (`followUp` opens the quote list's filter, `winRate90`, `topClientYear`); K1's "Quotes waiting" tile now opens Reports → Sales |
+| Help | Terms follow-up, time to decide, discounts given, new and returning clients (win rate already existed); ⓘ `sales-report`, `client-numbers`; guide `office-sales` with four pictures (`sales-waiting`, `sales-winrate`, `sales-clients`, `client-numbers`) and the refreshed Home picture |
+| Tests | `sales_clients.sql`: expired quotes out of the win rate and the follow-ups, a quote with no client (in the empty group, never a client row), another organisation's client and quote never counted, a typed client, Lisbon month boundary on the decided date, gross leaving out optional phases and comments, every grouping adding up, a text field and another organisation's field refused, the tiles, who may call each function (admin and member yes; viewer, crew, another organisation, anonymous, second sign-in step not done: no). Vitest for the helpers and tiles; the signed-in e2e journey opens the three views with axe |
+
+**For K5 and later:** read quotes for sales through `private.sales_quotes` (one client rule, one
+value rule); add tiles through a function of your own and a `source` on the tile.
 
 ## K5 · Equipment money
 

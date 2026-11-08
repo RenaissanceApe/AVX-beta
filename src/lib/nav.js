@@ -64,6 +64,7 @@ export function navSections({ workspace, role }) {
       { key: 'reportsOverview', icon: 'barChart', to: `${base}/reports` },
       { key: 'reportsRevenue', icon: 'trendingUp', to: `${base}/reports?tab=revenue` },
       { key: 'reportsMoney', icon: 'receipt', to: `${base}/reports?tab=money` },
+      { key: 'reportsSales', icon: 'handshake', to: `${base}/reports?tab=sales` },
       { key: 'reportsOperations', icon: 'users', to: `${base}/reports?tab=operations` },
     ] })
   }
