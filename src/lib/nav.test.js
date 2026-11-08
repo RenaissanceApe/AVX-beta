@@ -30,6 +30,8 @@ describe('navigation', () => {
     expect(viewer).not.toContain('orgSettings')
     expect(member).toEqual(expect.arrayContaining(['reportsOverview', 'reportsRevenue', 'reportsMoney']))
     expect(viewer).not.toContain('reportsOverview')
+    expect(member).toContain('reportsOperations')
+    expect(viewer).not.toContain('reportsOperations')
     expect(viewer).toContain('members')
     expect(viewer).toContain('orgTasks')
   })

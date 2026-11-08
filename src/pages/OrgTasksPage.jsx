@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, ListTodo, Wrench } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
@@ -128,6 +128,7 @@ export default function OrgTasksPage() {
               <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('tasks.orgTitle')}</h1>
               <PageHelp page="org-tasks" />
             </div>
+            {canManage && <Link to={`/org/${orgId}/reports?tab=operations&view=tasks`} style={{ fontSize: '13px', color: colors.accentText }}>{t('tasks.opsReport')}</Link>}
           </div>
           {tab === 'tasks' && canManage && <button type="button" onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} /> {t('tasks.new')}</button>}
         </div>

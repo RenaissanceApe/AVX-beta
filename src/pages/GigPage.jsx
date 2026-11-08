@@ -14,6 +14,7 @@ import ScheduleTab from '../components/gig/ScheduleTab'
 import AssetsTab from '../components/gig/AssetsTab'
 import CrewTab from '../components/gig/CrewTab'
 import GigFinancePanel from '../components/gig/GigFinancePanel'
+import GigWrapupLink from '../components/gig/GigWrapupLink'
 import EquipmentTab from '../components/gig/EquipmentTab'
 import UpdatesTab from '../components/gig/UpdatesTab'
 import ToolsTab from '../components/gig/ToolsTab'
@@ -247,6 +248,7 @@ export default function GigPage() {
           <button type="button" onClick={() => saveOnSite(switchOnSite(readOnSite(), gig.id, true))}
             style={{ ...btn, background: 'transparent', marginBottom: '12px' }}><HardHat size={14} /> {t('onsite.enter')}</button>
         )}
+        {tab === 'overview' && !onSiteWhy && (isPM || orgRole === 'admin' || orgRole === 'member') && <GigWrapupLink gig={gig} />}
         {tab === 'overview' && !onSiteWhy && (
           <OverviewTab gig={gig} assets={assets} members={members} posts={posts} schedule={schedule}
             canUpload={canUpload} isPM={isPM} nameOf={nameOf} setTab={setTab} onOpenAsset={setVersionsAsset}

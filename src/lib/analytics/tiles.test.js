@@ -13,7 +13,7 @@ describe('overview tiles', () => {
   it('reads the four first tiles from report_overview', () => {
     const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
     expect(Object.keys(by)).toEqual(['gigsThisMonth', 'revenueNext30', 'waitingQuotes', 'equipmentUse90', 'revenueThisMonth', 'marginPctYear', 'operatingResultYear', 'negativeMarginYear',
-      'overdueNow', 'cashIn30', 'expensesDue14', 'revenueNext3m'])
+      'overdueNow', 'cashIn30', 'expensesDue14', 'revenueNext3m', 'crewDaysMonth', 'openPositions14', 'overdueTasks', 'hoursWaiting'])
     expect(by.gigsThisMonth.value(overview)).toBe(4)
     expect(by.gigsThisMonth.sub(overview).vars.count).toBe(3)
     expect(by.revenueNext30.value(overview)).toEqual({ EUR: 155, USD: 1250 })
@@ -52,5 +52,18 @@ describe('overview tiles', () => {
   it('lists money per currency, never added', () => {
     expect(moneyLines({ EUR: 155, USD: 1250 })).toEqual([{ currency: 'USD', amount: 1250 }, { currency: 'EUR', amount: 155 }])
     expect(moneyLines({})).toEqual([{ currency: 'EUR', amount: 0 }])
+  })
+  it('reads the K7 tiles from report_overview_k7 and hides them when it did not load', () => {
+    const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
+    const o = { ...overview, k7: { crew_days_month: 8, open_positions_14: 2, overdue_tasks: 1, hours_waiting: { days: 1, hours: 8.25 } } }
+    expect(by.crewDaysMonth.value(o)).toBe(8)
+    expect(by.openPositions14.value(o)).toBe(2)
+    expect(by.overdueTasks.value(o)).toBe(1)
+    expect(by.hoursWaiting.value(o)).toBe(1)
+    expect(by.hoursWaiting.sub(o)).toEqual({ key: 'reports.tileSub.hoursWaiting', vars: { hours: 8.3 } })
+    expect(by.overdueTasks.to('/org/x')).toBe('/org/x/reports?tab=operations&view=tasks')
+    expect(by.crewDaysMonth.hide(o)).toBe(false)
+    expect(by.crewDaysMonth.hide(overview)).toBe(true)
+    expect(by.revenueNext3m.hide).toBeUndefined()
   })
 })

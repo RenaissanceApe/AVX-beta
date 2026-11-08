@@ -11,7 +11,7 @@ const shortTime = v => (v ? String(v).slice(0, 5) : '')
 // The gigs still to come: not over yet and not cancelled or archived, soonest first
 export function upcomingGigs(gigs, today = localToday()) {
   return (gigs || [])
-    .filter(g => g.status !== 'archived' && g.status !== 'completed' && (g.end_date || g.start_date || '9999') >= today)
+    .filter(g => !['archived', 'completed', 'cancelled'].includes(g.status) && (g.end_date || g.start_date || '9999') >= today)
     .sort((a, b) => (a.start_date || '9').localeCompare(b.start_date || '9'))
 }
 

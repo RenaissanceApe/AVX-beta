@@ -414,7 +414,7 @@ const SCENES = {
   'leave-balances': { persona: 'pm', url: `/org/${ids.org}/leave`, async run(page) {
     const box = page.locator('section[aria-labelledby="leave-balances"]')
     await box.waitFor()
-    await box.evaluate(el => el.scrollIntoView({ block: 'start' }))
+    await page.evaluate(() => window.scrollTo(0, 0))
     return box
   } },
   'expenses-month': { persona: 'pm', url: `/org/${ids.org}/expenses`, async run(page, L) {
@@ -550,6 +550,31 @@ const SCENES = {
     await table.waitFor()
     await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
     return table
+  } },
+  // K7: Reports → Operations and the gig wrap-up
+  'ops-activity': { persona: 'pm', url: `/org/${ids.org}/reports?tab=operations&period=last_12_months`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'ops-people': { persona: 'pm', url: `/org/${ids.org}/reports?tab=operations&view=people`, async run(page, L) {
+    await page.getByLabel(L('reports.showDetails')).check()
+    const table = page.locator('table').last()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'ops-staffing': { persona: 'pm', url: `/org/${ids.org}/reports?tab=operations&view=staffing`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'gig-wrapup': { persona: 'pm', url: `/gig/${ids.gig}/wrapup`, async run(page) {
+    const box = page.locator('section[aria-labelledby="wu-hours"]')
+    await box.waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'start' }))
+    return box
   } },
   // K3: Reports → Money, Cash / Spending / Forecast
   'money-cash': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&view=cash&period=this_quarter`, async run(page) {

@@ -42,7 +42,7 @@ export function PeriodDates({ range }) {
   return <>{fmt(range.from, 'd MMM yyyy')} – {fmt(last, 'd MMM yyyy')}</>
 }
 
-// Period, custom dates and comparison
+// Period, custom dates and comparison (no comparison when onCompare isn't given, e.g. the person page)
 export function PeriodBar({ period, onPeriod, custom, onCustom, compare, onCompare, range, compared }) {
   const { t } = useI18n()
   return (
@@ -65,14 +65,16 @@ export function PeriodBar({ period, onPeriod, custom, onCustom, compare, onCompa
           </div>
         </>
       )}
-      <div style={field}>
-        <label htmlFor="rp-compare" style={lab}>{t('reports.compareWith')}</label>
-        <select id="rp-compare" value={compare} onChange={e => onCompare(e.target.value)} style={select}>
-          {COMPARISONS.map(c => <option key={c} value={c}>{t(`reports.compare.${c}`)}</option>)}
-        </select>
-      </div>
+      {onCompare && (
+        <div style={field}>
+          <label htmlFor="rp-compare" style={lab}>{t('reports.compareWith')}</label>
+          <select id="rp-compare" value={compare} onChange={e => onCompare(e.target.value)} style={select}>
+            {COMPARISONS.map(c => <option key={c} value={c}>{t(`reports.compare.${c}`)}</option>)}
+          </select>
+        </div>
+      )}
       <p style={{ flex: '1 1 100%', fontSize: '12px', color: colors.muted, margin: 0 }}>
-        {range ? <><PeriodDates range={range} />{compared && <> · {t('reports.comparedWith')} <PeriodDates range={compared} /></>}{range.partial && <> · {t('reports.dayForDay')}</>}</> : t('reports.pickDates')}
+        {range ? <><PeriodDates range={range} />{compared && <> · {t('reports.comparedWith')} <PeriodDates range={compared} /></>}{range.partial && compared && <> · {t('reports.dayForDay')}</>}</> : t('reports.pickDates')}
       </p>
     </div>
   )

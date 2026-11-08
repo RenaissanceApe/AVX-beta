@@ -9,7 +9,8 @@ import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
 import { card, colors, mono, AvxLoader } from '../ui'
 
-// The Overview tiles (src/lib/analytics/tiles.js), read in one call (public.report_overview).
+// The Overview tiles (src/lib/analytics/tiles.js), read from public.report_overview (and K7's own
+// public.report_overview_k7).
 // Shown on Reports → Overview and, folded or not, as the key numbers on the organisation's Home.
 
 export function useOverview(orgId, enabled = true) {
@@ -18,10 +19,15 @@ export function useOverview(orgId, enabled = true) {
     if (!orgId || !enabled) return
     let cancelled = false
     setState(s => ({ ...s, loading: true }))
-    retryOnce(() => supabase.rpc('report_overview', { p_org: orgId })).then(({ data, error }) => {
+    Promise.all([
+      retryOnce(() => supabase.rpc('report_overview', { p_org: orgId })),
+      // K7's tiles come from their own function; if it fails, the other tiles still show
+      retryOnce(() => supabase.rpc('report_overview_k7', { p_org: orgId })),
+    ]).then(([{ data, error }, k7]) => {
       if (cancelled) return
       if (error) logger.error('reports', error, { step: 'overview' })
-      setState({ data: data || null, error: error || null, loading: false })
+      if (k7.error) logger.error('reports', k7.error, { step: 'overview:k7' })
+      setState({ data: data ? { ...data, k7: k7.data || null } : null, error: error || null, loading: false })
     })
     return () => { cancelled = true }
   }, [orgId, enabled])
@@ -56,7 +62,7 @@ export function OverviewTiles({ orgId, overview, compact = false }) {
   const base = `/org/${orgId}`
   return (
     <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${compact ? 140 : 170}px, 1fr))`, gap: '8px' }}>
-      {OVERVIEW_TILES.map(tile => {
+      {OVERVIEW_TILES.filter(tile => !tile.hide?.(overview)).map(tile => {
         const sub = tile.sub?.(overview)
         return (
           <li key={tile.key} style={{ minWidth: 0 }}>

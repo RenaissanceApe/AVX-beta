@@ -325,7 +325,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
         )}
       </div>
       {view === 'calendar' ? (
-        <GigCalendar gigs={filterGigs(gigs, 'all', search).filter(g => g.status !== 'archived' && byLabel(g))} clashIds={clashIds} onOpen={onOpen} />
+        <GigCalendar gigs={filterGigs(gigs, 'all', search).filter(g => g.status !== 'archived' && g.status !== 'cancelled' && byLabel(g))} clashIds={clashIds} onOpen={onOpen} />
       ) : visible.length === 0 ? (
         <p style={{ color: 'var(--muted)', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>
           {search ? t('dash.noMatch') : t(`dash.noGigs.${filter}`)}
