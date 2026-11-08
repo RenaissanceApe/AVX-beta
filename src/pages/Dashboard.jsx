@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   Plus, Calendar, MapPin, ChevronRight, Building2, X, ArrowRight, Search, List, CalendarDays, Briefcase, AlertTriangle,
@@ -54,6 +54,9 @@ export default function Dashboard() {
   const role = orgId ? roleIn(orgId) : null
 
   const [gigs, setGigs] = useState([])
+  // The page stays mounted when you switch between an organisation and My work: only the newest load
+  // may fill the list, so a slower organisation list can't replace My work's (which has company names)
+  const loadSeq = useRef(0)
   const [loadingGigs, setLoadingGigs] = useState(true)
   const [savedAt, setSavedAt] = useState(null)
   const [clashIds, setClashIds] = useState(() => new Set()) // My work: gigs that overlap another booking
@@ -78,6 +81,7 @@ export default function Dashboard() {
 
   const load = useCallback(async () => {
     if (!user) return
+    const seq = ++loadSeq.current
     setLoadingGigs(true)
     const key = mode === 'me' ? 'me.gigs' : `dashboard.gigs.${orgId}`
     let rows, error
@@ -99,6 +103,7 @@ export default function Dashboard() {
       error = res.error
       rows = res.data || []
     }
+    if (seq !== loadSeq.current) return
     if (error && isNetworkError(error)) {
       const snap = loadSnapshot(key)
       setGigs(snap?.data || [])
