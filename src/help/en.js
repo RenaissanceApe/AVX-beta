@@ -40,6 +40,8 @@ export default {
     'holiday-balance': { term: 'Holiday balance', definition: 'The holiday days a member of staff has left in a year: the allowance plus the days carried over, minus approved holiday. Requests still waiting are shown apart.', example: '22 allowance + 2 carried − 9 taken = 15 left.', where: 'Organisation → Leave' },
     'working-week': { term: 'Working week', definition: 'The weekdays a member of staff normally works, and their hours a day. Leave only counts working days, and reports use it to count how much of a person\'s time was booked.', example: 'Monday to Thursday, 9 h a day: a week of holiday is 4 days.', where: 'Organisation → Leave → Edit' },
     'hours-split': { term: 'Hours split', definition: 'How a logged day divides into normal, overtime, night, weekend and holiday hours. Each hour counts once, under its highest factor. It is kept as it was when the day was approved.', example: 'Fri 14:00–02:00 with a 1 h break: 7 h normal, 3 h night, 1 h overtime.', where: 'Gig → Crew → Hours, My hours, organisation Hours' },
+    'fee-paid': { term: 'Fee paid', definition: 'A crew fee that someone at the company marked paid, with the date. AVX records it as an expense linked to the fee, so it counts once. You see only "paid on" for your own fees, never the company\'s books, and you can mark it received.', example: 'Paid on 7 Nov · received.', where: 'Gig → Crew (your fee), My numbers, labour cost panel, Expenses → Crew to pay' },
+    'year-statement': { term: 'Year statement', definition: 'Your work for one company in one year: per month the gigs, days, hours, what you earned, what was paid and km, with the totals, then each gig. Download it as a CSV or print it for your tax return.', example: 'Year statement 2026 · Stage Co: 14 gigs, 21 days, €4 850 earned.', where: 'My work → My numbers → Year statement' },
     gig: { term: 'Gig', definition: 'An event or job your team works on: a concert, a conference, a rental.', example: 'Festival main stage, 12–14 July.', where: 'Gigs list, calendar, gig page' },
     organisation: { term: 'Organisation', definition: 'A company in AVX. It has members, gigs, equipment and quotes.', example: 'Lumen and Pixel, with three admins and twenty crew.', where: 'Company switcher at the top' },
     workspace: { term: 'Workspace', definition: 'What you are looking at: one organisation, or "My work" with everything you are booked on.', example: 'Switch from "Lumen and Pixel" to "My work" to see gigs from other companies.', where: 'Company switcher at the top' },
@@ -138,6 +140,9 @@ export default {
     'finance-targets': 'A monthly budget for an expense category, or a monthly revenue target. Progress is shown for the period chosen above.',
     'expense-category': 'Pick what the cost is for. The kind (job costs, running the company, equipment, taxes) decides where it counts in the results.',
     'gig-finance': 'Revenue, costs and margin of this gig, counted in the database. Labour uses approved hours (or the invoice) where there are any, else the agreed fee, else the rate card, marked as an estimate.',
+    'crew-to-pay': 'Agreed fees on gigs that are over and not marked paid. With the person\'s invoice recorded, its total with VAT; without one, the agreed fee (no VAT). Marking one paid records the expense and tells the person.',
+    'fee-paid': 'A fee shows "paid on" once someone at the company marks it paid. Mark it received when the money reaches you; nobody sees amounts from the company\'s books here.',
+    'reimbursements-owed': 'Expense claims you sent that were approved but not paid back yet, at every company.',
     'money-report': 'Results for the whole company, counted in the database: revenue, direct costs and gross margin, then overheads and depreciation to the operating result. Margins groups them by gig type, status, client, kind of line or production manager; Labour compares planned and approved hours.',
     'operations-report': 'How the work went, counted in the database: Activity (gigs and gig days by status and type, the busiest days, how far ahead gigs are booked), People (crew days and hours, planned against approved, utilisation and leave), Staffing (positions, crew calls, job posts) and Tasks. Figures per person are for admins only.',
     'expense-link': 'If this is the invoice for a subrental, repair, crew fee or stock purchase, link it: it then replaces that record\'s planned amount, so the cost is counted once.',
@@ -221,6 +226,8 @@ export default {
     'org-person': { title: 'Person', summary: 'One person\'s days, hours and cost with the organisation for a period, for admins only: the gigs they were on, hours planned and approved, overtime, the cost by the labour rule and, for staff, utilisation and holiday left.' },
     'org-leave': { title: 'Leave', summary: 'Who in the organisation is away each day, your holiday days and your requests. Admins also decide requests, enter leave for someone and set holiday days and working weeks. Approved leave makes the person busy for gigs and hours.' },
     'my-hours': { title: 'My hours', summary: 'The hours you logged on every gig, at any company, month by month: what is waiting, sent back or approved, and what approved days pay. Download them as a CSV.' },
+    'my-numbers': { title: 'My numbers', summary: 'Your work on AVX in a year, at every company: gigs, days and hours (approved and waiting), overtime, what you earned and what is booked, what is not paid yet, travel, your busiest months and functions, job posts and crew calls. Only your own rows; a company shows only its name.' },
+    'my-statement': { title: 'Year statement', summary: 'Per company and year: one row per month with the totals, then each gig. Download it as a CSV or print it for your tax return. An aid: check it against your own records.' },
     'org-hours': { title: 'Hours', summary: 'Everyone\'s logged hours on the organisation\'s gigs, per person and month, with the cost stored when each day was approved. Admins only. Download them as a CSV.' },
     'pocket-tools': { title: 'Pocket tools', summary: 'Calculators for any venue, with or without a gig in AVX: DMX addresses and dipswitches, a block of fixtures, universes and absolute channels, and value conversions. They work offline.' },
     home: { title: 'Gigs', summary: 'The gigs of the company you chose at the top, or all of yours in "My work". Open one to see its crew, schedule, files and chat. The calendar shows the same gigs by date.' },
@@ -417,6 +424,20 @@ export default {
       mistakes: [
         'Nothing carries over by itself: type each person\'s carried days at the start of the year.',
         'Other members see a sick day only as "away", without notes.',
+      ],
+    },
+    'crew-numbers': {
+      title: 'See what you earned and get your year statement',
+      intro: 'My numbers adds up your own work on AVX at every company, so you know what is earned, what is still to be paid and what is booked.',
+      steps: [
+        'On My work, the three tiles show what you earned this month, what is not paid yet and your booked days in the next 30 days. Tap "All my numbers" for the rest.',
+        'My numbers: pick the year and, if you like, one company. You see the days, hours (approved and waiting), overtime, earnings by month, travel, your busiest months and functions, and the job posts and crew calls you answered.',
+        'When a company pays your fee, you get a notification and the gig shows "Paid on" with the date. Tap "Mark received" on the gig\'s Crew tab once the money reaches you.',
+        'Year statement: one row per month for the company, with the totals and each gig below. Download the CSV or print it for your tax return.',
+      ],
+      mistakes: [
+        'Earned counts approved hours at your fee, else the agreed fee once the gig is over. Hours still waiting for approval aren\'t earned yet.',
+        'A gig counts in the month it starts, even when it runs into the next one.',
       ],
     },
     'crew-hours': {

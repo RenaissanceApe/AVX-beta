@@ -53,6 +53,9 @@ export const OVERVIEW_TILES = [
   { key: 'overdueTasks', source: 'report_overview_k7', kind: 'count', value: o => o?.overdue_tasks ?? 0, to: base => `${base}/reports?tab=operations&view=tasks` },
   { key: 'hoursWaiting', source: 'report_overview_k7', kind: 'count', value: o => o?.hours_waiting?.days ?? 0,
     sub: o => ({ key: 'reports.tileSub.hoursWaiting', vars: { hours: Math.round((Number(o?.hours_waiting?.hours) || 0) * 10) / 10 } }), to: base => `${base}/reports?tab=operations&view=people` },
+  // K8 (public.report_overview_k8, its own call): agreed crew fees on gigs that are over, not marked paid
+  { key: 'crewToPay', kind: 'money', source: 'report_overview_k8', value: o => o?.crew_to_pay || {},
+    sub: o => ({ key: 'reports.tileSub.people', vars: { count: o?.crew_to_pay_count ?? 0 } }), to: base => `${base}/expenses?view=crew` },
 ]
 
 // The functions the tiles read (each tile's `source`, report_overview when it has none); their

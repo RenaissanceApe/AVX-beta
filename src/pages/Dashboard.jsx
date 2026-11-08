@@ -27,6 +27,7 @@ import EmptyState from '../components/EmptyState'
 import FirstSteps from '../components/FirstSteps'
 import { KeyNumbersStrip } from '../components/reports/OverviewTiles'
 import SimpleHome from '../components/SimpleHome'
+import MyNumbersStrip from '../components/mywork/MyNumbersStrip'
 import { useSimpleMode } from '../lib/simpleMode'
 import { useGigLabels, GIG_LABELS_EMBED } from '../lib/gigLabels'
 import { GigLabels } from '../components/gig/parts'
@@ -151,6 +152,7 @@ export default function Dashboard() {
 
             {!loadingGigs && !loadingOrgs && (mode === 'me' || (org && role === 'admin')) && <FirstSteps mode={mode} org={org} gigCount={gigs.length} />}
             {mode === 'me' && <AvailabilityRequests />}
+            {mode === 'me' && <MyNumbersStrip />}
             {mode === 'org' && org && canCreateGig && !simple && <KeyNumbersStrip orgId={orgId} />}
 
             {(loadingGigs || loadingOrgs) ? (

@@ -36,6 +36,8 @@ const JobsPage = lazy(() => import('./pages/JobsPage'))
 const OrgJobsPage = lazy(() => import('./pages/OrgJobsPage'))
 const OrgTasksPage = lazy(() => import('./pages/OrgTasksPage'))
 const HoursPage = lazy(() => import('./pages/HoursPage'))
+const MyNumbersPage = lazy(() => import('./pages/MyNumbersPage'))
+const YearStatementPage = lazy(() => import('./pages/YearStatementPage'))
 const LeavePage = lazy(() => import('./pages/LeavePage'))
 const ExpensesPage = lazy(() => import('./pages/ExpensesPage'))
 const InvoicesPage = lazy(() => import('./pages/InvoicesPage'))
@@ -125,6 +127,8 @@ function AppRoutes() {
       <Route path="/dashboard" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
       <Route path="/me" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/me/hours" element={<ProtectedRoute><Suspense fallback={<Spinner />}><HoursPage /></Suspense></ProtectedRoute>} />
+      <Route path="/me/numbers" element={<ProtectedRoute><Suspense fallback={<Spinner />}><MyNumbersPage /></Suspense></ProtectedRoute>} />
+      <Route path="/me/numbers/statement" element={<ProtectedRoute><Suspense fallback={<Spinner />}><YearStatementPage /></Suspense></ProtectedRoute>} />
       <Route path="/me/profile" element={<ProtectedRoute><Suspense fallback={<Spinner />}><CrewProfilePage /></Suspense></ProtectedRoute>} />
       <Route path="/jobs" element={<ProtectedRoute><Suspense fallback={<Spinner />}><JobsPage /></Suspense></ProtectedRoute>} />
       <Route path="/admin/trust" element={<ProtectedRoute><Suspense fallback={<Spinner />}><TrustAdminPage /></Suspense></ProtectedRoute>} />

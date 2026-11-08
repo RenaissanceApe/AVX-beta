@@ -14,7 +14,7 @@ export type Notification = {
 }
 
 // Kinds that are a direct question to the person: sent even when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned', 'leave_requested', 'leave_sick', 'leave_cancelled', 'leave_approved', 'leave_refused', 'expense_claimed', 'expense_approved', 'expense_returned'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned', 'leave_requested', 'leave_sick', 'leave_cancelled', 'leave_approved', 'leave_refused', 'expense_claimed', 'expense_approved', 'expense_returned', 'fee_paid'])
 
 export const STRINGS: Record<Lang, Record<string, string>> = {
   en: {
@@ -88,6 +88,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     expenseApproved: '{actor} approved your claim of {amount}: {description}',
     expenseReturned: '{actor} sent back your claim: {description}',
     expenseDrafted: '{count} recurring cost(s) ready to confirm in Expenses',
+    feePaid: 'Your fee for {gig} was paid on {date}',
     invoiceOverdue: 'Invoice {number} to {client} is {days} day(s) overdue',
     'role.pm': 'Production Manager', 'role.crew': 'Crew', 'role.viewer': 'Viewer',
     'orgRole.admin': 'Admin', 'orgRole.member': 'Member', 'orgRole.viewer': 'Viewer',
@@ -165,6 +166,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     expenseApproved: '{actor} aprovou o seu pedido de {amount}: {description}',
     expenseReturned: '{actor} devolveu o seu pedido de reembolso: {description}',
     expenseDrafted: '{count} custo(s) recorrente(s) para confirmar em Despesas',
+    feePaid: 'O seu cachê de {gig} foi pago a {date}',
     invoiceOverdue: 'A fatura {number} de {client} está vencida há {days} dia(s)',
     'role.pm': 'Production Manager', 'role.crew': 'Equipa', 'role.viewer': 'Leitor',
     'orgRole.admin': 'Administrador', 'orgRole.member': 'Membro', 'orgRole.viewer': 'Leitor',
@@ -269,6 +271,7 @@ export function describe(n: Notification, lang: Lang, actorName: string | undefi
       return d.note ? `${text}: “${d.note}”` : text
     }
     case 'expense_drafted': return fill(s.expenseDrafted, { count: d.count ?? 1 })
+    case 'fee_paid': return fill(s.feePaid, { gig, date: d.paid_on ?? '' })
     case 'invoice_overdue': return fill(s.invoiceOverdue, { number: d.number ?? '', client: d.client ?? '', days: d.days ?? '' })
     default: return fill(s.generic, { gig })
   }
