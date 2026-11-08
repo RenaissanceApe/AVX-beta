@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { OVERVIEW_TILES, OVERVIEW_SOURCES, moneyLines, lastYearSub } from './tiles'
+import { OVERVIEW_TILES, OVERVIEW_SOURCES, moneyLines, lastYearSub, next30Link } from './tiles'
 
 const overview = {
   today: '2026-11-05', gigs_this_month: { total: 4, confirmed: 3 }, revenue_next_30: { EUR: 155, USD: 1250 },
@@ -54,6 +54,20 @@ describe('overview tiles', () => {
     expect(by.crewToPay.value({})).toEqual({})
     expect(by.crewToPay.sub(o)).toEqual({ key: 'reports.tileSub.people', vars: { count: 2 } })
     expect(by.crewToPay.to('/org/x')).toBe('/org/x/expenses?view=crew')
+  })
+  it('reads the K6 warehouse tiles from their own function', () => {
+    const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
+    const o = { items_short_30: 1, units_in_repair: 2, inspections_overdue: 1, never_inspected: 3 }
+    for (const k of ['itemsShort30', 'unitsInRepair', 'inspectionsOverdue']) expect(by[k].source).toBe('report_overview_k6')
+    expect(OVERVIEW_SOURCES).toContain('report_overview_k6')
+    expect(by.itemsShort30.value(o)).toBe(1)
+    expect(by.unitsInRepair.value({})).toBe(0)
+    expect(by.inspectionsOverdue.value(o)).toBe(1)
+    expect(by.inspectionsOverdue.sub(o)).toEqual({ key: 'reports.tileSub.neverInspected', vars: { count: 3 } })
+    expect(by.inspectionsOverdue.sub({ never_inspected: 0 })).toBe(null)
+    expect(by.unitsInRepair.to('/org/x')).toBe('/org/x/inventory?tab=maintenance')
+    expect(next30Link('/org/x', new Date('2026-10-15T12:00:00Z'), 'Europe/Lisbon'))
+      .toBe('/org/x/reports?tab=warehouse&period=custom&from=2026-10-15&until=2026-11-13&show=short')
   })
   it('says when last year has nothing in the same currency', () => {
     expect(lastYearSub({ revenue_this_month: { USD: 5 }, revenue_month_last_year: { EUR: 3 } })).toEqual({ key: 'reports.tileSub.noLastYear', vars: {} })
