@@ -574,6 +574,32 @@ const SCENES = {
     await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
     return table
   } },
+  // K4: Reports → Sales and the client numbers card in Contacts
+  'sales-waiting': { persona: 'pm', url: `/org/${ids.org}/reports?tab=sales`, async run(page) {
+    const box = page.locator('section[aria-labelledby="sl-follow"]')
+    await box.locator('ul').waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box
+  } },
+  'sales-winrate': { persona: 'pm', url: `/org/${ids.org}/reports?tab=sales&view=winrate&period=last_12_months`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'sales-clients': { persona: 'pm', url: `/org/${ids.org}/reports?tab=sales&view=clients&period=this_year`, async run(page) {
+    const table = page.locator('table').last()
+    await table.waitFor()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'client-numbers': { persona: 'pm', url: `/org/${ids.org}/contacts`, async run(page) {
+    await page.getByRole('button', { name: /Marcolino/ }).first().click()
+    const box = page.locator('section[aria-labelledby="cl-numbers"]')
+    await box.locator('dl').waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box
+  } },
   // K3: Reports → Money, Cash / Spending / Forecast
   'money-cash': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&view=cash&period=this_quarter`, async run(page) {
     const fig = page.locator('figure').first()

@@ -649,6 +649,43 @@ export function sampleData(persona, lang) {
       spending: spendingAnswer,
       revenue_forecast: revenueForecast,
       target_progress: targetProgress,
+      // K4: Reports → Sales and the client numbers card
+      report_overview_k4: { follow_up: { count: 2, totals: { EUR: 6380 } }, win_rate_90: { decided: 13, by_count: 0.62, by_value: 0.57, currency: 'EUR' },
+        top_client_year: { key: 'c1', name: 'Marcolino Produções', currency: 'EUR', amount: 28640, share: 0.31 } },
+      sales_waiting: [
+        { quote_id: 'q1', quote_number: 41, title: gig.name, client_key: 'c1', client_name: 'Marcolino Produções', author_id: ricardo, author_name: 'Ricardo Bedulho', currency: 'EUR', value: 4860, sent_on: day(-12), days_waiting: 12, valid_until: day(4), days_left: 4, opened: true, last_viewed_at: ago(3000), expiring: true, expired: false, follow_up: true },
+        { quote_id: 'q2', quote_number: 43, title: tx('Gala de fim de ano', 'End-of-year gala'), client_key: 'c2', client_name: tx('Câmara Municipal de Sintra', 'Sintra Town Council'), author_id: duarte, author_name: 'Duarte Silva', currency: 'EUR', value: 1520, sent_on: day(-9), days_waiting: 9, valid_until: day(21), days_left: 21, opened: false, last_viewed_at: null, expiring: false, expired: false, follow_up: true },
+        { quote_id: 'q3', quote_number: 45, title: tx('Casamento Joana', 'Joana\'s wedding'), client_key: 'c4', client_name: 'Joana Silva', author_id: ricardo, author_name: 'Ricardo Bedulho', currency: 'EUR', value: 3340, sent_on: day(-3), days_waiting: 3, valid_until: day(27), days_left: 27, opened: true, last_viewed_at: ago(600), expiring: false, expired: false, follow_up: false },
+        { quote_id: 'q4', quote_number: 38, title: tx('Feira do livro', 'Book fair'), client_key: 'c3', client_name: 'Festival Lumière', author_id: duarte, author_name: 'Duarte Silva', currency: 'EUR', value: 980, sent_on: day(-40), days_waiting: 40, valid_until: day(-10), days_left: -10, opened: false, last_viewed_at: null, expiring: false, expired: true, follow_up: false },
+      ],
+      sales_win_rate: ({ p_group = 'total' } = {}) => {
+        const row = (k, label, d, a, va, vd, med, avg, gross) => ({ group_key: k, group_label: label, currency: 'EUR', decided: d, accepted: a, declined: d - a,
+          value_accepted: va, value_declined: vd, win_rate_count: d ? Math.round(a / d * 10000) / 10000 : null, win_rate_value: va + vd ? Math.round(va / (va + vd) * 10000) / 10000 : null,
+          median_days: med, avg_value: avg, gross_accepted: gross, discount_accepted: Math.round((gross - va) * 100) / 100 })
+        if (p_group === 'lost_reason') return [row('price', null, 4, 0, 0, 9200, 6, 2300, 0), row('competitor', null, 2, 0, 0, 5100, 9, 2550, 0), row('cancelled', null, 1, 0, 0, 1800, 3, 1800, 0), row(null, null, 13, 12, 61200, 2400, 5, 4892, 66900)]
+        if (p_group === 'client') return [row('c1', 'Marcolino Produções', 7, 5, 28640, 6200, 4, 4977, 31200), row('c2', tx('Câmara Municipal de Sintra', 'Sintra Town Council'), 5, 3, 14800, 5900, 12, 4140, 15600), row('c3', 'Festival Lumière', 4, 2, 11300, 4800, 7, 4025, 12400), row('c4', 'Joana Silva', 2, 1, 3340, 1600, 3, 2470, 3600), row(null, null, 2, 1, 3120, 0, 2, 1560, 4100)]
+        if (p_group === 'author') return [row(ricardo, 'Ricardo Bedulho', 12, 8, 38400, 9800, 5, 4017, 42100), row(duarte, 'Duarte Silva', 8, 4, 22800, 8700, 8, 3938, 24800)]
+        if (p_group === 'month' || p_group === 'quarter') {
+          const months = [-5, -4, -3, -2, -1, 0].map(i => new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() + i, 1)).toISOString().slice(0, 7))
+          const n = [[3, 2], [4, 2], [2, 1], [5, 3], [3, 2], [3, 2]]
+          return months.map((m, i) => row(m, null, n[i][0], n[i][1], n[i][1] * 5100, (n[i][0] - n[i][1]) * 3000, 5 + i % 3, 4400, n[i][1] * 5500))
+        }
+        return [row('total', null, 20, 12, 61200, 18500, 6, 3985, 66900)]
+      },
+      sales_clients: ({ p_client } = {}) => {
+        const c = (k, name, rev, margin, gigs, quotes, decided, accepted, first, last, next, isNew, ret) => ({ client_key: k, client_id: k, client_name: name, currency: 'EUR',
+          revenue: rev, gross_margin: margin, margin_pct: rev ? Math.round(margin * 1000 / rev) / 10 : null, gigs, avg_gig_value: gigs ? Math.round(rev / gigs * 100) / 100 : null,
+          quotes, decided, accepted, win_rate_count: decided ? Math.round(accepted / decided * 10000) / 10000 : null, win_rate_value: null,
+          first_gig: first, last_gig: last, next_gig: next, is_new: isNew, is_returning: ret })
+        const rows = [
+          c('c1', 'Marcolino Produções', 28640, 11930, 6, 8, 7, 5, day(-700), day(-14), day(24), false, true),
+          c('c2', tx('Câmara Municipal de Sintra', 'Sintra Town Council'), 14800, 5480, 3, 6, 5, 3, day(-420), day(-40), day(52), false, true),
+          c('c3', 'Festival Lumière', 11300, 3620, 2, 5, 4, 2, day(-150), day(-60), null, true, false),
+          c('c4', 'Joana Silva', 3340, 1210, 1, 2, 2, 1, day(-30), day(-30), day(200), true, false),
+          { ...c('', null, 34100, 9800, 0, 0, 0, 0, null, null, null, false, false), client_id: null },
+        ]
+        return p_client ? rows.filter(r => r.client_key === p_client) : rows
+      },
       report_revenue_lines: revenueLines,
       gig_finance: gigFinance,
       // Step 11b: the organisation's invoicing program, connected
