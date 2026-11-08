@@ -403,27 +403,35 @@ Needs: K5.
 - Tiles: items short in the next 30 days, units in repair, inspections overdue.
 - Ask: which dispatch steps count as "prepped"; the idle period.
 
-## K7 · Operations and people
+## How K7 works (built with the "Money reports" set)
 
-Needs: K1, 8, 9.
+Operations and people. Migrations `20261229000000_gig_cancelled_status.sql` (part 1, **applied by
+hand**: it replaces two check constraints) and `20261229000001_reports_k7.sql` (functions, one
+column); checks in `supabase/tests/reports_k7.sql` (no delete statements). Decided with the owner on
+2026-11-08: **per-person figures for admins only**; the wrap-up shows planned against actual hours
+and costs (money only for those who see it), damage, losses and missing items, open tasks and notes;
+**yes to a "cancelled" gig status**. Defaults D42, D44, D49, D50 kept.
 
-- **Activity**: gigs and gig days per month by status and type; the busiest days; how far ahead
-  gigs are booked.
-- **People**: crew days and hours per person (staff and freelancers); overtime, night, weekend and
-  holiday hours; planned against approved hours; how long approvals take; staff utilisation; leave
-  taken and left; the share of crew days done by freelancers.
-- **Staffing**: positions filled and open by gig date; time to fill (from the activity log);
-  crew-call answers and time to answer; job posts (applications, filled).
-- **Tasks**: open, overdue and done on time, per person and per gig.
-- **Gig wrap-up**: a printable page per gig after it ends: planned against actual hours and costs
-  (money only for those who see it), damage, losses and missing items, open tasks and notes.
-- A person page for admins: their days, hours and cost with the organisation (a DATA_MAP.md row).
-- Tiles: crew days this month, open positions in the next 14 days, overdue tasks, hours waiting for
-  approval.
-- Built in step 9: `staff_utilisation(org, from, to)` gives each member of staff's working days, leave
-  per type, days and hours available and approved hours logged (docs/BUSINESS.md, "How leave
-  requests work").
-- Ask: per-person figures for admins only or members too; the wrap-up page; a "cancelled" status.
+| Piece | How it works |
+|---|---|
+| Cancelled status | A sixth built-in status, `cancelled` (`gigs.status`, `gig_statuses.base_status`; part 1). A cancelled gig behaves like an archived one: `private.gig_reservation_status` gives `cancelled` (no crew or equipment held), `person_conflicts` and `crew_busy` leave it out, the calendar feed skips it, the gigs list puts it with the archived ones, Home, the calendar, Find crew, job posts and subrentals leave it out. The suggested own status "Cancelled" now stands for it. Reports count it as a cancellation and nothing else (no crew days, positions or tasks) |
+| Who may | `private.require_ops(org)`: the organisation's admins and members (`is_staff`), with the second sign-in step when set up. `private.require_ops_admin(org)`: admins only, for per-person figures. The functions run as their owner (`security definer`, like `private.gig_labour`) because hours and fees are readable only by a gig's managers; they check who asks first, and members get totals only (`persons` and `by_person` come back `null`) |
+| Crew days | `private.ops_crew_days(org, from, until)`: one row per gig, person and day inside the period, from the person's booking, else the gig's dates (as `gig_labour_hours`); viewers aren't booked; cancelled gigs don't count; staff = the organisation's admins and members |
+| `ops_activity(org, from, until)` | Gigs per month by start date, by built-in status, own status and type; gig days per month (each day of a gig inside the period); the 10 busiest days (gigs running, crew booked; not cancelled); booking lead time (created → start, gigs starting in the period, not draft or cancelled) as a median and four buckets; cancelled gigs in the period |
+| `ops_people(org, from, until)` | Totals: crew days (staff, freelance), people, hours planned (an hourly fee's quantity for its share of days in the period, else days × `overtime_after_hours`, 10 when not set), hours approved and their split (overtime, night, weekend, holiday) by work date, hours waiting (`private.entry_hours`: end − start − break, past midnight when the end is earlier), days waiting, time to approve (entered → approved, average). Admins: one row per person, plus staff with nothing booked, with booked working days (crew days on their working weekdays, not a national or organisation holiday, not on approved leave), `staff_utilisation`'s working and available days and leave per type, utilisation, and `leave_balances` for the year the period ends in. At most 400 days (the leave functions' limit) |
+| `ops_staffing(org, from, until)` | Gigs starting in the period (not cancelled): positions needed (titles compared ignoring case and spaces), filled (people on the gig with that function, at most the quantity), open, per gig; time to fill from `gig_activity` (`member_added` with the position's function, after the position was added): count, median, average hours; crew calls sent in the period with answers (accepted, declined, none yet, full) and the median time to answer; job posts made in the period (open, filled, closed, applications, accepted) |
+| `ops_tasks(org, from, until)` | The organisation's own tasks and its gigs' tasks (not removed, not on cancelled gigs): open and overdue as of today (organisation's date), done in the period, on time (done on or before the due date) and late; per gig for admins and members, per person for admins |
+| `private.person_labour(org, gigs)` | `private.gig_labour`'s rule per person instead of per gig (the test checks they add up to the same planned and counted labour), with each person's days, planned, approved and waiting hours and the split |
+| `ops_person(org, user, from, until)` | Admins only. The gigs starting in the period that the person was on (dated like the money reports), each with days, hours and cost (actual, else agreed fee, else rate card marked estimate), totals, first and last gig, and for staff `leave_balances` and utilisation. Someone who is neither a member nor ever on the organisation's gigs: `P0002` |
+| `gig_wrapup(gig)` | The gig's managers (`can_manage_gig`) and the organisation's admins and members; crew and viewers refused. Hours per gig (planned days and hours, approved, waiting, returned days, split) and, for managers and admins, per person; `gig_finance`'s row for those who see money; damaged returns and not-back counts from `gig_dispatch` (undone scans left out), units marked lost after going out and never scanned back, repairs on the gig (staff only; cost only with money), open tasks, and `gigs.wrapup_notes` (up to 4000 characters, written by whoever may edit the gig) |
+| Overview tiles | `report_overview_k7(org)` (K7's own function; `report_overview` unchanged): crew days this month, open positions on gigs starting today to 13 days ahead, overdue tasks, days and hours waiting for approval. `useOverview` merges it in as `k7`; the four tiles in `OVERVIEW_TILES` (`crewDaysMonth`, `openPositions14`, `overdueTasks`, `hoursWaiting`) hide themselves when it didn't load (`hide`) |
+| Screens | Reports → **Operations** (`components/reports/OperationsReport.jsx`, tab `operations`, menu Reports → Operations), views `?view=activity|people|staffing|tasks`. The whole period counts, days still to come included (bookings and positions are planned ahead); activity and people compare with the previous period or last year in full. "Show details" adds: activity by type (`?by=type`), gig days, lead time and busiest days; the per-person table (admins); positions per gig, crew-call answers and job posts; tasks per gig and per person (admins). CSV and print. Helpers in `src/lib/analytics/ops.js` (unit tested). **Gig wrap-up** at `/gig/:id/wrapup` (`pages/GigWrapupPage.jsx`), printable. **Person page** at `/org/:orgId/people/:userId` (`pages/PersonPage.jsx`), admins only, this year by default |
+| Connected | Gig page: once the gig has ended, its managers and the organisation's admins and members see "Open the wrap-up" (`GigWrapupLink`). Crew tab: admins get a link to each person's page. Organisation → Tasks: a link to Reports → Operations → Tasks. Overview and Home: the four tiles. DATA_MAP.md: a row for per-person reports. Reports → Operations → People links each name to the person page |
+| Help | Terms crew day, staff utilisation, time to fill, gig wrap-up; ⓘ `operations-report`; page notes `gig-wrapup`, `org-person`; guide `pm-operations` with four new pictures (`ops-activity`, `ops-people`, `ops-staffing`, `gig-wrapup`) and the refreshed Overview picture; the gig-status help mentions Cancelled |
+| Tests | `reports_k7.sql`: the cancelled status (no reservation, not busy, not a clash, an own status may stand for it), each view's numbers on hand-worked fixtures (a national holiday, a day of leave, an hourly fee, a booking shorter than the gig, a position split over two rows, an undone return scan), per-person labour adding up to `gig_labour`, who may call each function (admin and member; members get no per-person rows and no person page; viewer, crew, another organisation, anonymous: no; the second sign-in step), who may write the notes. Vitest for the helpers, tiles, nav, gigs list; the signed-in e2e journey opens the four views with axe |
+
+**For K8 and later:** per-person labour is `private.person_labour`; crew days are
+`private.ops_crew_days`; add per-person figures behind `private.require_ops_admin`.
 
 ## K8 · Crew numbers
 
