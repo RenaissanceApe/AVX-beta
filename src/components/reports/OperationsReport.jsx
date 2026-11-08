@@ -59,7 +59,9 @@ export default function OperationsReport({ orgId, timeZone, labels, params, setP
     return () => { cancelled = true }
   }, [orgId, view, range, compared])
 
-  const setView = v => { setParam('view', v === 'activity' ? null : v); setParam('by', null) }
+  // One change to the address at a time: setSearchParams builds each update from the address as it
+  // was when the page drew, so two calls in a row keep only the last (`by` is only read by Activity)
+  const setView = v => setParam('view', v === 'activity' ? null : v)
   const compareLabel = t(`reports.compareShort.${compare}`)
   const months = monthsOf(range)
   const monthLabel = key => fmt(`${key}-01`, months.length > 6 ? 'MMM' : 'MMM yy')

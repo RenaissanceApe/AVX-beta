@@ -51,9 +51,13 @@ export default function PersonPage() {
     return () => { cancelled = true }
   }, [isAdmin, orgId, userId, range])
 
-  const setParam = (key, value) => setParams(p => {
+  // Several keys in one change: setSearchParams builds each update from the address as it was when
+  // the page drew, so two calls in a row would keep only the last
+  const setParam = changes => setParams(p => {
     const next = new URLSearchParams(p)
-    if (value == null || value === '') next.delete(key); else next.set(key, value)
+    for (const [key, value] of Object.entries(changes)) {
+      if (value == null || value === '') next.delete(key); else next.set(key, value)
+    }
     return next
   }, { replace: true })
 
@@ -103,8 +107,8 @@ export default function PersonPage() {
             </p>
           )}
         </div>
-        <PeriodBar period={period} onPeriod={v => setParam('period', v === 'this_year' ? null : v)} custom={custom}
-          onCustom={c => { setParam('from', c.from || null); setParam('until', c.until || null) }}
+        <PeriodBar period={period} onPeriod={v => setParam({ period: v === 'this_year' ? null : v })} custom={custom}
+          onCustom={c => setParam({ from: c.from || null, until: c.until || null })}
           range={range} compared={null} />
 
         {!range ? null : !data ? (
