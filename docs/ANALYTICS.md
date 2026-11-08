@@ -495,11 +495,22 @@ yet** join `expected_out` as `group_key` `crew` in this month, at the agreed fee
 `position` drops by the same amount. A fee whose invoice is recorded already counts as `unpaid`
 through its expense, so nothing is counted twice (checked in `finance_cash.sql`, K8 block).
 
-## K9 · Report extras (optional)
+## How K9 works (built in the "Money reports" set)
 
-Needs: K2–K8. Only what the owner picks: a weekly key-numbers email to admins (opt-in, through the
-email summary and Brevo); saved views pinned to the Overview; a monthly management pack as a PDF
-(jsPDF); a read-only link for the accountant (token, expiry, revocable, like quote links).
+Report extras; the owner picked all four. Migration `20270101000000_report_extras.sql`; checks in
+`supabase/tests/report_extras.sql` (no delete statements). Two Edge Functions: `send-key-numbers`
+and `report-link-public` (JWT verification off for both).
+
+| Piece | How it works |
+|---|---|
+| Counting without a reader | The weekly email and the accountant link have no signed-in reader, so their functions check the person first (an admin who opted in; the admin who made the link and still is one), then run the existing report functions **as that person** (`private.report_as` sets the request's claims, `private.report_unswap` puts the old ones back before returning). Same rules, same `require_finance`, no second copy of any number. Only service-role functions do this; `private.report_claims_swap` can't be called by users. The second sign-in step can't be asked for here (see PENDING) |
+| `private.key_numbers(org, at)` | The Overview's numbers in one object: `report_overview` and `report_overview_k4`…`k8` merged, as `useOverview` merges them in the browser |
+| Weekly key numbers | `profiles.weekly_numbers` (off by default), shown in Settings → Notifications to people who administer an organisation. `public.weekly_numbers_recipients()` (admins who opted in, once per organisation, not muted ones), `public.weekly_key_numbers(org, user, at)` (null unless still an admin who opted in), `public.claim_weekly_numbers(user, org, week)` (once per person, organisation and Monday-week, in `report_email_log`, and under `send_settings.daily_email_cap` counted together with `send_log`). `send-key-numbers` sends one email per admin and organisation through Brevo (same secrets as the daily summary), text in `_shared/key-numbers-email.ts` (EN/PT, Vitest in `src/lib/keyNumbersEmail.test.js`): twelve numbers, money per currency, each line a link to its report. `?dry=1` counts only. GitHub workflow `key-numbers.yml`, Mondays 07:41 UTC |
+| Saved views | `report_views` (org, user, name, tab, query string without the tab, pinned, removed_at): only its owner reads or changes it, and only while `can_see_finance`; 50 live views per person and organisation; removed by marking. `src/lib/analytics/reportViews.js` (`viewQuery`, `viewHref`, CRUD). "Save this view" on every report tab; Reports → Overview shows the pinned ones as links and "Manage" lists all to pin, unpin or remove (`components/reports/SavedViews.jsx`). A view opens as a plain link, so ReportsPage's `setParam` (#115) wasn't touched |
+| Monthly management pack | `src/lib/analytics/managementPack.js`: for a whole month already over, reads the Overview sources, `finance_results` (the month and the month before), `sales_win_rate`, `sales_clients` (top five by revenue) and `equipment_money` (five best and three worst earners), lays them out as tables (`packSections`, tested) and draws the PDF with jsPDF + autotable in the browser (`pdfSafe` for the built-in fonts). On Reports → Overview; usage count `pdf:reports:pack` |
+| Accountant link | `report_links` (org, SHA-256 `token_hash`, label, period of at most two years, `expires_at` 1–180 days, `revoked_at`, views). Admins see their organisation's links (never the hash) and make or revoke them through `public.create_report_link` (returns the token once; 20 live links per organisation) and `public.revoke_report_link`. `public.report_link_view(hash, at)` (service role only) returns null for unknown, revoked or expired links and when the maker is no longer an admin; otherwise `finance_results` by month and in total, invoiced / credited / received / paid out by month (`cash_report`) and spending by category, counted as the maker, and counts the view. `report-link-public` hashes the token and answers `not_found` for all failures alike. Page `/r/:token` (`pages/ReportLinkPage.jsx`, no sign-in, `noindex` and `no-referrer`): a table per currency, every month of the period, estimates starred, print |
+| Help | Terms saved view, management pack, accountant link, weekly key numbers; ⓘ hints on the three Overview sections; guide `office-report-extras` with six pictures (sample answers in `scripts/help-screens/sample-data.mjs`, Edge Function answers under `functions`) |
+| Tests | `report_extras.sql` (recipients, opt-in, muted, claims put back, once a week, who may call; saved views per person, viewers refused; links: hash only, admins only, valid shows the period, unknown, expired (by clock and by date), revoked and former-admin links show nothing); Vitest for views, links, the pack and the email; e2e: the journey saves, opens and removes a view and checks the Overview sections and the setting; axe on `/r/<unknown>` |
 
 ## K10 · Safety and compliance (suggested, D27)
 
