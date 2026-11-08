@@ -149,6 +149,10 @@ Since K1 (0.69.0) the report is counted in the database, `public.equipment_repor
 until)` ([ANALYTICS.md](ANALYTICS.md), "How K1 works"), with every row whatever the size of the
 organisation; before, the browser worked it out from at most 1000 rows per list.
 
+Since K5 (0.77.0) Inventory → Reports opens Reports → Equipment; this table is its "Use and
+value" view, beside profit, payback and buy or keep hiring in ([ANALYTICS.md](ANALYTICS.md),
+"How K5 works").
+
 ## How it builds on what exists
 
 - **Reservations** ([RESERVATIONS.md](RESERVATIONS.md)): gear on a gig becomes reservations with
