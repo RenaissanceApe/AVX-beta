@@ -31,7 +31,7 @@ export const PAGE_TERMS = {
   'org-leave': ['leave', 'holiday-balance', 'working-week', 'unavailable-dates'],
   'org-expenses': ['expense', 'expense-claim', 'recurring-cost', 'capital-expense', 'vat'],
   'org-invoices': ['invoice', 'credit-note', 'payment', 'certified-program', 'vat'],
-  'org-reports': ['net-revenue', 'estimate', 'comparison-period', 'utilisation', 'gig-margin', 'cash-position', 'win-rate'],
+  'org-reports': ['net-revenue', 'estimate', 'comparison-period', 'utilisation', 'gig-margin', 'cash-position', 'win-rate', 'follow-up', 'time-to-decision'],
   quote: ['phase', 'factor', 'vat', 'quote-version', 'client-link', 'price-list'],
   orgs: ['organisation', 'org-admin', 'org-member', 'viewer', 'retention'],
 }
@@ -111,6 +111,7 @@ export const GUIDES = {
   'office-invoices': { role: 'office', pages: ['org-invoices', 'quote', 'contacts'], terms: ['invoice', 'credit-note', 'certified-program', 'invoicing-connection', 'vat', 'payment'], shots: ['quote-invoices', 'invoice-new', 'invoice-send', 'invoicing-program', 'invoices-list', 'invoice-paid'] },
   'office-payments': { role: 'office', pages: ['org-invoices', 'inventory'], terms: ['payment', 'charged-repair', 'invoice', 'credit-note'], shots: ['invoice-repairs', 'invoice-paid', null] },
   'office-money': { role: 'office', pages: ['org-reports', 'org-expenses', 'home'], terms: ['gross-margin', 'operating-result', 'depreciation', 'cost-of-goods-sold', 'estimate'], shots: ['money-results', 'money-details', 'money-margins', 'money-labour', 'reports-overview'] },
+  'office-sales': { role: 'office', pages: ['org-reports', 'quotes', 'contacts'], terms: ['win-rate', 'follow-up', 'time-to-decision', 'discount-given', 'new-client'], shots: ['sales-waiting', 'sales-winrate', 'sales-clients', 'client-numbers'] },
   'office-cash': { role: 'office', pages: ['org-reports', 'org-invoices', 'org-expenses', 'home'], terms: ['cash-position', 'overdue-age', 'win-rate', 'budget-target'], shots: ['money-cash', 'money-cash-details', 'money-spending', 'money-forecast', 'reports-overview'] },
   'office-gig-finance': { role: 'office', pages: ['gig', 'org-reports'], terms: ['gig-margin', 'estimate', 'net-revenue'], shots: ['gig-finance', null, 'reports-margins', null] },
   'office-reports': { role: 'office', pages: ['org-reports', 'home', 'inventory'], terms: ['net-revenue', 'comparison-period', 'utilisation', 'estimate'], shots: ['reports-overview', 'reports-revenue', 'reports-details', 'home-key-numbers'] },
