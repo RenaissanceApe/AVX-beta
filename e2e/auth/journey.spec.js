@@ -278,6 +278,28 @@ test('an admin asks for leave, approves it and sees it as approved', async ({ pa
   await expect(page.locator('section[aria-labelledby="leave-mine"]').getByText('Approved', { exact: true })).toBeVisible()
 })
 
+test('crew numbers: My numbers, the year statement and Crew to pay open and are accessible', async ({ page }) => {
+  await english(page)
+  await signIn(page, pm)
+  // K8: My numbers and the year statement (the PM has no fees: empty states)
+  await page.goto('/me/numbers')
+  await expect(page.getByRole('heading', { name: 'My numbers' })).toBeVisible()
+  await expect(page.getByText(/^(No gigs this year|Earned)$/).first()).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
+  await page.getByRole('link', { name: 'Year statement (CSV, print)' }).click()
+  await expect(page).toHaveURL(/\/me\/numbers\/statement/)
+  await expect(page.getByRole('heading', { name: /^Year statement \d{4}/ })).toBeVisible()
+  await expect(page.getByText(/^(Nothing to show for this year|Per month)$/).first()).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
+  // Expenses → Crew to pay
+  await page.getByTitle(/Workspace:/).click()
+  await page.getByRole('menuitemradio', { name: new RegExp(ORG) }).click()
+  await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}$/)
+  await page.goto(`${page.url()}/expenses?view=crew`)
+  await expect(page.getByRole('heading', { name: 'Crew to pay' })).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
+})
+
 test('an admin reads the reports: overview tiles, revenue with details, and the key numbers at home', async ({ page }) => {
   // Many report views in one test, each of which may wait for one retry on a slow database
   test.slow()

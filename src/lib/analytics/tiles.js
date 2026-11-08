@@ -47,6 +47,9 @@ export const OVERVIEW_TILES = [
   { key: 'worstEarnerYear', kind: 'money', source: 'report_overview_k5', value: o => earner(o?.worst_earner_year),
     sub: o => earnerSub(o?.worst_earner_year), to: base => `${base}/reports?tab=equipment&period=this_year&sort=profit_asc` },
   { key: 'hireInYear', kind: 'money', source: 'report_overview_k5', value: o => o?.hire_in_year || {}, to: base => `${base}/reports?tab=equipment&view=buy` },
+  // K8 (public.report_overview_k8, its own call): agreed crew fees on gigs that are over, not marked paid
+  { key: 'crewToPay', kind: 'money', source: 'report_overview_k8', value: o => o?.crew_to_pay || {},
+    sub: o => ({ key: 'reports.tileSub.people', vars: { count: o?.crew_to_pay_count ?? 0 } }), to: base => `${base}/expenses?view=crew` },
 ]
 
 // The functions the tiles read (each tile's `source`, report_overview when it has none); their
