@@ -1,12 +1,13 @@
 import { test, expect } from '@playwright/test'
+import { RUN, PASSWORD } from './accounts.js'
 
 // Signing in when things go wrong, against the Supabase TEST project (never production).
 // Run with E2E_AUTH=1 and the test project's URL/key — see docs/TESTING.md.
 // The answers must never tell an outsider whether an email has an account, and a broken or
 // expired session must send people back to sign in instead of half-loading the app.
 
-const run = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
-const PASSWORD = 'e2e-Password-123'
+// The run tag and password are shared with the sweep step (accounts.js, scripts/e2e-sweep.mjs)
+const run = RUN
 const user = { name: `E2E Fail ${run}`, email: `e2e-fail-${run}@example.com` }
 const nobody = `e2e-nobody-${run}@example.com`
 const HOME = /\/(me|org\/[0-9a-f-]{36})$/

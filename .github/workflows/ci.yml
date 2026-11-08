@@ -56,6 +56,8 @@ jobs:
       cancel-in-progress: false
     env:
       E2E_AUTH: '1'
+      # Tags every account this run creates, so the sweep below deletes only those
+      E2E_RUN: gh${{ github.run_id }}-${{ github.run_attempt }}
       VITE_SUPABASE_URL: ${{ vars.TEST_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ vars.TEST_SUPABASE_ANON_KEY }}
     steps:
@@ -73,6 +75,10 @@ jobs:
           esac
       - run: npm run build
       - run: npm run test:e2e
+      # Runs even when a test failed: deletes the test accounts this run created, and only those
+      - name: Sweep this run's test accounts
+        if: always()
+        run: node scripts/e2e-sweep.mjs "$E2E_RUN"
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

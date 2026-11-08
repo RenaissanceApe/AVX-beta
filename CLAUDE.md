@@ -164,6 +164,8 @@ docs/PARALLEL.md, "Worker rules". In short, what changes from the steps above:
 - Migrations: use the date the Dispatcher gave you, only add, and apply to the **test** project
   without waiting for a yes. Never touch production; the Dispatcher does that at the end, after
   the owner's yes.
+- Test accounts you make by hand on the test project: `e2e-worker-<step>@example.com`, removed with
+  `npm run e2e:sweep -- <step>` before the PR (CI sweeps its own runs).
 - Urgent findings (security, data loss, live app broken): message the Dispatcher at once.
 - When done, message the Dispatcher `Done: <step>, PR #<n>` and fix what it sends back.
 
