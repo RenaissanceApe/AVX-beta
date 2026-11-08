@@ -333,7 +333,7 @@ export default {
         'A Visão geral e o seu Início mostram três mosaicos: artigos em falta nos próximos 30 dias, unidades em reparação e inspeções em atraso.',
       ],
       mistakes: [
-        'As unidades em reparação contam como suas; os conjuntos são marcados como tal e ficam fora da procura.',
+        'As unidades em reparação contam como suas; um conjunto num evento conta como o seu conteúdo.',
         'O material de eventos cancelados não conta, e as leituras anuladas ficam de fora.',
         'Os valores (valor contabilístico, gastos, custos de reparações e perdas) só aparecem a quem vê dinheiro; os lembretes das inspeções chegam nas notificações da manhã, não aqui.',
       ],

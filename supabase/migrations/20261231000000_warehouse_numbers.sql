@@ -48,8 +48,8 @@ create or replace trigger subrentals_times before insert or update on public.sub
 
 -- ── Demand against stock ─────────────────────────────────────────────────────
 -- Booked: equipment reservations that aren't cancelled (holds included, as the availability check
--- counts them; a cancelled gig's are cancelled). Sets are booked as themselves, as in the
--- availability check, so they are left out. Owned on a day: units owned that day (purchase date,
+-- counts them; a cancelled gig's are cancelled). A set on a gig becomes its contents (I4), so set
+-- items themselves are left out. Owned on a day: units owned that day (purchase date,
 -- else added, until lost or retired) plus the bulk ledger up to that day; units in repair still
 -- count as owned. Hired in at a moment: confirmed or returned subrental lines whose dates cover it.
 -- Each day's busiest moment is found at the starts of the bookings running that day.

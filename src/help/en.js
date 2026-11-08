@@ -336,7 +336,7 @@ export default {
         'The Overview and your Home show three tiles: items short in the next 30 days, units in repair and inspections overdue.',
       ],
       mistakes: [
-        'Units in repair still count as owned; sets are booked as themselves and are left out of demand.',
+        'Units in repair still count as owned; a set on a gig counts as its contents.',
         'Gear on cancelled gigs isn\'t counted, and undone scans are left out.',
         'Money (book value, spend, repair and loss costs) shows only for those who see money; reminders for inspections come in the morning notifications, not here.',
       ],
