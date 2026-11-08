@@ -5,6 +5,10 @@ depend on each other) at the same time, and how you get one report and one PR to
 The usual way, one session per step that you watch yourself, still works and is unchanged
 (CLAUDE.md, "A session, start to finish").
 
+Decided 2026-11-08 (D50 in docs/PENDING.md): workers use the test project without asking, the
+Dispatcher merges into `test` by itself, DR2–DR5 may run together, and a feature set ships as one
+version.
+
 ## Who does what
 
 | Role | What it does | What it never does |
@@ -40,7 +44,7 @@ Dispatcher shows you the set it plans to run before starting it.
 | Set | Runs | Why this split |
 |---|---|---|
 | **Money reports** | K4, K5, K7, K8 together → K6 → K9 alone (your picks) | K6 needs K5; the others only need what's built. K9 needs K2–K8 |
-| **Design refresh** | DR1 alone → DR2, DR3, DR4, DR5 together → DR6 alone | DR1 makes the shared layout pieces; DR2–DR5 are different screens. The ROADMAP says "in order": confirm before the first run |
+| **Design refresh** | DR1 alone → DR2, DR3, DR4, DR5 together → DR6 alone | DR1 makes the shared layout pieces; DR2–DR5 are different screens (D50) |
 | **Tools, part 1** | S07 (13), S08 (14), S11 (16) together | None needs another |
 | **Tools, part 2** | S09 (15a P1), S12 (17a RG1) together → S10 (15b P2), S14 (18 RG3) together | P1 needs 13 and 14; RG1 needs the light plot; P2 needs P1; RG3 needs 13 and RG1 |
 | **Tools, later** | S13 (needs U4's truss check), S15 onwards | Mostly a chain; plan it when part 2 is merged |
