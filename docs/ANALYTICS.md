@@ -5,7 +5,7 @@ built as the **K** steps ("key numbers"), in the order [ROADMAP.md](../ROADMAP.m
 in its own session with its prompt in [SESSION_PROMPTS.md](SESSION_PROMPTS.md). The expenses step
 they need (9b) is specified in [BUSINESS.md](BUSINESS.md).
 
-**Status (2026-11-07): K0 built (0.64.0), K1 built (0.69.0), K2 built (0.75.0), K3 built (0.76.0); the rest planned.** When a K step is built, its section below is
+**Status (2026-11-08): K0 built (0.64.0), K1 built (0.69.0), K2 built (0.75.0), K3 built (0.76.0), K4–K9 built (0.77.0); the rest planned.** When a K step is built, its section below is
 replaced by "How K… works", in the same shape as BUSINESS.md, so the next session can connect to it
 without reading its code first.
 
