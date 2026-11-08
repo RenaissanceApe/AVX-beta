@@ -4,13 +4,12 @@ import { ChevronDown, ChevronRight, BarChart3 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
 import { retryOnce } from '../../lib/selectAll'
-import { OVERVIEW_TILES, OVERVIEW_SOURCES, moneyLines } from '../../lib/analytics/tiles'
+import { OVERVIEW_TILES, moneyLines } from '../../lib/analytics/tiles'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
 import { card, colors, mono, AvxLoader } from '../ui'
 
-// The Overview tiles (src/lib/analytics/tiles.js), read from public.report_overview and the
-// functions later steps add next to it (each tile's `source`), merged into one object.
+// The Overview tiles (src/lib/analytics/tiles.js), read in one call (public.report_overview).
 // Shown on Reports → Overview and, folded or not, as the key numbers on the organisation's Home.
 
 export function useOverview(orgId, enabled = true) {
@@ -19,12 +18,10 @@ export function useOverview(orgId, enabled = true) {
     if (!orgId || !enabled) return
     let cancelled = false
     setState(s => ({ ...s, loading: true }))
-    Promise.all(OVERVIEW_SOURCES.map(fn => retryOnce(() => supabase.rpc(fn, { p_org: orgId })))).then(results => {
+    retryOnce(() => supabase.rpc('report_overview', { p_org: orgId })).then(({ data, error }) => {
       if (cancelled) return
-      const error = results.find(r => r.error)?.error || null
       if (error) logger.error('reports', error, { step: 'overview' })
-      const data = error ? null : Object.assign({}, ...results.map(r => r.data || {}))
-      setState({ data, error, loading: false })
+      setState({ data: data || null, error: error || null, loading: false })
     })
     return () => { cancelled = true }
   }, [orgId, enabled])
