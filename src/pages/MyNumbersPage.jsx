@@ -14,6 +14,7 @@ import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { PageHelp, Hint } from '../components/help/HelpParts'
 import { NumberTile, BarChart } from '../components/reports/Charts'
+import { shortNumber } from '../lib/analytics/charts'
 import { useMyGigNumbers } from '../components/mywork/MyNumbersStrip'
 
 const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 }
@@ -104,7 +105,7 @@ export default function MyNumbersPage() {
               <NumberTile label={t('myNumbers.travel')} value={t('myNumbers.km', { km: sum.km })} sub={t('myNumbers.travelTime', travel)} />
             </div>
 
-            <BarChart title={t('myNumbers.earnedByMonth')} valueLabel={t('myNumbers.earned')} format={v => eur(v)}
+            <BarChart title={t('myNumbers.earnedByMonth')} valueLabel={t('myNumbers.earned')} format={(v, axis) => (axis ? shortNumber(v, lang) : eur(v))}
               data={months.map(m => ({ label: fmt(`${m.key}-01`, 'MMM'), value: m.earned }))} />
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
