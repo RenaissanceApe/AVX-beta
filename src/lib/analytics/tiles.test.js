@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { OVERVIEW_TILES, moneyLines, lastYearSub } from './tiles'
+import { OVERVIEW_TILES, OVERVIEW_SOURCES, moneyLines, lastYearSub } from './tiles'
 
 const overview = {
   today: '2026-11-05', gigs_this_month: { total: 4, confirmed: 3 }, revenue_next_30: { EUR: 155, USD: 1250 },
@@ -12,7 +12,7 @@ const overview = {
 describe('overview tiles', () => {
   it('reads the four first tiles from report_overview', () => {
     const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
-    expect(Object.keys(by)).toEqual(['gigsThisMonth', 'revenueNext30', 'waitingQuotes', 'equipmentUse90', 'revenueThisMonth', 'marginPctYear', 'operatingResultYear', 'negativeMarginYear',
+    expect(Object.keys(by).slice(0, 12)).toEqual(['gigsThisMonth', 'revenueNext30', 'waitingQuotes', 'equipmentUse90', 'revenueThisMonth', 'marginPctYear', 'operatingResultYear', 'negativeMarginYear',
       'overdueNow', 'cashIn30', 'expensesDue14', 'revenueNext3m'])
     expect(by.gigsThisMonth.value(overview)).toBe(4)
     expect(by.gigsThisMonth.sub(overview).vars.count).toBe(3)
@@ -44,6 +44,16 @@ describe('overview tiles', () => {
     expect(by.revenueNext3m.value(o)).toEqual({ EUR: 1500 })
     expect(by.overdueNow.to('/org/x')).toBe('/org/x/invoices?view=unpaid')
     expect(by.expensesDue14.to('/org/x')).toBe('/org/x/expenses?view=unpaid')
+  })
+  it('reads the K8 crew-to-pay tile from its own function', () => {
+    const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
+    const o = { crew_to_pay: { EUR: 1100 }, crew_to_pay_count: 2 }
+    expect(by.crewToPay.source).toBe('report_overview_k8')
+    expect(OVERVIEW_SOURCES).toContain('report_overview_k8')
+    expect(by.crewToPay.value(o)).toEqual({ EUR: 1100 })
+    expect(by.crewToPay.value({})).toEqual({})
+    expect(by.crewToPay.sub(o)).toEqual({ key: 'reports.tileSub.people', vars: { count: 2 } })
+    expect(by.crewToPay.to('/org/x')).toBe('/org/x/expenses?view=crew')
   })
   it('says when last year has nothing in the same currency', () => {
     expect(lastYearSub({ revenue_this_month: { USD: 5 }, revenue_month_last_year: { EUR: 3 } })).toEqual({ key: 'reports.tileSub.noLastYear', vars: {} })

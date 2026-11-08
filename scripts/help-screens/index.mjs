@@ -383,6 +383,29 @@ const SCENES = {
     await dialog.locator('#hours-start').waitFor()
     return dialog.locator('#hours-end')
   } },
+  // K8: crew numbers (Carla)
+  'my-numbers-tiles': { persona: 'crew', url: '/me', async run(page) {
+    const box = page.locator('section[aria-labelledby="my-numbers-strip"]')
+    await box.locator('li').first().waitFor()
+    return box
+  } },
+  'my-numbers': { persona: 'crew', url: '/me/numbers', async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await page.locator('section[aria-labelledby="mn-companies"]').evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('section[aria-labelledby="mn-companies"]')
+  } },
+  'fee-paid': { persona: 'crew', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
+    const button = page.getByRole('button', { name: L('labour.markReceived') })
+    await button.waitFor()
+    await button.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return button
+  } },
+  'year-statement': { persona: 'crew', url: '/me/numbers/statement', async run(page) {
+    const table = page.locator('table').first()
+    await table.locator('tfoot').waitFor()
+    return null
+  } },
   'gig-hours': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
     const box = page.locator('section[aria-labelledby="hours-title"]')
     await box.waitFor()

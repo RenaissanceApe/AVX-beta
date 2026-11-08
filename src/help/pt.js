@@ -29,6 +29,8 @@ export default {
     'holiday-balance': { term: 'Saldo de férias', definition: 'Os dias de férias que um funcionário ainda tem num ano: o direito mais os dias transitados, menos as férias aprovadas. Os pedidos a aguardar aparecem à parte.', example: '22 de direito + 2 transitados − 9 gozados = faltam 15.', where: 'Organização → Ausências' },
     'working-week': { term: 'Semana de trabalho', definition: 'Os dias da semana em que um funcionário trabalha normalmente e as suas horas por dia. As ausências só contam dias úteis, e os relatórios usam-na para contar quanto do tempo da pessoa foi ocupado.', example: 'Segunda a quinta, 9 h por dia: uma semana de férias são 4 dias.', where: 'Organização → Ausências → Editar' },
     'hours-split': { term: 'Divisão de horas', definition: 'Como um dia registado se divide em horas normais, extra, noturnas, de fim de semana e de feriado. Cada hora conta uma vez, com o seu fator mais alto. Fica guardada como estava quando o dia foi aprovado.', example: 'Sex 14:00–02:00 com 1 h de pausa: 7 h normais, 3 h noturnas, 1 h extra.', where: 'Evento → Equipa → Horas, As minhas horas, Horas da organização' },
+    'fee-paid': { term: 'Cachê pago', definition: 'Um cachê que alguém da empresa marcou como pago, com a data. O AVX regista-o como uma despesa ligada ao cachê, para contar uma só vez. Vê apenas "pago a" nos seus próprios cachês, nunca as contas da empresa, e pode marcá-lo como recebido.', example: 'Pago a 7 nov · recebido.', where: 'Evento → Equipa (o seu cachê), Os meus números, painel de custo de mão de obra, Despesas → Equipa a pagar' },
+    'year-statement': { term: 'Resumo anual', definition: 'O seu trabalho para uma empresa num ano: por mês os eventos, dias, horas, o que ganhou, o que foi pago e os km, com os totais, e depois cada evento. Descarregue-o em CSV ou imprima-o para a sua declaração de impostos.', example: 'Resumo anual 2026 · Stage Co: 14 eventos, 21 dias, 4 850 € ganhos.', where: 'O meu trabalho → Os meus números → Resumo anual' },
     gig: { term: 'Evento', definition: 'Um trabalho da sua equipa: um concerto, uma conferência, um aluguer.', example: 'Palco principal do festival, 12–14 de julho.', where: 'Lista de eventos, calendário, página do evento' },
     organisation: { term: 'Organização', definition: 'Uma empresa no AVX. Tem membros, eventos, equipamento e orçamentos.', example: 'Lumen and Pixel, com três administradores e vinte técnicos.', where: 'Seletor de empresa, no topo' },
     workspace: { term: 'Área de trabalho', definition: 'O que está a ver: uma organização, ou "O meu trabalho" com tudo aquilo em que está marcado.', example: 'Mudar de "Lumen and Pixel" para "O meu trabalho" para ver eventos de outras empresas.', where: 'Seletor de empresa, no topo' },
@@ -119,6 +121,9 @@ export default {
     'finance-targets': 'Um limite mensal para uma categoria de despesa, ou um objetivo mensal de receita. O progresso aparece para o período escolhido acima.',
     'expense-category': 'Escolha para que é o custo. O tipo (custos dos trabalhos, funcionamento da empresa, equipamento, impostos) decide onde conta nos resultados.',
     'gig-finance': 'Receita, custos e margem deste evento, contados na base de dados. A mão de obra usa as horas aprovadas (ou a fatura) quando existem, senão o cachê acordado, senão a tabela de cachês, marcada como estimativa.',
+    'crew-to-pay': 'Cachês acordados de eventos já terminados e não marcados como pagos. Com a fatura da pessoa registada, o seu total com IVA; sem ela, o cachê acordado (sem IVA). Marcar como pago regista a despesa e avisa a pessoa.',
+    'fee-paid': 'Um cachê mostra "pago a" quando alguém da empresa o marca como pago. Marque-o como recebido quando o dinheiro chegar; aqui ninguém vê valores das contas da empresa.',
+    'reimbursements-owed': 'Despesas que pediu, aprovadas mas ainda não reembolsadas, em todas as empresas.',
     'money-report': 'Resultados de toda a empresa, contados na base de dados: receita, custos diretos e margem bruta, depois gastos gerais e amortizações até ao resultado operacional. Margens agrupa-os por tipo de evento, estado, cliente, tipo de linha ou diretor de produção; Mão de obra compara as horas planeadas e aprovadas.',
     'expense-link': 'Se é a fatura de um subaluguer, reparação, cachê ou compra de stock, ligue-a: passa a substituir o valor previsto desse registo, para o custo contar uma só vez.',
     'expense-recurring': 'Com que frequência volta. A despesa fica em rascunho em cada data para alguém confirmar.',
@@ -199,6 +204,8 @@ export default {
     'org-reports': { title: 'Relatórios', summary: 'Os números da organização, contados na base de dados para administradores e membros. O Resumo mostra os números-chave; a Receita mostra a receita líquida dos orçamentos aceites num período, comparada com o anterior ou com o ano passado; o Dinheiro mostra os resultados, as margens e a mão de obra da empresa. "Mostrar detalhes" junta filtros, grupos, uma tabela, CSV e impressão, e fica lembrado neste aparelho.' },
     'org-leave': { title: 'Ausências', summary: 'Quem na organização está ausente em cada dia, os seus dias de férias e os seus pedidos. Os administradores também decidem pedidos, registam ausências de alguém e definem os dias de férias e as semanas de trabalho. Uma ausência aprovada deixa a pessoa ocupada para eventos e horas.' },
     'my-hours': { title: 'As minhas horas', summary: 'As horas que registou em todos os eventos, em qualquer empresa, mês a mês: o que aguarda, foi devolvido ou aprovado, e o que os dias aprovados pagam. Descarregue-as em CSV.' },
+    'my-numbers': { title: 'Os meus números', summary: 'O seu trabalho no AVX num ano, em todas as empresas: eventos, dias e horas (aprovadas e à espera), horas extra, o que ganhou e o que está marcado, o que falta receber, viagens, os meses mais ocupados e funções, ofertas de trabalho e chamadas. Só as suas linhas; de cada empresa vê-se apenas o nome.' },
+    'my-statement': { title: 'Resumo anual', summary: 'Por empresa e ano: uma linha por mês com os totais e depois cada evento. Descarregue em CSV ou imprima para a sua declaração de impostos. Uma ajuda: confirme com os seus registos.' },
     'org-hours': { title: 'Horas', summary: 'As horas registadas de todos nos eventos da organização, por pessoa e mês, com o custo guardado quando cada dia foi aprovado. Só administradores. Descarregue-as em CSV.' },
     'pocket-tools': { title: 'Ferramentas de bolso', summary: 'Calculadoras para qualquer sala, com ou sem evento no AVX: endereços DMX e dipswitches, um bloco de projetores, universos e canais absolutos, e conversão de valores. Funcionam sem ligação.' },
     home: { title: 'Eventos', summary: 'Os eventos da empresa escolhida no topo, ou todos os seus em "O meu trabalho". Abra um para ver a equipa, o horário, os ficheiros e a conversa. O calendário mostra os mesmos eventos por data.' },
@@ -348,6 +355,20 @@ export default {
       mistakes: [
         'Nada transita sozinho: escreva os dias transitados de cada pessoa no início do ano.',
         'Os outros membros veem um dia de baixa só como "ausente", sem notas.',
+      ],
+    },
+    'crew-numbers': {
+      title: 'Ver o que ganhou e obter o resumo anual',
+      intro: 'Os meus números somam o seu próprio trabalho no AVX em todas as empresas, para saber o que ganhou, o que falta receber e o que está marcado.',
+      steps: [
+        'Em O meu trabalho, os três mosaicos mostram o que ganhou este mês, o que ainda não recebeu e os dias marcados nos próximos 30 dias. Toque em "Todos os meus números" para o resto.',
+        'Os meus números: escolha o ano e, se quiser, uma empresa. Vê os dias, as horas (aprovadas e à espera), horas extra, ganhos por mês, viagens, os meses mais ocupados e funções, e as ofertas e chamadas a que respondeu.',
+        'Quando uma empresa paga o seu cachê, recebe uma notificação e o evento mostra "Pago a" com a data. Toque em "Marcar recebido" no separador Equipa do evento quando o dinheiro chegar.',
+        'Resumo anual: uma linha por mês para a empresa, com os totais e cada evento por baixo. Descarregue o CSV ou imprima-o para a sua declaração de impostos.',
+      ],
+      mistakes: [
+        'Ganho conta as horas aprovadas ao seu cachê, senão o cachê acordado depois de o evento terminar. Horas à espera de aprovação ainda não contam.',
+        'Um evento conta no mês em que começa, mesmo que continue no seguinte.',
       ],
     },
     'crew-hours': {

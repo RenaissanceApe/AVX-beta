@@ -4,7 +4,7 @@ import { ChevronDown, ChevronRight, BarChart3 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
 import { retryOnce } from '../../lib/selectAll'
-import { OVERVIEW_TILES, moneyLines } from '../../lib/analytics/tiles'
+import { OVERVIEW_TILES, OVERVIEW_SOURCES, moneyLines } from '../../lib/analytics/tiles'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
 import { card, colors, mono, AvxLoader } from '../ui'
@@ -18,10 +18,12 @@ export function useOverview(orgId, enabled = true) {
     if (!orgId || !enabled) return
     let cancelled = false
     setState(s => ({ ...s, loading: true }))
-    retryOnce(() => supabase.rpc('report_overview', { p_org: orgId })).then(({ data, error }) => {
+    Promise.all(['report_overview', ...OVERVIEW_SOURCES].map(fn => retryOnce(() => supabase.rpc(fn, { p_org: orgId })))).then(([main, ...extra]) => {
       if (cancelled) return
-      if (error) logger.error('reports', error, { step: 'overview' })
-      setState({ data: data || null, error: error || null, loading: false })
+      if (main.error) logger.error('reports', main.error, { step: 'overview' })
+      extra.forEach((r, i) => { if (r.error) logger.error('reports', r.error, { step: OVERVIEW_SOURCES[i] }) })
+      const data = main.data ? Object.assign({}, main.data, ...extra.map(r => r.data || {})) : null
+      setState({ data, error: main.error || null, loading: false })
     })
     return () => { cancelled = true }
   }, [orgId, enabled])

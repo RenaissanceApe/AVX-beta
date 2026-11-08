@@ -348,6 +348,31 @@ export function sampleData(persona, lang) {
     { id: 'pl3', org_id: orgId, name: w.sound, kind: 'crew', unit: 'day', unit_price: 200, category: tx('Equipa', 'Crew'), details: null, tracking: 'none' },
     { id: 'pl4', org_id: orgId, name: tx('Transporte', 'Transport'), kind: 'transport', unit: 'km', unit_price: 0.45, category: tx('Transporte', 'Transport'), details: null, tracking: 'none' },
   ]
+  // K8 · My numbers: Carla's gigs this year at two companies (sample amounts)
+  const mg = (id, org, orgName, start, days, fn, fee, earned, extra = {}) => ({
+    gig_id: id, gig_name: extra.name, org_id: org, org_name: orgName, start_date: start, end_date: start, gig_status: 'completed', role: 'crew',
+    function_title: fn, days, fee_unit: 'day', fee_rate: fee, fee_quantity: days, fee_total: fee * days, hours_approved: extra.hours ?? days * 10,
+    hours_waiting: extra.waiting ?? 0, overtime_hours: extra.overtime ?? 0, approved_cost: earned, km: extra.km ?? 0, travel_minutes: extra.travel ?? 0,
+    earned, upcoming: extra.upcoming ?? null, finished: extra.upcoming == null, paid_on: extra.paid ?? null, received_at: extra.received ?? null })
+  const yr = new Date().getFullYear()
+  const myGigNumbers = [
+    mg('k1', orgId, 'Lumen and Pixel', `${yr}-02-14`, 2, w.sound, 180, 360, { name: tx('Gala Dia dos Namorados', 'Valentine\'s gala'), km: 72, travel: 80, paid: `${yr}-03-02`, received: `${yr}-03-04T10:00:00Z` }),
+    mg('k2', otherOrg, 'SoundWorks Lisboa', `${yr}-04-05`, 3, w.sound, 200, 690, { name: tx('Congresso Médico', 'Medical congress'), overtime: 6, km: 40, travel: 60, paid: `${yr}-05-10` }),
+    mg('k3', orgId, 'Lumen and Pixel', `${yr}-06-12`, 4, w.lights, 170, 680, { name: tx('Santos Populares', 'Saints festival'), overtime: 4, km: 18, travel: 30, paid: `${yr}-07-01`, received: `${yr}-07-03T10:00:00Z` }),
+    mg('k4', orgId, 'Lumen and Pixel', `${yr}-07-18`, 3, w.sound, 180, 540, { name: tx('Festival de Verão', 'Summer festival'), km: 210, travel: 300, paid: `${yr}-08-05` }),
+    mg('k5', otherOrg, 'SoundWorks Lisboa', `${yr}-09-20`, 2, w.sound, 200, 400, { name: tx('Lançamento de produto', 'Product launch'), waiting: 9, km: 25, travel: 40 }),
+    mg('k6', orgId, 'Lumen and Pixel', day(-6), 1, w.sound, 180, 180, { name: tx('Concerto acústico', 'Acoustic concert'), km: 12, travel: 20 }),
+    { ...mg(gigId, orgId, 'Lumen and Pixel', day(24), 2, w.sound, 180, null, { name: gig.name, upcoming: 360, hours: 0, paid: day(-1) }) },
+    mg(jazzId, otherOrg, 'SoundWorks Lisboa', day(40), 3, w.sound, 200, null, { name: jazz.name, upcoming: 600, hours: 0 }),
+  ]
+  const myMonthlySummary = Object.values(myGigNumbers.reduce((acc, r) => {
+    const k = `${r.org_id}|${r.start_date.slice(0, 7)}`
+    const a = acc[k] || (acc[k] = { org_id: r.org_id, org_name: r.org_name, month: `${r.start_date.slice(0, 7)}-01`, gigs: 0, days: 0, hours_approved: 0, hours_waiting: 0, overtime_hours: 0, earned: 0, paid: 0, km: 0, travel_minutes: 0, reimbursements: 0 })
+    a.gigs += 1; a.days += r.days; a.hours_approved += r.hours_approved; a.hours_waiting += r.hours_waiting; a.overtime_hours += r.overtime_hours
+    a.earned += r.earned || 0; a.paid += r.paid_on ? r.earned || 0 : 0; a.km += r.km; a.travel_minutes += r.travel_minutes
+    return acc
+  }, {}))
+
   return {
     me, names, persona,
     user: { id: me, email: persona === 'pm' ? 'ricardo@example.com' : 'carla@example.com', aud: 'authenticated', role: 'authenticated', user_metadata: { full_name: names[me] }, app_metadata: {} },
@@ -370,7 +395,7 @@ export function sampleData(persona, lang) {
         { id: 'cr3', org_id: orgId, function_title: w.sound, user_id: carla, day_rate: 180, half_day_rate: null, hour_rate: null, created_at: ago(200) },
       ],
       crew_rate_factors: [{ org_id: orgId, overtime: 1.5, overtime_after_hours: 10, weekend: 1.25, night: 1.2, holiday: 2, night_from: '22:00:00', night_until: '07:00:00', km_rate: 0.36 }],
-      gig_crew_fees: persona === 'pm' ? [{ gig_id: gigId, user_id: duarte, org_id: orgId, unit: 'fixed', rate: 300, quantity: 1, note: null }] : [],
+      gig_crew_fees: persona === 'pm' ? [{ gig_id: gigId, user_id: duarte, org_id: orgId, unit: 'fixed', rate: 300, quantity: 1, note: null }] : [{ gig_id: gigId, user_id: carla, org_id: orgId, unit: 'day', rate: 180, quantity: 2, note: null }],
       // Time registration (step 8): Carla's first day waiting, her second sent back, Duarte's approved
       time_entries: [
         { id: 'te1', gig_id: gigId, user_id: carla, org_id: orgId, work_date: day(24), start_time: '08:00:00', end_time: '00:30:00', break_minutes: 60, travel_minutes: 40, km: 36, note: null, status: 'submitted', review_note: null, split: null, cost: null, removed_at: null, gigs: { name: gig.name } },
@@ -517,6 +542,10 @@ export function sampleData(persona, lang) {
       conversation_state: [{ muted: false }],
     },
     rpc: {
+      // K8: Carla's own numbers (My numbers, the year statement, her fee on the gig)
+      my_gig_numbers: args => (args.p_gig ? myGigNumbers.filter(r => r.gig_id === args.p_gig) : myGigNumbers),
+      my_monthly_summary: myMonthlySummary,
+      my_crew_activity: { applications: { total: 6, shortlisted: 3, offered: 2, accepted: 2 }, calls: { total: 9, answered: 8, accepted: 5 }, reimbursements_owed: { EUR: 26.45 }, reimbursements_count: 1 },
       my_gig_companies: persona === 'pm' ? [{ org_id: orgId, name: 'Lumen and Pixel' }] : [{ org_id: orgId, name: 'Lumen and Pixel' }, { org_id: otherOrg, name: 'SoundWorks Lisboa' }],
       my_availability_requests: persona === 'pm' ? [] : [request],
       my_unread_counts: [],

@@ -28,7 +28,14 @@ export const OVERVIEW_TILES = [
   { key: 'cashIn30', kind: 'money', value: o => o?.cash_in_30 || {}, to: base => `${base}/reports?tab=money&view=cash` },
   { key: 'expensesDue14', kind: 'money', value: o => o?.expenses_due_14 || {}, to: base => `${base}/expenses?view=unpaid` },
   { key: 'revenueNext3m', kind: 'money', value: o => o?.revenue_next_3m || {}, to: base => `${base}/reports?tab=money&view=forecast` },
+  // K8 (public.report_overview_k8, its own call): agreed crew fees on gigs that are over, not marked paid
+  { key: 'crewToPay', kind: 'money', source: 'report_overview_k8', value: o => o?.crew_to_pay || {},
+    sub: o => ({ key: 'reports.tileSub.people', vars: { count: o?.crew_to_pay_count ?? 0 } }), to: base => `${base}/expenses?view=crew` },
 ]
+
+// Tiles that come from a function of their own (a later K step's), read beside report_overview
+// and merged into the same object
+export const OVERVIEW_SOURCES = [...new Set(OVERVIEW_TILES.map(t => t.source).filter(Boolean))]
 
 // Money per currency as display lines, the biggest first: [{ currency, amount }]. Empty → one zero
 // line in the fallback currency, so a tile never shows a blank.
