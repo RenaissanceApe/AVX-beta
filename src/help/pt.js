@@ -337,6 +337,7 @@ export default {
         "Relatórios → Resumo mostra agora as vistas afixadas por baixo dos números-chave. \"Gerir\" mostra todas as vistas guardadas para afixar, desafixar ou remover. Só você as vê.",
         "Em \"Relatório mensal de gestão\", escolha um mês já terminado e carregue em \"Descarregar PDF\": números-chave, as contas do mês face ao anterior, vendas, principais clientes e material.",
         "Administradores: em \"Links para o contabilista\", carregue em \"Novo link\", escolha o período e durante quanto tempo funciona, e copie o link. O AVX só o mostra uma vez. \"Revogar\" desliga-o de imediato.",
+        "O que o contabilista vê: a organização, o período e, por mês, a receita, os custos diretos, a margem bruta, os custos fixos, as amortizações e o resultado operacional, com o faturado, creditado, recebido e pago, e as despesas por categoria. Mais nada, e nada para alterar.",
         "Administradores: em Definições → Notificações, ative \"Números-chave semanais\" para os receber por email todas as segundas de manhã, um email por cada organização que gere.",
       ],
       mistakes: [

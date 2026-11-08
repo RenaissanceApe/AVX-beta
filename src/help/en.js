@@ -340,6 +340,7 @@ export default {
         "Reports → Overview now shows your pinned views under the key numbers. \"Manage\" lists every saved view to pin, unpin or remove it. Only you see them.",
         "Under \"Monthly management pack\", pick a month that is over and choose \"Download PDF\": key numbers, the month's money against the month before, sales, top clients and equipment.",
         "Admins: under \"Links for your accountant\", choose \"New link\", pick the period and how long it works, and copy the link. AVX shows it only once. \"Revoke\" stops it at once.",
+        "What your accountant sees: the organisation, the period, and per month the revenue, direct costs, gross margin, overheads, depreciation and operating result, with invoiced, credited, received and paid out, then spending by category. Nothing else, and nothing to change.",
         "Admins: in Settings → Notifications, turn on \"Weekly key numbers\" to get them by email every Monday morning, one email for each organisation you run.",
       ],
       mistakes: [

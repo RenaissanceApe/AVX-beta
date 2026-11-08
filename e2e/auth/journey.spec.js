@@ -425,6 +425,46 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   await page.goto(home)
 })
 
+test('an admin saves a report view, sees the monthly pack and the accountant links, and finds the weekly email setting', async ({ page }) => {
+  test.slow()
+  await english(page)
+  await signIn(page, pm)
+  await page.getByTitle(/Workspace:/).click()
+  await page.getByRole('menuitemradio', { name: new RegExp(ORG) }).click()
+  await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}$/)
+  const home = page.url()
+  // K9: save Money for this year as a view, pinned to the Overview
+  await page.goto(`${home}/reports?tab=money&period=this_year`)
+  await reportLoaded(page)
+  await page.getByRole('button', { name: 'Save this view' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Save this view' })
+  await dialog.getByLabel('Name').fill('E2E money this year')
+  await expectAccessible(page)
+  await dialog.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  await page.getByRole('button', { name: 'Overview', exact: true }).click()
+  const views = page.locator('section[aria-labelledby="rp-views"]')
+  await expect(views.getByRole('link', { name: /E2E money this year/ }).first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('heading', { name: 'Monthly management pack' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Links for your accountant' })).toBeVisible()
+  await expectAccessible(page)
+  // The saved view opens the report with its filters
+  await views.getByRole('link', { name: /E2E money this year/ }).first().click()
+  await expect(page).toHaveURL(/tab=money&period=this_year/)
+  // Remove it again (the test runs against a shared project)
+  await page.getByRole('button', { name: 'Overview', exact: true }).click()
+  await views.getByRole('button', { name: /^Manage \d+ views?$/ }).click()
+  const manage = page.getByRole('dialog', { name: 'Saved views' })
+  await expectAccessible(page)
+  while (await manage.getByRole('button', { name: 'Remove: E2E money this year' }).count()) {
+    await manage.getByRole('button', { name: 'Remove: E2E money this year' }).first().click()
+  }
+  // Settings → Notifications: the weekly key numbers, for admins (left as it is)
+  await page.goto('/settings/notifications')
+  await expect(page.getByText('Weekly key numbers (admins)')).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
+})
+
 test('the logo goes home and the workspace switcher lists My work and the organisation', async ({ page }) => {
   await english(page)
   await signIn(page, pm)
