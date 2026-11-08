@@ -9,8 +9,8 @@ import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
 import { card, colors, mono, AvxLoader } from '../ui'
 
-// The Overview tiles (src/lib/analytics/tiles.js), read from public.report_overview and the other
-// functions the tiles name as their `source` (called side by side, answers merged).
+// The Overview tiles (src/lib/analytics/tiles.js), read from public.report_overview and the
+// functions later steps add next to it (each tile's `source`), merged into one object.
 // Shown on Reports → Overview and, folded or not, as the key numbers on the organisation's Home.
 
 export function useOverview(orgId, enabled = true) {
@@ -19,15 +19,13 @@ export function useOverview(orgId, enabled = true) {
     if (!orgId || !enabled) return
     let cancelled = false
     setState(s => ({ ...s, loading: true }))
-    Promise.all(['report_overview', ...OVERVIEW_SOURCES].map(fn => retryOnce(() => supabase.rpc(fn, { p_org: orgId }))))
-      .then(results => {
-        if (cancelled) return
-        // Only report_overview failing hides the tiles; another source failing leaves its tiles empty
-        const error = results[0].error || null
-        results.forEach((r, i) => { if (r.error) logger.error('reports', r.error, { step: i ? OVERVIEW_SOURCES[i - 1] : 'overview' }) })
-        const data = results[0].data ? Object.assign({}, ...results.map(r => r.data || {})) : null
-        setState({ data, error, loading: false })
-      })
+    Promise.all(OVERVIEW_SOURCES.map(fn => retryOnce(() => supabase.rpc(fn, { p_org: orgId })))).then(results => {
+      if (cancelled) return
+      const error = results.find(r => r.error)?.error || null
+      if (error) logger.error('reports', error, { step: 'overview' })
+      const data = error ? null : Object.assign({}, ...results.map(r => r.data || {}))
+      setState({ data, error, loading: false })
+    })
     return () => { cancelled = true }
   }, [orgId, enabled])
   return state

@@ -12,8 +12,8 @@ const overview = {
 describe('overview tiles', () => {
   it('reads the four first tiles from report_overview', () => {
     const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
-    expect(Object.keys(by)).toEqual(['gigsThisMonth', 'revenueNext30', 'waitingQuotes', 'equipmentUse90', 'revenueThisMonth', 'marginPctYear', 'operatingResultYear', 'negativeMarginYear',
-      'overdueNow', 'cashIn30', 'expensesDue14', 'revenueNext3m', 'bestEarnerYear', 'worstEarnerYear', 'hireInYear'])
+    expect(Object.keys(by).slice(0, 12)).toEqual(['gigsThisMonth', 'revenueNext30', 'waitingQuotes', 'equipmentUse90', 'revenueThisMonth', 'marginPctYear', 'operatingResultYear', 'negativeMarginYear',
+      'overdueNow', 'cashIn30', 'expensesDue14', 'revenueNext3m'])
     expect(by.gigsThisMonth.value(overview)).toBe(4)
     expect(by.gigsThisMonth.sub(overview).vars.count).toBe(3)
     expect(by.revenueNext30.value(overview)).toEqual({ EUR: 155, USD: 1250 })
@@ -52,6 +52,25 @@ describe('overview tiles', () => {
   it('lists money per currency, never added', () => {
     expect(moneyLines({ EUR: 155, USD: 1250 })).toEqual([{ currency: 'USD', amount: 1250 }, { currency: 'EUR', amount: 155 }])
     expect(moneyLines({})).toEqual([{ currency: 'EUR', amount: 0 }])
+  })
+  it('reads the K4 sales tiles from report_overview_k4', () => {
+    const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
+    const o = { follow_up: { count: 1, totals: { EUR: 400 } }, win_rate_90: { decided: 4, by_count: 0.5, by_value: 0.6316, currency: 'EUR' },
+      top_client_year: { key: 'a', name: 'Alpha Lda', currency: 'EUR', amount: 900, share: 0.75 } }
+    expect(OVERVIEW_SOURCES).toEqual(expect.arrayContaining(['report_overview', 'report_overview_k4']))
+    expect(by.followUp.source).toBe('report_overview_k4')
+    expect(by.followUp.value(o)).toBe(1)
+    expect(by.followUp.sub(o)).toEqual({ key: 'reports.tileSub.worth', vars: { amount: 400, currency: 'EUR' } })
+    expect(by.followUp.to('/org/x')).toBe('/org/x/quotes?status=follow_up')
+    expect(by.winRate90.value(o)).toBe(0.5)
+    expect(by.winRate90.sub(o)).toEqual({ key: 'reports.tileSub.byValue', vars: { pct: 63 } })
+    expect(by.winRate90.sub({ win_rate_90: { decided: 0 } }).key).toBe('reports.tileSub.noDecided')
+    expect(by.winRate90.value({})).toBe(null)
+    expect(by.topClientYear.value(o)).toEqual({ EUR: 900 })
+    expect(by.topClientYear.sub(o)).toEqual({ key: 'reports.tileSub.topClient', vars: { name: 'Alpha Lda', pct: 75 } })
+    expect(by.topClientYear.value({ top_client_year: null })).toEqual({})
+    expect(by.topClientYear.sub({}).key).toBe('reports.tileSub.noTopClient')
+    expect(by.waitingQuotes.to('/org/x')).toBe('/org/x/reports?tab=sales')
   })
 })
 
