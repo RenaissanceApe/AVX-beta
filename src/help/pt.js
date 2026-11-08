@@ -95,6 +95,9 @@ export default {
     inspection: { term: 'Inspeção periódica', definition: 'Uma verificação de segurança feita de tantos em tantos meses, como o teste elétrico (PAT).', example: 'PAT a cada 12 meses para todos os cabos.', where: 'Inventário → artigo, Manutenção' },
     'replacement-value': { term: 'Valor de substituição', definition: 'Quanto custaria comprar o artigo de novo hoje.', example: '1200 € por uma cabeça móvel.', where: 'Inventário → artigo' },
     depreciation: { term: 'Valor contabilístico e amortização', definition: 'Quanto vale o equipamento no papel: o preço menos o desgaste ao longo dos meses que escolher.', example: '6000 € em 60 meses valem 3000 € ao fim de 30 meses.', where: 'Inventário → Relatórios' },
+    'equipment-profit': { term: 'Lucro do equipamento', definition: 'O que um artigo rendeu num período menos o que custou: a sua receita (a receita de um conjunto repartida pelo conteúdo segundo os preços por dia) menos a depreciação no período, reparações não cobradas ao cliente, custos de inspeção, sub-aluguer desse artigo e perdas ao valor de substituição. A mão de obra não é repartida pelo equipamento.', example: 'Receita 800 € − depreciação 350 € − reparações 80 € − sub-aluguer 200 € = 170 € antes das perdas.', where: 'Relatórios → Equipamento → Lucro' },
+    payback: { term: 'Retorno', definition: 'Quanto do custo de compra de um artigo ou unidade a sua receita já recuperou desde a compra, o dia em que se pagou, ou quando se pagará ao ritmo dos últimos 12 meses.', example: 'Comprado por 4000 €, 1800 € de receita desde então: 45 % recuperado, previsto por volta de janeiro de 2028.', where: 'Relatórios → Equipamento → Retorno, e a página do artigo' },
+    'buy-or-hire': { term: 'Comprar ou continuar a alugar', definition: 'O que custou sub-alugar um artigo nos últimos 12 meses, face a comprar tantos quantos alugou de uma vez (ao preço de custo, senão ao valor de substituição). "Recupera em" é quantos meses desse gasto em sub-aluguer a compra vale.', example: '1440 € de sub-aluguer num ano face a 12 000 € para comprar: recupera em 100 meses.', where: 'Relatórios → Equipamento → Comprar ou alugar' },
     subrental: { term: 'Aluguer externo', definition: 'Equipamento que aluga a outra empresa para um evento.', example: 'Alugar mais 4 colunas para o festival.', where: 'Inventário → Alugueres externos' },
     supplier: { term: 'Fornecedor', definition: 'A empresa a quem aluga o equipamento.', example: 'Uma empresa de aluguer no Porto.', where: 'Contactos → Fornecedores' },
     client: { term: 'Cliente', definition: 'Uma empresa ou pessoa para quem faz orçamentos, guardada uma vez nos Contactos e escolhida em cada orçamento.', example: 'Festival Lda, contacto Ana, com NIF e morada.', where: 'Contactos → Clientes' },
@@ -114,6 +117,9 @@ export default {
 
   hints: {
     'cash-report': 'A tesouraria de toda a empresa, com IVA: faturado, recebido e pago por mês, faturas em atraso por antiguidade, o saldo de cada cliente e a posição de tesouraria nos próximos três meses (a receber − a pagar).',
+    'equipment-coverage': 'O lucro e o retorno precisam do que cada peça custou. As unidades usam o seu custo de compra; os artigos a granel usam o custo de cada compra ou o preço de custo do artigo. Os artigos sem custo aparecem listados para os preencher.',
+    'equipment-buy': 'Cada artigo sub-alugado nos últimos 12 meses, face a comprar tantos quantos alugou de uma vez. Quanto menos meses para recuperar, mais cedo comprar compensa.',
+    'item-money': 'Os números deste artigo: receita até hoje (conjuntos repartidos pelo conteúdo), quanto do custo de compra já recuperou, quanto esteve reservado nos últimos 12 meses e para onde vai a seguir.',
     'spending-report': 'Despesas confirmadas pelo custo, por categoria, fornecedor, evento ou mês, face ao período de comparação. As maiores variações aparecem primeiro.',
     'forecast-report': 'A receita aceite dos próximos eventos por mês nos próximos três meses. Os orçamentos à espera de resposta aparecem à parte, com a taxa de sucesso ao lado, nunca multiplicados.',
     'finance-targets': 'Um limite mensal para uma categoria de despesa, ou um objetivo mensal de receita. O progresso aparece para o período escolhido acima.',
@@ -244,6 +250,22 @@ export default {
       mistakes: [
         'Um pagamento não pode ser maior do que o que falta pagar, nem ter data no futuro.',
         '"Paga" segue os pagamentos: não há botão para desfazer além de remover um pagamento.',
+      ],
+    },
+    'warehouse-equipment-money': {
+      title: 'Ver o que o equipamento rende',
+      intro: 'Descubra que material dá dinheiro, qual já se pagou e o que sub-aluga tantas vezes que comprar sairia mais barato.',
+      steps: [
+        'Abra Relatórios → Equipamento (ou Inventário → Relatórios). Escolha o período: os mosaicos mostram lucro, receita (com a parte escrita à mão, sem artigo associado), custos e perdas, e o gráfico mostra os melhores e piores artigos.',
+        'Toque em "Mostrar detalhes" e agrupe por artigo, categoria ou unidade para ver receita, depreciação, reparações, inspeções, sub-aluguer e perdas linha a linha. A receita de um conjunto é repartida pelo conteúdo segundo os preços por dia.',
+        'Mude para Retorno: o custo de compra de cada artigo face ao que rendeu desde então, a data em que se pagou ou quando se pagará ao ritmo atual. "Mostrar detalhes" lista cada unidade.',
+        'Mude para Comprar ou alugar: o que custou sub-alugar cada artigo em 12 meses face ao custo de comprar, e os meses para recuperar. Os sub-alugueres ligam aqui com "Comprar?".',
+        'Na página de um artigo, o cartão Números mostra a receita até hoje, o retorno, o uso em 12 meses e as próximas reservas. Faltam custos de compra? Custos de compra lista os artigos a preencher.',
+      ],
+      mistakes: [
+        'Sem custo de compra não há depreciação nem retorno: preencha o custo nas unidades, nas compras ou o preço de custo do artigo.',
+        'O lucro não inclui uma parte da mão de obra; os custos da equipa estão em Relatórios → Dinheiro.',
+        'Os custos são em euros; a receita noutra moeda aparece à parte, nunca somada.',
       ],
     },
     'office-cash': {

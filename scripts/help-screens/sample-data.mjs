@@ -348,6 +348,15 @@ export function sampleData(persona, lang) {
     { id: 'pl3', org_id: orgId, name: w.sound, kind: 'crew', unit: 'day', unit_price: 200, category: tx('Equipa', 'Crew'), details: null, tracking: 'none' },
     { id: 'pl4', org_id: orgId, name: tx('Transporte', 'Transport'), kind: 'transport', unit: 'km', unit_price: 0.45, category: tx('Transporte', 'Transport'), details: null, tracking: 'none' },
   ]
+  // K5: Reports → Equipment's profit rows (one per item, and the lines typed by hand)
+  const equipmentMoney = [
+        { item_id: SPK, name: w.speaker, category: w.sys, tracking: 'serial', owned: 7, units: 7, units_with_cost: 7, has_cost: true, revenue: 6720, revenue_sets: 1840, depreciation: 3500, depreciation_estimated: 0, repairs: 180, inspections: 60, hire_in: 0, losses: 0, profit: 2980 },
+        { item_id: QL1, name: w.desk, category: w.sys, tracking: 'serial', owned: 1, units: 1, units_with_cost: 1, has_cost: true, revenue: 2160, revenue_sets: 0, depreciation: 2000, depreciation_estimated: 0, repairs: 0, inspections: 0, hire_in: 360, losses: 0, profit: -200 },
+        { item_id: XLR, name: w.cables, category: w.cab, tracking: 'bulk', owned: 120, units: 0, units_with_cost: 0, has_cost: true, revenue: 940, revenue_sets: 410, depreciation: 210, depreciation_estimated: 0, repairs: 0, inspections: 0, hire_in: 0, losses: 45, profit: 685 },
+        { item_id: PWC, name: w.powercon, category: w.cab, tracking: 'bulk', owned: 40, units: 0, units_with_cost: 0, has_cost: false, revenue: 0, revenue_sets: 0, depreciation: 0, depreciation_estimated: 0, repairs: 0, inspections: 0, hire_in: 0, losses: 0, profit: 0 },
+        { item_id: null, name: null, category: null, tracking: null, owned: 0, units: 0, units_with_cost: 0, has_cost: false, revenue: 780, revenue_sets: 0, depreciation: 0, depreciation_estimated: 0, repairs: 0, inspections: 0, hire_in: 0, losses: 0, profit: 780 },
+      ]
+
   return {
     me, names, persona,
     user: { id: me, email: persona === 'pm' ? 'ricardo@example.com' : 'carla@example.com', aud: 'authenticated', role: 'authenticated', user_metadata: { full_name: names[me] }, app_metadata: {} },
@@ -631,6 +640,23 @@ export function sampleData(persona, lang) {
         { item_id: XLR, name: w.cables, category: w.cab, owned: 120, use: 0.22, gigs: 11, last_used: ago(240), revenue: 940, return_on_cost: null, repairs: 0, repair_cost: 0, charged: 0, lost: 3, lost_value: 45, hired_in: 0, book_value: 0, cost: 0, idle: false },
         { item_id: PWC, name: w.powercon, category: w.cab, owned: 40, use: 0, gigs: 0, last_used: null, revenue: 0, return_on_cost: null, repairs: 0, repair_cost: 0, charged: 0, lost: 0, lost_value: 0, hired_in: 0, book_value: 0, cost: 0, idle: true },
       ],
+      // K5: Reports → Equipment, the item page's numbers card and the two equipment tiles
+      // The comparison period (it starts before this one) earned a little less
+      equipment_money: args => (args.p_from < `${day(0).slice(0, 4)}-01-01` ? equipmentMoney.map(r => ({ ...r, revenue: Math.round(r.revenue * 0.85), profit: Math.round(r.profit * 0.7) })) : equipmentMoney),
+      equipment_unit_money: [],
+      equipment_payback: [
+        { level: 'item', item_id: SPK, unit_id: null, code: null, name: w.speaker, category: w.sys, since: '2024-03-01', cost: 21000, estimated: false, revenue: 23940, ratio: 1.14, paid_back_on: day(-60), pace_month: 610, expected_on: null },
+        { level: 'item', item_id: QL1, unit_id: null, code: null, name: w.desk, category: w.sys, since: '2025-02-10', cost: 12000, estimated: false, revenue: 5280, ratio: 0.44, paid_back_on: null, pace_month: 180, expected_on: day(1120) },
+        { level: 'item', item_id: XLR, unit_id: null, code: null, name: w.cables, category: w.cab, since: '2024-01-15', cost: 1260, estimated: false, revenue: 2870, ratio: 2.28, paid_back_on: day(-300), pace_month: 78, expected_on: null },
+      ],
+      equipment_buy_or_hire: [
+        { item_id: QL1, name: w.desk, category: w.sys, owned: 1, hire_ins: 4, peak: 1, spend: 1440, unit_price: 12000, price_source: 'cost', cost_to_buy: 12000, months_to_pay_back: 100 },
+        { item_id: SPK, name: w.speaker, category: w.sys, owned: 7, hire_ins: 6, peak: 4, spend: 4320, unit_price: 3000, price_source: 'cost', cost_to_buy: 12000, months_to_pay_back: 33.3 },
+      ].sort((a, b) => a.months_to_pay_back - b.months_to_pay_back),
+      item_money_card: { today: day(0), owned: 7, lifetime_revenue: { EUR: 23940 },
+        payback: { cost: 21000, revenue: 23940, ratio: 1.14, since: '2024-03-01', paid_back_on: day(-60), expected_on: null, estimated: false },
+        use_12m: 0.41, upcoming: 3, next_bookings: [{ gig_id: gigId, gig_name: gig.name, starts_at: `${day(24)}T08:00:00Z`, quantity: 6 }] },
+      report_overview_k5: { best_earner_year: { item_id: SPK, name: w.speaker, amount: 11420 }, worst_earner_year: { item_id: QL1, name: w.desk, amount: -840 }, hire_in_year: { EUR: 5760 } },
     },
   }
 }

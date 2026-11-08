@@ -4,12 +4,13 @@ import { ChevronDown, ChevronRight, BarChart3 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
 import { retryOnce } from '../../lib/selectAll'
-import { OVERVIEW_TILES, moneyLines } from '../../lib/analytics/tiles'
+import { OVERVIEW_TILES, OVERVIEW_SOURCES, moneyLines } from '../../lib/analytics/tiles'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
 import { card, colors, mono, AvxLoader } from '../ui'
 
-// The Overview tiles (src/lib/analytics/tiles.js), read in one call (public.report_overview).
+// The Overview tiles (src/lib/analytics/tiles.js), read from public.report_overview and the other
+// functions the tiles name as their `source` (called side by side, answers merged).
 // Shown on Reports → Overview and, folded or not, as the key numbers on the organisation's Home.
 
 export function useOverview(orgId, enabled = true) {
@@ -18,11 +19,15 @@ export function useOverview(orgId, enabled = true) {
     if (!orgId || !enabled) return
     let cancelled = false
     setState(s => ({ ...s, loading: true }))
-    retryOnce(() => supabase.rpc('report_overview', { p_org: orgId })).then(({ data, error }) => {
-      if (cancelled) return
-      if (error) logger.error('reports', error, { step: 'overview' })
-      setState({ data: data || null, error: error || null, loading: false })
-    })
+    Promise.all(['report_overview', ...OVERVIEW_SOURCES].map(fn => retryOnce(() => supabase.rpc(fn, { p_org: orgId }))))
+      .then(results => {
+        if (cancelled) return
+        // Only report_overview failing hides the tiles; another source failing leaves its tiles empty
+        const error = results[0].error || null
+        results.forEach((r, i) => { if (r.error) logger.error('reports', r.error, { step: i ? OVERVIEW_SOURCES[i - 1] : 'overview' }) })
+        const data = results[0].data ? Object.assign({}, ...results.map(r => r.data || {})) : null
+        setState({ data, error, loading: false })
+      })
     return () => { cancelled = true }
   }, [orgId, enabled])
   return state

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { OVERVIEW_TILES, moneyLines, lastYearSub } from './tiles'
+import { OVERVIEW_TILES, OVERVIEW_SOURCES, moneyLines, lastYearSub } from './tiles'
 
 const overview = {
   today: '2026-11-05', gigs_this_month: { total: 4, confirmed: 3 }, revenue_next_30: { EUR: 155, USD: 1250 },
@@ -13,7 +13,7 @@ describe('overview tiles', () => {
   it('reads the four first tiles from report_overview', () => {
     const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
     expect(Object.keys(by)).toEqual(['gigsThisMonth', 'revenueNext30', 'waitingQuotes', 'equipmentUse90', 'revenueThisMonth', 'marginPctYear', 'operatingResultYear', 'negativeMarginYear',
-      'overdueNow', 'cashIn30', 'expensesDue14', 'revenueNext3m'])
+      'overdueNow', 'cashIn30', 'expensesDue14', 'revenueNext3m', 'bestEarnerYear', 'worstEarnerYear', 'hireInYear'])
     expect(by.gigsThisMonth.value(overview)).toBe(4)
     expect(by.gigsThisMonth.sub(overview).vars.count).toBe(3)
     expect(by.revenueNext30.value(overview)).toEqual({ EUR: 155, USD: 1250 })
@@ -52,5 +52,23 @@ describe('overview tiles', () => {
   it('lists money per currency, never added', () => {
     expect(moneyLines({ EUR: 155, USD: 1250 })).toEqual([{ currency: 'USD', amount: 1250 }, { currency: 'EUR', amount: 155 }])
     expect(moneyLines({})).toEqual([{ currency: 'EUR', amount: 0 }])
+  })
+})
+
+describe('K5 equipment tiles', () => {
+  const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
+  const k5 = { best_earner_year: { item_id: 'c', name: 'Cable', amount: 230 }, worst_earner_year: { item_id: 'm', name: 'Moving head', amount: -2555 }, hire_in_year: { EUR: 350 } }
+  it('read report_overview_k5', () => {
+    expect(OVERVIEW_SOURCES).toContain('report_overview_k5')
+    expect(by.bestEarnerYear.source).toBe('report_overview_k5')
+    expect(by.bestEarnerYear.value(k5)).toEqual({ EUR: 230 })
+    expect(by.bestEarnerYear.sub(k5)).toEqual({ key: 'reports.tileSub.item', vars: { name: 'Cable' } })
+    expect(by.worstEarnerYear.value(k5)).toEqual({ EUR: -2555 })
+    expect(by.hireInYear.value(k5)).toEqual({ EUR: 350 })
+    expect(by.hireInYear.to('/org/x')).toBe('/org/x/reports?tab=equipment&view=buy')
+  })
+  it('say so when there is no item yet', () => {
+    expect(by.worstEarnerYear.value({})).toEqual({})
+    expect(by.worstEarnerYear.sub({})).toEqual({ key: 'reports.tileSub.noItem', vars: {} })
   })
 })
