@@ -411,5 +411,57 @@ begin
   exception when insufficient_privilege then null; end;
   reset role;
 
+  -- ── K8: crew fees to pay join expected out (20261230000001_crew_fees_cash.sql) ──
+  -- c's fixed fee of 400 on Cash gig (2–3 Oct, over on the 15th) with no invoice: expected out
+  -- "crew" 400 in October and the position 400 lower. Recording the invoice (an unpaid expense linked
+  -- to the fee) moves it to "unpaid": counted once. Other Co's fee never shows in Cash Co's report.
+  declare k8_before numeric; k8_got numeric; k8_unpaid numeric; g_b uuid;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', m, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select k.amount into k8_before from cash_report(org_a, '2026-10-01', '2026-11-01', 3, at_) k
+     where k.section = 'position' and k.month = '2026-10-01' and k.currency = 'EUR';
+    select k.amount into k8_unpaid from cash_report(org_a, '2026-10-01', '2026-11-01', 3, at_) k
+     where k.section = 'expected_out' and k.month = '2026-10-01' and k.group_key = 'unpaid' and k.currency = 'EUR';
+    if exists (select 1 from cash_report(org_a, '2026-10-01', '2026-11-01', 3, at_) where group_key = 'crew') then
+      raise exception 'CHECK FAILED: crew fees before any fee';
+    end if;
+    reset role;
+    perform set_config('request.jwt.claims', '', true);
+    insert into gig_crew_fees (gig_id, user_id, org_id, unit, rate, quantity) values (g_a, c, org_a, 'fixed', 400, 1);
+    insert into gigs (org_id, name, status, created_by, start_date, end_date)
+    values (org_b, 'Their gig', 'confirmed', x, '2026-10-01', '2026-10-01') returning id into g_b;
+    insert into gig_members (gig_id, user_id, role) values (g_b, x, 'pm') on conflict do nothing;
+    insert into gig_crew_fees (gig_id, user_id, org_id, unit, rate, quantity) values (g_b, x, org_b, 'fixed', 999, 1);
+    perform set_config('request.jwt.claims', json_build_object('sub', m, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select k.amount into k8_got from cash_report(org_a, '2026-10-01', '2026-11-01', 3, at_) k
+     where k.section = 'expected_out' and k.month = '2026-10-01' and k.group_key = 'crew' and k.currency = 'EUR';
+    if k8_got is distinct from 400 then raise exception 'CHECK FAILED: crew fees to pay %', k8_got; end if;
+    select k.amount into k8_got from cash_report(org_a, '2026-10-01', '2026-11-01', 3, at_) k
+     where k.section = 'position' and k.month = '2026-10-01' and k.currency = 'EUR';
+    if k8_got is distinct from k8_before - 400 then raise exception 'CHECK FAILED: position with crew fees % (before %)', k8_got, k8_before; end if;
+    if exists (select 1 from cash_report(org_a, '2026-10-01', '2026-11-01', 3, at_) where amount = 999 or (group_key = 'crew' and month <> '2026-10-01')) then
+      raise exception 'CHECK FAILED: another organisation''s fee, or a crew fee in another month';
+    end if;
+    insert into expenses (org_id, spent_on, due_on, description, amount_net, vat_rate, vat_amount, gig_id, crew_fee_user_id)
+    values (org_a, '2026-10-04', '2026-10-20', 'Crew invoice', 400, 0, 0, g_a, c);
+    if exists (select 1 from cash_report(org_a, '2026-10-01', '2026-11-01', 3, at_) where group_key = 'crew') then
+      raise exception 'CHECK FAILED: a fee with its invoice still counted as crew to pay';
+    end if;
+    select k.amount into k8_got from cash_report(org_a, '2026-10-01', '2026-11-01', 3, at_) k
+     where k.section = 'expected_out' and k.month = '2026-10-01' and k.group_key = 'unpaid' and k.currency = 'EUR';
+    if k8_got is distinct from k8_unpaid + 400 then raise exception 'CHECK FAILED: the invoice in unpaid %', k8_got; end if;
+    select k.amount into k8_got from cash_report(org_a, '2026-10-01', '2026-11-01', 3, at_) k
+     where k.section = 'position' and k.month = '2026-10-01' and k.currency = 'EUR';
+    if k8_got is distinct from k8_before - 400 then raise exception 'CHECK FAILED: the fee counted twice: position %', k8_got; end if;
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub', x, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+    select k.amount into k8_got from cash_report(org_b, '2026-10-01', '2026-11-01', 3, at_) k where k.group_key = 'crew';
+    if k8_got is distinct from 999 then raise exception 'CHECK FAILED: Other Co''s own crew fee %', k8_got; end if;
+    reset role;
+  end;
+
   raise exception 'ALL FINANCE CASH CHECKS PASSED';
 end $$;

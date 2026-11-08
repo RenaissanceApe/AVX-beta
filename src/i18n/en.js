@@ -4621,6 +4621,7 @@ export default {
   "cash.out.unpaid": "Unpaid expenses",
   "cash.out.claims": "Claims to reimburse",
   "cash.out.recurring": "Recurring costs",
+  "cash.out.crew": "Crew fees to pay",
   "cash.ofWhichOverdue": "of which overdue: {amount}",
   "cash.howPosition": "Expected in is what is left to pay on issued invoices, by due date (overdue ones in this month). Expected out is unpaid expenses, claims to reimburse and recurring costs, by due date (late ones in this month); each recurring date counts once, as a draft or as a date still to come. With VAT, as it moves in the bank.",
   "cash.crewFeesLater": "Crew fees to pay will be added when fees can be marked paid.",

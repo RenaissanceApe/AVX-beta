@@ -4620,6 +4620,7 @@ export default {
   "cash.out.unpaid": "Despesas por pagar",
   "cash.out.claims": "Reembolsos a fazer",
   "cash.out.recurring": "Custos recorrentes",
+  "cash.out.crew": "Cachês de equipa por pagar",
   "cash.ofWhichOverdue": "dos quais em atraso: {amount}",
   "cash.howPosition": "A receber é o que falta pagar em faturas emitidas, pela data de vencimento (as em atraso neste mês). A pagar são despesas por pagar, reembolsos a fazer e custos recorrentes, pela data de vencimento (as atrasadas neste mês); cada data recorrente conta uma vez, como rascunho ou como data ainda por vir. Com IVA, como se move no banco.",
   "cash.crewFeesLater": "Os cachets da equipa a pagar entram quando for possível marcá-los como pagos.",

@@ -8,6 +8,7 @@
 -- - mark_crew_fee_paid: the labour panel's "Mark paid" records or updates the linked expense (9b)
 -- - expenses_fee_paid trigger: a crew fee's expense getting a paid date notifies the person
 -- - crew_to_pay and report_overview_k8: the organisation's crew-to-pay list and K3's tile
+-- - K3's cash report gains crew fees to pay in 20261230000001_crew_fees_cash.sql
 
 -- ── Received marks ───────────────────────────────────────────────────────────
 create table if not exists public.crew_fee_received (
@@ -353,3 +354,4 @@ begin
 end $$;
 revoke execute on function public.report_overview_k8(uuid, timestamptz) from public, anon;
 grant execute on function public.report_overview_k8(uuid, timestamptz) to authenticated;
+

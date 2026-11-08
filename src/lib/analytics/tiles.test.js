@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { OVERVIEW_TILES, OVERVIEW_SOURCES, moneyLines, lastYearSub } from './tiles'
+import { OVERVIEW_TILES, moneyLines, lastYearSub } from './tiles'
 
 const overview = {
   today: '2026-11-05', gigs_this_month: { total: 4, confirmed: 3 }, revenue_next_30: { EUR: 155, USD: 1250 },
@@ -49,7 +49,6 @@ describe('overview tiles', () => {
     const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
     const o = { crew_to_pay: { EUR: 1100 }, crew_to_pay_count: 2 }
     expect(by.crewToPay.source).toBe('report_overview_k8')
-    expect(OVERVIEW_SOURCES).toContain('report_overview_k8')
     expect(by.crewToPay.value(o)).toEqual({ EUR: 1100 })
     expect(by.crewToPay.value({})).toEqual({})
     expect(by.crewToPay.sub(o)).toEqual({ key: 'reports.tileSub.people', vars: { count: 2 } })

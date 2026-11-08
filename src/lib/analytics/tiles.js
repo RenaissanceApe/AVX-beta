@@ -33,10 +33,6 @@ export const OVERVIEW_TILES = [
     sub: o => ({ key: 'reports.tileSub.people', vars: { count: o?.crew_to_pay_count ?? 0 } }), to: base => `${base}/expenses?view=crew` },
 ]
 
-// Tiles that come from a function of their own (a later K step's), read beside report_overview
-// and merged into the same object
-export const OVERVIEW_SOURCES = [...new Set(OVERVIEW_TILES.map(t => t.source).filter(Boolean))]
-
 // Money per currency as display lines, the biggest first: [{ currency, amount }]. Empty → one zero
 // line in the fallback currency, so a tile never shows a blank.
 export function moneyLines(byCurrency, fallback = 'EUR') {

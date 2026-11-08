@@ -353,7 +353,7 @@ rate beside them and never multiplied in; the cash position looks **3 months** a
 | Tests | `finance_cash.sql`: a part payment, a removed payment, a credit note, a deposit, a draft invoice, another currency; overdue by the organisation's date (23:30 and 00:30 in Lisbon); every section and the position by hand; a recurring cost counted once per date (a draft with the counter behind, a removed draft not made again, a removed cost never projected, six and four months ahead); claims waiting not counted; spending adding up for every grouping; budgets (unique, another organisation's category refused, prorated, removed by marking); the tiles; who may call each function (admin and member yes; viewer, crew, another organisation, anonymous, the second sign-in step not done: no). Vitest for the helpers and tiles; the signed-in e2e journey opens the three views with axe |
 
 **For K4 and later:** read cash through `cash_report` and `client_balance`, spending through
-`spending`; K8 adds crew fees to pay as another `expected_out` part.
+`spending`; K8 added crew fees to pay as another `expected_out` part (`crew`).
 
 ## K4 · Sales and clients
 
@@ -425,24 +425,36 @@ Needs: K1, 8, 9.
   requests work").
 - Ask: per-person figures for admins only or members too; the wrap-up page; a "cancelled" status.
 
-## K8 · Crew numbers
+## How K8 works (built in the "Money reports" set)
 
-Needs: K1, 7b, 8, 9b. AVX work only (D25).
+Crew numbers in My work, fee paid, crew to pay and the year statement. Migration
+`20261230000000_crew_numbers.sql` (one table, functions and a trigger); checks in
+`supabase/tests/crew_numbers.sql` (no destructive statements). Decided with the owner on 2026-11-08:
+crew **may mark a fee received**; the year statement is **one row per month with totals, then each
+gig**. AVX work only (D25); only the person's own rows; companies show only their name.
 
-- **My numbers** in My work: gigs, days and hours (approved and waiting), overtime, per company and
-  month; earnings from agreed fees and approved hours × fee; upcoming booked earnings; travel km and
-  time; busiest months; functions worked; job applications (shortlisted, accepted); crew calls
-  answered.
-- **Fee paid**: the gig's managers mark a fee paid in the labour panel, which records the linked
-  expense (9b) and notifies the person; the person sees only "paid on" for their own fees (through
-  a function, never the organisation's expenses) and can mark it received. Organisations get a
-  "crew to pay" list and K3's tile.
-- Reimbursements owed to the person, if expense claims were built in 9b.
-- **Year statement** per company (fees, hours, km) as CSV and a printable page; step 27 reuses the
-  same monthly summary for the "recibo verde".
-- Only the person's own rows; companies show only their name (`my_gig_companies`).
-- Tiles on My work: earned this month, not yet paid, next booked days.
-- Ask: may crew mark "received"; the year statement's layout.
+| Piece | How it works |
+|---|---|
+| `private.my_gig_rows(user)` | One row per gig the person is on (draft and cancelled gigs left out): company name only, dates, role, function, **days** (their booking, else the gig's dates, as `private.gig_labour_hours`), the agreed fee, **hours approved** (`split.worked`) and **waiting** (submitted days' start–end minus break), **overtime** (`split.overtime`), approved cost, **km and travel minutes** (submitted and approved days), **earned** (approved days' stored cost plus a fixed fee once; with no approved days, the agreed fee once the gig is over), **upcoming** (the agreed fee of a gig not over), **paid on** (the live confirmed expense linked to the fee) and **received at**. "Over" is by the gig's organisation's date. Never callable directly |
+| `my_gig_numbers(from, until, gig)` | The caller's own rows (security definer on `auth.uid()`, two-step sign-in rule), by the gig's start date (the K1 report date). `MyFee` reads one gig's paid on / received through it, never the organisation's expenses |
+| `my_monthly_summary(from, until, org)` | Per company and month (gig start date): gigs, days, hours approved and waiting, overtime, earned, paid (earned of gigs marked paid), km, travel minutes and **reimbursements** (approved claims, by claim date). **Step 27's "recibo verde" summary reuses this function** |
+| `my_crew_activity(from, until)` | Job posts applied to (shortlisted or further, offered, accepted), crew calls answered (accepted or declined) and accepted, and **reimbursements owed** (approved claims with no paid date, per currency) |
+| Fee paid | `mark_crew_fee_paid(gig, user, paid_on, how, amount_net, vat_rate, description)`: those who see money (`require_finance`: admins and members, two-step sign-in) mark an agreed fee paid. The live expense linked to the fee (9b) gets the date (a draft is confirmed); with none, one is recorded (confirmed, EUR, the starter "freelance crew" category when there is one, amount and VAT from the form, the fee total by default). An empty date takes the paid date off (the expense stays). A future date (beyond tomorrow) is refused |
+| Notification | Trigger `expenses_fee_paid` on `expenses`: whenever a crew fee's expense becomes confirmed with a paid date (labour panel, Crew to pay or Expenses), the person gets `fee_paid` with the gig and the date only, never the amount. Direct (shown when the organisation is muted); opens the gig's Crew tab. Push and email texts in `_shared/notification-text.ts` |
+| Received | `crew_fee_received` (gig, person, `received_at`; empty after unmarking, the row stays). Written only by `mark_fee_received(gig, received)`, by the person on the gig, once the fee is marked paid. Read by the person and the gig's managers (`can_manage_gig`) |
+| Crew to pay | `private.crew_to_pay_rows`: agreed fees on gigs that are over (organisation's date), not draft or cancelled, without a confirmed paid linked expense. Amount: the linked expense's total with VAT, else the agreed fee (`estimated`). `crew_to_pay(org)`: admins get every row, members only the gigs they manage (per-person money, Definitions) |
+| K3's tile | `report_overview_k8(org)`: `crew_to_pay` per currency, `crew_to_pay_count`, `crew_to_pay_estimated`, for everyone who sees money (totals only). `OVERVIEW_TILES` entry `crewToPay` has `source: 'report_overview_k8'`; `useOverview` (K5's change) calls `report_overview` plus each tile's `source` and merges the answers, so later steps add a tile without touching `report_overview` |
+| Screens | **My work**: `MyNumbersStrip` (earned this month, not yet paid, booked days in the next 30 days; shown in simple mode too, hidden until a gig has a fee or earnings). **My numbers** `/me/numbers?year=&org=` (`pages/MyNumbersPage.jsx`, menu My work → My numbers): tiles, earned by month, per company, busiest months, functions, job posts and crew calls, reimbursements owed, each gig with paid on / received. **Year statement** `/me/numbers/statement?year=&org=` (`pages/YearStatementPage.jsx`): twelve months with totals, then each gig; CSV and print. **Labour panel**: "Mark paid" per agreed fee for those who see money (`PaidModal`), "Paid on … · received". **MyFee**: "Paid on …", "Mark received" / "Not received". **Expenses → Crew to pay** (`components/expenses/CrewToPay.jsx`) |
+| Helpers | `src/lib/analytics/crewNumbers.js` (`crewTotals`, `notYetPaid`, `myWorkTiles`, `byCompany`, `byMonth`, `busiestMonths`, `functionsWorked`, `yearStatement`, `summaryCompanies`), unit tested on the database test's gigs |
+| Help | Terms fee paid, year statement; ⓘ `crew-to-pay`, `fee-paid`, `reimbursements-owed`; pages `my-numbers`, `my-statement`; guide `crew-numbers` with four pictures (`my-numbers-tiles`, `my-numbers`, `fee-paid`, `year-statement`) |
+| Tests | `finance_cash.sql` (K8 block): a fee with no invoice counts once as crew, its invoice moves it to unpaid (the position unchanged), another organisation's fee never appears. `crew_numbers.sql`: each person sees only their own gigs, fee, hours and received mark; earned, upcoming, hours waiting, overtime, km; the period and one-gig filters; crew to pay for admins, members (none unless they manage the gig) and the tile's totals; fee paid records the expense once, with VAT, refuses a missing fee and a future date, and notifies without the amount; paid through Expenses notifies too; received only after paid, only by the person, read by the company that owns the gig and nobody else; unpaying brings the fee back; reimbursements; the monthly summary; outsiders and anonymous calls refused. Vitest for the helpers and the tile |
+
+**Cash (D50 h):** migration `20261230000001_crew_fees_cash.sql` renames K3's `cash_report` to
+`private.cash_report_pre_k8` and wraps it (same signature and rights): fees to pay with **no invoice
+yet** join `expected_out` as `group_key` `crew` in this month, at the agreed fee
+(`private.crew_fees_unbilled`, totals per currency after the finance check), and the month's
+`position` drops by the same amount. A fee whose invoice is recorded already counts as `unpaid`
+through its expense, so nothing is counted twice (checked in `finance_cash.sql`, K8 block).
 
 ## K9 · Report extras (optional)
 

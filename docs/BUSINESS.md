@@ -266,7 +266,8 @@ step 23.
   "recibo verde" on the AT portal (AVX never issues it).
 - **Work history** on crew profiles: gigs done on AVX, shown only with the company's permission.
 - Freelancer invoicing and the work-history counts reuse K8's monthly summary (crew numbers in My
-  work).
+  work): `public.my_monthly_summary(from, until, org)`, one row per company and month (docs/ANALYTICS.md,
+  "How K8 works").
 
 ### 28 · Public API and webhooks [17]
 
