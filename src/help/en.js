@@ -104,6 +104,9 @@ export default {
     inspection: { term: 'Periodic inspection', definition: 'A safety check due every few months, such as electrical testing (PAT).', example: 'PAT every 12 months for every cable.', where: 'Inventory → item, Maintenance' },
     'replacement-value': { term: 'Replacement value', definition: 'What it would cost to buy the item again today.', example: '€1,200 for a moving head.', where: 'Inventory → item' },
     depreciation: { term: 'Book value and depreciation', definition: 'What equipment is worth on paper: its price minus wear over the months you choose.', example: '€6,000 over 60 months is worth €3,000 after 30 months.', where: 'Inventory → Reports' },
+    'equipment-profit': { term: 'Equipment profit', definition: 'What an item earned in a period minus what it cost: its revenue (a set\'s revenue shared out to its contents by their day prices) minus depreciation in the period, repairs not charged to the client, inspection costs, hire-in for that item and losses at replacement value. Labour isn\'t shared out to equipment.', example: 'Revenue €800 − depreciation €350 − repairs €80 − hire-in €200 = €170 before losses.', where: 'Reports → Equipment → Profit' },
+    payback: { term: 'Payback', definition: 'How much of an item\'s or unit\'s purchase cost its revenue has brought back since it was bought, the day it paid for itself, or when it will at the pace of the last 12 months.', example: 'Bought for €4,000, €1,800 earned since: 45 % paid back, expected around January 2028.', where: 'Reports → Equipment → Payback, and the item page' },
+    'buy-or-hire': { term: 'Buy or keep hiring in', definition: 'What hiring an item in cost over the last 12 months, against buying as many as you hired at once (at its cost price, else its replacement value). "Pays back in" is how many months of that hire-in spend the purchase equals.', example: '€1,440 hired in over a year against €12,000 to buy: pays back in 100 months.', where: 'Reports → Equipment → Buy or hire in' },
     subrental: { term: 'Subrental', definition: 'Equipment you hire from another company for a gig.', example: 'Renting 4 extra speakers for the festival.', where: 'Inventory → Subrentals' },
     supplier: { term: 'Supplier', definition: 'The company you hire equipment from.', example: 'A rental house in Porto.', where: 'Contacts → Suppliers' },
     client: { term: 'Client', definition: 'A company or person you quote for, kept once in Contacts and picked on each quote.', example: 'Festival Lda, contact Ana, with their tax number and address.', where: 'Contacts → Clients' },
@@ -123,6 +126,9 @@ export default {
 
   hints: {
     'cash-report': 'Cash for the whole company, with VAT: invoiced, received and paid out per month, overdue invoices by age, each client\'s balance, and the cash position for the next three months (expected in − expected out).',
+    'equipment-coverage': 'Profit and payback need what each piece cost. Units take their purchase cost; bulk items take the cost on each purchase or the item\'s cost price. Items without one are listed so you can fill them in.',
+    'equipment-buy': 'Each item you hired in over the last 12 months, against buying as many as you hired at once. The fewer months to pay back, the sooner buying beats hiring.',
+    'item-money': 'This item\'s numbers: revenue so far (sets shared out to their contents), how much of its purchase cost it has earned back, how much it was booked over the last 12 months, and where it goes next.',
     "sales-report": "Sales, counted in the database: quotes waiting for an answer and the ones to follow up, the win rate by count and by value (per period, gig type, client, who made the quote, lost reason or one of your choice fields), and what each client brings.",
     "client-numbers": "This client's revenue and margin (accepted quotes), gigs, quotes and win rate over the last 12 months, and their first, last and next gig. Only admins and members see it.",
     'spending-report': 'Confirmed expenses at their cost, by category, supplier, gig or month, against the comparison period. The biggest changes are listed first.',
@@ -260,6 +266,22 @@ export default {
       mistakes: [
         'A payment can\'t be more than is left to pay, or dated in the future.',
         '"Paid" follows the payments: there is no button to undo it except removing a payment.',
+      ],
+    },
+    'warehouse-equipment-money': {
+      title: 'See what your equipment earns',
+      intro: 'Find out which gear makes money, which has paid for itself, and what you hire in so often that buying would be cheaper.',
+      steps: [
+        'Open Reports → Equipment (or Inventory → Reports). Pick the period: the tiles show profit, revenue (with the share typed by hand, not linked to an item), costs and losses, and the chart shows the best and worst items.',
+        'Tap "Show details" and group by item, category or unit to see revenue, depreciation, repairs, inspections, hire-in and losses line by line. A set\'s revenue is shared out to its contents by their day prices.',
+        'Switch to Payback: each item\'s purchase cost against what it has earned since, the date it paid for itself or when it will at the current pace. "Show details" lists each unit.',
+        'Switch to Buy or hire in: what each item cost to hire in over 12 months against the cost to buy, and the months it would take to pay back. Subrentals link here with "Buy instead?".',
+        'On an item\'s page, the Numbers card shows its revenue so far, payback, use over 12 months and next bookings. Missing purchase costs? Purchase costs lists the items to fill in.',
+      ],
+      mistakes: [
+        'Without a purchase cost there is no depreciation or payback: fill in the cost on units, purchases or the item\'s cost price.',
+        'Profit doesn\'t carry a share of labour; crew costs are in Reports → Money.',
+        'Costs are in euros; revenue in another currency is shown apart, never added.',
       ],
     },
     'office-sales': {

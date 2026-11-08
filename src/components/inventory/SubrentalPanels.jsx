@@ -436,6 +436,8 @@ export function SubrentalsTab({ orgId, inv }) {
         </>
       )}
 
+      <BuyInstead orgId={orgId} subs={subs} items={inv.items} />
+
       <section style={{ marginTop: '18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
           <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '7px' }}><Truck size={16} color={colors.accentText} /> {t('sub.suppliers')}</h2>
@@ -466,6 +468,34 @@ export function SubrentalsTab({ orgId, inv }) {
       {editing && <SubrentalModal orgId={orgId} org={inv.org} subrental={editing.id ? editing : null} items={inv.items} onClose={() => setEditing(null)} onSaved={load} />}
       {supplier && <SupplierModal orgId={orgId} supplier={supplier.id ? supplier : null} onClose={() => setSupplier(null)} onSaved={load} />}
     </div>
+  )
+}
+
+// K5: catalogue items hired in during the last 12 months, each linking to Reports → Equipment →
+// "Buy or keep hiring in" for that item (hire-in spend against the cost to buy)
+function BuyInstead({ orgId, subs, items }) {
+  const since = new Date(Date.now() - 365 * 86400000).toISOString()
+  const counts = new Map()
+  for (const s of subs) {
+    if (!['confirmed', 'returned'].includes(s.status) || s.starts_at < since) continue
+    for (const l of s.lines || []) if (l.item_id) counts.set(l.item_id, (counts.get(l.item_id) || 0) + 1)
+  }
+  const list = [...counts.entries()].map(([id, n]) => ({ id, n, name: items.find(i => i.id === id)?.name })).filter(x => x.name)
+    .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name)).slice(0, 8)
+  if (!list.length) return null
+  return (
+    <section aria-labelledby="sub-buy" style={{ marginBottom: '14px' }}>
+      <h3 id="sub-buy" style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 6px' }}>{t('sub.buyTitle')}</h3>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        {list.map(x => (
+          <li key={x.id}>
+            <Link to={`/org/${orgId}/reports?tab=equipment&view=buy&item=${x.id}`} style={{ ...btn, padding: '5px 10px', fontSize: '12px', textDecoration: 'none' }}>
+              {t('sub.buyInstead', { name: x.name, count: x.n })}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 

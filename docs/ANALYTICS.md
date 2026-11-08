@@ -378,23 +378,35 @@ D23); the win rate can be grouped by a **custom field of kind "choice"**.
 **For K5 and later:** read quotes for sales through `private.sales_quotes` (one client rule, one
 value rule); add tiles through a function of your own and a `source` on the tile.
 
-## K5 · Equipment money
+## How K5 works (built in 0.77.0)
 
-Needs: K0, K1. Inventory → Reports opens Reports → Equipment.
+Equipment money. Migration `20261228000000_equipment_money.sql` (functions only, no tables);
+checks in `supabase/tests/equipment_money.sql` (no delete statements). Decided with the owner on
+2026-11-08: a set's revenue is shared out to its contents by their **day prices**; the default
+write-off period is **60 months**; profit carries **no share of labour**. Defaults D42, D44, D49,
+D50 kept. Costs are in euros, as in K2; another currency shows its revenue only.
 
-- **Profit** per item, category and unit: revenue (a set has no stock, so its revenue is shared out
-  to its contents by their day prices; lines typed by hand show as "not linked to an item: N%")
-  minus depreciation in the period (straight line, as I7; bulk purchases from their date with the
-  item's write-off period), repairs not charged, inspections, hire-in for the item and losses at
-  replacement value.
-- **Payback** per unit and item: revenue since purchase against purchase cost, the date it paid for
-  itself, or when it will at the current pace.
-- **Buy or keep hiring in**: hire-in spend over 12 months against the cost to buy (cost price, else
-  replacement value) and the months to pay back.
-- **Coverage**: how many units and items have a purchase cost, with a link to fill the gaps.
-- A numbers card on the item page: lifetime revenue, payback, use over 12 months, next bookings.
-- Tiles: best and worst earners this year, hire-in spend this year.
-- Ask: how a set's revenue is shared; the default write-off period; a share of labour (default no).
+| Piece | How it works |
+|---|---|
+| `private.set_shares(org)` | Each set's share per content item: quantity × the content's price ÷ the set's total (contents with no price at all share by quantity); sets inside sets followed through (10 levels); a set inside a set with no contents keeps its share; a set with no contents keeps its own revenue |
+| `private.equipment_revenue(org, from, until)` | Rental lines of accepted quotes (`report_revenue_lines`, the K1 rule and dating), sets shared out by `set_shares`; lines with no catalogue item have an empty `item_id` ("not linked to an item") |
+| `private.equipment_units`, `equipment_bulk_moves` | When each unit was owned (purchase date, else when added, until the day it was lost or retired; a unit found again has no end) and each bulk movement that changes what is owned (+ purchase, found, count up; − sale, lost, retire, count down), in the organisation's time zone |
+| `private.equipment_depreciation(org, from, until)` | The K2 straight-line rule per unit and bulk purchase (`unit_id` empty): purchase cost, else the item's cost price (estimated); the unit's months, else the item's, else 60; an equal share each month, prorated by the days inside the period; stops after the month a unit was lost or retired. Unlike `depreciation_lines` it counts a unit also when an expense is linked (the item's cost either way) |
+| `private.equipment_hire_lines(org, from, until)` | Each subrental line's cost: confirmed or returned subrentals (or any with a confirmed expense), dated by the gig's start date else their own; the linked expense (euros), else the supplier's price, else the lines, shared over the lines by line cost, else by quantity |
+| `equipment_money(org, from, until, currency)` | One row per stock item (or any item with a figure) plus a row with an empty `item_id` for lines typed by hand, so the rows add up to the equipment revenue: `revenue`, `revenue_sets`, `depreciation` (+ `_estimated`), `repairs` (not charged; a linked expense replaces the cost; dated when opened), `inspections` (cost, by date), `hire_in`, `losses` (lost units at replacement value less the payout, by the day lost; bulk lost − found × replacement value, as I7), `profit`; coverage `owned`, `units`, `units_with_cost`, `has_cost` (cost price, else every live unit has a purchase cost, else a bulk purchase with a cost) |
+| `equipment_unit_money(org, from, until, item)` | Per unit: revenue = its item's × the unit's owned days ÷ all owned unit-days (units and bulk), its own depreciation, repairs, inspections and loss. Hire-in stays on the item |
+| `equipment_payback(org, item, at)` | `level` item: every unit's cost and bulk purchase against revenue since the first purchase; `level` unit: each day's revenue shared equally between what was owned that day, from purchase until lost or retired. `paid_back_on` = the report date the running revenue reached the cost; else `expected_on` at the pace of the last 12 months (or since purchase), none for a unit already gone; `pace_month` |
+| `equipment_buy_or_hire(org, at)` | Items hired in over the 12 months up to today: `hire_ins`, `peak` (most in one subrental), `spend`, `unit_price` (cost price, else replacement value, `price_source`), `cost_to_buy` = price × peak, `months_to_pay_back` = cost ÷ (spend ÷ 12) |
+| `item_money_card(item, at)` | JSON for the item page: `lifetime_revenue` per currency (up to today), `payback` (the item row), `use_12m` (as I7: booked unit-days ÷ owned unit-days), `next_bookings` (3) and `upcoming` |
+| `report_overview_k5(org, at)` | Its own function beside `report_overview`: `best_earner_year` and `worst_earner_year` (item, profit; the worst only with two items or more), `hire_in_year` (euros), this year up to today. `useOverview` calls `report_overview` plus every function a tile names as `source` in `OVERVIEW_TILES` and merges the answers; only `report_overview` failing hides the tiles |
+| Screen | `components/reports/EquipmentReport.jsx`, tab `equipment` of `REPORT_TABS` (menu Reports → Equipment; Inventory → Reports redirects here). Views (`?view=`): **Profit** (default; period and comparison, this year by default; tiles profit, revenue with the not-linked share, costs, losses; chart of the best and worst items or categories; "Show details" groups by item, category or unit (`?by=`); purchase-cost card), **Payback** (per item; details per unit), **Buy or hire in** (`?item=` picks one, as the subrental links do), **Purchase costs** (coverage with the items to fill in), **Use and value** (I7's table, `inventory/ReportsTab.jsx`). Helpers `src/lib/analytics/equipment.js` (unit tested) |
+| Connected | Item page: `ItemMoneyCard` (hidden for anyone who can't see money). Subrentals tab: "Buy instead?" for items hired in over 12 months. Overview and Home: tiles `bestEarnerYear`, `worstEarnerYear`, `hireInYear`; `equipmentUse90` now opens "Use and value". Menu: Reports → Equipment; Inventory → Reports points there |
+| Help | Terms equipment profit, payback, buy or keep hiring in; ⓘ `equipment-coverage`, `equipment-buy`, `item-money`; guide `warehouse-equipment-money` with five pictures (`equip-profit`, `equip-details`, `equip-payback`, `equip-buy`, `item-money`) |
+| Tests | `equipment_money.sql`: a set (2 moving heads + 10 cables, shared 2/3 and 1/3), serial units (one bought mid-period, one lost with a payout, one lost and found again, one with no purchase cost), a bulk item lost and found, one hire-in covering two items, a hire-in paid by an expense, a line typed by hand; profit per item and unit, payback (paid back, expected, a lost unit), buy or hire, the item card, the tiles, who may call each function, 2,000 quotes in under 2 s (1.4 s on the test project). Vitest for the helpers and tiles; the signed-in e2e journey opens three views with axe |
+
+**For K6 and later:** read equipment figures through these functions (hire-in cost per line
+through `private.equipment_hire_lines`, units' owned periods through `private.equipment_units`),
+never by adding up rows in the browser.
 
 ## K6 · Warehouse and upkeep
 

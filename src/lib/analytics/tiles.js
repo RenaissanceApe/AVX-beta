@@ -6,6 +6,9 @@
 // public.report_overview returns. kind: 'count' | 'money' (per currency, never added) | 'pct' (a
 // fraction, 0.42) | 'pctValue' (already a percentage, 42.5).
 // Labels are i18n keys reports.tile.<key> and reports.tileHint.<key>.
+// A tile with `source: '<function>'` reads that function's answer instead (useOverview calls each
+// function in OVERVIEW_SOURCES and merges them), so a K step can add tiles without changing
+// report_overview.
 
 export const OVERVIEW_TILES = [
   { key: 'gigsThisMonth', kind: 'count', value: o => o?.gigs_this_month?.total ?? 0,
@@ -13,7 +16,7 @@ export const OVERVIEW_TILES = [
   { key: 'revenueNext30', kind: 'money', value: o => o?.revenue_next_30 || {}, to: base => `${base}/reports?tab=revenue` },
   { key: 'waitingQuotes', kind: 'money', value: o => o?.waiting?.totals || {},
     sub: o => ({ key: 'reports.tileSub.quotes', vars: { count: o?.waiting?.count ?? 0 } }), to: base => `${base}/reports?tab=sales` },
-  { key: 'equipmentUse90', kind: 'pct', value: o => o?.equipment_use_90 ?? null, to: base => `${base}/inventory?tab=reports` },
+  { key: 'equipmentUse90', kind: 'pct', value: o => o?.equipment_use_90 ?? null, to: base => `${base}/reports?tab=equipment&view=use` },
   // K2 (public.finance_results through report_overview): these four took the place of step 10's two
   // monthly margin tiles, which live on in Reports → Gig margins
   { key: 'revenueThisMonth', kind: 'money', value: o => o?.revenue_this_month || {},
@@ -38,6 +41,12 @@ export const OVERVIEW_TILES = [
     value: o => (o?.top_client_year ? { [o.top_client_year.currency]: o.top_client_year.amount } : {}),
     sub: o => (o?.top_client_year ? { key: 'reports.tileSub.topClient', vars: { name: o.top_client_year.name || '—', pct: Math.round(Number(o.top_client_year.share || 0) * 100) } }
       : { key: 'reports.tileSub.noTopClient', vars: {} }), to: base => `${base}/reports?tab=sales&view=clients&period=this_year` },
+  // K5 (public.report_overview_k5): equipment profit this year, by item, and hire-in spend
+  { key: 'bestEarnerYear', kind: 'money', source: 'report_overview_k5', value: o => earner(o?.best_earner_year),
+    sub: o => earnerSub(o?.best_earner_year), to: base => `${base}/reports?tab=equipment&period=this_year` },
+  { key: 'worstEarnerYear', kind: 'money', source: 'report_overview_k5', value: o => earner(o?.worst_earner_year),
+    sub: o => earnerSub(o?.worst_earner_year), to: base => `${base}/reports?tab=equipment&period=this_year&sort=profit_asc` },
+  { key: 'hireInYear', kind: 'money', source: 'report_overview_k5', value: o => o?.hire_in_year || {}, to: base => `${base}/reports?tab=equipment&view=buy` },
   // K8 (public.report_overview_k8, its own call): agreed crew fees on gigs that are over, not marked paid
   { key: 'crewToPay', kind: 'money', source: 'report_overview_k8', value: o => o?.crew_to_pay || {},
     sub: o => ({ key: 'reports.tileSub.people', vars: { count: o?.crew_to_pay_count ?? 0 } }), to: base => `${base}/expenses?view=crew` },
@@ -60,6 +69,10 @@ export function winRateSub(o) {
   if (w.by_value == null) return { key: 'reports.tileSub.decided', vars: { count: Number(w.decided) } }
   return { key: 'reports.tileSub.byValue', vars: { pct: Math.round(Number(w.by_value) * 100) } }
 }
+
+// An item's profit as a tile's money, and its name as the line under it (K5)
+const earner = e => (e ? { EUR: Number(e.amount) || 0 } : {})
+const earnerSub = e => (e ? { key: 'reports.tileSub.item', vars: { name: e.name } } : { key: 'reports.tileSub.noItem', vars: {} })
 
 // Money per currency as display lines, the biggest first: [{ currency, amount }]. Empty → one zero
 // line in the fallback currency, so a tile never shows a blank.

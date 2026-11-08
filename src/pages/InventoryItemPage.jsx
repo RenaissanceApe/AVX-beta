@@ -16,6 +16,7 @@ import { ItemModal, MovementModal, AddUnitsModal, UnitModal } from '../component
 import { KitPanel, CaseContentsModal } from '../components/inventory/KitPanels'
 import ContextThread from '../components/messages/ContextThread'
 import { ItemMaintenance } from '../components/inventory/MaintenancePanels'
+import ItemMoneyCard from '../components/inventory/ItemMoneyCard'
 import { MovementList, useNames, LOCATION_ICONS } from './InventoryPage'
 import { btn, btnPrimary, iconBtn, card, label, colors, StatusBadge, AvxLoader } from '../components/ui'
 import { PageHelp } from '../components/help/HelpParts'
@@ -141,6 +142,8 @@ export default function InventoryItemPage() {
             ))}
           </div>
         )}
+
+        {item.kit_type !== 'set' && (item.kind === 'rental' || item.kind === 'sale') && <ItemMoneyCard orgId={orgId} item={item} />}
 
         <section style={{ marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>

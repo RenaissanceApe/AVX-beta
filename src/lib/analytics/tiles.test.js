@@ -83,3 +83,21 @@ describe('overview tiles', () => {
     expect(by.waitingQuotes.to('/org/x')).toBe('/org/x/reports?tab=sales')
   })
 })
+
+describe('K5 equipment tiles', () => {
+  const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
+  const k5 = { best_earner_year: { item_id: 'c', name: 'Cable', amount: 230 }, worst_earner_year: { item_id: 'm', name: 'Moving head', amount: -2555 }, hire_in_year: { EUR: 350 } }
+  it('read report_overview_k5', () => {
+    expect(OVERVIEW_SOURCES).toContain('report_overview_k5')
+    expect(by.bestEarnerYear.source).toBe('report_overview_k5')
+    expect(by.bestEarnerYear.value(k5)).toEqual({ EUR: 230 })
+    expect(by.bestEarnerYear.sub(k5)).toEqual({ key: 'reports.tileSub.item', vars: { name: 'Cable' } })
+    expect(by.worstEarnerYear.value(k5)).toEqual({ EUR: -2555 })
+    expect(by.hireInYear.value(k5)).toEqual({ EUR: 350 })
+    expect(by.hireInYear.to('/org/x')).toBe('/org/x/reports?tab=equipment&view=buy')
+  })
+  it('say so when there is no item yet', () => {
+    expect(by.worstEarnerYear.value({})).toEqual({})
+    expect(by.worstEarnerYear.sub({})).toEqual({ key: 'reports.tileSub.noItem', vars: {} })
+  })
+})
