@@ -40,6 +40,10 @@ export const OVERVIEW_TILES = [
       : { key: 'reports.tileSub.noTopClient', vars: {} }), to: base => `${base}/reports?tab=sales&view=clients&period=this_year` },
 ]
 
+// The functions the tiles read (each tile's `source`, report_overview when it has none); their
+// answers are merged into one object (each function uses its own keys)
+export const OVERVIEW_SOURCES = [...new Set(OVERVIEW_TILES.map(t => t.source || 'report_overview'))]
+
 // "Worth 1 200,00 €" under the follow-up count, in the biggest currency
 export function followUpSub(o) {
   const lines = moneyLines(o?.follow_up?.totals)
