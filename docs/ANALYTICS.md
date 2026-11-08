@@ -5,7 +5,7 @@ built as the **K** steps ("key numbers"), in the order [ROADMAP.md](../ROADMAP.m
 in its own session with its prompt in [SESSION_PROMPTS.md](SESSION_PROMPTS.md). The expenses step
 they need (9b) is specified in [BUSINESS.md](BUSINESS.md).
 
-**Status (2026-11-06): K0 built (0.64.0), K1 built (0.69.0), K2 built (0.75.0); the rest planned.** When a K step is built, its section below is
+**Status (2026-11-07): K0 built (0.64.0), K1 built (0.69.0), K2 built (0.75.0), K3 built (0.76.0); the rest planned.** When a K step is built, its section below is
 replaced by "How K… works", in the same shape as BUSINESS.md, so the next session can connect to it
 without reading its code first.
 
@@ -328,24 +328,32 @@ replace step 10's two monthly margin tiles. Defaults to confirm: PENDING D49.
 depreciation alone), never by adding up rows in the browser; add groupings to its `group_by` list
 and the test's "adds up to the total" loop together.
 
-## K3 · Money: cash, spending and forecast
+## How K3 works (built in 0.76.0)
 
-Needs: K2, 11, 12.
+Cash, spending and forecast for the whole company. Migration `20261226000000_finance_cash.sql`
+(functions and one table, `finance_targets`); checks in `supabase/tests/finance_cash.sql` (no delete
+statements). Decided with the owner on 2026-11-07: **budgets and targets yes** (a monthly budget per
+expense category and a monthly revenue target); the forecast keeps waiting quotes **apart**, the win
+rate beside them and never multiplied in; the cash position looks **3 months** ahead
+(`MONTHS_AHEAD` in `src/lib/analytics/cash.js`). Defaults to confirm: PENDING D50.
 
-- **Cash in**: invoiced and paid per month (with VAT, labelled), overdue invoices by age (0–30,
-  31–60, 61–90, over 90 days), expected cash in by due date, balance per client, deposits, credit
-  notes.
-- **Cash out**: expenses paid per month, unpaid expenses by due date, recurring costs coming up,
-  crew fees to pay (filled by K8).
-- **Cash position**: money expected in minus money expected out, per month ahead.
-- **Spending**: by category, supplier, gig and month; the biggest changes against the comparison.
-- **Forecast**: confirmed revenue of upcoming gigs per month; quotes waiting for an answer shown
-  apart, with the win rate beside them.
-- Budgets per expense category and a revenue target, if wanted.
-- The client portal (step 26) shows the client's balance from this step's function.
-- Tiles: overdue now, cash expected in 30 days, unpaid expenses due in 14 days, confirmed revenue
-  in the next 3 months.
-- Ask: budgets and targets; weighting the forecast by the win rate; how many months ahead.
+| Piece | How it works |
+|---|---|
+| `private.open_invoices(org, today)` | Each issued invoice (not credit notes, not removed): total, issued credit notes against it, payments, `left_to_pay` (never below zero) and `days_overdue` (past the due date by the organisation's own date, `private.org_today`). Runs as the reader, so it only ever shows what RLS lets through |
+| `private.recurring_ahead(org, until)` | Each live recurring cost's dates from its next undrafted one (the same date rule as `private.add_periods`) up to `until`, skipping any date that already has an expense (draft, confirmed or a removed draft). So a recurring cost counts **once per date**: as its draft, or as a date still to come |
+| `cash_report(org, from, until, months_ahead, at)` | Long rows `(section, month, group_key, label, currency, amount, items)`, **with VAT**. In the period, by month: `invoiced` (issued invoices by issue date; `group_key` `deposit` for deposit invoices), `credited` (issued credit notes), `received` (payments by date, part payments too), `paid_out` (confirmed expenses by paid date). As of today: `overdue` by age (`0_30`, `31_60`, `61_90`, `90_plus`); `expected_in` per month ahead by due date (`overdue` ones in this month, else `due`); `expected_out` per month ahead: `unpaid` confirmed expenses, approved `claims` to reimburse, `recurring` (drafts not confirmed + dates to come), late ones in this month; `recurring` per cost (`group_key` its id, `label` its description); `position` = expected in − expected out per month and currency. `p_at` fixes the clock for the tests |
+| `spending(org, from, until, group_by)` | Confirmed expenses dated in the period at their **cost** (the 9b VAT rule, `private.expense_costs`), with `total` (with VAT) and `items`. Capital purchases count in full here (Results spread them). `group_by`: `total`, `category` (with `starter_key`), `kind`, `supplier` (id, else `name:<typed name>`), `gig`, `month`; an empty `group_key` holds what has no such group, so every grouping adds up to the total (checked). The screen calls it twice for the comparison period |
+| `client_balance(org, client, at)` | Per client (id, else `name:<typed name>`) and currency, every issued invoice: invoiced, deposits, credited, paid, balance (left to pay), overdue, oldest open due date, open invoices. **The client portal (step 26) shows a client's balance from this function** (`p_client`), through a security-definer wrapper that checks the portal token |
+| `revenue_forecast(org, months, at)` | From this month: `confirmed` (accepted revenue by the K1 rule, from today on), `waiting` and `waiting_quotes` (sent quotes still valid, a past date counted in this month), and `win_rate_count` / `win_rate_value` (last 12 months by decided date, accepted ÷ (accepted + declined)) |
+| `finance_targets` and `target_progress(org, from, until)` | `finance_targets`: `kind` budget (with an expense category of the organisation) or revenue (none), `amount` per month, `currency` (the form uses EUR), removed by marking; one live per category/kind and currency. Admins and members read and write (`can_see_finance`, two-step sign-in). `target_progress`: each live target × the months of the period (part months by days) against the category's spending (cost) or accepted revenue (`finance_results`) |
+| Overview tiles | `report_overview` gained `overdue_now` and `overdue_count`, `cash_in_30` (left on invoices due today to 30 days ahead, overdue ones not included), `expenses_due_14` (unpaid confirmed expenses and approved claims due within 14 days, late ones included) and `revenue_next_3m` (accepted revenue from today to three months ahead); the K2 function was renamed `private.report_overview_pre_k3` and wrapped. `OVERVIEW_TILES`: `overdueNow`, `cashIn30`, `expensesDue14`, `revenueNext3m`. The crew-fees-to-pay tile comes with K8 |
+| Screen | `components/reports/CashReport.jsx`, views `cash`, `spending`, `forecast` of Reports → Money (`MONEY_VIEWS`). **Cash**: tiles (overdue now, expected in and out over 3 months, received and paid out in the period), the cash position chart, overdue by age (link to the unpaid invoices), cash in and out per month, recurring costs coming up, balance per client; "Show details" adds the months ahead line by line, the monthly table and more balance columns. **Spending** (`?by=` category, supplier, gig, month): total against the comparison, chart, the five biggest changes; details: the full table. **Forecast**: confirmed, waiting with the win rate beside, chart by month; **Budgets and targets** with progress (in words as well as the bar) and a form to add one. Helpers in `src/lib/analytics/cash.js` (unit tested on the same fixture as the database test) |
+| Connected | Invoices: "Overdue by age and the cash position" under the totals. Expenses → Unpaid and due: a link to the cash position. Contacts: clients link to Cash (who owes what), suppliers to Spending by supplier this year. Overview and Home: the four tiles (overdue now opens unpaid invoices, expenses due opens Expenses → Unpaid). Payments count through `invoice_payments` |
+| Help | Terms cash position, overdue by age, win rate, budget and target; ⓘ `cash-report`, `spending-report`, `forecast-report`, `finance-targets`; guide `office-cash` with four pictures (`money-cash`, `money-cash-details`, `money-spending`, `money-forecast`) and the refreshed Overview and Home pictures |
+| Tests | `finance_cash.sql`: a part payment, a removed payment, a credit note, a deposit, a draft invoice, another currency; overdue by the organisation's date (23:30 and 00:30 in Lisbon); every section and the position by hand; a recurring cost counted once per date (a draft with the counter behind, a removed draft not made again, a removed cost never projected, six and four months ahead); claims waiting not counted; spending adding up for every grouping; budgets (unique, another organisation's category refused, prorated, removed by marking); the tiles; who may call each function (admin and member yes; viewer, crew, another organisation, anonymous, the second sign-in step not done: no). Vitest for the helpers and tiles; the signed-in e2e journey opens the three views with axe |
+
+**For K4 and later:** read cash through `cash_report` and `client_balance`, spending through
+`spending`; K8 adds crew fees to pay as another `expected_out` part.
 
 ## K4 · Sales and clients
 

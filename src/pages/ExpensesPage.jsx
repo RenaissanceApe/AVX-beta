@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, Receipt, Download, Search } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
@@ -163,6 +163,10 @@ export default function ExpensesPage() {
               <h2 id="exp-list" style={{ ...h2, flex: '1 1 160px' }}>
                 {view === 'month' ? fmt(`${month}-01`, 'MMMM yyyy') : t(`expenses.view.${view}`)}
               </h2>
+              {/* K3: unpaid expenses and recurring costs in the cash position */}
+              {view === 'unpaid' && (
+                <Link to={`/org/${orgId}/reports?tab=money&view=cash`} style={{ fontSize: '13px', color: colors.accentText }}>{t('expenses.cashLink')}</Link>
+              )}
               {view === 'month' && (
                 <div>
                   <label htmlFor="exp-month" style={label}>{t('hours.month')}</label>

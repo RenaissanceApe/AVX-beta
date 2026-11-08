@@ -12,7 +12,8 @@ const overview = {
 describe('overview tiles', () => {
   it('reads the four first tiles from report_overview', () => {
     const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
-    expect(Object.keys(by)).toEqual(['gigsThisMonth', 'revenueNext30', 'waitingQuotes', 'equipmentUse90', 'revenueThisMonth', 'marginPctYear', 'operatingResultYear', 'negativeMarginYear'])
+    expect(Object.keys(by)).toEqual(['gigsThisMonth', 'revenueNext30', 'waitingQuotes', 'equipmentUse90', 'revenueThisMonth', 'marginPctYear', 'operatingResultYear', 'negativeMarginYear',
+      'overdueNow', 'cashIn30', 'expensesDue14', 'revenueNext3m'])
     expect(by.gigsThisMonth.value(overview)).toBe(4)
     expect(by.gigsThisMonth.sub(overview).vars.count).toBe(3)
     expect(by.revenueNext30.value(overview)).toEqual({ EUR: 155, USD: 1250 })
@@ -32,6 +33,17 @@ describe('overview tiles', () => {
     expect(by.negativeMarginYear.value(overview)).toBe(2)
     expect(by.negativeMarginYear.value({})).toBe(0)
     expect(by.revenueThisMonth.to('/org/x')).toBe('/org/x/reports?tab=money&compare=last_year')
+  })
+  it('reads the K3 cash tiles', () => {
+    const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
+    const o = { overdue_now: { EUR: 1738, GBP: 123 }, overdue_count: 4, cash_in_30: { EUR: 246 }, expenses_due_14: { EUR: 725.7 }, revenue_next_3m: { EUR: 1500 } }
+    expect(by.overdueNow.value(o)).toEqual({ EUR: 1738, GBP: 123 })
+    expect(by.overdueNow.sub(o)).toEqual({ key: 'reports.tileSub.invoices', vars: { count: 4 } })
+    expect(by.cashIn30.value(o)).toEqual({ EUR: 246 })
+    expect(by.expensesDue14.value({})).toEqual({})
+    expect(by.revenueNext3m.value(o)).toEqual({ EUR: 1500 })
+    expect(by.overdueNow.to('/org/x')).toBe('/org/x/invoices?view=unpaid')
+    expect(by.expensesDue14.to('/org/x')).toBe('/org/x/expenses?view=unpaid')
   })
   it('says when last year has nothing in the same currency', () => {
     expect(lastYearSub({ revenue_this_month: { USD: 5 }, revenue_month_last_year: { EUR: 3 } })).toEqual({ key: 'reports.tileSub.noLastYear', vars: {} })

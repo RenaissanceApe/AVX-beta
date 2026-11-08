@@ -50,6 +50,14 @@ async function expectAccessible(page) {
     .map(v => `${v.id}: ${v.nodes.slice(0, 3).map(n => n.target.join(' ')).join(' | ')}`)).toEqual([])
 }
 
+// A report view has finished loading: no loading sign left, and no "couldn't be loaded" message.
+// The report functions are heavy for the small test database, so the journey lets each view
+// finish before opening the next instead of stacking their calls (which ran into its 8 s limit).
+async function reportLoaded(page) {
+  await expect(page.getByRole('status', { name: 'Loading', exact: true })).toHaveCount(0, { timeout: 30_000 })
+  await expect(page.getByText("The report couldn't be loaded. Try again in a moment.")).toHaveCount(0)
+}
+
 async function deleteAccount(page) {
   await page.goto('/dashboard')
   // Desktop: the avatar in the top bar. Phones have no avatar (two icons at most, DESIGN.md
@@ -280,6 +288,8 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   await strip.getByRole('button', { name: 'Key numbers' }).click()
   await expect(strip.getByText('Gigs this month', { exact: true })).toHaveCount(0)
   await strip.getByRole('button', { name: 'Key numbers' }).click()
+  // Unfolding reloads the key numbers: let them arrive before Reports loads its own copy
+  await expect(strip.getByText('Gigs this month', { exact: true })).toBeVisible({ timeout: 30_000 })
   await strip.getByRole('link', { name: 'All reports' }).click()
   await expect(page).toHaveURL(/\/reports$/)
   await expect(page.getByRole('heading', { name: 'Reports', exact: true })).toBeVisible()
@@ -287,6 +297,7 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   await expectAccessible(page)
   await page.getByRole('button', { name: 'Revenue', exact: true }).click()
   await expect(page).toHaveURL(/tab=revenue/)
+  await reportLoaded(page)
   await page.locator('#rp-period').selectOption('last_12_months')
   await expect(page.getByText('Net revenue', { exact: true }).first()).toBeVisible({ timeout: 15_000 })
   await page.getByLabel('Show details').check()
@@ -295,19 +306,40 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   // Step 10: the gig margins report, with its table once details are on
   await page.getByRole('button', { name: 'Gig margins', exact: true }).click()
   await expect(page).toHaveURL(/tab=margins/)
+  await reportLoaded(page)
   await expect(page.getByText('Gigs with a negative margin')).toBeVisible({ timeout: 15_000 })
   await expectAccessible(page)
   // K2: Reports → Money, its three views (results, margins, labour)
   await page.getByRole('button', { name: 'Money', exact: true }).click()
   await expect(page).toHaveURL(/tab=money/)
+  await reportLoaded(page)
   await page.locator('#rp-period').selectOption('this_year')
   await expect(page.getByText(/^(Operating result|No money in this period yet)$/).first()).toBeVisible({ timeout: 15_000 })
+  await reportLoaded(page)
   await expectAccessible(page)
   await page.getByRole('button', { name: 'Margins', exact: true }).click()
   await expect(page).toHaveURL(/view=margins/)
+  await reportLoaded(page)
   await expectAccessible(page)
   await page.getByRole('button', { name: 'Labour', exact: true }).click()
   await expect(page).toHaveURL(/view=labour/)
+  await reportLoaded(page)
+  await expectAccessible(page)
+  // K3: cash, spending and forecast (with budgets and targets)
+  await page.getByRole('button', { name: 'Cash', exact: true }).click()
+  await expect(page).toHaveURL(/view=cash/)
+  await reportLoaded(page)
+  await expect(page.getByText(/^(Cash position, next 3 months|No invoices or expenses yet)$/).first()).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
+  await page.getByRole('button', { name: 'Spending', exact: true }).click()
+  await expect(page).toHaveURL(/view=spending/)
+  await reportLoaded(page)
+  await expect(page.getByText(/^(Spent in this period|No expenses in this period)$/).first()).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
+  await page.getByRole('button', { name: 'Forecast', exact: true }).click()
+  await expect(page).toHaveURL(/view=forecast/)
+  await reportLoaded(page)
+  await expect(page.getByRole('heading', { name: 'Budgets and targets' })).toBeVisible({ timeout: 15_000 })
   await expectAccessible(page)
   await page.goto(home)
 })

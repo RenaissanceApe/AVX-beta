@@ -156,6 +156,53 @@ export function sampleData(persona, lang) {
     }
     return [moneyRow('total', null, f, { negative: 2, noAccepted: 1 })]
   }
+  // Reports → Money, Cash / Spending / Forecast (K3): sample answers by the call's arguments
+  const monthAt = (from, i) => { const d = new Date(`${from}T00:00:00Z`); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + i, 1)).toISOString().slice(0, 10) }
+  const thisMonth = `${day(0).slice(0, 7)}-01`
+  const cashReport = ({ p_from = thisMonth } = {}) => {
+    const rows = []
+    for (let i = 0; i < 3; i++) {
+      const m = monthAt(p_from, i)
+      if (m > thisMonth) break
+      rows.push({ section: 'invoiced', month: m, group_key: '', label: null, currency: 'EUR', amount: [21400, 26800, 14200][i], items: 5 + i },
+        { section: 'invoiced', month: m, group_key: 'deposit', label: null, currency: 'EUR', amount: [3600, 2400, 4800][i], items: 2 },
+        { section: 'received', month: m, group_key: '', label: null, currency: 'EUR', amount: [19800, 22100, 11900][i], items: 6 },
+        { section: 'paid_out', month: m, group_key: '', label: null, currency: 'EUR', amount: [14600, 17900, 9400][i], items: 18 })
+      if (i === 1) rows.push({ section: 'credited', month: m, group_key: '', label: null, currency: 'EUR', amount: 615, items: 1 })
+    }
+    rows.push(...[['0_30', 4920], ['31_60', 2460], ['61_90', 0], ['90_plus', 1230]].filter(([, a]) => a)
+      .map(([g, a]) => ({ section: 'overdue', month: null, group_key: g, label: null, currency: 'EUR', amount: a, items: 1 })))
+    const ins = [[8610, 12300], [0, 15990], [0, 6150]]
+    const outs = [[5120, 380, 2210], [3690, 0, 2210], [0, 0, 2420]]
+    for (let i = 0; i < 3; i++) {
+      const m = monthAt(thisMonth, i)
+      if (ins[i][0]) rows.push({ section: 'expected_in', month: m, group_key: 'overdue', label: null, currency: 'EUR', amount: ins[i][0], items: 3 })
+      rows.push({ section: 'expected_in', month: m, group_key: 'due', label: null, currency: 'EUR', amount: ins[i][1], items: 3 })
+      ;['unpaid', 'claims', 'recurring'].forEach((g, k) => { if (outs[i][k]) rows.push({ section: 'expected_out', month: m, group_key: g, label: null, currency: 'EUR', amount: outs[i][k], items: 2 }) })
+      rows.push({ section: 'position', month: m, group_key: '', label: null, currency: 'EUR', amount: ins[i][0] + ins[i][1] - outs[i].reduce((a, b) => a + b, 0), items: 0 })
+      rows.push({ section: 'recurring', month: m, group_key: 'rc1', label: lang === 'pt' ? 'Renda do armazém' : 'Warehouse rent', currency: 'EUR', amount: 1845, items: 1 },
+        { section: 'recurring', month: m, group_key: 'rc2', label: lang === 'pt' ? 'Software de gestão' : 'Office software', currency: 'EUR', amount: 365, items: 1 })
+      if (i === 2) rows.push({ section: 'recurring', month: m, group_key: 'rc3', label: lang === 'pt' ? 'Seguro da carrinha' : 'Van insurance', currency: 'EUR', amount: 210, items: 1 })
+    }
+    return rows
+  }
+  const clientBalance = clientsSample.map((c, i) => ({ client_key: `cl${i}`, client_id: `cl${i}`, client_name: c, currency: 'EUR',
+    invoiced: [38400, 22100, 15800, 9200][i], deposits: [7200, 3000, 0, 1800][i], credited: [0, 615, 0, 0][i], paid: [30000, 16030, 12720, 7970][i],
+    balance: [8400, 5455, 3080, 1230][i], overdue: [4920, 2460, 0, 1230][i], oldest_due: day([-24, -41, 12, -96][i]), open_invoices: [3, 2, 1, 1][i] }))
+  const spendingAnswer = ({ p_group = 'category', p_from = '' } = {}) => {
+    const f = p_from < day(-80) ? 0.9 : 1
+    if (p_group === 'supplier') return [['sp1', 'Audiomatic', 6200], ['sp2', 'Rigging Lda', 3900], ['name:Galp', 'Galp', 2100], ['', null, 5400]]
+      .map(([k, l, a], i) => ({ group_key: k, group_label: l, starter_key: null, currency: 'EUR', amount: Math.round(a * (i === 1 ? 1.4 - f * 0.4 : f)), total: Math.round(a * 1.23), items: 4 }))
+    return [['ec1', 'hire_in', 7400, 0.7], ['ec6', 'rent_utilities', 5400, 1], ['ec3', 'transport_fuel', 3100, 1.25], ['ec8', 'software', 1150, 1], ['ec5', 'meals_jobs', 890, 0.8]]
+      .map(([k, sk, a, prev]) => ({ group_key: k, group_label: null, starter_key: sk, currency: 'EUR', amount: Math.round(a * (f < 1 ? prev : 1)), total: Math.round(a * 1.23), items: 3 }))
+  }
+  const revenueForecast = [0, 1, 2].map(i => ({ month: monthAt(thisMonth, i), currency: 'EUR', confirmed: [17480, 24300, 9800][i], waiting: [4200, 9720, 6100][i],
+    waiting_quotes: [2, 3, 2][i], win_rate_count: 0.62, win_rate_value: 0.58 }))
+  const targetProgress = [
+    { target_id: 't1', kind: 'revenue', category_id: null, category_name: null, starter_key: null, currency: 'EUR', monthly: 20000, target: 60000, actual: 48600 },
+    { target_id: 't2', kind: 'budget', category_id: 'ec6', category_name: null, starter_key: 'rent_utilities', currency: 'EUR', monthly: 2000, target: 6000, actual: 5400 },
+    { target_id: 't3', kind: 'budget', category_id: 'ec3', category_name: null, starter_key: 'transport_fuel', currency: 'EUR', monthly: 900, target: 2700, actual: 3100 },
+  ]
   const item = (id, name, category, tracking, extra = {}) => ({ id, org_id: orgId, name, category, tracking, kind: 'rental', unit: 'day', unit_price: 10, code: null, archived_at: null, ...extra })
   const items = [
     item(XLR, w.cables, w.cab, 'bulk', { code: 'XLR10', weight_kg: 0.6, unit_price: 2.5 }),
@@ -565,8 +612,14 @@ export function sampleData(persona, lang) {
         waiting: { count: 3, totals: { EUR: 9720 } }, equipment_use_90: 0.38,
         margin_this_month: { EUR: 5420 }, margin_pct_this_month: 29.4, negative_margin: 1,
         revenue_this_month: { EUR: 17480 }, revenue_month_last_year: { EUR: 14920 }, margin_pct_year: 47.6,
-        operating_result_year: { EUR: 21340 }, negative_margin_year: 4 },
+        operating_result_year: { EUR: 21340 }, negative_margin_year: 4,
+        overdue_now: { EUR: 8610 }, overdue_count: 4, cash_in_30: { EUR: 12300 }, expenses_due_14: { EUR: 4380 }, revenue_next_3m: { EUR: 51580 } },
       finance_results: financeResults,
+      cash_report: cashReport,
+      client_balance: clientBalance,
+      spending: spendingAnswer,
+      revenue_forecast: revenueForecast,
+      target_progress: targetProgress,
       report_revenue_lines: revenueLines,
       gig_finance: gigFinance,
       // Step 11b: the organisation's invoicing program, connected

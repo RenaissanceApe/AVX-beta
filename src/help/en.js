@@ -6,6 +6,10 @@
 
 export default {
   terms: {
+    'cash-position': { term: 'Cash position', definition: 'Money expected in minus money expected out, per month ahead: what is left to pay on issued invoices by their due date, minus unpaid expenses, claims to reimburse and recurring costs by theirs. With VAT, as it moves in the bank. Late amounts count in this month.', example: 'November: €20,910 expected in − €7,710 expected out = €13,200.', where: 'Reports → Money → Cash' },
+    'overdue-age': { term: 'Overdue by age', definition: 'Overdue invoices grouped by how many days past their due date they are: 0–30, 31–60, 61–90 and over 90 days, counted by the organisation\'s own date. Only what is left to pay counts (after part payments and credit notes).', example: 'An invoice due on 31 August, €230 of €1,230 paid: €1,000 in "31–60 days" on 15 October.', where: 'Reports → Money → Cash' },
+    'win-rate': { term: 'Win rate', definition: 'Accepted quotes ÷ (accepted + declined) over the last 12 months, by count and by value. Quotes that expired with no answer stay out. Shown beside the quotes waiting for an answer, never multiplied into the forecast.', example: '15 accepted and 9 declined: 62%.', where: 'Reports → Money → Forecast' },
+    'budget-target': { term: 'Budget and target', definition: 'A monthly amount you set: a budget for an expense category (spending compared with it) or a revenue target (accepted revenue compared with it). For a longer period the amount is multiplied by its months.', example: 'Transport budget €900 a month: a quarter\'s budget is €2,700; €3,100 spent is €400 over.', where: 'Reports → Money → Forecast' },
     'gig-margin': { term: 'Gig margin', definition: 'What a gig leaves after its direct costs: its revenue (every accepted quote, net; none accepted: the newest sent quote, an estimate) minus labour, confirmed subrentals, repairs not charged to the client and expenses linked to the gig. An expense linked to a subrental, repair or crew fee replaces its planned amount, so each cost counts once. In euros, excl. VAT.', example: 'Revenue €4,140 − costs €3,391 = margin €749 (18.1%).', where: 'Gig → Overview → Gig finance, Reports → Gig margins' },
     'gross-margin': { term: 'Gross margin', definition: 'Revenue minus direct costs: labour, subrentals, repairs not charged to the client, gig expenses, other direct expenses and the cost of goods sold. The margin % is the gross margin ÷ revenue. Counted per currency, excl. VAT.', example: 'Revenue €48,600 − direct costs €24,410 = gross margin €24,190 (49.8%).', where: 'Reports → Money' },
     'operating-result': { term: 'Operating result', definition: 'What the company keeps after every cost of running it: the gross margin minus overheads (rent, insurance, software, taxes and other running costs) and depreciation. Not the official accounts: your accountant\'s figures may differ.', example: 'Gross margin €24,190 − overheads €13,900 − depreciation €3,900 = €6,390.', where: 'Reports → Money, Reports → Overview' },
@@ -112,6 +116,10 @@ export default {
   },
 
   hints: {
+    'cash-report': 'Cash for the whole company, with VAT: invoiced, received and paid out per month, overdue invoices by age, each client\'s balance, and the cash position for the next three months (expected in − expected out).',
+    'spending-report': 'Confirmed expenses at their cost, by category, supplier, gig or month, against the comparison period. The biggest changes are listed first.',
+    'forecast-report': 'Accepted revenue of upcoming gigs per month for the next three months. Quotes waiting for an answer are shown apart, with the win rate beside them, never multiplied in.',
+    'finance-targets': 'A monthly budget for an expense category, or a monthly revenue target. Progress is shown for the period chosen above.',
     'expense-category': 'Pick what the cost is for. The kind (job costs, running the company, equipment, taxes) decides where it counts in the results.',
     'gig-finance': 'Revenue, costs and margin of this gig, counted in the database. Labour uses approved hours (or the invoice) where there are any, else the agreed fee, else the rate card, marked as an estimate.',
     'money-report': 'Results for the whole company, counted in the database: revenue, direct costs and gross margin, then overheads and depreciation to the operating result. Margins groups them by gig type, status, client, kind of line or production manager; Labour compares planned and approved hours.',
@@ -239,6 +247,22 @@ export default {
       mistakes: [
         'A payment can\'t be more than is left to pay, or dated in the future.',
         '"Paid" follows the payments: there is no button to undo it except removing a payment.',
+      ],
+    },
+    'office-cash': {
+      title: 'Follow the company\'s cash',
+      intro: 'See who owes you what, what you have to pay, how much cash the next three months bring, where the money goes and what is coming up.',
+      steps: [
+        'Open Reports → Money → Cash. The tiles show what is overdue now and what is expected in and out over the next three months; the chart is the cash position for each of those months.',
+        'Below it, overdue invoices are grouped by age (0–30, 31–60, 61–90, over 90 days); "Unpaid invoices" opens the list to chase them. Each client\'s balance is further down. "Show details" adds the months ahead line by line and invoiced, deposits, credit notes, received and paid out per month.',
+        'Switch to Spending and group by category, supplier, gig or month. The biggest changes against the comparison period are listed first; "Show details" opens the full table, and a category opens its expenses.',
+        'Switch to Forecast for the accepted revenue of upcoming gigs per month, with the quotes still waiting and your win rate beside them. Below, add a monthly budget for an expense category or a revenue target and follow its progress.',
+        'The Overview and your Home show four cash tiles: overdue now, cash expected in 30 days, expenses due in 14 days and confirmed revenue in the next three months.',
+      ],
+      mistakes: [
+        'Cash figures include VAT (they are what moves in the bank); results and spending don\'t include the VAT you recover.',
+        'An invoice counts in cash only once it is issued; drafts and invoices only sent to your program don\'t.',
+        'Quotes waiting for an answer are never added to the confirmed revenue.',
       ],
     },
     'office-money': {

@@ -195,6 +195,9 @@ export default function ContactsPage() {
           </>
         )}
         {tab === 'suppliers' && <p style={{ ...small, marginTop: '14px' }}>{t('contacts.suppliersHint')} <Link to={`/org/${orgId}/inventory?tab=subrentals`} style={{ color: colors.accentText }}>{t('nav.subrentals')}</Link></p>}
+        {/* K3: who owes what and spending by supplier, in Reports → Money */}
+        {tab === 'clients' && <p style={{ ...small, marginTop: '14px' }}>{t('contacts.clientsCash')} <Link to={`/org/${orgId}/reports?tab=money&view=cash`} style={{ color: colors.accentText }}>{t('contacts.cashReport')}</Link></p>}
+        {tab === 'suppliers' && <p style={{ ...small, marginTop: '6px' }}>{t('contacts.suppliersSpend')} <Link to={`/org/${orgId}/reports?tab=money&view=spending&by=supplier&period=this_year`} style={{ color: colors.accentText }}>{t('contacts.spendingReport')}</Link></p>}
       </main>
 
       {editing && tab === 'clients' && <ClientModal orgId={orgId} client={editing.id ? editing : null} onClose={() => setEditing(null)} onSaved={load} />}
