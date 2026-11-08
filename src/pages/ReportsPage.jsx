@@ -17,6 +17,9 @@ import EquipmentReport from '../components/reports/EquipmentReport'
 import OperationsReport from '../components/reports/OperationsReport'
 import WarehouseReport from '../components/reports/WarehouseReport'
 import { PrintStyles } from '../components/reports/ReportParts'
+import { SaveViewButton, SavedViewsSection, useSavedViews } from '../components/reports/SavedViews'
+import ManagementPack from '../components/reports/ManagementPack'
+import AccountantLinks from '../components/reports/AccountantLinks'
 
 // Later K steps add their tabs here (and their tiles in src/lib/analytics/tiles.js)
 export const REPORT_TABS = ['overview', 'revenue', 'money', 'margins', 'sales', 'equipment', 'warehouse', 'operations']
@@ -35,6 +38,7 @@ export default function ReportsPage() {
   const org = orgs.find(o => o.id === orgId)
   const labels = useGigLabels(canSee ? orgId : null)
   const overview = useOverview(orgId, canSee && tab === 'overview')
+  const saved = useSavedViews(orgId, canSee)
   useEffect(() => { setWorkspace(orgId) }, [orgId, setWorkspace])
   useEffect(() => { if (canSee) track(`view:reports:${tab}`) }, [canSee, tab])
 
@@ -77,6 +81,12 @@ export default function ReportsPage() {
             </button>
           ))}
         </nav>
+        {/* K9: save this report with its filters (pinned ones show on the Overview) */}
+        {tab !== 'overview' && (
+          <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <SaveViewButton orgId={orgId} tab={tab} params={params} onSaved={saved.add} />
+          </div>
+        )}
 
         {tab === 'overview' && (
           overview.loading || (!overview.data && !overview.error)
@@ -91,6 +101,10 @@ export default function ReportsPage() {
                 </section>
               )
         )}
+        {/* K9: saved views, the monthly pack and (admins) the accountant's links */}
+        {tab === 'overview' && <SavedViewsSection orgId={orgId} saved={saved} />}
+        {tab === 'overview' && <ManagementPack orgId={orgId} orgName={org?.name} timeZone={org?.time_zone} />}
+        {tab === 'overview' && role === 'admin' && <AccountantLinks orgId={orgId} timeZone={org?.time_zone} />}
         {tab === 'revenue' && <RevenueReport orgId={orgId} timeZone={org?.time_zone} labels={labels} params={params} setParam={setParam} />}
         {tab === 'money' && <MoneyReport orgId={orgId} timeZone={org?.time_zone} labels={labels} params={params} setParam={setParam} />}
         {tab === 'sales' && <SalesReport orgId={orgId} timeZone={org?.time_zone} labels={labels} params={params} setParam={setParam} />}

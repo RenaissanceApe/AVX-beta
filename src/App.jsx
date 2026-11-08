@@ -61,6 +61,7 @@ const DmxWalkPage = lazy(() => import('./pages/DmxWalkPage'))
 // Public: the page a client opens from a quote link (no account)
 const MessagesPage = lazy(() => import('./pages/MessagesPage'))
 const QuotePublicPage = lazy(() => import('./pages/QuotePublicPage'))
+const ReportLinkPage = lazy(() => import('./pages/ReportLinkPage'))
 const SupplierLinkPage = lazy(() => import('./pages/SupplierLinkPage'))
 
 // While the app opens: the AVX glyph building cell by cell (AvxLoader, DESIGN.md "Motion")
@@ -123,6 +124,7 @@ function AppRoutes() {
       <Route path="/help" element={<Suspense fallback={<Spinner />}><HelpPage /></Suspense>} />
       <Route path="/help/guide/:guideId" element={<Suspense fallback={<Spinner />}><HelpPage /></Suspense>} />
       <Route path="/q/:token" element={<Suspense fallback={<Spinner />}><QuotePublicPage /></Suspense>} />
+      <Route path="/r/:token" element={<Suspense fallback={<Spinner />}><ReportLinkPage /></Suspense>} />
       <Route path="/s/:token" element={<Suspense fallback={<Spinner />}><SupplierLinkPage /></Suspense>} />
       <Route path="/dashboard" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
       <Route path="/me" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
