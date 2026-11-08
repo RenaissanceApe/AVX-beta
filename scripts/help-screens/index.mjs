@@ -299,7 +299,7 @@ const SCENES = {
     await page.waitForTimeout(400)
     return null
   } },
-  reports: { persona: 'pm', url: `/org/${ids.org}/inventory?tab=reports`, async run(page, L) {
+  reports: { persona: 'pm', url: `/org/${ids.org}/reports?tab=equipment&view=use`, async run(page, L) {
     return page.getByRole('button', { name: L('report.csv') }).first()
   } },
 
@@ -574,6 +574,37 @@ const SCENES = {
     await page.getByRole('button', { name: /Marcolino/ }).first().click()
     const box = page.locator('section[aria-labelledby="cl-numbers"]')
     await box.locator('dl').waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box
+  } },
+  // K5: Reports → Equipment and the item page's numbers card (guide warehouse-equipment-money)
+  'equip-profit': { persona: 'pm', url: `/org/${ids.org}/reports?tab=equipment`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'equip-details': { persona: 'pm', url: `/org/${ids.org}/reports?tab=equipment&by=category`, async run(page, L) {
+    await page.getByLabel(L('reports.showDetails')).check()
+    const table = page.locator('table').last()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'equip-payback': { persona: 'pm', url: `/org/${ids.org}/reports?tab=equipment&view=payback`, async run(page) {
+    const table = page.locator('table').last()
+    await table.waitFor()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'equip-buy': { persona: 'pm', url: `/org/${ids.org}/reports?tab=equipment&view=buy`, async run(page) {
+    const table = page.locator('table').last()
+    await table.waitFor()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'item-money': { persona: 'pm', url: `/org/${ids.org}/inventory/${ids.speaker}`, async run(page) {
+    const box = page.locator('section[aria-labelledby="item-money"]')
+    await box.waitFor()
     await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
     return box
   } },
