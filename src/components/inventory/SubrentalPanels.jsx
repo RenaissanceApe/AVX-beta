@@ -442,6 +442,7 @@ export function SubrentalsTab({ orgId, inv }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
           <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '7px' }}><Truck size={16} color={colors.accentText} /> {t('sub.suppliers')}</h2>
           <Link to={`/org/${orgId}/contacts?tab=suppliers`} style={{ fontSize: '12px', color: colors.accentText }}>{t('contacts.allSuppliers')}</Link>
+          {['admin', 'member'].includes(inv.role) && <Link to={`/org/${orgId}/reports?tab=warehouse&view=suppliers`} style={{ fontSize: '12px', color: colors.accentText }}>{t('wh.linkSuppliers')}</Link>}
           {suppliers.some(s => s.archived_at) && <button onClick={() => setShowArchived(v => !v)} style={{ ...btn, padding: '5px 10px', fontSize: '12px' }}>{showArchived ? t('inv.hideArchived') : t('inv.showArchived')}</button>}
           <button onClick={() => setSupplier({})} style={btn}><Plus size={14} /> {t('sub.newSupplier')}</button>
         </div>

@@ -656,6 +656,31 @@ const SCENES = {
     await page.evaluate(() => window.scrollTo(0, 0))
     return box
   } },
+  // K6: Reports → Warehouse (guide warehouse-numbers)
+  'wh-demand': { persona: 'pm', url: `/org/${ids.org}/reports?tab=warehouse`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'wh-suppliers': { persona: 'pm', url: `/org/${ids.org}/reports?tab=warehouse&view=suppliers`, async run(page, L) {
+    await page.getByLabel(L('reports.showDetails')).check()
+    const table = page.locator('table', { hasText: L('wh.perSupplier') })
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'wh-damage': { persona: 'pm', url: `/org/${ids.org}/reports?tab=warehouse&view=damage`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'wh-dispatch': { persona: 'pm', url: `/org/${ids.org}/reports?tab=warehouse&view=dispatch`, async run(page, L) {
+    await page.getByLabel(L('reports.showDetails')).check()
+    const table = page.locator('table', { hasText: L('wh.perGig') })
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
   // K3: Reports → Money, Cash / Spending / Forecast
   'money-cash': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&view=cash&period=this_quarter`, async run(page) {
     const fig = page.locator('figure').first()

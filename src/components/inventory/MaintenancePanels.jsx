@@ -354,7 +354,11 @@ export function MaintenanceTab({ orgId, inv }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+        {/* K6: repair, loss and inspection numbers in Reports → Warehouse (admins and members) */}
+        {['admin', 'member'].includes(inv.role) && (
+          <Link to={`/org/${orgId}/reports?tab=warehouse&view=damage`} style={{ fontSize: '12px', color: colors.accentText, marginRight: 'auto' }}>{t('wh.linkDamage')}</Link>
+        )}
         <button onClick={() => setEditing({})} style={btnPrimary}><Plus size={15} /> {t('repair.new')}</button>
       </div>
       <section style={{ marginBottom: '22px' }}>
