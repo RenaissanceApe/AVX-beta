@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Wallet } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { selectAll } from '../../lib/selectAll'
+import { selectReport } from '../../lib/selectAll'
 import { logger } from '../../lib/logger'
 import { periodRange, comparisonRange, change, monthsOf, todayIn, periodKey, comparisonKey } from '../../lib/analytics/periods'
 import { financeTotals, filterFinanceRows, isEstimate, hasMargin } from '../../lib/analytics/gigFinance'
@@ -17,7 +17,7 @@ import { PeriodBar, FilterBar, ReportTable, ExportButtons, DetailsToggle, useDet
 
 // Every gig starting in a period, 1000 rows at a time (the API's limit per request)
 function loadRows(orgId, range) {
-  return selectAll(() => supabase.rpc('gig_finance', { p_org: orgId, p_from: range.from, p_until: range.until })
+  return selectReport(() => supabase.rpc('gig_finance', { p_org: orgId, p_from: range.from, p_until: range.until })
     .order('start_date').order('gig_id'))
 }
 

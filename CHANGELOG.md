@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.76.1 — Reports try again when the server is slow
+
+### Fixed
+- **Reports try again once by themselves when the server is slow.** If a report (Overview,
+  Revenue, Gig margins or Money) can't be read because the server is briefly busy, took too long
+  or the connection dropped, it waits a moment and asks once more before saying it couldn't be
+  loaded. Errors such as missing permission are still shown at once.
+
 ## 0.76.0 — Money: cash, spending and forecast
 
 ### Added

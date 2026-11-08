@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { TrendingUp } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { selectAll } from '../../lib/selectAll'
+import { selectReport } from '../../lib/selectAll'
 import { logger } from '../../lib/logger'
 import { periodRange, comparisonRange, change, monthsOf, todayIn, periodKey, comparisonKey } from '../../lib/analytics/periods'
 import { filterRevenueLines, groupRevenue, totalsByCurrency, mainCurrency } from '../../lib/analytics/revenue'
@@ -20,7 +20,7 @@ const KINDS = ['rental', 'sale', 'crew', 'transport', 'other']
 
 // Every revenue line of a period, 1000 rows at a time (the API's limit per request)
 function loadLines(orgId, range) {
-  return selectAll(() => supabase.rpc('report_revenue_lines', { p_org: orgId, p_from: range.from, p_until: range.until })
+  return selectReport(() => supabase.rpc('report_revenue_lines', { p_org: orgId, p_from: range.from, p_until: range.until })
     .order('report_date').order('quote_id').order('phase_id').order('line_id'))
 }
 

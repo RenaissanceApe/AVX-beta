@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ChevronDown, ChevronRight, BarChart3 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
+import { retryOnce } from '../../lib/selectAll'
 import { OVERVIEW_TILES, moneyLines } from '../../lib/analytics/tiles'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
@@ -17,7 +18,7 @@ export function useOverview(orgId, enabled = true) {
     if (!orgId || !enabled) return
     let cancelled = false
     setState(s => ({ ...s, loading: true }))
-    supabase.rpc('report_overview', { p_org: orgId }).then(({ data, error }) => {
+    retryOnce(() => supabase.rpc('report_overview', { p_org: orgId })).then(({ data, error }) => {
       if (cancelled) return
       if (error) logger.error('reports', error, { step: 'overview' })
       setState({ data: data || null, error: error || null, loading: false })

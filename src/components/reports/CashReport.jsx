@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Banknote, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { selectAll } from '../../lib/selectAll'
+import { selectReport } from '../../lib/selectAll'
 import { logger, userMessage } from '../../lib/logger'
 import { useToast } from '../../lib/ToastContext'
 import { monthsOf, change } from '../../lib/analytics/periods'
@@ -29,7 +29,7 @@ const noteStyle = { fontSize: '12px', color: colors.muted, lineHeight: 1.6, marg
 const tiles = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '8px' }
 const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
 
-const all = (name, args) => selectAll(() => supabase.rpc(name, args))
+const all = (name, args) => selectReport(() => supabase.rpc(name, args))
 
 function useLoad(load, deps) {
   const [data, setData] = useState(null)
@@ -364,7 +364,7 @@ function Forecast({ orgId, range }) {
     const [forecast, progress, cats] = await Promise.all([
       all('revenue_forecast', { p_org: orgId, p_months: MONTHS_AHEAD }),
       all('target_progress', { p_org: orgId, p_from: range.from, p_until: range.until }),
-      selectAll(() => supabase.from('expense_categories').select('id, name, starter_key, archived_at').eq('org_id', orgId).order('sort').order('id')),
+      selectReport(() => supabase.from('expense_categories').select('id, name, starter_key, archived_at').eq('org_id', orgId).order('sort').order('id')),
     ])
     return settle('forecast', { forecast, progress, cats })
   }, [orgId, range.from, range.until])
