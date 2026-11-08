@@ -696,6 +696,54 @@ export function sampleData(persona, lang) {
       },
       report_revenue_lines: revenueLines,
       gig_finance: gigFinance,
+      // Reports → Operations (K7): answers for each month of the asked period
+      report_overview_k7: { crew_days_month: 46, open_positions_14: 3, overdue_tasks: 2, hours_waiting: { days: 5, hours: 47.5 } },
+      ops_activity: ({ p_from, p_until }) => {
+        const months = []
+        for (let m = new Date(`${p_from.slice(0, 7)}-01T00:00:00Z`); m.toISOString().slice(0, 10) < p_until; m.setUTCMonth(m.getUTCMonth() + 1)) months.push(m.toISOString().slice(0, 7))
+        const gigs = months.flatMap((mo, i) => [
+          { month: mo, status: 'completed', custom_status_id: null, gig_type_id: null, gigs: 4 + (i % 3) },
+          { month: mo, status: 'confirmed', custom_status_id: null, gig_type_id: null, gigs: 2 + (i % 2) },
+          ...(i % 2 ? [{ month: mo, status: 'cancelled', custom_status_id: null, gig_type_id: null, gigs: 1 }] : []),
+        ])
+        const days = gigs.map(g => ({ ...g, gig_days: g.gigs * 2, gigs: undefined }))
+        return { gigs, days, cancelled: months.length > 1 ? Math.floor(months.length / 2) : 1,
+          busiest: [{ day: day(-12), gigs: 3, crew: 14 }, { day: day(-26), gigs: 2, crew: 11 }, { day: day(-5), gigs: 2, crew: 9 }],
+          lead: { gigs: 18, median_days: 34, under_7: 2, d7_29: 6, d30_89: 7, d90_plus: 3 } }
+      },
+      ops_people: {
+        totals: { people: 9, staff: 3, crew_days: 64, crew_days_staff: 28, crew_days_freelance: 36, hours_planned: 640, hours_approved: 598.5,
+          overtime: 41, night: 22.5, weekend: 96, holiday: 10, hours_waiting: 47.5, days_waiting: 5, approval_hours: 30.4 },
+        persons: [
+          { user_id: ricardo, full_name: 'Ricardo Bedulho', staff: true, days: 14, gigs: 6, hours_planned: 140, hours_approved: 131, overtime: 9, night: 4, weekend: 20, holiday: 0, hours_waiting: 0, approval_hours: 12.5, booked_working_days: 10, working_days: 21, available_days: 19, utilisation: 0.5263, leave: { holiday: 2 }, leave_allowance: 22, leave_used: 9, leave_left: 13 },
+          { user_id: carla, full_name: 'Carla Mendes', staff: false, days: 12, gigs: 5, hours_planned: 120, hours_approved: 118, overtime: 12, night: 6, weekend: 24, holiday: 10, hours_waiting: 10, approval_hours: 36, booked_working_days: null, utilisation: null, leave: null, leave_left: null },
+          { user_id: duarte, full_name: 'Duarte Silva', staff: true, days: 9, gigs: 4, hours_planned: 90, hours_approved: 84, overtime: 4, night: 2.5, weekend: 16, holiday: 0, hours_waiting: 8, approval_hours: 20, booked_working_days: 7, working_days: 21, available_days: 21, utilisation: 0.3333, leave: {}, leave_allowance: 22, leave_used: 4, leave_left: 18 },
+        ],
+        year: Number(day(0).slice(0, 4)) },
+      ops_staffing: { positions: { needed: 38, filled: 33, open: 5, gigs_open: 2 },
+        gigs: [{ gig_id: gigId, name: gig.name, start_date: gig.start_date, needed: 6, filled: 4, open: 2 }, { gig_id: 'g-gala', name: tx('Gala da empresa', 'Company gala'), start_date: day(9), needed: 4, filled: 1, open: 3 }],
+        time_to_fill: { count: 31, median_hours: 26, avg_hours: 41.2 },
+        calls: { calls: 7, invited: 24, accepted: 15, declined: 5, none: 3, full: 1, median_answer_hours: 3.5 },
+        posts: { posts: 3, open: 1, filled: 2, closed: 0, applications: 11, accepted: 2 } },
+      ops_tasks: { today: day(0), totals: { open: 12, overdue: 2, done: 27, on_time: 21, late: 4 },
+        by_gig: [{ gig_id: gigId, name: gig.name, start_date: gig.start_date, open: 5, overdue: 1, done: 6, on_time: 5, late: 1 }, { gig_id: null, name: null, start_date: null, open: 4, overdue: 1, done: 3, on_time: 2, late: 0 }],
+        by_person: [{ user_id: ricardo, full_name: 'Ricardo Bedulho', open: 6, overdue: 1, done: 14, on_time: 12, late: 2 }] },
+      gig_wrapup: { gig: { id: gigId, org_id: orgId, name: gig.name, venue: gig.venue, start_date: day(-9), end_date: day(-8), status: 'completed', custom_status_id: null, gig_type_id: null,
+          wrapup_notes: tx('A carga demorou mais 40 minutos: pedir o cais de carga às 07:30 da próxima vez.', 'The load-in took 40 minutes longer: ask for the loading dock at 07:30 next time.'), ended: true },
+        can: { manage: true, money: true, people: true },
+        hours: { people: 4, days_planned: 8, hours_planned: 80, hours_approved: 86.5, hours_waiting: 0, overtime: 6.5, night: 4, weekend: 0, holiday: 0, days_returned: 0 },
+        people: [
+          { user_id: ricardo, full_name: 'Ricardo Bedulho', function_title: w.production, days: 2, hours_planned: 20, hours_approved: 22, hours_waiting: 0, overtime: 2 },
+          { user_id: carla, full_name: 'Carla Mendes', function_title: w.sound, days: 2, hours_planned: 20, hours_approved: 23.5, hours_waiting: 0, overtime: 3.5 },
+          { user_id: duarte, full_name: 'Duarte Silva', function_title: w.lights, days: 2, hours_planned: 20, hours_approved: 21, hours_waiting: 0, overtime: 1 },
+          { user_id: ana, full_name: 'Ana Costa', function_title: w.stage, days: 2, hours_planned: 20, hours_approved: 20, hours_waiting: 0, overtime: 0 },
+        ],
+        money: { revenue: 4140, revenue_source: 'accepted', labour_planned: 1600, labour_actual: 1745, subrentals: 420, repairs: 180, other_costs: 95, cost: 2440, estimated_cost: 0, margin: 1700 },
+        damaged: [{ item_name: w.cables, quantity: 1, note: tx('Pino dobrado', 'Bent pin'), unit_code: null, at: ago(200) }],
+        repairs: [{ id: 'r3', item_name: w.speaker, quantity: 1, problem: tx('Grelha partida na descarga', 'Grille broken at the get-out'), status: 'in_repair', charge_client: true, cost: 180 }],
+        not_back: [{ item_id: XLR, item_name: w.cables, out: 60, back: 58, missing: 2 }],
+        lost: [],
+        tasks: { open: 1, done: 6, items: [{ id: 't9', title: tx('Enviar fotos ao cliente', 'Send the photos to the client'), assignee: 'Ricardo Bedulho', due_on: day(-2), overdue: true }] } },
       // Step 11b: the organisation's invoicing program, connected
       invoicing_status: [{ provider: 'invoicexpress', connected: true, expired: false, account: 'lumen-pixel', company_name: null, document_set_name: '2026', ready: true, connected_at: ago(2000) }],
       invoice_summary: [{ ref_id: 'q1', currency: 'EUR', invoiced_net: 2120, invoiced: 2607.6, credited: 0, paid: 1282.28, outstanding: 1325.32, overdue: 1325.32, to_issue: 66.42, invoices: 3, last_issue: day(-35), last_paid: day(-12) }],

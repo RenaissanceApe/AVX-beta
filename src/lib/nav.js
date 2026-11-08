@@ -67,6 +67,7 @@ export function navSections({ workspace, role }) {
       { key: 'reportsMoney', icon: 'receipt', to: `${base}/reports?tab=money` },
       { key: 'reportsSales', icon: 'handshake', to: `${base}/reports?tab=sales` },
       { key: 'reportsEquipment', icon: 'package', to: `${base}/reports?tab=equipment` },
+      { key: 'reportsOperations', icon: 'users', to: `${base}/reports?tab=operations` },
     ] })
   }
   sections.push({ key: 'organisation', icon: 'users', items: [

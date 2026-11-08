@@ -93,7 +93,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'role.pm': 'Production Manager', 'role.crew': 'Crew', 'role.viewer': 'Viewer',
     'orgRole.admin': 'Admin', 'orgRole.member': 'Member', 'orgRole.viewer': 'Viewer',
     'status.draft': 'Draft', 'status.confirmed': 'Confirmed', 'status.active': 'Active',
-    'status.completed': 'Done', 'status.archived': 'Archived',
+    'status.completed': 'Done', 'status.archived': 'Archived', 'status.cancelled': 'Cancelled',
   },
   pt: {
     subjectOne: 'AVX: 1 atualização por ver',
@@ -171,7 +171,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     'role.pm': 'Production Manager', 'role.crew': 'Equipa', 'role.viewer': 'Leitor',
     'orgRole.admin': 'Administrador', 'orgRole.member': 'Membro', 'orgRole.viewer': 'Leitor',
     'status.draft': 'Rascunho', 'status.confirmed': 'Confirmado', 'status.active': 'Em curso',
-    'status.completed': 'Concluído', 'status.archived': 'Arquivado',
+    'status.completed': 'Concluído', 'status.archived': 'Arquivado', 'status.cancelled': 'Cancelado',
   },
 }
 

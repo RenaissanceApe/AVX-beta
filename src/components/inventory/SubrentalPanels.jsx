@@ -53,7 +53,7 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
   useEffect(() => {
     Promise.all([
       selectAll(() => supabase.from('suppliers').select('id, name, partner_org_id, archived_at').eq('org_id', orgId).order('name').order('id')),
-      supabase.from('gigs').select('id, name, start_date, end_date').eq('org_id', orgId).neq('status', 'archived').order('start_date', { ascending: false }).limit(150),
+      supabase.from('gigs').select('id, name, start_date, end_date').eq('org_id', orgId).not('status', 'in', '(archived,cancelled)').order('start_date', { ascending: false }).limit(150),
     ]).then(([s, g]) => {
       setSuppliers((s.data || []).filter(x => !x.archived_at || x.id === subrental?.supplier_id))
       setGigs(g.data || [])

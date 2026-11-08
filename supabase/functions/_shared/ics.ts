@@ -9,7 +9,7 @@ export type FeedGig = {
   venue?: string | null
   start_date?: string | null // '2026-11-10'
   end_date?: string | null
-  status?: string | null // draft | confirmed | active | completed | archived
+  status?: string | null // draft | confirmed | active | completed | archived | cancelled
   org?: string | null
   role?: string | null // pm | crew | viewer
   function_title?: string | null
@@ -106,7 +106,7 @@ export function buildCalendar(gigs: FeedGig[], lang: FeedLang, appUrl: string, n
     `X-WR-CALNAME:${escapeText(w.calendar)}`, 'X-WR-TIMEZONE:Europe/Lisbon', 'REFRESH-INTERVAL;VALUE=DURATION:PT1H', 'X-PUBLISHED-TTL:PT1H',
   ]
   for (const g of gigs) {
-    if (g.status === 'archived') continue
+    if (g.status === 'archived' || g.status === 'cancelled') continue
     lines.push(...gigEvent(g, lang, appUrl, now))
   }
   for (const l of leave) lines.push(...leaveEvent(l, lang, now))

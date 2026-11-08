@@ -47,6 +47,12 @@ export const OVERVIEW_TILES = [
   { key: 'worstEarnerYear', kind: 'money', source: 'report_overview_k5', value: o => earner(o?.worst_earner_year),
     sub: o => earnerSub(o?.worst_earner_year), to: base => `${base}/reports?tab=equipment&period=this_year&sort=profit_asc` },
   { key: 'hireInYear', kind: 'money', source: 'report_overview_k5', value: o => o?.hire_in_year || {}, to: base => `${base}/reports?tab=equipment&view=buy` },
+  // K7 (public.report_overview_k7, its own function next to report_overview)
+  { key: 'crewDaysMonth', source: 'report_overview_k7', kind: 'count', value: o => o?.crew_days_month ?? 0, to: base => `${base}/reports?tab=operations&view=people` },
+  { key: 'openPositions14', source: 'report_overview_k7', kind: 'count', value: o => o?.open_positions_14 ?? 0, to: base => `${base}/reports?tab=operations&view=staffing&period=this_month` },
+  { key: 'overdueTasks', source: 'report_overview_k7', kind: 'count', value: o => o?.overdue_tasks ?? 0, to: base => `${base}/reports?tab=operations&view=tasks` },
+  { key: 'hoursWaiting', source: 'report_overview_k7', kind: 'count', value: o => o?.hours_waiting?.days ?? 0,
+    sub: o => ({ key: 'reports.tileSub.hoursWaiting', vars: { hours: Math.round((Number(o?.hours_waiting?.hours) || 0) * 10) / 10 } }), to: base => `${base}/reports?tab=operations&view=people` },
   // K8 (public.report_overview_k8, its own call): agreed crew fees on gigs that are over, not marked paid
   { key: 'crewToPay', kind: 'money', source: 'report_overview_k8', value: o => o?.crew_to_pay || {},
     sub: o => ({ key: 'reports.tileSub.people', vars: { count: o?.crew_to_pay_count ?? 0 } }), to: base => `${base}/expenses?view=crew` },

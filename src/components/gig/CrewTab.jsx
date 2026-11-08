@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { UserPlus, X, Clock, Phone, Send, AlertTriangle, Plus, Briefcase, Trash2, CalendarClock, UserCheck, MessageCircle, Megaphone, Search } from 'lucide-react'
+import { UserPlus, X, Clock, Phone, Send, AlertTriangle, Plus, Briefcase, Trash2, CalendarClock, UserCheck, MessageCircle, Megaphone, Search, BarChart3 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
@@ -175,6 +175,11 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
                     : m.call_time && <CallChip label={t('crew.callKey')} time={shortTime(m.call_time)} title={t('crew.call', { time: shortTime(m.call_time) })} />}
                   <RoleBadge role={m.role} large />
                 </span>
+                {isOrgAdmin && gig.org_id && (
+                  <Link to={`/org/${gig.org_id}/people/${m.user_id}`} style={iconBtn} aria-label={t('person.openNamed', { name })} title={t('person.open')}>
+                    <BarChart3 size={15} />
+                  </Link>
+                )}
                 {!self && (
                   <Link to={`/messages?to=${m.user_id}`} style={iconBtn} aria-label={t('chat.messageNamed', { name })} title={t('chat.message')}>
                     <MessageCircle size={15} />

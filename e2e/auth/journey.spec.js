@@ -398,6 +398,18 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   await expect(page).toHaveURL(/view=buy/)
   await reportLoaded(page)
   await expectAccessible(page)
+  // K7: Reports → Operations, its four views (the PM is the organisation's admin: per-person rows too)
+  await page.getByRole('button', { name: 'Operations', exact: true }).click()
+  await expect(page).toHaveURL(/tab=operations/)
+  await reportLoaded(page)
+  await expect(page.getByText(/^(Gig days|No gigs in this period)$/).first()).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
+  for (const [view, ready] of [['People', /^(Crew days|No crew days or hours in this period)$/], ['Staffing', /^(Positions open|No positions or crew calls in this period)$/], ['Tasks', /^(Open tasks|No tasks open or done in this period)$/]]) {
+    await page.getByRole('button', { name: view, exact: true }).click()
+    await reportLoaded(page)
+    await expect(page.getByText(ready).first()).toBeVisible({ timeout: 15_000 })
+    await expectAccessible(page)
+  }
   await page.goto(home)
 })
 

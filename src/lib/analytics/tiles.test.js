@@ -82,6 +82,19 @@ describe('overview tiles', () => {
     expect(by.topClientYear.sub({}).key).toBe('reports.tileSub.noTopClient')
     expect(by.waitingQuotes.to('/org/x')).toBe('/org/x/reports?tab=sales')
   })
+  it('reads the K7 tiles from report_overview_k7', () => {
+    const by = Object.fromEntries(OVERVIEW_TILES.map(t => [t.key, t]))
+    const o = { crew_days_month: 8, open_positions_14: 2, overdue_tasks: 1, hours_waiting: { days: 1, hours: 8.25 } }
+    expect(OVERVIEW_SOURCES).toEqual(expect.arrayContaining(['report_overview_k7']))
+    expect(by.crewDaysMonth.source).toBe('report_overview_k7')
+    expect(by.crewDaysMonth.value(o)).toBe(8)
+    expect(by.openPositions14.value(o)).toBe(2)
+    expect(by.overdueTasks.value(o)).toBe(1)
+    expect(by.hoursWaiting.value(o)).toBe(1)
+    expect(by.hoursWaiting.sub(o)).toEqual({ key: 'reports.tileSub.hoursWaiting', vars: { hours: 8.3 } })
+    expect(by.overdueTasks.to('/org/x')).toBe('/org/x/reports?tab=operations&view=tasks')
+    expect(by.crewDaysMonth.value({})).toBe(0)
+  })
 })
 
 describe('K5 equipment tiles', () => {

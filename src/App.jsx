@@ -42,6 +42,8 @@ const LeavePage = lazy(() => import('./pages/LeavePage'))
 const ExpensesPage = lazy(() => import('./pages/ExpensesPage'))
 const InvoicesPage = lazy(() => import('./pages/InvoicesPage'))
 const ReportsPage = lazy(() => import('./pages/ReportsPage'))
+const GigWrapupPage = lazy(() => import('./pages/GigWrapupPage'))
+const PersonPage = lazy(() => import('./pages/PersonPage'))
 const TrustAdminPage = lazy(() => import('./pages/TrustAdminPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const ScanPage = lazy(() => import('./pages/ScanPage'))
@@ -149,6 +151,7 @@ function AppRoutes() {
       <Route path="/gig/:id/lights" element={<ProtectedRoute><Suspense fallback={<Spinner />}><LightPlotPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/system" element={<ProtectedRoute><Suspense fallback={<Spinner />}><SystemCalcPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/rehearsal/:session" element={<ProtectedRoute><Suspense fallback={<Spinner />}><RehearsalReportPage /></Suspense></ProtectedRoute>} />
+      <Route path="/gig/:id/wrapup" element={<ProtectedRoute><Suspense fallback={<Spinner />}><GigWrapupPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/callsheet" element={<ProtectedRoute><CallSheetPage /></ProtectedRoute>} />
       <Route path="/org/:orgId/quotes" element={<ProtectedRoute><Suspense fallback={<Spinner />}><QuotesPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/contacts" element={<ProtectedRoute><Suspense fallback={<Spinner />}><ContactsPage /></Suspense></ProtectedRoute>} />
@@ -158,6 +161,7 @@ function AppRoutes() {
       <Route path="/org/:orgId/leave" element={<ProtectedRoute><Suspense fallback={<Spinner />}><LeavePage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/expenses" element={<ProtectedRoute><Suspense fallback={<Spinner />}><ExpensesPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/invoices" element={<ProtectedRoute><Suspense fallback={<Spinner />}><InvoicesPage /></Suspense></ProtectedRoute>} />
+      <Route path="/org/:orgId/people/:userId" element={<ProtectedRoute><Suspense fallback={<Spinner />}><PersonPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/reports" element={<ProtectedRoute><Suspense fallback={<Spinner />}><ReportsPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/tasks" element={<ProtectedRoute><Suspense fallback={<Spinner />}><OrgTasksPage /></Suspense></ProtectedRoute>} />
       <Route path="/org/:orgId/inventory" element={<ProtectedRoute><Suspense fallback={<Spinner />}><InventoryPage /></Suspense></ProtectedRoute>} />
