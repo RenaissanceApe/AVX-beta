@@ -80,9 +80,9 @@ export function StepPicker({ steps, step, onChange, big = false }) {
         const hue = stepHue(s)
         return (
           <button key={s} type="button" role="radio" aria-checked={on} onClick={() => onChange(s)} style={{
-            minHeight: big ? '60px' : '48px', padding: '8px 6px', cursor: 'pointer', lineHeight: 1.2,
-            fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em',
-            fontSize: big ? (steps.length <= 2 ? '17px' : '14px') : '13px', fontWeight: 700,
+            minHeight: big ? '60px' : '48px', padding: '8px 4px', cursor: 'pointer', lineHeight: 1.2,
+            fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: 0, overflowWrap: 'anywhere', minWidth: 0,
+            fontSize: big ? (steps.length <= 2 ? '16px' : '14px') : '13px', fontWeight: 700,
             border: `${on ? 2 : 1}px solid ${on ? hue : 'var(--line-strong)'}`, background: on ? 'var(--selection)' : 'transparent',
             color: on ? 'var(--text)' : colors.soft,
           }}>{t(`steps.name.${s}`)}</button>
