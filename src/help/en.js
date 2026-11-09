@@ -128,6 +128,7 @@ export default {
     vat: { term: 'VAT (IVA)', definition: 'Tax added to the price. Each quote line has its own rate; the quote’s rate is the one new lines start with.', example: '23% in mainland Portugal, 0% with a reason for a client elsewhere in the EU.', where: 'Quote editor, VAT % column' },
     validity: { term: 'Validity', definition: 'How many days the client has to accept a quote.', example: 'Valid for 30 days.', where: 'Quotes → Company details' },
     'client-link': { term: 'Client link', definition: 'A private web address where the client reads the quote, accepts it and writes to you, without an account.', example: 'Sent by email with the PDF.', where: 'Quote → Send' },
+    'quote-bin': { term: 'Recently deleted', definition: 'Where a deleted draft or declined quote waits for 15 days before it is erased for good. Only drafts and declined quotes can be deleted: a sent or accepted quote is cancelled instead (⋯ → Cancel quote), which keeps it and its gig, crew, equipment and invoices but stops it counting as waiting or as revenue. While it is there it counts nowhere (lists, search, reports) and its client links show "not found". Restore brings it back with its versions and links.', example: 'Deleted Q0042 by mistake on Monday: restore it any day until two weeks later.', where: 'Quotes → Recently deleted' },
     'price-list': { term: 'Price list', definition: 'Your prices for equipment and services, used to build quotes.', example: 'SM58: €8 a day.', where: 'Quotes → Price list' },
     'retention': { term: 'Keeping messages', definition: 'How long an organisation keeps messages in its conversations before they are deleted.', example: 'Keep for 1 year.', where: 'Organisation settings → Messages' },
     report: { term: 'Report a message', definition: 'Telling the people who run a conversation that a message is spam or abusive. They don’t see who reported it.', example: 'Reporting an advert posted in a gig’s chat.', where: 'Messages → message menu' },
@@ -225,6 +226,7 @@ export default {
     'disposal-value': 'What the unit brought in when it left: its sale price, an insurance payout, or 0 if nothing. Used to show the unit’s whole profit.',
     'inspection-cost': 'What this inspection cost, without VAT (e.g. the PAT tester’s fee). Optional; it counts towards the item’s upkeep.',
     'lost-reason': 'Why the client said no. Optional, but over time it shows why quotes are lost (price, another supplier, cancelled events…). Only your team sees it.',
+    'quote-bin': 'Only the quotes you may restore are listed: all of them for an admin, your own for a member. Each is erased for good 15 days after it was deleted.',
     'gig-client': 'The client the gig is for, from Contacts. Reports group gigs and their results by client. Crew don’t see it.',
   },
 
@@ -1124,6 +1126,9 @@ export default {
       mistakes: [
         'An optional phase is priced separately and is not in the total. Use it for extras the client may add.',
         'The quote saves by itself. If someone else edits it at the same time, AVX asks you to reload.',
+        'Client said no? On a declined quote, ⋯ → Revise and resend puts it back to draft to change and send again; the old versions and the client\'s answer stay.',
+        'Deleted a draft by mistake? It waits in Quotes → Recently deleted for 15 days: tap Restore.',
+        'A sent or accepted quote can\'t be deleted: use ⋯ → Cancel quote. It stays in the list as Cancelled and counts nowhere.',
       ],
     },
     'of-versions': {

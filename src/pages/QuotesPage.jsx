@@ -17,6 +17,7 @@ import { QUOTE_STATUSES, quoteNumber, formatMoney, cloneBody, emptyPhase, localI
 import CompanyDetailsModal from '../components/quotes/CompanyDetailsModal'
 import { PriceListTab } from '../components/quotes/PriceList'
 import { QuoteStatusBadge } from '../components/quotes/parts'
+import QuoteBin from '../components/quotes/QuoteBin'
 import AppShell from '../components/shell/AppShell'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { PageHelp } from '../components/help/HelpParts'
@@ -40,7 +41,7 @@ export default function QuotesPage() {
   const [loading, setLoading] = useState(true)
   const [params, setParams] = useSearchParams()
   const { setWorkspace } = useWorkspace()
-  const view = ['templates', 'prices'].includes(params.get('tab')) ? params.get('tab') : 'quotes'
+  const view = ['templates', 'prices', 'bin'].includes(params.get('tab')) ? params.get('tab') : 'quotes'
   const setView = key => {
     const next = new URLSearchParams(params)
     if (key === 'quotes') next.delete('tab'); else next.set('tab', key)
@@ -122,11 +123,14 @@ export default function QuotesPage() {
       <div style={pageWrap}>
         <PageHeader title={t('quotes.title')} help={<PageHelp page="quotes" />}
           primary={<button onClick={() => setShowNew(true)} style={btnPrimary}><Plus size={16} aria-hidden="true" /> {t('quotes.new')}</button>}
-          secondary={[{ label: t('quotes.company'), icon: <Building2 size={15} aria-hidden="true" />, onClick: () => setShowCompany(true) }]} />
+          secondary={[{ label: t('quotes.company'), icon: <Building2 size={15} aria-hidden="true" />, onClick: () => setShowCompany(true) },
+            { label: t('quotes.bin.title'), icon: <Trash2 size={15} aria-hidden="true" />, onClick: () => setView('bin') }]} />
 
-        <FilterTabs tabs label={t('quotes.title')} value={view} onChange={setView} style={{ marginBottom: space[5] }}
+        {view === 'bin' && <QuoteBin org={org} onBack={() => setView('quotes')} onRestored={load} />}
+
+        {view !== 'bin' && <FilterTabs tabs label={t('quotes.title')} value={view} onChange={setView} style={{ marginBottom: space[5] }}
           items={[['quotes', <FileText key="i" size={15} aria-hidden="true" />, quotes.length], ['templates', <LayoutTemplate key="i" size={15} aria-hidden="true" />, templates.length],
-            ['prices', <Tags key="i" size={15} aria-hidden="true" />, priceItems.length]].map(([key, icon, count]) => ({ key, label: t(`quotes.tab.${key}`), icon, count }))} />
+            ['prices', <Tags key="i" size={15} aria-hidden="true" />, priceItems.length]].map(([key, icon, count]) => ({ key, label: t(`quotes.tab.${key}`), icon, count }))} />}
 
         {view === 'quotes' && (
           <>

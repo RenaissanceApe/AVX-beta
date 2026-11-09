@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft, Printer, Copy, LayoutTemplate, Trash2, Plus, CalendarPlus, ExternalLink, AlertTriangle, Download,
-  History, Send, ListChecks, Package,
+  History, Send, ListChecks, Package, Ban, RotateCcw,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { selectAll } from '../lib/selectAll'
@@ -272,14 +272,57 @@ export default function QuoteEditorPage() {
     if (!window.confirm(t('quote.confirmDelete', { number: quoteNumber(quote, prefix), title: quote.title }))) return
     clearTimeout(timer.current)
     blocked.current = true
-    const { data, error } = await supabase.from('quotes').delete().eq('id', id).select('id')
-    if (error || !data?.length) {
+    // Goes to Recently deleted for 15 days (quote bin, issue 124); restore_quote brings it back
+    const { error } = await supabase.rpc('remove_quote', { p_quote: id })
+    if (error) {
       blocked.current = false
-      return notify(error ? userMessage(error) : t('error.permission'), 'error')
+      return notify(userMessage(error), 'error')
     }
     timer.current = null
-    notify(t('quote.deleted'), 'success')
+    notify(t('quote.deleted'), 'success', {
+      action: {
+        label: t('quote.undo'),
+        onClick: async () => {
+          const { error: undoError } = await supabase.rpc('restore_quote', { p_quote: id })
+          if (undoError) return notify(userMessage(undoError), 'error')
+          navigate(`/quote/${id}`)
+        },
+      },
+    })
     navigate(`/org/${quote.org_id}/quotes`, { replace: true })
+  }
+
+  // A sent or accepted quote is cancelled instead of deleted (owner's decision on issue 124).
+  // Nothing else changes: its gig, crew, equipment and invoices stay as they are.
+  function cancelQuote() {
+    if (!window.confirm(t('quote.confirmCancel', { number: quoteNumber(quote, prefix), title: quote.title }))) return
+    flushThen(async () => {
+      const { data, error } = await supabase.rpc('cancel_quote', { p_quote: id })
+      if (error) return notify(userMessage(error), 'error')
+      version.current = data
+      setQuote(q => {
+        const next = { ...q, status: 'cancelled', lost_reason: null, lost_note: null }
+        latest.current.quote = next
+        return next
+      })
+      notify(t('quote.cancelledDone'), 'success')
+    })
+  }
+
+  // A declined quote goes back to draft to be changed and sent again (owner's decision on issue 124);
+  // its versions and the client's answer stay as the record
+  function reviseQuote() {
+    flushThen(async () => {
+      const { data, error } = await supabase.rpc('revise_quote', { p_quote: id })
+      if (error) return notify(userMessage(error), 'error')
+      version.current = data
+      setQuote(q => {
+        const next = { ...q, status: 'draft', lost_reason: null, lost_note: null }
+        latest.current.quote = next
+        return next
+      })
+      notify(t('quote.revisedDone'), 'success')
+    })
   }
 
   async function createGig() {
@@ -324,7 +367,10 @@ export default function QuoteEditorPage() {
     { label: t('quoteVersions.button'), icon: <History size={15} aria-hidden="true" />, onClick: () => setModal({ kind: 'versions' }) },
     { label: t('quote.duplicate'), icon: <Copy size={15} aria-hidden="true" />, onClick: duplicateQuote },
     { label: t('quote.saveAsTemplate'), icon: <LayoutTemplate size={15} aria-hidden="true" />, onClick: () => setModal({ kind: 'saveTemplate', body, name: quote.title }) },
-    ...(canDelete ? [{ label: t('common.delete'), icon: <Trash2 size={15} aria-hidden="true" color={colors.danger} />, onClick: deleteQuote }] : []),
+    // Draft and declined quotes are deleted (to Recently deleted); sent and accepted ones are cancelled
+    ...(quote.status === 'declined' ? [{ label: t('quote.revise'), icon: <RotateCcw size={15} aria-hidden="true" />, onClick: reviseQuote }] : []),
+    ...(canDelete && ['draft', 'declined'].includes(quote.status) ? [{ label: t('common.delete'), icon: <Trash2 size={15} aria-hidden="true" color={colors.danger} />, onClick: deleteQuote }] : []),
+    ...(canDelete && ['sent', 'accepted'].includes(quote.status) ? [{ label: t('quote.cancel'), icon: <Ban size={15} aria-hidden="true" color={colors.danger} />, onClick: cancelQuote }] : []),
   ]
 
   return (
@@ -337,8 +383,12 @@ export default function QuoteEditorPage() {
             <span style={{ fontFamily: 'var(--font-mono)', color: colors.soft, fontSize: '13px' }}>{quoteNumber(quote, prefix)}</span>
             <input value={quote.title} onChange={e => updateQuote({ title: e.target.value })} aria-label={t('quotes.quoteTitle')} maxLength={200}
               style={{ ...input, flex: '1 1 220px', fontFamily: 'var(--font-mono)', fontSize: '20px', fontWeight: 700, background: 'transparent', border: '1px solid transparent', padding: '6px 8px' }} />
-            <select value={quote.status} onChange={e => changeStatus(e.target.value)} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', padding: '7px 10px', cursor: 'pointer' }}>
-              {QUOTE_STATUSES.map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
+            <select value={quote.status} onChange={e => changeStatus(e.target.value)} aria-label={t('quotes.status')} disabled={quote.status === 'cancelled'}
+              style={{ ...input, width: 'auto', padding: '7px 10px', cursor: quote.status === 'cancelled' ? 'default' : 'pointer' }}>
+              {/* The database allows the same (quotes_status_guard): Cancelled only from ⋯ → Cancel quote and
+                  final; back to Draft only from Declined, with ⋯ → Revise and resend */}
+              {QUOTE_STATUSES.filter(s => quote.status === 'cancelled' ? s === 'cancelled' : s !== 'cancelled' && (s !== 'draft' || quote.status === 'draft'))
+                .map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
             </select>
             {quote.status === 'declined' && (
               <button onClick={() => setModal({ kind: 'lost' })} style={{ ...btnGhost, padding: '7px 10px' }}>

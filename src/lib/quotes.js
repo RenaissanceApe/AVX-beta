@@ -8,7 +8,8 @@ export const UNITS = ['unit', 'day', 'hour', 'km', 'set', 'lump']
 // AT reasons for a line without VAT (0 %): the certified program needs one on every such line.
 // The codes are AT's ("Tabela de motivos de isenção"); check with your accountant which applies.
 export const VAT_EXEMPTIONS = ['M07', 'M10', 'M05', 'M16', 'M40', 'M99']
-export const QUOTE_STATUSES = ['draft', 'sent', 'accepted', 'declined']
+// cancelled: a sent or accepted quote called off (public.cancel_quote; quote bin, issue 124)
+export const QUOTE_STATUSES = ['draft', 'sent', 'accepted', 'declined', 'cancelled']
 // Why a declined quote was lost (quotes.lost_reason; the database checks the same list)
 export const LOST_REASONS = ['price', 'competitor', 'cancelled', 'unavailable', 'scope', 'other']
 
