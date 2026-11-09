@@ -3057,6 +3057,7 @@ export default {
   "jobs.postStatus.closed": "Closed",
   "jobs.markFilled": "Mark filled",
   "jobs.moreFor": "More actions for {title}",
+  "jobs.moreForApplicant": "More actions for {name}",
   "jobs.close": "Close",
   "jobs.reopen": "Reopen",
   "jobs.statusSet.open": "Reopened.",

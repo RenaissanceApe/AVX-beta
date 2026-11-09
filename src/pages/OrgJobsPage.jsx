@@ -102,11 +102,12 @@ export default function OrgJobsPage() {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[2], alignItems: 'center', marginTop: space[3] }}>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: tone[status] }}>{t(`jobs.postStatus.${status}`)}</span>
                   {p.gigs?.name && <Link to={`/gig/${p.gig_id}?tab=crew`} style={{ ...hint, color: colors.accentText }}>{p.gigs.name}</Link>}
-                  <span style={{ flex: 1 }} />
-                  <button type="button" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)} style={btn}>
-                    {open === p.id ? <ChevronDown size={15} aria-hidden="true" /> : <ChevronRight size={15} aria-hidden="true" />} <Users size={15} aria-hidden="true" /> {t('jobs.applicants')}
-                  </button>
-                  <MoreMenu items={more} label={t('jobs.moreFor', { title: p.title })} />
+                  <span style={{ display: 'flex', gap: space[2], alignItems: 'center', marginLeft: 'auto' }}>
+                    <button type="button" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)} style={btn}>
+                      {open === p.id ? <ChevronDown size={15} aria-hidden="true" /> : <ChevronRight size={15} aria-hidden="true" />} <Users size={15} aria-hidden="true" /> {t('jobs.applicants')}
+                    </button>
+                    <MoreMenu items={more} label={t('jobs.moreFor', { title: p.title })} />
+                  </span>
                 </div>
                 {open === p.id && <Applicants post={p} orgId={orgId} />}
               </JobCard>
@@ -178,7 +179,9 @@ function Applicants({ post, orgId }) {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[2], marginTop: space[3] }}>
                   {a.status === 'applied' && <button type="button" disabled={busy === a.id} onClick={() => answer(a, 'shortlist')} style={btn} aria-label={t('jobs.shortlistNamed', { name: a.name || '' })}><Star size={15} aria-hidden="true" /> {t('jobs.shortlist')}</button>}
                   {a.status !== 'offered' && <button type="button" disabled={busy === a.id} onClick={() => setOffering(a)} style={btn} aria-label={t('jobs.offerNamed', { name: a.name || '' })}><Megaphone size={15} aria-hidden="true" /> {t('jobs.offer')}</button>}
-                  <button type="button" disabled={busy === a.id} onClick={() => answer(a, 'decline')} style={{ ...btn, background: 'transparent' }} aria-label={t('jobs.declineNamed', { name: a.name || '' })}><XCircle size={15} aria-hidden="true" /> {t('jobs.decline')}</button>
+                  {/* Two buttons in view per applicant (DESIGN.md rule 5); declining is in ⋯ */}
+                  <MoreMenu label={t('jobs.moreForApplicant', { name: a.name || '' })}
+                    items={[{ label: t('jobs.decline'), icon: <XCircle size={15} aria-hidden="true" />, disabled: busy === a.id, onClick: () => answer(a, 'decline') }]} />
                 </div>
               )}
             </CrewProfileCard>
