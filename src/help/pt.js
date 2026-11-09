@@ -1341,6 +1341,7 @@ export default {
         'Abra Membros (no telemóvel, em Mais).',
         'Escreva um email, escolha a função e toque em Convidar. Administrador: tudo, incluindo membros e definições. Membro: eventos, ficheiros e orçamentos. Leitor: vê os eventos, sem orçamentos nem preços.',
         'Mude a função na lista ao lado de cada pessoa, ou retire-a com ×.',
+        'Empresas fora de Portugal: em Definições, escolha o fuso horário da organização. Os dias dos eventos, as marcações, as ausências e os relatórios leem-se nesse relógio (Lisboa até o mudar).',
       ],
       mistakes: [
         'Tenha pelo menos dois administradores, para a empresa nunca ficar sem acesso se um sair.',

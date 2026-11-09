@@ -1344,6 +1344,7 @@ export default {
         'Open Members (on a phone, under More).',
         'Type an email, choose the role and tap Invite. Admin: everything, including members and settings. Member: gigs, files and quotes. Viewer: sees the gigs, no quotes or prices.',
         'Change a role with the list next to each person, or remove them with ×.',
+        'Companies outside Portugal: in Settings, choose the organisation\'s time zone. Gig days, crew bookings, leave and reports are read on that clock (Lisbon until you change it).',
       ],
       mistakes: [
         'Keep at least two admins, so the company is never locked out if one leaves.',
