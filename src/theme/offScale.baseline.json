@@ -44,8 +44,8 @@
     "gaps": 0
   },
   "components/expenses/CrewToPay.jsx": {
-    "sizes": 5,
-    "gaps": 2
+    "sizes": 3,
+    "gaps": 0
   },
   "components/expenses/ExpenseForm.jsx": {
     "sizes": 2,
@@ -56,8 +56,8 @@
     "gaps": 7
   },
   "components/expenses/ExpenseSettings.jsx": {
-    "sizes": 5,
-    "gaps": 6
+    "sizes": 4,
+    "gaps": 5
   },
   "components/expenses/GigExpenses.jsx": {
     "sizes": 3,
@@ -167,10 +167,6 @@
     "sizes": 5,
     "gaps": 4
   },
-  "components/HeldInvites.jsx": {
-    "sizes": 2,
-    "gaps": 3
-  },
   "components/help/GuideView.jsx": {
     "sizes": 4,
     "gaps": 6
@@ -232,15 +228,11 @@
     "gaps": 0
   },
   "components/invoices/InvoicingPanel.jsx": {
-    "sizes": 3,
-    "gaps": 4
+    "sizes": 2,
+    "gaps": 1
   },
   "components/invoices/QuoteInvoices.jsx": {
     "sizes": 0,
-    "gaps": 1
-  },
-  "components/jobs/JobCard.jsx": {
-    "sizes": 3,
     "gaps": 1
   },
   "components/jobs/PostJobModal.jsx": {
@@ -248,8 +240,8 @@
     "gaps": 5
   },
   "components/leave/LeaveAdmin.jsx": {
-    "sizes": 1,
-    "gaps": 6
+    "sizes": 0,
+    "gaps": 5
   },
   "components/leave/LeaveParts.jsx": {
     "sizes": 1,
@@ -298,10 +290,6 @@
   "components/OrgGigLabelsSettings.jsx": {
     "sizes": 1,
     "gaps": 5
-  },
-  "components/OrgMembersModal.jsx": {
-    "sizes": 5,
-    "gaps": 2
   },
   "components/OrgMessagesSettings.jsx": {
     "sizes": 1,
@@ -512,16 +500,16 @@
     "gaps": 1
   },
   "pages/ContactsPage.jsx": {
-    "sizes": 6,
-    "gaps": 6
+    "sizes": 0,
+    "gaps": 1
   },
   "pages/CrewProfilePage.jsx": {
     "sizes": 5,
     "gaps": 14
   },
   "pages/CrewSearchPage.jsx": {
-    "sizes": 5,
-    "gaps": 8
+    "sizes": 1,
+    "gaps": 4
   },
   "pages/Dashboard.jsx": {
     "sizes": 1,
@@ -535,10 +523,6 @@
     "sizes": 3,
     "gaps": 2
   },
-  "pages/ExpensesPage.jsx": {
-    "sizes": 4,
-    "gaps": 6
-  },
   "pages/GigWrapupPage.jsx": {
     "sizes": 3,
     "gaps": 1
@@ -546,10 +530,6 @@
   "pages/HelpPage.jsx": {
     "sizes": 9,
     "gaps": 6
-  },
-  "pages/HoursPage.jsx": {
-    "sizes": 3,
-    "gaps": 3
   },
   "pages/ImportPage.jsx": {
     "sizes": 19,
@@ -564,24 +544,16 @@
     "gaps": 11
   },
   "pages/InventoryPage.jsx": {
-    "sizes": 8,
-    "gaps": 8
-  },
-  "pages/InvoicesPage.jsx": {
     "sizes": 2,
-    "gaps": 5
+    "gaps": 2
   },
   "pages/JobsPage.jsx": {
-    "sizes": 3,
-    "gaps": 6
+    "sizes": 0,
+    "gaps": 2
   },
   "pages/LabelsPage.jsx": {
     "sizes": 0,
     "gaps": 2
-  },
-  "pages/LeavePage.jsx": {
-    "sizes": 3,
-    "gaps": 9
   },
   "pages/LegalPage.jsx": {
     "sizes": 2,
@@ -608,8 +580,8 @@
     "gaps": 1
   },
   "pages/OrgJobsPage.jsx": {
-    "sizes": 2,
-    "gaps": 6
+    "sizes": 0,
+    "gaps": 1
   },
   "pages/OrgsPage.jsx": {
     "sizes": 3,
@@ -648,8 +620,8 @@
     "gaps": 3
   },
   "pages/QuotesPage.jsx": {
-    "sizes": 6,
-    "gaps": 5
+    "sizes": 0,
+    "gaps": 2
   },
   "pages/RehearsalReportPage.jsx": {
     "sizes": 1,

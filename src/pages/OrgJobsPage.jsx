@@ -9,7 +9,8 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { jobError, money } from '../lib/jobs'
 import { trustError } from '../lib/trust'
 import { useI18n } from '../i18n'
-import { Modal, btn, btnPrimary, card, colors, AvxLoader } from '../components/ui'
+import { Modal, btn, btnPrimary, colors, AvxLoader, PageHeader, MoreMenu, Stack, space } from '../components/ui'
+import { pageWrap, rowList } from '../components/ListParts'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import JobCard from '../components/jobs/JobCard'
@@ -18,7 +19,7 @@ import CrewProfileCard from '../components/CrewProfileCard'
 import { FeeFields, useFeeForm } from '../components/gig/FeeFields'
 import { offerFee } from '../lib/crewRates'
 
-const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+const hint = { fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: 0 }
 const tone = { open: colors.accentText, filled: 'var(--sky)', closed: colors.muted }
 
 // An organisation's job posts and their applicants (docs/CREW_NETWORK.md, N3), for admins and
@@ -73,48 +74,42 @@ export default function OrgJobsPage() {
   const today = new Date().toISOString().slice(0, 10)
   return (
     <AppShell>
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-            <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org?.name}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('jobs.orgTitle')}</h1>
-              <PageHelp page="org-jobs" />
-            </div>
-          </div>
-          <button type="button" onClick={() => setPosting(true)} style={btnPrimary}><Plus size={15} /> {t('jobs.postButton')}</button>
-        </div>
-        <p style={{ ...hint, fontSize: '13px' }}>{t('jobs.orgIntro')}</p>
-        {org?.posting_suspended_at && (
-          <p role="alert" style={{ ...card, padding: '12px 14px', display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '14px', lineHeight: 1.5, borderColor: 'var(--warn)' }}>
-            <AlertTriangle size={16} color="var(--warn)" style={{ flexShrink: 0, marginTop: '3px' }} aria-hidden="true" /> {t('trust.postingSuspended')}
-          </p>
-        )}
-        {org && !org.verified_at && !org.posting_suspended_at && (
-          <p style={hint}>{t('trust.verify.capHint')} {role === 'admin' && <Link to={`/org/${orgId}?panel=settings`} style={{ color: colors.accentText }}>{t('trust.verify.open')}</Link>}</p>
-        )}
-        {org?.verified_at && <p style={{ ...hint, display: 'flex', gap: '6px', alignItems: 'center', color: 'var(--sky)' }}><BadgeCheck size={14} aria-hidden="true" /> {t('trust.verify.isVerified', { name: org.verified_name || org.name })}</p>}
-        {posts.length === 0 && <p style={hint}>{t('jobs.noPosts')}</p>}
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={pageWrap}>
+        <PageHeader title={t('jobs.orgTitle')} help={<PageHelp page="org-jobs" />}
+          primary={<button type="button" onClick={() => setPosting(true)} style={btnPrimary}><Plus size={16} aria-hidden="true" /> {t('jobs.postButton')}</button>} />
+        <Stack gap={3} style={{ marginBottom: space[5] }}>
+          {org?.posting_suspended_at && (
+            <p role="alert" style={{ margin: 0, display: 'flex', gap: space[3], alignItems: 'flex-start', fontSize: '14px', lineHeight: 1.5 }}>
+              <AlertTriangle size={16} color={colors.warn} style={{ flexShrink: 0, marginTop: '3px' }} aria-hidden="true" /> {t('trust.postingSuspended')}
+            </p>
+          )}
+          {org && !org.verified_at && !org.posting_suspended_at && (
+            <p style={hint}>{t('trust.verify.capHint')} {role === 'admin' && <Link to={`/org/${orgId}?panel=settings`} style={{ color: colors.accentText }}>{t('trust.verify.open')}</Link>}</p>
+          )}
+          {org?.verified_at && <p style={{ ...hint, display: 'flex', gap: space[2], alignItems: 'center', color: 'var(--sky)' }}><BadgeCheck size={14} aria-hidden="true" /> {t('trust.verify.isVerified', { name: org.verified_name || org.name })}</p>}
+          {posts.length === 0 && <p style={hint}>{t('jobs.noPosts')}</p>}
+        </Stack>
+        <ul style={rowList}>
           {posts.map(p => {
             const status = p.status === 'open' && p.ends_on < today ? 'closed' : p.status
+            // Two things in view per post (DESIGN.md rule 5): the applicants and ⋯ for the rest
+            const more = [
+              ...(p.status === 'open' ? [{ label: t('jobs.markFilled'), onClick: () => setStatus(p, 'filled') }, { label: t('jobs.close'), onClick: () => setStatus(p, 'closed') }] : []),
+              ...(p.status !== 'open' && p.ends_on >= today ? [{ label: t('jobs.reopen'), onClick: () => setStatus(p, 'open') }] : []),
+            ]
             return (
-              <li key={p.id}>
-                <JobCard job={p}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginTop: '12px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: tone[status] }}>{t(`jobs.postStatus.${status}`)}</span>
-                    {p.gigs?.name && <Link to={`/gig/${p.gig_id}?tab=crew`} style={{ ...hint, color: colors.accentText }}>{p.gigs.name}</Link>}
-                    <span style={{ flex: 1 }} />
-                    {p.status === 'open' && <button type="button" onClick={() => setStatus(p, 'filled')} style={btn}>{t('jobs.markFilled')}</button>}
-                    {p.status === 'open' && <button type="button" onClick={() => setStatus(p, 'closed')} style={{ ...btn, background: 'transparent' }}>{t('jobs.close')}</button>}
-                    {p.status !== 'open' && p.ends_on >= today && <button type="button" onClick={() => setStatus(p, 'open')} style={{ ...btn, background: 'transparent' }}>{t('jobs.reopen')}</button>}
-                  </div>
-                  <button type="button" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)} style={{ ...btn, marginTop: '10px', background: 'transparent' }}>
-                    {open === p.id ? <ChevronDown size={14} /> : <ChevronRight size={14} />} <Users size={14} /> {t('jobs.applicants')}
+              <JobCard key={p.id} job={p}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[2], alignItems: 'center', marginTop: space[3] }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: tone[status] }}>{t(`jobs.postStatus.${status}`)}</span>
+                  {p.gigs?.name && <Link to={`/gig/${p.gig_id}?tab=crew`} style={{ ...hint, color: colors.accentText }}>{p.gigs.name}</Link>}
+                  <span style={{ flex: 1 }} />
+                  <button type="button" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)} style={btn}>
+                    {open === p.id ? <ChevronDown size={15} aria-hidden="true" /> : <ChevronRight size={15} aria-hidden="true" />} <Users size={15} aria-hidden="true" /> {t('jobs.applicants')}
                   </button>
-                  {open === p.id && <Applicants post={p} orgId={orgId} />}
-                </JobCard>
-              </li>
+                  <MoreMenu items={more} label={t('jobs.moreFor', { title: p.title })} />
+                </div>
+                {open === p.id && <Applicants post={p} orgId={orgId} />}
+              </JobCard>
             )
           })}
         </ul>
@@ -162,28 +157,28 @@ function Applicants({ post, orgId }) {
     notify(t(on ? 'trust.cert.confirmed' : 'trust.cert.unconfirmed', { name: cert.name }), 'success')
   }
 
-  if (!list) return <div style={{ padding: '12px' }}><AvxLoader size={18} /></div>
-  if (!list.length) return <p style={{ ...hint, marginTop: '8px' }}>{t('jobs.noApplicants')}</p>
+  if (!list) return <div style={{ padding: space[3] }}><AvxLoader size={18} /></div>
+  if (!list.length) return <p style={{ ...hint, marginTop: space[3] }}>{t('jobs.noApplicants')}</p>
   return (
     <>
-    <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0 0', display: 'flex', flexDirection: 'column', gap: '10px' }} aria-label={t('jobs.applicants')}>
+    <ul style={{ listStyle: 'none', padding: 0, margin: `${space[3]} 0 0`, display: 'flex', flexDirection: 'column', gap: space[3] }} aria-label={t('jobs.applicants')}>
       {list.map(a => {
         const closed = ['declined', 'accepted', 'withdrawn'].includes(a.status)
         return (
           <li key={a.id}>
             <CrewProfileCard profile={a.profile || {}} name={a.name} orgId={orgId} onConfirm={a.worked_with && a.profile ? (c, on) => confirmCert(a, c, on) : null}>
-              <div style={{ ...card, padding: '10px 12px', marginTop: '10px', background: 'transparent' }}>
+              <div style={{ marginTop: space[3], paddingTop: space[3], borderTop: `1px solid ${colors.line}` }}>
                 <div style={{ fontSize: '13px', fontWeight: 700 }}>
                   {t(`jobs.appStatus.${a.status}`)}
                   {a.day_rate != null && <> · {t('jobs.theirRate', { rate: money(Number(a.day_rate), a.currency || post.currency, lang) })}</>}
                 </div>
-                {a.message && <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.5, marginTop: '4px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>“{a.message}”</p>}
+                {a.message && <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.5, margin: `${space[1]} 0 0`, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>“{a.message}”</p>}
               </div>
               {!closed && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
-                  {a.status === 'applied' && <button type="button" disabled={busy === a.id} onClick={() => answer(a, 'shortlist')} style={btn} aria-label={t('jobs.shortlistNamed', { name: a.name || '' })}><Star size={14} /> {t('jobs.shortlist')}</button>}
-                  {a.status !== 'offered' && <button type="button" disabled={busy === a.id} onClick={() => setOffering(a)} style={btnPrimary} aria-label={t('jobs.offerNamed', { name: a.name || '' })}><Megaphone size={14} /> {t('jobs.offer')}</button>}
-                  <button type="button" disabled={busy === a.id} onClick={() => answer(a, 'decline')} style={{ ...btn, background: 'transparent' }} aria-label={t('jobs.declineNamed', { name: a.name || '' })}><XCircle size={14} /> {t('jobs.decline')}</button>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[2], marginTop: space[3] }}>
+                  {a.status === 'applied' && <button type="button" disabled={busy === a.id} onClick={() => answer(a, 'shortlist')} style={btn} aria-label={t('jobs.shortlistNamed', { name: a.name || '' })}><Star size={15} aria-hidden="true" /> {t('jobs.shortlist')}</button>}
+                  {a.status !== 'offered' && <button type="button" disabled={busy === a.id} onClick={() => setOffering(a)} style={btn} aria-label={t('jobs.offerNamed', { name: a.name || '' })}><Megaphone size={15} aria-hidden="true" /> {t('jobs.offer')}</button>}
+                  <button type="button" disabled={busy === a.id} onClick={() => answer(a, 'decline')} style={{ ...btn, background: 'transparent' }} aria-label={t('jobs.declineNamed', { name: a.name || '' })}><XCircle size={15} aria-hidden="true" /> {t('jobs.decline')}</button>
                 </div>
               )}
             </CrewProfileCard>
