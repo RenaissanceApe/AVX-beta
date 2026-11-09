@@ -240,8 +240,8 @@ power distribution for the whole gig, from the equipment actually on it.
 
 | Stage | Scope | Size |
 |---|---|---|
-| **P1** | Electrical fields on catalogue items (and import presets), supply, distros and outputs, assigning loads (from all tools and the gig's equipment), per-phase and per-output totals, warnings, report | 1 PR |
-| **P2** | Cable runs and voltage drop, cable list → equipment, automatic phase balancing suggestion, inrush groups | 1 PR |
+| **P1** | Electrical fields on catalogue items (and import presets), supply, distros and outputs, assigning loads (from all tools and the gig's equipment), per-phase and per-output totals, warnings, report | Built (S09): docs/FIELD_TOOLS.md, "How the power tool works" |
+| **P2** | Cable runs and voltage drop, cable list → equipment, automatic phase balancing suggestion, inrush groups | Built (S10): docs/FIELD_TOOLS.md, "How the power tool works" |
 | **P3** | One-line diagram, views per area and department, on-site checklist (what plugs into what, ticked off) | 1 PR |
 
 Compared with LumiStage on 2026-10-27 (docs/COMPETITOR_RESEARCH.md): it groups loads into 16 A
@@ -283,6 +283,39 @@ each stage is useful and safe on its own, and so the hard engineering comes last
 | **RG3 · Line arrays** | Speaker cabinets from the catalogue tagged as line-array elements with rigging data: weight, centre of gravity, the manufacturer's bumper/frame limits per configuration, pickup points. The array is defined as a number of elements with splay angles (from the system calculator, F4). Outputs: total weight, front/rear point loads, pull-back, bumper position and tilt, a pass/fail against the bumper limits, and a drawing. Modelled after NEXT X-Rig and JBL's array calculators, but **the limits always come from the manufacturer's data**, and a manufacturer's own tool beats ours | 1–2 PRs |
 | **RG4 · Rigging plot and report** | Top view with points, hoists, bridles and truss lines; per-point table (load, hoist, class, WLL, % used), totals per beam or roof zone against venue capacities; the rigging report as print/PDF with assumptions; catalogue lines (hoists, truss, shackles, steels) offered to the gig's equipment | 1 PR |
 | **RG5 · Suggestions** | When something fails: move a point, add a point, use a bigger hoist, change to a stronger truss type, or spread a bridle; each suggestion re-checked before it's shown. Ground support (towers) later, if asked | 1 PR |
+
+### How RG1 works (step 17a)
+
+| Piece | How it works |
+|---|---|
+| Where | Gig → Tools → Rigging (tool id `rigging`). The rigging is in `gig_show.rigging`: the defaults (`cable_kg_m`, `dynamic_factor`) and the truss lines. Same rights as the rest of the show model: everyone on the gig reads it (also offline), editors change it |
+| Lines | A line comes from a light plot bar (`bar_id`: its length and its fixtures with their weights and places along the bar) or is typed by hand (name, length). Each line adds the truss weight per metre, a cable allowance per metre (the gig's default or its own), accessories (spread evenly), extra loads (at one place, or spread between two) and the motors that climb with the line (the hoist model's own weight at that point) |
+| Solver | `solveBeam` in `src/lib/rigging.js`: the line is a straight continuous beam of even stiffness on two or more rigid points at the same height. Beam elements between every point, load and load edge; Gaussian elimination; the reactions don't depend on the stiffness. Cantilevers and uneven loads included; a negative reaction means the line would lift off that point (flagged). Unit tested against hand calculations (`src/lib/rigging.test.js`: simply supported, two and three equal spans, cantilevers, point and distributed loads, equilibrium on an uneven case) |
+| Check | Each point's reaction × the dynamic factor against the hoist's WLL: ok, near (over 80%), over, lifting, no hoist, no WLL. A D8 hoist over people is flagged (D8+ and C1 may be). WLL values are only ever the manufacturer's; nothing is derived |
+| Hoist models | `hoist_models`: brand, model, class (D8, D8+, C1), WLL, falls, own weight, chain weight per metre, speed, source and its edition, notes, `needs_check`. Rows without an organisation are presets (read-only); an organisation's admins and members add their own from a data plate (removed by marking). Every model is shown as needing a second person's check. A point keeps a copy of its model, so crew outside the organisation see the same check |
+| Presets | Chainmaster D8+ 500, 1000 and 2000 kg from CHAINMASTER's product data sheets (URL and revision on each). CM Lodestar D8+ 0.5, 1 and 2 t ship without values: no D8+ data sheet could be reached on cmco.com when they were added |
+| Light plot | Under each bar with weights: "Rigging: not checked", "Rigging: checked · busiest hoist n%" or "Rigging: overloaded" (words and icon, not colour alone). One tap opens the tool on that line (starting it, and adding the tool to the gig, for editors). "Mark the loads as checked" keeps a fingerprint of the bar's fixtures, weights and places; any change makes it "not checked" again |
+| Tools tab | When the gig's equipment has hoists (by name: hoist, chain motor, Lodestar, Chainmaster, talha, D8…) and the tool isn't on the gig, the Tools tab suggests it |
+| Labels | Every screen says it is an aid that a competent rigger must check; the defaults are labelled as values to check. The "Checked by" sign-off comes in RG4 |
+| Not yet | Truss load tables (RG2), bridles (RG2), line arrays (RG3), the rigging plot, report and sign-off (RG4) |
+
+Checks: `supabase/tests/rigging.sql`; `src/lib/rigging.test.js`.
+
+### How RG3 works (step 18)
+
+| Piece | How it works |
+|---|---|
+| Where | Gig → Tools → Rigging, section "Line arrays" (no new tool id). Arrays are kept in `gig_show.rigging.arrays`, beside RG1's truss lines: same rights, same offline copy |
+| An array | Elements (a catalogue speaker, line-array element or subwoofer, or typed by hand: name and weight), how many, one splay angle per element (`splays[0]` is bumper → top element), the bumper or frame, extra load, one or two picks and an optional pullback. Elements copy the item's weight, preset and the state of its rigging check, so crew who can't read the catalogue see the same |
+| Bumper data | `src/data/lineArrays.js`, keyed by speaker preset: each frame's parts and weights, its safe limit, maximum, SWL (where printed) and whether it is a pullback frame, each with the manufacturer's wording, document, version and PDF page, opened 2026-11-09. K2 (K2-BUMP, + K2-BAR, K2-RIGBAR, pullback), Kara II (M-BUMP, + M-BAR, KARA-MINIBU, M-BUMP + KARA-PULLBACK), KS28 (KS28-BUMP), d&b V8 and V-SUB (Z5380 V Flying frame), NEXO GEO M1220 (VNT-BUMPM12, + VNT-EXBARM12), Meyer LEOPARD (MG-LEOPARD/900, no weight printed). RCF HDL 30-A has none (its manual couldn't be opened): its fly bar is typed by hand. Any bumper can be typed by hand from the manual (shown as needing a check) |
+| Check | `bumperCheck` in `src/lib/lineArray.js`: **pass** within the safe limit (and d&b's 340 kg, cabinets only) and under the SWL; **check** between the safe limit and the maximum, or when the manufacturer gives only a maximum: the manufacturer's software must confirm; **fail** over the maximum or the SWL (frame, elements and extra load) |
+| Loads | No datasheet prints a centre of gravity (D74), so nothing is invented: with two picks the user types the centre of gravity behind the front pick and the pick spacing from the manufacturer's software and AVX shares the weight by the lever rule (outside the picks: one is pulled up, fail); or types the point loads, checked to add up to the weight within 5%. One pick carries the whole weight. A pullback needs typed loads. Tilt and pick position (hole) are typed from the software too. Every array names the software that decides (Soundvision, ArrayCalc, NS-1, MAPP, RCF Easy Shape Designer) |
+| Picks | Each pick has its own hoist (checked like RG1's points: × the dynamic factor against the WLL, D8 over people flagged, via `hoistCheck` in `src/lib/rigging.js`) or hangs from a point on an RG1 truss line: then its load is added to that line as a point load and checked with the line's hang points (also in the light plot's "Rigging" mark) |
+| Drawing | `LineArraySvg`: a schematic side view, boxes hinged at the front, angles as typed, sizes not to scale |
+| Sign-off (D73) | `price_items.rigging` keeps who typed it (`entered_by`); any change to the data clears the check, and the check fields can't be written by a plain update (trigger `private.price_items_rigging_before`). On the item page, "Mark the rigging data as checked" calls `mark_speaker_rigging_checked(item, frames)`: someone who can edit the catalogue and isn't the typist. It keeps who and when, and a fingerprint of the bumper data AVX shows; if that data changes, the check shows as out of date |
+| Connected | Sound system calculator: "Add an array from the sound system calculator" takes a source's name, count and speaker, offers to update when they change, and the source shows the array's weight and result. Gig equipment: the array warns when the gig has fewer of the element than the arrays need; the Tools tab suggests the rigging tool when line-array elements are on the gig. RG1: picks can hang from truss lines |
+
+Checks: `supabase/tests/line_arrays.sql`; `src/lib/lineArray.test.js` (the d&b V-Series rigging manual's own limits: 10 V8 = 340 kg in any splay, 24 V8 and 13 V-SUB inside 860 kg; L-Acoustics safe and maximum limits; the lever rule against hand calculations).
 
 ### Prompting from other tools
 

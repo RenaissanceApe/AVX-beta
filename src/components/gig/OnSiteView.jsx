@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Clock, FileText, Flag, Footprints, ListOrdered, ScanLine, FolderOpen, MessageCircle, Users, X, LayoutList, ListTodo } from 'lucide-react'
+import { Clock, FileText, Flag, Footprints, ListOrdered, ScanLine, FolderOpen, MessageCircle, Users, X, LayoutList, ListTodo, Plug } from 'lucide-react'
 import { todaysSchedule, localDay } from '../../lib/onSite'
 import { dueState, sortTasks } from '../../lib/tasks'
 import { t, fmt } from '../../i18n'
@@ -20,6 +20,7 @@ export default function OnSiteView({ gig, schedule, tools, tasks = [], userId, m
     { key: 'rehearsal', icon: Flag, to: `/gig/${gig.id}?tab=tools&tool=rehearsal` },
     tools.includes('dmx_patch') && { key: 'dmxWalk', icon: Footprints, to: `/gig/${gig.id}/dmx/walk` },
     tools.includes('input_list') && { key: 'inputs', icon: ListOrdered, to: `/gig/${gig.id}?tab=tools&tool=input_list` },
+    tools.includes('power') && { key: 'power', icon: Plug, to: `/gig/${gig.id}/power` },
     canScan && { key: 'scan', icon: ScanLine, to: `/gig/${gig.id}/scan` },
     { key: 'tasks', icon: ListTodo, tab: 'tasks' },
     { key: 'files', icon: FolderOpen, tab: 'assets' },

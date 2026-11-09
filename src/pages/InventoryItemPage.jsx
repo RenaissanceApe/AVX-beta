@@ -10,7 +10,7 @@ import { isLowStock, bookValue, dailyAvailability } from '../lib/inventory'
 import { rangeText } from '../lib/clashes'
 import { formatMoney } from '../lib/quotes'
 import { useCustomFields, displayValue } from '../lib/customFields'
-import { useI18n, t } from '../i18n'
+import { useI18n, t, fmt } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { ItemModal, MovementModal, AddUnitsModal, UnitModal } from '../components/inventory/InventoryModals'
 import { KitPanel, CaseContentsModal } from '../components/inventory/KitPanels'
@@ -22,6 +22,8 @@ import { MovementList, useNames, LOCATION_ICONS } from './InventoryPage'
 import { btn, btnPrimary, iconBtn, label, colors, StatusBadge, AvxLoader, PageHeader, Section, Stack, MoreMenu, space } from '../components/ui'
 import { PageHelp } from '../components/help/HelpParts'
 import { speakerFacts, riggingOf } from '../lib/speakers'
+import { framesFor, framesFingerprint, dataCheckState } from '../lib/lineArray'
+import { electricalFacts } from '../lib/power'
 
 const STATUS_TONE = { available: 'ok', repair: 'warn', lost: 'danger', retired: 'off' }
 const ghost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
@@ -97,6 +99,7 @@ export default function InventoryItemPage() {
     [t('inv.minStock'), item.min_stock ?? ''],
     [t('inv.packingNote'), item.packing_note],
     ...speakerFacts(item, t),
+    ...electricalFacts(item, t),
     ...customFields.map(f => {
       const text = displayValue(f, item.custom_values?.[f.id], { yesNo: [t('custom.yes'), t('custom.no')], date: d => fmt(d, 'd MMM yyyy') })
       return [f.label, f.kind === 'link' && text ? <a href={text} target="_blank" rel="noopener noreferrer" style={{ color: colors.accentText }}>{text.replace(/^https?:\/\//i, '')}</a> : text]
@@ -150,7 +153,7 @@ export default function InventoryItemPage() {
             ))}
           </dl>
         )}
-        {riggingOf(item.rigging) && <RiggingFacts rigging={riggingOf(item.rigging)} />}
+        {riggingOf(item.rigging) && <RiggingFacts item={item} userId={user?.id} onChecked={rigging => inv.setItems(list => list.map(i => (i.id === item.id ? { ...i, rigging } : i)))} />}
 
         {item.kit_type !== 'set' && (item.kind === 'rental' || item.kind === 'sale') && <ItemMoneyCard orgId={orgId} item={item} />}
 
@@ -344,15 +347,49 @@ function stripColour(d, owned) {
   return d.free < Math.max(1, owned) / 4 ? 'var(--warn)' : 'var(--accent-text)'
 }
 
-// The manufacturer's rigging data as typed (A1), with the second-person check RG3 will need
-function RiggingFacts({ rigging }) {
+// The manufacturer's rigging data as typed (A1), the bumper limits RG3 uses for its preset, and the
+// second person's check (PENDING D73): someone who didn't type the data marks it checked; any
+// change to the data, or to the bumper limits in AVX, makes it "not checked" again
+function RiggingFacts({ item, userId, onChecked }) {
+  const { notify } = useToast()
+  const [busy, setBusy] = useState(false)
+  const rigging = riggingOf(item.rigging)
+  const raw = item.rigging || {}
+  const frames = framesFor(item.speaker_preset)
+  const state = dataCheckState(raw, item.speaker_preset)
+  const sameTypist = raw.entered_by && raw.entered_by === userId
+  async function markChecked() {
+    setBusy(true)
+    const { data, error } = await supabase.rpc('mark_speaker_rigging_checked', { p_item: item.id, p_frames: frames.length ? framesFingerprint(item.speaker_preset) : null })
+    setBusy(false)
+    if (error) {
+      logger.warn('inventory', error, { step: 'riggingCheck' })
+      return notify(error.hint === 'rigging_same_person' ? t('la.signoff.samePerson') : error.hint === 'rigging_author_unknown' ? t('la.signoff.unknownAuthor') : userMessage(error), 'error')
+    }
+    onChecked(data)
+    notify(t('la.signoff.done'), 'success')
+  }
   return (
     <section aria-labelledby="rigging-title">
       <h2 id="rigging-title" style={{ ...label, marginBottom: space[2] }}>{t('spk.rigging')}</h2>
-      {!rigging.checked && (
-        <p role="note" style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '13px', color: 'var(--warn)', lineHeight: 1.5, marginBottom: space[2] }}>
-          <AlertTriangle size={14} aria-hidden="true" style={{ flexShrink: 0, marginTop: '2px' }} /> {t('spk.riggingUnchecked')}
+      {state === 'checked' ? (
+        <p role="note" style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.5, marginBottom: space[2] }}>
+          {t('la.signoff.checkedBy', { name: raw.checked_name || t('la.signoff.someone'), date: raw.checked_at ? fmt(raw.checked_at, 'd MMM yyyy') : '—' })}
         </p>
+      ) : (
+        <div role="note" style={{ fontSize: '13px', color: 'var(--warn)', lineHeight: 1.5, marginBottom: space[2] }}>
+          <p style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <AlertTriangle size={14} aria-hidden="true" style={{ flexShrink: 0, marginTop: '2px' }} /> {state === 'outdated' ? t('la.signoff.outdated') : t('spk.riggingUnchecked')}
+          </p>
+          {sameTypist ? (
+            <p style={{ color: colors.muted, marginTop: space[1] }}>{t('la.signoff.youTyped')}</p>
+          ) : (
+            <button type="button" onClick={markChecked} disabled={busy} style={{ ...btn, marginTop: space[2] }}>
+              <ClipboardCheck size={14} /> {t('la.signoff.mark')}
+            </button>
+          )}
+          <p style={{ color: colors.muted, marginTop: space[1] }}>{t('la.signoff.how')}</p>
+        </div>
       )}
       <dl style={{ display: 'flex', flexDirection: 'column', gap: space[2], margin: 0 }}>
         {['cog', 'pickup_points', 'frame_limits', 'source'].filter(k => rigging[k]).map(k => (
@@ -361,6 +398,17 @@ function RiggingFacts({ rigging }) {
             <dd style={{ fontSize: '14px', overflowWrap: 'anywhere', whiteSpace: 'pre-line', margin: 0 }}>{rigging[k]}</dd>
           </div>
         ))}
+        {frames.length > 0 && (
+          <div>
+            <dt style={{ ...label, marginBottom: space[1] }}>{t('la.signoff.frames')}</dt>
+            {frames.map(f => (
+              <dd key={f.id} style={{ fontSize: '14px', margin: `0 0 ${space[1]}` }}>
+                <strong>{f.name}</strong> · {f.kg === null ? t('la.notPrinted') : `${f.kg} kg`} · {t('la.limits', { safe: f.safe ?? '—', max: f.max ?? '—' })}{f.swl_kg !== null && t('la.limitsSwl', { swl: f.swl_kg })}
+                <span style={{ display: 'block', fontSize: '13px', color: colors.soft }}>“{f.quote}” ({t('la.page', { page: f.page })})</span>
+              </dd>
+            ))}
+          </div>
+        )}
       </dl>
     </section>
   )

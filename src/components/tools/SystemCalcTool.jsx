@@ -15,6 +15,8 @@ import { btn, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import SystemPlotSvg from './SystemPlotSvg'
+import { arraysOf, analyseArray } from '../../lib/lineArray'
+import { linesOf, settingsOf as rigSettingsOf } from '../../lib/rigging'
 
 // The sound system calculator (docs/FIELD_TOOLS.md, F4): the PA's sources (mains, subs, delays,
 // fills) and the listening positions, with estimates of each source's delay, how the subs line
@@ -27,15 +29,15 @@ export default function SystemCalcTool({ gig, canEdit }) {
   const [savedAt, setSavedAt] = useState(null)
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from('gig_show').select('stage, system').eq('gig_id', gig.id).maybeSingle()
+    const { data, error } = await supabase.from('gig_show').select('stage, system, rigging').eq('gig_id', gig.id).maybeSingle()
     if (error && isNetworkError(error)) {
       const snap = loadSnapshot(`system.${gig.id}`)
-      setShow(snap?.data || { stage: {}, system: {} })
+      setShow(snap?.data || { stage: {}, system: {}, rigging: {} })
       setSavedAt(snap?.savedAt || null)
       return
     }
     if (error) logger.error('system', error, { step: 'load' })
-    const next = { stage: data?.stage || {}, system: data?.system || {} }
+    const next = { stage: data?.stage || {}, system: data?.system || {}, rigging: data?.rigging || {} }
     setShow(next)
     setSavedAt(null)
     saveSnapshot(`system.${gig.id}`, next)
@@ -59,6 +61,10 @@ export default function SystemCalcTool({ gig, canEdit }) {
   const settings = useMemo(() => settingsOf(show?.system), [show])
   const sources = useMemo(() => sourcesOf(show?.system), [show])
   const listeners = useMemo(() => listenersOf(show?.system), [show])
+  // Line arrays in the rigging tool made from a source (RG3): their weight and check, read-only here
+  const arrays = useMemo(() => arraysOf(show?.rigging), [show])
+  const rigLines = useMemo(() => linesOf(show?.rigging), [show])
+  const rigSettings = useMemo(() => rigSettingsOf(show?.rigging), [show])
   const set = useMemo(() => delays(sources, listeners, settings), [sources, listeners, settings])
   const reach = useMemo(() => coverage(sources, listeners, settings), [sources, listeners, settings])
   const reports = useMemo(() => listeners.map(l => ({ listener: l, ...listenerReport(l, sources, settings, set) })), [listeners, sources, settings, set])
@@ -138,6 +144,8 @@ export default function SystemCalcTool({ gig, canEdit }) {
               const d = set[s.id]
               const cov = reach[s.id]
               const linked = s.item_id ? speakerOf(s.item_id) : null
+              const arr = arrays.find(x => x.source_id === s.id)
+              const arrA = arr ? analyseArray(arr, { lines: rigLines, settings: rigSettings }) : null
               return (
                 <li key={s.id} style={{ ...card, padding: '10px 12px' }}>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', flexWrap: 'wrap', marginBottom: canEdit ? '8px' : 0 }}>
@@ -157,6 +165,11 @@ export default function SystemCalcTool({ gig, canEdit }) {
                       {canEdit && linked && specsChanged(s, linked) && (
                         <button type="button" onClick={() => linkSpeaker(s.id, linked.id)} style={{ ...btn, padding: '4px 8px', fontSize: '13px' }}>{t('sys.updateFromCatalogue')}</button>
                       )}
+                    </p>
+                  )}
+                  {arrA && (
+                    <p style={{ fontSize: '13px', color: arrA.status === 'fail' ? colors.danger : colors.muted, lineHeight: 1.5 }}>
+                      {t('la.inSystem', { name: arr.name, kg: arrA.weight.total, status: t(`la.status.${arrA.status}`) })}
                     </p>
                   )}
                   {canEdit && (

@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ListOrdered, LayoutGrid, Cable, Lightbulb, LampCeiling, Speaker, Plus, ChevronRight, ArrowLeft, Wrench, Flag } from 'lucide-react'
+import { ListOrdered, LayoutGrid, Cable, Lightbulb, LampCeiling, Speaker, Plug, Plus, ChevronRight, ArrowLeft, Wrench, Flag, Anchor } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -17,8 +17,11 @@ import DmxPatchTool from '../tools/DmxPatchTool'
 import LightPlotTool from '../tools/LightPlotTool'
 import SystemCalcTool from '../tools/SystemCalcTool'
 import RehearsalTool from '../tools/RehearsalTool'
+import PowerTool from '../power/PowerTool'
+import RiggingTool from '../tools/RiggingTool'
+import { looksLikeHoist } from '../../lib/rigging'
 
-export const TOOL_ICONS = { listOrdered: ListOrdered, layoutGrid: LayoutGrid, cable: Cable, lightbulb: Lightbulb, lampCeiling: LampCeiling, speaker: Speaker }
+export const TOOL_ICONS = { listOrdered: ListOrdered, layoutGrid: LayoutGrid, cable: Cable, lightbulb: Lightbulb, lampCeiling: LampCeiling, speaker: Speaker, plug: Plug, anchor: Anchor }
 const iconOf = id => TOOL_ICONS[TOOLS.find(x => x.id === id)?.icon] || Wrench
 
 // A gig's Tools tab (docs/FIELD_TOOLS.md, docs/TOOLS_PLAN.md §1), in two groups:
@@ -37,6 +40,24 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
     return next
   })
   const available = toolsToAdd(gig.org_id ? orgTools : null, tools)
+
+  // Hoists in the gig's equipment: suggest the rigging tool (docs/TOOLS_PLAN.md §5)
+  const [hoists, setHoists] = useState(false)
+  const canSuggestRigging = canEdit && !offline && available.includes('rigging')
+  useEffect(() => {
+    if (!canSuggestRigging) return
+    supabase.from('gig_equipment').select('item_name, item_id').eq('gig_id', gig.id).limit(500)
+      .then(async ({ data, error }) => {
+        if (error) logger.warn('tools', error, { step: 'hoists' })
+        if ((data || []).some(l => looksLikeHoist(l.item_name))) return setHoists(true)
+        // Line-array elements in the equipment (RG3) suggest it too
+        const ids = [...new Set((data || []).map(l => l.item_id).filter(Boolean))].slice(0, 200)
+        if (!ids.length) return
+        const { data: items, error: e2 } = await supabase.from('price_items').select('id').in('id', ids).eq('speaker_type', 'line_array').limit(1)
+        if (e2) logger.warn('tools', e2, { step: 'arrays' })
+        if (items?.length) setHoists(true)
+      })
+  }, [canSuggestRigging, gig.id])
 
   async function add(id) {
     const { error } = await supabase.from('gig_tools').insert({ gig_id: gig.id, tool: id })
@@ -83,6 +104,8 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
       {open === 'dmx_patch' && <DmxPatchTool gig={gig} canEdit={canEdit && !offline} canPlanEquipment={canPlanEquipment && !offline} />}
       {open === 'light_plot' && <LightPlotTool gig={gig} canEdit={canEdit && !offline} hasDmxPatch={tools.includes('dmx_patch')} onToolsChanged={onChanged} />}
       {open === 'system_calc' && <SystemCalcTool gig={gig} canEdit={canEdit && !offline} />}
+      {open === 'power' && <PowerTool gig={gig} canEdit={canEdit && !offline} />}
+      {open === 'rigging' && <RiggingTool gig={gig} canEdit={canEdit && !offline} canPlanEquipment={canPlanEquipment && !offline} />}
       {canEdit && !offline && (
         <button type="button" onClick={() => remove(open)} style={{ ...btn, background: 'transparent', color: colors.muted, fontSize: '13px', marginTop: '24px' }}>
           {t('tools.removeFromGig')}
@@ -104,6 +127,13 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
       </ul>
 
       <h3 style={groupHead}>{t('tools.group.plan')}</h3>
+      {canSuggestRigging && hoists && (
+        <div style={{ ...card, display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '8px', borderColor: 'var(--accent)' }}>
+          <Anchor size={20} color={colors.accentText} aria-hidden="true" />
+          <span style={{ flex: '1 1 200px', fontSize: '13px', lineHeight: 1.5 }}>{t('tools.suggestRigging')}</span>
+          <button type="button" onClick={() => add('rigging')} style={btn}><Plus size={14} /> {t('tools.addRigging')}</button>
+        </div>
+      )}
       {tools.length === 0 ? (
         <EmptyState icon={<Wrench size={28} />} title={t('tools.emptyTitle')} body={canEdit ? t('tools.emptyEditor') : t('tools.emptyReader')}
           action={canEdit && !offline && available.length > 0 ? t('tools.add') : null} onAction={() => setAdding(true)} guide={canEdit ? 'pm-input-list' : null} />

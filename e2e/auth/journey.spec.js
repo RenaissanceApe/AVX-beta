@@ -526,6 +526,22 @@ test('an admin saves a report view, sees the monthly pack and the accountant lin
   await expectAccessible(page)
 })
 
+// P1: the power plan's report opens for the gig, says it's an estimate for an electrician and is
+// accessible (the tool itself needs 20270106000001 run on the test project to be added to a gig)
+test('the power plan report opens, labelled as an estimate', async ({ page }) => {
+  await english(page)
+  await signIn(page, pm)
+  await page.goto(`${gigUrl}/power`)
+  await expect(page.getByRole('heading', { name: GIG })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(/for a qualified electrician to check/)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'How these figures are worked out' })).toBeVisible()
+  await expectAccessible(page)
+  // P2: the distro and cable labels open, empty while the plan has no cables
+  await page.goto(`${gigUrl}/power/labels`)
+  await expect(page.getByText('No cables in the power plan yet.')).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
+})
+
 test('the logo goes home and the workspace switcher lists My work and the organisation', async ({ page }) => {
   await english(page)
   await signIn(page, pm)

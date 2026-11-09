@@ -15,6 +15,8 @@ import { CustomFieldInputs } from '../CustomFields'
 import { updateIfUnchanged, notifyConflict } from '../../lib/staleSave'
 import { specsForm, specsRow, specProblems } from '../../lib/speakers'
 import SpeakerSpecsFields from './SpeakerSpecsFields'
+import ElectricalFields from './ElectricalFields'
+import { electricalForm, electricalRow, electricalProblems } from '../../lib/power'
 
 // A form field; hint adds an ⓘ with its explanation (src/help)
 const Field = ({ id, text, hint, children }) => (
@@ -48,6 +50,8 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
   })
   const [spk, setSpk] = useState(() => specsForm(item))
   const spkOk = !Object.keys(specProblems(spk)).length
+  const [el, setEl] = useState(() => electricalForm(item))
+  const elOk = !Object.keys(electricalProblems({ ...el, power_w: form.power_w })).length
   const [saving, setSaving] = useState(false)
   const { fields } = useCustomFields(orgId, 'item')
   const [custom, setCustom] = useState({})
@@ -64,7 +68,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
 
   async function save(e) {
     e.preventDefault()
-    if (!form.name.trim() || !Number.isFinite(price) || price < 0 || !codeOk || !costOk || !spkOk) return
+    if (!form.name.trim() || !Number.isFinite(price) || price < 0 || !codeOk || !costOk || !spkOk || !elOk) return
     setSaving(true)
     const int = v => { const n = numberOrNull(v); return n == null ? null : Math.round(n) }
     const row = {
@@ -77,6 +81,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
       inspection_kind: form.inspection_kind.trim() || null,
       inspection_months: form.tracking === 'none' ? null : Math.min(120, Math.max(1, int(form.inspection_months) || 0)) || null,
       ...specsRow(spk),
+      ...electricalRow(el),
     }
     if (Object.keys(custom).length) row.custom_values = mergeValues(item?.custom_values, fields, custom)
     const { data, error, conflict } = item
@@ -176,10 +181,11 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
           ...f, brand: f.brand || p.brand, model: f.model || p.model,
           weight_kg: p.weight_kg ?? f.weight_kg, power_w: p.power_w ?? f.power_w,
         }))} />
+        <ElectricalFields form={el} setForm={setEl} powerW={form.power_w} />
         <Field id="it-details" text={t('quote.lineDetails')}>
           <textarea id="it-details" value={form.details} onChange={set('details')} rows={2} maxLength={1000} style={{ ...input, resize: 'vertical' }} />
         </Field>
-        <SaveButton saving={saving} disabled={!form.name.trim() || !codeOk || !costOk || !spkOk}>{t('common.save')}</SaveButton>
+        <SaveButton saving={saving} disabled={!form.name.trim() || !codeOk || !costOk || !spkOk || !elOk}>{t('common.save')}</SaveButton>
       </form>
     </Modal>
   )
