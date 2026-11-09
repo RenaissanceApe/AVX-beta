@@ -420,6 +420,8 @@ export default {
   'quotes.search': 'Search quotes, clients…',
   'quotes.status': 'Status',
   'quotes.allStatuses': 'All statuses',
+  'quotes.filter.all': 'All',
+  'quotes.filter.followUp': 'To follow up ({days}+ days)',
   "quotes.followUp": "To follow up (sent {days}+ days ago)",
   'quotes.emptyTitle': 'No quotes yet',
   'quotes.emptyBody': 'Build a quote in phases (load-in, show days, breakdown…), each with sections and priced lines. Save good ones as templates to reuse.',

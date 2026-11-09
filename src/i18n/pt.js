@@ -419,6 +419,8 @@ export default {
   'quotes.search': 'Pesquisar orçamentos, clientes…',
   'quotes.status': 'Estado',
   'quotes.allStatuses': 'Todos os estados',
+  'quotes.filter.all': 'Todos',
+  'quotes.filter.followUp': 'A acompanhar ({days}+ dias)',
   "quotes.followUp": "A acompanhar (enviados há {days}+ dias)",
   'quotes.emptyTitle': 'Ainda não há orçamentos',
   'quotes.emptyBody': 'Monte um orçamento por fases (montagem, dias de espetáculo, desmontagem…), cada uma com secções e linhas com preço. Guarde os melhores como modelos para reutilizar.',
