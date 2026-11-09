@@ -1,5 +1,140 @@
 # Changelog
 
+## 0.80.0 — Tools, part 2: power, cables, rigging and line arrays
+
+### S09: Power distribution (step 15, first part)
+
+#### Added
+- **Power plan** on each gig (Tools → Power plan): the supply (venue or generator, single- or
+  three-phase, amps per phase, 230/400 V 50 Hz by default), your distros and their outputs, and every
+  load plugged in. It adds up the current on each phase and each output, the neutral, how close each
+  breaker is to its limit (a warning from 80%), how far apart the phases are, and suggests a generator
+  size with a margin.
+- Loads come in by themselves from the light plot and DMX patch, the sound system and the gig's
+  equipment; catering, bars or a site office can be typed in by hand with their watts.
+- Each distro and load shows whether it is connected, partly connected or not connected, in words and a
+  sign, not by colour alone.
+- A printable **power report**, and "Save to gig files" puts it as a PDF in the Files tab. Everything is
+  labelled as an estimate for a qualified electrician.
+- **Electrical fields** on catalogue items: typical power, power factor, inrush, the amps a datasheet
+  gives (with their voltage) when it gives no watts, connectors in and out, and for distros their inputs
+  and outputs (connector, phase, breaker, RCD).
+
+#### Connected
+- The light plot's power section (and its print) shows the fixtures' figures from the power plan once
+  the gig has one.
+- On-site mode has a Power plan tile (the report, read-only, also offline).
+- The import wizard guesses the electrical columns, reads connectors as rental lists write them
+  ("CEE 32/3", "CEE 16A blue") and refuses impossible values.
+- Help: the "Plan the power" guide, terms (distro, breaker headroom, neutral current, power factor) and
+  ⓘ hints.
+
+#### For developers
+- Migrations `20270106000000_power_distribution.sql` (electrical columns on `price_items`,
+  `gig_show.power`; `private.import_item_row` takes them) and `20270106000001_tool_ids_power_rigging.sql`
+  (adds `power` and `rigging` to the tool lists; it swaps check constraints, so it is run by hand).
+  Tests: `supabase/tests/power.sql`, `supabase/tests/field_tools.sql`.
+
+### S10: Cables (step 15, second part)
+
+#### Added
+- **Cables** in the power plan (Gig → Tools → Power plan → Cables): each cable run with its type,
+  length, how many alike and how it's laid (spread out, bundled with others, left on a drum) and the air
+  around it. Power cables are linked to a part of the plan (a distro's feed or an output) and show the
+  current they carry, what they may carry laid like that, and the voltage drop added up from the supply:
+  a check above 3 %, over above 5 %. A warning also says when the breaker in front is larger than the
+  cable can carry. DMX, speaker and signal cables are typed with a from and a to.
+- "Add cables from the plan" adds one cable for each distro feed and each output in use, to edit.
+- **Cable list**: the cables by type and length, matched to catalogue items by name (or picked by hand).
+  Missing items can be created in the catalogue in one tap, and the list goes into the gig's equipment
+  (only what's missing), and so into the packing list.
+- **Suggest where to plug in**: balance the phases, or fill each output up to a reserve of its breaker
+  (80 % by default). Every change and the phases before and after are shown before anything is applied;
+  undo after.
+- **Inrush at switch-on**: the datasheet inrush of the loads on each output is added up and compared
+  with the breaker; above 3 × it may trip a B-curve breaker, above 5 × a C-curve one.
+- **Distro and cable labels** (`/gig/:id/power/labels`): cables 50 × 25 mm, distros 100 × 50 mm, on
+  pre-cut A4 sheets or a roll.
+- Everything is labelled as an estimate for a qualified electrician; figures come from a published
+  H07RN-F cable datasheet and cable tables, with the sources on the report.
+
+#### Connected
+- The power report and its PDF (Save to gig files) add the inrush groups, the cable runs and the cable
+  list, with the method and sources.
+- Gig equipment and packing list: the cable list's "Add to the gig's equipment".
+- Labels (U5): distro and cable labels in the D31 sizes, from the power plan and the report.
+- Help: the "Plan the cables" guide, terms (voltage drop, cable capacity, inrush current) and ⓘ hints.
+
+#### For developers
+- No migration: cables live in `gig_show.power` (added by S09).
+
+### S12: Rigging: weights, hang points and hoists (step 17, first part)
+
+#### Added
+- **Rigging tool** (Gig → Tools → Rigging): truss lines with their load — fixtures and weights from
+  the light plot, the truss's own weight, a cable allowance per metre, accessories, extra loads
+  (at one place or spread) and motors that climb with the line — and what each hang point carries,
+  worked out for a continuous truss on two or more points (uneven loads and overhangs included).
+  Each point is checked against its hoist's WLL after a dynamic factor, and a D8 hoist over people
+  is flagged. Everything is labelled as an aid that a competent rigger must check.
+- **Hoist models:** Chainmaster D8+ 500, 1000 and 2000 kg from the manufacturer's data sheets (source
+  and revision shown); CM Lodestar D8+ 0.5, 1 and 2 t listed without values (their data sheet
+  couldn't be reached). Admins and members add their own from a hoist's data plate. Every model
+  shows "needs a second person's check before use".
+- Help: the guide "Work out the rigging loads", terms (WLL, hoist class, dynamic factor, hang
+  point) and ⓘ hints.
+
+#### Connected
+- **Light plot:** bars with weights show "Rigging: not checked", "checked" (with the busiest
+  hoist's share of its WLL) or "overloaded"; one tap opens the rigging tool on that line. Changing
+  the fixtures makes it "not checked" again.
+- **Tools tab:** suggests the rigging tool when hoists are in the gig's equipment.
+
+#### For developers
+- Migration `20270107000000_rigging.sql`: `gig_show.rigging` (jsonb); table `hoist_models` with RLS
+  (presets read by everyone signed in; an organisation's rows read by its members, written by
+  admins and members; removed by marking) and trigger `private.hoist_models_before`; six presets.
+  The tool id `rigging` comes with S09's `20270106000001_tool_ids_power_rigging.sql`.
+- Solver: `src/lib/rigging.js` (`solveBeam`, `analyseLine`, `barRigging`), tested against hand
+  calculations. Tests: `supabase/tests/rigging.sql`.
+
+### S14: Rigging: line arrays (step 18)
+
+#### Added
+- **Line arrays** in the rigging tool (Gig → Tools → Rigging → Line arrays): a speaker from the
+  catalogue (or typed by hand), how many, a splay angle per element and the manufacturer's bumper.
+  AVX adds up the weight (elements, bumper, extra load), checks it against the bumper's limits
+  (within the safe limit; between safe and maximum, for the manufacturer's software to confirm; or
+  over a limit), shares the weight between two picks from the centre of gravity typed from the
+  manufacturer's software (or takes the point loads it gives), checks each pick's hoist, and draws
+  the array from the side. Every array names the software that decides (Soundvision, ArrayCalc,
+  NS-1, MAPP…) and is labelled as an aid that a competent rigger must check.
+- **Bumper data** from the manufacturers' manuals (document, version and page on each value):
+  L-Acoustics K2, Kara II and KS28 bumpers, d&b's V Flying frame for V8 and V-SUB, NEXO's
+  VNT-BUMPM12 and Meyer's MG-LEOPARD/900 grid. Any bumper can be typed by hand from its manual.
+- **Second person's check of a speaker's rigging data:** on a catalogue item, "Mark the rigging
+  data as checked", by someone other than the person who typed it. Changing the data (or the bumper
+  limits in AVX) makes it "not checked" again.
+- Help: the guide "Check a line array's rigging", terms (line array, bumper limit, centre of
+  gravity, splay angle) and ⓘ hints.
+
+#### Connected
+- **Sound system calculator:** an array can be added from a source (its count and speaker come
+  with it, and it offers to update when they change); the source shows the array's weight and
+  result.
+- **Rigging truss lines (RG1):** an array's picks can hang from a truss line; their loads are added
+  to that line and to the light plot's "Rigging" mark.
+- **Gig equipment:** the array warns when the gig has fewer elements than the arrays need; the
+  Tools tab suggests the rigging tool when line-array elements are on the gig.
+
+#### For developers
+- Migration `20270109000000_line_arrays.sql`: trigger `private.price_items_rigging_before` (keeps the
+  typist, clears the check on any change, blocks writing the check by hand) and RPC
+  `mark_speaker_rigging_checked(item, frames)`. Arrays live in `gig_show.rigging.arrays` (no new
+  column). Tests: `supabase/tests/line_arrays.sql`.
+- `src/lib/lineArray.js` with tests against the d&b V-Series rigging manual's printed limits and
+  hand calculations; bumper data `src/data/lineArrays.js`; `hoistCheck` shared with RG1.
+
 ## 0.79.1 — Workspace list drops down on phones
 
 #### Fixed
