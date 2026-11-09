@@ -200,7 +200,7 @@ export function PageHeader({ title, eyebrow, line, help, after, primary, seconda
         {eyebrow && <p className="avx-page-head__eyebrow">{eyebrow}</p>}
         {/* The ⓘ sits beside the heading, not inside it, so the heading's name is just the title */}
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: space[2], minWidth: 0 }}>
-          <h1 className="avx-page-head__title">{title}{after}</h1>{help}
+          <h1 className="avx-page-head__title">{title}</h1>{after}{help}
         </div>
         {line && <p className="avx-page-head__line">{line}</p>}
       </div>
