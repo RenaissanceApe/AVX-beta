@@ -10,6 +10,7 @@ import { updateIfUnchanged, notifyConflict } from '../../lib/staleSave'
 import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
+import { TabHeader } from './parts'
 
 const EMPTY = { day: '', start_time: '', end_time: '', title: '', location: '', notes: '' }
 
@@ -75,16 +76,9 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '20px' }}>
-        <div>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>{t('gig.tab.schedule')}</h2>
-          <p style={{ color: colors.muted, fontSize: '13px' }}>{t('schedule.subtitle')}</p>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={onOpenCallSheet} style={btn}><Printer size={14} /> {t('schedule.callSheet')}</button>
-          {canManage && <button onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} /> {t('schedule.add')}</button>}
-        </div>
-      </div>
+      <TabHeader title={t('gig.tab.schedule')} hint={t('schedule.subtitle')}
+        secondary={<button type="button" onClick={onOpenCallSheet} style={btn}><Printer size={14} aria-hidden="true" /> {t('schedule.callSheet')}</button>}
+        action={canManage && <button type="button" onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} aria-hidden="true" /> {t('schedule.add')}</button>} />
 
       {groups.length === 0 ? (
         <EmptyState icon={<CalendarClock size={28} />} title={t('schedule.empty')} body={canManage ? t('schedule.emptyManager') : t('schedule.emptyCrew')}
@@ -99,11 +93,11 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
                 <div className="avx-sched__time">{shortTime(item.start_time)}{item.end_time ? `–${shortTime(item.end_time)}` : ''}</div>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '14px' }}>{item.title}</div>
-                  {item.location && <div style={{ fontSize: '12.5px', color: colors.muted, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}><MapPin size={12} aria-hidden="true" /> {item.location}</div>}
+                  {item.location && <div style={{ fontSize: '13px', color: colors.muted, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}><MapPin size={13} aria-hidden="true" /> {item.location}</div>}
                   {item.notes && <div style={{ fontSize: '13px', color: when === 'done' ? colors.muted : colors.soft, marginTop: '4px', whiteSpace: 'pre-wrap' }}>{item.notes}</div>}
                 </div>
                 {canManage ? (
-                  <div style={{ display: 'flex', marginTop: '-6px' }}>
+                  <div style={{ display: 'flex', margin: '-4px 0' }}>
                     <button onClick={() => setEditing(item)} aria-label={t('schedule.editNamed', { title: item.title })} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>
                     <button onClick={() => remove(item)} aria-label={t('schedule.removeNamed', { title: item.title })} title={t('crew.remove')} style={iconBtn}><Trash2 size={14} /></button>
                   </div>
@@ -123,7 +117,7 @@ export default function ScheduleTab({ gig, items, canManage, onChanged, onOpenCa
                 placeholder={t('schedule.whatPlaceholder')} maxLength={200} style={input} autoFocus required />
             </div>
             {/* The day gets its own row: three date/time fields don't fit side by side on a phone */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '8px 10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '8px 12px' }}>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={label} htmlFor="sch-day">{t('schedule.day')} *</label>
                 <input id="sch-day" type="date" value={form.day} onChange={e => setForm(f => ({ ...f, day: e.target.value }))} style={input} required />

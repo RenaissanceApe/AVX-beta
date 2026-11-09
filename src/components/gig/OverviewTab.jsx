@@ -1,11 +1,11 @@
-import { FileText, SlidersHorizontal, Users, MessageSquare, Plus, UserPlus, ArrowRight, Eye, CalendarClock } from 'lucide-react'
+import { Plus, UserPlus, ChevronRight } from 'lucide-react'
 import { shortTime, groupByDay } from '../../lib/schedule'
 import { localToday } from '../../lib/gigs'
 import { useI18n } from '../../i18n'
 import { useCustomFields } from '../../lib/customFields'
 import { CustomFieldList } from '../CustomFields'
-import { card, colors } from '../ui'
-import { assetType, Avatar, RoleBadge, FeedPost, SectionTitle, SmallBtn, EmptyMini, linkBtn } from './parts'
+import { btn, colors, mono, Section } from '../ui'
+import { assetType, Avatar, RoleBadge, FeedPost, EmptyMini, linkBtn, rowLine } from './parts'
 
 // Upcoming schedule items: today and later, at most `limit`.
 function upcoming(schedule, limit = 4) {
@@ -13,115 +13,111 @@ function upcoming(schedule, limit = 4) {
   return groupByDay(schedule.filter(s => s.day >= today)).flatMap(g => g.items).slice(0, limit)
 }
 
+// A link on a section's right that opens another tab (the tabs are not routes)
+function TabLink({ onClick, children }) {
+  return (
+    <button type="button" onClick={onClick} className="avx-section__link" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', fontSize: '13px' }}>
+      {children} <ChevronRight size={14} aria-hidden="true" />
+    </button>
+  )
+}
+
+const smallBtn = { ...btn, padding: '4px 12px' }
+const row = i => ({ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minHeight: '52px', padding: 'var(--space-2) 0', ...rowLine(i) })
+
+// The gig's Overview (DESIGN.md "Room to breathe"): sections on the page ground, most important first —
+// what's coming up, what the gig is, who's on it, its files, then the latest posts.
 export default function OverviewTab({ gig, assets, members, posts, schedule, canUpload, isPM, nameOf, setTab, openUpload, openInvite, onOpenAsset }) {
   const { t, fmt } = useI18n()
   const next = upcoming(schedule)
   const { fields } = useCustomFields(gig.org_id, 'gig')
   const customFilled = fields.some(f => gig.custom_values?.[f.id] != null)
-  const panel = { ...card, padding: '18px 20px' }
-  const header = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', animation: 'fadeIn 0.3s ease' }}>
+    <>
+      <Section id="ov-coming" title={t('overview.comingUp')} aside={<TabLink onClick={() => setTab('schedule')}>{t('overview.fullSchedule')}</TabLink>}>
+        {next.length === 0 ? <EmptyMini text={t('overview.noUpcoming')} /> : (
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {next.map((s, i) => (
+              <li key={s.id} style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'baseline', padding: 'var(--space-3) 0', flexWrap: 'wrap', ...rowLine(i) }}>
+                <span style={{ ...mono, color: colors.muted, fontSize: '13px', minWidth: '96px' }}>{fmt(s.day, 'EEE d MMM')}</span>
+                <span style={{ ...mono, fontWeight: 700, fontSize: '14px', minWidth: '48px' }}>{shortTime(s.start_time)}</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, flex: '1 1 160px', minWidth: 0, overflowWrap: 'anywhere' }}>{s.title}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+
       {gig.description && (
-        <div style={{ ...panel, gridColumn: '1 / -1' }}>
-          <div style={{ marginBottom: '10px' }}><SectionTitle icon={<FileText size={14} />} title={t('overview.description')} /></div>
-          <p style={{ color: colors.soft, fontSize: '14px', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{gig.description}</p>
-        </div>
+        <Section id="ov-description" title={t('overview.description')}>
+          <p style={{ color: colors.soft, fontSize: '14px', lineHeight: 1.7, whiteSpace: 'pre-wrap', margin: 0 }}>{gig.description}</p>
+        </Section>
       )}
 
       {customFilled && (
-        <div style={{ ...panel, gridColumn: '1 / -1' }}>
-          <div style={{ marginBottom: '10px' }}><SectionTitle icon={<SlidersHorizontal size={14} />} title={t('custom.details')} /></div>
+        <Section id="ov-details" title={t('custom.details')}>
           <CustomFieldList fields={fields} values={gig.custom_values} />
-        </div>
+        </Section>
       )}
 
-      <div style={{ ...panel, gridColumn: '1 / -1' }}>
-        <div style={header}>
-          <SectionTitle icon={<CalendarClock size={14} />} title={t('overview.comingUp')} />
-          <SmallBtn onClick={() => setTab('schedule')} icon={<ArrowRight size={12} />} label={t('overview.fullSchedule')} />
-        </div>
-        {next.length === 0 ? <EmptyMini text={t('overview.noUpcoming')} /> : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {next.map(s => (
-              <div key={s.id} style={{ display: 'flex', gap: '12px', fontSize: '14px', alignItems: 'baseline' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', color: colors.muted, fontSize: '12px', minWidth: '92px' }}>{fmt(s.day, 'EEE d MMM')}</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, minWidth: '48px' }}>{shortTime(s.start_time)}</span>
-                <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div style={panel}>
-        <div style={header}>
-          <SectionTitle icon={<FileText size={14} />} title={t('gig.tab.assets')} />
-          {canUpload && <SmallBtn onClick={openUpload} icon={<Plus size={12} />} label={t('common.upload')} />}
-        </div>
-        {assets.length === 0 ? <EmptyMini text={t('overview.noAssets')} /> : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {assets.slice(0, 4).map(a => {
-              const cfg = assetType(a.type)
-              const Icon = cfg.icon
-              return (
-                <button key={a.id} onClick={() => onOpenAsset(a)} style={{
-                  display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', textAlign: 'left',
-                  background: 'var(--fill)', border: '1px solid var(--line)', cursor: 'pointer', color: 'var(--text)', width: '100%',
-                }}>
-                  <span style={{ width: '28px', height: '28px', flexShrink: 0, border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon size={14} color="var(--muted)" aria-hidden="true" />
-                  </span>
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.name}</span>
-                    <span style={{ display: 'block', fontSize: '11px', color: colors.muted }}>v{a.version} · {t(`assetType.${a.type}`)}</span>
-                  </span>
-                  <Eye size={13} color="var(--muted)" />
-                </button>
-              )
-            })}
-            {assets.length > 4 && <button onClick={() => setTab('assets')} style={{ ...linkBtn, marginTop: '4px' }}>{t('overview.viewAllAssets', { count: assets.length })}</button>}
-          </div>
-        )}
-      </div>
-
-      <div style={panel}>
-        <div style={header}>
-          <SectionTitle icon={<Users size={14} />} title={t('gig.tab.crew')} />
-          {isPM && <SmallBtn onClick={openInvite} icon={<UserPlus size={12} />} label={t('common.invite')} />}
-        </div>
+      <Section id="ov-crew" title={t('gig.tab.crew')}
+        aside={isPM ? <button type="button" onClick={openInvite} style={smallBtn}><UserPlus size={14} aria-hidden="true" /> {t('common.invite')}</button> : null}>
         {members.length === 0 ? <EmptyMini text={t('overview.noCrew')} /> : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {members.slice(0, 5).map(m => (
-              <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Avatar uid={m.user_id} name={nameOf(m.user_id)} size={30} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '13px', fontWeight: 600 }}>{nameOf(m.user_id)}</div>
-                  <div style={{ fontSize: '11px', color: colors.muted }}>
-                    {m.function_title || t(`gigRoleLong.${m.role}`)}
-                    {m.call_time && <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-2)', marginLeft: '6px' }}>· {shortTime(m.call_time)}</span>}
+          <>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {members.slice(0, 5).map((m, i) => (
+                <li key={m.user_id} style={row(i)}>
+                  <Avatar uid={m.user_id} name={nameOf(m.user_id)} size={32} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600 }}>{nameOf(m.user_id)}</div>
+                    <div style={{ fontSize: '13px', color: colors.muted }}>
+                      {m.function_title || t(`gigRoleLong.${m.role}`)}
+                      {m.call_time && <span style={{ ...mono, color: 'var(--text-2)' }}> · {shortTime(m.call_time)}</span>}
+                    </div>
                   </div>
-                </div>
-                <RoleBadge role={m.role} />
-              </div>
-            ))}
-            {members.length > 5 && <button onClick={() => setTab('crew')} style={{ ...linkBtn, marginTop: '4px' }}>{t('overview.viewAllCrew', { count: members.length })}</button>}
-          </div>
+                  <RoleBadge role={m.role} />
+                </li>
+              ))}
+            </ul>
+            {members.length > 5 && <button type="button" onClick={() => setTab('crew')} style={linkBtn}>{t('overview.viewAllCrew', { count: members.length })} <ChevronRight size={14} aria-hidden="true" /></button>}
+          </>
         )}
-      </div>
+      </Section>
 
-      <div style={{ ...panel, gridColumn: '1 / -1' }}>
-        <div style={header}>
-          <SectionTitle icon={<MessageSquare size={14} />} title={t('overview.recentUpdates')} />
-          <SmallBtn onClick={() => setTab('updates')} icon={<ArrowRight size={12} />} label={t('overview.fullFeed')} />
-        </div>
+      <Section id="ov-files" title={t('gig.tab.assets')}
+        aside={canUpload ? <button type="button" onClick={openUpload} style={smallBtn}><Plus size={14} aria-hidden="true" /> {t('common.upload')}</button> : null}>
+        {assets.length === 0 ? <EmptyMini text={t('overview.noAssets')} /> : (
+          <>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {assets.slice(0, 4).map((a, i) => {
+                const Icon = assetType(a.type).icon
+                return (
+                  <li key={a.id} style={rowLine(i)}>
+                    <button type="button" onClick={() => onOpenAsset(a)} style={{ ...row(0), width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text)', font: 'inherit' }}>
+                      <Icon size={16} color="var(--muted)" aria-hidden="true" style={{ flexShrink: 0 }} />
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.name}</span>
+                        <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>v{a.version} · {t(`assetType.${a.type}`)}</span>
+                      </span>
+                      <ChevronRight size={16} color="var(--muted)" aria-hidden="true" style={{ flexShrink: 0 }} />
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+            {assets.length > 4 && <button type="button" onClick={() => setTab('assets')} style={linkBtn}>{t('overview.viewAllAssets', { count: assets.length })} <ChevronRight size={14} aria-hidden="true" /></button>}
+          </>
+        )}
+      </Section>
+
+      <Section id="ov-updates" title={t('overview.recentUpdates')} aside={<TabLink onClick={() => setTab('updates')}>{t('overview.fullFeed')}</TabLink>}>
         {posts.length === 0 ? <EmptyMini text={t('overview.noUpdates')} /> : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {posts.slice(-3).map(p => <FeedPost key={p.id} post={p} name={nameOf(p.user_id)} />)}
+          <div>
+            {posts.slice(-3).map((p, i) => <div key={p.id} style={rowLine(i)}><FeedPost post={p} name={nameOf(p.user_id)} /></div>)}
           </div>
         )}
-      </div>
-    </div>
+      </Section>
+    </>
   )
 }

@@ -29,7 +29,7 @@ export function FeeFields({ id, state, note, resetLabel, canReset }) {
   return (
     <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
       <legend style={{ ...label, display: 'flex', alignItems: 'center', gap: '4px' }}>{t('crewCall.fee')} <Hint id="crew-call-fee" label={t('crewCall.fee')} /></legend>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
         <div>
           <label style={label} htmlFor={`${id}-fee-unit`}>{t('labour.unitLabel')}</label>
           <select id={`${id}-fee-unit`} value={form.unit} onChange={e => edit({ unit: e.target.value })} style={{ ...input, cursor: 'pointer' }}>
@@ -47,13 +47,13 @@ export function FeeFields({ id, state, note, resetLabel, canReset }) {
           </div>
         )}
       </div>
-      <p style={{ fontSize: '12px', color: bad ? 'var(--warn)' : colors.muted, lineHeight: 1.5, marginTop: '6px' }}>
+      <p style={{ fontSize: '13px', color: bad ? 'var(--warn)' : colors.muted, lineHeight: 1.5, marginTop: '6px' }}>
         {bad && <strong>{t('crewCall.feeBad')} </strong>}
         {total != null && <strong style={{ color: 'var(--text)' }}>{t('crewCall.feeTotal', { amount: formatMoney(total, 'EUR', lang) })} </strong>}
         {note}
       </p>
       {touched && canReset && (
-        <button type="button" onClick={reset} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '6px' }}>{resetLabel}</button>
+        <button type="button" onClick={reset} style={{ ...btn, padding: '5px 10px', fontSize: '13px', marginTop: '6px' }}>{resetLabel}</button>
       )}
     </fieldset>
   )

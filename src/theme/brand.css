@@ -58,16 +58,16 @@ svg.lucide-loader-circle > *, svg.lucide-loader > * { display: none; }
 :root[data-comfort] svg.lucide-loader-circle, :root[data-comfort] svg.lucide-loader { animation: none !important; }
 
 /* Schedule: day bars on fill, mono times; now = selection + ▶, done = muted */
-.avx-sched { background: var(--panel); border: 1px solid var(--line); margin-bottom: 16px; }
-.avx-sched__day { padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--fill); }
-.avx-sched__row { display: grid; grid-template-columns: 124px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 14px; }
-.avx-sched__row:last-child { border-bottom: 0; }
+/* The gig's running order (DR2): days on the page ground with hairlines between rows, no box */
+.avx-sched + .avx-sched { margin-top: var(--space-6); }
+.avx-sched__day { padding-bottom: var(--space-2); border-bottom: 1px solid var(--line); }
+.avx-sched__row { display: grid; grid-template-columns: 124px minmax(0, 1fr) auto; gap: var(--space-3); align-items: start; padding: var(--space-3) 0; border-bottom: 1px solid var(--line); font-size: 14px; }
 .avx-sched__time { font: 400 13px/20px var(--font-mono); color: var(--text-2); white-space: nowrap; }
-.avx-sched__row.is-now { background: var(--selection); }
+.avx-sched__row.is-now { background: var(--selection); margin: 0 calc(-1 * var(--space-2)); padding: var(--space-3) var(--space-2); }
 .avx-sched__row.is-now .avx-sched__time { color: var(--accent-text); font-weight: 700; }
 .avx-sched__row.is-now .avx-sched__time::before { content: "▶ "; }
 .avx-sched__row.is-done, .avx-sched__row.is-done .avx-sched__time { color: var(--muted); }
-@media (max-width: 520px) { .avx-sched__row { grid-template-columns: 92px minmax(0, 1fr) auto; padding: 10px 12px; } }
+@media (max-width: 520px) { .avx-sched__row { grid-template-columns: 92px minmax(0, 1fr) auto; } }
 
 /* Icons: square caps and mitre joins on every lucide icon, set once here (lucide's linecap/linejoin are SVG
    presentation attributes, which CSS overrides). The set itself moves to Signal Pixel later (ICONS.md, P3). */

@@ -52,104 +52,12 @@
     "gaps": 5
   },
   "components/expenses/GigExpenses.jsx": {
-    "sizes": 3,
-    "gaps": 1
+    "sizes": 2,
+    "gaps": 0
   },
   "components/expenses/LinkedExpense.jsx": {
     "sizes": 2,
     "gaps": 0
-  },
-  "components/gig/ActivityTab.jsx": {
-    "sizes": 2,
-    "gaps": 0
-  },
-  "components/gig/AssetsTab.jsx": {
-    "sizes": 6,
-    "gaps": 4
-  },
-  "components/gig/AssetVersionsModal.jsx": {
-    "sizes": 2,
-    "gaps": 1
-  },
-  "components/gig/Booking.jsx": {
-    "sizes": 3,
-    "gaps": 4
-  },
-  "components/gig/ChatTab.jsx": {
-    "sizes": 0,
-    "gaps": 2
-  },
-  "components/gig/CrewCalls.jsx": {
-    "sizes": 5,
-    "gaps": 6
-  },
-  "components/gig/CrewTab.jsx": {
-    "sizes": 11,
-    "gaps": 11
-  },
-  "components/gig/EditGigModal.jsx": {
-    "sizes": 0,
-    "gaps": 1
-  },
-  "components/gig/EquipmentTab.jsx": {
-    "sizes": 12,
-    "gaps": 7
-  },
-  "components/gig/FeedTab.jsx": {
-    "sizes": 1,
-    "gaps": 3
-  },
-  "components/gig/FeeFields.jsx": {
-    "sizes": 2,
-    "gaps": 1
-  },
-  "components/gig/GigFinancePanel.jsx": {
-    "sizes": 6,
-    "gaps": 2
-  },
-  "components/gig/GigHeader.jsx": {
-    "sizes": 2,
-    "gaps": 7
-  },
-  "components/gig/GigWrapupLink.jsx": {
-    "sizes": 0,
-    "gaps": 1
-  },
-  "components/gig/LabourCost.jsx": {
-    "sizes": 13,
-    "gaps": 3
-  },
-  "components/gig/OverviewTab.jsx": {
-    "sizes": 1,
-    "gaps": 3
-  },
-  "components/gig/parts.jsx": {
-    "sizes": 4,
-    "gaps": 3
-  },
-  "components/gig/ReportDamageModal.jsx": {
-    "sizes": 2,
-    "gaps": 1
-  },
-  "components/gig/ScheduleTab.jsx": {
-    "sizes": 2,
-    "gaps": 1
-  },
-  "components/gig/StepBars.jsx": {
-    "sizes": 1,
-    "gaps": 3
-  },
-  "components/gig/TasksTab.jsx": {
-    "sizes": 0,
-    "gaps": 1
-  },
-  "components/gig/ToolsTab.jsx": {
-    "sizes": 4,
-    "gaps": 1
-  },
-  "components/gig/UpdatesTab.jsx": {
-    "sizes": 0,
-    "gaps": 1
   },
   "components/GigCalendar.jsx": {
     "sizes": 5,
@@ -160,8 +68,8 @@
     "gaps": 1
   },
   "components/hours/GigHours.jsx": {
-    "sizes": 4,
-    "gaps": 2
+    "sizes": 3,
+    "gaps": 1
   },
   "components/hours/HoursParts.jsx": {
     "sizes": 3,

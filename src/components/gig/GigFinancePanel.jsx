@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Wallet, Receipt, Check } from 'lucide-react'
+import { Receipt, Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -9,7 +9,7 @@ import { formatMoney } from '../../lib/quotes'
 import { useRateCard } from '../../lib/useCrewRates'
 import { cardFees, isEstimate } from '../../lib/analytics/gigFinance'
 import { useI18n } from '../../i18n'
-import { btn, card, colors, AvxLoader } from '../ui'
+import { btn, colors, AvxLoader, Section } from '../ui'
 import { Hint, Term } from '../help/HelpParts'
 import ExpenseForm from '../expenses/ExpenseForm'
 
@@ -54,26 +54,25 @@ export default function GigFinancePanel({ gig, members, canManage }) {
     load()
   }
 
-  const heading = (
-    <h3 id="finance-title" style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-      <Wallet size={15} color="var(--accent-text)" aria-hidden="true" /> {t('finance.title')} <Hint id="gig-finance" label={t('finance.title')} />
-    </h3>
-  )
+  // A section on the page ground (DESIGN.md "One box deep"), not a card
+  const title = t('finance.title')
+  // The ⓘ beside the heading, not inside it (the heading's name is just its title)
+  const hint = <Hint id="gig-finance" label={t('finance.title')} />
   if (failed) return (
-    <section aria-labelledby="finance-title" style={{ ...card, padding: '14px 16px', marginTop: '16px' }}>
-      {heading}<p role="alert" style={{ color: colors.danger, fontSize: '13px', marginTop: '6px' }}>{t('finance.loadFailed')}</p>
-    </section>
+    <Section id="finance-title" title={title} aside={hint}>
+      <p role="alert" style={{ color: colors.danger, fontSize: '13px', margin: 0 }}>{t('finance.loadFailed')}</p>
+    </Section>
   )
   if (!row) return (
-    <section aria-labelledby="finance-title" style={{ ...card, padding: '14px 16px', marginTop: '16px' }}>
-      {heading}<AvxLoader size={18} color={colors.accentText} style={{ marginTop: '8px' }} label={t('common.loading')} />
-    </section>
+    <Section id="finance-title" title={title} aside={hint}>
+      <AvxLoader size={18} color={colors.accentText} label={t('common.loading')} />
+    </Section>
   )
 
   const estimate = isEstimate(row)
   const noQuote = row.revenue_source === 'none'
   const negative = Number(row.margin) < 0
-  const small = { display: 'block', fontSize: '12px', fontWeight: 400, color: colors.muted }
+  const small = { display: 'block', fontSize: '13px', fontWeight: 400, color: colors.muted }
   const amount = { margin: 0, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }
   const line = (label, value, sub) => (
     <><dt>{label}{sub && <span style={small}>{sub}</span>}</dt><dd style={amount}>{money(value, lang)}</dd></>
@@ -86,10 +85,9 @@ export default function GigFinancePanel({ gig, members, canManage }) {
   const showSave = completed && canManage && Number(row.labour_estimated) > 0
 
   return (
-    <section aria-labelledby="finance-title" style={{ ...card, padding: '14px 16px', marginTop: '16px' }}>
-      {heading}
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, margin: '4px 0 10px' }}>{t('finance.intro')}</p>
-      <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '6px 12px', fontSize: '14px', margin: 0 }}>
+    <Section id="finance-title" title={title} aside={hint}>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: '0 0 12px' }}>{t('finance.intro')}</p>
+      <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '8px 12px', fontSize: '14px', margin: 0 }}>
         <dt style={{ fontWeight: 600 }}>
           <Term id="net-revenue">{t('finance.revenue')}</Term>
           <span style={small}>
@@ -101,8 +99,8 @@ export default function GigFinancePanel({ gig, members, canManage }) {
         {line(t('finance.subrentals'), row.subrentals)}
         {line(t('finance.repairs'), row.repairs, Number(row.repairs_charged) > 0 ? t('finance.repairsCharged', { amount: money(row.repairs_charged, lang) }) : null)}
         {line(t('finance.otherCosts'), row.other_costs, t('finance.otherCostsSub'))}
-        <dt style={{ fontWeight: 600, paddingTop: '6px', borderTop: `1px solid ${colors.border}` }}>{t('finance.cost')}</dt>
-        <dd style={{ ...amount, fontWeight: 600, paddingTop: '6px', borderTop: `1px solid ${colors.border}` }}>{money(row.cost, lang)}</dd>
+        <dt style={{ fontWeight: 600, paddingTop: '8px', borderTop: `1px solid ${colors.border}` }}>{t('finance.cost')}</dt>
+        <dd style={{ ...amount, fontWeight: 600, paddingTop: '8px', borderTop: `1px solid ${colors.border}` }}>{money(row.cost, lang)}</dd>
         <dt style={{ fontWeight: 700 }}>
           {t('finance.margin')}
           {estimate && <span style={{ ...small, color: 'var(--warn)' }}>{t('finance.estimateNote')}</span>}
@@ -113,22 +111,22 @@ export default function GigFinancePanel({ gig, members, canManage }) {
         </dd>
       </dl>
       {row.other_currencies && (
-        <p style={{ fontSize: '12px', color: colors.muted, marginTop: '8px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '13px', color: colors.muted, marginTop: '8px', lineHeight: 1.5 }}>
           {row.other_currencies.revenue && t('finance.otherRevenue', { list: otherList(row.other_currencies.revenue, lang) })}
           {row.other_currencies.revenue && row.other_currencies.costs && ' · '}
           {row.other_currencies.costs && t('finance.otherCurrencyCosts', { list: otherList(row.other_currencies.costs, lang) })}
         </p>
       )}
       {billing.length > 0 && (
-        <dl aria-label={t('finance.invoicing')} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '4px 12px', fontSize: '13px', margin: '10px 0 0', paddingTop: '8px', borderTop: `1px solid ${colors.border}` }}>
+        <dl aria-label={t('finance.invoicing')} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '4px 12px', fontSize: '13px', margin: '12px 0 0', paddingTop: '8px', borderTop: `1px solid ${colors.border}` }}>
           {billing.map(b => (
             <FinanceBilling key={b.currency} b={b} t={t} lang={lang} />
           ))}
         </dl>
       )}
-      {noQuote && <p style={{ fontSize: '12px', color: colors.muted, marginTop: '8px' }}>{t('finance.noQuoteBody')}</p>}
-      {showSave && <p style={{ fontSize: '12px', color: colors.muted, marginTop: '8px', lineHeight: 1.5 }}>{t('finance.saveFeesWhy')}</p>}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px', alignItems: 'center' }}>
+      {noQuote && <p style={{ fontSize: '13px', color: colors.muted, marginTop: '8px' }}>{t('finance.noQuoteBody')}</p>}
+      {showSave && <p style={{ fontSize: '13px', color: colors.muted, marginTop: '8px', lineHeight: 1.5 }}>{t('finance.saveFeesWhy')}</p>}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px', alignItems: 'center' }}>
         <button type="button" onClick={() => setAdding(true)} style={btn}><Receipt size={14} aria-hidden="true" /> {t('finance.addExpense')}</button>
         {showSave && (
           <button type="button" onClick={saveFees} disabled={saving || !rateCard.loaded} style={btn}>
@@ -142,7 +140,7 @@ export default function GigFinancePanel({ gig, members, canManage }) {
         <ExpenseForm orgId={gig.org_id} onClose={() => setAdding(false)} onSaved={load}
           preset={{ gig_id: gig.id, gigs: [{ id: gig.id, name: gig.name, start_date: gig.start_date }] }} />
       )}
-    </section>
+    </Section>
   )
 }
 
@@ -152,7 +150,8 @@ function FinanceBilling({ b, t, lang }) {
   const amount = { margin: 0, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }
   return (
     <>
-      <dt><Term id="invoice">{t('finance.invoiced')}</Term></dt><dd style={amount}>{m(Number(b.invoiced) - Number(b.credited))}</dd>
+      {/* No glossary button here: its name ("Invoice") wouldn't contain the visible "Invoiced (incl. VAT)" (axe) */}
+      <dt>{t('finance.invoiced')}</dt><dd style={amount}>{m(Number(b.invoiced) - Number(b.credited))}</dd>
       <dt>{t('finance.paid')}</dt><dd style={amount}>{m(b.paid)}</dd>
       {Number(b.outstanding) > 0 && <><dt style={{ color: Number(b.overdue) > 0 ? colors.danger : undefined }}>{t(Number(b.overdue) > 0 ? 'finance.unpaidOverdue' : 'finance.unpaid', { overdue: m(b.overdue) })}</dt><dd style={amount}>{m(b.outstanding)}</dd></>}
       {Number(b.to_issue) > 0 && <><dt style={{ color: colors.muted }}>{t('finance.toIssue')}</dt><dd style={{ ...amount, color: colors.muted }}>{m(b.to_issue)}</dd></>}
