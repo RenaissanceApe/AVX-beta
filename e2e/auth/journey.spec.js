@@ -542,6 +542,21 @@ test('the power plan report opens, labelled as an estimate', async ({ page }) =>
   await expectAccessible(page)
 })
 
+// U6: every print has a QR in the corner that opens the same page in AVX (the app's own
+// address, so it needs a sign-in), with the date it was printed beside it
+test('every print shows a QR back to the live page and the print date', async ({ page }) => {
+  await english(page)
+  await signIn(page, pm)
+  for (const print of ['callsheet', 'inputs', 'plot', 'patch', 'dmx', 'lights', 'system', 'power', 'packing']) {
+    await page.goto(`${gigUrl}/${print}`)
+    const qr = page.getByRole('img', { name: 'QR code that opens this page in AVX' })
+    await expect(qr, print).toBeVisible({ timeout: 15_000 })
+    await expect(qr.locator('svg'), print).toBeVisible()
+    await expect(page.locator('.print-footer').getByText(/^Printed /), print).toBeVisible()
+  }
+  await expectAccessible(page)
+})
+
 test('the logo goes home and the workspace switcher lists My work and the organisation', async ({ page }) => {
   await english(page)
   await signIn(page, pm)
