@@ -7,6 +7,7 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import { inputCounts } from '../lib/tools'
 import { useI18n } from '../i18n'
 import { AvxLoader } from '../components/ui'
+import PrintFooter from '../components/PrintFooter'
 
 // Printable input list (docs/FIELD_TOOLS.md, F1): channel, source, mic or DI, stand, 48V, stage
 // box and notes, for the desk and the stage. Readable by everyone on the gig, also offline.
@@ -77,7 +78,6 @@ export default function InputListPage() {
         <div>{[gig.venue || t('callsheet.venueTbc'), dates, gig.organisations?.name].filter(Boolean).join(' · ')}</div>
         <div className="muted" style={{ marginTop: '4px' }}>
           {t('inputs.count', { count: counts.total })}{counts.phantom > 0 && ` · ${t('inputs.phantomCount', { count: counts.phantom })}`}
-          {' · '}{t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}
         </div>
         <div className="wrap" tabIndex={0} role="region" aria-label={t('tools.name.input_list')}>
           <table>
@@ -100,6 +100,7 @@ export default function InputListPage() {
             </tbody>
           </table>
         </div>
+        <PrintFooter />
       </article>
     </div>
   )

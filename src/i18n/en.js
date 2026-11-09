@@ -348,6 +348,8 @@ export default {
   'callsheet.venueTbc': 'Venue TBC',
   'callsheet.datesTbc': 'Dates TBC',
   'callsheet.printed': 'Printed {date}',
+  'callsheet.qrHint': 'Scan to open this page live in AVX (sign-in needed)',
+  'callsheet.qrAlt': 'QR code that opens this page in AVX',
   'callsheet.call': 'Call',
   'callsheet.name': 'Name',
   'callsheet.role': 'Role',

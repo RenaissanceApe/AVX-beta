@@ -8,6 +8,7 @@ import { SYMBOLS } from '../lib/stagePlot'
 import { useI18n } from '../i18n'
 import StagePlotSvg from '../components/tools/StagePlotSvg'
 import { AvxLoader } from '../components/ui'
+import PrintFooter from '../components/PrintFooter'
 
 // Printable stage plot (docs/FIELD_TOOLS.md, F1b): the drawing in black on white, with the list
 // of what's on stage underneath. Readable by everyone on the gig, also offline.
@@ -86,7 +87,7 @@ export default function StagePlotPage() {
             </li>
           ))}
         </ul>
-        <p className="muted" style={{ marginTop: '10px', fontSize: '11px' }}>{t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}</p>
+        <PrintFooter />
       </article>
     </div>
   )
