@@ -11,6 +11,9 @@
   for keep-alive, the anon key) from the repository variables `SUPABASE_URL` and
   `SUPABASE_ANON_KEY` instead of the committed `.env`. If one is missing, the run fails and says
   which.
+- CI's `check` and `e2e` jobs take `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` from the
+  repository variables `TEST_SUPABASE_URL` / `TEST_SUPABASE_ANON_KEY` (as `e2e-auth` already did);
+  they used to get them from the committed `.env`.
 
 ## Roadmap
 Nothing to mark: a small fix from issue #125, not a ROADMAP step.
