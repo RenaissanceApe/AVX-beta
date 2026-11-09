@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { SPEC_FIELDS, SPEAKER_TYPES, inRange, specProblems, riggingOf, specsForm, specsRow, hasSpecs, findPreset, presetPatch, fillFromPreset, sourceSpecs, specsChanged, speakerFacts, normaliseName } from './speakers'
+import { SPEC_FIELDS, SPEAKER_TYPES, inRange, specProblems, riggingOf, specsForm, specsRow, hasSpecs, findPreset, presetPatch, presetSource, fillFromPreset, sourceSpecs, specsChanged, speakerFacts, normaliseName } from './speakers'
 import { PRESETS } from '../data/speakers'
 
 const field = k => SPEC_FIELDS.find(f => f.key === k)
@@ -96,6 +96,11 @@ describe('the preset data', () => {
       expect(specProblems(p.values)).toEqual({})
       for (const [k, v] of Object.entries(p.values)) if (v != null) expect(p.quotes?.[k], `${p.id}.${k} needs the datasheet's wording`).toBeTruthy()
       if (p.rigging) expect(p.rigging.checked).not.toBe(true)
+      // Nothing is cut short when it's saved (900 characters per rigging text, 4 KB in all)
+      for (const v of Object.values(p.rigging || {})) if (typeof v === 'string') expect(v.length).toBeLessThanOrEqual(900)
+      const patch = presetPatch(p)
+      expect(new TextEncoder().encode(JSON.stringify(patch.rigging || {})).length).toBeLessThanOrEqual(4000)
+      expect(presetSource(p).length).toBeLessThan(500)
     })
   }
 })
