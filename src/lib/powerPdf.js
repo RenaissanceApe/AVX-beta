@@ -1,7 +1,7 @@
 import { translate, fmtIn } from '../i18n'
 import { pdfSafe } from './quotePdf'
 import { PHASES } from './power'
-import { cableTypeName, cableLineName, cableList, runName } from './cables'
+import { cableTypeName, cableLineName, cableList, linkLabel } from './cables'
 
 // The power plan report (P1) as an A4 PDF for the gig's files, and the texts the printable page
 // shares with it. Labelled throughout as an estimate for a qualified electrician.
@@ -41,7 +41,7 @@ export function cableRows({ cables, checks, distros, tr }) {
     const x = checks[c.id]
     const power = c.kind === 'power'
     return {
-      key: c.id, name: runName(c, distros, tr), type: cableTypeName(c, tr),
+      key: c.id, name: c.label || (power ? linkLabel(c.link, distros, tr) : [c.from, c.to].filter(Boolean).join(' → ')) || '—', type: cableTypeName(c, tr),
       length: `${c.qty > 1 ? `${c.qty} × ` : ''}${tr('cables.metres', { m: c.length })}`,
       laying: power ? `${tr(`cables.lay.${c.laying}`)}${c.group ? ` (${c.group})` : ''} · ${c.ambient} °C` : tr(`cables.kind.${c.kind}`),
       amps: power && x?.amps != null ? `${x.amps} A` : '',
@@ -55,8 +55,8 @@ export const cableListRows = (cables, tr) => cableList(cables).map(l => ({ key: 
 export function inrushRows({ inrush, distros, supply, tr }) {
   return inrush.filter(g => g.inrush > 0 || g.missing > 0).map(g => ({
     key: g.key, where: placeLabel(g.phase ? { phase: g.phase } : { distro: g.distro, output: g.output }, distros, supply, tr),
-    sum: [tr('inrush.sum', { a: g.inrush, count: g.count }), g.missing ? tr('inrush.missing', { count: g.missing }) : ''].filter(Boolean).join(' · '),
-    breaker: g.rating ? `${g.rating} A (${g.ratio} ×)` : '', state: tr(`inrush.state.${g.state}`),
+    sum: [g.inrush > 0 ? tr('inrush.sum', { a: g.inrush, count: g.count }) : '', g.missing ? tr('inrush.missing', { count: g.missing }) : ''].filter(Boolean).join(' · '),
+    breaker: g.rating ? `${g.rating} A${g.inrush > 0 ? ` (${g.ratio} ×)` : ''}` : '', state: tr(`inrush.state.${g.state}`),
   }))
 }
 

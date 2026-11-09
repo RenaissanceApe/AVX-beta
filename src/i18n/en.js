@@ -2740,6 +2740,7 @@ export default {
   "inrush.state.ok": "OK",
   "inrush.state.near": "May trip (B)",
   "inrush.state.over": "May trip (C)",
+  "inrush.state.none": "No figure",
   "inrush.where": "Where",
   "inrush.head": "Inrush",
   "cables.title": "Cables",

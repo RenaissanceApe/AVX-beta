@@ -131,7 +131,7 @@ export function suggestPlacement({ loads, distros, supply, assign, plan, mode = 
 // Inrush per group of loads that power on together: each output (its breaker) and each phase of the
 // supply for loads wired straight to it. Returns groups with loads on them, worst first:
 //   { key, distro, output, phase, rating, inrush (A, summed peaks), count, missing (loads with no
-//     inrush figure), ratio (inrush ÷ rating), state: 'ok' | 'near' (> 3 ×) | 'over' (> 5 ×) }
+//     inrush figure), ratio (inrush ÷ rating), state: 'ok' | 'near' (> 3 ×) | 'over' (> 5 ×) | 'none' (no figures) }
 export function inrushGroups({ loads, distros, supply, assign }) {
   const groups = {}
   const byId = Object.fromEntries(distros.map(d => [d.id, d]))
@@ -153,16 +153,16 @@ export function inrushGroups({ loads, distros, supply, assign }) {
     if (l.inrush != null) groups[key].inrush += l.inrush
     else groups[key].missing += 1
   }
-  const rank = { over: 0, near: 1, ok: 2 }
+  const rank = { over: 0, near: 1, ok: 2, none: 3 }
   return Object.values(groups).map(g => {
     const ratio = g.rating ? g.inrush / g.rating : 0
-    return { ...g, inrush: Math.round(g.inrush * 10) / 10, ratio: Math.round(ratio * 10) / 10, state: ratio > INRUSH_C ? 'over' : ratio > INRUSH_B ? 'near' : 'ok' }
+    return { ...g, inrush: Math.round(g.inrush * 10) / 10, ratio: Math.round(ratio * 10) / 10, state: !(g.inrush > 0) ? 'none' : ratio > INRUSH_C ? 'over' : ratio > INRUSH_B ? 'near' : 'ok' }
   }).sort((a, b) => rank[a.state] - rank[b.state] || b.ratio - a.ratio)
 }
 
 // Warnings for the plan's list (same shape as planWarnings); nameOf(group) gives its place in words
 export function inrushWarnings(groups, nameOf) {
-  return groups.filter(g => g.state !== 'ok').map(g => ({
+  return groups.filter(g => g.state === 'near' || g.state === 'over').map(g => ({
     level: 'near', key: g.state === 'over' ? 'power.warn.inrushOver' : 'power.warn.inrushNear',
     vars: { name: nameOf(g), a: g.inrush, count: g.count, x: g.ratio },
   }))

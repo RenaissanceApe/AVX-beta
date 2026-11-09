@@ -57,7 +57,7 @@ export default function PowerLabelsPage() {
       {labels.length === 0 ? (
         <p className="no-print" style={{ textAlign: 'center', padding: '60px 16px', color: '#555', fontSize: '14px' }}>{t(what === 'cables' ? 'cables.noCableLabels' : 'cables.noDistroLabels')}</p>
       ) : (
-        <div className={`pl-sheet ${roll ? 'pl-roll' : ''}`} style={roll ? undefined : { gridTemplateColumns: `repeat(${s.cols}, ${s.cellW}mm)` }}>
+        <div className="pl-scroll" tabIndex={0} role="region" aria-label={t('cables.labelsTitle', { count: labels.length })}><div className={`pl-sheet ${roll ? 'pl-roll' : ''}`} style={roll ? undefined : { gridTemplateColumns: `repeat(${s.cols}, ${s.cellW}mm)` }}>
           {labels.map(l => (
             <div key={l.key} className="pl-cell" style={roll ? { width: `${s.w}mm`, height: `${s.h}mm` } : { width: `${s.cellW}mm`, height: `${s.cellH}mm` }}>
               <div className="pl-label" style={{ width: `${s.w - 2}mm`, height: `${s.h - 2}mm` }}>
@@ -66,10 +66,11 @@ export default function PowerLabelsPage() {
               </div>
             </div>
           ))}
-        </div>
+        </div></div>
       )}
       <style>{`
-        .pl-sheet { display: grid; justify-content: center; padding: 16px 0 40px; }
+        .pl-scroll { overflow-x: auto; }
+        .pl-sheet { display: grid; width: max-content; margin: 0 auto; padding: 16px 0 40px; }
         .pl-roll { display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .pl-cell { box-sizing: border-box; background: #fff; border: 1px dashed #c8ccd4; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .pl-label { box-sizing: border-box; padding: 1.5mm 2mm; font-family: Helvetica, Arial, sans-serif; overflow: hidden; }
@@ -81,11 +82,12 @@ export default function PowerLabelsPage() {
           @page { size: ${roll ? `${s.w}mm ${s.h}mm` : 'A4'}; margin: ${roll ? '0' : '0'}; }
           body, html { background: #fff !important; }
           .no-print { display: none !important; }
-          .pl-sheet { padding: 0; justify-content: start; gap: 0; }
+          .pl-scroll { overflow: visible; }
+          .pl-sheet { padding: 0; margin: 0; gap: 0; }
           .pl-cell { border-color: transparent; break-inside: avoid; }
           .pl-roll .pl-cell { break-after: page; }
         }
-        @media screen and (max-width: 700px) { .pl-sheet:not(.pl-roll) { zoom: 0.55; } }
+        @media screen and (max-width: 700px) { .pl-sheet { margin: 0; padding: 16px; } }
       `}</style>
     </div>
   )

@@ -265,7 +265,8 @@ function AddRun({ links, onAdd }) {
   )
 }
 
-// The cable list: runs grouped by cable and length, each matched to a catalogue item by name (or
+// The cable list: runs grouped by cable and length, each matched to a stock-tracked catalogue item
+// (gig equipment takes only those; new ones are created counted in bulk) by name (or
 // picked by hand, kept in power.cableItems); editors can create the missing items and add the list
 // to the gig's equipment (only what's missing is added).
 function CableList({ gig, p, edit, save, user }) {
@@ -278,7 +279,7 @@ function CableList({ gig, p, edit, save, user }) {
   useEffect(() => {
     if (!edit || !gig.org_id) return
     let gone = false
-    selectAll(() => supabase.from('price_items').select('id, name').eq('org_id', gig.org_id).is('archived_at', null).order('name').order('id')).then(r => {
+    selectAll(() => supabase.from('price_items').select('id, name').eq('org_id', gig.org_id).neq('tracking', 'none').is('archived_at', null).order('name').order('id')).then(r => {
       if (gone) return
       if (r.error) { logger.warn('power', r.error, { step: 'cable_items' }); setItems([]) } else setItems(r.data || [])
     })
@@ -290,7 +291,7 @@ function CableList({ gig, p, edit, save, user }) {
 
   async function create(l) {
     setBusy(true)
-    const { data, error } = await supabase.from('price_items').insert({ org_id: gig.org_id, created_by: user?.id, name: nameOf(l), kind: 'rental', category: t('cables.category'), unit_price: 0 }).select('id, name').single()
+    const { data, error } = await supabase.from('price_items').insert({ org_id: gig.org_id, created_by: user?.id, name: nameOf(l), kind: 'rental', tracking: 'bulk', category: t('cables.category'), unit_price: 0 }).select('id, name').single()
     setBusy(false)
     if (error) { logger.error('power', error, { step: 'cable_item' }); return notify(userMessage(error), 'error') }
     setItems(list => [...(list || []), data])

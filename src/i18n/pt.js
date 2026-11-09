@@ -2739,6 +2739,7 @@ export default {
   "inrush.state.ok": "OK",
   "inrush.state.near": "Pode disparar (B)",
   "inrush.state.over": "Pode disparar (C)",
+  "inrush.state.none": "Sem valor",
   "inrush.where": "Onde",
   "inrush.head": "Arranque",
   "cables.title": "Cabos",

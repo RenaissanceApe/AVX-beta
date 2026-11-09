@@ -5,7 +5,7 @@ import { card, colors, StatusBadge } from '../ui'
 import { Hint } from '../help/HelpParts'
 
 const small = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
-const TONE = { ok: 'ok', near: 'warn', over: 'danger' }
+const TONE = { ok: 'ok', near: 'warn', over: 'danger', none: 'off' }
 
 // Inrush groups (P2): the loads on each output power on together when its breaker closes; their
 // datasheet inrush peaks are added up and compared with the breaker (3 × may trip a B-curve
@@ -27,7 +27,7 @@ export default function InrushSection({ p }) {
             <div style={{ flex: '1 1 200px', minWidth: 0 }}>
               <strong style={{ display: 'block', fontSize: '14px' }}>{placeLabel(g.phase ? { phase: g.phase } : { distro: g.distro, output: g.output }, distros, supply, t)}</strong>
               <span style={small}>
-                {[t('inrush.sum', { a: g.inrush, count: g.count }), g.rating ? t('inrush.ratio', { x: g.ratio, breaker: g.rating }) : '', g.missing ? t('inrush.missing', { count: g.missing }) : ''].filter(Boolean).join(' · ')}
+                {[g.inrush > 0 ? t('inrush.sum', { a: g.inrush, count: g.count }) : '', g.rating && g.inrush > 0 ? t('inrush.ratio', { x: g.ratio, breaker: g.rating }) : '', g.missing ? t('inrush.missing', { count: g.missing }) : ''].filter(Boolean).join(' · ')}
               </span>
             </div>
             <StatusBadge small tone={TONE[g.state]}>{t(`inrush.state.${g.state}`)}</StatusBadge>
