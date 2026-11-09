@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { solveBeam, settingsOf, linesOf, analyseLine, fixturesOnBar, fingerprint, barRigging, defaultPoints, nextLineName, modelsById, looksLikeHoist, DEFAULTS } from './rigging'
+import { solveBeam, settingsOf, linesOf, analyseLine, fixturesOnBar, fingerprint, barRigging, defaultPoints, nextLineName, modelsById, looksLikeHoist, hoistCopy, DEFAULTS } from './rigging'
 
 // Each expected value is a hand calculation (statics for determinate beams; the standard
 // three-moment results for continuous beams of equal spans)
@@ -102,7 +102,7 @@ describe('rigging lines', () => {
     expect(settingsOf({ settings: { cable_kg_m: 500, dynamic_factor: 0.5 } })).toEqual({ cable_kg_m: 100, dynamic_factor: 1 })
     const [l] = linesOf({ lines: [{ id: 'l1', name: 'A', length_m: 99, points: [{ id: 'p', at_m: -2 }, { no: 'id' }], loads: [{ id: 'x', kg: 5, at_m: 1, to_m: '' }] }, { name: 'no id' }] })
     expect(l.length_m).toBe(40)
-    expect(l.points).toEqual([{ id: 'p', at_m: 0, hoist_model_id: null, over_people: true, motor_on_line: false }])
+    expect(l.points).toEqual([{ id: 'p', at_m: 0, hoist_model_id: null, hoist: null, over_people: true, motor_on_line: false }])
     expect(l.loads[0].to_m).toBe(null)
     expect(l.cable_kg_m).toBe(null)
     expect(Object.keys(models)).toEqual(['m1', 'm2', 'm3'])
@@ -146,6 +146,16 @@ describe('rigging lines', () => {
     expect(analyseLine(few, {}).problem).toBe('fewPoints')
     const [offLine] = linesOf({ lines: [{ id: 'l', length_m: 6, points: [{ id: 'a', at_m: 1 }, { id: 'b', at_m: 9 }] }] })
     expect(analyseLine(offLine, {}).problem).toBe('pointOffLine')
+  })
+
+  it('uses the copy kept with the point when the model can\'t be read', () => {
+    const copy = hoistCopy({ id: 'org1', brand: 'Acme', model: 'D8 250', class: 'D8', wll_kg: '250', self_weight_kg: '' })
+    expect(copy).toEqual({ id: 'org1', brand: 'Acme', model: 'D8 250', class: 'D8', wll_kg: 250, self_weight_kg: null, needs_check: true })
+    const [line] = linesOf({ lines: [{ id: 'l', length_m: 4, cable_kg_m: 0, truss_kg_m: 50,
+      points: [{ id: 'a', at_m: 0, hoist_model_id: 'org1', hoist: copy, over_people: false }, { id: 'b', at_m: 4, hoist_model_id: 'org1', hoist: copy, over_people: false }] }] })
+    const a = analyseLine(line, { settings: { cable_kg_m: 0, dynamic_factor: 1.2 } })
+    // 200 kg of truss → 100 kg per point, ×1.2 = 120 kg of 250 kg
+    expect(a.results.map(r => [r.status, r.use])).toEqual([['ok', 0.48], ['ok', 0.48]])
   })
 
   it('flags a point the line lifts off', () => {

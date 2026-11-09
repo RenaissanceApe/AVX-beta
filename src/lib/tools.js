@@ -9,8 +9,9 @@ export const TOOLS = [
   { id: 'dmx_patch', icon: 'lightbulb', ready: true },
   { id: 'light_plot', icon: 'lampCeiling', ready: true },
   { id: 'system_calc', icon: 'speaker', ready: true },
+  { id: 'rigging', icon: 'anchor', ready: true },
 ]
-export const ALL_TOOL_IDS = ['stage_plot', 'input_list', 'patch', 'dmx_patch', 'light_plot', 'system_calc']
+export const ALL_TOOL_IDS = ['stage_plot', 'input_list', 'patch', 'dmx_patch', 'light_plot', 'system_calc', 'rigging']
 
 export const readyTools = () => TOOLS.filter(t => t.ready)
 

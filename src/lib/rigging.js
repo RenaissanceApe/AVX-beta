@@ -138,11 +138,28 @@ export function linesOf(rigging) {
       id: String(p.id),
       at_m: Math.max(0, num(p.at_m, 0)),
       hoist_model_id: p.hoist_model_id ? String(p.hoist_model_id) : null,
+      hoist: p.hoist_model_id && p.hoist && typeof p.hoist === 'object' ? hoistCopy(p.hoist) : null,
       over_people: p.over_people !== false,
       motor_on_line: !!p.motor_on_line,
     })),
     checked: l.checked && l.checked.fingerprint ? { at: l.checked.at || null, fingerprint: String(l.checked.fingerprint) } : null,
   }))
+}
+
+// What a point keeps of its hoist model, so everyone on the gig sees the same check (crew outside
+// the organisation can't read its models)
+export function hoistCopy(m) {
+  if (!m) return null
+  const n = v => (v === null || v === undefined || v === '' || !Number.isFinite(Number(v)) ? null : Number(v))
+  return {
+    id: m.id ? String(m.id) : null,
+    brand: String(m.brand || '').slice(0, 60),
+    model: String(m.model || '').slice(0, 80),
+    class: HOIST_CLASSES.includes(m.class) ? m.class : null,
+    wll_kg: n(m.wll_kg),
+    self_weight_kg: n(m.self_weight_kg),
+    needs_check: m.needs_check !== false,
+  }
 }
 
 // ── From the light plot ─────────────────────────────────────────────────────
@@ -204,7 +221,7 @@ export function analyseLine(line, { bar = null, onBar = [], models = {}, setting
   }
   let motorsKg = 0
   for (const p of line.points) {
-    const m = models[p.hoist_model_id]
+    const m = models[p.hoist_model_id] || p.hoist
     if (p.motor_on_line && m?.self_weight_kg) { motorsKg += Number(m.self_weight_kg); add(points, { at: Math.min(p.at_m, length), kg: Number(m.self_weight_kg) }) }
   }
   const loads = {
@@ -224,7 +241,7 @@ export function analyseLine(line, { bar = null, onBar = [], models = {}, setting
   const problem = sorted.length < 2 ? 'fewPoints' : off.length ? 'pointOffLine' : !reactions ? 'samePlace' : null
 
   const results = sorted.map((p, i) => {
-    const m = models[p.hoist_model_id] || null
+    const m = models[p.hoist_model_id] || p.hoist || null
     const kg = reactions ? reactions[i] : null
     const dyn = kg === null ? null : kg * settings.dynamic_factor
     const wll = m && m.wll_kg !== null && m.wll_kg !== undefined ? Number(m.wll_kg) : null
