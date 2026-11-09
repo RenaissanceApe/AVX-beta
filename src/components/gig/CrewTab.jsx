@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { UserPlus, X, Clock, Phone, Send, AlertTriangle, Plus, Briefcase, Trash2, CalendarClock, UserCheck, MessageCircle, Megaphone, Search, BarChart3 } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { UserPlus, X, Clock, Phone, Send, AlertTriangle, Plus, Trash2, CalendarClock, UserCheck, MessageCircle, Megaphone, Search, BarChart3 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
@@ -10,7 +10,7 @@ import { sendInvite, inviteMessage } from '../../lib/invites'
 import { shortTime } from '../../lib/schedule'
 import { clashText, groupByUser } from '../../lib/clashes'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors, StatusBadge, CallChip, AvxLoader } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, StatusBadge, CallChip, AvxLoader, Section } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import { Avatar, RoleBadge, TabHeader } from './parts'
@@ -32,6 +32,7 @@ const latestRequests = rows => {
 
 export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, nameOf, phoneOf, onChanged, onLeft, showInvite, setShowInvite }) {
   const gigId = gig.id
+  const navigate = useNavigate()
   const { notify } = useToast()
   const { orgs } = useWorkspace()
   const [clashes, setClashes] = useState({}) // user_id -> [clash]
@@ -109,31 +110,27 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
+      {/* The tab's top: one primary (Invite) and one more in view; finding crew and posting a job in ⋯ (DESIGN.md rule 5) */}
+      <TabHeader title={t('gig.tab.crew')} subtitle={t('crew.count', { count: members.length })}
+        secondary={isPM && <button type="button" onClick={() => setCallFor({})} style={btn} title={t('crewCall.hint')}><Megaphone size={14} aria-hidden="true" /> {t('crewCall.button')}</button>}
+        action={isPM && <button type="button" onClick={() => setShowInvite(true)} style={btnPrimary}><UserPlus size={14} aria-hidden="true" /> {t('crew.invite')}</button>}
+        more={isPM && gig.org_id && (orgRole === 'admin' || orgRole === 'member') ? [
+          { label: t('crewSearch.findForGig'), icon: <Search size={15} aria-hidden="true" />, onClick: () => navigate(`/org/${gig.org_id}/crew?gig=${gigId}`) },
+          { label: t('jobs.postButton'), icon: <Send size={15} aria-hidden="true" />, onClick: () => setPostingJob(true) },
+        ] : []} />
+
       <Positions gigId={gigId} isPM={isPM} userId={userId} members={members} invites={invites}
         onInvite={title => { setInviteFor(title); setShowInvite(true) }} onCall={setCallFor} />
 
       {isPM && <CrewCallList gigId={gigId} nameOf={nameOf} refreshKey={`${callsKey}:${members.length}`} />}
 
-      <TabHeader title={t('gig.tab.crew')} subtitle={t('crew.count', { count: members.length })}
-        action={isPM && (
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button onClick={() => setCallFor({})} style={btn} title={t('crewCall.hint')}><Megaphone size={14} /> {t('crewCall.button')}</button>
-            {gig.org_id && (orgRole === 'admin' || orgRole === 'member') && (
-              <Link to={`/org/${gig.org_id}/crew?gig=${gigId}`} style={{ ...btn, textDecoration: 'none' }}><Search size={14} /> {t('crewSearch.findForGig')}</Link>
-            )}
-            {gig.org_id && (orgRole === 'admin' || orgRole === 'member') && (
-              <button onClick={() => setPostingJob(true)} style={btn}><Send size={14} /> {t('jobs.postButton')}</button>
-            )}
-            <button onClick={() => setShowInvite(true)} style={btnPrimary}><UserPlus size={14} /> {t('crew.invite')}</button>
-          </div>
-        )} />
-
+      <Section id="crew-people">
       {members.length === 0 ? (
         <EmptyState icon={<UserPlus size={28} />} title={t('crew.emptyTitle')} body={t('crew.emptyBody')}
           action={isPM ? t('crew.invite') : null} actionIcon={<UserPlus size={14} />} onAction={() => setShowInvite(true)} guide={isPM ? 'pm-invite-crew' : null} />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {members.map(m => {
+        <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+          {members.map((m, i) => {
             const self = m.user_id === userId
             const phone = phoneOf(m.user_id)
             const name = nameOf(m.user_id)
@@ -142,29 +139,31 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
             const canAddToOrg = isOrgAdmin && orgMemberIds && !orgMemberIds.has(m.user_id)
             const booked = mine.some(c => c.kind === 'booked')
             return (
-              <div key={m.user_id} className="crew-row" style={{
-                // A booking clash takes the danger-soft row; a self-reported unavailability only its warn line (DESIGN.md "CrewRow")
-                background: booked ? 'var(--danger-soft)' : 'var(--panel)', border: `1px solid ${booked ? 'var(--danger)' : colors.border}`,
-                padding: '14px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '0 14px', animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              <li key={m.user_id} className="crew-row" style={{
+                // Rows with hairlines between them, not a card each (DESIGN.md "One box deep"). A booking clash
+                // takes the danger-soft row; a self-reported unavailability only its warn line (DESIGN.md "CrewRow")
+                background: booked ? 'var(--danger-soft)' : 'transparent', borderTop: i > 0 ? `1px solid ${colors.border}` : 'none',
+                borderLeft: booked ? '2px solid var(--danger)' : 'none',
+                padding: booked ? 'var(--space-3)' : 'var(--space-3) 0', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '0 12px', animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               }}>
                 <Avatar uid={m.user_id} name={name} size={40} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {name}
                     {mine.length > 0 && !booked && (
                       <span role="img" aria-label={t('clash.badge')} title={t('clash.badge')} style={{ color: AMBER, display: 'flex' }}><AlertTriangle size={15} /></span>
                     )}
                   </div>
-                  <div style={{ fontSize: '13px', color: colors.muted, display: 'flex', flexWrap: 'wrap', gap: '4px 10px' }}>
+                  <div style={{ fontSize: '13px', color: colors.muted, display: 'flex', flexWrap: 'wrap', gap: '4px 12px' }}>
                     <span>{m.function_title || '—'}</span>
                     {phone && (
                       <a href={`tel:${phone.replace(/[^+\d]/g, '')}`} style={{ color: colors.soft, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                        <Phone size={11} style={{ verticalAlign: 'middle', marginRight: '3px' }} />{phone}
+                        <Phone size={13} aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '4px' }} />{phone}
                       </a>
                     )}
                     {shift && (
-                      <span style={{ color: colors.soft, whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
-                        <CalendarClock size={11} style={{ verticalAlign: 'middle', marginRight: '3px' }} />{t('shift.booked', { range: shift })}
+                      <span style={{ color: colors.soft, whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
+                        <CalendarClock size={13} aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '4px' }} />{t('shift.booked', { range: shift })}
                       </span>
                     )}
                   </div>
@@ -199,7 +198,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
                         onAsk={() => setAsking(m)} onWithdraw={() => withdraw(requests[m.user_id])} />
                     )}
                     {(isPM || canAddToOrg) && (
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
                         {isPM && (
                           <button onClick={() => setShiftFor(m)} style={rowBtn}>
                             <CalendarClock size={13} /> {shift ? t('shift.edit') : t('shift.set')}
@@ -214,21 +213,21 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
                     )}
                   </div>
                 )}
-              </div>
+              </li>
             )
           })}
-        </div>
+        </ul>
       )}
+      </Section>
 
       {invites.length > 0 && (
-        <div style={{ marginTop: '24px' }}>
-          <h3 style={{ ...label, marginBottom: '10px' }}>{t('crew.pending')}</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {invites.map(inv => (
-              <div key={inv.id} style={{ border: '1px dashed var(--line-strong)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <Section id="crew-pending" title={t('crew.pending')} level={3}>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {invites.map((inv, i) => (
+              <li key={inv.id} style={{ borderTop: i > 0 ? `1px solid ${colors.border}` : 'none', padding: 'var(--space-3) 0', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inv.email}</div>
-                  <div style={{ fontSize: '12px', color: colors.muted }}>
+                  <div style={{ fontSize: '13px', color: colors.muted }}>
                     {inv.function_title || '—'}{inv.call_time ? ` · ${t('crew.call', { time: shortTime(inv.call_time) })}` : ''}
                   </div>
                 </div>
@@ -237,10 +236,10 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
                 <button onClick={() => cancelInvite(inv)} aria-label={t('crew.cancelInviteFor', { email: inv.email })} title={t('crew.cancelInvite')} style={iconBtn}>
                   <X size={15} />
                 </button>
-              </div>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </Section>
       )}
 
       {isPM ? <LabourCost gig={gig} members={members} nameOf={nameOf} refreshKey={hoursKey} canFinance={orgRole === 'admin' || orgRole === 'member'} /> : <MyFee gigId={gigId} userId={userId} />}
@@ -248,10 +247,10 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
       <GigExpenses gig={gig} isPM={isPM} orgRole={orgRole} userId={userId} nameOf={nameOf} />
 
       <style>{`
-        .crew-extra { flex-basis: 100%; padding-left: 56px; min-width: 0; }
+        .crew-extra { flex-basis: 100%; padding-left: 52px; min-width: 0; }
         @media (max-width: 640px) {
           .crew-extra { padding-left: 0; }
-          .crew-chips { order: 5; flex-basis: 100%; justify-content: flex-start !important; padding-left: 54px; margin-top: 8px; }
+          .crew-chips { order: 5; flex-basis: 100%; justify-content: flex-start !important; padding-left: 52px; margin-top: 8px; }
         }
       `}</style>
       {showInvite && <InviteModal gigId={gigId} functionTitle={inviteFor} onClose={() => { setShowInvite(false); setInviteFor('') }} onInvited={onChanged} />}
@@ -268,7 +267,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
   )
 }
 
-const rowBtn = { ...btn, padding: '5px 10px', fontSize: '12px', color: 'var(--text-2)' }
+const rowBtn = { ...btn, padding: '4px 12px', color: 'var(--text-2)' }
 
 const EMPTY_INVITE = { email: '', role: 'crew', function_title: '', call_time: '' }
 
@@ -340,12 +339,12 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
 
   return (
     <Modal title={t('crew.inviteTitle')} onClose={onClose}>
-      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {picked ? (
           <div>
             <PickedPerson person={picked} onClear={() => setPicked(null)} />
             {picked.busy && (
-              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '8px', color: AMBER, borderColor: 'var(--warn)', background: 'var(--warn-soft)' }}>
+              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '4px 12px', fontSize: '13px', marginTop: '8px', color: AMBER, borderColor: 'var(--warn)', background: 'var(--warn-soft)' }}>
                 {t('ask.first')}
               </button>
             )}
@@ -358,13 +357,13 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
           <input id="inv-email" type="email" value={form.email} onChange={e => { setClashes([]); setForm(f => ({ ...f, email: e.target.value })) }}
             onBlur={checkAvailability} placeholder={t('crew.emailPlaceholder')} style={input} required />
           {clashes.length > 0 && (
-            <div role="status" style={{ marginTop: '8px', padding: '9px 11px', background: 'var(--warn-soft)', border: '1px solid var(--warn)', fontSize: '12px', color: AMBER, lineHeight: 1.6 }}>
-              <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
+            <div role="status" style={{ marginTop: '8px', padding: '8px 12px', background: 'var(--warn-soft)', border: '1px solid var(--warn)', fontSize: '13px', color: AMBER, lineHeight: 1.6 }}>
+              <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
                 <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: '2px' }} />
                 {clashes.some(c => c.kind === 'booked') ? t('clash.advice', { name: form.email.trim() }) : t('clash.unavailableAdvice', { name: form.email.trim() })}
               </strong>
               {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '18px' }}>{clashText(c)}</div>)}
-              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginTop: '6px', marginLeft: '18px', color: AMBER, borderColor: 'var(--warn)', background: 'var(--warn-soft)' }}>
+              <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '4px 12px', fontSize: '13px', marginTop: '8px', marginLeft: '20px', color: AMBER, borderColor: 'var(--warn)', background: 'var(--warn-soft)' }}>
                 {t('ask.first')}
               </button>
             </div>
@@ -389,10 +388,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
             <input id="inv-call" type="time" value={form.call_time} onChange={e => setForm(f => ({ ...f, call_time: e.target.value }))} style={input} />
           </div>
         </div>
-        <div style={{
-          padding: '10px 13px', background: 'var(--selection)', border: '1px solid var(--accent)',
-          fontSize: '12px', color: colors.muted, lineHeight: 1.6,
-        }}>💡 {t('crew.inviteHint')}</div>
+        <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('crew.inviteHint')}</p>
         <button type="submit" disabled={sending || (!picked && !form.email.trim())} style={{ ...btnPrimary, justifyContent: 'center', padding: '13px' }}>
           {sending ? <AvxLoader size={16} /> : <Send size={16} />} {t('crew.addToGig')}
         </button>
@@ -452,46 +448,41 @@ function Positions({ gigId, isPM, userId, members, invites, onInvite, onCall }) 
 
   const open = positions.filter(p => !hidden.has(p.id)).reduce((sum, p) => sum + Math.max(0, p.quantity - filledFor(p.title)), 0)
   return (
-    <section style={{ marginBottom: '26px' }} aria-labelledby="positions-title">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
-        <h3 id="positions-title" style={{ ...label, marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Briefcase size={13} /> {t('positions.heading')}
-        </h3>
-        {positions.length > 0 && <span style={{ fontSize: '12px', color: open ? 'var(--warn)' : colors.accentText }}>{open ? t('positions.open', { count: open }) : t('positions.allFilled')}</span>}
-        {isPM && !adding && <button onClick={() => setAdding(true)} style={{ ...btn, marginLeft: 'auto', padding: '6px 10px' }}><Plus size={13} /> {t('positions.add')}</button>}
-      </div>
-      {positions.length === 0 && !adding && <p style={{ fontSize: '13px', color: colors.muted }}>{t('positions.empty')}</p>}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {positions.filter(p => !hidden.has(p.id)).map(pos => {
+    <Section id="positions-title" level={3} title={t('positions.heading')}
+      aside={isPM && !adding && <button type="button" onClick={() => setAdding(true)} style={{ ...btn, padding: '4px 12px' }}><Plus size={14} aria-hidden="true" /> {t('positions.add')}</button>}>
+      {positions.length > 0 && <p style={{ fontSize: '13px', margin: '0 0 var(--space-2)', color: open ? 'var(--warn)' : colors.muted }}>{open ? t('positions.open', { count: open }) : t('positions.allFilled')}</p>}
+      {positions.length === 0 && !adding && <p style={{ fontSize: '13px', color: colors.muted, margin: 0 }}>{t('positions.empty')}</p>}
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        {positions.filter(p => !hidden.has(p.id)).map((pos, i) => {
           const filled = filledFor(pos.title)
           return (
-            <div key={pos.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', border: `1px solid ${colors.border}`, background: 'var(--fill)' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
+            <li key={pos.id} style={{ display: 'flex', alignItems: 'center', gap: '8px 12px', flexWrap: 'wrap', padding: 'var(--space-3) 0', borderTop: i > 0 ? `1px solid ${colors.border}` : 'none' }}>
+              <div style={{ flex: '1 1 140px', minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: '14px' }}>{pos.title}</div>
-                {pos.notes && <div style={{ fontSize: '12px', color: colors.muted }}>{pos.notes}</div>}
+                {pos.notes && <div style={{ fontSize: '13px', color: colors.muted }}>{pos.notes}</div>}
               </div>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: filled >= pos.quantity ? colors.accentText : 'var(--warn)', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '13px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: filled >= pos.quantity ? colors.accentText : 'var(--warn)', whiteSpace: 'nowrap' }}>
                 {t('positions.filled', { filled, total: pos.quantity })}
               </span>
               {isPM && (
-                <>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <input type="number" min={1} max={99} defaultValue={pos.quantity} key={pos.quantity} onBlur={e => setQuantity(pos, e.target.value)}
-                    aria-label={t('positions.quantityFor', { title: pos.title })} style={{ ...input, width: '58px', padding: '5px 6px' }} />
+                    aria-label={t('positions.quantityFor', { title: pos.title })} style={{ ...input, width: '64px', padding: '4px 8px' }} />
                   {filled < pos.quantity && (
                     <>
-                      <button onClick={() => onCall({ title: pos.title, quantity: Math.min(20, pos.quantity - filled) })} aria-label={t('crewCall.forNamed', { title: pos.title })} title={t('crewCall.button')} style={iconBtn}><Megaphone size={15} /></button>
-                      <button onClick={() => onInvite(pos.title)} aria-label={t('positions.inviteFor', { title: pos.title })} title={t('crew.invite')} style={{ ...iconBtn, color: colors.accentText }}><UserPlus size={15} /></button>
+                      <button onClick={() => onCall({ title: pos.title, quantity: Math.min(20, pos.quantity - filled) })} aria-label={t('crewCall.forNamed', { title: pos.title })} title={t('crewCall.button')} style={iconBtn}><Megaphone size={16} /></button>
+                      <button onClick={() => onInvite(pos.title)} aria-label={t('positions.inviteFor', { title: pos.title })} title={t('crew.invite')} style={{ ...iconBtn, color: colors.accentText }}><UserPlus size={16} /></button>
                     </>
                   )}
-                  <button onClick={() => remove(pos)} aria-label={t('positions.removeNamed', { title: pos.title })} title={t('positions.remove')} style={iconBtn}><Trash2 size={14} /></button>
-                </>
+                  <button onClick={() => remove(pos)} aria-label={t('positions.removeNamed', { title: pos.title })} title={t('positions.remove')} style={iconBtn}><Trash2 size={16} /></button>
+                </span>
               )}
-            </div>
+            </li>
           )
         })}
-      </div>
+      </ul>
       {adding && (
-        <form onSubmit={add} style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+        <form onSubmit={add} style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
           <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} maxLength={120} placeholder={t('crew.functionPlaceholder')}
             aria-label={t('positions.title')} autoFocus style={{ ...input, flex: '1 1 200px' }} />
           <input type="number" min={1} max={99} value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
@@ -500,6 +491,6 @@ function Positions({ gigId, isPM, userId, members, invites, onInvite, onCall }) 
           <button type="button" onClick={() => setAdding(false)} aria-label={t('common.cancel')} style={iconBtn}><X size={16} /></button>
         </form>
       )}
-    </section>
+    </Section>
   )
 }

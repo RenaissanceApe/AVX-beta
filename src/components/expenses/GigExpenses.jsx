@@ -8,7 +8,7 @@ import { logger } from '../../lib/logger'
 import { localToday } from '../../lib/gigs'
 import { EXPENSE_SELECT } from '../../lib/expenses'
 import { useI18n } from '../../i18n'
-import { btn, card, colors } from '../ui'
+import { btn, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import { ExpenseRow, ClaimActions, Totals } from './ExpenseParts'
 import ExpenseForm from './ExpenseForm'
@@ -41,10 +41,11 @@ export default function GigExpenses({ gig, isPM, orgRole, userId, nameOf }) {
   const presetGig = { gig_id: gig.id, gigs: [{ id: gig.id, name: gig.name, start_date: gig.start_date }] }
 
   return (
-    <section aria-labelledby="gig-expenses" style={{ ...card, padding: '14px 16px', marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    // On the gig page's Crew tab: a section on the page ground, not a card (DESIGN.md "One box deep"; DR2)
+    <section aria-labelledby="gig-expenses" className="avx-section" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-        <h3 id="gig-expenses" style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', flex: '1 1 160px' }}>
-          <Receipt size={15} color="var(--accent-text)" /> {t('expenses.gigTitle')}
+        <h3 id="gig-expenses" className="avx-section__title" style={{ flex: '1 1 160px' }}>
+          {t('expenses.gigTitle')}
         </h3>
         <button type="button" onClick={() => setEditing('claim')} style={btn}><Plus size={14} /> {t('expenses.newClaim')}</button>
         {canSee && <button type="button" onClick={() => setEditing('new')} style={btn}><Plus size={14} /> {t('expenses.add')}</button>}
