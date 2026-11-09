@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Printer, Plus, Trash2, AlertTriangle, Info, Plug, FileDown } from 'lucide-react'
+import { Printer, Plus, Trash2, AlertTriangle, Info, Plug, FileDown, Scale } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
@@ -15,6 +15,9 @@ import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, StatusBadg
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import usePowerPlan from './usePowerPlan'
+import CablesSection from './CablesSection'
+import InrushSection from './InrushSection'
+import BalanceModal from './BalanceModal'
 
 const row = { display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }
 const small = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
@@ -54,6 +57,7 @@ export default function PowerTool({ gig, canEdit }) {
   const [kind, setKind] = useState('all')
   const [picked, setPicked] = useState(new Set())
   const [filing, setFiling] = useState(false)
+  const [balancing, setBalancing] = useState(false)
   const { user } = useAuth() || {}
 
   if (!p.data) return <AvxLoader size={20} color={colors.accentText} />
@@ -99,7 +103,7 @@ export default function PowerTool({ gig, canEdit }) {
     setFiling(true)
     try {
       const lang = getLanguage()
-      const doc = await buildPowerPdf({ gig, org: gig.organisations?.name || '', supply, distros, loads, assign, plan, warnings, lang })
+      const doc = await buildPowerPdf({ gig, org: gig.organisations?.name || '', supply, distros, loads, assign, plan, warnings, cables: p.cables, checks: p.checks, inrush: p.inrush, lang })
       const blob = doc.output('blob')
       const path = `${gig.id}/${Date.now()}-power.pdf`
       const { error: upErr } = await supabase.storage.from('gig-assets').upload(path, blob, { contentType: 'application/pdf' })
@@ -173,7 +177,10 @@ export default function PowerTool({ gig, canEdit }) {
       </section>
 
       <section aria-labelledby="power-loads" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <h3 id="power-loads" style={{ ...h3, marginBottom: 0 }}>{t('power.loads')}</h3>
+        <div style={{ ...row, justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 id="power-loads" style={{ ...h3, marginBottom: 0 }}>{t('power.loads')}</h3>
+          {edit && loads.some(l => !l.unknown) && <button type="button" onClick={() => setBalancing(true)} style={btn}><Scale size={14} aria-hidden="true" /> {t('balance.open')}</button>}
+        </div>
         <p style={small}>{t('power.total', { watts: wattsText(plan.total.watts), count: plan.total.count })}{plan.unplugged.count > 0 && ` · ${t('power.unpluggedTotal', { count: plan.unplugged.count, watts: wattsText(plan.unplugged.watts) })}`}</p>
         <div style={row}>
           <div style={{ width: '200px' }}>
@@ -235,6 +242,19 @@ export default function PowerTool({ gig, canEdit }) {
           track('power:manual')
         }} />}
       </section>
+
+      <InrushSection p={p} />
+
+      <CablesSection gig={gig} p={p} edit={edit} save={save} />
+
+      {balancing && (
+        <BalanceModal p={p} onClose={() => setBalancing(false)} onApply={next => {
+          const before = { assign }
+          save({ assign: next })
+          setBalancing(false)
+          notify(t('balance.applied'), 'success', { action: { label: t('common.undo'), onClick: () => save(before) } })
+        }} />
+      )}
 
       {adding && (
         <Modal title={t('power.addDistro')} onClose={() => setAdding(false)}>

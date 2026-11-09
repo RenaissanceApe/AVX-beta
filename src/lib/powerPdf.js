@@ -1,6 +1,7 @@
 import { translate, fmtIn } from '../i18n'
 import { pdfSafe } from './quotePdf'
 import { PHASES } from './power'
+import { cableTypeName, cableLineName, cableList, runName } from './cables'
 
 // The power plan report (P1) as an A4 PDF for the gig's files, and the texts the printable page
 // shares with it. Labelled throughout as an estimate for a qualified electrician.
@@ -34,7 +35,32 @@ export function generatorLine(g, tr) {
   return g.size ? tr('power.generatorSize', { size: g.size, kva: g.kva, margin: g.margin }) : tr('power.generatorTooBig', { kva: g.needed })
 }
 
-export async function buildPowerPdf({ gig, org, supply, distros, loads, assign, plan, warnings, lang }) {
+// P2: the cable runs, the cable list and the inrush groups as table rows (texts), for the page and the PDF
+export function cableRows({ cables, checks, distros, tr }) {
+  return cables.map(c => {
+    const x = checks[c.id]
+    const power = c.kind === 'power'
+    return {
+      key: c.id, name: runName(c, distros, tr), type: cableTypeName(c, tr),
+      length: `${c.qty > 1 ? `${c.qty} × ` : ''}${tr('cables.metres', { m: c.length })}`,
+      laying: power ? `${tr(`cables.lay.${c.laying}`)}${c.group ? ` (${c.group})` : ''} · ${c.ambient} °C` : tr(`cables.kind.${c.kind}`),
+      amps: power && x?.amps != null ? `${x.amps} A` : '',
+      cap: power && x?.cap ? `${x.cap.amps} A` : '',
+      drop: power && x?.drop ? tr('cables.dropCell', { pct: x.drop.pct, total: x.total }) : '',
+      state: power && x ? tr(`cables.state.${x.state}`) : '',
+    }
+  })
+}
+export const cableListRows = (cables, tr) => cableList(cables).map(l => ({ key: l.key, qty: l.qty, name: cableLineName(l, tr), kind: tr(`cables.kind.${l.kind}`) }))
+export function inrushRows({ inrush, distros, supply, tr }) {
+  return inrush.filter(g => g.inrush > 0 || g.missing > 0).map(g => ({
+    key: g.key, where: placeLabel(g.phase ? { phase: g.phase } : { distro: g.distro, output: g.output }, distros, supply, tr),
+    sum: [tr('inrush.sum', { a: g.inrush, count: g.count }), g.missing ? tr('inrush.missing', { count: g.missing }) : ''].filter(Boolean).join(' · '),
+    breaker: g.rating ? `${g.rating} A (${g.ratio} ×)` : '', state: tr(`inrush.state.${g.state}`),
+  }))
+}
+
+export async function buildPowerPdf({ gig, org, supply, distros, loads, assign, plan, warnings, cables = [], checks = {}, inrush = [], lang }) {
   const [{ jsPDF }, { default: autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')])
   const L = lang === 'en' ? 'en' : 'pt'
   const tr = (key, vars) => pdfSafe(translate(L, key, vars))
@@ -107,8 +133,24 @@ export async function buildPowerPdf({ gig, org, supply, distros, loads, assign, 
     [tr('power.loadName'), tr('power.kindLabel'), tr('power.qty'), tr('power.draw'), tr('power.pluggedHead'), tr('power.statusHead')],
     loads.map(l => [pdfSafe(l.name), tr(`power.kind.${l.kind}`), String(l.qty), figureLabel(l, tr), placeLabel(assign[l.key], distros, supply, tr), tr(`power.status.${plan.loads[l.key].status}`)]),
   )
+  const surges = inrushRows({ inrush, distros, supply, tr })
+  if (surges.length) {
+    heading(tr('inrush.title'))
+    table([tr('inrush.where'), tr('inrush.head'), tr('power.breaker'), tr('power.statusHead')], surges.map(r => [pdfSafe(r.where), r.sum, r.breaker, r.state]))
+  }
+  const runs = cableRows({ cables, checks, distros, tr })
+  if (runs.length) {
+    heading(tr('cables.title'))
+    table(
+      [tr('cables.run'), tr('cables.type'), tr('cables.length'), tr('cables.laying'), tr('power.current'), tr('cables.capacityHead'), tr('cables.dropHead'), tr('power.statusHead')],
+      runs.map(r => [pdfSafe(r.name), r.type, r.length, r.laying, r.amps, r.cap, r.drop, r.state]),
+    )
+    heading(tr('cables.list'))
+    table([tr('power.qty'), tr('cables.type'), tr('cables.kindLabel')], cableListRows(cables, tr).map(r => [String(r.qty), pdfSafe(r.name), r.kind]))
+  }
   heading(tr('power.assumptions'))
   for (const k of ['power.assume.sum', 'power.assume.pf', 'power.assume.harmonics', 'power.assume.amps', 'power.assume.unplugged']) para(`• ${tr(k)}`, 8.5)
+  if (runs.length || surges.length) for (const k of ['drop', 'capacity', 'inrush', 'sources']) para(`• ${tr(`cables.assume.${k}`)}`, 8.5)
   para(tr('callsheet.printed', { date: fmtIn(L, new Date(), 'd MMM yyyy, HH:mm') }), 8)
   return doc
 }

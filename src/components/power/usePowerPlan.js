@@ -7,6 +7,10 @@ import { sourcesOf } from '../../lib/systemCalc'
 import {
   supplyOf, distrosOf, manualOf, assignOf, figuresMap, marginOf, figuresOf, gatherLoads, powerPlan, planWarnings,
 } from '../../lib/power'
+import { cablesOf, cableChecks, cableWarnings, runName } from '../../lib/cables'
+import { inrushGroups, inrushWarnings } from '../../lib/powerBalance'
+import { placeLabel } from '../../lib/powerPdf'
+import { t } from '../../i18n'
 
 const ITEM_FIELDS = 'id, name, power_w, power_typical_w, power_factor, inrush_a, current_a, current_v, connector_in, distro'
 
@@ -87,11 +91,21 @@ export default function usePowerPlan(gig, { canEdit = false } = {}) {
     const sources = sourcesOf(data.system)
     const loads = gatherLoads({ fixtures: data.fixtures, sources, equipment: data.equipment, manual, figures: figuresMap(data.power) })
     const plan = powerPlan({ supply, distros, loads, assign, margin: marginOf(data.power) })
-    return { supply, distros, manual, assign, loads, plan, margin: marginOf(data.power), warnings: planWarnings(plan, distros, supply) }
+    // P2: cable runs checked against the plan, and inrush per output
+    const cables = cablesOf(data.power)
+    const checks = cableChecks({ cables, plan, distros, supply })
+    const inrush = inrushGroups({ loads, distros, supply, assign })
+    const rank = { over: 0, near: 1, info: 2 }
+    const warnings = [
+      ...planWarnings(plan, distros, supply),
+      ...cableWarnings(checks, cables, c => runName(c, distros, t)),
+      ...inrushWarnings(inrush, g => placeLabel(g.phase ? { phase: g.phase } : { distro: g.distro, output: g.output }, distros, supply, t)),
+    ].sort((a, b) => rank[a.level] - rank[b.level])
+    return { supply, distros, manual, assign, loads, plan, margin: marginOf(data.power), warnings, cables, checks, inrush }
   }, [data])
 
   return { data, savedAt, catalogue, save, reload: load, ...(worked || {}) }
 }
 
 // Has this gig a power plan yet? (a supply saved, a distro or a typed load)
-export const hasPlan = power => Boolean(power && (power.supply || (power.distros || []).length || (power.manual || []).length))
+export const hasPlan = power => Boolean(power && (power.supply || (power.distros || []).length || (power.manual || []).length || (power.cables || []).length))

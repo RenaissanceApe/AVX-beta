@@ -84,6 +84,7 @@ export const GUIDES = {
   'pm-system-calc': { role: 'pm', pages: ['gig'], terms: ['haas', 'spl', 'field-tools', 'speaker-specs'], shots: [null, 'system-sources', 'system-listeners', null] },
   'pm-light-plot': { role: 'pm', pages: ['gig'], terms: ['truss', 'power-phase', 'dmx-address'], shots: [null, 'light-bar', 'light-plot', 'light-power'] },
   'pm-power': { role: 'pm', pages: ['gig'], terms: ['distro', 'power-phase', 'breaker-headroom', 'neutral-current', 'power-factor'], shots: [null, null, null, null] },
+  'pm-cables': { role: 'pm', pages: ['gig'], terms: ['voltage-drop', 'cable-capacity', 'inrush-current', 'distro', 'breaker-headroom'], shots: [null, null, null, null] },
   'pm-rigging': { role: 'pm', pages: ['gig'], terms: ['wll', 'hoist-class', 'dynamic-factor', 'hang-point', 'truss'], shots: [null, null, null, null] },
   'pm-mvr': { role: 'pm', pages: ['gig', 'inventory-item'], terms: ['mvr', 'gdtf', 'dmx-address', 'field-tools'], shots: [null, 'mvr-match', null, null] },
   'pm-stage-plot': { role: 'pm', pages: ['gig'], terms: ['stage-plot', 'input-list', 'field-tools'], shots: [null, 'plot-drawing', 'plot-list', 'plot-to-inputs'] },

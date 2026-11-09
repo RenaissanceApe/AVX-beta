@@ -285,3 +285,81 @@ export function cablesToEquipment(lines, matched, equipment) {
     return { item_id, needed, have, add: Math.max(0, needed - have), line_id: line?.id || null }
   })
 }
+
+// ── Names, for screens, the report and labels (tr: t or a translate bound to a language) ──────────
+export function cableTypeName(run, tr) {
+  if (run.type) return tr(`cables.type.${run.type}`)
+  if (run.cores) return tr('cables.custom', { cores: run.cores, mm2: String(run.mm2).replace('.', tr('cables.decimal')) })
+  return '—'
+}
+// A line of the cable list (or a run) as a catalogue name: "CEE 32 A three-phase (5G6) · 25 m"
+export const cableLineName = (line, tr) => `${cableTypeName(line, tr)} · ${tr('cables.metres', { m: String(line.length).replace('.', tr('cables.decimal')) })}`
+// Where a power run goes, in words
+export function linkLabel(link, distros, tr) {
+  if (!link) return tr('cables.noLink')
+  const byId = Object.fromEntries(distros.map(d => [d.id, d]))
+  if (link.startsWith('d:')) {
+    const d = byId[link.slice(2)]
+    if (!d) return tr('cables.noLink')
+    const from = d.feed === 'supply' ? tr('power.fromSupply') : d.feed ? `${byId[d.feed.distro]?.name || '—'} · ${byId[d.feed.distro]?.outputs.find(o => o.id === d.feed.output)?.label || '—'}` : tr('power.notPlugged')
+    return tr('cables.feedOf', { from, to: d.name })
+  }
+  const [did, oid] = link.slice(2).split('/')
+  const d = byId[did]
+  const i = d ? d.outputs.findIndex(o => o.id === oid) : -1
+  if (i < 0) return tr('cables.noLink')
+  return tr('cables.fromOutput', { name: `${d.name} · ${d.outputs[i].label || tr('power.outputN', { n: i + 1 })}` })
+}
+// A run's name in lists and warnings: its label, else what it is and where
+export function runName(run, distros, tr) {
+  if (run.label) return run.label
+  const what = cableLineName(run, tr)
+  if (run.kind === 'power') return `${what} (${linkLabel(run.link, distros, tr)})`
+  return run.from || run.to ? `${what} (${[run.from, run.to].filter(Boolean).join(' → ')})` : what
+}
+// Every place a power run can carry: each distro's feed and each output
+export function linkChoices(distros, tr) {
+  return distros.flatMap(d => [
+    { value: `d:${d.id}`, text: linkLabel(`d:${d.id}`, distros, tr) },
+    ...d.outputs.map(o => ({ value: `o:${d.id}/${o.id}`, text: linkLabel(`o:${d.id}/${o.id}`, distros, tr) })),
+  ])
+}
+// The cable type that fits a connector (for runs suggested from the plan)
+export const typeForConnector = connector => CABLE_TYPES.find(c => c.kind === 'power' && c.connector === connector) || null
+
+// Runs for every link of the plan that has none yet: each distro's feed (by its input connector) and
+// each output with something plugged in (by its connector). Lengths are a first guess to edit.
+export function runsFromPlan({ distros, plan, cables, newId }) {
+  const have = new Set(cables.map(c => c.link).filter(Boolean))
+  const out = []
+  for (const d of distros) {
+    const t = typeForConnector(d.input)
+    if (d.feed && t && !have.has(`d:${d.id}`)) out.push({ id: newId('c'), kind: 'power', type: t.id, length: 25, qty: 1, laying: 'air', ambient: 30, link: `d:${d.id}` })
+    for (const o of d.outputs) {
+      const ot = typeForConnector(o.connector)
+      if (ot && plan.distros[d.id]?.outputs[o.id]?.loads.length && !have.has(`o:${d.id}/${o.id}`)) {
+        out.push({ id: newId('c'), kind: 'power', type: ot.id, length: 10, qty: 1, laying: 'air', ambient: 30, link: `o:${d.id}/${o.id}` })
+      }
+    }
+  }
+  return out
+}
+
+// Labels for distros and cables (U5 sizes, docs/TOOLS_PLAN.md D31): [{ key, size, title, lines }]
+export function powerLabels({ distros, cables, supply, tr }) {
+  const labels = []
+  for (const d of distros) {
+    const feed = d.feed === 'supply' ? tr('power.fromSupply') : d.feed ? linkLabel(`d:${d.id}`, distros, tr) : tr('power.notPlugged')
+    labels.push({
+      key: `d:${d.id}`, size: 'medium', title: d.name,
+      lines: [feed, d.outputs.map((o, i) => `${o.label || tr('power.outputN', { n: i + 1 })} ${supply.phases === 1 ? '' : o.phase}${o.breaker_a ? ` ${o.breaker_a} A` : ''}`.trim()).join(' · ')].filter(Boolean),
+    })
+  }
+  for (const c of cables) {
+    for (let n = 1; n <= c.qty; n++) {
+      const where = c.kind === 'power' ? (c.link ? linkLabel(c.link, distros, tr) : '') : [c.from, c.to].filter(Boolean).join(' → ')
+      labels.push({ key: `c:${c.id}:${n}`, size: 'small', title: c.label || cableTypeName(c, tr), lines: [tr('cables.metres', { m: c.length }), where].filter(Boolean) })
+    }
+  }
+  return labels
+}
