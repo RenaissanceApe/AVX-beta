@@ -47,7 +47,7 @@ session regenerates the help screenshots of the guides whose screens it changed,
 | **DR2** Gig ✅ built (see "How the gig page works") | Gig header, Overview (next-event card included), Schedule, Crew, Equipment, Feed/Chat tabs | The most used screen |
 | **DR3** Lists ✅ built (see "How the list pages work") | Quotes, Invoices, Inventory, Contacts, Members, Expenses, Hours, Leave, Jobs, Find crew | Same pattern repeated: header, filters, list rows |
 | **DR4** Detail and editors | Quote editor (stays compact in the line grid), Inventory item, Reports, Settings and organisation settings dialogs, Import | Denser screens: apply rules 2–5 without losing data |
-| **DR5** Field and crew | My work, Simple home, On-site, Scan and Dispatch, field tools, Messages, Help | Used standing up and on phones |
+| **DR5** Field and crew ✅ built (see "How the field and crew screens work") | My work, Simple home, On-site, Scan and Dispatch, field tools, Messages, Help | Used standing up and on phones |
 | **DR6** Sweep | Everything left, the ratchet test down to zero, all help screenshots refreshed, the design system artifact brought in line | Finishes the refresh |
 
 ## How the foundations work (DR1, built)
@@ -106,6 +106,29 @@ with hairlines between them. A row that needs attention (a booking clash, gear s
 
 **Not in DR2**: On-site mode (`OnSiteView.jsx`) and the next-event card on the Simple home (`SimpleHome.jsx`) are
 DR5's; the card's two visible actions were picked here (Call sheet and Chat).
+
+## How the field and crew screens work (DR5, built)
+
+- **Text sizes and gaps** in every DR5 file are on the scales (the ratchet baseline has no DR5 file left in it, except
+  `DmxWalkPage.jsx`'s `0.45em`, which the counter reads as a 0). Off-scale sizes went to the nearest size above
+  (12 → 13, 15 → 16, 17 → 16 for headings); gaps to the nearest step (6 → 8, 10 → 12, 14 → 16).
+- **Headers:** My tasks, My numbers, Pocket tools, Messages and Dispatch use `PageHeader`; Help and a guide use the
+  page-title type (`.avx-page-head__title`). Dispatch: Sound and Scan mode stay in view (used standing); Packing list and
+  the warehouse numbers are secondary (in ⋯ on a phone). Record is the screen's one green fill.
+- **One box deep:** On-site mode's Today and My tasks, My numbers' sections, the Simple home's later gigs, the Messages
+  list, search and saved, the Help guides and glossary and the light plot's fixture list are sections or hairline rows,
+  not cards. Cards stay for things you act on: the On-site tiles, the next-gig card, the scan form, the availability
+  question, the open conversation, the field tools' editors.
+- **The Simple home's next-gig card:** two buttons in view (Call sheet, the one green fill, and Chat), Read aloud under
+  them, Open the gig and Report damage in the card's ⋯.
+- **Selected and current:** Messages' Search / Saved and My tasks' "Open only" are marked with a 2px accent bar; the
+  glossary word you arrived at has the `selection` wash and a 2px accent edge; your call on On-site has the wash.
+  Guide step numbers are an outlined square with green text, no longer a green fill per step.
+- **44px targets** for what's used standing: On-site's buttons and schedule rows, the Simple home's buttons, Dispatch's
+  form and rows, the Messages header's icon buttons and Search / Saved / New channel, the glossary search.
+- **Not changed:** the field tools' print sheets (stage plot, input list, patch, light plot, system, rehearsal report)
+  are paper documents. Field-tool row cards that show a state with their border (a DMX clash, a checked input line, a
+  note's priority) keep the card until DR6 finds another signal that isn't colour alone.
 
 ## How the list pages work (DR3, built)
 

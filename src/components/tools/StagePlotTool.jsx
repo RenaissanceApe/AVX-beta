@@ -193,19 +193,19 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
 
   return (
     <section aria-labelledby="stage-plot-title">
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
         <div style={{ flex: '1 1 200px' }}>
-          <h2 id="stage-plot-title" style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>{t('tools.name.stage_plot')}</h2>
+          <h2 id="stage-plot-title" style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>{t('tools.name.stage_plot')}</h2>
           <p style={{ color: colors.muted, fontSize: '13px' }}>
             {t('plot.count', { count: shown.length })}{channels > 0 && ` · ${t('plot.channels', { count: channels })}`}
           </p>
         </div>
         {shown.length > 0 && <Link to={`/gig/${gig.id}/plot`} style={{ ...btn, textDecoration: 'none' }}><Printer size={14} /> {t('inputs.print')}</Link>}
       </div>
-      {savedAt && <p role="status" style={{ fontSize: '12px', color: 'var(--warn)', marginBottom: '10px' }}>{t('plot.offline')}</p>}
+      {savedAt && <p role="status" style={{ fontSize: '13px', color: 'var(--warn)', marginBottom: '10px' }}>{t('plot.offline')}</p>}
 
       {canEdit && (
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: '12px' }}>
           <div style={{ width: '110px' }}>
             <label style={label} htmlFor="stage-width">{t('plot.width')}</label>
             <input id="stage-width" type="number" min={2} max={40} step={0.5} defaultValue={size.width_m} key={`w${size.width_m}`}
@@ -216,7 +216,7 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
             <input id="stage-depth" type="number" min={2} max={30} step={0.5} defaultValue={size.depth_m} key={`d${size.depth_m}`}
               onBlur={e => Number(e.target.value) !== size.depth_m && saveStage({ depth_m: stageSize({ width_m: size.width_m, depth_m: e.target.value }).depth_m })} style={input} />
           </div>
-          <p style={{ fontSize: '12px', color: colors.muted, flex: '1 1 200px', lineHeight: 1.5 }}>{t('plot.howTo')}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, flex: '1 1 200px', lineHeight: 1.5 }}>{t('plot.howTo')}</p>
         </div>
       )}
 
@@ -228,18 +228,18 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
       </div>
 
       {canEdit && current && (
-        <div role="group" aria-label={t('plot.selected', { name: nameOf(current) })} style={{ ...card, marginBottom: '12px', borderColor: 'var(--accent)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div role="group" aria-label={t('plot.selected', { name: nameOf(current) })} style={{ ...card, marginBottom: '12px', borderColor: 'var(--accent)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <strong style={{ fontSize: '14px' }}>{nameOf(current)}</strong>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
             <button type="button" onClick={() => nudge(current, -STEP_M, 0)} aria-label={t('plot.moveLeft')} style={iconBtn}><ArrowLeft size={16} /></button>
             <button type="button" onClick={() => nudge(current, 0, STEP_M)} aria-label={t('plot.moveBack')} style={iconBtn}><ArrowUp size={16} /></button>
             <button type="button" onClick={() => nudge(current, 0, -STEP_M)} aria-label={t('plot.moveFront')} style={iconBtn}><ArrowDown size={16} /></button>
             <button type="button" onClick={() => nudge(current, STEP_M, 0)} aria-label={t('plot.moveRight')} style={iconBtn}><ArrowRight size={16} /></button>
             <button type="button" onClick={() => change(current.id, { rotation: nextRotation(current.rotation) })} style={btn}><RotateCw size={14} /> {t('plot.rotate')}</button>
             <button type="button" onClick={() => remove(current)} style={{ ...btn, color: colors.danger }}><Trash2 size={14} /> {t('plot.remove')}</button>
-            <span style={{ fontSize: '12px', color: colors.muted }}>{t('plot.where', { x: Number(current.x), y: Number(current.y) })}</span>
+            <span style={{ fontSize: '13px', color: colors.muted }}>{t('plot.where', { x: Number(current.x), y: Number(current.y) })}</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
             <div>
               <label style={label} htmlFor="plot-label">{t('plot.label')}</label>
               <input id="plot-label" maxLength={60} defaultValue={current.label || ''} key={`l${current.id}`} placeholder={t('plot.labelPlaceholder')}
@@ -261,7 +261,7 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
       {canEdit && (
         <div style={{ marginBottom: '14px' }}>
           <h3 style={{ ...label, marginBottom: '6px' }}>{t('plot.addTitle')}</h3>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {SYMBOL_ORDER.map(kind => (
               <button key={kind} type="button" onClick={() => add(kind)} style={{ ...btn, padding: '6px 10px', fontSize: '13px' }}>
                 {t(`plot.kind.${kind}`)}{SYMBOLS[kind].inputs.length > 0 && <span style={{ color: colors.muted, fontSize: '11px' }}> · {SYMBOLS[kind].inputs.length} ch</span>}
@@ -283,8 +283,8 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
                   style={{ ...card, width: '100%', textAlign: 'left', padding: '8px 12px', font: 'inherit', color: 'var(--text)', cursor: canEdit ? 'pointer' : 'default',
                     borderColor: selected === item.id ? colors.accent : undefined, display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'baseline', opacity: 1 }}>
                   <strong style={{ fontSize: '14px' }}>{nameOf(item)}</strong>
-                  <span style={{ fontSize: '12px', color: colors.muted }}>{t('plot.where', { x: Number(item.x), y: Number(item.y) })}</span>
-                  {SYMBOLS[item.kind]?.inputs.length > 0 && <span style={{ fontSize: '12px', color: colors.soft }}>{t('plot.channels', { count: SYMBOLS[item.kind].inputs.length })}</span>}
+                  <span style={{ fontSize: '13px', color: colors.muted }}>{t('plot.where', { x: Number(item.x), y: Number(item.y) })}</span>
+                  {SYMBOLS[item.kind]?.inputs.length > 0 && <span style={{ fontSize: '13px', color: colors.soft }}>{t('plot.channels', { count: SYMBOLS[item.kind].inputs.length })}</span>}
                 </button>
               </li>
             ))}
@@ -293,7 +293,7 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
       )}
 
       {canEdit && shown.length > 0 && (
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '14px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '14px' }}>
           {channels > 0 && (
             <button type="button" onClick={sendToInputs} disabled={busy} style={btnPrimary}>
               {busy ? <AvxLoader size={14} /> : <ListOrdered size={14} />} {t('plot.toInputs')}

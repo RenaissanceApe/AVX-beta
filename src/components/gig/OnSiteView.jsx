@@ -3,7 +3,7 @@ import { Clock, FileText, Flag, Footprints, ListOrdered, ScanLine, FolderOpen, M
 import { todaysSchedule, localDay } from '../../lib/onSite'
 import { dueState, sortTasks } from '../../lib/tasks'
 import { t, fmt } from '../../i18n'
-import { btn, card, colors } from '../ui'
+import { btn, card, colors, space, Stack, Section } from '../ui'
 import ClockInOut from '../hours/ClockInOut'
 
 const shortTime = v => (v ? String(v).slice(0, 5) : '')
@@ -27,79 +27,79 @@ export default function OnSiteView({ gig, schedule, tools, tasks = [], userId, m
     { key: 'crew', icon: Users, tab: 'crew' },
   ].filter(Boolean)
   const tileStyle = {
-    ...card, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px',
-    minHeight: '96px', padding: '16px', color: 'var(--text)', textDecoration: 'none', font: 'inherit', textAlign: 'left', cursor: 'pointer', fontSize: '16px', fontWeight: 700,
+    ...card, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px',
+    minHeight: '96px', padding: space[4], color: 'var(--text)', textDecoration: 'none', font: 'inherit', textAlign: 'left', cursor: 'pointer', fontSize: '16px', fontWeight: 700,
   }
 
   return (
-    <section aria-labelledby="onsite-title" style={{ display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeIn 0.3s ease' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', flexWrap: 'wrap' }}>
+    <section aria-labelledby="onsite-title" style={{ display: 'flex', flexDirection: 'column', gap: space.section, animation: 'fadeIn 0.3s ease' }}>
+      <Stack gap={4}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: space[3], flexWrap: 'wrap' }}>
         <div>
           <h2 id="onsite-title" style={{ fontSize: '20px', fontWeight: 700 }}>{t('onsite.title')}</h2>
-          <p style={{ fontSize: '13px', color: colors.muted }}>{fmt(today, 'EEEE d MMMM')}{gig.venue ? ` · ${gig.venue}` : ''}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, marginTop: space[1] }}>{fmt(today, 'EEEE d MMMM')}{gig.venue ? ` · ${gig.venue}` : ''}</p>
         </div>
-        <button type="button" onClick={onLeave} style={{ ...btn, background: 'transparent' }}><LayoutList size={14} /> {t('onsite.leave')}</button>
+        <button type="button" onClick={onLeave} style={{ ...btn, background: 'transparent', minHeight: '44px' }}><LayoutList size={16} aria-hidden="true" /> {t('onsite.leave')}</button>
       </div>
 
       {why === 'auto' && !noteSeen && (
-        <div role="note" style={{ ...card, display: 'flex', gap: '10px', alignItems: 'flex-start', borderColor: 'var(--accent)' }}>
-          <p style={{ flex: 1, fontSize: '13px', lineHeight: 1.5 }}>
+        <div role="note" style={{ display: 'flex', gap: space[3], alignItems: 'flex-start', padding: `${space[3]} 0`, borderTop: `1px solid ${colors.line}`, borderBottom: `1px solid ${colors.line}` }}>
+          <p style={{ flex: 1, fontSize: '14px', lineHeight: 1.5 }}>
             {t('onsite.autoNote')} <Link to="/settings/preferences" style={{ color: colors.accentText }}>{t('onsite.autoNoteLink')}</Link>
           </p>
-          <button type="button" onClick={onDismissNote} aria-label={t('onsite.dismissNote')} style={{ background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', padding: '4px' }}><X size={16} /></button>
+          <button type="button" onClick={onDismissNote} aria-label={t('onsite.dismissNote')} style={{ background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: `calc(-1 * ${space[3]}) calc(-1 * ${space[3]}) 0 0` }}><X size={16} aria-hidden="true" /></button>
         </div>
       )}
 
       {myMembership && <ClockInOut gig={gig} userId={userId} />}
 
       {myMembership?.call_time && (
-        <div style={{ ...card, display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: space[4], padding: `${space[3]} ${space[4]}`, background: 'var(--selection)' }}>
           <Clock size={28} color={colors.accentText} aria-hidden="true" />
           <div>
             <div style={{ fontSize: '13px', color: colors.muted }}>{t('onsite.yourCall')}{myMembership.function_title ? ` · ${myMembership.function_title}` : ''}</div>
-            <div style={{ fontSize: '34px', fontWeight: 700, fontFamily: 'var(--font-mono)', lineHeight: 1.1 }}>{shortTime(myMembership.call_time)}</div>
+            <div style={{ fontSize: '28px', fontWeight: 700, fontFamily: 'var(--font-mono)', lineHeight: 1.1 }}>{shortTime(myMembership.call_time)}</div>
           </div>
         </div>
       )}
+      </Stack>
 
-      <div style={card}>
-        <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '8px' }}>{t('onsite.today')}</h3>
+      <Section id="onsite-today" level={3} title={t('onsite.today')}>
         {items.length === 0 ? <p style={{ fontSize: '14px', color: colors.muted }}>{t('onsite.nothingToday')}</p> : (
-          <ol style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <ol style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: space[1] }}>
             {items.map(s => (
-              <li key={s.id} style={{ display: 'flex', gap: '12px', alignItems: 'baseline', padding: '8px 10px', background: s.now ? 'var(--selection)' : 'transparent', border: s.next ? `1px dashed ${colors.border}` : '1px solid transparent' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '17px', minWidth: '4.5em' }}>{shortTime(s.start_time)}</span>
-                <span style={{ flex: 1, minWidth: 0, fontSize: '15px' }}>
+              <li key={s.id} style={{ display: 'flex', gap: '12px', alignItems: 'baseline', minHeight: '44px', padding: space[3], background: s.now ? 'var(--selection)' : 'transparent', border: s.next ? `1px dashed ${colors.border}` : '1px solid transparent' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '16px', minWidth: '4.5em' }}>{shortTime(s.start_time)}</span>
+                <span style={{ flex: 1, minWidth: 0, fontSize: '16px' }}>
                   <strong>{s.title}</strong>{s.location ? <span style={{ color: colors.muted }}> · {s.location}</span> : null}
-                  {s.now && <span style={{ display: 'block', fontSize: '12px', color: colors.accentText, fontWeight: 700 }}>{t('onsite.now')}</span>}
-                  {s.next && <span style={{ display: 'block', fontSize: '12px', color: colors.muted, fontWeight: 700 }}>{t('onsite.next')}</span>}
+                  {s.now && <span style={{ display: 'block', fontSize: '13px', color: colors.accentText, fontWeight: 700 }}>{t('onsite.now')}</span>}
+                  {s.next && <span style={{ display: 'block', fontSize: '13px', color: colors.muted, fontWeight: 700 }}>{t('onsite.next')}</span>}
                 </span>
               </li>
             ))}
           </ol>
         )}
-      </div>
+      </Section>
 
       {mine.length > 0 && (
-        <div style={card}>
-          <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '8px' }}>{t('onsite.myTasks', { count: mine.length })}</h3>
-          <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <Section id="onsite-tasks" level={3} title={t('onsite.myTasks', { count: mine.length })}>
+          <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: space[3] }}>
             {mine.slice(0, 5).map(task => {
               const state = dueState(task, today)
               return (
-                <li key={task.id} style={{ display: 'flex', gap: '10px', alignItems: 'baseline', fontSize: '15px' }}>
+                <li key={task.id} style={{ display: 'flex', gap: '12px', alignItems: 'baseline', fontSize: '16px' }}>
                   <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{task.title}</span>
-                  {state && <span style={{ fontSize: '12px', fontWeight: 700, color: state === 'overdue' ? 'var(--danger)' : state === 'today' ? 'var(--warn)' : colors.accentText }}>
+                  {state && <span style={{ fontSize: '13px', fontWeight: 700, color: state === 'overdue' ? 'var(--danger)' : state === 'today' ? 'var(--warn)' : colors.accentText }}>
                     {t(`tasks.due.${state}`, { date: fmt(task.due_on, 'd MMM') })}</span>}
                 </li>
               )
             })}
           </ul>
-          <button type="button" onClick={() => setTab('tasks')} style={{ ...btn, marginTop: '10px' }}><ListTodo size={14} /> {t('onsite.openTasks')}</button>
-        </div>
+          <button type="button" onClick={() => setTab('tasks')} style={{ ...btn, marginTop: space[4], minHeight: '44px' }}><ListTodo size={16} aria-hidden="true" /> {t('onsite.openTasks')}</button>
+        </Section>
       )}
 
-      <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
+      <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px' }}>
         {tiles.map(tile => {
           const Icon = tile.icon
           const inner = <><Icon size={26} color={colors.accentText} aria-hidden="true" /><span>{t(`onsite.tile.${tile.key}`)}</span></>

@@ -51,11 +51,11 @@ function AddressSection({ layout, onLayout }) {
         </p>
       </div>
       <div><Dipswitches address={address} layout={layout} onToggle={toggle} size="big" /></div>
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('dip.tapHint')}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5 }}>{t('dip.tapHint')}</p>
       <details>
         <summary style={{ cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>{t('dip.layout')}</summary>
         <div style={{ marginTop: '10px' }}><DipLayoutForm layout={layout} onChange={onLayout} idPrefix="calc" /></div>
-        <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginTop: '8px' }}>{t('dip.layoutHint')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginTop: '8px' }}>{t('dip.layoutHint')}</p>
       </details>
     </Section>
   )
@@ -68,7 +68,7 @@ function BlockSection({ layout }) {
   const fields = [['count', 1, 1024], ['footprint', 1, 512], ['universe', 0, 32767], ['start', 1, 512]]
   return (
     <Section id="calc-block" title={t('dip.blockTitle')}>
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         {fields.map(([k, min, max]) => (
           <div key={k} style={{ flex: '1 1 110px' }}>
             <label htmlFor={`calc-${k}`} style={label}>{t(`dip.block.${k}`)}</label>
@@ -112,7 +112,7 @@ function AbsoluteSection() {
       <label style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '14px' }}>
         <input type="checkbox" checked={zeroBased} onChange={e => setZeroBased(e.target.checked)} /> {t('dip.zeroBased')}
       </label>
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div style={{ flex: '1 1 100px' }}>
           <label htmlFor="calc-u" style={label}>{t('dip.block.universe')}</label>
           <input id="calc-u" type="number" inputMode="numeric" value={ua.universe} onChange={e => setUa(x => ({ ...x, universe: e.target.value }))} style={input} />
@@ -125,7 +125,7 @@ function AbsoluteSection() {
           {absolute ? t('dip.isAbsolute', { n: absolute }) : t('dip.invalid')}
         </p>
       </div>
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div style={{ flex: '1 1 100px' }}>
           <label htmlFor="calc-abs-in" style={label}>{t('dip.absolute')}</label>
           <input id="calc-abs-in" type="number" inputMode="numeric" value={abs} onChange={e => setAbs(e.target.value)} style={input} />
@@ -146,7 +146,7 @@ function ValuesSection() {
   const cf = toCoarseFine(wide)
   const fromH = fromHex(hex)
   const row = (id, text, value, onChange, out, width = '110px') => (
-    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
       <div>
         <label htmlFor={id} style={label}>{text}</label>
         <input id={id} value={value} onChange={e => onChange(e.target.value)} inputMode={id === 'calc-hex' ? 'text' : 'numeric'} style={{ ...input, width }} />
