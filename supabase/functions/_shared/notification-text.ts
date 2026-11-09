@@ -90,6 +90,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     expenseDrafted: '{count} recurring cost(s) ready to confirm in Expenses',
     feePaid: 'Your fee for {gig} was paid on {date}',
     invoiceOverdue: 'Invoice {number} to {client} is {days} day(s) overdue',
+    heldWaiting: '{count} imported person(s) in {org} still waiting to be invited or discarded',
     'role.pm': 'Production Manager', 'role.crew': 'Crew', 'role.viewer': 'Viewer',
     'orgRole.admin': 'Admin', 'orgRole.member': 'Member', 'orgRole.viewer': 'Viewer',
     'status.draft': 'Draft', 'status.confirmed': 'Confirmed', 'status.active': 'Active',
@@ -168,6 +169,7 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     expenseDrafted: '{count} custo(s) recorrente(s) para confirmar em Despesas',
     feePaid: 'O seu cachê de {gig} foi pago a {date}',
     invoiceOverdue: 'A fatura {number} de {client} está vencida há {days} dia(s)',
+    heldWaiting: '{count} pessoa(s) importada(s) em {org} ainda à espera de convite ou de ser descartada(s)',
     'role.pm': 'Production Manager', 'role.crew': 'Equipa', 'role.viewer': 'Leitor',
     'orgRole.admin': 'Administrador', 'orgRole.member': 'Membro', 'orgRole.viewer': 'Leitor',
     'status.draft': 'Rascunho', 'status.confirmed': 'Confirmado', 'status.active': 'Em curso',
@@ -273,6 +275,7 @@ export function describe(n: Notification, lang: Lang, actorName: string | undefi
     case 'expense_drafted': return fill(s.expenseDrafted, { count: d.count ?? 1 })
     case 'fee_paid': return fill(s.feePaid, { gig, date: d.paid_on ?? '' })
     case 'invoice_overdue': return fill(s.invoiceOverdue, { number: d.number ?? '', client: d.client ?? '', days: d.days ?? '' })
+    case 'held_invites_waiting': return fill(s.heldWaiting, { count: d.count ?? 1, org: d.org_name ?? '' })
     default: return fill(s.generic, { gig })
   }
 }
@@ -287,6 +290,7 @@ export function linkFor(n: Notification, appUrl: string) {
   if (n.kind.startsWith('leave_') && n.org_id) return `${appUrl}/org/${n.org_id}/leave`
   if (n.kind === 'expense_drafted' && n.org_id) return `${appUrl}/org/${n.org_id}/expenses`
   if (n.kind === 'invoice_overdue' && n.org_id) return `${appUrl}/org/${n.org_id}/invoices?view=unpaid`
+  if (n.kind === 'held_invites_waiting' && n.org_id) return `${appUrl}/org/${n.org_id}?panel=members`
   if (n.kind.startsWith('expense_') && n.details?.gig_id) return `${appUrl}/gig/${n.details.gig_id}?tab=crew`
   if (n.kind === 'task_assigned') return n.gig_id ? `${appUrl}/gig/${n.gig_id}?tab=tasks` : `${appUrl}/tasks`
   if (n.details?.quote_id) return `${appUrl}/quote/${n.details.quote_id}`
