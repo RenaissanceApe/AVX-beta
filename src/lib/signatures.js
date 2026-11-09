@@ -99,11 +99,16 @@ export async function copyToGigFiles(gigId, name, pdfBlob, userId) {
   }
 }
 
-// A short-lived link to open a signature's file (the drawing or the signed PDF)
-export async function signatureFileUrl(path, seconds = 120) {
-  const { data, error } = await supabase.storage.from(SIGNATURE_BUCKET).createSignedUrl(path, seconds)
+// Save a signature's file (the signed PDF) on this device. A download rather than a new tab:
+// after the awaits a browser would block the tab as a pop-up.
+export async function downloadSignatureFile(path, fileName) {
+  const { data, error } = await supabase.storage.from(SIGNATURE_BUCKET).download(path)
   if (error) throw error
-  return data.signedUrl
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(data)
+  a.download = `${String(fileName || 'signed').replace(/[\\/:*?"<>|]+/g, ' ').trim()}.pdf`.replace(/\.pdf\.pdf$/, '.pdf')
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000)
 }
 
 // The drawing as a data URL (to put into a PDF)

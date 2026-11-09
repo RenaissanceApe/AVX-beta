@@ -70,7 +70,7 @@ Functions: `equipment_availability(org, items, from, until, exclude_gig)`, `gig_
 
 | Piece | How it works |
 |---|---|
-| Packing list | `/gig/:id/packing`, printable, for everyone on the gig: items by category with quantity, packing note, a tick box, and what has been scanned out and back. The packing note is copied onto the gig's line when it is planned |
+| Packing list | `/gig/:id/packing`, printable, for everyone on the gig: items by category with quantity, packing note, a tick box, and what has been scanned out and back. The packing note is copied onto the gig's line when it is planned. **Delivery note: sign** (step 16): the client signs on the phone for what went out; the signed PDF is kept and copied to the gig's files (docs/BUSINESS.md, "How e-signature works") |
 | Scan out / in | `/gig/:id/scan`, for the gig's managers and the organisation's admins/members. Point the phone camera at a QR label (or type the code, or use a hardware scanner that types it). A unit's code moves that unit; an item's code moves a quantity of a bulk item. Returns can be marked damaged, which sends a unit to repair |
 | Warnings, never blocks | More than planned, a unit already out on another gig (it moves to this one), more back than went out, a lost unit turning up (it becomes available again). Scanning the same unit out twice, or in when it isn't out, is refused |
 | Progress | Planned / out / back per item on the scan page and in the Equipment tab; units still out are listed with their codes |

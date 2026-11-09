@@ -29,6 +29,7 @@ function Privacy() {
         <li><strong>Technical data:</strong> sign-in times and, in our providers' security logs, IP address and browser type.</li>
         <li><strong>Usage counts:</strong> how many times each screen or feature is used per day, across everyone. These counts contain no name, email, account id, IP address or device id, so they can't be linked to you.</li>
         <li><strong>Quote recipients:</strong> if a company sends you a quote through {APP_NAME}, we store the contact details they entered and, if you answer, your name, your message and when you answered.</li>
+        <li><strong>Signatures:</strong> when you sign something in {APP_NAME} — accepting a quote with a drawn signature, or a delivery note a company hands you on its phone — we store the drawing, the name (and role or company) you type, when you signed, and a fingerprint (SHA-256) of the exact document you signed, with a signed PDF of it. They're stored privately and can't be changed after signing. Only the company you signed for sees them (for a quote, its people who handle quotes; for a delivery note, the people on that gig). The company can hide a signature but not change it; it's deleted with the quote or gig, or the company's organisation. It is a simple electronic signature, not a qualified one.</li>
         <li><strong>Clients and suppliers writing through a link:</strong> if you write to a company from a quote's page or from a subrental link they sent you, we store the name you type and your messages. Only that company's admins and members see them. They're deleted when the company deletes the quote or subrental, or its organisation.</li>
         <li><strong>Clients' and suppliers' contact details:</strong> a company can keep the names, e-mail addresses, phone numbers, addresses and tax numbers of its clients and suppliers in its Contacts, typed in or imported from its files. Only that company's admins and members see them; the company can change them or clear the details, and they're deleted with its organisation.</li>
         <li><strong>People imported before being invited:</strong> when a company imports its crew from another tool, we keep the names, e-mail addresses, phone numbers and functions it imports until an admin sends or discards the invitations, as a record of what was sent. Nobody is e-mailed by the import itself. They're deleted with the organisation.</li>
@@ -96,6 +97,9 @@ function Terms() {
 
       <h2>Acceptable use</h2>
       <p>Don't use {APP_NAME} to break the law, upload malware, access data that isn't shared with you, or disrupt the service.</p>
+
+      <h2>Electronic signatures</h2>
+      <p>Signatures made in {APP_NAME} (accepting a quote with a drawn signature, signing a delivery note) are simple electronic signatures: the drawing, the typed name, the time and a fingerprint (SHA-256) of the signed document are kept together and can't be changed afterwards. They are not qualified electronic signatures under the EU eIDAS Regulation, such as Chave Móvel Digital or Cartão de Cidadão. If a document needs a qualified signature, sign it outside {APP_NAME}.</p>
 
       <h2>No warranty</h2>
       <p>The beta is provided "as is". To the extent the law allows, we're not liable for indirect losses or for data lost during the beta.</p>

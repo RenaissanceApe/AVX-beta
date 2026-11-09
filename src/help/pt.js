@@ -86,6 +86,7 @@ export default {
     alternative: { term: 'Alternativa', definition: 'Um artigo que pode substituir outro quando este não está disponível.', example: 'SM57 em vez de SM58.', where: 'Inventário → artigo, equipamento do evento' },
     'prep-return-days': { term: 'Dias de preparação e de devolução', definition: 'Dias antes e depois de um evento em que o equipamento continua reservado, para carregar, testar e conferir.', example: '1 dia de preparação: o material fica ocupado desde a véspera.', where: 'Definições da organização, equipamento do evento' },
     'packing-list': { term: 'Lista de carga', definition: 'O que tem de sair do armazém para um evento, com quantidades.', example: 'Impressa para o armazém na véspera.', where: 'Evento → Equipamento → Lista de carga' },
+    'e-signature': {"term": "Assinatura eletrónica simples", "definition": "Uma assinatura desenhada num telemóvel ou computador, guardada com o nome escrito pelo signatário, a hora e uma impressão digital (SHA-256) do documento exato que foi assinado. Depois de guardada não pode ser alterada. Não é uma assinatura qualificada (Chave Móvel Digital, Cartão de Cidadão).", "example": "O responsável do espaço assina a guia de entrega no seu telemóvel quando o camião é descarregado.", "where": "Lista de carga → Guia de entrega: assinar; página do orçamento do cliente → Aceitar"},
     'scan-out-in': { term: 'Registar saída / entrada', definition: 'Ler as etiquetas QR quando o equipamento sai para um evento e quando volta.', example: 'Registar 40 unidades à entrada do camião.', where: 'Evento → Equipamento → Ler' },
     'equipment-steps': { term: 'Etapas do equipamento', definition: 'Onde está o equipamento de um evento entre o armazém e o regresso: preparado, saída, no local, carregado no regresso, entrada, verificado.', example: '60 de 69 preparados, 40 saíram.', where: 'Evento → Equipamento, Saída / entrada, lista de carga' },
     'dmx-universe': { term: 'Universo DMX', definition: 'Uma linha de 512 canais de controlo de luz. Um projetor usa alguns deles, a partir do endereço inicial.', example: 'Universo 1 para as cabeças móveis, universo 2 para as barras LED.', where: 'Evento → Ferramentas → Patch DMX' },
@@ -170,6 +171,7 @@ export default {
     'return-days': 'Dias depois do evento em que o equipamento continua reservado, para descarregar e conferir. Exemplo: 1 = ocupado até ao dia seguinte.',
     tracking: 'Contado a granel: guarda um número por local (cabos). Por número de série: cada unidade tem o seu registo e etiqueta QR (cabeças móveis). Não pode mudar depois de haver stock.',
     'kit-type': 'Conjunto: artigos que vão sempre juntos, com um só preço (um set de DJ). Case: uma flight case com unidades; ler a case regista tudo o que tem dentro.',
+    'signature.plain': "Uma assinatura eletrónica simples regista quem assinou (o desenho e o nome escrito), quando, e uma impressão digital do documento exato. Ninguém a pode alterar depois, nem o AVX. Não é uma assinatura qualificada: para um contrato que precise de uma, use a Chave Móvel Digital ou o Cartão de Cidadão fora do AVX.",
     'min-stock': 'Quando o stock fica abaixo deste número, o artigo aparece como em falta. Exemplo: 10 para pilhas de reserva.',
     'replacement-value': 'Quanto custaria comprar de novo hoje. Serve para o seguro e para cobrar material perdido ou partido.',
     depreciation: 'Em quantos meses o preço de compra desce até zero no papel. Exemplo: 60 = cinco anos.',
@@ -992,6 +994,34 @@ export default {
         'Removeu algo por engano? A maior parte das remoções mostra "Anular" durante uns segundos antes de apagar.',
         'O AVX avisa quando algo não está previsto para o evento ou passa do previsto. Regista na mesma, por isso leia o aviso.',
         'Um leitor de códigos USB ou Bluetooth também funciona: escreve o código e carrega em Enter por si.',
+      ],
+    },
+    'wh-delivery-note': {
+      title: "Assinar a guia de entrega no local",
+      intro: "Quando o material chega, o cliente assina no seu telemóvel o que foi entregue. O AVX guarda a assinatura com a lista e um PDF assinado.",
+      steps: [
+        "Abra o evento, toque em Equipamento e depois em \"Lista de carga\".",
+        "Toque em \"Guia de entrega: assinar\". A lista mostra o que saiu (lido) ou, se nada foi lido, o que está previsto.",
+        "Passe o telemóvel ao cliente: confere a lista, escreve o nome (e função ou empresa) e assina no quadro com o dedo.",
+        "Toque em \"Assinar e guardar\". O PDF assinado fica com a assinatura e é copiado para os Ficheiros do evento. \"PDF assinado\", por baixo da lista de carga, abre-o de novo.",
+      ],
+      mistakes: [
+        "Leia primeiro a saída do material: a guia lista o que saiu, para bater certo com o que deixou o armazém.",
+        "Uma guia assinada não pode ser alterada. Se algo estiver errado, oculte-a e peça ao cliente que assine uma nova.",
+        "É uma assinatura eletrónica simples, não qualificada.",
+      ],
+    },
+    'of-signed-quote': {
+      title: "Orçamento aceite com assinatura desenhada",
+      intro: "Quando um cliente aceita um orçamento pela ligação, também pode desenhar a assinatura ao lado do nome escrito.",
+      steps: [
+        "Envie o orçamento ao cliente como habitualmente.",
+        "Na página do orçamento, o cliente toca em Aceitar, escreve o nome e pode tocar em \"Juntar uma assinatura desenhada\" para assinar com o dedo ou o rato.",
+        "Em \"Enviar ao cliente\", a resposta mostra \"Assinado com assinatura desenhada\". Toque em \"PDF assinado\": a versão assinada do orçamento, com a assinatura no fim, é criada e guardada. Se o orçamento tiver evento, vai uma cópia para os Ficheiros do evento.",
+      ],
+      mistakes: [
+        "A assinatura desenhada é opcional: uma aceitação só com o nome escrito continua a ser uma aceitação.",
+        "A assinatura cobre a versão que o cliente viu. Alterar o orçamento depois não muda o que foi assinado.",
       ],
     },
     'wh-steps': {

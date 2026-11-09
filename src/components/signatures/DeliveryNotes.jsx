@@ -5,7 +5,7 @@ import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
-import { saveSignature, attachSignedPdf, copyToGigFiles, signatureFileUrl, signatureImageDataUrl } from '../../lib/signatures'
+import { saveSignature, attachSignedPdf, copyToGigFiles, downloadSignatureFile, signatureImageDataUrl } from '../../lib/signatures'
 import { deliveryNoteDocument, buildDeliveryNotePdf, deliveryNoteFileName } from '../../lib/deliveryNotePdf'
 import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, input, label, colors, AvxLoader } from '../ui'
@@ -48,7 +48,7 @@ export function DeliveryNoteList({ gigId, canSign, refreshKey }) {
     try {
       let row = sig
       if (!row.pdf_path) row = await keepDeliveryNotePdf(sig, { gigId, userId: user.id })
-      window.open(await signatureFileUrl(row.pdf_path), '_blank', 'noopener')
+      await downloadSignatureFile(row.pdf_path, deliveryNoteFileName(JSON.parse(sig.document), sig.signed_at))
       if (!sig.pdf_path) load()
     } catch (e) {
       logger.error('deliveryNotes', e, { step: 'pdf', signatureId: sig.id })

@@ -2,19 +2,21 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import { Eraser } from 'lucide-react'
 import { useI18n, translate } from '../../i18n'
 import { btn, colors } from '../ui'
+import { DERIVED } from '../../theme/tokens'
 
-// A signature pad for a finger, a pen or a mouse (step 16). Draws in dark ink on white whatever the
-// app's theme, because the drawing goes into printed and PDF documents: those two are the paper's
-// colours, not screen colours. 3:1, saved as a PNG.
+// A signature pad for a finger, a pen or a mouse (step 16). Draws in ink on paper (the theme's
+// paper and ink, the same in every theme), because the drawing goes into printed and PDF
+// documents. 3:1, saved as a PNG.
 //   ref.current.png() → Promise<Blob | null> (null when nothing was drawn)
 //   ref.current.clear()
 //   onChange(hasInk)
 //   paper: on a printed-look page (the client's quote page), use the paper's greys, not the theme's
-const PAPER = '#ffffff'
-const INK = '#111111'
+// The theme's paper and ink, which are the same in every theme (a canvas needs real colours)
+const PAPER = DERIVED.paper
+const INK = DERIVED.ink
 const RATIO = 3
-const PAPER_MUTED = '#555555'
-const PAPER_EDGE = '#999999'
+const PAPER_MUTED = 'color-mix(in srgb, var(--ink) 70%, var(--paper))'
+const PAPER_EDGE = 'color-mix(in srgb, var(--ink) 45%, var(--paper))'
 
 const SignaturePad = forwardRef(function SignaturePad({ label, onChange, lang, paper = false }, ref) {
   const { t } = useI18n()

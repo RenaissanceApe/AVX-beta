@@ -3,7 +3,7 @@ import { History, Eye, RotateCcw, Save, Send, Copy, Check, Link2, Ban, Mail, Pen
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { useAuth } from '../../lib/AuthContext'
-import { signatureFileUrl } from '../../lib/signatures'
+import { downloadSignatureFile } from '../../lib/signatures'
 import { keepSignedQuotePdf } from '../../lib/signedQuote'
 import { logger, userMessage } from '../../lib/logger'
 import { saveVersion, sendQuote, sendAttempt } from '../../lib/quoteSharing'
@@ -143,7 +143,7 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
     setPdfBusy(sig.id)
     try {
       const row = sig.pdf_path ? sig : await keepSignedQuotePdf(sig, { quoteNumber: sig.quotes?.number, userId: user.id })
-      window.open(await signatureFileUrl(row.pdf_path), '_blank', 'noopener')
+      await downloadSignatureFile(row.pdf_path, `${t('send.signedPdf')} ${sig.signer_name}`)
       if (!sig.pdf_path) loadShares()
     } catch (err) {
       logger.error('quoteShares', err, { step: 'signed_pdf', signatureId: sig.id })
