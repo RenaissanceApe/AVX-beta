@@ -1,6 +1,7 @@
 import { FileText, Image, Clock, Music, Layout, ClipboardList, Trash2 } from 'lucide-react'
 import { useI18n } from '../../i18n'
-import { colors, iconBtn, StatusBadge as UiStatusBadge, LabelChip, Avatar as UiAvatar } from '../ui'
+import { colors, iconBtn, StatusBadge as UiStatusBadge, LabelChip, Avatar as UiAvatar, MoreMenu } from '../ui'
+import { Hint } from '../help/HelpParts'
 import { gigStatusLabel, gigTypeOf } from '../../lib/gigLabels'
 
 // Pieces shared by the gig page tabs.
@@ -50,27 +51,27 @@ export function RoleBadge({ role, large = false }) {
   return <LabelChip role large={large}>{t(`gigRole.${role}`)}</LabelChip>
 }
 
+// A post in a list: a hairline row, not a card (DESIGN.md "One box deep"). Important posts keep the danger wash.
 export function FeedPost({ post, name, large = false, onDelete = null }) {
   const { t, ago } = useI18n()
   return (
     <div style={{
-      padding: large ? '14px 16px' : '10px 12px', animation: 'fadeIn 0.3s ease',
-      background: post.is_important ? 'var(--danger-soft)' : 'var(--fill)',
-      border: post.is_important ? '1px solid var(--danger)' : '1px solid var(--line)',
+      padding: post.is_important ? 'var(--space-3)' : 'var(--space-3) 0', animation: 'fadeIn 0.3s ease',
+      background: post.is_important ? 'var(--danger-soft)' : 'transparent',
+      borderLeft: post.is_important ? '2px solid var(--danger)' : 'none',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px 8px', marginBottom: '6px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px 8px', marginBottom: 'var(--space-1)', flexWrap: 'wrap' }}>
         <Avatar uid={post.user_id} name={name} size={24} />
-        <span style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>{name}</span>
+        <span style={{ fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap' }}>{name}</span>
         {post.is_important && (
           <span style={{
-            fontSize: '10px', fontWeight: 700, padding: '2px 7px', 
-            color: colors.danger, background: 'var(--danger-soft)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em',
+            fontSize: '11px', fontWeight: 700, color: colors.danger, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.16em',
           }}>{t('feed.important')}</span>
         )}
-        <span style={{ fontSize: '11px', color: 'var(--muted)', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{ago(post.created_at)}</span>
+        <span style={{ fontSize: '13px', color: 'var(--muted)', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{ago(post.created_at)}</span>
         {onDelete && (
-          <button onClick={onDelete} aria-label={t('feed.deleteUpdate')} title={t('common.delete')} style={{ ...iconBtn, padding: '2px' }}>
-            <Trash2 size={13} />
+          <button onClick={onDelete} aria-label={t('feed.deleteUpdate')} title={t('common.delete')} style={{ ...iconBtn, padding: '4px' }}>
+            <Trash2 size={14} />
           </button>
         )}
       </div>
@@ -81,41 +82,36 @@ export function FeedPost({ post, name, large = false, onDelete = null }) {
   )
 }
 
-export function SectionTitle({ icon, title }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-      <span style={{ color: colors.muted, display: 'flex' }}>{icon}</span>
-      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>{title}</span>
-    </div>
-  )
-}
-
-export function SmallBtn({ onClick, icon, label }) {
-  return (
-    <button onClick={onClick} style={{
-      display: 'flex', alignItems: 'center', gap: '6px', height: '28px', padding: '0 10px', cursor: 'pointer',
-      background: 'transparent', border: '1px solid var(--line-strong)', color: 'var(--text)', fontSize: '12px', fontWeight: 600,
-    }}>{icon} {label}</button>
-  )
-}
+// Rows separated by one hairline (lists are rows, not a card per row)
+export const rowLine = (i) => (i > 0 ? { borderTop: '1px solid var(--line)' } : {})
 
 export function EmptyMini({ text }) {
-  return <p style={{ color: 'var(--muted)', fontSize: '13px', textAlign: 'center', padding: '12px 0' }}>{text}</p>
+  return <p style={{ color: 'var(--muted)', fontSize: '13px', padding: 'var(--space-2) 0', margin: 0 }}>{text}</p>
 }
 
-export function TabHeader({ title, subtitle, action }) {
+// The top of a gig tab: a 16px heading, an optional short line (a count), the ⓘ for what the tab is for,
+// one primary action and at most one more in view; the rest go in the ⋯ menu (DESIGN.md "Room to breathe" 4, 5).
+//   <TabHeader title="Crew" subtitle="4 crew" hint={t('crew.hint')} action={<button style={btnPrimary}>Invite</button>}
+//     secondary={<button style={btn}>Crew call</button>} more={[{ label: 'Post a job', onClick }]} />
+export function TabHeader({ title, subtitle, hint, action, secondary, more = [] }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '20px' }}>
-      <div>
-        <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>{title}</h2>
-        {subtitle && <p style={{ color: colors.muted, fontSize: '13px' }}>{subtitle}</p>}
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap', marginBottom: 'var(--space-5)' }}>
+      <div style={{ minWidth: 0 }}>
+        <h2 className="avx-section__title">{title}{hint && <Hint text={hint} label={title} />}</h2>
+        {subtitle && <p style={{ color: colors.muted, fontSize: '13px', margin: 0 }}>{subtitle}</p>}
       </div>
-      {action}
+      {(action || secondary || more.length > 0) && (
+        <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', flexWrap: 'wrap' }}>
+          {secondary}
+          {action}
+          <MoreMenu items={more} />
+        </div>
+      )}
     </div>
   )
 }
 
 export const linkBtn = {
-  background: 'none', border: 'none', cursor: 'pointer', color: colors.accentText, fontSize: '12px', fontWeight: 600,
-  padding: '4px 0', display: 'block', width: '100%', textAlign: 'left',
+  background: 'none', border: 'none', cursor: 'pointer', color: colors.accentText, fontSize: '13px', fontWeight: 600,
+  padding: 'var(--space-2) 0', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', textAlign: 'left',
 }
