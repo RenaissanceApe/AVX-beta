@@ -122,22 +122,23 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
   return (
     <div style={overlay} onClick={e => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-labelledby="members-title" style={panel}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-          <h2 id="members-title" style={{ fontSize: '18px', fontWeight: 700 }}>{t('org.membersTitle', { org: org.name })}</h2>
-          <button onClick={onClose} aria-label={t('common.close')} style={iconBtn}><X size={18} /></button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
+          <h2 id="members-title" style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)', margin: 0, minWidth: 0, overflowWrap: 'anywhere' }}>
+            {t('org.membersTitle', { org: org.name })}
+            {/* The intro sits behind ⓘ (DESIGN.md rule 4) */}
+            <Hint text={t('org.intro')} label={t('org.membersTitle', { org: org.name })} />
+          </h2>
+          <button onClick={onClose} aria-label={t('common.close')} style={iconBtn}><X size={20} /></button>
         </div>
-        <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '18px' }}>
-          {t('org.intro')}
-        </p>
 
         {isAdmin && <HeldInvites org={org} onSent={() => { load(); onChanged?.() }} />}
         {isAdmin && (
-          <div style={{ marginBottom: '10px' }}>
+          <div style={{ marginBottom: 'var(--space-3)' }}>
             <NetworkPicker orgId={org.id} key={members.length} onPick={addPicked} />
           </div>
         )}
         {isAdmin && (
-          <form onSubmit={invite} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px' }}>
+          <form onSubmit={invite} style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', marginBottom: 'var(--space-2)' }}>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="colleague@company.com"
               aria-label={t('common.email')} style={{ ...input, flex: '1 1 200px' }} />
             <select value={role} onChange={e => setRole(e.target.value)} aria-label={t('org.role')} style={{ ...input, flex: '0 0 auto', width: 'auto', cursor: 'pointer' }}>
@@ -145,64 +146,64 @@ export default function OrgMembersModal({ org, onClose, onChanged }) {
             </select>
             <span style={{ display: 'inline-flex', alignItems: 'center' }}><Hint id="org-role" label={t('org.role')} /></span>
             <button type="submit" disabled={sending || !email.trim()} style={smallBtn}>
-              {sending ? <AvxLoader size={14} /> : <Send size={14} />} {t('common.invite')}
+              {sending ? <AvxLoader size={16} /> : <Send size={15} aria-hidden="true" />} {t('common.invite')}
             </button>
           </form>
         )}
         {isAdmin && (
-          <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '-8px 0 16px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 var(--space-5)' }}>
             {t('held.importHint')} <Link to={`/org/${org.id}/inventory/import?kind=crew`} onClick={onClose} style={{ color: 'var(--accent-text)', fontWeight: 600 }}>{t('held.importLink')}</Link>
           </p>
         )}
 
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-5)' }}>
             <AvxLoader size={20} color="var(--accent-text)" />
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '45vh', overflowY: 'auto' }}>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, borderTop: '1px solid var(--line)', maxHeight: '45vh', overflowY: 'auto' }}>
             {members.map(m => {
               const self = m.user_id === user.id
               return (
-                <div key={m.user_id} style={row}>
+                <li key={m.user_id} style={row}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: '14px' }}>{m.full_name || '—'}{self && <span style={{ color: 'var(--muted)' }}> ({t('common.you')})</span>}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email}</div>
                   </div>
                   {isAdmin ? (
                     <select value={m.role} disabled={busy === m.user_id} onChange={e => changeRole(m, e.target.value)}
-                      aria-label={t('org.roleFor', { name: m.full_name || m.email })} style={{ ...input, width: 'auto', padding: '6px 8px', fontSize: '13px', cursor: 'pointer' }}>
+                      aria-label={t('org.roleFor', { name: m.full_name || m.email })} style={{ ...input, width: 'auto', padding: 'var(--space-1) var(--space-2)', fontSize: '13px', minHeight: '36px', cursor: 'pointer' }}>
                       {ROLES.map(r => <option key={r.value} value={r.value}>{t(`orgRole.${r.value}`)}</option>)}
                     </select>
                   ) : (
-                    <span style={{ fontSize: '12px', color: 'var(--muted)', }}>{t(`orgRole.${m.role}`)}</span>
+                    <span style={{ fontSize: '13px', color: 'var(--muted)' }}>{t(`orgRole.${m.role}`)}</span>
                   )}
                   {!self && (
                     <Link to={`/messages?to=${m.user_id}`} style={iconBtn} aria-label={t('chat.messageNamed', { name: m.full_name || '—' })} title={t('chat.message')}>
-                      <MessageCircle size={15} />
+                      <MessageCircle size={16} />
                     </Link>
                   )}
                   {(isAdmin || self) && (
                     <button onClick={() => removeMember(m)} disabled={busy === m.user_id} style={iconBtn}
                       aria-label={self ? t('org.leave') : t('crew.removeNamed', { name: m.full_name || m.email })} title={self ? t('org.leave') : t('crew.remove')}>
-                      {self ? <LogOut size={15} /> : <X size={15} />}
+                      {self ? <LogOut size={16} /> : <X size={16} />}
                     </button>
                   )}
-                </div>
+                </li>
               )
             })}
             {invites.map(inv => (
-              <div key={inv.id} style={{ ...row, borderStyle: 'dashed' }}>
+              <li key={inv.id} style={row}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inv.email}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{t('org.invited', { role: t(`orgRole.${inv.role}`) })}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--muted)' }}>{t('org.invited', { role: t(`orgRole.${inv.role}`) })}</div>
                 </div>
                 <button onClick={() => cancelInvite(inv)} aria-label={t('crew.cancelInviteFor', { email: inv.email })} title={t('crew.cancelInvite')} style={iconBtn}>
-                  <X size={15} />
+                  <X size={16} />
                 </button>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
 
       </div>
@@ -219,17 +220,18 @@ const panel = {
   padding: '24px', width: '100%', maxWidth: '520px', animation: 'fadeIn 0.2s ease', color: 'var(--text)',
   maxHeight: 'calc(100dvh - 32px - var(--safe-top))', overflowY: 'auto',
 }
+// Rows with a hairline between them, not a box each (DESIGN.md rule 2)
 const row = {
-  display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
-  border: '1px solid var(--line)'
+  display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) 0', minHeight: '52px',
+  borderBottom: '1px solid var(--line)'
 }
 const input = {
   width: '100%', padding: '10px 12px', background: 'var(--shade)', border: '1px solid var(--line)',
   color: 'var(--text)', fontSize: '14px', outline: 'none'
 }
 const smallBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 14px', 
+  display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', padding: 'var(--space-3) var(--space-4)', 
   border: '1px solid var(--accent)', background: 'var(--selection)', color: 'var(--accent-text)',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0
 }
-const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '4px', display: 'flex', flexShrink: 0 }
+const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 'var(--space-2)', display: 'flex', flexShrink: 0 }

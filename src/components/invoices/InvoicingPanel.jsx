@@ -4,13 +4,14 @@ import { logger, userMessage } from '../../lib/logger'
 import { useToast } from '../../lib/ToastContext'
 import { invoicing, PROGRAM_NAMES } from '../../lib/invoiceApi'
 import { useI18n } from '../../i18n'
-import { btn, btnPrimary, input, label, card, colors, Modal, AvxLoader } from '../ui'
+import { btn, btnPrimary, input, label, colors, Modal, AvxLoader, space } from '../ui'
 import { HintLabel, Hint } from '../help/HelpParts'
 
 // The invoicing program panel on the Invoices page (step 11b). Everyone who sees invoices sees
 // which program is connected; admins choose one (or by hand), connect it, pick the series, or go
 // back to typing by hand. Only programs the owner switched on (INVOICING_PROVIDERS) are offered.
-const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
+// A page section on the page ground, no card (DESIGN.md rule 2)
+const section = { display: 'flex', flexDirection: 'column', gap: space[3] }
 const CALLBACK = `${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/invoicing`
 
 export default function InvoicingPanel({ orgId, status, providers, isAdmin, onChanged }) {
@@ -53,22 +54,22 @@ export default function InvoicingPanel({ orgId, status, providers, isAdmin, onCh
   const choosing = picked && picked !== current
 
   return (
-    <section style={section} aria-labelledby="program-title">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+    <section className="avx-section" style={section} aria-labelledby="program-title">
+      <div style={{ display: 'flex', alignItems: 'center', gap: space[3], flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 240px', minWidth: 0 }}>
-          <h2 id="program-title" style={{ fontSize: '15px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <h2 id="program-title" className="avx-section__title">
             {t('invoice.program.title')}
             <Hint id="invoicing-program" label={t('invoice.program.title')} />
           </h2>
-          <p style={{ fontSize: '13px', color: current && !status.ready ? colors.warn : colors.muted, margin: '2px 0 0' }}>{statusText}</p>
+          <p style={{ fontSize: '13px', color: current && !status.ready ? colors.warn : colors.muted, margin: `${space[1]} 0 0` }}>{statusText}</p>
         </div>
         {isAdmin && current && (
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: space[2], flexWrap: 'wrap' }}>
             {(status.expired || !status.connected) && (
-              <button type="button" onClick={() => setPicked(current)} disabled={busy} style={btnPrimary}><Link2 size={14} /> {t('invoice.program.reconnect')}</button>
+              <button type="button" onClick={() => setPicked(current)} disabled={busy} style={btn}><Link2 size={14} /> {t('invoice.program.reconnect')}</button>
             )}
             {status.connected && !status.expired && (
-              <button type="button" onClick={() => setSetup(true)} disabled={busy} style={status.ready ? btn : btnPrimary}><ListChecks size={14} /> {t('invoice.program.series')}</button>
+              <button type="button" onClick={() => setSetup(true)} disabled={busy} style={btn}><ListChecks size={14} /> {t('invoice.program.series')}</button>
             )}
             <button type="button" onClick={disconnect} disabled={busy} style={btn}><Unlink size={14} /> {t('invoice.program.byHand')}</button>
           </div>

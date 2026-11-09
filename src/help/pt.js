@@ -415,7 +415,7 @@ export default {
         'Toque em "Adicionar despesa": a data, o fornecedor (dos Contactos ou escrito), para quê, a categoria e o valor sem IVA ou o total. Junte o comprovativo com a câmara do telemóvel ou em PDF. Ligue-a a um evento, ou ao subaluguer, reparação, cachê ou compra de stock que paga.',
         'Quem trabalha num evento pode pedir o reembolso do que pagou: separador Equipa → Despesas → "Pedir reembolso", com uma foto do comprovativo.',
         'Os responsáveis do evento aprovam aí os pedidos (ou em Despesas → Reembolsos), ou devolvem-nos com uma nota. Os aprovados aparecem em "Por pagar" como a reembolsar até indicar a data em que foram pagos.',
-        'Adicione a renda, o seguro e o leasing uma vez em "Recorrentes": o AVX prepara cada um na sua data para confirmar. "CSV para o contabilista" descarrega as despesas confirmadas que está a ver.',
+        'Adicione a renda, o seguro e o leasing uma vez em "Recorrentes": o AVX prepara cada um na sua data para confirmar. "CSV para o contabilista" (no telemóvel, em ⋯) descarrega as despesas confirmadas que está a ver.',
       ],
       mistakes: [
         'Um subaluguer, reparação ou cachê só pode ter uma despesa: abra-a a partir do registo para a alterar.',
@@ -430,7 +430,7 @@ export default {
         'Escolha o que faturar: todo o orçamento, algumas fases, um adiantamento em % ou, depois de um adiantamento, o resto. Cada linha mantém a sua taxa de IVA; as linhas a 0% precisam de motivo.',
         'Confirme o cliente e as linhas, crie a fatura no seu programa certificado (Moloni, InvoiceXpress, Vendus…) e toque em "Marcar como enviada ao programa". Depois indique o número que ele deu e o link para o PDF.',
         'Ligou o seu programa (um administrador, no topo de Faturas: Programa de faturação)? Toque antes em "Enviar para o …": o rascunho vai para lá. Finalize-o no programa e toque em "Verificar no …" para trazer o número, as datas e o PDF.',
-        'Faturas mostra o que falta enviar, o que está por pagar (as vencidas primeiro) e o que está pago. As faturas vencidas também o avisam todas as semanas. O seu programa não tem ligação? "CSV" descarrega as faturas mostradas, uma linha por linha da fatura, para importar lá.',
+        'Faturas mostra o que falta enviar, o que está por pagar (as vencidas primeiro) e o que está pago. As faturas vencidas também o avisam todas as semanas. O seu programa não tem ligação? "CSV" (no telemóvel, em ⋯) descarrega as faturas mostradas, uma linha por linha da fatura, para importar lá.',
         'Quando o cliente pagar, registe o pagamento em Pagamentos ("Marcar como paga" para todo o valor em falta; também pagamentos parciais). Vencida? Envie um lembrete ao cliente. Algo a devolver? Faça uma nota de crédito.',
       ],
       mistakes: [
@@ -456,7 +456,7 @@ export default {
       title: 'Aprovar ausências e manter os dias de férias certos',
       intro: 'Decida pedidos, veja quem está ausente e defina os dias de férias e a semana de trabalho de cada pessoa.',
       steps: [
-        'Em Ausências, "pedidos à sua espera" lista cada pedido com os seus dias. Toque em "Aprovar", ou em "Recusar" com um motivo que a pessoa vê. "Registar para alguém" regista uma ausência (uma baixa por telefone, por exemplo) que conta logo.',
+        'Em Ausências, "pedidos à sua espera" lista cada pedido com os seus dias. Toque em "Aprovar", ou em "Recusar" com um motivo que a pessoa vê. "Registar para alguém" (no telemóvel, em ⋯) regista uma ausência (uma baixa por telefone, por exemplo) que conta logo.',
         'Em "Dias de férias e semanas de trabalho", defina os dias por ano da organização (22 para começar). "Editar" uma pessoa para o seu direito próprio, os dias transitados do ano passado, os seus dias de trabalho e horas por dia.',
         '"Quem está ausente" mostra o mês dia a dia. Uma ausência aprovada bloqueia a pessoa para eventos, Procurar equipa e horas; a exportação da organização tem as ausências, os saldos e as semanas de trabalho.',
       ],
@@ -498,7 +498,7 @@ export default {
       steps: [
         'No separador Equipa de um evento, "Horas" mostra os dias de todos. Cada dia a aguardar mostra a divisão (normais, extra, noturnas, fim de semana, feriado) e o custo. Toque em "Aprovar", ou em "Devolver" com uma nota. Também pode registar horas por qualquer pessoa no evento.',
         'Os dias aprovados ficam fechados com a divisão e o custo. "Custo de mão de obra" mostra agora o custo real das horas aprovadas ao lado do previsto: cachês combinados por dia ou hora, valores fixos uma vez, mais viagens e km.',
-        'Na organização, "Horas" (administradores) mostra todos por mês com as horas e o custo aprovado. Descarregue um CSV para os salários; a exportação da organização também tem as horas. Defina a janela noturna, o valor por km e os seus feriados nas definições da organização, em "Tabela de cachês da equipa".',
+        'Na organização, "Horas" (administradores) mostra todos por mês com as horas e o custo aprovado. Descarregue um CSV para os salários (no telemóvel, em ⋯); a exportação da organização também tem as horas. Defina a janela noturna, o valor por km e os seus feriados nas definições da organização, em "Tabela de cachês da equipa".',
       ],
       mistakes: [
         'Alterar um valor depois nunca muda um dia aprovado: o custo fica como foi aprovado.',
@@ -651,7 +651,7 @@ export default {
       ],
       mistakes: [
         'Mudar o nome ou a validade de um certificado retira as confirmações e verificações: eram para o certificado como estava.',
-        'Viu um perfil falso ou uma vaga duvidosa? Toque em Denunciar por baixo. Deixa de a ver de imediato e a AVX analisa; ninguém sabe quem denunciou.',
+        'Viu um perfil falso ou uma vaga duvidosa? Toque em Denunciar por baixo (num perfil de equipa, em ⋯). Deixa de a ver de imediato e a AVX analisa; ninguém sabe quem denunciou.',
       ],
     },
     'crew-profile': {
@@ -941,7 +941,7 @@ export default {
       title: 'Importar o equipamento de uma folha de cálculo ou de outra ferramenta',
       intro: 'Traga os locais, o catálogo, os números de série e os kits para o AVX de uma vez, a partir de uma exportação Excel ou CSV (Rentman, outra ferramenta de aluguer ou uma folha de cálculo), em vez de os escrever.',
       steps: [
-        'Em Inventário, toque em Importar. Importe por esta ordem: locais, depois equipamento, depois unidades (números de série), depois conteúdos dos kits, porque cada um se refere aos anteriores.',
+        'Em Inventário, toque em Importar (no telemóvel, em ⋯). Importe por esta ordem: locais, depois equipamento, depois unidades (números de série), depois conteúdos dos kits, porque cada um se refere aos anteriores.',
         'Escolha o que vai importar e depois o ficheiro (Excel .xlsx ou CSV; do Excel é lida a primeira folha), ou cole as linhas da folha de cálculo (com os títulos).',
         'O AVX adivinha o que é cada coluna, também a partir de títulos em neerlandês ou inglês. Confirme e corrija o que estiver errado. Guarde a correspondência com um nome ("Exportação de equipamento do Rentman") para o próximo ficheiro não precisar de nada.',
         'A verificação mostra o que é novo, o que corresponde ao que já está no AVX e que linhas têm problemas (ficam de fora). Importe e leia o relatório. Corrija as linhas ignoradas no ficheiro e importe-o de novo: o que já está no AVX é reconhecido, não duplicado.',
@@ -1061,7 +1061,7 @@ export default {
       title: 'Configurar os dados da empresa',
       intro: 'Os seus dados aparecem no topo de cada orçamento. Configure-os uma vez; os novos orçamentos usam-nos.',
       steps: [
-        'Abra Orçamentos → Dados da empresa (só os administradores os podem alterar).',
+        'Abra Orçamentos → Dados da empresa (no telemóvel, em ⋯) (só os administradores os podem alterar).',
         'Preencha o nome legal, o NIF, a morada, o telefone e o site, o IVA predefinido e a validade dos orçamentos.',
         'Escreva os seus termos e condições habituais e guarde.',
       ],
@@ -1086,7 +1086,7 @@ export default {
       intro: 'Escreva um cliente uma vez e escolha-o em cada orçamento. Os fornecedores também estão aqui, para os sub-alugueres.',
       steps: [
         'Abra Contactos (no menu Orçamentos). Clientes e Fornecedores têm cada um o seu separador. Toque em "Novo cliente" para adicionar um: empresa ou nome, pessoa de contacto, e-mail, telefone, NIF e morada.',
-        'Vem de outra ferramenta ou de uma folha de cálculo? Toque em Importar e traga-os da exportação. Já tem orçamentos? "Adicionar aos contactos" transforma os clientes escritos neles em contactos e liga esses orçamentos.',
+        'Vem de outra ferramenta ou de uma folha de cálculo? Toque em Importar (no telemóvel, em ⋯) e traga-os da exportação. Já tem orçamentos? "Adicionar aos contactos" transforma os clientes escritos neles em contactos e liga esses orçamentos.',
         'Num orçamento, em Detalhes, escolha o cliente em "Cliente dos contactos": os dados dele são preenchidos. Um cliente escrito à mão pode ser guardado com "Guardar nos contactos".',
         'Abra um cliente para ver os orçamentos dele. Arquive os que já não trabalham consigo: ficam nos orçamentos antigos mas saem das listas.',
       ],

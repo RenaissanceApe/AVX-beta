@@ -9,7 +9,8 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { FUNCTIONS, LANGUAGES, languageName } from '../lib/crewProfile'
 import { RADII, EMPTY_FILTERS, searchArgs, gigFilters, crewError, fromSaved } from '../lib/crewSearch'
 import { useI18n } from '../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, StatusBadge, AvxLoader } from '../components/ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, StatusBadge, AvxLoader, PageHeader, MoreMenu, Stack, space } from '../components/ui'
+import { pageWrap } from '../components/ListParts'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import CrewProfileCard from '../components/CrewProfileCard'
@@ -22,7 +23,7 @@ import { useRateCard } from '../lib/useCrewRates'
 import { FeeFields, useFeeForm } from '../components/gig/FeeFields'
 import { feeText } from '../components/gig/LabourCost'
 
-const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+const hint = { fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: 0 }
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px' }
 // Facts about a person: icon + words on the quiet fill (no colour washes)
 const badge = () => ({ display: 'inline-flex', alignItems: 'center', gap: '4px', height: '22px', padding: '0 8px', fontSize: '12px', fontWeight: 500,
@@ -38,9 +39,8 @@ export default function CrewSearchPage() {
   const [params] = useSearchParams()
   const { notify } = useToast()
   const { t, lang, fmt } = useI18n()
-  const { orgs, roleIn, loading, setWorkspace } = useWorkspace()
+  const { roleIn, loading, setWorkspace } = useWorkspace()
   const role = roleIn(orgId)
-  const org = orgs.find(o => o.id === orgId)
   const canSearch = role === 'admin' || role === 'member'
   const [gigs, setGigs] = useState([])
   const [gigId, setGigId] = useState(params.get('gig') || '')
@@ -111,25 +111,20 @@ export default function CrewSearchPage() {
 
   return (
     <AppShell>
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div>
-          <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org?.name}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('crewSearch.title')}</h1>
-            <PageHelp page="crew-search" />
-          </div>
-          <p style={{ ...hint, fontSize: '13px', marginTop: '4px' }}>{t('crewSearch.intro')}</p>
-        </div>
+      <div style={pageWrap}>
+        <PageHeader title={t('crewSearch.title')} help={<PageHelp page="crew-search" />} />
 
+        <Stack gap={5}>
         <SavedCrewSearches orgId={orgId} filters={filters} onApply={applySaved} openId={params.get('search')} />
-        <form onSubmit={search} noValidate style={{ ...card, padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }} aria-label={t('crewSearch.filters')}>
+        {/* The filters sit on the page ground, not in a card (DESIGN.md rule 2) */}
+        <form onSubmit={search} noValidate style={{ display: 'flex', flexDirection: 'column', gap: space[3] }} aria-label={t('crewSearch.filters')}>
           <div>
             <label style={label} htmlFor="cs-gig">{t('crewSearch.forGig')}</label>
             <select id="cs-gig" value={gigId} onChange={e => setGigId(e.target.value)} style={{ ...input, cursor: 'pointer' }}>
               <option value="">{t('crewSearch.noGig')}</option>
               {gigs.map(g => <option key={g.id} value={g.id}>{g.name}{g.start_date ? ` · ${fmt(g.start_date, 'd MMM')}` : ''}</option>)}
             </select>
-            <p style={{ ...hint, marginTop: '6px' }}>{gig ? t('crewSearch.forGigHint') : t('crewSearch.noGigHint')}</p>
+            <p style={{ ...hint, marginTop: space[2] }}>{gig ? t('crewSearch.forGigHint') : t('crewSearch.noGigHint')}</p>
           </div>
           <div style={grid}>
             <div>
@@ -169,7 +164,7 @@ export default function CrewSearchPage() {
                       </select>
                     </label>
                   </div>
-                  <p style={{ ...hint, marginTop: '6px' }}>{t('crewSearch.nearHint')}</p>
+                  <p style={{ ...hint, marginTop: space[2] }}>{t('crewSearch.nearHint')}</p>
                 </div>
               ) : (
                 <PlaceFinder key={gig?.id || 'none'} id="cs-place" label={t('crewSearch.near')} hint={t('crewSearch.placeHint')} initialQuery={gig?.venue || ''}
@@ -189,28 +184,29 @@ export default function CrewSearchPage() {
             <input type="checkbox" disabled={!filters.from} checked={filters.onlyFree && !!filters.from} onChange={e => set({ onlyFree: e.target.checked })} style={{ accentColor: 'var(--accent)' }} />
             {t('crewSearch.onlyFree')}
           </label>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: space[3], alignItems: 'center', flexWrap: 'wrap' }}>
             <button type="submit" disabled={searching} style={btnPrimary}>
-              {searching ? <AvxLoader size={15} /> : <Search size={15} />} {t('crewSearch.search')}
+              {searching ? <AvxLoader size={16} /> : <Search size={16} aria-hidden="true" />} {t('crewSearch.search')}
             </button>
             <button type="button" onClick={() => { setFilters({ ...EMPTY_FILTERS, ...(gig ? gigFilters(gig) : {}) }); setResult(null) }} style={{ ...btn, background: 'transparent' }}>{t('crewSearch.reset')}</button>
           </div>
         </form>
+        </Stack>
 
         {result && (
-          <section aria-labelledby="cs-results" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <h2 id="cs-results" role="status" style={{ fontSize: '15px', fontWeight: 700 }}>{t('crewSearch.found', { count: result.total })}</h2>
+          <section aria-labelledby="cs-results" style={{ display: 'flex', flexDirection: 'column', gap: space[3], marginTop: space.section }}>
+            <h2 id="cs-results" role="status" className="avx-section__title">{t('crewSearch.found', { count: result.total })}</h2>
             {result.total === 0 && <p style={hint}>{t('crewSearch.none')}</p>}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: space[3] }}>
               {result.results.map(p => (
                 <CrewProfileCard key={p.user_id} profile={p} name={p.name} orgId={orgId} onConfirm={p.worked_with > 0 ? (c, on) => confirmCert(p, c, on) : null}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[2], marginTop: space[3] }}>
                     {p.km != null && <span style={badge(colors.soft)}><MapPin size={12} aria-hidden="true" /> {t('crewSearch.kmAway', { km: p.km })}</span>}
                     {p.free === true && <StatusBadge small tone="ok">{t('crewSearch.free')}</StatusBadge>}
                     {p.free === false && <StatusBadge small tone="warn">{t('crewSearch.busy')}</StatusBadge>}
                     {p.worked_with > 0 && <span style={badge('var(--sky)')}><Users size={12} aria-hidden="true" /> {t('crewSearch.workedWith', { count: p.worked_with })}</span>}
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[2], marginTop: space[3], alignItems: 'center' }}>
                     {p.contact_from === 'known' && !p.worked_with && !contacted[p.user_id] ? (
                       <span style={{ ...hint, display: 'inline-flex', gap: '6px', alignItems: 'center' }}><Lock size={13} aria-hidden="true" /> {t('trust.contact.onlyKnownShort')}</span>
                     ) : contacted[p.user_id] ? (
@@ -218,17 +214,18 @@ export default function CrewSearchPage() {
                     ) : (
                       <>
                         <button type="button" disabled={!gig} onClick={() => setContact({ person: p, kind: 'availability' })} style={btn}
-                          aria-label={t('crewSearch.askNamed', { name: p.name || '' })}><CalendarCheck size={14} /> {t('crewSearch.ask')}</button>
+                          aria-label={t('crewSearch.askNamed', { name: p.name || '' })}><CalendarCheck size={15} aria-hidden="true" /> {t('crewSearch.ask')}</button>
                         <button type="button" disabled={!gig} onClick={() => setContact({ person: p, kind: 'offer' })} style={btn}
-                          aria-label={t('crewSearch.offerNamed', { name: p.name || '' })}><Megaphone size={14} /> {t('crewSearch.offer')}</button>
+                          aria-label={t('crewSearch.offerNamed', { name: p.name || '' })}><Megaphone size={15} aria-hidden="true" /> {t('crewSearch.offer')}</button>
                       </>
                     )}
+                    {/* Two buttons in view per card (DESIGN.md rule 5); reporting is in ⋯ */}
+                    <span style={{ marginLeft: 'auto' }}>
+                      <MoreMenu label={t('crewSearch.moreFor', { name: p.name || '' })}
+                        items={[{ label: t('trust.report.action'), icon: <Flag size={15} aria-hidden="true" />, onClick: () => setReporting(p) }]} />
+                    </span>
                   </div>
-                  {!gig && !contacted[p.user_id] && <p style={{ ...hint, marginTop: '6px' }}>{t('crewSearch.chooseGig')}</p>}
-                  <button type="button" onClick={() => setReporting(p)} aria-label={t('trust.report.profileNamed', { name: p.name || '' })}
-                    style={{ background: 'none', border: 'none', padding: 0, marginTop: '10px', font: 'inherit', fontSize: '12px', color: colors.muted, cursor: 'pointer', display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
-                    <Flag size={12} aria-hidden="true" /> {t('trust.report.action')}
-                  </button>
+                  {!gig && !contacted[p.user_id] && <p style={{ ...hint, marginTop: space[2] }}>{t('crewSearch.chooseGig')}</p>}
                 </CrewProfileCard>
               ))}
             </div>
