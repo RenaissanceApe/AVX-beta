@@ -17,6 +17,7 @@ export type FeedGig = {
   booked_from?: string | null // timestamptz, this person's own booking
   booked_until?: string | null
   hours?: { work_date: string, start_time: string, end_time: string, status: string }[] // this person's own logged days
+  time_zone?: string | null // the organisation's (U1); call times are on its clock
 }
 // The person's own approved leave and unavailable dates (step 9)
 export type FeedLeave = {
@@ -60,8 +61,20 @@ const nextDay = (d: string) => {
 }
 const utcValue = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
 
-// One VEVENT per gig: the person's own booking times when set, otherwise the gig's days (all day)
-export function gigEvent(g: FeedGig, lang: FeedLang, appUrl: string, now: Date) {
+export const DEFAULT_ZONE = 'Europe/Lisbon'
+
+// The calendar's own time zone: the one most of the person's gigs are in (Lisbon without any)
+export function feedZone(gigs: FeedGig[]) {
+  const count = new Map<string, number>()
+  for (const g of gigs) if (g.time_zone) count.set(g.time_zone, (count.get(g.time_zone) ?? 0) + 1)
+  let best = DEFAULT_ZONE, most = 0
+  for (const [zone, n] of count) if (n > most || (n === most && zone < best)) { best = zone; most = n }
+  return best
+}
+
+// One VEVENT per gig: the person's own booking times when set, otherwise the gig's days (all day).
+// A call time is on the organisation's clock: its zone is named when it isn't the calendar's.
+export function gigEvent(g: FeedGig, lang: FeedLang, appUrl: string, now: Date, calendarZone = DEFAULT_ZONE) {
   const w = WORDS[lang] || WORDS.en
   const lines = ['BEGIN:VEVENT', `UID:${g.id}@avx`, `DTSTAMP:${utcValue(now.toISOString())}`]
   if (g.booked_from && g.booked_until) {
@@ -77,7 +90,7 @@ export function gigEvent(g: FeedGig, lang: FeedLang, appUrl: string, now: Date) 
   const description = [
     g.status === 'draft' ? w.draft : null,
     role ? `${w.role}: ${role}` : null,
-    g.call_time ? `${w.call}: ${g.call_time.slice(0, 5)}` : null,
+    g.call_time ? `${w.call}: ${g.call_time.slice(0, 5)}${g.time_zone && g.time_zone !== calendarZone ? ` (${g.time_zone})` : ''}` : null,
     g.hours?.length ? `${w.hours}:\n${g.hours.slice(0, 31).map(h => `${h.work_date} ${h.start_time.slice(0, 5)}–${h.end_time.slice(0, 5)} (${w[h.status === 'submitted' ? 'waiting' : h.status] || h.status})`).join('\n')}` : null,
     `${w.open}: ${appUrl}/gig/${g.id}`,
   ].filter(Boolean).join('\n')
@@ -99,15 +112,15 @@ export function leaveEvent(l: FeedLeave, lang: FeedLang, now: Date) {
   ]
 }
 
-export function buildCalendar(gigs: FeedGig[], lang: FeedLang, appUrl: string, now = new Date(), leave: FeedLeave[] = []) {
+export function buildCalendar(gigs: FeedGig[], lang: FeedLang, appUrl: string, now = new Date(), leave: FeedLeave[] = [], zone = feedZone(gigs)) {
   const w = WORDS[lang] || WORDS.en
   const lines = [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//AVX//Gigs//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
-    `X-WR-CALNAME:${escapeText(w.calendar)}`, 'X-WR-TIMEZONE:Europe/Lisbon', 'REFRESH-INTERVAL;VALUE=DURATION:PT1H', 'X-PUBLISHED-TTL:PT1H',
+    `X-WR-CALNAME:${escapeText(w.calendar)}`, `X-WR-TIMEZONE:${zone}`, 'REFRESH-INTERVAL;VALUE=DURATION:PT1H', 'X-PUBLISHED-TTL:PT1H',
   ]
   for (const g of gigs) {
     if (g.status === 'archived' || g.status === 'cancelled') continue
-    lines.push(...gigEvent(g, lang, appUrl, now))
+    lines.push(...gigEvent(g, lang, appUrl, now, zone))
   }
   for (const l of leave) lines.push(...leaveEvent(l, lang, now))
   lines.push('END:VCALENDAR')

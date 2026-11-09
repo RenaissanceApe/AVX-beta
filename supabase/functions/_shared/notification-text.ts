@@ -179,21 +179,44 @@ export function fill(text: string, vars: Record<string, unknown>) {
   return text.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''))
 }
 
-// "10 Nov – 12 Nov" or "10 Nov, 09:00 – 18:00", in Lisbon time (the app shows the reader's own time)
-export function rangeText(from: unknown, until: unknown, lang: Lang) {
+export const DEFAULT_ZONE = 'Europe/Lisbon'
+// Kinds whose text shows clock times, so the sender looks up the organisation's time zone
+export const TIMED_KINDS = new Set(['availability_request', 'booking_changed', 'hire_request'])
+
+// Which gigs' and organisations' time zones a batch of notifications needs
+export function zoneIds(items: Pick<Notification, 'kind' | 'gig_id' | 'org_id'>[]) {
+  const timed = items.filter(n => TIMED_KINDS.has(n.kind))
+  return {
+    gigIds: [...new Set(timed.map(n => n.gig_id).filter(Boolean))] as string[],
+    orgIds: [...new Set(timed.map(n => n.org_id).filter(Boolean))] as string[],
+  }
+}
+
+// The time zone a notification's dates are read in: its gig's organisation, else its organisation
+// (maps of id → time zone, filled by the sender), else Lisbon (U1)
+export function zoneFor(n: Pick<Notification, 'gig_id' | 'org_id'>, gigZones: Record<string, string>, orgZones: Record<string, string>) {
+  return (n.gig_id && gigZones[n.gig_id]) || (n.org_id && orgZones[n.org_id]) || DEFAULT_ZONE
+}
+
+// "10 Nov – 12 Nov" or "10 Nov, 09:00 – 18:00", on the organisation's clock (Lisbon by default);
+// times on another clock than Lisbon's name it (the app shows the reader's own time)
+export function rangeText(from: unknown, until: unknown, lang: Lang, zone = DEFAULT_ZONE) {
   if (!from || !until) return '—'
   const locale = lang === 'pt' ? 'pt-PT' : 'en-GB'
   const start = new Date(String(from)), end = new Date(String(until))
-  const day = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', timeZone: 'Europe/Lisbon' })
-  const time = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Lisbon' })
+  let tz = zone
+  try { new Intl.DateTimeFormat(locale, { timeZone: tz }) } catch { tz = DEFAULT_ZONE }
+  const day = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', timeZone: tz })
+  const time = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: tz })
   const wholeDays = time.format(start) === '00:00' && time.format(end) === '00:00'
   if (wholeDays) {
     const last = new Date(end.getTime() - 12 * 3600e3)
     return day.format(start) === day.format(last) ? day.format(start) : `${day.format(start)} – ${day.format(last)}`
   }
-  return day.format(start) === day.format(end)
+  const named = tz === DEFAULT_ZONE ? '' : ` (${tz})`
+  return (day.format(start) === day.format(end)
     ? `${day.format(start)}, ${time.format(start)} – ${time.format(end)}`
-    : `${day.format(start)}, ${time.format(start)} – ${day.format(end)}, ${time.format(end)}`
+    : `${day.format(start)}, ${time.format(start)} – ${day.format(end)}, ${time.format(end)}`) + named
 }
 
 // Gig days (dates, last day included): "12 Nov", "12 Nov – 14 Nov"
@@ -206,7 +229,7 @@ export function dayText(start: unknown, end: unknown, lang: Lang) {
 }
 
 // Same wording as src/lib/notifications.js, rendered in the recipient's language.
-export function describe(n: Notification, lang: Lang, actorName: string | undefined) {
+export function describe(n: Notification, lang: Lang, actorName: string | undefined, zone = DEFAULT_ZONE) {
   const s = STRINGS[lang]
   const d = n.details || {}
   const actor = actorName || s.someone
@@ -225,17 +248,17 @@ export function describe(n: Notification, lang: Lang, actorName: string | undefi
     case 'org_deleted': return fill(s.orgDeleted, { actor, org: d.org_name })
     case 'quote_accepted': return fill(s.quoteAccepted, { client: d.client_name, number: d.number, title: d.quote_title })
     case 'quote_declined': return fill(s.quoteDeclined, { client: d.client_name, number: d.number, title: d.quote_title })
-    case 'availability_request': return fill(s.availabilityRequest, { actor, gig, range: rangeText(d.from, d.until, lang) })
+    case 'availability_request': return fill(s.availabilityRequest, { actor, gig, range: rangeText(d.from, d.until, lang, zone) })
     case 'availability_reply':
       return fill(d.answer === 'available' ? s.availabilityYes : s.availabilityNo, { actor, gig }) + (d.note ? `: “${d.note}”` : '')
     case 'booking_changed': return d.booked_from && d.booked_until
-      ? fill(s.bookingChanged, { actor, gig, range: rangeText(d.booked_from, d.booked_until, lang) })
+      ? fill(s.bookingChanged, { actor, gig, range: rangeText(d.booked_from, d.booked_until, lang, zone) })
       : fill(s.bookingCleared, { actor, gig })
     case 'damage_reported':
       return fill(s.damage, { actor, item: [d.item_name, d.unit_code].filter(Boolean).join(' · '), gig: gig || '—', excerpt: d.excerpt ?? '' })
     case 'inspection_due':
       return fill(Number(d.count) === 1 ? s.inspectionDueOne : s.inspectionDueMany, { count: d.count ?? 0, org: d.org_name ?? '' })
-    case 'hire_request': return fill(s.hireRequest, { org: d.from_org ?? '', range: rangeText(d.starts_at, d.ends_at, lang) })
+    case 'hire_request': return fill(s.hireRequest, { org: d.from_org ?? '', range: rangeText(d.starts_at, d.ends_at, lang, zone) })
     case 'hire_answered': return fill(d.answer === 'confirmed' ? s.hireConfirmed : s.hireDeclined, { supplier: d.supplier ?? '' })
     case 'crew_call': return fill(s.crewCall, { actor, title: d.title ?? '', gig, range: dayText(d.start_date, d.end_date, lang) })
     case 'crew_call_answer': return fill(d.answer === 'accepted' ? s.crewCallAccepted : s.crewCallDeclined, { actor, title: d.title ?? '', gig })
