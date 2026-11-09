@@ -383,9 +383,12 @@ export default function QuoteEditorPage() {
             <span style={{ fontFamily: 'var(--font-mono)', color: colors.soft, fontSize: '13px' }}>{quoteNumber(quote, prefix)}</span>
             <input value={quote.title} onChange={e => updateQuote({ title: e.target.value })} aria-label={t('quotes.quoteTitle')} maxLength={200}
               style={{ ...input, flex: '1 1 220px', fontFamily: 'var(--font-mono)', fontSize: '20px', fontWeight: 700, background: 'transparent', border: '1px solid transparent', padding: '6px 8px' }} />
-            <select value={quote.status} onChange={e => changeStatus(e.target.value)} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', padding: '7px 10px', cursor: 'pointer' }}>
-              {/* "Cancelled" is set only by ⋯ → Cancel quote; it shows here only on a cancelled quote */}
-              {QUOTE_STATUSES.filter(s => s !== 'cancelled' || quote.status === 'cancelled').map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
+            <select value={quote.status} onChange={e => changeStatus(e.target.value)} aria-label={t('quotes.status')} disabled={quote.status === 'cancelled'}
+              style={{ ...input, width: 'auto', padding: '7px 10px', cursor: quote.status === 'cancelled' ? 'default' : 'pointer' }}>
+              {/* The database allows the same (quotes_status_guard): Cancelled only from ⋯ → Cancel quote and
+                  final; back to Draft only from Declined, with ⋯ → Revise and resend */}
+              {QUOTE_STATUSES.filter(s => quote.status === 'cancelled' ? s === 'cancelled' : s !== 'cancelled' && (s !== 'draft' || quote.status === 'draft'))
+                .map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
             </select>
             {quote.status === 'declined' && (
               <button onClick={() => setModal({ kind: 'lost' })} style={{ ...btnGhost, padding: '7px 10px' }}>

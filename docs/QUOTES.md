@@ -54,11 +54,13 @@ instead of erasing it, with an **Undo** on the message. A **sent or accepted** q
 instead (⋯ → **Cancel quote**, `public.cancel_quote`): it stays in the list as Cancelled, counts
 nowhere (not waiting, not in the win rate, not in revenue), its client link shows it as cancelled
 with no answer buttons, and its gig, crew, equipment and invoices stay as they are. Only Cancel
-quote sets that status (`private.quotes_cancel_guard`); the status menu can move it back. A
-declined quote can also be **revised and resent** (⋯ → Revise and resend, `public.revise_quote`): it
+quote sets that status, and a cancelled quote stays cancelled (`private.quotes_status_guard`;
+Duplicate makes a fresh draft from it). A declined quote can also be **revised and resent** (⋯ → Revise and resend, `public.revise_quote`): it
 goes back to draft and its sent and decided dates start afresh (`private.quotes_revise_dates`), so
 the old decline drops out of the win rate and the follow-up clock starts when it is sent again. Its
-versions and the client's answer on the old link (`quote_shares`) stay as the record. While it waits there it counts nowhere: lists, search, counts, reports,
+versions and the client's answer on the old link (`quote_shares`) stay as the record. That is the
+only way back to draft: a sent or accepted quote can't be moved back by the status menu (the same
+guard), so it can never become deletable. While it waits there it counts nowhere: lists, search, counts, reports,
 gig finance, chat cards and the client's link (which shows "not found"). **Restore** brings it back
 as it was, with its versions, client links and number. Fifteen days after it was deleted, a nightly
 clean-up in the database (`private.erase_removed_quotes`, pg_cron job `avx-quote-bin`) erases it for

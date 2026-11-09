@@ -536,6 +536,8 @@ export default {
   'quote.error.onlyDraftDeletes': 'Only a draft or a declined quote can be deleted. Cancel a sent or accepted quote instead (⋯ → Cancel quote).',
   'quote.error.onlySentCancels': 'Only a sent or accepted quote can be cancelled.',
   'quote.error.useCancel': 'To cancel a quote, use ⋯ → Cancel quote.',
+  'quote.error.cancelledIsFinal': 'A cancelled quote stays cancelled. Duplicate it to make a new one.',
+  'quote.error.noBackToDraft': 'A sent or accepted quote can\'t go back to draft. A declined one can: ⋯ → Revise and resend.',
   'quote.copyOf': '{name} (copy)',
   'quote.saved': 'Saved',
   'quote.unsaved': 'Unsaved changes',

@@ -92,7 +92,9 @@ begin
   update quotes set status = 'accepted' where id = q1;
   select revenue into x from gig_finance(org_a, null, null, g);
   if x <> 0 then raise exception 'CHECK FAILED: gig_finance as the owner counts a removed quote (%)', x; end if;
+  perform set_config('avx.revise_quote', 'on', true);  -- back to draft, as revise_quote does
   update quotes set status = 'draft' where id = q1;
+  perform set_config('avx.revise_quote', 'off', true);
   select count(*) into n from private.report_quote_lines where quote_id = q1;
   if n <> 0 then raise exception 'CHECK FAILED: report_quote_lines as the owner shows a removed quote'; end if;
   if private.can_see_card('quote', q1) then raise exception 'CHECK FAILED: a chat card shows a removed quote'; end if;
@@ -175,6 +177,12 @@ begin
     raise exception 'CHECK FAILED: a sent quote was deleted';
   exception when invalid_parameter_value then null;
   end;
+  -- A sent quote can't go back to draft (it would become deletable)
+  begin
+    update quotes set status = 'draft' where id = q4;
+    raise exception 'CHECK FAILED: a sent quote went back to draft';
+  exception when invalid_parameter_value then null;
+  end;
   -- Only cancel_quote sets "cancelled"; a draft can't be cancelled
   begin
     update quotes set status = 'cancelled' where id = q4;
@@ -209,13 +217,20 @@ begin
   if x <> 0 then raise exception 'CHECK FAILED: a cancelled quote counts as revenue (%)', x; end if;
   select count(*) into n from removed_quotes(org_a) where id = q4;
   if n <> 0 then raise exception 'CHECK FAILED: a cancelled quote is in the bin'; end if;
-  -- A cancelled quote can still be edited, and moved back with the status menu
+  -- A cancelled quote can still be edited, but it stays cancelled
   update quotes set title = 'Concert sound (off)' where id = q4;
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'CHECK FAILED: a cancelled quote can''t be edited'; end if;
-  update quotes set status = 'accepted' where id = q4;
-  select revenue into x from gig_finance(org_a, null, null, g2);
-  if x <> 100 then raise exception 'CHECK FAILED: revenue after moving back (%)', x; end if;
+  begin
+    update quotes set status = 'accepted' where id = q4;
+    raise exception 'CHECK FAILED: a cancelled quote was reopened';
+  exception when invalid_parameter_value then null;
+  end;
+  begin
+    perform cancel_quote(q4);
+    raise exception 'CHECK FAILED: cancelled twice';
+  exception when invalid_parameter_value then null;
+  end;
   reset role;
 
   -- ── Declined quotes: deleted to the bin, or revised and sent again ─────────
@@ -228,6 +243,12 @@ begin
   select count(*) into n from removed_quotes(org_a) where id = q5;
   if n <> 1 then raise exception 'CHECK FAILED: a declined quote did not go to the bin'; end if;
   perform restore_quote(q5);
+  -- Back to draft only through revise_quote
+  begin
+    update quotes set status = 'draft' where id = q5;
+    raise exception 'CHECK FAILED: a declined quote went back to draft without revise_quote';
+  exception when invalid_parameter_value then null;
+  end;
   begin
     perform revise_quote(q3);
     raise exception 'CHECK FAILED: a draft was revised';

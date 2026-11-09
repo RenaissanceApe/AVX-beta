@@ -16,11 +16,12 @@
 --   bin, only the quotes the reader may restore.
 -- - public.cancel_quote(id): a sent or accepted quote becomes "cancelled" (same people). Nothing else
 --   changes: its gig, crew, equipment and invoices stay. Only this function moves a quote to
---   cancelled (private.quotes_cancel_guard); the status menu can still move it back.
+--   cancelled, and a cancelled quote stays cancelled (private.quotes_status_guard).
 -- - public.revise_quote(id): a declined quote goes back to draft to be changed and sent again. Its
 --   sent and decided dates start afresh (private.quotes_revise_dates), so the old decline no longer
 --   counts in the win rate and the follow-up clock starts when it is sent again; its versions and
---   the client's answer on the old link stay as the record.
+--   the client's answer on the old link stay as the record. It is the only way back to draft: a
+--   sent or accepted quote can't be moved back (that would make it deletable).
 -- - private.erase_removed_quotes(): erases for good what has been in the bin for more than
 --   15 days; pg_cron runs it every night. Versions and client links go with the quote (as before);
 --   crew positions, gig equipment and invoices keep their rows without the link.
@@ -347,21 +348,28 @@ end $$;
 revoke execute on function public.removed_quotes(uuid) from public, anon;
 grant execute on function public.removed_quotes(uuid) to authenticated;
 
--- ── Cancelling a sent or accepted quote ──────────────────────────────────────
--- Only cancel_quote moves a quote to "cancelled" (it sets avx.cancel_quote for its own update);
--- editing a cancelled quote, or moving it back with the status menu, stays possible.
-create or replace function private.quotes_cancel_guard() returns trigger
+-- ── Which status changes are allowed ─────────────────────────────────────────
+-- Only cancel_quote moves a quote to "cancelled" (it sets avx.cancel_quote for its own update), and
+-- a cancelled quote stays cancelled (it can still be edited and printed). Only revise_quote moves a
+-- quote back to draft (avx.revise_quote), and only from declined. Everything else is free, as before.
+create or replace function private.quotes_status_guard() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
-  if new.status = 'cancelled' and (tg_op = 'INSERT' or old.status is distinct from 'cancelled')
-     and coalesce(current_setting('avx.cancel_quote', true), '') <> 'on' then
+  if tg_op = 'UPDATE' and new.status is not distinct from old.status then return new; end if;
+  if tg_op = 'UPDATE' and old.status = 'cancelled' then
+    raise exception 'quote:cancelledIsFinal' using errcode = '22023';
+  end if;
+  if new.status = 'cancelled' and coalesce(current_setting('avx.cancel_quote', true), '') <> 'on' then
     raise exception 'quote:useCancel' using errcode = '42501';
+  end if;
+  if tg_op = 'UPDATE' and new.status = 'draft' and coalesce(current_setting('avx.revise_quote', true), '') <> 'on' then
+    raise exception 'quote:noBackToDraft' using errcode = '22023';
   end if;
   return new;
 end $$;
-revoke execute on function private.quotes_cancel_guard() from public, anon, authenticated;
-create or replace trigger quotes_cancel_guard before insert or update of status on public.quotes
-  for each row execute function private.quotes_cancel_guard();
+revoke execute on function private.quotes_status_guard() from public, anon, authenticated;
+create or replace trigger quotes_status_guard before insert or update of status on public.quotes
+  for each row execute function private.quotes_status_guard();
 
 -- Returns the quote's new edit counter, so an open editor keeps saving without a conflict
 create or replace function public.cancel_quote(p_quote uuid) returns integer

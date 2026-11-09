@@ -18,6 +18,8 @@
   in phases" (three, with revising a declined quote).
 
 #### Changed
+- The status menu on a quote no longer offers Draft once it has been sent, and is locked on a
+  cancelled quote.
 - The delete question on a quote now says where the quote goes ("…goes to Quotes → Recently
   deleted, where you can restore it for 15 days"), and the message after it says "Quote moved to
   Recently deleted."
@@ -30,7 +32,8 @@
   `quotes_insert` and `quotes_update` skip or refuse removed quotes; the app's direct delete right on
   `quotes` is revoked; RPCs `remove_quote` (drafts and declined), `restore_quote`, `removed_quotes`,
   `cancel_quote` (sent or accepted), `revise_quote` (declined → draft); triggers
-  `quotes_cancel_guard` (only `cancel_quote` sets cancelled) and `quotes_revise_dates` (a revised
+  `quotes_status_guard` (only `cancel_quote` sets cancelled, which is final; only `revise_quote`
+  goes back to draft) and `quotes_revise_dates` (a revised
   quote's sent/decided dates start afresh); nightly `private.erase_removed_quotes()` (pg_cron `avx-quote-bin`, 03:41 UTC).
   Readers that don't run as the reader got the bin filter by hand: `private.report_quote_lines`,
   `public.gig_finance`, `private.can_see_card`, `private.guest_resolve`,
@@ -55,7 +58,7 @@ ROADMAP step.
 3. Compare `md5(prosrc)` on test and production for: `public.gig_finance`, `private.can_see_card`,
    `private.guest_resolve`, `public.clients_from_quotes`, `private.can_remove_quote`,
    `public.remove_quote`, `public.restore_quote`, `public.removed_quotes`, `public.cancel_quote`,
-   `public.revise_quote`, `private.quotes_cancel_guard`, `private.quotes_revise_dates`, `private.erase_removed_quotes`.
+   `public.revise_quote`, `private.quotes_status_guard`, `private.quotes_revise_dates`, `private.erase_removed_quotes`.
 4. Deploy the Edge Function `quote-public` (JWT verification stays **off**, as now). Until then, a
    client link to a quote in the bin or a cancelled quote still opens the quote's page on
    production.
@@ -70,16 +73,19 @@ ROADMAP step.
 - A declined quote: ⋯ shows Revise and resend and Delete. Revise: it is a draft again with its
   versions; send it, and it is waiting in Reports → Sales from today (not flagged for follow-up).
   Delete instead: it goes to Recently deleted.
-- A gig with an accepted quote: cancel the quote and the gig's revenue drops; set the status back
-  to Accepted and it returns.
+- A gig with an accepted quote: cancel the quote and the gig's revenue drops. The status menu of a
+  cancelled quote is locked; Duplicate makes a fresh draft from it.
+- The status menu of a sent or accepted quote has no Draft.
 
 ## Pending: new questions (section 3)
 - **The decline's reason:** when a declined quote is revised, its lost reason and note are cleared
   (as the status menu already did). The client's answer on the old link and the versions stay. Say
   if the reason should be kept somewhere.
-- **The status menu still moves any quote to any status but Cancelled.** So an accepted quote can
-  be set back to Draft and then deleted, and a cancelled one can be reopened. Kept on purpose so
-  mistakes can be undone; say if a sent or accepted quote should never go back to Draft.
+- **Cancelled is final**, as decided: a quote cancelled by mistake can't be reopened, only
+  duplicated (the copy is a new draft with a new number; its versions and client links stay on the
+  old one). Say if admins should be able to reopen one.
+- **Taking back a sent quote:** the app has no way to do this beyond revoking its client link, which
+  leaves it Sent. A sent quote the client hasn't answered can only be cancelled.
 
 ## Session prompt
 none (issue #124)

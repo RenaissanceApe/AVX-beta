@@ -535,6 +535,8 @@ export default {
   'quote.error.onlyDraftDeletes': 'Só um rascunho ou um orçamento recusado pode ser apagado. Cancele um orçamento enviado ou aceite (⋯ → Cancelar orçamento).',
   'quote.error.onlySentCancels': 'Só um orçamento enviado ou aceite pode ser cancelado.',
   'quote.error.useCancel': 'Para cancelar um orçamento, use ⋯ → Cancelar orçamento.',
+  'quote.error.cancelledIsFinal': 'Um orçamento cancelado fica cancelado. Duplique-o para fazer um novo.',
+  'quote.error.noBackToDraft': 'Um orçamento enviado ou aceite não pode voltar a rascunho. Um recusado pode: ⋯ → Rever e reenviar.',
   'quote.copyOf': '{name} (cópia)',
   'quote.saved': 'Guardado',
   'quote.unsaved': 'Alterações por guardar',
