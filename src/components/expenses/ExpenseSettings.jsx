@@ -11,11 +11,12 @@ import { formatMoney } from '../../lib/quotes'
 import { KINDS, EVERY, PAID_HOW, DEFAULT_VAT, categoryName, upcomingDates, vatOf } from '../../lib/expenses'
 import { useI18n, fmt } from '../../i18n'
 import EmptyState from '../EmptyState'
-import { HintLabel } from '../help/HelpParts'
-import { Modal, btn, btnPrimary, btnDanger, iconBtn, input, card, colors, AvxLoader } from '../ui'
+import { HintLabel, Hint } from '../help/HelpParts'
+import { Modal, btn, btnPrimary, btnDanger, iconBtn, input, colors, AvxLoader } from '../ui'
 
-const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
-const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
+// A section on the page ground, no card (DESIGN.md rule 2)
+const section = { display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }
+const h2 = { font: '700 16px/24px var(--font-mono)', margin: 0, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }
 const field = { minWidth: 0, fontSize: '12px', color: colors.soft, display: 'flex', flexDirection: 'column', gap: '4px' }
 const full = { gridColumn: '1 / -1' }
 const li = { display: 'flex', gap: '4px 10px', alignItems: 'center', flexWrap: 'wrap', padding: '9px 0', borderTop: `1px solid ${colors.border}`, fontSize: '14px' }
@@ -153,10 +154,9 @@ export function RecurringPanel({ orgId, categories, version, onChanged }) {
   return (
     <section style={section} aria-labelledby="exp-recurring">
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-        <h2 id="exp-recurring" style={{ ...h2, flex: '1 1 160px' }}>{t('expenses.recurring')}</h2>
+        <h2 id="exp-recurring" style={{ ...h2, flex: '1 1 160px' }}>{t('expenses.recurring')} <Hint text={t('expenses.recurringIntro')} label={t('expenses.recurring')} /></h2>
         <button type="button" onClick={() => setEditing('new')} style={btn}><Plus size={14} /> {t('expenses.recurringAdd')}</button>
       </div>
-      <p style={{ fontSize: '13px', color: colors.muted, margin: 0, lineHeight: 1.5 }}>{t('expenses.recurringIntro')}</p>
       {!list ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}><AvxLoader size={20} color={colors.accentText} /></div>
       ) : list.length === 0 ? (
