@@ -94,6 +94,8 @@ are no longer folded with their heading: hiding them is done in Arrange home.
   list, search and saved, the Help guides and glossary and the light plot's fixture list are sections or hairline rows,
   not cards. Cards stay for things you act on: the On-site tiles, the next-gig card, the scan form, the availability
   question, the open conversation, the field tools' editors.
+- **The Simple home's next-gig card:** two buttons in view (Call sheet, the one green fill, and Chat), Read aloud under
+  them, Open the gig and Report damage in the card's ⋯.
 - **Selected and current:** Messages' Search / Saved and My tasks' "Open only" are marked with a 2px accent bar; the
   glossary word you arrived at has the `selection` wash and a 2px accent edge; your call on On-site has the wash.
   Guide step numbers are an outlined square with green text, no longer a green fill per step.

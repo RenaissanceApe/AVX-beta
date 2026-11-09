@@ -4,7 +4,7 @@ import { useI18n } from '../i18n'
 import { localToday } from '../lib/gigs'
 import EmptyState from './EmptyState'
 import ReadAloud from './ReadAloud'
-import { btnPrimary, btn, card, colors, label, space, Stack, Section } from './ui'
+import { btnPrimary, btn, card, colors, label, space, Stack, Section, MoreMenu } from './ui'
 
 const shortTime = v => (v ? String(v).slice(0, 5) : '')
 
@@ -50,17 +50,22 @@ export default function SimpleHome({ gigs, onShowAll }) {
               {next.myFunction && <span style={{ fontSize: '16px', color: colors.text }}>{next.myFunction}</span>}
             </div>
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: space[2], marginTop: space[5] }}>
-            <button type="button" onClick={() => navigate(`/gig/${next.id}/callsheet`)} style={{ ...big, gridColumn: '1 / -1' }}><FileText size={18} aria-hidden="true" /> {t('schedule.callSheet')}</button>
+          <div style={{ display: 'flex', gap: space[2], flexWrap: 'wrap', alignItems: 'stretch', marginTop: space[5] }}>
+            <button type="button" onClick={() => navigate(`/gig/${next.id}/callsheet`)} style={big}><FileText size={18} aria-hidden="true" /> {t('schedule.callSheet')}</button>
             <button type="button" onClick={() => navigate(`/gig/${next.id}?tab=chat`)} style={action}><MessageCircle size={18} aria-hidden="true" /> {t('gig.tab.chat')}</button>
-            <button type="button" onClick={() => navigate(`/gig/${next.id}`)} style={action}><ChevronRight size={18} aria-hidden="true" /> {t('simple.openGig')}</button>
-            <button type="button" onClick={() => navigate(`/gig/${next.id}?tab=equipment&report=1`)} style={action}><Wrench size={18} aria-hidden="true" /> {t('report.title')}</button>
+          </div>
+          {/* Read aloud stays in view (Simple mode is for people who'd rather listen); the rest is in ⋯ */}
+          <div style={{ display: 'flex', gap: space[2], alignItems: 'center', marginTop: space[2] }}>
             <ReadAloud style={action} text={() => [
               t('speak.nextGig', { name: next.name }),
               next.start_date && fmt(next.start_date, 'EEEE, d MMMM') + '.',
               next.venue && next.venue + '.',
               next.myCallTime && t('speak.yourCall', { time: shortTime(next.myCallTime) }) + (next.myFunction ? `, ${next.myFunction}` : '') + '.',
             ].filter(Boolean).join(' ')} />
+            <MoreMenu items={[
+              { label: t('simple.openGig'), icon: <ChevronRight size={16} aria-hidden="true" />, onClick: () => navigate(`/gig/${next.id}`) },
+              { label: t('report.title'), icon: <Wrench size={16} aria-hidden="true" />, onClick: () => navigate(`/gig/${next.id}?tab=equipment&report=1`) },
+            ]} />
           </div>
         </section>
       )}

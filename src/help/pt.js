@@ -537,7 +537,7 @@ export default {
       title: 'Ver a hora de chamada e a folha de serviço',
       intro: 'A hora de chamada é a hora a que tem de chegar. A folha de serviço tem o plano do dia e o telefone de toda a gente.',
       steps: [
-        'Em "O meu trabalho", o seu próximo evento está no topo, com a hora de chamada a verde. "Folha de serviço" abre-a logo; "Abrir o evento" mostra o resto.',
+        'Em "O meu trabalho", o seu próximo evento está no topo, com a hora de chamada a verde. "Folha de serviço" abre-a logo; "Abrir o evento" (em ⋯) mostra o resto.',
         'No evento, a sua hora de chamada está por baixo do nome do evento, a verde.',
         'Toque em Horário para ver o alinhamento. Toque em "Folha de serviço" para a folha completa.',
         'A folha de serviço mostra o horário e a equipa com os telefones. Pode imprimi-la ou guardá-la em PDF.',
@@ -710,7 +710,7 @@ export default {
       title: 'Reportar equipamento danificado',
       intro: 'Algo se partiu no local? Avise logo o armazém, para ser reparado antes do próximo trabalho.',
       steps: [
-        'Em "O meu trabalho", toque em "Reportar dano" no seu próximo evento. Para outro evento, abra-o, toque em Equipamento e depois em "Reportar dano".',
+        'Em "O meu trabalho", toque em ⋯ no seu próximo evento e depois em "Reportar dano". Para outro evento, abra-o, toque em Equipamento e depois em "Reportar dano".',
         'Escolha o artigo. Para equipamento com etiqueta própria, escreva o código da etiqueta. Para cabos e outros artigos contados, diga quantos.',
         'Diga o que se passa e junte uma fotografia, se puder. Toque em Enviar. Os administradores da organização são avisados.',
       ],

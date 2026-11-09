@@ -8,8 +8,8 @@ What this worker would add to the files only the Dispatcher edits (docs/PARALLEL
 - **On-site mode:** today's schedule and your tasks are no longer in boxes; your call time is a highlighted band. Every
   button and schedule row is at least 44 px, easy to hit with gloves on. The note that on-site mode came on by itself
   has a plain line above and below it instead of a green border.
-- **Simple home:** the next gig's buttons sit in a tidy grid (Call sheet across the top, then Chat, Open the gig,
-  Report damage and Read aloud), and the gigs after it are a plain list.
+- **Simple home:** the next gig shows two buttons, Call sheet and Chat, with Read aloud below them; Open the gig and
+  Report damage moved under ⋯ on the card. The gigs after it are a plain list. The help guides say where they went.
 - **Scan out and in (Dispatch):** a clearer header. Sound and Scan mode stay in view; Packing list and the warehouse
   numbers are next to them on a computer and under ⋯ on a phone. Record is now the only green button. The step
   buttons no longer spill their text on a small phone.
@@ -31,8 +31,8 @@ Mark the DR5 row built (done in docs/DESIGN_REFRESH.md, which is not a shared fi
   home, Scan out and in (step buttons at a narrow width), Messages (list, Search, Saved, a conversation) and Help
   (/help#call-time). Everything fits, buttons are easy to hit, there's one green button per screen."
 - Section 3 (new questions):
-  - The Simple home card shows five buttons (Call sheet, Chat, Open the gig, Report damage, Read aloud); the rule is
-    two per card. All kept because they're used on the day. Move any into ⋯?
+  - The Simple home card: Call sheet and Chat in view, Open the gig and Report damage in ⋯ (DR2's choice). Read aloud
+    was kept in view too (Simple mode is for people who'd rather listen). Move it into ⋯ as well?
   - On-site's call time is 28 px and the timecode clock 28 px (the type table says 24 for a call time and 20 for clocks);
     kept bigger for reading at arm's length. Keep, or go to the table's sizes?
 
