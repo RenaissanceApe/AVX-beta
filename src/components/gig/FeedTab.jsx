@@ -46,7 +46,7 @@ export default function FeedTab({ gigId, posts, userId, isPM, nameOf, onChanged 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
       <TabHeader title={t('feed.title')} subtitle={t('feed.subtitle')} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
         {posts.length === 0 && <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--muted)', fontSize: '14px' }}>{t('feed.empty')}</div>}
         {posts.map(p => (
           <FeedPost key={p.id} post={p} name={nameOf(p.user_id)} large
@@ -65,15 +65,15 @@ export default function FeedTab({ gigId, posts, userId, isPM, nameOf, onChanged 
           style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '14px', resize: 'none', lineHeight: 1.6, marginBottom: '10px' }} />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button onClick={() => setImportant(v => !v)} aria-pressed={important} style={{
-            display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', cursor: 'pointer',
             background: important ? 'var(--danger-soft)' : 'var(--hover)',
             border: important ? '1px solid var(--danger)' : '1px solid var(--line)',
-            color: important ? colors.danger : colors.muted, fontSize: '12px', fontWeight: 600,
+            color: important ? colors.danger : colors.muted, fontSize: '13px', fontWeight: 600,
           }}>
             <AlertCircle size={13} /> {important ? t('feed.important') : t('feed.markImportant')}
           </button>
           <button onClick={post} disabled={posting || !canPost} style={{
-            display: 'flex', alignItems: 'center', gap: '6px', border: 'none', padding: '8px 16px',
+            display: 'flex', alignItems: 'center', gap: '8px', border: 'none', padding: '8px 16px',
             background: canPost ? colors.accent : 'var(--line)',
             color: canPost ? 'var(--on-accent)' : 'var(--muted)', cursor: canPost ? 'pointer' : 'default', fontSize: '13px', fontWeight: 700,
           }}>

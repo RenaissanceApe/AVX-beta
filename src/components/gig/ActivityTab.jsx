@@ -8,7 +8,7 @@ export default function ActivityTab({ entries, nameOf }) {
   const { t, fmt, ago } = useI18n()
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
-      <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>{t('gig.tab.activity')}</h2>
+      <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '4px' }}>{t('gig.tab.activity')}</h2>
       <p style={{ color: colors.muted, fontSize: '13px', marginBottom: '20px' }}>{t('activity.subtitle')}</p>
       {entries.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: colors.muted }}>
@@ -22,7 +22,7 @@ export default function ActivityTab({ entries, nameOf }) {
               <span aria-hidden style={{ width: '8px', height: '8px', background: colors.accent, marginTop: '7px', flexShrink: 0, opacity: 0.7 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '14px', lineHeight: 1.5 }}>{describeActivity(e, nameOf)}</div>
-                <time dateTime={e.created_at} title={fmt(e.created_at, 'd MMM yyyy, HH:mm')} style={{ fontSize: '12px', color: colors.muted }}>
+                <time dateTime={e.created_at} title={fmt(e.created_at, 'd MMM yyyy, HH:mm')} style={{ fontSize: '13px', color: colors.muted }}>
                   {ago(e.created_at)}
                 </time>
               </div>

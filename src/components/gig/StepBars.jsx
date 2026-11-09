@@ -12,13 +12,13 @@ export default function StepBars({ gig }) {
   return (
     <section aria-labelledby="step-bars" style={{ marginBottom: '14px' }}>
       <h3 id="step-bars" className="sr-only">{t('steps.title')}</h3>
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '8px 14px' }}>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '8px 16px' }}>
         {steps.map(step => {
           const { done, total } = stepTotals(['prepped', 'loaded', 'on_site'].includes(step) ? planned : lines, counts, step)
           const full = total > 0 && done >= total
           return (
-            <li key={step} style={{ fontSize: '12px' }}>
-              <span style={{ display: 'flex', justifyContent: 'space-between', gap: '6px', marginBottom: '3px', color: full ? 'var(--text)' : colors.soft }}>
+            <li key={step} style={{ fontSize: '13px' }}>
+              <span style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginBottom: '3px', color: full ? 'var(--text)' : colors.soft }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{t(`steps.name.${step}`)}</span>
                 <span style={{ fontFamily: 'var(--font-mono)' }}><span aria-hidden="true">{done} / {total}</span><span className="sr-only">{t('steps.of', { done, total })}</span></span>
               </span>
@@ -36,7 +36,7 @@ export function Segments({ done, total }) {
   const on = Math.min(done, total)
   if (total > 0 && total <= 24) {
     return (
-      <span aria-hidden="true" style={{ display: 'flex', gap: '2px' }}>
+      <span aria-hidden="true" style={{ display: 'flex', gap: '4px' }}>
         {Array.from({ length: total }, (_, i) => <span key={i} style={{ flex: 1, height: '6px', background: i < on ? 'var(--accent-text)' : 'var(--line-strong)' }} />)}
       </span>
     )

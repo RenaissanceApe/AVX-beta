@@ -81,7 +81,7 @@ export default function TasksTab({ gig, members, nameOf, userId, canManage, canN
       <TabHeader title={t('gig.tab.tasks')} subtitle={t('tasks.subtitle', { count: openCount })}
         action={canManage && !offline && <button type="button" onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} /> {t('tasks.new')}</button>} />
       {tasks && tasks.length > 0 && (
-        <div role="group" aria-label={t('tasks.filters')} style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
+        <div role="group" aria-label={t('tasks.filters')} style={{ display: 'flex', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
           <button type="button" aria-pressed={filter.mine} onClick={() => setFilter(f => ({ ...f, mine: !f.mine }))} style={chip(filter.mine)}>{t('tasks.mine')}</button>
           <button type="button" aria-pressed={filter.open} onClick={() => setFilter(f => ({ ...f, open: !f.open }))} style={chip(filter.open)}>{t('tasks.openOnly')}</button>
         </div>

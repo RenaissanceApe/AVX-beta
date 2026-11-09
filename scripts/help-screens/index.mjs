@@ -753,7 +753,9 @@ const SCENES = {
     return fee
   } },
   'job-pay': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
-    await page.getByRole('button', { name: L('jobs.postButton') }).first().click()
+    // Post a job sits in the Crew tab's own ⋯ (the header's ⋯ comes first)
+    await page.getByRole('button', { name: L('common.moreActions') }).last().click()
+    await page.getByRole('menuitem', { name: L('jobs.postButton') }).click()
     const dialog = page.getByRole('dialog')
     await dialog.locator('#pj-title').fill(page.lang === 'pt' ? 'Técnica de som' : 'Sound technician')
     const pay = dialog.locator('fieldset').last()
@@ -859,7 +861,9 @@ const SCENES = {
     return page.getByRole('button', { name: L('mute.muteNamed', { name: 'Lumen and Pixel' }) }).first()
   } },
   'gig-danger': { persona: 'pm', url: `/gig/${ids.gig}`, async run(page, L) {
-    await page.getByRole('button', { name: L('gig.edit') }).first().click()
+    // On a phone Edit gig sits in the header's ⋯ menu
+    await page.getByRole('button', { name: L('common.moreActions') }).first().click()
+    await page.getByRole('menuitem', { name: L('gig.edit') }).click()
     const dialog = page.getByRole('dialog')
     const zone = dialog.getByRole('button', { name: new RegExp(L('danger.zone')) })
     await zone.click()

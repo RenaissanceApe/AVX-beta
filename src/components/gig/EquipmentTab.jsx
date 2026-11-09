@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, Package, AlertTriangle, Check, Trash2, Pencil, Search, Weight, Zap, ScanLine, ClipboardList, Shuffle, Wrench, Handshake } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { selectAll } from '../../lib/selectAll'
@@ -12,7 +12,7 @@ import { rangeText } from '../../lib/clashes'
 import { toLocalInput } from './Booking'
 import { useUndoRemove } from '../../lib/undo'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { TabHeader } from './parts'
 import ReportDamageModal from './ReportDamageModal'
@@ -36,6 +36,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   const [reporting, setReporting] = useState(false)
   // ?report=1 (the simple home's "Report damage") opens the report form once the gear is loaded
   const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
   useEffect(() => {
     if (params.get('report') !== '1' || lines === null) return
     if (lines.length > 0) setReporting(true)
@@ -123,16 +124,18 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
+      {/* Add in view, the packing list beside it; Dispatch and Report damage in ⋯ (DESIGN.md rule 5) */}
       <TabHeader title={t('gig.tab.equipment')} subtitle={t('equip.count', { count: lines.length })}
-        action={canAdd && <button onClick={() => setPicking(true)} style={btnPrimary}><Plus size={14} /> {t('equip.add')}</button>} />
+        secondary={rows.length > 0 && <Link to={`/gig/${gig.id}/packing`} style={ghostLink}><ClipboardList size={14} aria-hidden="true" /> {t('dispatch.packingList')}</Link>}
+        action={canAdd
+          ? <button type="button" onClick={() => setPicking(true)} style={btnPrimary}><Plus size={14} aria-hidden="true" /> {t('equip.add')}</button>
+          // Crew can't add gear: reporting damage, used on site, stays in view for them
+          : rows.length > 0 && <button type="button" onClick={() => setReporting(true)} style={btn}><Wrench size={14} aria-hidden="true" /> {t('report.title')}</button>}
+        more={rows.length > 0 ? [
+          ...(canEdit ? [{ label: t('dispatch.open'), icon: <ScanLine size={15} aria-hidden="true" />, onClick: () => navigate(`/gig/${gig.id}/scan`) }] : []),
+          ...(canAdd ? [{ label: t('report.title'), icon: <Wrench size={15} aria-hidden="true" />, onClick: () => setReporting(true) }] : []),
+        ] : []} />
 
-      {rows.length > 0 && (
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <Link to={`/gig/${gig.id}/packing`} style={{ ...ghostLink }}><ClipboardList size={14} /> {t('dispatch.packingList')}</Link>
-          {canEdit && <Link to={`/gig/${gig.id}/scan`} style={{ ...ghostLink }}><ScanLine size={14} /> {t('dispatch.open')}</Link>}
-          <button onClick={() => setReporting(true)} style={{ ...ghostLink }}><Wrench size={14} /> {t('report.title')}</button>
-        </div>
-      )}
       {rows.length > 0 && <StepBars gig={gig} />}
       {canEdit && rows.length > 0 && (
         <div style={{ display: 'flex', gap: '8px 16px', flexWrap: 'wrap', fontSize: '13px', color: colors.soft, marginBottom: '12px' }}>
@@ -142,7 +145,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
         </div>
       )}
       {short.length > 0 && (
-        <div role="status" style={{ ...card, borderColor: 'var(--warn)', background: 'var(--warn-soft)', marginBottom: '14px', fontSize: '13px', color: AMBER, display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+        <div role="status" style={{ padding: 'var(--space-3)', borderLeft: '2px solid var(--warn)', background: 'var(--warn-soft)', marginBottom: 'var(--space-5)', fontSize: '13px', color: AMBER, display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
           <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: '1px' }} />
           <span>{t('equip.shortBanner', { count: short.length })}</span>
         </div>
@@ -154,17 +157,17 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
         <EmptyState icon={<Package size={28} />} body={canAdd ? t('equip.emptyPlanner') : t('equip.empty')}
           action={canAdd ? t('equip.add') : null} onAction={() => setPicking(true)} guide={canAdd ? 'pm-equipment' : null} />
       ) : Object.entries(groups).sort(([a], [b]) => (a === '' ? 1 : b === '' ? -1 : a.localeCompare(b))).map(([category, list]) => (
-        <section key={category || '—'} style={{ marginBottom: '14px' }}>
-          <h3 style={{ ...label, marginBottom: '6px' }}>{category || t('prices.noCategory')}</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <section key={category || '—'} style={{ marginBottom: 'var(--space-6)' }}>
+          <h3 style={{ ...label, marginBottom: 0, paddingBottom: 'var(--space-2)', borderBottom: `1px solid ${colors.border}` }}>{category || t('prices.noCategory')}</h3>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {list.map(r => {
               const missing = status[r.id] ? shortBy(r) : 0
               const alts = missing ? alternativesOf(r.item_id, kits.pairs).filter(id => altFree[id]?.available - (onGig[id] || 0) > 0) : []
               return (
-                <div key={r.id} style={{ ...card, padding: '9px 12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', borderColor: missing ? 'var(--warn)' : colors.border }}>
+                <li key={r.id} style={{ padding: missing ? 'var(--space-3)' : 'var(--space-3) 0', display: 'flex', alignItems: 'center', gap: '8px 12px', flexWrap: 'wrap', borderBottom: `1px solid ${colors.border}`, ...(missing ? { borderLeft: `2px solid ${AMBER}` } : {}) }}>
                   <span style={{ flex: '1 1 200px', minWidth: 0 }}>
                     <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{r.item_name}</span>
-                    <span style={{ fontSize: '12px', color: colors.muted }}>
+                    <span style={{ fontSize: '13px', color: colors.muted }}>
                       {[r.planned_from && t('equip.ownDates', { range: rangeText(r.planned_from, r.planned_until) }), r.notes,
                         (moved[r.item_id]?.out_qty || moved[r.item_id]?.back_qty) && t('equip.outBack', { out: moved[r.item_id].out_qty, back: moved[r.item_id].back_qty }),
                       ].filter(Boolean).join(' · ')}
@@ -172,13 +175,13 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
                   </span>
                   {status[r.id] && (
                     missing
-                      ? <span style={{ fontSize: '12px', fontWeight: 700, color: AMBER, display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('equip.short', { count: missing, free: Math.max(0, r.available) })}</span>
-                      : <span style={{ fontSize: '12px', color: colors.accentText, display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={12} /> {t('equip.free', { count: r.available })}</span>
+                      ? <span style={{ fontSize: '13px', fontWeight: 700, color: AMBER, display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('equip.short', { count: missing, free: Math.max(0, r.available) })}</span>
+                      : <span style={{ fontSize: '13px', color: colors.accentText, display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={12} /> {t('equip.free', { count: r.available })}</span>
                   )}
                   {canEdit ? (
                     <input type="number" min={1} max={100000} defaultValue={r.quantity} key={r.quantity} onBlur={e => setQuantity(r, e.target.value)}
-                      aria-label={t('equip.quantityFor', { name: r.item_name })} style={{ ...input, width: '72px', padding: '5px 8px' }} />
-                  ) : <strong style={{ fontSize: '15px', minWidth: '30px', textAlign: 'right' }}>× {r.quantity}</strong>}
+                      aria-label={t('equip.quantityFor', { name: r.item_name })} style={{ ...input, width: '72px', padding: '4px 8px' }} />
+                  ) : <strong style={{ fontSize: '16px', minWidth: '30px', textAlign: 'right' }}>× {r.quantity}</strong>}
                   {canEdit && (
                     <>
                       <button onClick={() => setEditing(r)} aria-label={t('equip.editNamed', { name: r.item_name })} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>
@@ -186,29 +189,29 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
                     </>
                   )}
                   {canAdd && missing > 0 && (
-                    <span style={{ flexBasis: '100%', display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px' }}>
-                      <button onClick={() => setSubrenting({ itemId: r.item_id, quantity: missing })} style={{ ...btn, padding: '3px 8px', fontSize: '12px' }}>
+                    <span style={{ flexBasis: '100%', display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px' }}>
+                      <button onClick={() => setSubrenting({ itemId: r.item_id, quantity: missing })} style={{ ...btn, padding: '4px 8px', fontSize: '13px' }}>
                         <Handshake size={12} /> {t('sub.subrentN', { count: missing })}
                       </button>
                     </span>
                   )}
                   {canEdit && alts.length > 0 && (
-                    <span style={{ flexBasis: '100%', display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', fontSize: '12px', color: colors.soft }}>
+                    <span style={{ flexBasis: '100%', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', fontSize: '13px', color: colors.soft }}>
                       <Shuffle size={12} /> {t('equip.alternatives')}
                       {alts.map(id => {
                         const n = Math.min(missing, altFree[id].available - (onGig[id] || 0))
                         return (
-                          <button key={id} onClick={() => swap(r, id, n)} style={{ ...btn, padding: '3px 8px', fontSize: '12px' }} title={t('equip.swapHint', { count: n, name: kits.items[id]?.name || '' })}>
+                          <button key={id} onClick={() => swap(r, id, n)} style={{ ...btn, padding: '4px 8px', fontSize: '13px' }} title={t('equip.swapHint', { count: n, name: kits.items[id]?.name || '' })}>
                             {t('equip.swap', { count: n, name: kits.items[id]?.name || '' })}
                           </button>
                         )
                       })}
                     </span>
                   )}
-                </div>
+                </li>
               )
             })}
-          </div>
+          </ul>
         </section>
       ))}
 
@@ -223,7 +226,7 @@ export default function EquipmentTab({ gig, org, canEdit, canAdd }) {
   )
 }
 
-const ghostLink = { ...btn, textDecoration: 'none', background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
+const ghostLink = { ...btn, textDecoration: 'none' }
 
 // Saves planned quantities (item_id -> quantity), adding or updating lines
 const saveLines = (gig, lines) => {
@@ -277,7 +280,7 @@ function EquipmentPicker({ gig, org, planned, kits, onClose, onAdded }) {
 
   return (
     <Modal title={t('equip.add')} onClose={onClose} maxWidth={620}>
-      <p style={{ fontSize: '12px', color: colors.muted, marginBottom: '10px', lineHeight: 1.5 }}>
+      <p style={{ fontSize: '13px', color: colors.muted, marginBottom: '10px', lineHeight: 1.5 }}>
         {win ? t('equip.pickerWindow', { range: rangeText(win.from, win.until) }) : t('equip.noDates')}
       </p>
       <div style={{ position: 'relative', marginBottom: '10px' }}>
@@ -287,7 +290,7 @@ function EquipmentPicker({ gig, org, planned, kits, onClose, onAdded }) {
       {!items ? <AvxLoader size={20} color={colors.accentText} /> : items.length === 0 ? (
         <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6 }}>{t('equip.noCatalogue')}</p>
       ) : (
-        <div style={{ maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '12px' }}>
+        <div style={{ maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
           {visible.map(item => {
             const isSet = item.kit_type === 'set'
             const setsFree = isSet ? kitsFree(item.id, kits.parts, kits.items, free) : null
@@ -297,12 +300,12 @@ function EquipmentPicker({ gig, org, planned, kits, onClose, onAdded }) {
             const qty = Number(picked[item.id] ?? already[item.id] ?? 1)
             const over = f && on && qty > f.available
             return (
-              <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', cursor: 'pointer', background: on ? 'var(--selection)' : 'transparent' }}>
+              <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '7px 8px', cursor: 'pointer', background: on ? 'var(--selection)' : 'transparent' }}>
                 <input type="checkbox" checked={on} style={{ accentColor: colors.accent }}
                   onChange={() => setPicked(p => { const n = { ...p }; if (on) delete n[item.id]; else n[item.id] = already[item.id] || 1; return n })} />
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: '14px' }}>{item.name}</span>
-                  <span style={{ fontSize: '12px', color: colors.muted }}>
+                  <span style={{ fontSize: '13px', color: colors.muted }}>
                     {[item.kit_type && t(`kit.typeOpt.${item.kit_type}`), item.category, already[item.id] && t('equip.alreadyPlanned', { count: already[item.id] })].filter(Boolean).join(' · ')}
                   </span>
                   {brings.length > 0 && (
@@ -311,7 +314,7 @@ function EquipmentPicker({ gig, org, planned, kits, onClose, onAdded }) {
                     </span>
                   )}
                 </span>
-                {f && <span style={{ fontSize: '12px', whiteSpace: 'nowrap', color: f.available <= 0 || over ? AMBER : colors.soft }}>{isSet ? t('equip.setsFree', { count: Math.max(0, f.available) }) : t('equip.freeOf', { count: Math.max(0, f.available), owned: f.owned })}</span>}
+                {f && <span style={{ fontSize: '13px', whiteSpace: 'nowrap', color: f.available <= 0 || over ? AMBER : colors.soft }}>{isSet ? t('equip.setsFree', { count: Math.max(0, f.available) }) : t('equip.freeOf', { count: Math.max(0, f.available), owned: f.owned })}</span>}
                 <input type="number" min={1} max={100000} value={on ? picked[item.id] : ''} placeholder={String(already[item.id] || 1)} disabled={!on}
                   onChange={e => setPicked(p => ({ ...p, [item.id]: e.target.value }))} onClick={e => e.stopPropagation()}
                   aria-label={t('equip.quantityFor', { name: item.name })} style={{ ...input, width: '70px', padding: '5px 8px', borderColor: over ? AMBER : undefined }} />
@@ -364,12 +367,12 @@ function LineModal({ line, onClose, onSaved }) {
           <input type="checkbox" checked={ownDates} onChange={e => setOwnDates(e.target.checked)} style={{ accentColor: colors.accent }} /> {t('equip.useOwnDates')}
         </label>
         {ownDates && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px' }}>
             <div><label style={label} htmlFor="eq-from">{t('equip.out')}</label><input id="eq-from" type="datetime-local" value={from} onChange={e => setFrom(e.target.value)} style={input} /></div>
             <div><label style={label} htmlFor="eq-until">{t('equip.back')}</label><input id="eq-until" type="datetime-local" value={until} onChange={e => setUntil(e.target.value)} style={input} /></div>
           </div>
         )}
-        {!ownDates && <p style={{ fontSize: '12px', color: colors.muted }}>{t('equip.gigDatesHint')}</p>}
+        {!ownDates && <p style={{ fontSize: '13px', color: colors.muted }}>{t('equip.gigDatesHint')}</p>}
         <div>
           <label style={label} htmlFor="eq-notes">{t('inv.note')}</label>
           <input id="eq-notes" value={notes} onChange={e => setNotes(e.target.value)} maxLength={500} style={input} />

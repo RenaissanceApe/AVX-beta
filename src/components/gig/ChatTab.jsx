@@ -48,14 +48,14 @@ export default function ChatTab({ gigId, canPost }) {
   if (failed) return <p style={{ color: colors.muted, fontSize: '14px', textAlign: 'center', padding: '40px 16px' }}>{t('chat.unavailable')}</p>
   if (!mainId) return <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><AvxLoader size={20} color={colors.accentText} /></div>
   const chip = active => ({
-    display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', font: 'inherit', fontSize: '13px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+    display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', font: 'inherit', fontSize: '13px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
     border: `1px solid ${active ? colors.accent : colors.border}`, background: active ? 'var(--selection)' : 'transparent', color: active ? colors.accentText : colors.soft,
   })
   const conversationId = selected === 'all' ? mainId : departmentId
   return (
     <div style={{ ...card, padding: '10px 12px' }}>
       {departments.length > 0 && (
-        <div role="tablist" aria-label={t('chat.channels')} style={{ display: 'flex', gap: '6px', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '8px', marginBottom: '4px', borderBottom: `1px solid ${colors.border}` }}>
+        <div role="tablist" aria-label={t('chat.channels')} style={{ display: 'flex', gap: '8px', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '8px', marginBottom: '4px', borderBottom: `1px solid ${colors.border}` }}>
           <button role="tab" aria-selected={selected === 'all'} onClick={() => open('all')} style={chip(selected === 'all')}><Hash size={13} /> {t('chat.dept.all')}</button>
           {departments.map(d => (
             <button key={d.department} role="tab" aria-selected={selected === d.department} onClick={() => open(d.department)} style={chip(selected === d.department)}
