@@ -6,7 +6,7 @@ import { useToast } from '../../lib/ToastContext'
 import { departmentLabel } from '../../lib/messages'
 import { t } from '../../i18n'
 import Conversation from '../messages/Conversation'
-import { card, colors, AvxLoader } from '../ui'
+import { colors, AvxLoader } from '../ui'
 
 // The gig's chat (MESSAGING.md, M1–M3): everyone on the gig talks in the main channel, where
 // changes to the gig's status, dates and venue show up too. Each function on the gig (Sound,
@@ -47,20 +47,22 @@ export default function ChatTab({ gigId, canPost }) {
 
   if (failed) return <p style={{ color: colors.muted, fontSize: '14px', textAlign: 'center', padding: '40px 16px' }}>{t('chat.unavailable')}</p>
   if (!mainId) return <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><AvxLoader size={20} color={colors.accentText} /></div>
+  // Channels are tabs: the chosen one is text + a 2px accent bar, never a fill (DESIGN.md "One loud thing")
   const chip = active => ({
-    display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', font: 'inherit', fontSize: '13px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
-    border: `1px solid ${active ? colors.accent : colors.border}`, background: active ? 'var(--selection)' : 'transparent', color: active ? colors.accentText : colors.soft,
+    display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', minHeight: '44px', font: 'inherit', fontSize: '14px', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap',
+    border: 'none', borderBottom: `2px solid ${active ? colors.accent : 'transparent'}`, background: 'none', color: active ? colors.text : colors.muted,
+    position: 'relative', top: '1px', flexShrink: 0,
   })
   const conversationId = selected === 'all' ? mainId : departmentId
   return (
-    <div style={{ ...card, padding: '10px 12px' }}>
+    <div>
       {departments.length > 0 && (
-        <div role="tablist" aria-label={t('chat.channels')} style={{ display: 'flex', gap: '8px', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '8px', marginBottom: '4px', borderBottom: `1px solid ${colors.border}` }}>
-          <button role="tab" aria-selected={selected === 'all'} onClick={() => open('all')} style={chip(selected === 'all')}><Hash size={13} /> {t('chat.dept.all')}</button>
+        <div role="tablist" aria-label={t('chat.channels')} style={{ display: 'flex', gap: '4px', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none', marginBottom: 'var(--space-3)', borderBottom: `1px solid ${colors.border}` }}>
+          <button role="tab" aria-selected={selected === 'all'} onClick={() => open('all')} style={chip(selected === 'all')}><Hash size={14} aria-hidden="true" /> {t('chat.dept.all')}</button>
           {departments.map(d => (
             <button key={d.department} role="tab" aria-selected={selected === d.department} onClick={() => open(d.department)} style={chip(selected === d.department)}
               title={t('chat.dept.people', { count: d.people })}>
-              <Users size={13} /> {departmentLabel(d.department, d.label, t)} <span style={{ color: colors.muted, fontWeight: 400 }}>{d.people}</span>
+              <Users size={14} aria-hidden="true" /> {departmentLabel(d.department, d.label, t)} <span style={{ color: colors.muted, fontWeight: 400 }}>{d.people}</span>
             </button>
           ))}
         </div>
