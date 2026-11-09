@@ -290,5 +290,5 @@ const darkBtn = {
   display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 14px', minHeight: '36px',
   border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: '#fff', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }
-const ctl = { fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }
-const selectStyle = { padding: '6px 8px', background: '#1a2230', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', maxWidth: '100%' }
+const ctl = { fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, maxWidth: '100%', whiteSpace: 'nowrap' }
+const selectStyle = { padding: '6px 8px', background: '#1a2230', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', minWidth: 0, maxWidth: '100%', flex: '1 1 auto', textOverflow: 'ellipsis' }

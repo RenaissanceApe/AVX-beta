@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   CABLE_DATA, CABLE_TYPES, resistancePerM, voltageDrop, capacity, tableFactor, specOf, cablesOf, cableChecks, cableWarnings,
-  cableList, nameKey, matchItems, cablesToEquipment, DRUM, BUNDLED, AMBIENT,
+  cableList, nameKey, matchItems, cablesToEquipment, powerLabels, DRUM, BUNDLED, AMBIENT,
 } from './cables'
 import { supplyOf, distrosOf, manualOf, gatherLoads, powerPlan } from './power'
 
@@ -181,6 +181,22 @@ describe('the cable list', () => {
     expect(out).toEqual([
       { item_id: 'i1', needed: 5, have: 4, add: 1, line_id: 'e1' },
       { item_id: 'i2', needed: 1, have: 0, add: 1, line_id: null },
+    ])
+  })
+})
+
+describe('power labels (U5 shared shape)', () => {
+  const tr = (k, v = {}) => (k === 'cables.metres' ? `${v.m} m` : k === 'labels.dept.power' ? 'Power' : k === 'power.fromSupply' ? 'Supply' : k === 'power.outputN' ? `Out ${v.n}` : k === 'cables.type.dmx5' ? 'DMX 5-pin' : k)
+  const distros = [{ id: 'a', name: 'Distro A', feed: 'supply', outputs: [{ id: 'o1', label: '', phase: 'L1', breaker_a: 16 }, { id: 'o2', label: 'Dimmers', phase: 'L2' }] }]
+  const cables = [{ id: 'c1', kind: 'dmx', type: 'dmx5', length: 10, qty: 2, from: 'FOH', to: 'Stage' }]
+  const labels = powerLabels({ distros, cables, supply: { phases: 3 }, tr })
+  it('gives distros their feed and outputs under the name, and a Power band', () => {
+    expect(labels[0]).toEqual({ key: 'd:a', kind: 'distro', name: 'Distro A', department: 'Power', sub: ['Supply', 'Out 1 L1 16 A · Dimmers L2'] })
+  })
+  it('gives one label per cable, with its length and route', () => {
+    expect(labels.slice(1)).toEqual([
+      { key: 'c:c1:1', kind: 'cable', name: 'DMX 5-pin', sub: '10 m · FOH → Stage', department: 'Power' },
+      { key: 'c:c1:2', kind: 'cable', name: 'DMX 5-pin', sub: '10 m · FOH → Stage', department: 'Power' },
     ])
   })
 })
