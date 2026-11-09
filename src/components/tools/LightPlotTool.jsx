@@ -8,6 +8,7 @@ import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { STEP_M, stageSize } from '../../lib/stagePlot'
+import RiggingMarker, { useRigging } from './RiggingMarker'
 import { BAR_KINDS, FIXTURE_SYMBOLS, barsOf, supplyOf, newBar, nextBarName, layoutFixtures, snapToBar, clampToArea, viewArea, powerSummary, symbolOf } from '../../lib/lightPlot'
 import { t } from '../../i18n'
 import { btn, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
@@ -67,6 +68,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
   const supply = useMemo(() => supplyOf(show?.lighting), [show])
   const layout = useMemo(() => layoutFixtures(bars, fixtures), [bars, fixtures])
   const power = useMemo(() => powerSummary(fixtures, bars, supply), [fixtures, bars, supply])
+  const rigging = useRigging(gig.id)
   const loose = fixtures.filter(f => !layout[f.id])
   const bar = selected?.kind === 'bar' ? bars.find(b => b.id === selected.id) : null
   const fixture = selected?.kind === 'fixture' ? fixtures.find(f => f.id === selected.id) : null
@@ -394,6 +396,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
                       {list.length > 0 && <span style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.5 }}>{list.map(f => `${f.name}${f.address ? ` (${f.universe}/${f.address})` : ''}`).join(' · ')}</span>}
                       {row.unknown > 0 && <span style={{ fontSize: '13px', color: 'var(--warn)' }}>{t('light.unknownPower', { count: row.unknown })}</span>}
                     </button>
+                    <RiggingMarker gig={gig} bar={b} bars={bars} fixtures={fixtures} rigging={rigging} canEdit={canEdit} onToolsChanged={onToolsChanged} />
                   </li>
                 )
               })}
