@@ -312,9 +312,12 @@ everything. Expect about 2–3 hours; the app is down meanwhile.
 6. **Edge Functions:** deploy all of them from `supabase/functions/` (SETUP.md step 3b lists
    which have "Verify JWT" off) and set the secrets from your password manager
    (Edge Functions → Secrets).
-7. **Point the app at it:** in the repo, change `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
-   in `.env` (and in Vercel → Settings → Environment Variables if they're set there), open a PR,
-   merge. Vercel redeploys.
+7. **Point the app at it:** in Vercel → Settings → Environment Variables, change
+   `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (Production and Preview) to the new project,
+   then redeploy (Deployments → the latest production one → Redeploy). In GitHub → Settings →
+   Secrets and variables → Actions → **Variables**, change `SUPABASE_URL` and `SUPABASE_ANON_KEY`
+   the same way (the backup, digest, key-numbers and keep-alive workflows read them). `.env` is not
+   in the repository: update your own local copy only if it points at production.
 8. **GitHub secrets:** update `SUPABASE_DB_URL` (and `SUPABASE_SERVICE_ROLE_KEY`) to the new
    project, then Run workflow on *Database backup* to check backups work again.
 9. Run the checks from drill step 9 against the live site, and send a test invite to yourself.

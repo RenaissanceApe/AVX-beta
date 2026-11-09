@@ -11,11 +11,21 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    env:
+      VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
       - name: Ping Supabase REST API
         run: |
-          set -a; . ./.env; set +a
+          if [ -z "$VITE_SUPABASE_URL" ]; then
+            echo "::error::Repository variable SUPABASE_URL is not set (Settings → Secrets and variables → Actions → Variables)."
+            exit 1
+          fi
+          if [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+            echo "::error::Repository variable SUPABASE_ANON_KEY is not set (Settings → Secrets and variables → Actions → Variables)."
+            exit 1
+          fi
           status=$(curl -s -o /dev/null -w '%{http_code}' \
             "$VITE_SUPABASE_URL/rest/v1/organisations?select=id&limit=1" \
             -H "apikey: $VITE_SUPABASE_ANON_KEY")
