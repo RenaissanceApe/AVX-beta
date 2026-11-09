@@ -443,7 +443,7 @@ function Modal({ title, onClose, children }) {
         animation: 'fadeIn 0.2s ease', maxHeight: 'calc(100vh - 32px - var(--safe-top))', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{title}</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>{title}</h2>
           <button onClick={onClose} aria-label={t('common.close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '4px', display: 'flex' }}>
             <X size={18} />
           </button>

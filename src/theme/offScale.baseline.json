@@ -3,10 +3,6 @@
     "sizes": 5,
     "gaps": 5
   },
-  "components/AvailabilityRequests.jsx": {
-    "sizes": 2,
-    "gaps": 3
-  },
   "components/AvailabilitySection.jsx": {
     "sizes": 5,
     "gaps": 1
@@ -30,10 +26,6 @@
   "components/DangerConfirm.jsx": {
     "sizes": 1,
     "gaps": 1
-  },
-  "components/dispatch/ScanParts.jsx": {
-    "sizes": 11,
-    "gaps": 4
   },
   "components/EmptyState.jsx": {
     "sizes": 0,
@@ -60,119 +52,15 @@
     "gaps": 5
   },
   "components/expenses/GigExpenses.jsx": {
-    "sizes": 3,
-    "gaps": 1
+    "sizes": 2,
+    "gaps": 0
   },
   "components/expenses/LinkedExpense.jsx": {
     "sizes": 2,
     "gaps": 0
   },
-  "components/gig/ActivityTab.jsx": {
-    "sizes": 2,
-    "gaps": 0
-  },
-  "components/gig/AssetsTab.jsx": {
-    "sizes": 6,
-    "gaps": 4
-  },
-  "components/gig/AssetVersionsModal.jsx": {
-    "sizes": 2,
-    "gaps": 1
-  },
-  "components/gig/Booking.jsx": {
-    "sizes": 3,
-    "gaps": 4
-  },
-  "components/gig/ChatTab.jsx": {
-    "sizes": 0,
-    "gaps": 2
-  },
-  "components/gig/CrewCalls.jsx": {
-    "sizes": 5,
-    "gaps": 6
-  },
-  "components/gig/CrewTab.jsx": {
-    "sizes": 11,
-    "gaps": 11
-  },
-  "components/gig/EditGigModal.jsx": {
-    "sizes": 0,
-    "gaps": 1
-  },
-  "components/gig/EquipmentTab.jsx": {
-    "sizes": 12,
-    "gaps": 7
-  },
-  "components/gig/FeedTab.jsx": {
-    "sizes": 1,
-    "gaps": 3
-  },
-  "components/gig/FeeFields.jsx": {
-    "sizes": 2,
-    "gaps": 1
-  },
-  "components/gig/GigFinancePanel.jsx": {
-    "sizes": 6,
-    "gaps": 2
-  },
-  "components/gig/GigHeader.jsx": {
-    "sizes": 2,
-    "gaps": 7
-  },
-  "components/gig/GigWrapupLink.jsx": {
-    "sizes": 0,
-    "gaps": 1
-  },
-  "components/gig/LabourCost.jsx": {
-    "sizes": 13,
-    "gaps": 3
-  },
-  "components/gig/OnSiteView.jsx": {
-    "sizes": 9,
-    "gaps": 8
-  },
-  "components/gig/OverviewTab.jsx": {
-    "sizes": 1,
-    "gaps": 3
-  },
-  "components/gig/parts.jsx": {
-    "sizes": 4,
-    "gaps": 3
-  },
-  "components/gig/ReportDamageModal.jsx": {
-    "sizes": 2,
-    "gaps": 1
-  },
-  "components/gig/ScheduleTab.jsx": {
-    "sizes": 2,
-    "gaps": 1
-  },
-  "components/gig/StepBars.jsx": {
-    "sizes": 1,
-    "gaps": 3
-  },
-  "components/gig/TasksTab.jsx": {
-    "sizes": 0,
-    "gaps": 1
-  },
-  "components/gig/ToolsTab.jsx": {
-    "sizes": 4,
-    "gaps": 1
-  },
-  "components/gig/UpdatesTab.jsx": {
-    "sizes": 0,
-    "gaps": 1
-  },
   "components/GigCalendar.jsx": {
     "sizes": 5,
-    "gaps": 4
-  },
-  "components/help/GuideView.jsx": {
-    "sizes": 4,
-    "gaps": 6
-  },
-  "components/help/HelpParts.jsx": {
-    "sizes": 3,
     "gaps": 4
   },
   "components/hours/ClockInOut.jsx": {
@@ -180,8 +68,8 @@
     "gaps": 1
   },
   "components/hours/GigHours.jsx": {
-    "sizes": 4,
-    "gaps": 2
+    "sizes": 3,
+    "gaps": 1
   },
   "components/hours/HoursParts.jsx": {
     "sizes": 3,
@@ -238,26 +126,6 @@
   "components/leave/LeaveParts.jsx": {
     "sizes": 1,
     "gaps": 4
-  },
-  "components/messages/ContextThread.jsx": {
-    "sizes": 2,
-    "gaps": 1
-  },
-  "components/messages/Conversation.jsx": {
-    "sizes": 20,
-    "gaps": 11
-  },
-  "components/messages/GuestThread.jsx": {
-    "sizes": 2,
-    "gaps": 2
-  },
-  "components/messages/MessageParts.jsx": {
-    "sizes": 7,
-    "gaps": 5
-  },
-  "components/messages/MessagesButton.jsx": {
-    "sizes": 1,
-    "gaps": 0
   },
   "components/NetworkPicker.jsx": {
     "sizes": 4,
@@ -391,10 +259,6 @@
     "sizes": 7,
     "gaps": 10
   },
-  "components/SimpleHome.jsx": {
-    "sizes": 4,
-    "gaps": 3
-  },
   "components/tasks/TaskParts.jsx": {
     "sizes": 3,
     "gaps": 6
@@ -402,46 +266,6 @@
   "components/tasks/TaskTemplates.jsx": {
     "sizes": 3,
     "gaps": 3
-  },
-  "components/tools/Dipswitches.jsx": {
-    "sizes": 1,
-    "gaps": 3
-  },
-  "components/tools/DmxCalculator.jsx": {
-    "sizes": 2,
-    "gaps": 4
-  },
-  "components/tools/DmxPatchTool.jsx": {
-    "sizes": 9,
-    "gaps": 7
-  },
-  "components/tools/InputListTool.jsx": {
-    "sizes": 7,
-    "gaps": 9
-  },
-  "components/tools/LightPlotTool.jsx": {
-    "sizes": 12,
-    "gaps": 12
-  },
-  "components/tools/PatchTool.jsx": {
-    "sizes": 3,
-    "gaps": 4
-  },
-  "components/tools/RehearsalTool.jsx": {
-    "sizes": 13,
-    "gaps": 10
-  },
-  "components/tools/StagePlotTool.jsx": {
-    "sizes": 6,
-    "gaps": 7
-  },
-  "components/tools/SystemCalcTool.jsx": {
-    "sizes": 8,
-    "gaps": 4
-  },
-  "components/tools/TimecodeSync.jsx": {
-    "sizes": 3,
-    "gaps": 0
   },
   "components/TwoStepSection.jsx": {
     "sizes": 1,
@@ -475,25 +299,13 @@
     "sizes": 1,
     "gaps": 4
   },
-  "pages/Dashboard.jsx": {
+  "pages/DmxWalkPage.jsx": {
     "sizes": 1,
     "gaps": 0
-  },
-  "pages/DispatchPage.jsx": {
-    "sizes": 3,
-    "gaps": 2
-  },
-  "pages/DmxWalkPage.jsx": {
-    "sizes": 3,
-    "gaps": 2
   },
   "pages/GigWrapupPage.jsx": {
     "sizes": 3,
     "gaps": 1
-  },
-  "pages/HelpPage.jsx": {
-    "sizes": 9,
-    "gaps": 6
   },
   "pages/InputListPage.jsx": {
     "sizes": 1,
@@ -523,20 +335,8 @@
     "sizes": 2,
     "gaps": 4
   },
-  "pages/MessagesPage.jsx": {
-    "sizes": 11,
-    "gaps": 7
-  },
   "pages/MfaChallengePage.jsx": {
     "sizes": 1,
-    "gaps": 1
-  },
-  "pages/MyNumbersPage.jsx": {
-    "sizes": 4,
-    "gaps": 3
-  },
-  "pages/MyTasksPage.jsx": {
-    "sizes": 0,
     "gaps": 1
   },
   "pages/OrgJobsPage.jsx": {
@@ -563,10 +363,6 @@
     "sizes": 1,
     "gaps": 1
   },
-  "pages/PocketToolsPage.jsx": {
-    "sizes": 0,
-    "gaps": 1
-  },
   "pages/QuotePrintPage.jsx": {
     "sizes": 0,
     "gaps": 1
@@ -591,10 +387,6 @@
     "sizes": 1,
     "gaps": 2
   },
-  "pages/ScanPage.jsx": {
-    "sizes": 1,
-    "gaps": 1
-  },
   "pages/StagePlotPage.jsx": {
     "sizes": 1,
     "gaps": 1
@@ -614,9 +406,5 @@
   "pages/WelcomePage.jsx": {
     "sizes": 1,
     "gaps": 1
-  },
-  "pages/YearStatementPage.jsx": {
-    "sizes": 1,
-    "gaps": 2
   }
 }

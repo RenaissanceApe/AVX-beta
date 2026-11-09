@@ -8,7 +8,7 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import { TASK_FIELDS, sortTasks, filterTasks } from '../lib/tasks'
 import { localDay } from '../lib/onSite'
 import { useI18n } from '../i18n'
-import { btn, colors, AvxLoader } from '../components/ui'
+import { btn, colors, AvxLoader, PageHeader, Stack, space } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { TaskRow, GigLink } from '../components/tasks/TaskParts'
@@ -48,19 +48,17 @@ export default function MyTasksPage() {
 
   return (
     <AppShell>
-      <div style={{ maxWidth: '760px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('tasks.myTitle')}</h1>
-          <p style={{ fontSize: '13px', color: colors.muted, marginTop: '4px' }}>{t('tasks.myIntro')}</p>
-        </div>
+      <div style={{ maxWidth: '760px', margin: '0 auto', padding: '24px 16px 48px' }}>
+        <PageHeader title={t('tasks.myTitle')} line={t('tasks.myIntro')} />
+        <Stack gap={4}>
         <div>
           <button type="button" aria-pressed={open} onClick={() => setOpen(o => !o)}
-            style={{ ...btn, padding: '6px 12px', background: open ? 'var(--selection)' : 'transparent', color: open ? colors.accentText : colors.soft }}>{t('tasks.openOnly')}</button>
+            style={{ ...btn, minHeight: '44px', padding: '8px 12px', background: 'transparent', borderColor: 'transparent', borderBottom: `2px solid ${open ? 'var(--accent)' : 'transparent'}`, color: open ? colors.text : colors.muted }}>{t('tasks.openOnly')}</button>
         </div>
         {tasks === null ? <AvxLoader size={22} color={colors.accentText} />
           : shown.length === 0 ? <EmptyState icon={<ListTodo size={28} />} title={t('tasks.myEmptyTitle')} body={t('tasks.myEmptyBody')} />
             : (
-              <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: space[3] }}>
                 {shown.map(task => (
                   <TaskRow key={task.id} task={task} today={today} nameOf={nameOf} canTick canManage={false}
                     onToggle={() => patch(task, { status: task.status === 'open' ? 'done' : 'open' })}
@@ -69,6 +67,7 @@ export default function MyTasksPage() {
                 ))}
               </ul>
             )}
+        </Stack>
       </div>
     </AppShell>
   )

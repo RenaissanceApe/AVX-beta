@@ -9,7 +9,7 @@ import { MY_WORK } from '../lib/nav'
 import { formatMoney } from '../lib/quotes'
 import { crewTotals, notYetPaid, byCompany, byMonth, busiestMonths, functionsWorked, hoursAndMinutes } from '../lib/analytics/crewNumbers'
 import { useI18n, fmt } from '../i18n'
-import { input, label, card, colors, AvxLoader } from '../components/ui'
+import { input, label, colors, AvxLoader, PageHeader, space } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { PageHelp, Hint } from '../components/help/HelpParts'
@@ -17,9 +17,9 @@ import { NumberTile, BarChart } from '../components/reports/Charts'
 import { shortNumber } from '../lib/analytics/charts'
 import { useMyGigNumbers } from '../components/mywork/MyNumbersStrip'
 
-const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 }
-const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
-const row = { display: 'flex', justifyContent: 'space-between', gap: '10px', fontSize: '14px', padding: '6px 0', borderTop: `1px solid ${colors.border}` }
+const section = { display: 'flex', flexDirection: 'column', gap: space[2], minWidth: 0 }
+const h2 = { fontSize: '16px', fontWeight: 700, margin: 0 }
+const row = { display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '14px', padding: '6px 0', borderTop: `1px solid ${colors.border}` }
 const num = { fontVariantNumeric: 'tabular-nums', textAlign: 'right', whiteSpace: 'nowrap' }
 
 // My numbers (K8) at /me/numbers?year=YYYY&org=<id>: the person's own work on AVX in a year, per
@@ -61,16 +61,14 @@ export default function MyNumbersPage() {
 
   return (
     <AppShell>
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <Link to="/me" style={{ fontSize: '13px', color: colors.muted, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 48px' }}>
+        <Link to="/me" style={{ fontSize: '13px', color: colors.muted, display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: space[3] }}>
           <ArrowLeft size={14} aria-hidden="true" /> {t('nav.myWork')}
         </Link>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <Wallet size={20} color="var(--accent-text)" aria-hidden="true" /> {t('myNumbers.title')} <PageHelp page="my-numbers" />
-        </h1>
-        <p style={{ fontSize: '13px', color: colors.muted, margin: 0 }}>{t('myNumbers.intro')}</p>
+        <PageHeader title={t('myNumbers.title')} help={<PageHelp page="my-numbers" />} line={t('myNumbers.intro')} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: space.section }}>
 
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div>
             <label htmlFor="mn-year" style={label}>{t('myNumbers.year')}</label>
             <select id="mn-year" value={year} onChange={e => set('year', e.target.value === String(thisYear) ? '' : e.target.value)} style={{ ...input, appearance: 'auto', width: 'auto' }}>
@@ -108,12 +106,12 @@ export default function MyNumbersPage() {
             <BarChart title={t('myNumbers.earnedByMonth')} valueLabel={t('myNumbers.earned')} format={(v, axis) => (axis ? shortNumber(v, lang) : eur(v))}
               data={months.map(m => ({ label: fmt(`${m.key}-01`, 'MMM'), value: m.earned }))} />
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: `${space.section} ${space[6]}` }}>
               <section style={section} aria-labelledby="mn-companies">
                 <h2 id="mn-companies" style={h2}>{t('myNumbers.perCompany')}</h2>
                 {byCompany(rows).map(c => (
                   <div key={c.key} style={row}>
-                    <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{c.label}<span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{t('myNumbers.gigsDays', { gigs: c.gigs, days: c.days })}</span></span>
+                    <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{c.label}<span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>{t('myNumbers.gigsDays', { gigs: c.gigs, days: c.days })}</span></span>
                     <span style={num}>{eur(c.earned)}</span>
                   </div>
                 ))}
@@ -150,13 +148,13 @@ export default function MyNumbersPage() {
                 <div key={r.gig_id} style={{ ...row, flexWrap: 'wrap' }}>
                   <span style={{ flex: '1 1 200px', minWidth: 0 }}>
                     <Link to={`/gig/${r.gig_id}?tab=crew`} style={{ color: 'var(--text)', fontWeight: 600 }}>{r.gig_name}</Link>
-                    <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
+                    <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>
                       {[r.start_date && fmt(r.start_date, 'd MMM'), r.org_name, r.function_title].filter(Boolean).join(' · ')}
                     </span>
                   </span>
                   <span style={num}>
                     {r.earned != null ? eur(r.earned) : r.upcoming != null ? t('myNumbers.booked', { amount: eur(r.upcoming) }) : '—'}
-                    <span style={{ display: 'block', fontSize: '12px', color: r.paid_on ? colors.accentText : colors.muted, fontWeight: r.paid_on ? 600 : 400 }}>
+                    <span style={{ display: 'block', fontSize: '13px', color: r.paid_on ? colors.accentText : colors.muted, fontWeight: r.paid_on ? 600 : 400 }}>
                       {r.paid_on ? <><BadgeCheck size={12} aria-hidden="true" /> {t('labour.paidOn', { date: fmt(r.paid_on, 'd MMM yyyy') })}{r.received_at ? ` · ${t('labour.receivedShort')}` : ''}</>
                         : r.finished && r.earned != null ? t('myNumbers.notPaidYet') : ''}
                     </span>
@@ -166,6 +164,7 @@ export default function MyNumbersPage() {
             </section>
           </>
         )}
+        </div>
       </div>
     </AppShell>
   )

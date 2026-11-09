@@ -13,7 +13,7 @@ export const AMBER = 'var(--warn)'
 // The sentence under a person's name: what and where, and what to do. The icon carries the colour
 // (danger for a booking clash, warn for a self-reported unavailability); the words stay in text colour.
 const box = { marginTop: '8px', fontSize: '13px', color: 'var(--text)', lineHeight: 1.5 }
-const smallBtn = { ...btn, padding: '5px 10px', fontSize: '12px' }
+const smallBtn = { ...btn, padding: '4px 12px', fontSize: '13px' }
 
 // The warning shown next to someone who is booked elsewhere (or unavailable) during
 // their time on this gig, with the state of any "are you available?" request.
@@ -22,14 +22,14 @@ export function ClashBox({ name, clashes, request, canAsk, onAsk, onWithdraw }) 
   const booked = clashes.some(c => c.kind === 'booked')
   return (
     <div role="status" style={box}>
-      <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontWeight: 600 }}>
+      <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontWeight: 600 }}>
         <AlertTriangle size={14} aria-hidden="true" color={booked ? 'var(--danger)' : AMBER} style={{ flexShrink: 0, marginTop: '2px' }} />
         {booked ? t('clash.advice', { name }) : t('clash.unavailableAdvice', { name })}
       </strong>
       {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '20px', color: 'var(--text-2)' }}>{clashText(c)}</div>)}
       <RequestState request={request} ago={ago} />
       {canAsk && (
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px', paddingLeft: '20px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px', paddingLeft: '20px' }}>
           {request?.status === 'pending' ? (
             <button type="button" onClick={onWithdraw} style={{ ...smallBtn, color: 'var(--text-2)' }}>
               {t('ask.withdraw')}
@@ -142,8 +142,8 @@ export function ShiftModal({ gig, member, name, onClose, onSaved }) {
       <form onSubmit={e => { e.preventDefault(); if (!invalid) save({ booked_from: fromLocalInput(from), booked_until: fromLocalInput(until) }) }}
         style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>{t('shift.intro')}</p>
-        <p style={{ fontSize: '12px', color: colors.muted }}>{t('help.seeAlso')} <Term id="booking-times" /> · <Term id="double-booking" /></p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '10px' }}>
+        <p style={{ fontSize: '13px', color: colors.muted }}>{t('help.seeAlso')} <Term id="booking-times" /> · <Term id="double-booking" /></p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px' }}>
           <div>
             <label style={label} htmlFor="shift-from">{t('shift.from')}</label>
             <input id="shift-from" type="datetime-local" value={from} onChange={e => setFrom(e.target.value)} style={input} required />
@@ -153,7 +153,7 @@ export function ShiftModal({ gig, member, name, onClose, onSaved }) {
             <input id="shift-until" type="datetime-local" value={until} onChange={e => setUntil(e.target.value)} style={input} required />
           </div>
         </div>
-        {invalid && from && until && <p role="alert" style={{ fontSize: '12px', color: colors.danger }}>{t('shift.invalid')}</p>}
+        {invalid && from && until && <p role="alert" style={{ fontSize: '13px', color: colors.danger }}>{t('shift.invalid')}</p>}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button type="submit" disabled={saving || invalid} style={{ ...btnPrimary, flex: 1, justifyContent: 'center' }}>
             {saving ? <AvxLoader size={15} /> : <Clock size={15} />} {t('shift.save')}
@@ -191,7 +191,7 @@ export function OwnClashWarning({ startDate, endDate, excludeGig = null }) {
   if (!clashes.length) return null
   return (
     <div role="status" style={{ ...box, marginTop: 0, padding: '10px 12px', border: '1px solid var(--warn)', background: 'var(--warn-soft)' }}>
-      <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontWeight: 600 }}>
+      <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontWeight: 600 }}>
         <AlertTriangle size={14} aria-hidden="true" color={AMBER} style={{ flexShrink: 0, marginTop: '2px' }} /> {t('clash.selfWarning')}
       </strong>
       {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '20px', color: 'var(--text-2)' }}>{clashText(c)}</div>)}

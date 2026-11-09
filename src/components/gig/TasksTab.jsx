@@ -75,13 +75,14 @@ export default function TasksTab({ gig, members, nameOf, userId, canManage, canN
     setTasks(list => list.filter(x => x.id !== task.id))
   }
 
-  const chip = on => ({ ...btn, padding: '6px 12px', background: on ? 'var(--selection)' : 'transparent', color: on ? colors.accentText : colors.soft })
+  // A chosen filter is text + a 2px accent bar, never a fill (DESIGN.md "One loud thing")
+  const chip = on => ({ ...btn, padding: '8px 12px', border: 'none', borderBottom: `2px solid ${on ? colors.accent : 'transparent'}`, color: on ? colors.text : colors.muted })
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
       <TabHeader title={t('gig.tab.tasks')} subtitle={t('tasks.subtitle', { count: openCount })}
         action={canManage && !offline && <button type="button" onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} /> {t('tasks.new')}</button>} />
       {tasks && tasks.length > 0 && (
-        <div role="group" aria-label={t('tasks.filters')} style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
+        <div role="group" aria-label={t('tasks.filters')} style={{ display: 'flex', gap: '8px', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
           <button type="button" aria-pressed={filter.mine} onClick={() => setFilter(f => ({ ...f, mine: !f.mine }))} style={chip(filter.mine)}>{t('tasks.mine')}</button>
           <button type="button" aria-pressed={filter.open} onClick={() => setFilter(f => ({ ...f, open: !f.open }))} style={chip(filter.open)}>{t('tasks.openOnly')}</button>
         </div>

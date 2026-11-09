@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertCircle, Send } from 'lucide-react'
+import { AlertCircle, Send, MessageSquare } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { useI18n } from '../../i18n'
 import { colors, AvxLoader } from '../ui'
-import { FeedPost, TabHeader } from './parts'
+import EmptyState from '../EmptyState'
+import { FeedPost, TabHeader, rowLine } from './parts'
 
 export default function FeedTab({ gigId, posts, userId, isPM, nameOf, onChanged }) {
   const { t } = useI18n()
@@ -45,37 +46,40 @@ export default function FeedTab({ gigId, posts, userId, isPM, nameOf, onChanged 
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
-      <TabHeader title={t('feed.title')} subtitle={t('feed.subtitle')} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-        {posts.length === 0 && <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--muted)', fontSize: '14px' }}>{t('feed.empty')}</div>}
-        {posts.map(p => (
-          <FeedPost key={p.id} post={p} name={nameOf(p.user_id)} large
-            onDelete={(p.user_id === userId || isPM) ? () => remove(p) : null} />
+      <TabHeader title={t('feed.title')} hint={t('feed.subtitle')} />
+      <div style={{ marginBottom: 'var(--space-5)' }}>
+        {posts.length === 0 && <EmptyState compact icon={<MessageSquare size={24} />} title={t('feed.empty')} />}
+        {/* Posts as rows with hairlines between them, not a card each (DESIGN.md "One box deep") */}
+        {posts.map((p, i) => (
+          <div key={p.id} style={rowLine(i)}>
+            <FeedPost post={p} name={nameOf(p.user_id)} large
+              onDelete={(p.user_id === userId || isPM) ? () => remove(p) : null} />
+          </div>
         ))}
         <div ref={endRef} />
       </div>
 
       <div style={{
         background: 'var(--panel)', border: '1px solid var(--line-strong)',
-        padding: '16px', position: 'sticky', bottom: '16px',
+        padding: 'var(--space-4)', position: 'sticky', bottom: 'var(--space-4)',
       }}>
         <textarea value={text} onChange={e => setText(e.target.value)} aria-label={t('feed.placeholder')}
           onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) post() }}
           placeholder={t('feed.placeholder')} rows={2} maxLength={5000}
-          style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '14px', resize: 'none', lineHeight: 1.6, marginBottom: '10px' }} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '14px', resize: 'none', lineHeight: 1.6, marginBottom: 'var(--space-3)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
           <button onClick={() => setImportant(v => !v)} aria-pressed={important} style={{
-            display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', cursor: 'pointer',
-            background: important ? 'var(--danger-soft)' : 'var(--hover)',
-            border: important ? '1px solid var(--danger)' : '1px solid var(--line)',
-            color: important ? colors.danger : colors.muted, fontSize: '12px', fontWeight: 600,
+            display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', cursor: 'pointer',
+            background: important ? 'var(--danger-soft)' : 'transparent',
+            border: important ? '1px solid var(--danger)' : '1px solid var(--line-strong)',
+            color: important ? colors.danger : colors.muted, fontSize: '13px', fontWeight: 600,
           }}>
-            <AlertCircle size={13} /> {important ? t('feed.important') : t('feed.markImportant')}
+            <AlertCircle size={14} aria-hidden="true" /> {important ? t('feed.important') : t('feed.markImportant')}
           </button>
           <button onClick={post} disabled={posting || !canPost} style={{
-            display: 'flex', alignItems: 'center', gap: '6px', border: 'none', padding: '8px 16px',
+            display: 'flex', alignItems: 'center', gap: '8px', border: 'none', padding: '8px 16px',
             background: canPost ? colors.accent : 'var(--line)',
-            color: canPost ? 'var(--on-accent)' : 'var(--muted)', cursor: canPost ? 'pointer' : 'default', fontSize: '13px', fontWeight: 700,
+            color: canPost ? 'var(--on-accent)' : 'var(--muted)', cursor: canPost ? 'pointer' : 'default', fontSize: '14px', fontWeight: 600,
           }}>
             {posting ? <AvxLoader size={14} /> : <Send size={14} />} {t('feed.post')}
           </button>

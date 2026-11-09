@@ -540,7 +540,7 @@ export default {
       title: 'Find your call time and the call sheet',
       intro: 'Your call time is when you must be there. The call sheet has the day\'s plan and everyone\'s phone number.',
       steps: [
-        'In "My work", your next gig is at the top, with your call time in green. "Call sheet" opens it straight away; "Open the gig" shows everything else.',
+        'In "My work", your next gig is at the top, with your call time in green. "Call sheet" opens it straight away; "Open the gig" (under ⋯) shows everything else.',
         'On the gig, your call time is under the gig\'s name, in green.',
         'Tap Schedule to see the running order. Tap "Call sheet" for the full sheet.',
         'The call sheet shows the schedule and the crew with their phones. You can print it or save it as a PDF.',
@@ -713,7 +713,7 @@ export default {
       title: 'Report damaged equipment',
       intro: 'Something broke on site? Tell the warehouse straight away, so it is repaired before the next job.',
       steps: [
-        'In "My work", tap "Report damage" on your next gig. For another gig, open it, tap Equipment, then "Report damage".',
+        'In "My work", tap ⋯ on your next gig, then "Report damage". For another gig, open it, tap Equipment, then "Report damage".',
         'Choose the item. For gear with its own label, type the code from the label. For cables and other counted items, say how many.',
         'Say what is wrong and add a photo if you can. Tap Send. The organisation\'s admins are notified.',
       ],

@@ -51,11 +51,11 @@ export default function DmxWalkPage() {
       </div>
       {showLayout && <div style={card}><DipLayoutForm layout={layout} onChange={changeLayout} idPrefix="walk" /></div>}
       {!f ? (
-        <p style={{ fontSize: '15px', color: colors.muted }}>{t('dmxWalk.empty')}</p>
+        <p style={{ fontSize: '16px', color: colors.muted }}>{t('dmxWalk.empty')}</p>
       ) : (
         <>
           <h1 style={{ fontSize: '14px', color: colors.muted, fontWeight: 600 }} aria-live="polite">{t('dmxWalk.of', { n: at, total: list.length })}{f.position ? ` · ${f.position}` : ''}</h1>
-          <section aria-labelledby="walk-name" style={{ ...card, display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', textAlign: 'center', padding: '20px 12px' }}>
+          <section aria-labelledby="walk-name" style={{ ...card, display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', textAlign: 'center', padding: '20px 12px' }}>
             <div>
               <h2 id="walk-name" style={{ fontSize: '22px', fontWeight: 700 }}>{f.name}</h2>
               <p style={{ fontSize: '13px', color: colors.soft }}>{[f.fixture_type, f.mode, t('dmx.channelsShort', { count: f.footprint })].filter(Boolean).join(' · ')}</p>
@@ -67,11 +67,11 @@ export default function DmxWalkPage() {
             {f.address <= 511 ? (
               <>
                 <Dipswitches address={f.address} layout={layout} size="big" />
-                <p style={{ fontSize: '15px', fontWeight: 700 }}>{switchesOn(f.address, layout).length ? t('dip.onList', { list: switchesOn(f.address, layout).join(', ') }) : t('dip.allOff')}</p>
+                <p style={{ fontSize: '16px', fontWeight: 700 }}>{switchesOn(f.address, layout).length ? t('dip.onList', { list: switchesOn(f.address, layout).join(', ') }) : t('dip.allOff')}</p>
               </>
             ) : <p style={{ fontSize: '14px', color: 'var(--warn)' }}>{t('dip.over511')}</p>}
           </section>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '12px' }}>
             <button type="button" onClick={() => go(at - 1)} disabled={at <= 1} style={{ ...btn, flex: 1, justifyContent: 'center', minHeight: '56px', fontSize: '16px' }}><ChevronLeft size={18} /> {t('dmxWalk.prev')}</button>
             <button type="button" onClick={() => go(at + 1)} disabled={at >= list.length} style={{ ...btn, flex: 2, justifyContent: 'center', minHeight: '56px', fontSize: '16px' }}>{t('dmxWalk.next')} <ChevronRight size={18} /></button>
           </div>

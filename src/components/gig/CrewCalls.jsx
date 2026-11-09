@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Megaphone, X, Send, Users } from 'lucide-react'
+import { X, Send, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { useI18n, t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader, Section } from '../ui'
 import { NetworkPicker } from '../NetworkPicker'
 import { FeeFields, useFeeForm } from './FeeFields'
 import { formatMoney } from '../../lib/quotes'
@@ -67,7 +67,7 @@ export function CrewCallModal({ gigId, gig, preset = {}, onClose, onSent }) {
     <Modal title={t('crewCall.title')} onClose={onClose} maxWidth={560}>
       <form onSubmit={send} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6 }}>{t('crewCall.intro')}</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 90px', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 90px', gap: '12px' }}>
           <div>
             <label style={label} htmlFor="cc-title">{t('crewCall.function')} *</label>
             <input id="cc-title" value={title} onChange={e => setTitle(e.target.value)} maxLength={120} placeholder={t('crew.functionPlaceholder')} autoFocus style={input} />
@@ -86,9 +86,9 @@ export function CrewCallModal({ gigId, gig, preset = {}, onClose, onSent }) {
             ? t('crewCall.feeSuggested', { text: feeText(suggestion, t, lang) + (suggestion.weekendDays ? ` ${t('labour.weekendDays', { count: suggestion.weekendDays })}` : '') })
             : t('crewCall.feeNone')} />
         <div>
-          <div style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><Users size={13} /> {t('crewCall.people', { count: people.length })}</div>
+          <div style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px' }}><Users size={13} /> {t('crewCall.people', { count: people.length })}</div>
           {people.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
               {people.map(p => (
                 <span key={p.user_id} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 4px 4px 10px', background: 'var(--selection)', border: '1px solid var(--accent)', fontSize: '13px' }}>
                   {p.full_name || t('common.someone')}
@@ -137,34 +137,33 @@ export function CrewCallList({ gigId, nameOf, refreshKey }) {
   if (!calls.length) return null
   const nameFor = id => names[id] || nameOf(id)
   return (
-    <section style={{ marginBottom: '26px' }} aria-labelledby="crewcalls-title">
-      <h3 id="crewcalls-title" style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><Megaphone size={13} /> {t('crewCall.heading')}</h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {calls.map(c => {
+    <Section id="crewcalls-title" level={3} title={t('crewCall.heading')}>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        {calls.map((c, i) => {
           const taken = c.answers.filter(a => a.answer === 'accepted').length
           const by = answer => c.answers.filter(a => a.answer === answer).map(a => nameFor(a.user_id)).join(', ')
           return (
-            <div key={c.id} style={{ padding: '9px 12px', border: `1px solid ${colors.border}`, background: 'var(--fill)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <li key={c.id} style={{ padding: 'var(--space-3) 0', borderTop: i > 0 ? `1px solid ${colors.border}` : 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px 12px', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '14px' }}>{c.title}</div>
-                  <div style={{ fontSize: '12px', color: colors.muted }}>{t('crewCall.asked', { count: c.answers.length, when: ago(c.created_at) })}</div>
-                  {c.fee_rate != null && <div style={{ fontSize: '12px', color: colors.muted }}>{t('crewCall.feeLine', { text: callFeeText({ unit: c.fee_unit, rate: c.fee_rate, quantity: c.fee_quantity }, lang) })}</div>}
+                  <div style={{ fontSize: '13px', color: colors.muted }}>{t('crewCall.asked', { count: c.answers.length, when: ago(c.created_at) })}</div>
+                  {c.fee_rate != null && <div style={{ fontSize: '13px', color: colors.muted }}>{t('crewCall.feeLine', { text: callFeeText({ unit: c.fee_unit, rate: c.fee_rate, quantity: c.fee_quantity }, lang) })}</div>}
                 </div>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: taken >= c.quantity ? colors.accentText : 'var(--warn)', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '13px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: taken >= c.quantity ? colors.accentText : 'var(--warn)', whiteSpace: 'nowrap' }}>
                   {c.closed_at ? t('chat.ev.closedFilled', { taken, quantity: c.quantity }) : t('chat.ev.filled', { taken, quantity: c.quantity })}
                 </span>
-                {!c.closed_at && <button onClick={() => close(c)} style={{ ...btn, padding: '5px 10px', fontSize: '12px' }}>{t('chat.ev.closeCall')}</button>}
+                {!c.closed_at && <button onClick={() => close(c)} style={{ ...btn, padding: '4px 12px' }}>{t('chat.ev.closeCall')}</button>}
               </div>
               {['accepted', 'declined', 'invited'].map(answer => by(answer) && (
-                <div key={answer} style={{ fontSize: '12px', color: answer === 'accepted' ? colors.accentText : colors.muted, marginTop: '4px' }}>
+                <div key={answer} style={{ fontSize: '13px', color: answer === 'accepted' ? colors.accentText : colors.muted, marginTop: '4px' }}>
                   {t(`crewCall.answer.${answer}`)}: {by(answer)}
                 </div>
               ))}
-            </div>
+            </li>
           )
         })}
-      </div>
-    </section>
+      </ul>
+    </Section>
   )
 }

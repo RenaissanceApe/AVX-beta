@@ -74,25 +74,25 @@ export default function SystemCalcTool({ gig, canEdit }) {
 
   return (
     <section aria-labelledby="system-title">
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
         <div style={{ flex: '1 1 200px' }}>
-          <h2 id="system-title" style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>{t('tools.name.system_calc')}</h2>
+          <h2 id="system-title" style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>{t('tools.name.system_calc')}</h2>
           <p style={{ color: colors.muted, fontSize: '13px' }}>{t('sys.count', { sources: sources.length, listeners: listeners.length })}</p>
         </div>
         {sources.length > 0 && <Link to={`/gig/${gig.id}/system`} style={{ ...btn, textDecoration: 'none' }}><Printer size={14} /> {t('inputs.print')}</Link>}
       </div>
-      {savedAt && <p role="status" style={{ fontSize: '12px', color: 'var(--warn)', marginBottom: '10px' }}>{t('sys.offline')}</p>}
+      {savedAt && <p role="status" style={{ fontSize: '13px', color: 'var(--warn)', marginBottom: '10px' }}>{t('sys.offline')}</p>}
       <p style={{ ...card, display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '13px', lineHeight: 1.5, marginBottom: '12px', borderColor: 'var(--accent)' }}>
         <Info size={15} color={colors.accentText} aria-hidden="true" style={{ flexShrink: 0, marginTop: '2px' }} /> {t('sys.estimate')}
       </p>
 
       <section aria-labelledby="sys-settings" style={{ marginBottom: '14px' }}>
         <h3 id="sys-settings" style={{ ...label, marginBottom: '6px' }}>{t('sys.settings')}</h3>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <NumberField id="sys-temp" hint="sys-temp" text={t('sys.temp')} value={settings.temp_c} min={-20} max={50} step={1} disabled={!canEdit} onSave={v => save({ temp_c: v })} />
           <NumberField id="sys-haas" hint="sys-haas" text={t('sys.haas')} value={settings.haas_ms} min={0} max={30} step={1} disabled={!canEdit} onSave={v => save({ haas_ms: v })} />
           <NumberField id="sys-ear" text={t('sys.ear')} value={settings.ear_m} min={0} max={3} step={0.1} disabled={!canEdit} onSave={v => save({ ear_m: v })} />
-          <p style={{ fontSize: '12px', color: colors.muted, paddingBottom: '10px' }}>{t('sys.speed', { c: Math.round(speedOfSound(settings.temp_c) * 10) / 10 })}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, paddingBottom: '10px' }}>{t('sys.speed', { c: Math.round(speedOfSound(settings.temp_c) * 10) / 10 })}</p>
         </div>
       </section>
 
@@ -105,7 +105,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
       <section aria-labelledby="sys-sources" style={{ marginBottom: '16px' }}>
         <h3 id="sys-sources" style={{ ...label, marginBottom: '6px' }}>{t('sys.sources')}</h3>
         {canEdit && (
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
             {KINDS.map(k => <button key={k} type="button" onClick={() => addSource(k)} style={{ ...btn, padding: '6px 10px', fontSize: '13px' }}><Plus size={13} /> {t(`sys.kind.${k}`)}</button>)}
           </div>
         )}
@@ -120,11 +120,11 @@ export default function SystemCalcTool({ gig, canEdit }) {
                 <li key={s.id} style={{ ...card, padding: '10px 12px' }}>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', flexWrap: 'wrap', marginBottom: canEdit ? '8px' : 0 }}>
                     <strong style={{ fontSize: '14px' }}>{s.name}</strong>
-                    <span style={{ fontSize: '12px', color: colors.muted }}>{t(`sys.kind.${s.kind}`)}{s.count > 1 ? ` × ${s.count}` : ''}</span>
+                    <span style={{ fontSize: '13px', color: colors.muted }}>{t(`sys.kind.${s.kind}`)}{s.count > 1 ? ` × ${s.count}` : ''}</span>
                     <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontWeight: 700, color: colors.accentText }}>{t('sys.delayMs', { ms: d.ms })}</span>
                     {canEdit && <button type="button" onClick={() => removeWithUndo('sources', sources, s.id, s.name)} aria-label={t('inputs.remove', { name: s.name })} style={iconBtn}><Trash2 size={14} /></button>}
                   </div>
-                  <p style={{ fontSize: '12px', color: colors.soft, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.5 }}>
                     {t(`sys.reason.${d.reason}`, { main: nameOf(d.from), ms: Math.round((d.mainWait || 0) * 10) / 10, haas: settings.haas_ms })}
                     {s.extra_ms ? ` ${t('sys.extraIncluded', { ms: s.extra_ms })}` : ''}
                     {cov && ` · ${t('sys.covers', { width: cov.width, d: cov.d })}`}
@@ -148,7 +148,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
                     </div>
                   )}
                   {!canEdit && (
-                    <p style={{ fontSize: '12px', color: colors.muted, marginTop: '4px' }}>
+                    <p style={{ fontSize: '13px', color: colors.muted, marginTop: '4px' }}>
                       {t('sys.where', { x: s.x, y: s.y, h: s.height })} · {s.spl} dB · {s.angle}°
                     </p>
                   )}
@@ -176,12 +176,12 @@ export default function SystemCalcTool({ gig, canEdit }) {
                   <span style={{ marginLeft: 'auto', fontSize: '13px', fontWeight: 700 }}>{total !== null ? t('sys.level', { db: total }) : '—'}</span>
                   {canEdit && <button type="button" onClick={() => removeWithUndo('listeners', listeners, l.id, l.name)} aria-label={t('inputs.remove', { name: l.name })} style={iconBtn}><Trash2 size={14} /></button>}
                 </div>
-                <p style={{ fontSize: '12px', color: colors.soft, lineHeight: 1.6 }}>
+                <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>
                   {mains !== null && `${t('sys.fromMains', { db: mains })} · `}
                   {rows.map(r => `${nameOf(r.id)} ${r.d} m`).join(' · ')}
                 </p>
                 {checks.map(c => (
-                  <p key={c.id} style={{ fontSize: '12px', display: 'flex', gap: '6px', alignItems: 'center', color: c.state === 'ok' ? colors.soft : 'var(--warn)' }}>
+                  <p key={c.id} style={{ fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'center', color: c.state === 'ok' ? colors.soft : 'var(--warn)' }}>
                     {c.state !== 'ok' && <AlertTriangle size={13} aria-hidden="true" />}
                     {t(`sys.check.${c.state}`, { name: nameOf(c.id), main: nameOf(c.main), ms: Math.abs(c.gap) })}
                   </p>

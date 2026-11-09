@@ -7,14 +7,15 @@ import ActivityTab from './ActivityTab'
 // Activity) in one tab, so the gig keeps eight tabs when Tools arrives.
 export default function UpdatesTab({ view, setView, feed, activity }) {
   const { t } = useI18n()
+  // The chosen view is text + a 2px accent bar, never a fill (DESIGN.md "One loud thing")
   const choice = on => ({
-    padding: '8px 14px', fontSize: '14px', fontWeight: 700, cursor: 'pointer',
-    border: `1px solid ${on ? colors.accent : colors.border}`, background: on ? 'var(--selection)' : 'transparent',
-    color: on ? 'var(--text)' : colors.soft,
+    padding: '8px 12px', minHeight: '44px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', background: 'none',
+    border: 'none', borderBottom: `2px solid ${on ? colors.accent : 'transparent'}`, color: on ? 'var(--text)' : colors.muted,
+    position: 'relative', top: '1px',
   })
   return (
     <div>
-      <div role="radiogroup" aria-label={t('updates.view')} style={{ display: 'flex', gap: '6px', marginBottom: '18px' }}>
+      <div role="radiogroup" aria-label={t('updates.view')} style={{ display: 'flex', gap: '4px', marginBottom: 'var(--space-5)', borderBottom: `1px solid ${colors.border}` }}>
         {['posts', 'history'].map(v => (
           <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)} style={choice(view === v)}>
             {t(`updates.${v}`)}

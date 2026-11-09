@@ -105,7 +105,7 @@ export function Term({ id, children }) {
           <strong style={{ display: 'block', marginBottom: '3px', color: 'var(--text)' }}>{entry.term}</strong>
           {entry.definition}
           <span style={{ display: 'block', marginTop: '6px', color: colors.soft }}>{t('help.example')}: {entry.example}</span>
-          <Link to={`/help#${id}`} style={{ display: 'inline-block', marginTop: '8px', color: colors.accentText, fontSize: '12px' }}>{t('help.inGlossary')}</Link>
+          <Link to={`/help#${id}`} style={{ display: 'inline-block', marginTop: '8px', color: colors.accentText, fontSize: '13px' }}>{t('help.inGlossary')}</Link>
         </div>
       )}
     </>
@@ -147,12 +147,12 @@ export function PageHelp({ page: pageId }) {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
               <HelpCircle size={18} color={colors.accentText} aria-hidden="true" />
-              <h2 style={{ fontSize: '17px', fontWeight: 700, flex: 1 }}>{entry.title}</h2>
+              <h2 style={{ fontSize: '16px', fontWeight: 700, flex: 1 }}>{entry.title}</h2>
               <button ref={closeBtn} type="button" onClick={close} aria-label={t('common.close')} style={{ background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', padding: '4px', display: 'flex' }}><X size={18} /></button>
             </div>
             {reading ? (
               <>
-                <button type="button" onClick={() => setReading(null)} style={{ background: 'none', border: 'none', padding: '4px 0', marginBottom: '10px', color: colors.soft, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+                <button type="button" onClick={() => setReading(null)} style={{ background: 'none', border: 'none', padding: '4px 0', marginBottom: '10px', color: colors.soft, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
                   <ArrowLeft size={14} aria-hidden="true" /> {t('help.backToPage')}
                 </button>
                 <GuideView id={reading} compact />
@@ -162,11 +162,11 @@ export function PageHelp({ page: pageId }) {
                 <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-2)' }}>{entry.summary}</p>
                 {guides.length > 0 && (
                   <>
-                    <h3 style={{ ...labelStyle, marginTop: '20px', display: 'flex', alignItems: 'center', gap: '6px' }}><ListChecks size={13} aria-hidden="true" /> {t('help.guidesHere')}</h3>
+                    <h3 style={{ ...labelStyle, marginTop: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}><ListChecks size={13} aria-hidden="true" /> {t('help.guidesHere')}</h3>
                     {GUIDE_ROLES.map(role => ({ role, list: guides.filter(id => GUIDES[id].role === role) })).filter(g => g.list.length).map(({ role, list }) => (
                       <div key={role} style={{ marginBottom: '10px' }}>
-                        <p style={{ fontSize: '12px', color: colors.soft, margin: '0 0 6px' }}>{t(`help.role.${role}`)}</p>
-                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <p style={{ fontSize: '13px', color: colors.soft, margin: '0 0 6px' }}>{t(`help.role.${role}`)}</p>
+                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                           {list.map(id => (
                             <li key={id}>
                               <button type="button" onClick={() => setReading(id)} style={{
@@ -194,7 +194,7 @@ export function PageHelp({ page: pageId }) {
                     )
                   })}
                 </dl>
-                <Link to="/help" onClick={() => setOpen(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '20px', color: colors.accentText, fontSize: '14px', fontWeight: 600 }}>
+                <Link to="/help" onClick={() => setOpen(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginTop: '20px', color: colors.accentText, fontSize: '14px', fontWeight: 600 }}>
                   <BookOpen size={15} aria-hidden="true" /> {t('help.allHelp')}
                 </Link>
               </>

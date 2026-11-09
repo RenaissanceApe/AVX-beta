@@ -14,7 +14,7 @@ import { useI18n } from '../../i18n'
 import EmptyState from '../EmptyState'
 import { Hint } from '../help/HelpParts'
 import { HoursModal, DayLine, SplitLine, StatusChip, hoursText, money } from './HoursParts'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader } from '../ui'
 
 export default function GigHours({ gig, members, isPM, userId, nameOf, onReviewed }) {
   const { t, lang } = useI18n()
@@ -99,10 +99,11 @@ export default function GigHours({ gig, members, isPM, userId, nameOf, onReviewe
   const total = totals(shown, factors, settings?.holidays)
 
   return (
-    <section aria-labelledby="hours-title" style={{ ...card, padding: '14px 16px', marginTop: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-        <h3 id="hours-title" style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', flex: 1, margin: 0 }}>
-          <Clock size={15} color="var(--accent-text)" aria-hidden="true" /> {isPM ? t('hours.gigTitle') : t('hours.myTitle')} <Hint id="hours" />
+    // On the gig page's Crew tab: a section on the page ground, not a card (DESIGN.md "One box deep"; DR2)
+    <section aria-labelledby="hours-title" className="avx-section">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: 'var(--space-2)' }}>
+        <h3 id="hours-title" className="avx-section__title" style={{ flex: 1 }}>
+          {isPM ? t('hours.gigTitle') : t('hours.myTitle')} <Hint id="hours" />
         </h3>
         {isPM && shown.length > 0 && (
           <button type="button" onClick={() => { downloadHoursCsv(shown.map(e => ({ ...e, gig_name: gig.name })), Object.fromEntries(members.map(m => [m.user_id, nameOf(m.user_id)])), `${gig.name} - ${t('hours.fileName')}`); track('hours:csv') }} style={btn}>
