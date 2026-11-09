@@ -59,9 +59,13 @@ jobs:
     if: vars.E2E_AUTH_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # One queue per PR (or branch): a newer push replaces that PR's older run, and different PRs
+    # run side by side. Each run creates and sweeps only its own tagged accounts (E2E_RUN), so
+    # runs don't share data. A single repo-wide group held just one waiting run, so parallel
+    # PRs kept cancelling each other's pending runs.
     concurrency:
-      group: e2e-auth
-      cancel-in-progress: false
+      group: e2e-auth-${{ github.ref }}
+      cancel-in-progress: true
     env:
       E2E_AUTH: '1'
       # Tags every account this run creates, so the sweep below deletes only those
