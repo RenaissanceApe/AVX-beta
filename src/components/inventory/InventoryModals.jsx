@@ -21,7 +21,7 @@ const Field = ({ id, text, hint, children }) => (
     {children}
   </div>
 )
-const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }
+const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }
 const select = { ...input, cursor: 'pointer' }
 const numberOrNull = v => (String(v ?? '').trim() === '' ? null : parsePrice(v))
 const SaveButton = ({ saving, disabled, children }) => (
@@ -135,7 +135,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
             <input id="it-min" type="number" min={0} value={form.min_stock} onChange={set('min_stock')} style={input} />
           </Field>
         </div>
-        <p style={{ fontSize: '12px', color: hasStock ? 'var(--warn)' : colors.muted, lineHeight: 1.5, marginTop: '-4px' }}>
+        <p style={{ fontSize: '13px', color: hasStock ? 'var(--warn)' : colors.muted, lineHeight: 1.5, marginTop: '-4px' }}>
           {form.kit_type ? t(`kit.typeHint.${form.kit_type}`) : hasStock ? t('inv.trackingLocked') : t(`inv.trackingHint.${form.tracking}`)}
           {!codeOk && <span style={{ color: colors.danger, display: 'block' }}>{t('inv.codeInvalid')}</span>}
         </p>
@@ -261,9 +261,9 @@ export function MovementModal({ item, mode, locationId, locations, stock, onClos
             </Field>
           )}
         </div>
-        {mode === 'count' && to && <p style={{ fontSize: '12px', color: colors.muted }}>{t('inv.countHint', { count: at(to) })}</p>}
+        {mode === 'count' && to && <p style={{ fontSize: '13px', color: colors.muted }}>{t('inv.countHint', { count: at(to) })}</p>}
         {shape.from && from && Number.isInteger(n) && n > at(from) && mode !== 'count' && (
-          <p role="alert" style={{ fontSize: '12px', color: colors.danger }}>{t('inv.error.notEnough', { count: at(from) })}</p>
+          <p role="alert" style={{ fontSize: '13px', color: colors.danger }}>{t('inv.error.notEnough', { count: at(from) })}</p>
         )}
         <Field id="mv-note" text={t('inv.note')}>
           <input id="mv-note" value={note} onChange={e => setNote(e.target.value)} maxLength={500} placeholder={t('inv.notePlaceholder')} style={input} />
@@ -337,7 +337,7 @@ export function AddUnitsModal({ item, locations, onClose, onSaved }) {
           <Field id="un-cost" text={t('inv.purchaseCost')}><input id="un-cost" inputMode="decimal" value={cost} onChange={e => setCost(e.target.value)} style={input} /></Field>
           <Field id="un-life" text={t('inv.depreciationMonths')} hint="depreciation"><input id="un-life" type="number" min={1} max={600} value={life} onChange={e => setLife(e.target.value)} placeholder="60" style={input} /></Field>
         </div>
-        <p style={{ fontSize: '12px', color: colors.muted }}>{t('inv.unitsHint')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted }}>{t('inv.unitsHint')}</p>
         <SaveButton saving={saving} disabled={!total}>{t('inv.addUnitsButton', { count: total })}</SaveButton>
       </form>
     </Modal>
@@ -410,7 +410,7 @@ export function UnitModal({ unit, locations, onClose, onSaved }) {
           </div>
         )}
         {out && form.status !== unit.status && (
-          <p role="alert" style={{ fontSize: '12px', color: 'var(--warn)' }}>{t('inv.statusWarning')}</p>
+          <p role="alert" style={{ fontSize: '13px', color: 'var(--warn)' }}>{t('inv.statusWarning')}</p>
         )}
         <SaveButton saving={saving} disabled={!disposalOk}>{t('common.save')}</SaveButton>
       </form>

@@ -206,7 +206,7 @@ function OfferModal({ post, application: a, busy, onClose, onOffer }) {
         <p style={{ fontSize: '14px', lineHeight: 1.5 }}>{t('jobs.offerConfirm', { name: a.name || '', title: post.title })}</p>
         <FeeFields id="jo" state={fee} canReset={!!start} resetLabel={t('jobs.offerFeeReset')}
           note={t(`jobs.offerFeeFrom.${from}`, { rate: a.day_rate != null ? money(Number(a.day_rate), a.currency || post.currency, lang) : '' })} />
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <button type="submit" disabled={busy || fee.bad} style={btnPrimary}>
             {busy ? <AvxLoader size={15} /> : <Megaphone size={15} />} {t('jobs.offer')}
           </button>

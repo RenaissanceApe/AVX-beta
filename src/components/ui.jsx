@@ -24,7 +24,7 @@ export const colors = {
 export const tint = (color, percent) => `color-mix(in srgb, ${color} ${percent}%, transparent)`
 
 export const btn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px',
+  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '9px 14px',
   border: '1px solid var(--line-strong)', background: 'transparent', color: 'var(--text)',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0, fontFamily: 'var(--font-ui)',
 }
@@ -63,7 +63,7 @@ export function Modal({ title, onClose, children, maxWidth = 480 }) {
         animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '12px' }}>
-          <h2 style={{ fontFamily: 'var(--font-mono)', fontSize: '17px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</h2>
+          <h2 style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</h2>
           <button onClick={onClose} aria-label="Close" style={iconBtn}><X size={18} /></button>
         </div>
         {children}
@@ -273,7 +273,7 @@ export function MoreMenu({ items = [], label }) {
   return (
     <div ref={box} className="avx-more" onKeyDown={open ? onKeyDown : undefined}>
       <button ref={button} type="button" onClick={() => setOpen(o => !o)} aria-haspopup="menu" aria-expanded={open}
-        aria-label={name} title={name} style={{ ...btn, padding: '8px' }}>
+        aria-label={name} title={name} className="avx-more__button" style={{ ...btn, padding: '8px', justifyContent: 'center' }}>
         <MoreHorizontal size={18} aria-hidden="true" />
       </button>
       {open && (

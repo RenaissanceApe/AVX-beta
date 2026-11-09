@@ -82,10 +82,10 @@ export function LeaveForm({ orgId, people, onSaved, onClose }) {
     }
   }
 
-  const field = { minWidth: 0, fontSize: '12px', color: colors.soft, display: 'flex', flexDirection: 'column', gap: '4px' }
+  const field = { minWidth: 0, fontSize: '13px', color: colors.soft, display: 'flex', flexDirection: 'column', gap: '4px' }
   return (
     <Modal title={orgId ? (forSomeoneElse ? t('leave.addForTitle') : t('leave.askTitle')) : t('availability.add')} onClose={onClose}>
-      <form onSubmit={submit} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
+      <form onSubmit={submit} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
         {people?.length > 0 && (
           <label style={{ ...field, gridColumn: '1 / -1' }}>{t('leave.who')}
             <select value={form.who} onChange={e => set({ who: e.target.value })} style={input}>
@@ -107,13 +107,13 @@ export function LeaveForm({ orgId, people, onSaved, onClose }) {
           <input type="date" value={form.to} min={form.from || min} onChange={e => set({ to: e.target.value })} style={input} />
         </label>
         {orgId && (
-          <fieldset style={{ gridColumn: '1 / -1', border: 'none', padding: 0, margin: 0, display: 'flex', gap: '6px 16px', flexWrap: 'wrap', fontSize: '13px' }}>
+          <fieldset style={{ gridColumn: '1 / -1', border: 'none', padding: 0, margin: 0, display: 'flex', gap: '8px 16px', flexWrap: 'wrap', fontSize: '13px' }}>
             <legend style={{ ...label, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>{t('leave.halfDays')} <Hint id="leave-half" label={t('leave.halfDays')} /></legend>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input type="checkbox" checked={form.startHalf} onChange={e => set({ startHalf: e.target.checked, endHalf: oneDay && e.target.checked ? false : form.endHalf })} />
               {oneDay ? t('leave.afternoonOnly') : t('leave.startAfternoon')}
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input type="checkbox" checked={form.endHalf} onChange={e => set({ endHalf: e.target.checked, startHalf: oneDay && e.target.checked ? false : form.startHalf })} />
               {oneDay ? t('leave.morningOnly') : t('leave.endMorning')}
             </label>

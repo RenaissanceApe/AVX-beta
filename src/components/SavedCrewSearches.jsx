@@ -8,7 +8,7 @@ import { toSaved } from '../lib/crewSearch'
 import { useI18n } from '../i18n'
 import { btn, iconBtn, input, label, colors, AvxLoader } from './ui'
 
-const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+const hint = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
 
 // Saved crew searches (docs/CREW_NETWORK.md, N5): an organisation keeps Find crew filters by name,
 // runs them again with one tap, and (with the bell on) hears when a new profile fits.
@@ -61,16 +61,16 @@ export default function SavedCrewSearches({ orgId, filters, onApply, openId }) {
   }
 
   const chip = { display: 'inline-flex', alignItems: 'center', border: `1px solid var(--accent)`, overflow: 'hidden' }
-  const part = { background: 'none', border: 'none', color: colors.text, font: 'inherit', fontSize: '13px', cursor: 'pointer', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '6px' }
+  const part = { background: 'none', border: 'none', color: colors.text, font: 'inherit', fontSize: '13px', cursor: 'pointer', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '8px' }
   return (
     <section aria-labelledby="cs-saved" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         <h2 id="cs-saved" style={{ ...label, marginBottom: 0 }}>{t('crewSearch.saved.title')}</h2>
-        {!saving && <button type="button" onClick={() => setSaving(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px' }}><BookmarkPlus size={13} /> {t('crewSearch.saved.save')}</button>}
+        {!saving && <button type="button" onClick={() => setSaving(true)} style={{ ...btn, padding: '5px 10px', fontSize: '13px' }}><BookmarkPlus size={13} /> {t('crewSearch.saved.save')}</button>}
       </div>
       {list.length === 0 && !saving && <p style={hint}>{t('crewSearch.saved.none')}</p>}
       {list.length > 0 && (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           {list.map(s => (
             <li key={s.id} style={chip}>
               <button type="button" onClick={() => onApply(s)} style={{ ...part, fontWeight: 600 }} aria-label={t('crewSearch.saved.runNamed', { name: s.name })}>

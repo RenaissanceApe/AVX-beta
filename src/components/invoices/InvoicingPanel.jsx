@@ -108,20 +108,20 @@ function ConnectForm({ provider, busy, onConnect, onCancel }) {
   )
   const submit = e => { e.preventDefault(); onConnect(keys) }
   return (
-    <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', borderTop: `1px solid ${colors.border}`, paddingTop: '10px' }}>
+    <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: `1px solid ${colors.border}`, paddingTop: '10px' }}>
       <p style={{ fontSize: '13px', margin: 0, lineHeight: 1.5 }}>{t(`invoice.program.how.${provider}`)}</p>
       {provider === 'invoicexpress' && <>
         {field('account', 'invoicexpress-account', 'text', 'lumen-pixel')}
         {field('api_key', 'invoicing-keys', 'password')}
       </>}
       {provider === 'toconline' && <>
-        <p style={{ fontSize: '12px', color: colors.muted, margin: 0, overflowWrap: 'anywhere' }}>{t('invoice.program.redirect', { url: CALLBACK })}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, margin: 0, overflowWrap: 'anywhere' }}>{t('invoice.program.redirect', { url: CALLBACK })}</p>
         {field('client_id', null)}
         {field('client_secret', 'invoicing-keys', 'password')}
         {field('oauth_url', null, 'url', 'https://…toconline.pt/oauth')}
         {field('api_url', null, 'url', 'https://…toconline.pt')}
       </>}
-      <p style={{ fontSize: '12px', color: colors.muted, margin: 0 }}>{t('invoice.program.keysSafe')}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, margin: 0 }}>{t('invoice.program.keysSafe')}</p>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button type="submit" disabled={busy} style={btnPrimary}>
           {busy ? <AvxLoader size={14} /> : <Link2 size={14} />} {t(provider === 'invoicexpress' ? 'invoice.program.connect' : 'invoice.program.signIn', { program: name })}

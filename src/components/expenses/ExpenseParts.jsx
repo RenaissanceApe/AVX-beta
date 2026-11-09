@@ -19,7 +19,7 @@ export function ReceiptLink({ path, name }) {
   }, [path])
   if (!url) return null
   return (
-    <a href={url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--sky)', fontSize: '12px' }}>
+    <a href={url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--sky)', fontSize: '13px' }}>
       <Paperclip size={12} /> {t('expenses.receiptOpen', { name: (name || '').slice(0, 24) })}
     </a>
   )
@@ -48,11 +48,11 @@ export function ExpenseRow({ e, categories, names = {}, today, details, onOpen, 
   const link = linkOf(e)
   const who = e.supplier?.name || e.supplier_name
   return (
-    <li style={{ display: 'grid', gridTemplateColumns: '50px minmax(0, 1fr) auto', gap: '2px 10px', alignItems: 'start', padding: '9px 0', borderTop: `1px solid ${colors.border}`, fontSize: '14px' }}>
+    <li style={{ display: 'grid', gridTemplateColumns: '50px minmax(0, 1fr) auto', gap: '4px 12px', alignItems: 'start', padding: '9px 0', borderTop: `1px solid ${colors.border}`, fontSize: '14px' }}>
       <span style={{ color: colors.muted, fontSize: '13px', paddingTop: '1px' }}>{fmt(e.spent_on, 'd MMM')}</span>
       <button type="button" onClick={onOpen} disabled={!onOpen} style={{ minWidth: 0, textAlign: 'left', background: 'none', border: 'none', padding: 0, color: 'var(--text)', cursor: onOpen ? 'pointer' : 'default', font: 'inherit' }}>
         <span style={{ fontWeight: 600, display: 'block', overflowWrap: 'anywhere' }}>{who ? `${who} · ` : ''}{e.description}</span>
-        <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
+        <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>
           {categoryName(cat, t)}
           {e.claimed_by && ` · ${t('expenses.claimBy', { name: names[e.claimed_by] || t('common.someone') })}`}
           {details && e.gig?.name && ` · ${e.gig.name}`}
@@ -63,16 +63,16 @@ export function ExpenseRow({ e, categories, names = {}, today, details, onOpen, 
         <ExpenseChip e={e} today={today} />
       </span>
       {details && (
-        <span style={{ gridColumn: '2 / -1', display: 'flex', gap: '2px 12px', flexWrap: 'wrap', fontSize: '12px', color: colors.muted }}>
+        <span style={{ gridColumn: '2 / -1', display: 'flex', gap: '4px 12px', flexWrap: 'wrap', fontSize: '13px', color: colors.muted }}>
           <span>{t('expenses.netVat', { net: formatMoney(e.amount_net, e.currency, lang), vat: formatMoney(e.vat_amount, e.currency, lang) })}</span>
           {e.invoice_number && <span>{t('expenses.invoiceShort', { number: e.invoice_number })}</span>}
           {e.due_on && <span>{t('expenses.dueShort', { date: fmt(e.due_on, 'd MMM') })}</span>}
           {e.paid_on && <span>{t('expenses.paidShort', { date: fmt(e.paid_on, 'd MMM'), how: e.paid_how ? t(`expenses.paidHow.${e.paid_how}`) : '' })}</span>}
-          {link && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><Link2 size={11} /> {t(`expenses.link.${link.kind}`)}</span>}
+          {link && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Link2 size={11} /> {t(`expenses.link.${link.kind}`)}</span>}
           {e.receipt_path && <ReceiptLink path={e.receipt_path} name={e.receipt_name} />}
         </span>
       )}
-      {children && <span style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>{children}</span>}
+      {children && <span style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>{children}</span>}
     </li>
   )
 }
@@ -98,14 +98,14 @@ export function ClaimActions({ e, onDone }) {
     setBusy(false)
   }
   return (
-    <span style={{ display: 'flex', gap: '6px', flex: '1 1 100%', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+    <span style={{ display: 'flex', gap: '8px', flex: '1 1 100%', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
       <button type="button" disabled={busy} onClick={() => setAsking(true)} style={btn}><Undo2 size={14} /> {t('expenses.sendBack')}</button>
       <button type="button" disabled={busy} onClick={() => decide(true)} style={{ ...btnPrimary, padding: '8px 14px', fontSize: '13px' }}>
         {busy ? <AvxLoader size={14} /> : <Check size={14} />} {t('expenses.approve')}
       </button>
       {asking && (
         <Modal title={t('expenses.sendBackTitle')} onClose={() => setAsking(false)}>
-          <form onSubmit={ev => { ev.preventDefault(); if (note.trim()) decide(false) }} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <form onSubmit={ev => { ev.preventDefault(); if (note.trim()) decide(false) }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <textarea value={note} onChange={ev => setNote(ev.target.value)} maxLength={500} rows={3} required aria-label={t('expenses.sendBackNote')}
               placeholder={t('expenses.sendBackNote')} style={{ ...input, resize: 'vertical' }} />
             <button type="submit" disabled={busy || !note.trim()} style={{ ...btnPrimary, justifyContent: 'center' }}><Undo2 size={14} /> {t('expenses.sendBack')}</button>

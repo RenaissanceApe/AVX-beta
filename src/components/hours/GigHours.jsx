@@ -112,7 +112,7 @@ export default function GigHours({ gig, members, isPM, userId, nameOf, onReviewe
         )}
         {canLog && <button type="button" onClick={() => setEditing({ new: true })} style={btnPrimary}><Plus size={14} /> {t('hours.log')}</button>}
       </div>
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>{isPM ? t('hours.gigIntro') : t('hours.myIntro')}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>{isPM ? t('hours.gigIntro') : t('hours.myIntro')}</p>
 
       {waiting.length > 1 && (
         <button type="button" onClick={approveAll} disabled={busy === 'all'} style={{ ...btn, marginBottom: '10px' }}>
@@ -136,7 +136,7 @@ export default function GigHours({ gig, members, isPM, userId, nameOf, onReviewe
                     {nameOf(pid)} <span style={{ fontWeight: 400, color: colors.muted }}>· {hoursText(sum.worked, lang)}{sum.cost > 0 && ` · ${money(sum.cost, lang)}`}</span>
                   </p>
                 )}
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {queuedDays.map(q => (
                     <li key={q.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', fontSize: '14px' }}>
                       <span style={{ flex: '1 1 200px', minWidth: 0 }}><DayLine entry={q} /></span>
@@ -151,8 +151,8 @@ export default function GigHours({ gig, members, isPM, userId, nameOf, onReviewe
                           <DayLine entry={e} />
                           {e.status === 'approved' && <SplitLine split={e.split} cost={e.user_id === userId || isPM ? e.cost : null} />}
                           {preview && <SplitLine split={preview} cost={preview.cost} />}
-                          {e.status === 'returned' && e.review_note && <span style={{ display: 'block', fontSize: '12px', color: colors.danger }}>{t('hours.returnedNote', { note: e.review_note })}</span>}
-                          {e.note && <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>“{e.note}”</span>}
+                          {e.status === 'returned' && e.review_note && <span style={{ display: 'block', fontSize: '13px', color: colors.danger }}>{t('hours.returnedNote', { note: e.review_note })}</span>}
+                          {e.note && <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>“{e.note}”</span>}
                         </span>
                         <StatusChip status={e.status} />
                         {e.status !== 'approved' && (

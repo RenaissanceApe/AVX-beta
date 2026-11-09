@@ -33,8 +33,8 @@ export default function TaskTemplates({ orgId, templates, canManage, onChanged }
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         <p style={{ fontSize: '13px', color: colors.muted, flex: '1 1 240px' }}>{t('taskTpl.intro')}</p>
         {canManage && <button type="button" onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} /> {t('taskTpl.new')}</button>}
       </div>
@@ -44,10 +44,10 @@ export default function TaskTemplates({ orgId, templates, canManage, onChanged }
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {templates.map(tpl => (
-            <li key={tpl.id} style={{ ...card, padding: '10px 12px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <li key={tpl.id} style={{ ...card, padding: '10px 12px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '15px', fontWeight: 600, overflowWrap: 'anywhere' }}>{tpl.name}</div>
-                <div style={{ fontSize: '12px', color: colors.muted, marginTop: '2px', overflowWrap: 'anywhere' }}>
+                <div style={{ fontSize: '16px', fontWeight: 600, overflowWrap: 'anywhere' }}>{tpl.name}</div>
+                <div style={{ fontSize: '13px', color: colors.muted, marginTop: '2px', overflowWrap: 'anywhere' }}>
                   {t('taskTpl.items', { count: (tpl.items || []).length })}{(tpl.items || []).length ? ` · ${tpl.items.slice(0, 3).join(', ')}${tpl.items.length > 3 ? '…' : ''}` : ''}
                 </div>
               </div>
@@ -90,7 +90,7 @@ function TemplateForm({ template, onSave, onClose }) {
           <label htmlFor="tpl-items" style={label}>{t('tasks.checklist')}</label>
           <textarea id="tpl-items" rows={6} value={form.itemsText} onChange={set('itemsText')} aria-describedby="tpl-items-hint"
             placeholder={t('tasks.checklistPlaceholder')} style={{ ...input, resize: 'vertical' }} />
-          <p id="tpl-items-hint" style={{ fontSize: '12px', color: colors.muted, marginTop: '4px' }}>{t('taskTpl.itemsHint')}</p>
+          <p id="tpl-items-hint" style={{ fontSize: '13px', color: colors.muted, marginTop: '4px' }}>{t('taskTpl.itemsHint')}</p>
         </div>
         <div>
           <label htmlFor="tpl-notes" style={label}>{t('tasks.notes')}</label>

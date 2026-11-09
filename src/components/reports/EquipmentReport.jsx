@@ -24,7 +24,7 @@ export default function EquipmentReport({ orgId, timeZone, params, setParam }) {
   const view = EQUIPMENT_VIEWS.includes(params.get('view')) ? params.get('view') : 'profit'
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <nav className="no-print" aria-label={t('equipMoney.views')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+      <nav className="no-print" aria-label={t('equipMoney.views')} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {EQUIPMENT_VIEWS.map(v => (
           <button key={v} type="button" onClick={() => setParam('view', v === 'profit' ? null : v)} aria-current={view === v ? 'page' : undefined}
             style={{ ...btn, padding: '6px 10px', fontSize: '13px', ...(view === v ? { background: colors.accent, color: colors.onAccent, borderColor: colors.accent } : {}) }}>
@@ -90,15 +90,15 @@ function ProfitView({ orgId, timeZone, params, setParam, coverageOnly }) {
 
   const cov = coverage(data.cur)
   const coverageCard = (
-    <section aria-labelledby="eq-coverage" style={{ ...card, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <h2 id="eq-coverage" style={{ fontSize: '15px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+    <section aria-labelledby="eq-coverage" style={{ ...card, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <h2 id="eq-coverage" style={{ fontSize: '16px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
         {t('equipMoney.coverage.title')} <Hint id="equipment-coverage" />
       </h2>
       <p style={{ margin: 0, fontSize: '13px' }}>
         {t('equipMoney.coverage.items', { n: cov.itemsWithCost, total: cov.items })} · {t('equipMoney.coverage.units', { n: cov.unitsWithCost, total: cov.units })}
       </p>
       {cov.missing.length > 0 && (coverageOnly ? (
-        <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+        <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {cov.missing.slice(0, 100).map(r => (
             <li key={r.id}>{itemLink(orgId, r.item_id, r.name)} <span style={{ color: colors.muted }}>· {t('equipMoney.coverage.missingRow', { count: r.owned })}</span></li>
           ))}
@@ -108,7 +108,7 @@ function ProfitView({ orgId, timeZone, params, setParam, coverageOnly }) {
           {t('equipMoney.coverage.fill', { count: cov.missing.length })}
         </button>
       ))}
-      {cov.missing.length === 0 && cov.items > 0 && <p style={{ margin: 0, fontSize: '12px', color: colors.muted }}>{t('equipMoney.coverage.complete')}</p>}
+      {cov.missing.length === 0 && cov.items > 0 && <p style={{ margin: 0, fontSize: '13px', color: colors.muted }}>{t('equipMoney.coverage.complete')}</p>}
     </section>
   )
   if (coverageOnly) return <>{bar}{coverageCard}</>
@@ -162,7 +162,7 @@ function ProfitView({ orgId, timeZone, params, setParam, coverageOnly }) {
           sub={t('equipMoney.costsSub', { depreciation: money(totals.depreciation), hireIn: money(totals.hire_in) })} />
         <NumberTile label={t('equipMoney.col.losses')} value={money(totals.losses)} />
       </div>
-      {totals.depreciation_estimated > 0 && <p style={{ fontSize: '12px', color: 'var(--warn)', margin: 0 }}>{t('equipMoney.estimatedShare', { amount: money(totals.depreciation_estimated) })}</p>}
+      {totals.depreciation_estimated > 0 && <p style={{ fontSize: '13px', color: 'var(--warn)', margin: 0 }}>{t('equipMoney.estimatedShare', { amount: money(totals.depreciation_estimated) })}</p>}
 
       {itemRows.length === 0 ? (
         <EmptyState compact icon={<Boxes size={26} />} title={t('equipMoney.empty')} body={t('equipMoney.emptyBody')} guide="warehouse-equipment-money" />
@@ -170,7 +170,7 @@ function ProfitView({ orgId, timeZone, params, setParam, coverageOnly }) {
         <BarChart title={t(by === 'category' ? 'equipMoney.chart.byCategory' : 'equipMoney.chart.byItem')} data={chartData} format={v => shortNumber(v, lang)} valueLabel={t('equipMoney.col.profit')} />
       )}
 
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <DetailsToggle on={details} onToggle={toggleDetails} />
         <span style={{ flex: '1 1 auto' }} />
         <ExportButtons onCsv={csv} disabled={!tableRows.length} />
@@ -181,11 +181,11 @@ function ProfitView({ orgId, timeZone, params, setParam, coverageOnly }) {
             <GroupBy value={by} options={PROFIT_GROUPS} onChange={v => setParam('by', v === 'item' ? null : v)} />
           </div>
           <ReportTable columns={columns} rows={tableRows} sort={columns.some(c => c.key === sort.key) ? sort : { key: 'profit', dir: -1 }} onSort={setSort} empty={t('equipMoney.empty')} />
-          {by === 'unit' && <p style={{ fontSize: '12px', color: colors.muted, margin: 0 }}>{t('equipMoney.unitNote')}</p>}
+          {by === 'unit' && <p style={{ fontSize: '13px', color: colors.muted, margin: 0 }}>{t('equipMoney.unitNote')}</p>}
         </>
       )}
       {coverageCard}
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('equipMoney.howProfit')}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('equipMoney.howProfit')}</p>
     </>
   )
 }
@@ -244,16 +244,16 @@ function PaybackView({ orgId }) {
         <EmptyState compact icon={<Boxes size={26} />} title={t('equipMoney.payback.empty')} body={t('equipMoney.payback.emptyBody')} guide="warehouse-equipment-money" />
       ) : (
         <>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
             <DetailsToggle on={details} onToggle={toggleDetails} />
-            <span style={{ fontSize: '12px', color: colors.muted }}>{t(details ? 'equipMoney.payback.perUnit' : 'equipMoney.payback.perItem')}</span>
+            <span style={{ fontSize: '13px', color: colors.muted }}>{t(details ? 'equipMoney.payback.perUnit' : 'equipMoney.payback.perItem')}</span>
             <span style={{ flex: '1 1 auto' }} />
             <ExportButtons onCsv={csv} disabled={!shown.length} />
           </div>
           <ReportTable columns={columns} rows={shown} sort={sort} onSort={setSort} empty={t('equipMoney.payback.empty')} />
         </>
       )}
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('equipMoney.howPayback')}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('equipMoney.howPayback')}</p>
     </>
   )
 }
@@ -294,15 +294,15 @@ function BuyView({ orgId, focus }) {
         <EmptyState compact icon={<Boxes size={26} />} title={t('equipMoney.buy.empty')} body={t('equipMoney.buy.emptyBody')} guide="warehouse-equipment-money" />
       ) : (
         <>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>{t('equipMoney.buy.title')} <Hint id="equipment-buy" /></span>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>{t('equipMoney.buy.title')} <Hint id="equipment-buy" /></span>
             <span style={{ flex: '1 1 auto' }} />
             <ExportButtons onCsv={csv} disabled={!rows.length} />
           </div>
           <ReportTable columns={columns} rows={rows} sort={sort} onSort={setSort} empty={t('equipMoney.buy.empty')} />
         </>
       )}
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('equipMoney.howBuy')}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('equipMoney.howBuy')}</p>
     </>
   )
 }

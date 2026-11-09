@@ -32,7 +32,7 @@ export function NetworkPicker({ gigId, orgId, onPick, hint }) {
   if (people && !people.length && !query) return null
   return (
     <div style={{ border: `1px solid ${colors.border}`, padding: '10px', background: 'var(--fill)' }}>
-      <div style={{ fontSize: '12px', fontWeight: 700, color: colors.soft, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+      <div style={{ fontSize: '13px', fontWeight: 700, color: colors.soft, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
         <Users size={13} /> {t('network.title')}
       </div>
       <div style={{ position: 'relative', marginBottom: '6px' }}>
@@ -41,25 +41,25 @@ export function NetworkPicker({ gigId, orgId, onPick, hint }) {
           style={{ ...input, paddingLeft: '30px', padding: '8px 10px 8px 30px' }} />
       </div>
       {!people ? <AvxLoader size={16} color={colors.accentText} /> : people.length === 0 ? (
-        <p style={{ fontSize: '12px', color: colors.muted, padding: '4px 2px' }}>{t('network.none')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, padding: '4px 2px' }}>{t('network.none')}</p>
       ) : (
-        <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {people.map(p => (
             <button key={p.user_id} type="button" onClick={() => onPick(p)} disabled={p.already} style={{
-              display: 'flex', gap: '10px', alignItems: 'center', padding: '7px 8px', border: 'none', textAlign: 'left',
+              display: 'flex', gap: '12px', alignItems: 'center', padding: '7px 8px', border: 'none', textAlign: 'left',
               background: 'transparent', color: 'var(--text)', font: 'inherit', cursor: p.already ? 'default' : 'pointer', width: '100%',
             }}>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'block', fontSize: '14px', fontWeight: 600 }}>{p.full_name || t('common.someone')}</span>
-                <span style={{ fontSize: '12px', color: colors.muted }}>
+                <span style={{ fontSize: '13px', color: colors.muted }}>
                   {[p.functions?.length && p.functions.join(', '),
                     p.gigs_together ? t('network.together', { count: p.gigs_together, last: p.last_together ? fmt(p.last_together, 'MMM yyyy') : '—' }) : t('network.sameOrg'),
                   ].filter(Boolean).join(' · ')}
                 </span>
               </span>
               {p.already
-                ? <span style={{ fontSize: '11px', color: colors.accentText, display: 'flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}><Check size={12} /> {t('network.already')}</span>
-                : p.busy && <span style={{ fontSize: '11px', color: AMBER, display: 'flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}><AlertTriangle size={12} /> {t('network.busy')}</span>}
+                ? <span style={{ fontSize: '11px', color: colors.accentText, display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}><Check size={12} /> {t('network.already')}</span>
+                : p.busy && <span style={{ fontSize: '11px', color: AMBER, display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}><AlertTriangle size={12} /> {t('network.busy')}</span>}
             </button>
           ))}
         </div>
@@ -75,7 +75,7 @@ export function PickedPerson({ person, onClear }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', background: 'var(--selection)', border: '1px solid var(--accent)' }}>
       <Users size={14} color={colors.accentText} />
       <span style={{ flex: 1, minWidth: 0, fontWeight: 600, fontSize: '14px' }}>{person.full_name || t('common.someone')}</span>
-      {person.busy && <span style={{ fontSize: '12px', color: AMBER, display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('network.busy')}</span>}
+      {person.busy && <span style={{ fontSize: '13px', color: AMBER, display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('network.busy')}</span>}
       <button type="button" onClick={onClear} aria-label={t('network.clear')} title={t('network.clear')} style={{ background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', display: 'flex' }}><X size={15} /></button>
     </div>
   )

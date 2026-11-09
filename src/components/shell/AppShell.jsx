@@ -293,7 +293,7 @@ const SHELL_CSS = `
   .shell { min-height: 100vh; background: var(--bg); color: var(--text); }
   .shell-bar { position: sticky; top: var(--safe-top); z-index: 60; height: 56px; display: flex; align-items: center; gap: 8px;
     padding: 0 16px; background: var(--chrome); border-bottom: 1px solid var(--line); }
-  .shell-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); padding: 4px; margin-right: 4px; }
+  .shell-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); padding: 4px; margin-right: 4px; }
   .shell-logo-mark { display: flex; align-items: center; justify-content: center; color: var(--accent-text); }
   :root[data-theme="light"] .shell-logo-mark { color: var(--text); }
   .shell-logo-text { font-family: var(--font-mono); font-weight: 700; font-size: 16px; letter-spacing: 0.06em; }
@@ -307,15 +307,15 @@ const SHELL_CSS = `
   .shell-orgmark { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700;
     background: transparent; border: 1px solid var(--line-strong); color: var(--text); line-height: 1; }
   .shell-role { flex-shrink: 0; display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border: 1px solid var(--line);
-    font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--text); background: transparent; }
-  .shell-sections { display: flex; gap: 2px; margin-left: 8px; align-self: stretch; align-items: center; }
-  .shell-section-btn { position: relative; display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border: none; cursor: pointer;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--text); background: transparent; }
+  .shell-sections { display: flex; gap: 4px; margin-left: 8px; align-self: stretch; align-items: center; }
+  .shell-section-btn { position: relative; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border: none; cursor: pointer;
     background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; transition: color .15s, background-color .15s; }
   .shell-section-btn:hover, .shell-section-btn[aria-expanded="true"] { color: var(--text); background: var(--hover); }
   .shell-section-btn.is-active { color: var(--text); }
   .shell-section-btn.is-active::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: -10px; height: 2px; background: var(--accent); }
-  .shell-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-  .shell-avatar { width: 32px; height: 32px; border: 1px solid var(--line-strong); cursor: pointer; font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  .shell-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .shell-avatar { width: 32px; height: 32px; border: 1px solid var(--line-strong); cursor: pointer; font-family: var(--font-mono); font-size: 13px; font-weight: 700;
     color: var(--text); background: var(--fill); margin-left: 4px; }
   .shell-avatar:hover { background: var(--hover); }
   .shell-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 70; color: var(--text); background: var(--panel);
@@ -327,27 +327,27 @@ const SHELL_CSS = `
     background: transparent; color: var(--text); text-align: left; }
   .shell-ws:hover { background: var(--hover); }
   .shell-ws[aria-checked="true"] { background: var(--selection); }
-  .shell-ws-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .shell-ws-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
   .shell-ws-text strong { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .shell-ws-text small { font-size: 12px; color: var(--muted); }
+  .shell-ws-text small { font-size: 13px; color: var(--muted); }
   .shell-unread { min-width: 18px; height: 18px; padding: 0 5px; background: var(--text); color: var(--bg);
     font-family: var(--font-mono); font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; flex-shrink: 0; }
   .shell-muted { color: var(--muted); display: inline-flex; flex-shrink: 0; }
   .shell-unread-dot { width: 8px; height: 8px; background: var(--accent-text); flex-shrink: 0; }
   .shell-pop-sep { height: 1px; background: var(--line); margin: 6px 0; }
-  .shell-pop-link { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 0 16px; color: var(--text-2); font-size: 13px; font-weight: 500;
+  .shell-pop-link { display: flex; align-items: center; gap: 12px; min-height: 36px; padding: 0 16px; color: var(--text-2); font-size: 13px; font-weight: 500;
     text-decoration: none; background: none; border: none; cursor: pointer; width: 100%; text-align: left; }
   .shell-pop-link:hover { color: var(--text); background: var(--hover); }
   .shell-panel { display: grid; grid-template-columns: auto; width: max-content; max-width: min(720px, calc(100vw - 32px)); }
   .shell-panel.has-list { grid-template-columns: auto 200px; }
   .shell-cards { display: grid; grid-template-columns: repeat(var(--cols, 2), 240px); gap: 1px; background: var(--line); align-content: start; }
-  .shell-card { display: flex; flex-direction: column; gap: 6px; padding: 16px; text-decoration: none; color: var(--text); background: var(--panel); transition: background-color .15s; }
+  .shell-card { display: flex; flex-direction: column; gap: 8px; padding: 16px; text-decoration: none; color: var(--text); background: var(--panel); transition: background-color .15s; }
   .shell-card:hover { background: var(--hover); }
   .shell-card strong { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 14px; font-weight: 700; line-height: 18px; }
   .shell-card[aria-current="page"] strong { color: var(--accent-text); }
-  .shell-card small { font-size: 12.5px; color: var(--muted); line-height: 17px; }
+  .shell-card small { font-size: 13px; color: var(--muted); line-height: 17px; }
   .shell-sidelist { display: flex; flex-direction: column; padding: 12px 0; border-left: 1px solid var(--line); }
-  .shell-sidelink { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 0 16px; font-size: 13px; color: var(--text-2); text-decoration: none; }
+  .shell-sidelink { display: flex; align-items: center; gap: 12px; min-height: 36px; padding: 0 16px; font-size: 13px; color: var(--text-2); text-decoration: none; }
   .shell-sidelink:hover { color: var(--text); background: var(--hover); }
   .shell-sidelink[aria-current="page"] { color: var(--accent-text); }
   .shell-main { padding-bottom: 0; }
@@ -361,7 +361,7 @@ const SHELL_CSS = `
     .shell-divider { display: none; }
     .shell-avatar { display: none; }
     .shell-switch-btn { max-width: none; width: 100%; min-width: 0; height: 40px; padding: 0 8px 0 4px; border-color: transparent; }
-    .shell-switch-name { flex: 1; min-width: 0; text-align: left; font-family: var(--font-mono); font-weight: 700; font-size: 15px; }
+    .shell-switch-name { flex: 1; min-width: 0; text-align: left; font-family: var(--font-mono); font-weight: 700; font-size: 16px; }
     .shell-switch-btn .shell-role { display: none; }
     .shell-switcher { flex: 1; min-width: 0; }
     .shell-switch-pop { position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 82vh; overflow-y: auto;
@@ -372,7 +372,7 @@ const SHELL_CSS = `
       height: calc(64px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
       background: var(--chrome); border-top: 1px solid var(--line); }
     .shell-tab { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: none;
-      background: none; color: var(--muted); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      background: none; color: var(--muted); font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
       line-height: 12px; text-decoration: none; cursor: pointer; min-width: 0; }
     .shell-tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
     .shell-tab.is-active { color: var(--text); }
@@ -382,8 +382,8 @@ const SHELL_CSS = `
       background: var(--panel); border-top: 1px solid var(--line-strong); animation: shellUp .25s cubic-bezier(0.16, 1, 0.3, 1); }
     @keyframes shellUp { from { transform: translateY(10px); opacity: 0 } to { transform: none; opacity: 1 } }
     .shell-sheet-head { display: flex; align-items: center; gap: 8px; padding: 0 4px 0 16px; border-bottom: 1px solid var(--line); }
-    .shell-sheet-head strong { font-family: var(--font-mono); font-size: 15px; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .shell-sheet-ws { display: flex; gap: 6px; overflow-x: auto; overflow-y: hidden; padding: 12px 16px; scrollbar-width: none; border-bottom: 1px solid var(--line); }
+    .shell-sheet-head strong { font-family: var(--font-mono); font-size: 16px; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .shell-sheet-ws { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; padding: 12px 16px; scrollbar-width: none; border-bottom: 1px solid var(--line); }
     .shell-chip { flex-shrink: 0; min-height: 36px; padding: 0 12px; border: 1px solid var(--line-strong); background: transparent;
       color: var(--text-2); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
     .shell-chip.is-active { color: var(--text); border-color: var(--accent); background: var(--selection); }

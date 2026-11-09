@@ -45,7 +45,7 @@ export default function WelcomePage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ width: '100%', maxWidth: '400px' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
               width: '36px', height: '36px', background: 'var(--accent)',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
@@ -106,6 +106,6 @@ const input = {
 
 const btn = {
   width: '100%', padding: '13px', border: 'none', cursor: 'pointer',
-  background: 'var(--accent)', color: 'var(--on-accent)', fontWeight: 700, fontSize: '15px',
+  background: 'var(--accent)', color: 'var(--on-accent)', fontWeight: 700, fontSize: '16px',
   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
 }

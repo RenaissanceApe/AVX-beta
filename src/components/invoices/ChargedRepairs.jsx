@@ -27,8 +27,8 @@ export default function ChargedRepairs({ gigId, invoiceId, lines, language, curr
   const name = r => [r.item?.name, r.unit?.code].filter(Boolean).join(' ')
   const label = r => translate(language, 'invoice.repairLine', { item: name(r), problem: r.problem })
   return (
-    <section aria-labelledby="inv-repairs" style={{ border: `1px solid ${colors.border}`, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <h3 id="inv-repairs" style={{ fontSize: '13px', fontWeight: 700, margin: 0, display: 'flex', gap: '6px', alignItems: 'center' }}>
+    <section aria-labelledby="inv-repairs" style={{ border: `1px solid ${colors.border}`, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <h3 id="inv-repairs" style={{ fontSize: '13px', fontWeight: 700, margin: 0, display: 'flex', gap: '8px', alignItems: 'center' }}>
         <Wrench size={14} aria-hidden="true" /> {t('invoice.repairsTitle', { count: free.length })} <Hint id="invoice-repairs" />
       </h3>
       <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
