@@ -55,12 +55,14 @@ export default {
     'call-time': { term: 'Hora de chamada', definition: 'A hora a que a pessoa tem de chegar ao evento.', example: 'Chamada às 08:00 no cais de carga.', where: 'Evento → Equipa, folha de serviço' },
     'timecode': { term: 'Timecode', definition: 'Um relógio em horas:minutos:segundos:frames partilhado por câmaras, mesas e controlo de espetáculo. As notas de ensaio são marcadas sobre ele para que todos falem do mesmo momento.', example: '01:02:15:12 é uma hora, dois minutos, quinze segundos e doze frames.', where: 'Evento → Ferramentas → Notas de ensaio' },
     'booking-times': { term: 'Horas marcadas (turno)', definition: 'As horas para que alguém está marcado. Sem elas, conta como ocupado nos dias inteiros do evento.', example: 'Marcado só das 14:00 às 20:00 no primeiro dia.', where: 'Evento → Equipa → Definir horas' },
+    'time-zone': { term: 'Fuso horário (organização)', definition: 'O relógio em que se leem as datas da organização: os dias de um evento, as marcações e ausências da equipa, as sobreposições, o “hoje” dos relatórios e dos lembretes. Lisboa, a não ser que um administrador o mude.', example: 'Uma empresa em Londres escolhe Europe/London, por isso um evento a 10 de janeiro vai da meia-noite à meia-noite de Londres.', where: 'Organização → Definições → Fuso horário' },
     'double-booking': { term: 'Marcação sobreposta', definition: 'Uma pessoa ou equipamento marcado em duas coisas à mesma hora. O AVX avisa, mas não impede.', example: 'A Carla está em dois eventos no sábado à tarde.', where: 'Evento → Equipa, equipamento, calendário' },
     'availability-request': { term: 'Pergunta de disponibilidade', definition: 'Uma pergunta a alguém: está livre nestas datas? A pessoa responde sim ou não no telemóvel.', example: '"Pode fazer 13–14 de novembro?" → "Disponível, a partir das 10:00".', where: 'Evento → Equipa, O meu trabalho → Pedidos, mensagens' },
     'crew-call': { term: 'Chamada de equipa', definition: 'Uma oferta de lugar num evento a uma ou mais pessoas. Quem aceitar primeiro fica com o lugar.', example: 'Procuram-se dois técnicos de som; oferta enviada a cinco pessoas.', where: 'Evento → Equipa → Chamada de equipa' },
     'unavailable-dates': { term: 'Datas indisponíveis', definition: 'Dias que marca como não livres. Quem gere vê que está ocupado, não porquê.', example: 'Férias de 1 a 15 de agosto.', where: 'O meu trabalho' },
     'gig-status': { term: 'Estado do evento', definition: 'Em que ponto está o evento: rascunho, confirmado, em curso, concluído ou arquivado.', example: 'O orçamento foi aceite e o evento passa de rascunho a confirmado.', where: 'Página do evento, lista de eventos' },
     'call-sheet': { term: 'Folha de serviço', definition: 'Uma página com tudo o que a equipa precisa: horas, locais, contactos e horário.', example: 'Impressa e colada na porta do camião.', where: 'Evento → Folha de serviço' },
+    'print-qr': { term: 'Código QR da impressão', definition: 'O pequeno código no canto de cada impressão. Ao lê-lo abre a mesma página, ao vivo no AVX, para confirmar se o papel ainda está atual. Só quem pode ver a página no AVX a consegue abrir.', example: 'A folha de patch colada no rack foi impressa na terça; leia o código para ver as alterações de quinta.', where: 'Todas as impressões: folha de serviço, lista de inputs, plots, folhas de patch e DMX, sistema, energia, lista de carga, relatório de ensaio' },
     schedule: { term: 'Horário', definition: 'O plano do evento com horas: montagem, testes de som, espetáculo, desmontagem.', example: '09:00 montagem, 14:00 line check, 21:00 abertura de portas.', where: 'Evento → Horário' },
     feed: { term: 'Atualizações', definition: 'Publicações oficiais de um evento, para o que todos têm de saber. As importantes notificam todos.', example: '"Mudança de local: agora no Coliseu."', where: 'Evento → Atualizações' },
     files: { term: 'Ficheiros e versões', definition: 'Documentos do evento. Carregar um ficheiro com o mesmo nome guarda uma nova versão e mantém as anteriores.', example: 'Planta de palco v1, v2, v3.', where: 'Evento → Ficheiros' },
@@ -189,6 +191,7 @@ export default {
     'prep-days': 'Dias antes do evento em que o equipamento já fica reservado, para carregar e testar. Exemplo: 1 = o material fica ocupado desde a véspera.',
     'return-days': 'Dias depois do evento em que o equipamento continua reservado, para descarregar e conferir. Exemplo: 1 = ocupado até ao dia seguinte.',
     'label-fields': 'Marque o que vai nas etiquetas deste tamanho. A pré-visualização muda logo; Guardar mantém-no para toda a organização. A faixa do departamento imprime a categoria do artigo numa cor, com o nome escrito nela.',
+    'time-zone': 'O relógio em que se leem os dias dos eventos, as marcações e ausências da equipa e os relatórios. Mudá-lo passa as marcações dos eventos atuais e futuros e as ausências para o novo relógio; as horas marcadas mantêm a hora real.',
     tracking: 'Contado a granel: guarda um número por local (cabos). Por número de série: cada unidade tem o seu registo e etiqueta QR (cabeças móveis). Não pode mudar depois de haver stock.',
     'kit-type': 'Conjunto: artigos que vão sempre juntos, com um só preço (um set de DJ). Case: uma flight case com unidades; ler a case regista tudo o que tem dentro.',
     'signature.plain': "Uma assinatura eletrónica simples regista quem assinou (o desenho e o nome escrito), quando, e uma impressão digital do documento exato. Ninguém a pode alterar depois, nem o AVX. Não é uma assinatura qualificada: para um contrato que precise de uma, use a Chave Móvel Digital ou o Cartão de Cidadão fora do AVX.",
@@ -1343,6 +1346,7 @@ export default {
         'Abra Membros (no telemóvel, em Mais).',
         'Escreva um email, escolha a função e toque em Convidar. Administrador: tudo, incluindo membros e definições. Membro: eventos, ficheiros e orçamentos. Leitor: vê os eventos, sem orçamentos nem preços.',
         'Mude a função na lista ao lado de cada pessoa, ou retire-a com ×.',
+        'Empresas fora de Portugal: em Definições, escolha o fuso horário da organização. Os dias dos eventos, as marcações, as ausências e os relatórios leem-se nesse relógio (Lisboa até o mudar).',
       ],
       mistakes: [
         'Tenha pelo menos dois administradores, para a empresa nunca ficar sem acesso se um sair.',
@@ -1360,6 +1364,7 @@ export default {
       mistakes: [
         'Um leitor vê todos os eventos da empresa. Para um freelancer que só contrata de vez em quando, descarte a importação e adicione-o a um evento por e-mail.',
         'Quem já é membro ou já foi convidado fica de fora. Um convite que não pôde ser enviado fica na lista para tentar de novo.',
+        'Convites por enviar: ao fim de 14 dias os administradores da organização recebem um lembrete e, ao fim de 60 dias, ficam marcados como expirados. Nada é apagado: ainda os pode enviar ou descartar.',
       ],
     },
     'ad-verify-company': {

@@ -26,11 +26,16 @@ removed, when their source goes away, and they disappear with their gig or organ
 
 - **On a gig**: one reservation per person per gig, whatever roles they hold. Without booking
   times it covers the gig's whole days in the organisation's time zone (`organisations.time_zone`,
-  default Europe/Lisbon); with **booking times** (`gig_members.booked_from/until`, set by managers
-  in the Crew tab) it covers just that shift, so two short jobs on one day don't clash.
+  default Europe/Lisbon, set by admins in organisation settings); with **booking times**
+  (`gig_members.booked_from/until`, set by managers in the Crew tab, typed on the organisation's
+  clock) it covers just that shift, so two short jobs on one day don't clash.
+- **Changing the time zone** (U1) moves the crew bookings of gigs that haven't ended more than 30
+  days ago, and the organisation's leave, to the new clock (`organisations_time_zone_sync`);
+  booking times keep their real time. Only time zones the database knows are accepted.
 - Draft gigs give a **hold**, archived gigs **cancel** it, other statuses **confirm** it.
 - Changing a gig's dates or status, or someone's booking times, updates the reservation at once.
-- **Unavailable dates** (Account) are personal reservations with no organisation.
+- **Unavailable dates** (Account) are personal reservations with no organisation, read in Lisbon
+  time; organisation leave is read in the organisation's time zone.
 
 ## The clash check
 

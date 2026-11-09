@@ -112,7 +112,7 @@ export const GUIDES = {
   'of-versions': { role: 'office', pages: ['quote'], terms: ['quote-version', 'quote'], shots: [null, 'quote-versions', null] },
   'of-send-quote': { role: 'office', pages: ['quote'], terms: ['client-link', 'quote-version', 'validity'], shots: [null, 'send-quote', null, null] },
   'of-quote-to-gig': { role: 'office', pages: ['quote', 'gig'], terms: ['quote', 'gig', 'phase'], shots: [null, 'quote-gig', null] },
-  'ad-members': { role: 'admin', pages: ['orgs', 'home'], terms: ['organisation', 'org-admin', 'org-member', 'viewer'], shots: [null, 'members', null] },
+  'ad-members': { role: 'admin', pages: ['orgs', 'home'], terms: ['organisation', 'org-admin', 'org-member', 'viewer', 'time-zone'], shots: [null, 'members', null, null] },
   'ad-org-export': { role: 'admin', pages: ['orgs', 'home'], terms: ['organisation'], shots: [null, 'org-export', null] },
   'ad-verify-company': { role: 'admin', pages: ['org-jobs', 'orgs'], terms: ['organisation'], shots: [null, 'org-verify', null] },
   'ad-gig-statuses': { role: 'admin', pages: ['orgs', 'home', 'gig'], terms: ['gig-status'], shots: [null, 'org-labels', null] },

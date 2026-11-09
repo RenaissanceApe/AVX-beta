@@ -47,15 +47,15 @@ is kept on our own servers; Vercel only serves the app's files.
 | Clients and suppliers: names, contacts, email, phone, address, tax id, notes, custom fields | Clients', suppliers' people | `clients`, `suppliers` | The organisation's admins and members | The organisation's (processor) | Changed or cleared by the organisation; organisation deleted |
 | Quotes: client name, company, email, address, tax id; quote answers (name, note) | Clients | `quotes`, `quote_versions`, `quote_shares` | The organisation's quoting people; the client through the link | The organisation's (processor) | Quote or organisation deleted |
 | Signatures (step 16): the drawing, the signer's typed name and role or company, the time, the exact text signed and its SHA-256, a signed PDF; who collected it (an account) and who hid it | Clients signing a quote or a delivery note; later crew (contracts) and riggers | `signatures`, `signatures` bucket (`<organisation>/<signature>/signature.png`, `signed.pdf`); a copy of the signed PDF in the gig's files (`assets`, `gig-assets`) | Quote acceptances: the organisation's quoting people and the quote's gig managers; delivery notes: everyone on the gig; the client sees their own on the quote's page | The organisation's (processor): proof of the order or the delivery | Can't be changed; hidden by marking; deleted with the quote, gig or organisation (*open:* how long a signed delivery note should be kept) |
-| Crew imported before inviting: name, email, phone, functions | Crew not yet on AVX | `held_invites` | The organisation's admins | The organisation's (processor) | Organisation deleted (*open:* discard sooner) |
+| Crew imported before inviting: name, email, phone, functions | Crew not yet on AVX | `held_invites` | The organisation's admins | The organisation's (processor) | Sent or discarded by the organisation; admins reminded after 14 days unsent, marked expired after 60 (still sendable, not removed); organisation deleted |
 | Import undo records (before/after copies of imported rows) | Whoever the rows name | `import_changes`, `import_part_changes` (server only) | Nobody through the app | Undoing an import | Organisation deleted |
 | Crew profile: functions, town (to ~1 km), travel range, languages, experience, certificates, text, links | Freelancers who switch it on | `crew_profiles`, `certificate_confirmations` | Who the person chooses; never the public web | Consent (switching it on) | Switched off/removed; account deleted |
 | Certificate proofs (files) | Freelancers | `certificate_proofs`, `certificate-proofs` bucket | The person and AVX admins only | Trust on the network | Account deleted |
 | Job posts and applications (message, day rate) | Companies' staff, applicants | `job_posts`, `job_applications` | Crew with a profile on (posts); the posting company (applications) | Contract | Account or organisation deleted |
-| Crew contacts, searches, saved searches | Searching staff; contacted crew | `crew_contacts`, `crew_search_log`, `crew_saved_searches` | The organisation (saved searches); server only (logs) | Preventing misuse (legitimate interest); the contact record both sides see | Organisation deleted (*open:* search log kept longer than needed) |
+| Crew contacts, searches, saved searches | Searching staff; contacted crew | `crew_contacts`, `crew_search_log`, `crew_saved_searches` | The organisation (saved searches); server only (logs) | Preventing misuse (legitimate interest); the contact record both sides see | Search log: 30 days (nightly clean-up). Contacts and saved searches: organisation deleted |
 | Reports about people, posts or messages; blocks | Reporters and the reported | `network_reports`, `message_reports`, `user_blocks` | AVX admins or the conversation's moderators; never who reported | Preventing abuse (legitimate interest) | Account deleted |
 | Messages, files, edits, reactions, read confirmations, saved messages; guest names | Account holders, clients and suppliers writing through a link | `messages`, `message_edits`, `message_reactions`, `message_acks`, `saved_messages`, `message-files` bucket | The conversation's people | Contract | The organisation's retention setting (forever or 90 days to 2 years); direct conversations until removed |
-| Notifications | Account holders | `notifications` | The person | Contract | Account deleted (*open:* no time limit) |
+| Notifications | Account holders | `notifications` | The person | Contract | Read ones: 12 months after reading (nightly clean-up); unread ones until read or account deleted |
 | Calendar link key | Account holders | `calendar_feeds` | The person | Contract | Replaced or account deleted |
 | Push subscriptions (endpoint, keys, device name) | Account holders | `push_subscriptions` | Server only | Contract (opt-in) | Turned off, signed out or account deleted |
 | Usage counts per screen per day | Nobody (no id, IP or device) | `private.usage_daily` | AVX admins | Improving the service | Not personal data |
@@ -72,13 +72,15 @@ Sentry if configured. All listed in the privacy notice.
 
 1. **Data processing agreement** for organisations: the terms should say AVX processes their
    clients', suppliers' and imported crew's data on their behalf (Article 28). Legal wording needed.
-2. **Keep logs only as long as needed:** `crew_search_log` is only read for the last day's limit but
-   is kept for ever, and old `notifications` are never cleared. (`crew_contacts` is the record of who
-   contacted whom that both sides see, so it stays.) A
-   nightly clean-up like the message retention job would fix it (a schema change, so a hand-run step
-   per the project's rules).
-3. **Held invitations** that are never sent stay until the organisation is deleted; offer a time
-   limit or a reminder to discard them.
+2. ~~**Keep logs only as long as needed.**~~ Done in U3: `private.run_data_retention()` runs every
+   night (pg_cron `avx-data-retention`, 04:11 UTC) and removes `crew_search_log` rows older than
+   30 days and notifications read more than 12 months ago (unread ones stay). It deletes rows, so
+   its migration (`20270111000001_retention_cleanup.sql`) is applied by hand. `crew_contacts` is
+   the record of who contacted whom that both sides see, so it stays.
+3. ~~**Held invitations** never sent.~~ Done in U3: `private.remind_held_invites()` (pg_cron
+   `avx-held-invites`, 06:53 UTC) reminds the organisation's admins once after 14 days and marks
+   the invitation expired (`held_invites.expired_at`) after 60. Nothing is removed: an expired
+   invitation can still be sent or discarded, and goes with the organisation.
 4. **Custom fields and free-text notes** can hold anything an organisation types, including
    sensitive data. The help guide warns that crew see gig fields; the terms could ask organisations
    not to store special-category data there.

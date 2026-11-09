@@ -58,12 +58,14 @@ export default {
     'call-time': { term: 'Call time', definition: 'When a person must arrive for the gig.', example: 'Call time 08:00 at the venue’s loading dock.', where: 'Gig → Crew, call sheet' },
     'timecode': { term: 'Timecode', definition: 'A clock shown as hours:minutes:seconds:frames that cameras, consoles and show control share. Rehearsal notes are marked against it so everyone talks about the same moment.', example: '01:02:15:12 is one hour, two minutes, fifteen seconds and twelve frames.', where: 'Gig → Tools → Rehearsal notes' },
     'booking-times': { term: 'Booking times (shift)', definition: 'The hours someone is booked for. Without them, they count as busy for the gig’s whole days.', example: 'Booked only from 14:00 to 20:00 on the first day.', where: 'Gig → Crew → Set times' },
+    'time-zone': { term: 'Time zone (organisation)', definition: 'The clock the organisation’s dates are read on: a gig’s days, crew bookings and leave, clashes, “today” in reports and reminders. Lisbon unless an admin changes it.', example: 'A company in London picks Europe/London, so a gig on 10 January runs from midnight to midnight London time.', where: 'Organisation → Settings → Time zone' },
     'double-booking': { term: 'Double booking', definition: 'A person or item booked on two things at the same time. AVX warns you; it does not forbid it.', example: 'Carla is on two gigs on Saturday afternoon.', where: 'Gig → Crew, equipment, calendar' },
     'availability-request': { term: 'Availability question', definition: 'A question to someone: are you free for these dates? They answer yes or no from their phone.', example: '"Can you do 13–14 November?" → "Available, from 10:00".', where: 'Gig → Crew, My work → Requests, messages' },
     'crew-call': { term: 'Crew call', definition: 'An offer of a place on a gig to one or more people. Whoever accepts first takes the place.', example: 'Two sound technicians wanted; offered to five people.', where: 'Gig → Crew → Crew call' },
     'unavailable-dates': { term: 'Unavailable dates', definition: 'Days you mark as not free. Managers see that you are busy, not why.', example: 'Holidays from 1 to 15 August.', where: 'My work' },
     'gig-status': { term: 'Gig status', definition: 'Where a gig is: draft, confirmed, active (happening now), done or archived.', example: 'A quote is accepted, so the gig moves from draft to confirmed.', where: 'Gig page, gigs list' },
     'call-sheet': { term: 'Call sheet', definition: 'One page with everything the crew needs: times, places, contacts and schedule.', example: 'Printed and taped to the truck door.', where: 'Gig → Call sheet' },
+    'print-qr': { term: 'Print QR code', definition: 'The small code in the corner of every print. Scanning it opens the same page, live in AVX, so you can check the paper is still current. Only people who can see the page in AVX can open it.', example: 'The patch sheet taped to the rack was printed on Tuesday; scan it to see Thursday\'s changes.', where: 'Every print: call sheet, input list, plots, patch and DMX sheets, system, power, packing list, rehearsal report' },
     schedule: { term: 'Schedule', definition: 'The timed plan of a gig: load-in, sound check, show, load-out.', example: '09:00 load-in, 14:00 line check, 21:00 doors.', where: 'Gig → Schedule' },
     feed: { term: 'Updates (feed)', definition: 'Official posts on a gig, for things everyone must know. Important ones notify everyone.', example: '"Venue changed: now at the Coliseu."', where: 'Gig → Updates' },
     files: { term: 'Files and versions', definition: 'Documents on a gig. Uploading a file with the same name saves a new version and keeps the old ones.', example: 'Stage plot v1, v2, v3.', where: 'Gig → Files' },
@@ -192,6 +194,7 @@ export default {
     'prep-days': 'Days before a gig when its equipment is already booked, for loading and testing. Example: 1 = the gear is busy from the day before.',
     'return-days': 'Days after a gig when its equipment is still booked, for unloading and checking it back in. Example: 1 = busy until the day after.',
     'label-fields': 'Tick what goes on labels of this size. The preview changes at once; Save keeps it for everyone in the organisation. The department band prints the item\'s category in a colour, with its name written in it.',
+    'time-zone': 'The clock your gig days, crew bookings, leave and reports are read on. Changing it moves the bookings of current and coming gigs and leave to the new clock; booking times keep their real time.',
     tracking: 'Counted in bulk: you keep a number per location (cables). By serial number: each unit has its own record and QR label (moving heads). This can’t change once there is stock.',
     'kit-type': 'Set: items always hired together and priced as one (a DJ set). Case: a flight case holding units; scanning the case scans what is inside.',
     'signature.plain': "A simple electronic signature records who signed (the drawing and the typed name), when, and a fingerprint of the exact document. Nobody can change it afterwards, not even AVX. It is not a qualified signature: for a contract that needs one, use Chave Móvel Digital or Cartão de Cidadão outside AVX.",
@@ -1346,6 +1349,7 @@ export default {
         'Open Members (on a phone, under More).',
         'Type an email, choose the role and tap Invite. Admin: everything, including members and settings. Member: gigs, files and quotes. Viewer: sees the gigs, no quotes or prices.',
         'Change a role with the list next to each person, or remove them with ×.',
+        'Companies outside Portugal: in Settings, choose the organisation\'s time zone. Gig days, crew bookings, leave and reports are read on that clock (Lisbon until you change it).',
       ],
       mistakes: [
         'Keep at least two admins, so the company is never locked out if one leaves.',
@@ -1363,6 +1367,7 @@ export default {
       mistakes: [
         'A viewer sees all the company\'s gigs. For a freelancer you only book now and then, discard the import and add them to a gig by e-mail instead.',
         'People who are already members or already invited are left out. An invitation that couldn\'t be sent stays in the list to try again.',
+        'Invitations left unsent: after 14 days the organisation\'s admins get a reminder, and after 60 days they are marked expired. Nothing is removed: you can still send or discard them.',
       ],
     },
     'ad-verify-company': {

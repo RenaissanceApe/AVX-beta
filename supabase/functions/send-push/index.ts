@@ -20,7 +20,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
-import { type Lang, type Notification, DIRECT_KINDS, STRINGS, describe, linkFor } from '../_shared/notification-text.ts'
+import { type Lang, type Notification, DIRECT_KINDS, STRINGS, describe, linkFor, TIMED_KINDS, DEFAULT_ZONE } from '../_shared/notification-text.ts'
 import { claimSend } from '../_shared/send-limits.ts'
 import { TIMEOUT_MS, fetchWithTimeout, isTimeout, withTimeout } from '../_shared/timeout.ts'
 
@@ -157,12 +157,18 @@ Deno.serve(async (req) => {
   const claim = await claimSend(admin, 'claim_system_send', { p_kind: 'push', p_user: n.user_id })
   if (claim !== 'ok') return json({ skipped: claim === 'limited' ? 'limited' : 'limit check failed' })
 
-  const [{ data: profile }, { data: actor }] = await Promise.all([
+  // Times in the text are read on the organisation's clock (U1): the gig's, else the notification's
+  const timed = TIMED_KINDS.has(n.kind)
+  const [{ data: profile }, { data: actor }, { data: gigZone }, { data: orgZone }] = await Promise.all([
     admin.from('profiles').select('language').eq('id', n.user_id).maybeSingle(),
     n.actor_id ? admin.from('profiles').select('full_name').eq('id', n.actor_id).maybeSingle() : Promise.resolve({ data: null }),
+    timed && n.gig_id ? admin.from('gigs').select('organisations(time_zone)').eq('id', n.gig_id).maybeSingle() : Promise.resolve({ data: null }),
+    timed && n.org_id ? admin.from('organisations').select('time_zone').eq('id', n.org_id).maybeSingle() : Promise.resolve({ data: null }),
   ])
   const lang: Lang = profile?.language === 'pt' ? 'pt' : 'en'
-  const text = describe(n as Notification, lang, actor?.full_name || undefined)
+  // deno-lint-ignore no-explicit-any
+  const zone = (gigZone as any)?.organisations?.time_zone || orgZone?.time_zone || DEFAULT_ZONE
+  const text = describe(n as Notification, lang, actor?.full_name || undefined, zone)
   const conv = (n.details as Record<string, unknown> | null)?.conversation_id
   const sent = await deliver(subs, {
     title: 'AVX', body: text, url: linkFor(n as Notification, ''),

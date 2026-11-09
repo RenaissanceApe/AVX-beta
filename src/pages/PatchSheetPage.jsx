@@ -8,6 +8,7 @@ import { boxesOf, patchView } from '../lib/patch'
 import { overlaps, universeUse, dmxRange } from '../lib/dmx'
 import { useI18n } from '../i18n'
 import { AvxLoader } from '../components/ui'
+import PrintFooter from '../components/PrintFooter'
 
 // Printable patch sheets (docs/FIELD_TOOLS.md, F2), black on white, also offline:
 //   /gig/:id/patch  the stage boxes, socket by socket
@@ -80,7 +81,7 @@ export default function PatchSheetPage({ kind }) {
         <h1>{gig.name}</h1>
         <div>{[gig.venue || t('callsheet.venueTbc'), dates, gig.organisations?.name].filter(Boolean).join(' · ')}</div>
         {kind === 'dmx' ? <DmxSheet rows={rows} t={t} /> : <PatchSheet audio={audio} rows={rows} t={t} />}
-        <p className="muted" style={{ marginTop: '14px', fontSize: '11px' }}>{t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}</p>
+        <PrintFooter />
       </article>
     </div>
   )
