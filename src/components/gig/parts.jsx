@@ -97,7 +97,11 @@ export function TabHeader({ title, subtitle, hint, action, secondary, more = [] 
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap', marginBottom: 'var(--space-5)' }}>
       <div style={{ minWidth: 0 }}>
-        <h2 className="avx-section__title">{title}{hint && <Hint text={hint} label={title} />}</h2>
+        {/* The ⓘ sits beside the heading, not inside it, so the heading's name is just the title */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <h2 className="avx-section__title">{title}</h2>
+          {hint && <Hint text={hint} label={title} />}
+        </div>
         {subtitle && <p style={{ color: colors.muted, fontSize: '13px', margin: 0 }}>{subtitle}</p>}
       </div>
       {(action || secondary || more.length > 0) && (

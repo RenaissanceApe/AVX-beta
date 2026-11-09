@@ -55,14 +55,16 @@ export default function GigFinancePanel({ gig, members, canManage }) {
   }
 
   // A section on the page ground (DESIGN.md "One box deep"), not a card
-  const title = <>{t('finance.title')} <Hint id="gig-finance" label={t('finance.title')} /></>
+  const title = t('finance.title')
+  // The ⓘ beside the heading, not inside it (the heading's name is just its title)
+  const hint = <Hint id="gig-finance" label={t('finance.title')} />
   if (failed) return (
-    <Section id="finance-title" title={title}>
+    <Section id="finance-title" title={title} aside={hint}>
       <p role="alert" style={{ color: colors.danger, fontSize: '13px', margin: 0 }}>{t('finance.loadFailed')}</p>
     </Section>
   )
   if (!row) return (
-    <Section id="finance-title" title={title}>
+    <Section id="finance-title" title={title} aside={hint}>
       <AvxLoader size={18} color={colors.accentText} label={t('common.loading')} />
     </Section>
   )
@@ -83,7 +85,7 @@ export default function GigFinancePanel({ gig, members, canManage }) {
   const showSave = completed && canManage && Number(row.labour_estimated) > 0
 
   return (
-    <Section id="finance-title" title={title}>
+    <Section id="finance-title" title={title} aside={hint}>
       <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: '0 0 12px' }}>{t('finance.intro')}</p>
       <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '8px 12px', fontSize: '14px', margin: 0 }}>
         <dt style={{ fontWeight: 600 }}>
