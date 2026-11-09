@@ -15,7 +15,7 @@ const innerW = W - PAD.l - PAD.r
 const innerH = H - PAD.t - PAD.b
 const fig = { ...card, margin: 0, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 }
 const cap = { fontSize: '13px', fontWeight: 700 }
-const tbl = { width: '100%', borderCollapse: 'collapse', fontSize: '12px', fontVariantNumeric: 'tabular-nums' }
+const tbl = { width: '100%', borderCollapse: 'collapse', fontSize: '13px', fontVariantNumeric: 'tabular-nums' }
 const td = { padding: '4px 6px', borderTop: `1px solid ${colors.border}`, textAlign: 'right' }
 
 // A number with its change against the comparison period: arrow, sign and words, not just colour
@@ -24,13 +24,13 @@ export function NumberTile({ label, value, change = null, compareLabel = '', sub
   const pct = change == null ? null : Math.round(change * 100)
   const Icon = pct == null || pct === 0 ? Minus : pct > 0 ? ArrowUp : ArrowDown
   return (
-    <div style={{ ...card, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
-      <div style={{ fontSize: '12px', color: colors.muted }}>{label}</div>
+    <div style={{ ...card, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+      <div style={{ fontSize: '13px', color: colors.muted }}>{label}</div>
       <div style={{ fontSize: '20px', fontWeight: 700, overflowWrap: 'anywhere' }}>
         {value}{estimate && <span style={{ fontSize: '11px', fontWeight: 600, color: colors.muted }}> · {t('reports.estimate')}</span>}
       </div>
       {pct != null && (
-        <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '3px', color: colors.muted }}>
+        <div style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', color: colors.muted }}>
           <Icon size={12} aria-hidden="true" />
           <span>{t(pct === 0 ? 'reports.changeSame' : 'reports.change', { change: `${pct > 0 ? '+' : '−'}${Math.abs(pct)}%`, period: compareLabel })}</span>
         </div>
@@ -75,7 +75,7 @@ function AsTable({ head, rows }) {
   const { t } = useI18n()
   return (
     <details>
-      <summary style={{ fontSize: '12px', color: colors.accentText, cursor: 'pointer' }}>{t('reports.asTable')}</summary>
+      <summary style={{ fontSize: '13px', color: colors.accentText, cursor: 'pointer' }}>{t('reports.asTable')}</summary>
       <div style={{ overflowX: 'auto' }}>
         <table style={tbl}>
           <thead><tr>{head.map((h, i) => <th key={i} scope="col" style={{ ...td, borderTop: 'none', textAlign: i ? 'right' : 'left', color: colors.muted }}>{h}</th>)}</tr></thead>
@@ -89,9 +89,9 @@ function AsTable({ head, rows }) {
 function Legend({ series }) {
   if (series.length < 2) return null
   return (
-    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap', gap: '4px 12px', fontSize: '12px' }}>
+    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap', gap: '4px 12px', fontSize: '13px' }}>
       {series.map((s, i) => (
-        <li key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <li key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <svg width="12" height="12" aria-hidden="true"><Mark i={i} x={0} y={0} size={12} /></svg>{s.label}
         </li>
       ))}

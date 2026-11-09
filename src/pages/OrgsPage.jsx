@@ -36,7 +36,7 @@ export default function OrgsPage() {
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '28px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '22px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '26px', fontWeight: 700 }}>{t('orgs.title')}</h1><PageHelp page="orgs" /></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '28px', fontWeight: 700 }}>{t('orgs.title')}</h1><PageHelp page="orgs" /></div>
             <p style={{ color: colors.muted, fontSize: '13px', marginTop: '6px', maxWidth: '520px', lineHeight: 1.6 }}>{t('orgs.intro')}</p>
           </div>
           <button onClick={() => setParams({ new: '1' })} style={btnPrimary}><Plus size={15} /> {t('dash.newOrg')}</button>
@@ -48,14 +48,14 @@ export default function OrgsPage() {
         <div className="orgs-grid">
           {orgs.map(o => (
             <div key={o.id} className="org-card">
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '6px' }}>
                 <span className="org-card-mark" aria-hidden="true">{o.name.trim().slice(0, 1).toUpperCase()}</span>
                 <strong style={{ fontSize: '16px', flex: 1, minWidth: 0, lineHeight: 1.3, overflowWrap: 'anywhere' }}>{o.name}</strong>
                 <RoleChip role={o.myRole} />
               </div>
-              {unreadIn(o.id) > 0 && <p style={{ fontSize: '12px', color: colors.accentText, fontWeight: 600 }}>{t('orgs.unread', { count: unreadIn(o.id) })}</p>}
+              {unreadIn(o.id) > 0 && <p style={{ fontSize: '13px', color: colors.accentText, fontWeight: 600 }}>{t('orgs.unread', { count: unreadIn(o.id) })}</p>}
               <p style={{ color: colors.soft, fontSize: '13px', lineHeight: 1.5, minHeight: '40px' }}>{t(`nav.roleDesc.${o.myRole}`)}</p>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '12px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
                 <button onClick={() => open(o.id)} style={btn}><ArrowRight size={14} /> {t('orgs.open')}</button>
                 <button onClick={() => open(o.id, '?panel=members')} style={ghost}><Users size={14} /> {t('dash.members')}</button>
                 {o.myRole === 'admin' && (
@@ -69,11 +69,11 @@ export default function OrgsPage() {
 
         {guestOnly.length > 0 && (
           <section style={{ marginTop: '32px' }}>
-            <h2 style={{ fontSize: '12px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>{t('orgs.guestTitle')}</h2>
+            <h2 style={{ fontSize: '13px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>{t('orgs.guestTitle')}</h2>
             <p style={{ color: colors.muted, fontSize: '13px', marginBottom: '12px', lineHeight: 1.6 }}>{t('orgs.guestIntro')}</p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {guestOnly.map(c => (
-                <span key={c.org_id} style={{ display: 'inline-flex', gap: '2px' }}>
+                <span key={c.org_id} style={{ display: 'inline-flex', gap: '4px' }}>
                   <button onClick={() => navigate('/me')} style={ghost}><Briefcase size={14} /> {c.name}</button>
                   <MuteButton orgId={c.org_id} name={c.name} muted={mutedIds?.has(c.org_id)} setMuted={setMuted} />
                 </span>

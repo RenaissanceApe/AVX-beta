@@ -4,7 +4,7 @@ import { languageName, isExpired } from '../lib/crewProfile'
 import { certStatus, confirmedByOrg } from '../lib/trust'
 import { card, colors } from './ui'
 
-const chip = { display: 'inline-block', padding: '3px 9px', fontSize: '12px', fontWeight: 600, background: 'var(--selection)', color: colors.accentText, margin: '0 6px 6px 0' }
+const chip = { display: 'inline-block', padding: '3px 9px', fontSize: '13px', fontWeight: 600, background: 'var(--selection)', color: colors.accentText, margin: '0 6px 6px 0' }
 const row = { display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: colors.soft, lineHeight: 1.5, marginTop: '8px' }
 
 // A crew profile as companies (or crew, if the person allows it) see it (docs/CREW_NETWORK.md).
@@ -18,7 +18,7 @@ export default function CrewProfileCard({ profile: p, name, orgId, onConfirm, ch
   const date = d => fmt(d, 'd MMM yyyy')
   return (
     <div style={{ ...card, padding: '16px' }}>
-      <div style={{ fontSize: '17px', fontWeight: 700, overflowWrap: 'anywhere' }}>{name || t('crewProfile.noName')}</div>
+      <div style={{ fontSize: '16px', fontWeight: 700, overflowWrap: 'anywhere' }}>{name || t('crewProfile.noName')}</div>
       {p.headline && <div style={{ fontSize: '14px', color: colors.soft, marginTop: '2px', overflowWrap: 'anywhere' }}>{p.headline}</div>}
       {(p.functions?.length > 0 || p.other_functions) && (
         <div style={{ marginTop: '10px' }}>
@@ -49,7 +49,7 @@ export default function CrewProfileCard({ profile: p, name, orgId, onConfirm, ch
                 {onConfirm && c.id && (
                   <button type="button" onClick={() => onConfirm(c, !confirmedByOrg(c, orgId))}
                     aria-label={t(confirmedByOrg(c, orgId) ? 'trust.cert.unconfirmNamed' : 'trust.cert.confirmNamed', { name: c.name })}
-                    style={{ background: 'none', border: 'none', padding: '0 0 0 6px', font: 'inherit', fontSize: '12px', fontWeight: 600, color: colors.accentText, cursor: 'pointer', textDecoration: 'underline' }}>
+                    style={{ background: 'none', border: 'none', padding: '0 0 0 6px', font: 'inherit', fontSize: '13px', fontWeight: 600, color: colors.accentText, cursor: 'pointer', textDecoration: 'underline' }}>
                     {t(confirmedByOrg(c, orgId) ? 'trust.cert.unconfirm' : 'trust.cert.confirm')}
                   </button>
                 )}

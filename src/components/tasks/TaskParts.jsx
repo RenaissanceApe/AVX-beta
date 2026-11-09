@@ -14,23 +14,23 @@ export function TaskRow({ task, today, nameOf, canTick, canManage, onToggle, onC
   const state = dueState(task, today)
   const progress = checklistProgress(task.checklist)
   return (
-    <li style={{ ...card, padding: '10px 12px', display: 'flex', gap: '10px', alignItems: 'flex-start', background: done ? 'transparent' : card.background }}>
+    <li style={{ ...card, padding: '10px 12px', display: 'flex', gap: '12px', alignItems: 'flex-start', background: done ? 'transparent' : card.background }}>
       <input type="checkbox" checked={done} disabled={!canTick} onChange={onToggle}
         aria-label={t(done ? 'tasks.reopen' : 'tasks.markDone', { title: task.title })} style={{ width: '20px', height: '20px', marginTop: '2px', flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open}
-          style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--text)', textAlign: 'left', cursor: 'pointer', fontSize: '15px', fontWeight: 600, textDecoration: done ? 'line-through' : 'none', overflowWrap: 'anywhere' }}>
+          style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--text)', textAlign: 'left', cursor: 'pointer', fontSize: '16px', fontWeight: 600, textDecoration: done ? 'line-through' : 'none', overflowWrap: 'anywhere' }}>
           {task.title}
         </button>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', fontSize: '12px', color: colors.muted, marginTop: '2px' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', fontSize: '13px', color: colors.muted, marginTop: '2px' }}>
           {task.assignee_id && <span>{nameOf(task.assignee_id)}</span>}
           {task.due_on && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: DUE_COLOUR[state] || colors.muted, fontWeight: state ? 700 : 400 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: DUE_COLOUR[state] || colors.muted, fontWeight: state ? 700 : 400 }}>
               <CalendarClock size={12} aria-hidden="true" /> {state ? t(`tasks.due.${state}`, { date: fmt(task.due_on, 'd MMM') }) : fmt(task.due_on, 'd MMM')}
             </span>
           )}
-          {progress && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><ListChecks size={12} aria-hidden="true" /> {progress.done}/{progress.total}</span>}
-          {task.source_kind === 'rehearsal_note' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><Flag size={12} aria-hidden="true" /> {t('tasks.fromNote')}</span>}
+          {progress && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><ListChecks size={12} aria-hidden="true" /> {progress.done}/{progress.total}</span>}
+          {task.source_kind === 'rehearsal_note' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Flag size={12} aria-hidden="true" /> {t('tasks.fromNote')}</span>}
           {gigLink}
           {done && task.done_by && <span>{t('tasks.doneBy', { name: nameOf(task.done_by) })}</span>}
         </div>
@@ -50,7 +50,7 @@ export function TaskRow({ task, today, nameOf, canTick, canManage, onToggle, onC
               </ul>
             )}
             {canManage && (
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <button type="button" onClick={onEdit} style={{ ...btn, padding: '6px 10px' }}><Pencil size={13} /> {t('tasks.edit')}</button>
                 <button type="button" onClick={onRemove} aria-label={t('tasks.removeNamed', { title: task.title })} style={iconBtn}><Trash2 size={15} /></button>
               </div>
@@ -126,7 +126,7 @@ export function TaskForm({ task, people, nameOf, templates = [], onSave, onClose
           <label htmlFor="task-list" style={label}>{t('tasks.checklist')}</label>
           <textarea id="task-list" rows={4} value={form.checklistText} onChange={e => set({ checklistText: e.target.value })}
             aria-describedby="task-list-hint" placeholder={t('tasks.checklistPlaceholder')} style={{ ...input, resize: 'vertical' }} />
-          <p id="task-list-hint" style={{ fontSize: '12px', color: colors.muted, marginTop: '4px' }}>{t('tasks.checklistHint')}</p>
+          <p id="task-list-hint" style={{ fontSize: '13px', color: colors.muted, marginTop: '4px' }}>{t('tasks.checklistHint')}</p>
         </div>
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button type="button" onClick={onClose} style={{ ...btn, background: 'transparent' }}>{t('common.cancel')}</button>

@@ -64,8 +64,8 @@ export function LeaveRequests({ orgId, version, onChanged }) {
       <h2 id="leave-requests" style={h2}>{t('leave.waitingForYou', { count: list.length })}</h2>
       <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column' }}>
         {list.map(l => (
-          <li key={l.id} style={{ padding: '8px 0', borderTop: `1px solid ${colors.border}`, display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px' }}>
-            <span style={{ display: 'flex', gap: '6px 10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <li key={l.id} style={{ padding: '8px 0', borderTop: `1px solid ${colors.border}`, display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px' }}>
+            <span style={{ display: 'flex', gap: '8px 12px', alignItems: 'center', flexWrap: 'wrap' }}>
               <strong>{names[l.user_id] || '…'}</strong>
               <span>{leaveRange(l, t, fmt)}</span>
               <TypeChip type={l.type} />
@@ -133,7 +133,7 @@ export function LeaveBalances({ orgId, version, onChanged }) {
 
   return (
     <section className="avx-section" style={section} aria-labelledby="leave-balances">
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', flexWrap: 'wrap' }}>
         <h2 id="leave-balances" style={{ ...h2, flex: '1 1 160px' }}>{t('leave.balances')}</h2>
         <div>
           <label htmlFor="leave-year" style={label}>{t('leave.year')}</label>
@@ -228,7 +228,7 @@ function PersonLeaveForm({ orgId, year, row, onSaved, onClose }) {
         </div>
         <fieldset style={{ gridColumn: '1 / -1', border: 'none', padding: 0, margin: 0 }}>
           <legend style={{ ...label, marginBottom: '6px' }}>{t('leave.workWeek')}</legend>
-          <span style={{ display: 'flex', gap: '6px 12px', flexWrap: 'wrap', fontSize: '13px' }}>
+          <span style={{ display: 'flex', gap: '8px 12px', flexWrap: 'wrap', fontSize: '13px' }}>
             {WEEKDAYS.map(d => (
               <label key={d} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <input type="checkbox" checked={week.includes(d)} onChange={() => toggle(d)} /> {dayName(d)}

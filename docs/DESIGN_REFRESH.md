@@ -48,7 +48,7 @@ session regenerates the help screenshots of the guides whose screens it changed,
 | **DR3** Lists ✅ built (see "How the list pages work") | Quotes, Invoices, Inventory, Contacts, Members, Expenses, Hours, Leave, Jobs, Find crew | Same pattern repeated: header, filters, list rows |
 | **DR4** Detail and editors ✅ built (see "How the detail pages work") | Quote editor (stays compact in the line grid), Inventory item, Reports, Settings and organisation settings dialogs, Import | Denser screens: apply rules 2–5 without losing data |
 | **DR5** Field and crew ✅ built (see "How the field and crew screens work") | My work, Simple home, On-site, Scan and Dispatch, field tools, Messages, Help | Used standing up and on phones |
-| **DR6** Sweep | Everything left, the ratchet test down to zero, all help screenshots refreshed, the design system artifact brought in line | Finishes the refresh |
+| **DR6** Sweep ✅ built (see "How the sweep works") | Everything left, the ratchet test down to zero, all help screenshots refreshed, the design system artifact brought in line | Finishes the refresh |
 
 ## How the foundations work (DR1, built)
 
@@ -68,11 +68,10 @@ gives the same values (`space[3]` → `var(--space-3)`, `space.section`). The la
 | `MoreMenu` | the ⋯ button ("More actions") with a menu of actions; ↑ ↓ Home End move, Escape or a click outside closes and returns focus. Renders nothing with no items |
 | `usePhone()` | true below 768 px, follows the window |
 
-**The ratchet** (`src/theme/offScale.test.js`, counting with `offScale.js`): text sizes off 11 · 13 · 14 · 16 · 20 ·
-22 · 24 · 28 and gaps off 0 · 4 · 8 · 12 · 16 · 24 · 32 · 40 · 48, per `.jsx` file, against
-`offScale.baseline.json`. A file's count going up fails; going down also fails until the baseline is lowered
-(edit the number, or `UPDATE_OFFSCALE=1 npx vitest run src/theme/offScale.test.js`). Per file, so sessions on
-different screens don't touch the same line. Start (2026-11-09): 644 sizes and 639 gaps in 177 files.
+**The off-scale test** (`src/theme/offScale.test.js`, counting with `offScale.js`): text sizes off 11 · 13 · 14 · 16 ·
+20 · 22 · 24 · 28 and gaps off 0 · 4 · 8 · 12 · 16 · 24 · 32 · 40 · 48 in every `.jsx` and `.css` file under `src/`. DR1
+started it as a ratchet (644 sizes and 639 gaps in 177 files on 2026-11-09, counts per file that could only go down);
+since DR6 there are none left and any new one fails (see "How the sweep works").
 
 **The home** (`src/pages/Dashboard.jsx`): `PageHeader` (phone: the greeting is the title, no organisation name;
 the role description is the role chip's ⓘ), then the slim First steps row (`FirstSteps.jsx`: one row, opens the
@@ -164,6 +163,24 @@ The same rules as the home, applied to the denser screens; no new pieces, only t
 | **Import** (`ImportPage.jsx`) | `PageHeader`; the steps are words with a 2px bar under the current one; the switch checklist, the kinds to import, the column matching and Earlier imports are rows with hairlines on the page ground, not boxes; the check step's counts are big numbers without boxes |
 
 Shared rows used by the Inventory list too (`RepairRow`, `DueRow` in `MaintenancePanels.jsx`) were left as they are, for DR6.
+
+## How the sweep works (DR6, built)
+
+- **Every screen on the scales.** The last 266 off-scale sizes and 296 gaps (102 files) moved to the nearest step,
+  keeping each screen's look otherwise: text 12 → 13, 10 → 11, 15 → 16, 17 → 16 (headings, the dialog title
+  included), 18 → 22 for the not-found pages' titles and 20 for the large call sheet's text, 26 and 34 → 28, a target's
+  amount on the cash report 18 → 24 (a big number); gaps 2, 3 and 5 → 4, 6 and 7 → 8, 10 → 12, 14 and 18 → 16. The
+  chips and status words in `brand.css` (10, 10.5 and 12 px in the `font:` shorthand) went to 11 and 13.
+- **The test now fails on any off-scale size or gap** (the per-file baseline is gone). It reads `fontSize`,
+  `font-size`, the size in a `font:` shorthand and `gap` / `rowGap` / `columnGap` in `.jsx` and `.css` files. Not
+  counted: sizes in pt, mm or em (the printed quote and the DMX address's `0.45em`, which follow the paper or their
+  parent) and a 1px gap over a line-coloured ground (the menu cards' hairline grid in `AppShell.jsx`): a rule, not
+  spacing.
+- **The ⋯ button** (`MoreMenu`) is at least 36 × 36 px on a computer and 44 × 44 px on a phone (`.avx-more__button`
+  in `brand.css`; #126).
+- **Help screenshots:** every guide's pictures were regenerated, since every screen's sizes moved.
+- **Left as they were** (look unchanged, beyond sizes and gaps): `RepairRow` / `DueRow` in `MaintenancePanels.jsx` and
+  the field-tool row cards that show a state with their border; see docs/notes/DR6.md.
 
 ## Not changing
 

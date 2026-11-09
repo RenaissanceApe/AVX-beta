@@ -24,9 +24,9 @@ import { FeeFields, useFeeForm } from '../components/gig/FeeFields'
 import { feeText } from '../components/gig/LabourCost'
 
 const hint = { fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: 0 }
-const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px' }
+const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px' }
 // Facts about a person: icon + words on the quiet fill (no colour washes)
-const badge = () => ({ display: 'inline-flex', alignItems: 'center', gap: '4px', height: '22px', padding: '0 8px', fontSize: '12px', fontWeight: 500,
+const badge = () => ({ display: 'inline-flex', alignItems: 'center', gap: '4px', height: '22px', padding: '0 8px', fontSize: '13px', fontWeight: 500,
   background: 'var(--fill)', border: '1px solid var(--line)', color: 'var(--text)' })
 
 // Find crew (docs/CREW_NETWORK.md, N2): an organisation's admins and members search the crew who
@@ -156,9 +156,9 @@ export default function CrewSearchPage() {
                 <div>
                   <span style={label}>{t('crewSearch.near')}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 600 }}><MapPin size={14} aria-hidden="true" /> {filters.place.label}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600 }}><MapPin size={14} aria-hidden="true" /> {filters.place.label}</span>
                     <button type="button" onClick={() => set({ place: null })} aria-label={t('crewSearch.clearPlace')} style={iconBtn}><X size={15} /></button>
-                    <label style={{ ...hint, display: 'flex', alignItems: 'center', gap: '6px' }} htmlFor="cs-km">{t('crewSearch.within')}
+                    <label style={{ ...hint, display: 'flex', alignItems: 'center', gap: '8px' }} htmlFor="cs-km">{t('crewSearch.within')}
                       <select id="cs-km" value={filters.km} onChange={e => set({ km: Number(e.target.value) })} style={{ ...input, width: 'auto', padding: '6px 8px', cursor: 'pointer' }}>
                         {RADII.map(r => <option key={r} value={r}>{t('crewProfile.travelKm', { km: r })}</option>)}
                       </select>
@@ -208,7 +208,7 @@ export default function CrewSearchPage() {
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: space[2], marginTop: space[3], alignItems: 'center' }}>
                     {p.contact_from === 'known' && !p.worked_with && !contacted[p.user_id] ? (
-                      <span style={{ ...hint, display: 'inline-flex', gap: '6px', alignItems: 'center' }}><Lock size={13} aria-hidden="true" /> {t('trust.contact.onlyKnownShort')}</span>
+                      <span style={{ ...hint, display: 'inline-flex', gap: '8px', alignItems: 'center' }}><Lock size={13} aria-hidden="true" /> {t('trust.contact.onlyKnownShort')}</span>
                     ) : contacted[p.user_id] ? (
                       <span role="status" style={{ ...hint, color: colors.accentText }}>{t(`crewSearch.sent.${contacted[p.user_id]}`)}</span>
                     ) : (

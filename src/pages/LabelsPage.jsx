@@ -68,7 +68,7 @@ export default function LabelsPage() {
       <div className="no-print" style={{ position: 'sticky', top: 'var(--safe-top)', zIndex: 5, background: '#0F1520', color: '#fff', padding: '10px 16px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
         <button onClick={() => navigate(-1)} style={toolbarBtn}><ArrowLeft size={14} /> {t('common.back')}</button>
         <strong style={{ flex: 1, minWidth: '120px' }}>{t('inv.labelsTitle', { count: labels?.length || 0 })}</strong>
-        <label style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <label style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           {t('inv.labelSize')}
           <select value={size} onChange={e => pick(e.target.value)} style={{ padding: '6px 8px', background: '#1a2230', color: '#fff', border: '1px solid rgba(255,255,255,0.15)' }}>
             {Object.keys(LABEL_SIZES).map(k => <option key={k} value={k}>{t(`inv.labelSizeOpt.${k}`)}</option>)}

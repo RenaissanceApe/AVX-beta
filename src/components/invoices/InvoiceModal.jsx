@@ -175,7 +175,7 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
 
   return (
     <Modal title={title} onClose={onClose} maxWidth={760}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', fontSize: '13px', color: colors.muted }}>
           {inv && <InvoiceBadge invoice={inv} />}
           {inv && <span>{t('invoice.avxRef', { n: inv.number })}</span>}
@@ -186,7 +186,7 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
         {isNew && !isCredit && (
           <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
             <legend style={{ ...label, marginBottom: '6px' }}>{t('invoice.whatToInvoice')}</legend>
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {['all', 'phases', 'deposit', ...(deposits.length ? ['rest'] : [])].map(s => (
                 <label key={s} style={{ ...btn, padding: '7px 12px', cursor: 'pointer', ...(scope === s ? { background: colors.accent, color: colors.onAccent, borderColor: colors.accent } : {}) }}>
                   <input type="radio" name="inv-scope" value={s} checked={scope === s} onChange={() => setScope(s)} style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }} />
@@ -199,7 +199,7 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
                 {phases.map((p, i) => (
                   <label key={p.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '14px', minHeight: '32px' }}>
                     <input type="checkbox" checked={phaseIds.includes(p.id)} onChange={e => setPhaseIds(ids => (e.target.checked ? [...ids, p.id] : ids.filter(x => x !== p.id)))} />
-                    {p.name || t('quote.phaseN', { n: i + 1 })}{p.optional && <span style={{ color: colors.muted, fontSize: '12px' }}>({t('invoice.optionalPhase')})</span>}
+                    {p.name || t('quote.phaseN', { n: i + 1 })}{p.optional && <span style={{ color: colors.muted, fontSize: '13px' }}>({t('invoice.optionalPhase')})</span>}
                   </label>
                 ))}
               </div>
@@ -210,11 +210,11 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
                 <input id="inv-dep" type="number" min="1" max="100" step="1" value={depositPct} onChange={e => setDepositPct(e.target.value)} style={input} />
               </div>
             )}
-            {scope === 'rest' && <p style={{ fontSize: '12px', color: colors.muted, margin: '6px 0 0' }}>{t('invoice.restHint', { count: deposits.length })}</p>}
+            {scope === 'rest' && <p style={{ fontSize: '13px', color: colors.muted, margin: '6px 0 0' }}>{t('invoice.restHint', { count: deposits.length })}</p>}
           </fieldset>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
           <div>
             <label htmlFor="inv-client" style={label}>{t('invoice.client')}</label>
             <input id="inv-client" value={draft.client_name || ''} disabled={!editable} onChange={e => set({ client_name: e.target.value })} maxLength={200} style={input} />
@@ -272,7 +272,7 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
                   ) : (
                     <div style={{ display: 'flex', gap: '8px', fontSize: '13px' }}>
                       <span style={{ flex: 1, minWidth: 0 }}>{l.description}
-                        <span style={{ display: 'block', color: colors.muted, fontSize: '12px' }}>
+                        <span style={{ display: 'block', color: colors.muted, fontSize: '13px' }}>
                           {t('invoice.lineMath', { qty: l.qty, price: money(l.unit_price), vat: l.vat_rate })}{num(l.discount_pct) ? ` · −${Math.round(num(l.discount_pct) * 100) / 100}%` : ''}
                         </span>
                       </span>
@@ -280,10 +280,10 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
                     </div>
                   )}
                   {num(l.vat_rate) === 0 && (
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', justifyContent: 'flex-end', marginTop: '4px', flexWrap: 'wrap' }}>
-                      <label htmlFor={`ix-${i}`} style={{ fontSize: '12px', color: l.vat_exemption ? colors.muted : colors.warn }}>{t('quote.vatExemption')}</label>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end', marginTop: '4px', flexWrap: 'wrap' }}>
+                      <label htmlFor={`ix-${i}`} style={{ fontSize: '13px', color: l.vat_exemption ? colors.muted : colors.warn }}>{t('quote.vatExemption')}</label>
                       <select id={`ix-${i}`} value={l.vat_exemption || ''} disabled={!editable || !!builtLines}
-                        onChange={e => setLine(i, { vat_exemption: e.target.value || undefined })} style={{ ...input, width: 'auto', maxWidth: '100%', height: '32px', padding: '0 6px', fontSize: '12px' }}>
+                        onChange={e => setLine(i, { vat_exemption: e.target.value || undefined })} style={{ ...input, width: 'auto', maxWidth: '100%', height: '32px', padding: '0 6px', fontSize: '13px' }}>
                         <option value="">{t('quote.vatExemptionPick')}</option>
                         {VAT_EXEMPTIONS.map(code => <option key={code} value={code}>{code} · {t(`vatExemption.${code}`)}</option>)}
                       </select>
@@ -297,7 +297,7 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
             <button type="button" onClick={() => set({ lines: [...draft.lines, { id: newLineId(), kind: 'other', description: '', qty: 1, unit_price: 0, discount_pct: 0, vat_rate: draft.lines.at(-1)?.vat_rate ?? 23 }] })}
               style={{ ...btn, marginTop: '6px' }}><Plus size={14} /> {t('invoice.addLine')}</button>
           )}
-          {builtLines && <p style={{ fontSize: '12px', color: colors.muted, margin: '6px 0 0' }}>{t('invoice.editAfterSave')}</p>}
+          {builtLines && <p style={{ fontSize: '13px', color: colors.muted, margin: '6px 0 0' }}>{t('invoice.editAfterSave')}</p>}
           {editable && !builtLines && !isCredit && !isNew && draft.gig_id && (
             <div style={{ marginTop: '8px' }}>
               <ChargedRepairs gigId={draft.gig_id} invoiceId={inv.id} lines={draft.lines} language={draft.language} currency={draft.currency}
@@ -311,8 +311,8 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
             ))}
             <dt style={{ fontWeight: 700 }}>{t('invoice.total')}</dt><dd style={{ margin: 0, textAlign: 'right', fontWeight: 700, color: colors.accentText }}>{money(totals.total)}</dd>
           </dl>
-          {gap !== 0 && <p style={{ fontSize: '12px', color: colors.muted, margin: '4px 0 0' }}>{t('invoice.roundingGap', { amount: money(gap) })}</p>}
-          {problems.length > 0 && editable && <p style={{ fontSize: '12px', color: colors.warn, margin: '6px 0 0' }}>{problems.map(p => t(`invoice.problem.${p}`)).join(' ')}</p>}
+          {gap !== 0 && <p style={{ fontSize: '13px', color: colors.muted, margin: '4px 0 0' }}>{t('invoice.roundingGap', { amount: money(gap) })}</p>}
+          {problems.length > 0 && editable && <p style={{ fontSize: '13px', color: colors.warn, margin: '6px 0 0' }}>{problems.map(p => t(`invoice.problem.${p}`)).join(' ')}</p>}
         </div>
 
         {(editable || draft.notes) && (
@@ -323,10 +323,10 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
         )}
 
         {/* Actions for each status */}
-        <div style={{ ...sectionStyle, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ ...sectionStyle, display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {editable && (
             <>
-              <p style={{ fontSize: '12px', color: colors.muted, margin: 0 }}>{programReady ? t('invoice.program.sendHint', { program: programName(program.provider) }) : t('invoice.sendHintNoMoloni')}</p>
+              <p style={{ fontSize: '13px', color: colors.muted, margin: 0 }}>{programReady ? t('invoice.program.sendHint', { program: programName(program.provider) }) : t('invoice.sendHintNoMoloni')}</p>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button type="button" onClick={save} disabled={!!busy || !lines.length} style={btn}>{busy === 'save' ? <AvxLoader size={14} /> : <Check size={14} />} {t('invoice.saveDraft')}</button>
                 {programReady && (
@@ -388,7 +388,7 @@ export default function InvoiceModal({ orgId, invoice: initial = null, quote = n
         </div>
       </div>
       <style>{`
-        .inv-line { display: grid; gap: 6px; grid-template-columns: minmax(0, 1fr) 64px 90px 56px 56px 90px auto; grid-template-areas: "desc qty price disc vat total del"; align-items: end; }
+        .inv-line { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr) 64px 90px 56px 56px 90px auto; grid-template-areas: "desc qty price disc vat total del"; align-items: end; }
         @media (max-width: 640px) { .inv-line { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-areas: "desc desc desc del" "qty price disc vat" "total total total total"; } }
       `}</style>
     </Modal>
@@ -400,8 +400,8 @@ const cellInput = { ...input, minWidth: 0, width: '100%', paddingLeft: '6px', pa
 // A field of an invoice line with its small visible caption (also its accessible name)
 function Cell({ area, caption, children }) {
   return (
-    <label style={{ gridArea: area, display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
-      <span style={{ fontSize: '10px', fontWeight: 600, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.04em', color: colors.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{caption}</span>
+    <label style={{ gridArea: area, display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+      <span style={{ fontSize: '11px', fontWeight: 600, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.04em', color: colors.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{caption}</span>
       {children}
     </label>
   )

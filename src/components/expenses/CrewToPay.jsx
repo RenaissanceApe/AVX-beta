@@ -44,7 +44,7 @@ export default function CrewToPay({ orgId, isAdmin }) {
         <>
           <p style={{ margin: 0, fontSize: '14px' }}>
             {t('crewPay.total', { count: rows.length })}: <strong>{moneyLines(totals).map(l => formatMoney(l.amount, l.currency, lang)).join(' · ')}</strong>
-            {estimated > 0 && <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{t('crewPay.estimated', { count: estimated })}</span>}
+            {estimated > 0 && <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>{t('crewPay.estimated', { count: estimated })}</span>}
           </p>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column' }}>
             {rows.map(r => (
@@ -52,7 +52,7 @@ export default function CrewToPay({ orgId, isAdmin }) {
                 <span style={{ flex: '1 1 180px', minWidth: 0 }}>
                   <span style={{ fontWeight: 600 }}>{r.person_name || '—'}</span>
                   {r.function_title && <span style={{ color: colors.muted }}> · {r.function_title}</span>}
-                  <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
+                  <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>
                     <Link to={`/gig/${r.gig_id}?tab=crew`} style={{ color: colors.accentText }}>{r.gig_name}</Link>
                     {' · '}{t('crewPay.ended', { date: fmt(r.end_date || r.start_date, 'd MMM yyyy'), count: r.days_waiting })}
                   </span>
@@ -61,7 +61,7 @@ export default function CrewToPay({ orgId, isAdmin }) {
                   {formatMoney(r.amount, r.currency, lang)}
                   <span style={{ display: 'block', fontSize: '11px', fontWeight: 400, color: colors.muted }}>{t(r.estimated ? 'crewPay.agreedFee' : 'crewPay.invoice')}</span>
                 </span>
-                <button type="button" onClick={() => setPaying(r)} style={{ ...btn, padding: '4px 8px', fontSize: '12px' }} aria-label={t('labour.markPaidFor', { name: r.person_name || '—' })}>
+                <button type="button" onClick={() => setPaying(r)} style={{ ...btn, padding: '4px 8px', fontSize: '13px' }} aria-label={t('labour.markPaidFor', { name: r.person_name || '—' })}>
                   <BadgeCheck size={13} aria-hidden="true" /> {t('labour.markPaid')}
                 </button>
               </li>

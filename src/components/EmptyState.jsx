@@ -25,7 +25,7 @@ export default function EmptyState({ icon, title, body, action, onAction, action
       {action && <button type="button" onClick={onAction} style={btnPrimary}>{actionIcon} {action}</button>}
       {g && (
         <p style={{ marginTop: action ? '14px' : 0 }}>
-          <Link to={`/help/guide/${guide}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: colors.accentText, fontSize: '13px', fontWeight: 600 }}>
+          <Link to={`/help/guide/${guide}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: colors.accentText, fontSize: '13px', fontWeight: 600 }}>
             <BookOpen size={14} aria-hidden="true" /> {t('help.howTo', { title: g.title })}
           </Link>
         </p>

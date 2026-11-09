@@ -38,7 +38,7 @@ export default function ReportLinkPage() {
   if (!data.report) return (
     <main style={page}>
       <div style={{ ...card, maxWidth: '420px', margin: '60px auto', padding: '24px', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>{t('reportLink.notFoundTitle')}</h1>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '8px' }}>{t('reportLink.notFoundTitle')}</h1>
         <p style={{ fontSize: '14px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>
           {data.state === 'error' ? t('reportLink.errorBody') : t('reportLink.notFoundBody')}
         </p>
@@ -57,7 +57,7 @@ export default function ReportLinkPage() {
       <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <header style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 240px', minWidth: 0 }}>
-            <p style={{ fontSize: '12px', color: colors.muted, margin: 0 }}>{t('reportLink.kicker')}</p>
+            <p style={{ fontSize: '13px', color: colors.muted, margin: 0 }}>{t('reportLink.kicker')}</p>
             <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '2px 0', overflowWrap: 'anywhere' }}>{r.org?.legal_name || r.org?.name}</h1>
             <p style={{ fontSize: '13px', color: colors.muted, margin: 0 }}>
               {r.label} · {t('reportLink.period', { from: fmt(r.from, 'd MMM yyyy'), until: fmt(lastDay, 'd MMM yyyy') })}
@@ -65,13 +65,13 @@ export default function ReportLinkPage() {
           </div>
           <button type="button" className="no-print" onClick={() => window.print()} style={btn}><Printer size={14} aria-hidden="true" /> {t('reportLink.print')}</button>
         </header>
-        <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>
+        <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>
           {t('reportLink.note', { date: fmt(r.at, 'd MMM yyyy HH:mm'), expires: fmt(r.expires_at, 'd MMM yyyy') })}
         </p>
 
         {tables.length === 0 && <p style={{ ...card, padding: '16px', fontSize: '14px', margin: 0 }}>{t('reportLink.nothing')}</p>}
         {tables.map(tb => (
-          <section key={tb.currency} aria-labelledby={`rl-${tb.currency}`} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <section key={tb.currency} aria-labelledby={`rl-${tb.currency}`} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <h2 id={`rl-${tb.currency}`} style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>{t('reportLink.byMonth', { currency: tb.currency })}</h2>
             {/* Wide table: scrolls inside its box on phones, never the page */}
             <div tabIndex={0} role="region" aria-labelledby={`rl-${tb.currency}`} style={{ overflowX: 'auto', ...card, padding: 0 }}>
@@ -102,7 +102,7 @@ export default function ReportLinkPage() {
                 </tbody>
               </table>
             </div>
-            {tb.months.some(m => m.estimated) && <p style={{ fontSize: '12px', color: colors.muted, margin: 0 }}>{t('reportLink.estimatedNote')}</p>}
+            {tb.months.some(m => m.estimated) && <p style={{ fontSize: '13px', color: colors.muted, margin: 0 }}>{t('reportLink.estimatedNote')}</p>}
             {tb.spending.length > 0 && (
               <div style={{ ...card, padding: 0, overflowX: 'auto' }}>
                 <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: '13px' }}>
@@ -121,7 +121,7 @@ export default function ReportLinkPage() {
             )}
           </section>
         ))}
-        <footer style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: colors.muted }}>
+        <footer style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: colors.muted }}>
           <AvxMark size={14} /> {t('reportLink.footer')}
         </footer>
       </div>

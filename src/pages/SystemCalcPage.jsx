@@ -55,7 +55,7 @@ export default function SystemCalcPage() {
         .system-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
         .sheet { max-width: 1000px; margin: 0 auto; background: #fff; color: #111; padding: 28px; font-size: 13px; }
         .sheet h1 { font-size: 22px; margin-bottom: 2px; }
-        .sheet h2 { font-size: 12px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 18px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; }
+        .sheet h2 { font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 18px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; }
         .sheet table { width: 100%; border-collapse: collapse; }
         .sheet th, .sheet td { text-align: left; padding: 3px 6px; border-bottom: 1px solid #ddd; vertical-align: top; }
         .sheet th { font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: #555; }
@@ -142,6 +142,6 @@ export default function SystemCalcPage() {
 }
 
 const toolbarBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', 
+  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 14px', 
   border: '1px solid #c5ccd4', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }

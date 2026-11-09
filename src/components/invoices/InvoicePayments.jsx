@@ -97,7 +97,7 @@ export default function InvoicePayments({ orgId, invoice, onChanged }) {
             <li key={p.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', borderTop: `1px solid ${colors.border}`, padding: '6px 0', fontSize: '13px' }}>
               <span style={{ flex: 1, minWidth: 0 }}>
                 {fmt(p.paid_on, 'd MMM yyyy')} · {t(`payment.method.${p.method}`)}
-                {p.note && <span style={{ display: 'block', color: colors.muted, fontSize: '12px', overflowWrap: 'anywhere' }}>{p.note}</span>}
+                {p.note && <span style={{ display: 'block', color: colors.muted, fontSize: '13px', overflowWrap: 'anywhere' }}>{p.note}</span>}
               </span>
               <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{money(p.amount)}</span>
               <button type="button" onClick={() => remove(p)} disabled={!!busy} aria-label={t('payment.remove')} title={t('payment.remove')} style={iconBtn}>
@@ -133,7 +133,7 @@ export default function InvoicePayments({ orgId, invoice, onChanged }) {
               {' '}{num(form.amount) === left ? t('payment.recordAll') : t('payment.record')}
             </button>
             {num(form.amount) !== left && <button type="button" onClick={() => setForm(f => ({ ...f, amount: String(left) }))} style={btn}>{t('payment.fillLeft', { amount: money(left) })}</button>}
-            {problem && form.amount !== '' && problem !== 'amount' && <span role="status" style={{ fontSize: '12px', color: colors.warn }}>{t(`payment.problem.${problem}`, { amount: money(left) })}</span>}
+            {problem && form.amount !== '' && problem !== 'amount' && <span role="status" style={{ fontSize: '13px', color: colors.warn }}>{t(`payment.problem.${problem}`, { amount: money(left) })}</span>}
           </div>
         </form>
       )}

@@ -142,6 +142,6 @@ function DmxSheet({ rows, t }) {
 }
 
 const toolbarBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', 
+  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 14px', 
   border: '1px solid #c5ccd4', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }

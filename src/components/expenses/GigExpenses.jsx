@@ -50,7 +50,7 @@ export default function GigExpenses({ gig, isPM, orgRole, userId, nameOf }) {
         <button type="button" onClick={() => setEditing('claim')} style={btn}><Plus size={14} /> {t('expenses.newClaim')}</button>
         {canSee && <button type="button" onClick={() => setEditing('new')} style={btn}><Plus size={14} /> {t('expenses.add')}</button>}
       </div>
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{canSee ? t('expenses.gigIntroFinance') : t('expenses.gigIntro')}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{canSee ? t('expenses.gigIntroFinance') : t('expenses.gigIntro')}</p>
 
       {waiting.length > 0 && (
         <div>
@@ -71,7 +71,7 @@ export default function GigExpenses({ gig, isPM, orgRole, userId, nameOf }) {
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {mine.map(e => (
               <ExpenseRow key={e.id} e={e} categories={categories} names={names} today={today} details onOpen={open(e)}>
-                {e.status === 'returned' && e.review_note && <span style={{ flexBasis: '100%', fontSize: '12px', color: colors.danger }}>{t('expenses.returnedNote', { note: e.review_note })}</span>}
+                {e.status === 'returned' && e.review_note && <span style={{ flexBasis: '100%', fontSize: '13px', color: colors.danger }}>{t('expenses.returnedNote', { note: e.review_note })}</span>}
               </ExpenseRow>
             ))}
           </ul>

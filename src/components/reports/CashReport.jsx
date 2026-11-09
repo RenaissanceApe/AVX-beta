@@ -25,9 +25,9 @@ import { GroupBy, ReportTable, ExportButtons, DetailsToggle, useDetails, downloa
 // in the database (cash_report, spending, client_balance, revenue_forecast, target_progress); the
 // browser picks a currency and labels the rows. Simple first; "Show details" adds the parts.
 
-const noteStyle = { fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }
+const noteStyle = { fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }
 const tiles = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '8px' }
-const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
+const h2 = { fontSize: '16px', fontWeight: 700, margin: 0 }
 
 const all = (name, args) => selectReport(() => supabase.rpc(name, args))
 
@@ -58,7 +58,7 @@ function CurrencyPicker({ currencies, value, onChange }) {
   const { t } = useI18n()
   if (currencies.length < 2) return null
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', fontSize: '12px', color: colors.muted, gap: '2px' }}>
+    <label style={{ display: 'flex', flexDirection: 'column', fontSize: '13px', color: colors.muted, gap: '4px' }}>
       {t('reports.currency')}
       <select value={value} onChange={e => onChange(e.target.value)} style={{ ...btn, padding: '6px 8px' }}>
         {currencies.map(c => <option key={c} value={c}>{c}</option>)}
@@ -183,7 +183,7 @@ function Cash({ orgId, range, today }) {
           </section>
 
           <section aria-labelledby="cash-overdue" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'baseline', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'baseline', flexWrap: 'wrap' }}>
               <h2 id="cash-overdue" style={{ ...h2, flex: '1 1 auto' }}>{t('cash.overdueByAge')}</h2>
               <Link to={`/org/${orgId}/invoices?view=unpaid`} style={{ fontSize: '13px', color: colors.accentText }}>{t('cash.openInvoices')}</Link>
             </div>
@@ -196,7 +196,7 @@ function Cash({ orgId, range, today }) {
             <StackedBarChart title={t('cash.chart.inOut', { currency })}
               data={byMonth.map(m => ({ label: monthLabel(m.key), values: { received: m.received, paidOut: m.paidOut } }))}
               series={[{ key: 'received', label: t('cash.series.received') }, { key: 'paidOut', label: t('cash.series.paidOut') }]} format={money} />
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
               <DetailsToggle on={details} onToggle={toggleDetails} />
               <span style={{ flex: '1 1 auto' }} />
               <ExportButtons onCsv={csv} />
@@ -227,13 +227,13 @@ function Cash({ orgId, range, today }) {
 
           {recurring.length > 0 && (
             <section aria-labelledby="cash-recurring" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'baseline', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'baseline', flexWrap: 'wrap' }}>
                 <h2 id="cash-recurring" style={{ ...h2, flex: '1 1 auto' }}>{t('cash.recurring', { count: MONTHS_AHEAD })}</h2>
                 <Link to={`/org/${orgId}/expenses?view=recurring`} style={{ fontSize: '13px', color: colors.accentText }}>{t('cash.openRecurring')}</Link>
               </div>
               <ul style={{ ...card, listStyle: 'none', margin: 0, padding: '4px 12px' }}>
                 {recurring.map(r => (
-                  <li key={r.id} style={{ display: 'flex', gap: '10px', padding: '6px 0', borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
+                  <li key={r.id} style={{ display: 'flex', gap: '12px', padding: '6px 0', borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
                     <span style={{ flex: '1 1 auto', minWidth: 0 }}>{r.label}</span>
                     <span style={{ color: colors.muted, whiteSpace: 'nowrap' }}>{t(`cash.dates.${r.dates === 1 ? 'one' : 'other'}`, { count: r.dates })}</span>
                     <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{money(r.amount)}</span>
@@ -318,7 +318,7 @@ function Spending({ orgId, range, compared, compareLabel, params, setParam }) {
         <EmptyState compact icon={<Banknote size={26} />} title={t('spending.empty')} body={t('spending.emptyBody')} guide="office-cash" />
       ) : (
         <>
-          <div className="no-print" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div className="no-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <GroupBy value={group} options={SPENDING_GROUPS} onChange={v => setParam('by', v === SPENDING_GROUPS[0] ? null : v)} />
             <Hint id="spending-report" label={t('money.view.spending')} />
             <span style={{ flex: '1 1 auto' }} />
@@ -331,11 +331,11 @@ function Spending({ orgId, range, compared, compareLabel, params, setParam }) {
             data={[...rows].filter(r => r.now).sort((a, b) => b.now - a.now).slice(0, 12).map(r => ({ label: r.name, value: r.now }))}
             format={money} valueLabel={t('spending.col.amount')} />
           {biggest.length > 0 && (
-            <section aria-labelledby="sp-changes" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <section aria-labelledby="sp-changes" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <h2 id="sp-changes" style={h2}>{t('spending.biggest', { compared: compareLabel })}</h2>
               <ul style={{ ...card, listStyle: 'none', margin: 0, padding: '4px 12px' }}>
                 {biggest.map(r => (
-                  <li key={r.id || 'none'} style={{ display: 'flex', gap: '10px', padding: '6px 0', borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
+                  <li key={r.id || 'none'} style={{ display: 'flex', gap: '12px', padding: '6px 0', borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
                     <span style={{ flex: '1 1 auto', minWidth: 0 }}>{r.name}</span>
                     <span style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{t(r.diff > 0 ? 'spending.up' : 'spending.down', { amount: money(Math.abs(r.diff)), pct: pct(r.change) })}</span>
                   </li>
@@ -343,7 +343,7 @@ function Spending({ orgId, range, compared, compareLabel, params, setParam }) {
               </ul>
             </section>
           )}
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
             <DetailsToggle on={details} onToggle={toggleDetails} />
             <span style={{ flex: '1 1 auto' }} />
             <ExportButtons onCsv={csv} disabled={!rows.length} />
@@ -377,7 +377,7 @@ function Forecast({ orgId, range }) {
 
   return (
     <Loading data={data}>
-      <div className="no-print" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+      <div className="no-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <Hint id="forecast-report" label={t('money.view.forecast')} />
         <span style={{ flex: '1 1 auto' }} />
         <CurrencyPicker currencies={currencies} value={currency} onChange={setPicked} />
@@ -447,20 +447,20 @@ function Targets({ orgId, rows, categories, onChanged }) {
               : (s.left <= 0 ? t('targets.reached') : t('targets.toGo', { amount: money(s.left) }))
             return (
               <li key={r.target_id} style={{ ...card, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '12px', color: colors.muted, flex: '1 1 auto' }}>{name(r)}</span>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '13px', color: colors.muted, flex: '1 1 auto' }}>{name(r)}</span>
                   <button type="button" onClick={() => remove(r)} aria-label={`${t('targets.remove')}: ${name(r)}`} title={t('targets.remove')}
                     className="no-print" style={{ background: 'none', border: 'none', color: colors.muted, cursor: 'pointer', padding: 0 }}>
                     <Trash2 size={14} aria-hidden="true" />
                   </button>
                 </div>
-                <div style={{ fontSize: '18px', fontWeight: 700 }}>{money(s.actual)}</div>
+                <div style={{ fontSize: '24px', fontWeight: 700 }}>{money(s.actual)}</div>
                 <div role="progressbar" aria-label={name(r)} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(pct, 100)} aria-valuetext={t('targets.ofTarget', { pct, amount: money(s.target) })}
                   style={{ height: '6px', background: colors.border, position: 'relative' }}>
                   <div style={{ position: 'absolute', inset: 0, width: `${Math.min(pct, 100)}%`, background: s.over ? colors.danger : colors.accent }} />
                 </div>
                 <span style={{ fontSize: '11px', color: colors.muted }}>{t('targets.ofTarget', { pct, amount: money(s.target) })}</span>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: s.over ? colors.danger : 'var(--text)' }}>{status}</span>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: s.over ? colors.danger : 'var(--text)' }}>{status}</span>
               </li>
             )
           })}

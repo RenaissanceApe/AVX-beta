@@ -115,15 +115,15 @@ export default function LegalPage({ doc }) {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text-2)', padding: '24px 16px 60px' }}>
       <style>{`
-        .legal h1 { color: var(--text); font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+        .legal h1 { color: var(--text); font-size: 28px; font-weight: 800; margin-bottom: 4px; }
         .legal h2 { color: var(--text); font-size: 16px; font-weight: 700; margin: 26px 0 8px; }
-        .legal p, .legal li { font-size: 15px; line-height: 1.7; }
-        .legal ul { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+        .legal p, .legal li { font-size: 16px; line-height: 1.7; }
+        .legal ul { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
         .legal .meta { color: var(--muted); font-size: 13px; }
       `}</style>
       <div className="legal" style={{ maxWidth: '680px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--soft)', textDecoration: 'none', fontSize: '14px' }}>
+          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--soft)', textDecoration: 'none', fontSize: '14px' }}>
             <ArrowLeft size={14} /> {t('common.back')}
           </Link>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text)', fontWeight: 700 }}>

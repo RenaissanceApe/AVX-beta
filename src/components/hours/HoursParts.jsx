@@ -52,7 +52,7 @@ export function SplitLine({ split, cost }) {
   if (!split) return null
   const parts = ['normal', 'overtime', 'night', 'weekend', 'holiday'].filter(b => Number(split[b]) > 0).map(b => `${t(`hours.bucket.${b}`)} ${hoursText(split[b], lang)}`)
   return (
-    <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
+    <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>
       {parts.join(' · ')}{cost != null && <> · <strong style={{ color: 'var(--text)' }}>{money(cost, lang)}</strong></>}
     </span>
   )
@@ -122,9 +122,9 @@ export function HoursModal({ gig, member, entry, schedule, userId, takenDays = [
         <div>
           <label htmlFor="hours-day" style={label}>{t('hours.day')}</label>
           <input id="hours-day" type="date" value={day} disabled={!!entry} onChange={e => changeDay(e.target.value)} style={input} required />
-          {taken && <p role="alert" style={{ fontSize: '12px', color: colors.danger, margin: '4px 0 0' }}>{t('hours.dayTaken')}</p>}
+          {taken && <p role="alert" style={{ fontSize: '13px', color: colors.danger, margin: '4px 0 0' }}>{t('hours.dayTaken')}</p>}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '12px' }}>
           <div>
             <label htmlFor="hours-start" style={label}>{t('hours.start')}</label>
             <input id="hours-start" type="time" value={form.start_time} onChange={e => set('start_time', e.target.value)} style={input} required />
@@ -138,7 +138,7 @@ export function HoursModal({ gig, member, entry, schedule, userId, takenDays = [
             <input id="hours-break" type="number" inputMode="numeric" min="0" max="720" step="5" value={form.break_minutes} onChange={e => set('break_minutes', e.target.value)} style={input} />
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '12px' }}>
           <div>
             <HintLabel htmlFor="hours-travel" hint="hours-travel">{t('hours.travelMinutes')}</HintLabel>
             <input id="hours-travel" type="number" inputMode="numeric" min="0" max="1440" step="5" value={form.travel_minutes} onChange={e => set('travel_minutes', e.target.value)} style={input} />
@@ -161,7 +161,7 @@ export function HoursModal({ gig, member, entry, schedule, userId, takenDays = [
         {entry?.status === 'returned' && entry.review_note && (
           <p style={{ fontSize: '13px', margin: 0, color: colors.danger }}>{t('hours.returnedNote', { note: entry.review_note })}</p>
         )}
-        <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{t('hours.formHint')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{t('hours.formHint')}</p>
         <button type="submit" disabled={saving || !ok} style={{ ...btnPrimary, justifyContent: 'center' }}>
           {saving ? <AvxLoader size={15} /> : <Check size={15} />} {entry ? t('common.save') : t('hours.send')}
         </button>

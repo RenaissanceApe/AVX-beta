@@ -22,7 +22,7 @@ import ClientNumbers from '../components/reports/ClientNumbers'
 import { updateIfUnchanged, notifyConflict } from '../lib/staleSave'
 
 const TABS = ['clients', 'suppliers']
-const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }
+const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }
 const small = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
 const Field = ({ id, text, children }) => <div><label style={label} htmlFor={id}>{text}</label>{children}</div>
 

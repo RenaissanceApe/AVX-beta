@@ -97,14 +97,14 @@ export default function TwoStepSection({ label, input, smallBtn }) {
     load()
   }
 
-  const hint = { color: 'var(--muted)', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }
+  const hint = { color: 'var(--muted)', fontSize: '13px', marginTop: '8px', lineHeight: 1.5 }
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}><span style={{ ...label, marginBottom: 0 }}>{t('mfa.title')}</span><Hint id="two-step" label={t('mfa.title')} /></div>
       {factor === undefined ? <AvxLoader size={16} color="var(--accent-text)" />
         : factor ? (
           <>
-            <p style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+            <p style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
               <ShieldCheck size={16} color="var(--accent-text)" /> {t('mfa.on')}
             </p>
             <button onClick={turnOff} disabled={busy} style={{ ...smallBtn, background: 'transparent', borderColor: 'var(--danger)', color: 'var(--danger)' }}>

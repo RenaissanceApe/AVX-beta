@@ -17,9 +17,9 @@ import { Hint } from '../help/HelpParts'
 import { NumberTile, BarChart } from './Charts'
 import { PeriodBar, ReportTable, ExportButtons, DetailsToggle, useDetails, downloadCsv } from './ReportParts'
 
-const noteStyle = { fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }
+const noteStyle = { fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }
 const tiles = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '8px' }
-const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
+const h2 = { fontSize: '16px', fontWeight: 700, margin: 0 }
 const select = { ...input, width: 'auto', minWidth: 0, maxWidth: '100%', padding: '7px 10px' }
 
 // Reports → Sales (K4): quotes waiting for an answer and the follow-up list, the win rate (by
@@ -67,7 +67,7 @@ export default function SalesReport({ orgId, timeZone, labels, params, setParam 
           onCustom={c => { setParam('from', c.from || null); setParam('until', c.until || null) }}
           compare={compare} onCompare={v => setParam('compare', v === 'previous' ? null : v)} range={range} compared={compared} />
       )}
-      <div className="no-print" role="group" aria-label={t('sales.views')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="no-print" role="group" aria-label={t('sales.views')} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
         {SALES_VIEWS.map(v => (
           <button key={v} type="button" onClick={() => setView(v)} aria-pressed={view === v}
             style={{ ...btn, padding: '6px 10px', ...(view === v ? { borderColor: colors.accentText, color: colors.accentText, fontWeight: 700 } : {}) }}>
@@ -86,7 +86,7 @@ export default function SalesReport({ orgId, timeZone, labels, params, setParam 
 function CurrencyPicker({ currencies, currency, onPick, t }) {
   if (currencies.length < 2) return null
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', fontSize: '12px', color: colors.muted, gap: '2px' }}>
+    <label style={{ display: 'flex', flexDirection: 'column', fontSize: '13px', color: colors.muted, gap: '4px' }}>
       {t('reports.currency')}
       <select value={currency} onChange={e => onPick(e.target.value)} style={{ ...btn, padding: '6px 8px' }}>
         {currencies.map(c => <option key={c} value={c}>{c}</option>)}
@@ -147,7 +147,7 @@ function Waiting({ orgId, today, details, toggleDetails, money, picked, setPicke
       { key: 'currency', label: t('reports.currency'), value: () => currency }], 'csv:reports:sales')
   return (
     <>
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <p style={{ ...noteStyle, flex: '1 1 240px' }}>{t('sales.asOfToday', { date: fmt(today, 'd MMM yyyy') })}</p>
         <CurrencyPicker currencies={currencies} currency={currency} onPick={setPicked} t={t} />
       </div>
@@ -160,19 +160,19 @@ function Waiting({ orgId, today, details, toggleDetails, money, picked, setPicke
       <BarChart title={t('sales.chart.byAge', { currency })} data={chart} format={v => money(v, currency)} valueLabel={t('sales.col.value')} />
 
       <section aria-labelledby="sl-follow" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
           <h2 id="sl-follow" style={{ ...h2, flex: '1 1 auto' }}>{t('sales.followUpList', { days: FOLLOW_UP_DAYS })}</h2>
           <Link to={`/org/${orgId}/quotes?status=follow_up`} className="no-print" style={{ fontSize: '13px', color: colors.accentText }}>{t('sales.openInQuotes')}</Link>
         </div>
         {follow.length === 0 ? <p style={noteStyle}>{t('sales.noFollowUp')}</p> : (
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {[...follow].sort((a, b) => b.days_waiting - a.days_waiting).map(r => (
               <li key={r.quote_id}>
                 <Link to={`/quote/${r.quote_id}`} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', color: 'var(--text)', textDecoration: 'none' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: colors.soft }}>{quoteNumber({ number: r.quote_number }, prefix)}</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: colors.soft }}>{quoteNumber({ number: r.quote_number }, prefix)}</span>
                   <span style={{ flex: '1 1 160px', minWidth: 0 }}>
                     <span style={{ display: 'block', fontWeight: 600, fontSize: '14px', overflowWrap: 'anywhere' }}>{r.title}</span>
-                    <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
+                    <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>
                       {[r.client_name || t('reports.noClient'), t('sales.daysWaiting', { count: Number(r.days_waiting) }), flags(r)].filter(Boolean).join(' · ')}
                     </span>
                   </span>
@@ -184,7 +184,7 @@ function Waiting({ orgId, today, details, toggleDetails, money, picked, setPicke
         )}
       </section>
 
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
         <DetailsToggle on={details} onToggle={toggleDetails} />
         <span style={{ flex: '1 1 auto' }} />
         <ExportButtons onCsv={csv} disabled={!rows.length} />
@@ -268,7 +268,7 @@ function WinRate({ orgId, range, compared, compareLabel, details, toggleDetails,
     [...columns.map(c => ({ ...c, csv: c.value })), { key: 'currency', label: t('reports.currency'), value: () => currency }], 'csv:reports:sales')
   return (
     <>
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
         <CurrencyPicker currencies={currencies} currency={currency} onPick={setPicked} t={t} />
       </div>
       <div style={tiles}>
@@ -283,8 +283,8 @@ function WinRate({ orgId, range, compared, compareLabel, details, toggleDetails,
       </div>
       {currencies.length > 1 && <p style={noteStyle}>{t('sales.countsAllCurrencies')}</p>}
 
-      <div className="no-print" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0, flex: '0 1 220px' }}>
+      <div className="no-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, flex: '0 1 220px' }}>
           <label htmlFor="sl-group" style={{ ...label, marginBottom: 0 }}>{t('reports.groupBy')}</label>
           <select id="sl-group" value={group} onChange={e => setParam('by', e.target.value === 'month' ? null : e.target.value)} style={select}>
             {groups.map(g => <option key={g} value={g}>{groupLabel(g)}</option>)}
@@ -293,14 +293,14 @@ function WinRate({ orgId, range, compared, compareLabel, details, toggleDetails,
       </div>
       {chart.length > 0 && <BarChart title={t('sales.chart.winBy', { group: groupLabel(group) })} data={chart} format={v => `${v}%`} valueLabel={t('sales.col.byCount')} />}
 
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
         <DetailsToggle on={details} onToggle={toggleDetails} />
         <span style={{ flex: '1 1 auto' }} />
         <ExportButtons onCsv={csv} disabled={!rows.length} />
       </div>
       <ReportTable columns={columns} rows={rows} sort={columns.some(c => c.key === sort.key) ? sort : { key: 'decided', dir: -1 }} onSort={v => setSort({ ...v, group })} empty={t('sales.emptyWin')} />
 
-      <section aria-labelledby="sl-lost" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <section aria-labelledby="sl-lost" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <h2 id="sl-lost" style={h2}>{t('sales.lostReasons')}</h2>
         {lostBy.size === 0 && !notSaid ? <p style={noteStyle}>{t('sales.noLost')}</p> : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
@@ -358,7 +358,7 @@ function Clients({ orgId, range, today, details, toggleDetails, money, pct, pick
       { key: 'currency', label: t('reports.currency'), value: () => currency }], 'csv:reports:sales')
   return (
     <>
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
         <CurrencyPicker currencies={currencies} currency={currency} onPick={setPicked} t={t} />
       </div>
       <div style={tiles}>
@@ -368,7 +368,7 @@ function Clients({ orgId, range, today, details, toggleDetails, money, pct, pick
         <NumberTile label={t('sales.tile.returning')} value={String(mix.returning)} />
       </div>
       {chart.length > 0 && <BarChart title={t('sales.chart.topClients', { currency })} data={chart} format={v => money(v, currency)} valueLabel={t('money.line.revenue')} />}
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
         <DetailsToggle on={details} onToggle={toggleDetails} />
         <span style={{ flex: '1 1 auto' }} />
         <ExportButtons onCsv={csv} disabled={!rows.length} />

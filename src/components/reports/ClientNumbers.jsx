@@ -41,11 +41,11 @@ export default function ClientNumbers({ orgId, clientId }) {
   )
   return (
     <section aria-labelledby="cl-numbers" style={{ ...card, padding: '12px 14px', marginTop: '18px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
         <h2 id="cl-numbers" style={{ ...label, marginBottom: 0 }}>{t('sales.card.title')}</h2>
         <Hint id="client-numbers" label={t('sales.card.title')} />
       </div>
-      <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '10px', margin: 0 }}>
+      <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '12px', margin: 0 }}>
         {item('revenue', money.map(r => formatMoney(Number(r.revenue) || 0, r.currency, lang)).join(' · '))}
         {item('margin', money.map(r => `${formatMoney(Number(r.gross_margin) || 0, r.currency, lang)}${r.margin_pct != null ? ` (${Number(r.margin_pct).toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB')}%)` : ''}`).join(' · '))}
         {item('gigs', String(first.gigs))}
@@ -56,7 +56,7 @@ export default function ClientNumbers({ orgId, clientId }) {
         {item('lastGig', day(first.last_gig))}
         {item('nextGig', day(first.next_gig))}
       </dl>
-      <p style={{ fontSize: '12px', color: colors.muted, margin: '8px 0 0', lineHeight: 1.5 }}>
+      <p style={{ fontSize: '13px', color: colors.muted, margin: '8px 0 0', lineHeight: 1.5 }}>
         {t('sales.card.note')} <Link to={`/org/${orgId}/reports?tab=sales&view=clients`} style={{ color: colors.accentText }}>{t('sales.card.allClients')}</Link>
       </p>
     </section>

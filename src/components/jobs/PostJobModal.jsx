@@ -12,8 +12,8 @@ import { useI18n, translate, LANGUAGES as UI_LANGUAGES } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader } from '../ui'
 import PlaceFinder from '../PlaceFinder'
 
-const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
-const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }
+const hint = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
+const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }
 
 // Publish an open position to the job board (docs/CREW_NETWORK.md, N3), for a gig the person
 // manages. Without a gig given, the organisation's upcoming gigs are offered first.
@@ -127,7 +127,7 @@ export default function PostJobModal({ gig: givenGig, position, gigs = [], onClo
           {form.place ? (
             <div>
               <span style={label}>{t('jobs.where')}</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 600 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 600 }}>
                 <MapPin size={14} aria-hidden="true" /> {form.place.label}
                 <button type="button" onClick={() => set({ place: null })} aria-label={t('jobs.changePlace')} style={iconBtn}><X size={15} /></button>
               </span>
@@ -138,9 +138,9 @@ export default function PostJobModal({ gig: givenGig, position, gigs = [], onClo
           <div>
             <label style={label} htmlFor="pj-lang">{t('jobs.languages')}</label>
             {form.languages.length > 0 && (
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {form.languages.map(l => (
-                  <li key={l} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, background: 'var(--selection)', color: colors.accentText }}>
+                  <li key={l} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', fontSize: '13px', fontWeight: 600, background: 'var(--selection)', color: colors.accentText }}>
                     {languageName(l, lang)}
                     <button type="button" onClick={() => set({ languages: form.languages.filter(x => x !== l) })} aria-label={t('crewProfile.removeLanguage', { name: languageName(l, lang) })} style={{ ...iconBtn, padding: 0, color: 'inherit' }}><X size={13} /></button>
                   </li>
@@ -163,7 +163,7 @@ export default function PostJobModal({ gig: givenGig, position, gigs = [], onClo
           <fieldset style={{ border: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <legend style={{ ...label, marginBottom: '6px' }}>{t('jobs.payTitle')}</legend>
             {['ask_rate', 'fixed'].map(m => (
-              <label key={m} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', cursor: 'pointer' }}>
+              <label key={m} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
                 <input type="radio" name="pj-pay" checked={form.pay_mode === m} onChange={() => set({ pay_mode: m })} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
                 <span><span style={{ fontWeight: 600 }}>{t(`jobs.payMode.${m}`)}</span>
                   <span style={{ display: 'block', ...hint, marginTop: '2px' }}>{t(`jobs.payModeHint.${m}`)}</span></span>
@@ -189,7 +189,7 @@ export default function PostJobModal({ gig: givenGig, position, gigs = [], onClo
           </fieldset>
           <p style={hint}>{t('jobs.postPrivacy')}</p>
         </>}
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <button type="submit" disabled={saving || !gig} style={btnPrimary}>
             {saving ? <AvxLoader size={15} /> : <Send size={15} />} {t('jobs.publish')}
           </button>

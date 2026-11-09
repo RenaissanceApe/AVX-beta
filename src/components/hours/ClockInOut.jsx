@@ -47,14 +47,14 @@ export default function ClockInOut({ gig, userId }) {
   }
 
   return (
-    <div style={{ ...card, display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+    <div style={{ ...card, display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
       <Timer size={28} color={colors.accentText} aria-hidden="true" />
       <div style={{ flex: '1 1 160px', minWidth: 0 }}>
         <div style={{ fontSize: '13px', color: colors.muted }}>{t('hours.clockTitle')}</div>
-        <div style={{ fontSize: '15px', fontWeight: 700 }}>
+        <div style={{ fontSize: '16px', fontWeight: 700 }}>
           {clock ? t('hours.clockedInAt', { time: clock.start }) : t('hours.notClockedIn')}
         </div>
-        <Link to={`/gig/${gig.id}?tab=crew`} style={{ fontSize: '12px', color: colors.accentText }}>{t('hours.addBreak')}</Link>
+        <Link to={`/gig/${gig.id}?tab=crew`} style={{ fontSize: '13px', color: colors.accentText }}>{t('hours.addBreak')}</Link>
       </div>
       {clock ? (
         <button type="button" onClick={clockOut} disabled={busy} style={{ ...btnPrimary, fontSize: '16px', padding: '12px 18px' }}>

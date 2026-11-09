@@ -52,14 +52,14 @@ export default function PackingListPage() {
         .packing-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
         .sheet { max-width: 800px; margin: 0 auto; background: #fff; color: #111; padding: 32px; font-size: 13px; }
         .sheet h1 { font-size: 24px; margin-bottom: 2px; }
-        .sheet h2 { font-size: 12px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 20px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; }
+        .sheet h2 { font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 20px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; }
         .sheet table { width: 100%; border-collapse: collapse; }
         .sheet th { text-align: left; font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; color: #666; padding: 4px 6px; border-bottom: 1px solid #ccc; }
         .sheet td { padding: 6px; border-bottom: 1px solid #eee; vertical-align: top; }
         .sheet .box { width: 14px; height: 14px; border: 1.5px solid #111; display: inline-block; }
         .sheet .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .sheet .muted { color: #666; }
-        .sheet .step { white-space: nowrap; font-size: 12px; }
+        .sheet .step { white-space: nowrap; font-size: 13px; }
         .toolbar { max-width: 800px; margin: 0 auto 12px; display: flex; justify-content: space-between; }
         @media print {
           @page { margin: 12mm; }
@@ -80,7 +80,7 @@ export default function PackingListPage() {
             <h1>{gig.name}</h1>
             <div>{gig.venue || t('callsheet.venueTbc')} · {dates}</div>
           </div>
-          <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
+          <div className="muted" style={{ textAlign: 'right', fontSize: '13px' }}>
             {gig.organisations?.name && <div><strong style={{ color: '#111' }}>{gig.organisations.name}</strong></div>}
             <div>{t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}</div>
           </div>
@@ -118,6 +118,6 @@ export default function PackingListPage() {
 }
 
 const toolbarBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', 
+  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 14px', 
   border: '1px solid #c5ccd4', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }

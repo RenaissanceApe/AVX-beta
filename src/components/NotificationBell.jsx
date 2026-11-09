@@ -100,7 +100,7 @@ export default function NotificationBell() {
         {unread > 0 && (
           <span style={{
             position: 'absolute', top: '1px', right: '0', minWidth: '16px', height: '16px', padding: '0 4px',
-            background: 'var(--text)', color: 'var(--bg)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, lineHeight: '16px', textAlign: 'center',
+            background: 'var(--text)', color: 'var(--bg)', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, lineHeight: '16px', textAlign: 'center',
           }}>{unread > 9 ? '9+' : unread}</span>
         )}
       </button>
@@ -114,7 +114,7 @@ export default function NotificationBell() {
             <strong style={{ fontSize: '14px' }}>{t('notif.bell')}</strong>
             {unreadAny && (
               <button onClick={() => markRead(items.filter(n => !n.read_at).map(n => n.id))}
-                style={{ background: 'none', border: 'none', color: colors.accentText, fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                style={{ background: 'none', border: 'none', color: colors.accentText, fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <CheckCheck size={14} /> {t('notif.markAllRead')}
               </button>
             )}
@@ -123,7 +123,7 @@ export default function NotificationBell() {
             <p style={{ padding: '24px 14px', color: colors.muted, fontSize: '13px', textAlign: 'center' }}>{t('notif.empty')}</p>
           ) : items.map(n => (
             <button key={n.id} onClick={() => openItem(n)} style={{
-              display: 'flex', gap: '10px', width: '100%', textAlign: 'left', padding: '11px 14px', cursor: 'pointer', color: 'var(--text)',
+              display: 'flex', gap: '12px', width: '100%', textAlign: 'left', padding: '11px 14px', cursor: 'pointer', color: 'var(--text)',
               background: n.read_at ? 'transparent' : 'var(--selection)', border: 'none', borderBottom: `1px solid ${colors.border}`,
             }}>
               <span aria-hidden style={{ width: '7px', height: '7px', marginTop: '6px', flexShrink: 0, background: n.read_at ? 'transparent' : colors.accent }} />

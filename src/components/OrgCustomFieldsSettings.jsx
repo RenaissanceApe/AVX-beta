@@ -58,23 +58,23 @@ export default function OrgCustomFieldsSettings({ org }) {
     <section aria-labelledby="org-fields" style={{ marginTop: 'var(--space-section)' }}>
       <h3 id="org-fields" style={{ font: '700 16px/24px var(--font-mono)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 8px' }}><SlidersHorizontal size={16} aria-hidden="true" /> {t('custom.title')}</h3>
       <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>{t('custom.intro')}</p>
-      <div role="group" aria-label={t('custom.on')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+      <div role="group" aria-label={t('custom.on')} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
         {FIELD_ENTITIES.map(e => <button key={e} type="button" aria-pressed={entity === e} onClick={() => setEntity(e)} style={tab(entity === e)}>{t(`custom.entity.${e}`)}</button>)}
       </div>
       {loaded && fields.length === 0 && <p style={{ fontSize: '13px', color: colors.muted, marginBottom: '8px' }}>{t(`custom.empty.${entity}`)}</p>}
       {fields.length > 0 && (
         <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
           {fields.map((f, i) => (
-            <li key={f.id} style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <li key={f.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <input defaultValue={f.label} maxLength={60} aria-label={t('custom.label')} disabled={busy}
                 onBlur={e => { const v = e.target.value.trim(); if (v && v !== f.label) update(f, { label: v }); else e.target.value = f.label }}
                 style={{ ...input, flex: '1 1 140px', minWidth: 0, padding: '6px 10px' }} />
-              <span style={{ display: 'inline-flex', gap: '2px' }}>
+              <span style={{ display: 'inline-flex', gap: '4px' }}>
                 <button type="button" onClick={() => move(i, -1)} disabled={busy || i === 0} aria-label={t('labels.moveUp', { name: f.label })} style={iconBtn}><ArrowUp size={14} /></button>
                 <button type="button" onClick={() => move(i, 1)} disabled={busy || i === fields.length - 1} aria-label={t('labels.moveDown', { name: f.label })} style={iconBtn}><ArrowDown size={14} /></button>
                 <button type="button" onClick={() => remove(f)} disabled={busy} aria-label={t('labels.remove', { name: f.label })} style={iconBtn}><Trash2 size={14} /></button>
               </span>
-              <span style={{ fontSize: '12px', color: colors.muted, width: '100%', marginTop: '-4px' }}>{t(`custom.kind.${f.kind}`)}</span>
+              <span style={{ fontSize: '13px', color: colors.muted, width: '100%', marginTop: '-4px' }}>{t(`custom.kind.${f.kind}`)}</span>
               {f.kind === 'choice' && (
                 <textarea defaultValue={(f.choices || []).join('\n')} rows={2} aria-label={t('custom.choicesOf', { name: f.label })} disabled={busy}
                   onBlur={e => { const c = choicesFromText(e.target.value); if (c.length && c.join('\n') !== (f.choices || []).join('\n')) update(f, { choices: c }) }}
@@ -85,7 +85,7 @@ export default function OrgCustomFieldsSettings({ org }) {
         </ul>
       )}
       {fields.length < 40 && (
-        <form onSubmit={add} style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <form onSubmit={add} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <input value={draft.label} maxLength={60} onChange={e => setDraft(d => ({ ...d, label: e.target.value }))}
             aria-label={t('custom.newLabel')} placeholder={t('custom.placeholder')} style={{ ...input, flex: '1 1 140px', minWidth: 0, padding: '6px 10px' }} />
           <select value={draft.kind} aria-label={t('custom.kindLabel')} onChange={e => setDraft(d => ({ ...d, kind: e.target.value }))} style={{ ...select, padding: '6px 8px' }}>
@@ -98,7 +98,7 @@ export default function OrgCustomFieldsSettings({ org }) {
           )}
         </form>
       )}
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginTop: '8px' }}>{t('custom.kindHint')}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginTop: '8px' }}>{t('custom.kindHint')}</p>
     </section>
   )
 }

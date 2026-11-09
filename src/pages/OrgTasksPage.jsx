@@ -120,10 +120,10 @@ export default function OrgTasksPage() {
   const chip = on => ({ ...btn, padding: '6px 12px', background: on ? 'var(--selection)' : 'transparent', color: on ? colors.accentText : colors.soft })
   return (
     <AppShell>
-      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
+      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-            <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org?.name}</div>
+            <div style={{ fontSize: '13px', color: colors.muted, overflowWrap: 'anywhere' }}>{org?.name}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('tasks.orgTitle')}</h1>
               <PageHelp page="org-tasks" />
@@ -133,7 +133,7 @@ export default function OrgTasksPage() {
           {tab === 'tasks' && canManage && <button type="button" onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} /> {t('tasks.new')}</button>}
         </div>
 
-        <div role="tablist" aria-label={t('tasks.orgTitle')} style={{ display: 'flex', gap: '6px', borderBottom: `1px solid ${colors.border}` }}>
+        <div role="tablist" aria-label={t('tasks.orgTitle')} style={{ display: 'flex', gap: '8px', borderBottom: `1px solid ${colors.border}` }}>
           {['tasks', 'templates'].map(k => (
             <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setParams(k === 'tasks' ? {} : { tab: k }, { replace: true })}
               style={{ background: 'none', border: 'none', borderBottom: `2px solid ${tab === k ? colors.accent : 'transparent'}`, padding: '8px 10px', font: 'inherit', fontSize: '14px', fontWeight: 600, color: tab === k ? 'var(--text)' : colors.muted, cursor: 'pointer' }}>
@@ -147,7 +147,7 @@ export default function OrgTasksPage() {
         ) : (
           <>
             {tasks.length > 0 && (
-              <div role="group" aria-label={t('tasks.filters')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <div role="group" aria-label={t('tasks.filters')} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button type="button" aria-pressed={filter.mine} onClick={() => setFilter(f => ({ ...f, mine: !f.mine }))} style={chip(filter.mine)}>{t('tasks.mine')}</button>
                 <button type="button" aria-pressed={filter.open} onClick={() => setFilter(f => ({ ...f, open: !f.open }))} style={chip(filter.open)}>{t('tasks.openOnly')}</button>
                 {['org', 'gig'].map(p => (
@@ -171,7 +171,7 @@ export default function OrgTasksPage() {
                       onChecklist={list => patch(task, { checklist: list })}
                       onEdit={() => setEditing(task)} onRemove={() => remove(task)}
                       gigLink={task.gigs ? <GigLink gig={task.gigs} />
-                        : task.repair_id ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><Wrench size={12} aria-hidden="true" /> {t('tasks.fromRepair')}</span> : null} />
+                        : task.repair_id ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Wrench size={12} aria-hidden="true" /> {t('tasks.fromRepair')}</span> : null} />
                   )
                 })}
               </ul>

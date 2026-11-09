@@ -17,9 +17,9 @@ import { Modal, btn, btnPrimary, btnDanger, iconBtn, input, colors, AvxLoader } 
 // A section on the page ground, no card (DESIGN.md rule 2)
 const section = { display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }
 const h2 = { font: '700 16px/24px var(--font-mono)', margin: 0, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }
-const field = { minWidth: 0, fontSize: '12px', color: colors.soft, display: 'flex', flexDirection: 'column', gap: '4px' }
+const field = { minWidth: 0, fontSize: '13px', color: colors.soft, display: 'flex', flexDirection: 'column', gap: '4px' }
 const full = { gridColumn: '1 / -1' }
-const li = { display: 'flex', gap: '4px 10px', alignItems: 'center', flexWrap: 'wrap', padding: '9px 0', borderTop: `1px solid ${colors.border}`, fontSize: '14px' }
+const li = { display: 'flex', gap: '4px 12px', alignItems: 'center', flexWrap: 'wrap', padding: '9px 0', borderTop: `1px solid ${colors.border}`, fontSize: '14px' }
 
 // ── Recurring costs ──────────────────────────────────────────────────────────
 function RecurringForm({ orgId, rec, categories, suppliers, onClose, onSaved }) {
@@ -63,7 +63,7 @@ function RecurringForm({ orgId, rec, categories, suppliers, onClose, onSaved }) 
 
   return (
     <Modal title={rec ? t('expenses.recurringEdit') : t('expenses.recurringAdd')} onClose={onClose} maxWidth={520}>
-      <form onSubmit={submit} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
+      <form onSubmit={submit} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
         <label style={{ ...field, ...full }}>{t('expenses.description')}
           <input required value={f.description} onChange={e => set({ description: e.target.value })} maxLength={300} placeholder={t('expenses.recurringPlaceholder')} style={input} />
         </label>
@@ -153,7 +153,7 @@ export function RecurringPanel({ orgId, categories, version, onChanged }) {
 
   return (
     <section style={section} aria-labelledby="exp-recurring">
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
         <h2 id="exp-recurring" style={{ ...h2, flex: '1 1 160px' }}>{t('expenses.recurring')} <Hint text={t('expenses.recurringIntro')} label={t('expenses.recurring')} /></h2>
         <button type="button" onClick={() => setEditing('new')} style={btn}><Plus size={14} /> {t('expenses.recurringAdd')}</button>
       </div>
@@ -168,7 +168,7 @@ export function RecurringPanel({ orgId, categories, version, onChanged }) {
             <li key={r.id} style={li}>
               <span style={{ flex: '1 1 180px', minWidth: 0 }}>
                 <span style={{ fontWeight: 600 }}>{r.description}</span>
-                <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
+                <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>
                   {t(`expenses.everyOpt.${r.every}`)} · {t('expenses.nextOn', { date: fmt(r.next_on, 'd MMM yyyy') })}
                   {r.ends_on && ` · ${t('expenses.untilDate', { date: fmt(r.ends_on, 'd MMM yyyy') })}`}
                   {' · '}{categoryName(categories.find(c => c.id === r.category_id), t)}
@@ -212,7 +212,7 @@ function CategoryForm({ orgId, cat, onClose, onSaved }) {
   }
   return (
     <Modal title={cat ? t('expenses.categoryEdit') : t('expenses.categoryAdd')} onClose={onClose}>
-      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <label style={field}>{t('expenses.categoryName')}
           <input required value={f.name} onChange={e => set({ name: e.target.value })} maxLength={80} style={input} />
         </label>
@@ -264,14 +264,14 @@ export function CategorySettings({ orgId, categories, onChanged }) {
 
   return (
     <section style={section} aria-labelledby="exp-categories">
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
         <h2 id="exp-categories" style={{ ...h2, flex: '1 1 160px' }}>{t('expenses.categories')}</h2>
         <button type="button" onClick={() => setEditing('new')} style={btn}><Plus size={14} /> {t('expenses.categoryAdd')}</button>
       </div>
       {recovers !== null && (
         <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '14px', lineHeight: 1.5 }}>
           <input type="checkbox" checked={recovers} onChange={e => saveRecovers(e.target.checked)} style={{ marginTop: '4px' }} />
-          <span>{t('expenses.recoversVat')}<span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{t('expenses.recoversVatHelp')}</span></span>
+          <span>{t('expenses.recoversVat')}<span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>{t('expenses.recoversVatHelp')}</span></span>
         </label>
       )}
       {KINDS.map(kind => (
@@ -282,7 +282,7 @@ export function CategorySettings({ orgId, categories, onChanged }) {
               <li key={c.id} style={{ ...li, opacity: c.archived_at ? 0.6 : 1 }}>
                 <span style={{ flex: '1 1 160px', minWidth: 0 }}>
                   {categoryName(c, t)}
-                  <span style={{ fontSize: '12px', color: colors.muted }}>
+                  <span style={{ fontSize: '13px', color: colors.muted }}>
                     {c.spread_months ? ` · ${t('expenses.spreadOver', { count: c.spread_months })}` : ''}
                     {!c.vat_recoverable ? ` · ${t('expenses.vatIsCost')}` : ''}
                     {c.archived_at ? ` · ${t('expenses.archived')}` : ''}

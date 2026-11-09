@@ -119,7 +119,7 @@ export default function GigMarginsReport({ orgId, timeZone, labels, params, setP
             <NumberTile label={t('finance.cost')} value={money(totals.cost)} change={change(totals.cost, prevTotals.cost)} compareLabel={compareLabel} />
             <NumberTile label={t('finance.negativeGigs')} value={String(totals.negative)} sub={t('finance.ofGigs', { count: totals.gigs })} />
           </div>
-          {totals.estimated > 0 && <p style={{ fontSize: '12px', color: 'var(--warn)', margin: 0 }}>{t('finance.estimatedShare', { amount: money(totals.estimated) })}</p>}
+          {totals.estimated > 0 && <p style={{ fontSize: '13px', color: 'var(--warn)', margin: 0 }}>{t('finance.estimatedShare', { amount: money(totals.estimated) })}</p>}
 
           {rows.length === 0 ? (
             <EmptyState compact icon={<Wallet size={26} />} title={t('finance.emptyReport')} body={t('finance.emptyReportBody')} guide="office-gig-finance" />
@@ -129,7 +129,7 @@ export default function GigMarginsReport({ orgId, timeZone, labels, params, setP
             <BarChart title={t('finance.chart.byGig')} data={gigRows} format={money} valueLabel={t('finance.margin')} />
           )}
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
             <DetailsToggle on={details} onToggle={toggleDetails} />
             <span style={{ flex: '1 1 auto' }} />
             <ExportButtons onCsv={csv} disabled={!rows.length} />
@@ -141,7 +141,7 @@ export default function GigMarginsReport({ orgId, timeZone, labels, params, setP
               <ReportTable columns={columns} rows={rows.map(r => ({ ...r, id: r.gig_id }))} sort={sort} onSort={setSort} empty={t('finance.emptyReport')} />
             </>
           )}
-          <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('finance.howMargins')}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('finance.howMargins')}</p>
         </>
       )}
     </div>

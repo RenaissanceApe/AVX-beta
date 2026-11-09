@@ -123,7 +123,7 @@ export default function RevenueReport({ orgId, timeZone, labels, params, setPara
             <BarChart title={t('reports.chart.byKind', { currency })} data={kindRows} format={money} valueLabel={t('reports.netRevenue')} />
           )}
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
             <DetailsToggle on={details} onToggle={toggleDetails} />
             <span style={{ flex: '1 1 auto' }} />
             <ExportButtons onCsv={csv} disabled={!groups.length} />
@@ -142,7 +142,7 @@ export default function RevenueReport({ orgId, timeZone, labels, params, setPara
               <ReportTable columns={columns} rows={groups} sort={sort} onSort={setSort} empty={t('reports.emptyRevenue')} />
             </>
           )}
-          <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('reports.howRevenue')}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('reports.howRevenue')}</p>
         </>
       )}
     </div>
