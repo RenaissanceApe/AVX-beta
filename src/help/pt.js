@@ -91,6 +91,8 @@ export default {
     'equipment-steps': { term: 'Etapas do equipamento', definition: 'Onde está o equipamento de um evento entre o armazém e o regresso: preparado, saída, no local, carregado no regresso, entrada, verificado.', example: '60 de 69 preparados, 40 saíram.', where: 'Evento → Equipamento, Saída / entrada, lista de carga' },
     'dmx-universe': { term: 'Universo DMX', definition: 'Uma linha de 512 canais de controlo de luz. Um projetor usa alguns deles, a partir do endereço inicial.', example: 'Universo 1 para as cabeças móveis, universo 2 para as barras LED.', where: 'Evento → Ferramentas → Patch DMX' },
     'dmx-address': { term: 'Endereço DMX', definition: 'O primeiro canal que um projetor ouve no seu universo. Usa esse e os seguintes, tantos quantos os seus canais.', example: 'Um spot de 14 canais no endereço 15 usa os canais 15 a 28.', where: 'Evento → Ferramentas → Patch DMX' },
+    mvr: { term: 'MVR', definition: 'My Virtual Rig: um formato de ficheiro aberto (DIN SPEC 15801) para um rig de luz, com o tipo, modo, lugar e endereço DMX de cada projetor. Programas como o Vectorworks, o grandMA3 e o Capture leem-no e escrevem-no.', example: 'O desenhador de luz envia um .mvr do Vectorworks; o AVX preenche com ele o patch DMX e o plano de luz.', where: 'Evento → Ferramentas → Patch DMX ou Plano de luz' },
+    gdtf: { term: 'GDTF', definition: 'General Device Type Format: um ficheiro aberto (DIN SPEC 15800) que descreve um tipo de projetor: os modos e canais DMX, o peso e a potência. Os fabricantes publicam-nos no GDTF Share.', example: 'O .gdtf de um spot diz que o modo Standard usa 18 canais e que pesa 21,5 kg.', where: 'Inventário → artigo → ⋯ → Ficheiro de tipo de projetor GDTF' },
     split: { term: 'Split', definition: 'Enviar as mesmas entradas de palco para duas mesas, normalmente a de sala e a de monitores.', example: 'A SB1 tem split para a mesa de monitores.', where: 'Evento → Ferramentas → Patch' },
     haas: { term: 'Efeito Haas', definition: 'Ouvimos o som como vindo de onde nos chega primeiro. Atrasar uma torre de delay uns milissegundos para lá da principal faz o som continuar a parecer vir do palco.', example: 'Torre de delay acertada 10 ms depois do som das principais.', where: 'Evento → Ferramentas → Calculadora de sistema de som' },
     spl: { term: 'SPL', definition: 'Nível de pressão sonora: o volume, em decibéis. Desce cerca de 6 dB cada vez que a distância duplica.', example: '136 dB a 1 m são cerca de 106 dB a 32 m.', where: 'Evento → Ferramentas → Calculadora de sistema de som' },
@@ -204,6 +206,8 @@ export default {
     'email-summary': 'Um email por dia com o que ainda não leu na aplicação. Não é enviado nada se estiver em dia.',
     'two-step': 'Para entrar, será também pedido um código de 6 dígitos de uma aplicação no telemóvel. Recomendado para administradores.',
     'dmx-footprint': 'Quantos canais DMX um projetor usa no seu modo, segundo o manual (ex.: 14 para um MAC Aura em Extended).',
+    'mvr-file': 'Um .mvr exportado do seu programa de luz. Os projetores já importados do mesmo ficheiro são atualizados, não adicionados duas vezes.',
+    'gdtf-file': 'O ficheiro de tipo de projetor do fabricante (.gdtf). Os seus modos e números de canais ficam guardados com este artigo.',
     'dmx-universe': 'Uma linha DMX de 512 canais. Rigs grandes usam vários; cada projetor está num.',
     'sys-temp': 'O som viaja mais depressa no ar quente. Use a temperatura prevista durante o espetáculo.',
     'sys-haas': 'Quanto mais tarde que a principal deve chegar um delay ou fill, para o som continuar a parecer vir do palco. O habitual é 5–15 ms.',
@@ -898,6 +902,20 @@ export default {
       mistakes: [
         'A potência é uma estimativa a partir dos valores dos projetores: os que não têm valor contam como 0 W. Confirme a alimentação real com o eletricista.',
         'Remover uma posição não apaga os projetores: passam para "fora do plano" (e continuam no patch DMX).',
+      ],
+    },
+    'pm-mvr': {
+      title: 'Trazer um rig de um MVR, e devolvê-lo',
+      intro: 'Um ficheiro MVR do Vectorworks, grandMA3 ou Capture preenche de uma vez o patch DMX e o plano de luz: projetores com tipo, modo, canais, lugar e endereço. O rig do evento sai de volta em MVR da mesma forma.',
+      steps: [
+        'Em Ferramentas, abra o patch DMX ou o plano de luz e toque em "Importar MVR". Escolha o ficheiro .mvr; ainda nada é guardado.',
+        'Para cada tipo de projetor, escolha o artigo do catálogo que é (o AVX sugere um quando o nome ou o ficheiro GDTF coincidem). Se o ficheiro não disser quantos canais usa um tipo, escreva-o.',
+        'Veja "O que vai acontecer" e toque em Importar. As posições novas aparecem no plano de luz; os projetores do mesmo ficheiro importados antes são atualizados em vez de adicionados duas vezes.',
+        'Para dar a um artigo do catálogo os modos, o peso e a potência, abra o artigo no Inventário, ⋯ → "Ficheiro de tipo de projetor GDTF". "Exportar MVR" descarrega o rig do evento, com esses ficheiros GDTF lá dentro, para a mesa de luz ou o programa de desenho.',
+      ],
+      mistakes: [
+        'Os lugares são medidos a partir do meio da frente do palco: defina o tamanho do palco no plano de palco antes de importar, ou o rig pode ficar descentrado.',
+        'O peso e a potência são os valores do fabricante, apenas uma ajuda: o rigging e a energia continuam a precisar de verificação por uma pessoa competente.',
       ],
     },
     'pm-stage-plot': {
