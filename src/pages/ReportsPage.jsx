@@ -5,7 +5,7 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { useGigLabels } from '../lib/gigLabels'
 import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
-import { btn, btnPrimary, colors, AvxLoader } from '../components/ui'
+import { btnPrimary, colors, AvxLoader, space, usePhone } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import { OverviewTiles, useOverview } from '../components/reports/OverviewTiles'
@@ -31,6 +31,7 @@ export default function ReportsPage() {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const { t } = useI18n()
+  const phone = usePhone()
   const { roleIn, loading, setWorkspace, orgs } = useWorkspace()
   const role = roleIn(orgId)
   const canSee = role === 'admin' || role === 'member'
@@ -54,7 +55,7 @@ export default function ReportsPage() {
   if (!canSee) return (
     <AppShell>
       <div style={{ maxWidth: '360px', margin: '80px auto', textAlign: 'center', padding: '0 16px' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>{title}</h1>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, marginBottom: space[2] }}>{title}</h1>
         <p style={{ color: colors.muted, fontSize: '14px', lineHeight: 1.6, marginBottom: '20px' }}>{t('reports.noAccess')}</p>
         <button type="button" onClick={() => navigate('/dashboard')} style={btnPrimary}><ArrowLeft size={14} /> {t('common.backToDashboard')}</button>
       </div>
@@ -64,47 +65,54 @@ export default function ReportsPage() {
   return (
     <AppShell>
       <PrintStyles />
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{title}</h1>
-            <span className="no-print"><PageHelp page="org-reports" /></span>
+      <style>{TABS_CSS}</style>
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: `${space[5]} var(--gutter) ${space[7]}`, display: 'flex', flexDirection: 'column', gap: space[4] }}>
+        {/* The page header (DESIGN.md rule 4): the title, one short line, the ⓘ. The ⓘ sits next to the
+            heading, not inside it, so the heading's name stays "Reports" */}
+        <header className="avx-page-head" style={{ marginBottom: 0 }}>
+          <div className="avx-page-head__text">
+            <div style={{ display: 'flex', alignItems: 'center', gap: space[2] }}>
+              <h1 className="avx-page-head__title">{title}</h1>
+              <span className="no-print"><PageHelp page="org-reports" /></span>
+            </div>
+            <p className="avx-page-head__line">{phone || !org?.name ? t('reports.intro') : `${org.name} · ${t('reports.intro')}`}</p>
           </div>
-          <p style={{ fontSize: '13px', color: colors.muted, marginTop: '2px' }}>{org?.name ? `${org.name} · ` : ''}{t('reports.intro')}</p>
-        </div>
+          {/* K9: save this report with its filters (pinned ones show on the Overview) */}
+          {tab !== 'overview' && (
+            <div className="avx-page-head__actions no-print">
+              <SaveViewButton orgId={orgId} tab={tab} params={params} onSaved={saved.add} />
+            </div>
+          )}
+        </header>
 
-        <nav className="no-print" aria-label={t('reports.tabs')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        {/* The report tabs: the chosen one is the text colour with a 2px accent bar, not a fill (rule 3) */}
+        <nav className="no-print rp-tabs" aria-label={t('reports.tabs')}>
           {REPORT_TABS.map(v => (
-            <button key={v} type="button" onClick={() => setTab(v)} aria-current={tab === v ? 'page' : undefined}
-              style={{ ...btn, padding: '7px 12px', ...(tab === v ? { background: colors.accent, color: colors.onAccent, borderColor: colors.accent } : {}) }}>
+            <button key={v} type="button" onClick={() => setTab(v)} aria-current={tab === v ? 'page' : undefined} className="rp-tab">
               {t(`reports.tab.${v}`)}
             </button>
           ))}
         </nav>
-        {/* K9: save this report with its filters (pinned ones show on the Overview) */}
-        {tab !== 'overview' && (
-          <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <SaveViewButton orgId={orgId} tab={tab} params={params} onSaved={saved.add} />
-          </div>
-        )}
 
         {tab === 'overview' && (
-          overview.loading || (!overview.data && !overview.error)
-            ? <AvxLoader size={20} color={colors.accentText} label={t('common.loading')} />
-            : overview.error
-              ? <p role="alert" style={{ color: colors.danger, fontSize: '13px' }}>{t('reports.loadFailed')}</p>
-              : (
-                <section aria-labelledby="rp-overview" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <h2 id="rp-overview" style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{t('reports.keyNumbers')}</h2>
-                  <OverviewTiles orgId={orgId} overview={overview.data} />
-                  <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('reports.overviewNote')}</p>
-                </section>
-              )
+          <div style={{ display: 'flex', flexDirection: 'column', gap: space.section, marginTop: space[3] }}>
+            {overview.loading || (!overview.data && !overview.error)
+              ? <AvxLoader size={20} color={colors.accentText} label={t('common.loading')} />
+              : overview.error
+                ? <p role="alert" style={{ color: colors.danger, fontSize: '13px' }}>{t('reports.loadFailed')}</p>
+                : (
+                  <section aria-labelledby="rp-overview" style={{ display: 'flex', flexDirection: 'column', gap: space[3] }}>
+                    <h2 id="rp-overview" style={sectionTitle}>{t('reports.keyNumbers')}</h2>
+                    <OverviewTiles orgId={orgId} overview={overview.data} />
+                    <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('reports.overviewNote')}</p>
+                  </section>
+                )}
+            {/* K9: saved views, the monthly pack and (admins) the accountant's links */}
+            <SavedViewsSection orgId={orgId} saved={saved} />
+            <ManagementPack orgId={orgId} orgName={org?.name} timeZone={org?.time_zone} />
+            {role === 'admin' && <AccountantLinks orgId={orgId} timeZone={org?.time_zone} />}
+          </div>
         )}
-        {/* K9: saved views, the monthly pack and (admins) the accountant's links */}
-        {tab === 'overview' && <SavedViewsSection orgId={orgId} saved={saved} />}
-        {tab === 'overview' && <ManagementPack orgId={orgId} orgName={org?.name} timeZone={org?.time_zone} />}
-        {tab === 'overview' && role === 'admin' && <AccountantLinks orgId={orgId} timeZone={org?.time_zone} />}
         {tab === 'revenue' && <RevenueReport orgId={orgId} timeZone={org?.time_zone} labels={labels} params={params} setParam={setParam} />}
         {tab === 'money' && <MoneyReport orgId={orgId} timeZone={org?.time_zone} labels={labels} params={params} setParam={setParam} />}
         {tab === 'sales' && <SalesReport orgId={orgId} timeZone={org?.time_zone} labels={labels} params={params} setParam={setParam} />}
@@ -116,3 +124,17 @@ export default function ReportsPage() {
     </AppShell>
   )
 }
+
+// The section heading (DESIGN.md "Typography": 16px Space Mono 700)
+const sectionTitle = { font: '700 16px/24px var(--font-mono)', margin: 0 }
+
+// Report tabs: one row that scrolls sideways on a phone, a 2px accent bar under the chosen one
+const TABS_CSS = `
+  .rp-tabs { display: flex; gap: var(--space-1); overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line);
+    margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter); }
+  .rp-tabs::-webkit-scrollbar { display: none; }
+  .rp-tab { flex: 0 0 auto; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer;
+    padding: var(--space-3) var(--space-3); min-height: 44px; font: 500 14px/20px var(--font-ui); color: var(--muted); white-space: nowrap; }
+  .rp-tab:hover { color: var(--text); }
+  .rp-tab[aria-current="page"] { color: var(--text); font-weight: 700; border-bottom-color: var(--accent); }
+`

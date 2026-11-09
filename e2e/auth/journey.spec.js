@@ -136,7 +136,9 @@ test('the organisation builds a quote, saves it as a template and prints it', as
   await expect(page.locator('footer')).toContainText('€200.00')
   await expect(page.getByRole('status').filter({ hasText: /^\s*Saved\s*$/ })).toBeVisible({ timeout: 10_000 })
 
-  await page.getByRole('button', { name: 'Save as template' }).click()
+  // DR4: past Send, Preview and the gig, the quote's actions are in its ⋯ menu
+  await page.getByRole('button', { name: 'More actions', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Save as template' }).click()
   await page.getByRole('dialog', { name: 'Save as template' }).getByRole('button', { name: 'Save template' }).click()
   await expect(page.getByText(/Template ".*" saved/)).toBeVisible()
 

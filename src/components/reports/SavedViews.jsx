@@ -98,7 +98,7 @@ export function SavedViewsSection({ orgId, saved }) {
   return (
     <section aria-labelledby="rp-views" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        <h2 id="rp-views" style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
+        <h2 id="rp-views" style={{ font: '700 16px/24px var(--font-mono)', margin: 0 }}>
           {t('reports.views.title')}
         </h2>
         <Hint id="saved-view" label={t('reports.views.title')} />
