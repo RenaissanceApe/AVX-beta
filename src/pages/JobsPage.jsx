@@ -7,14 +7,15 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { CURRENCIES, jobError, money } from '../lib/jobs'
 import { useI18n } from '../i18n'
-import { Modal, btn, btnPrimary, input, label, card, colors, tint, AvxLoader } from '../components/ui'
+import { Modal, btn, btnPrimary, input, label, colors, AvxLoader, PageHeader, Stack, space } from '../components/ui'
+import { FilterTabs, pageWrap, rowList, row } from '../components/ListParts'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import JobCard from '../components/jobs/JobCard'
 import ReportModal from '../components/ReportModal'
 
 const TABS = ['forYou', 'all', 'mine']
-const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+const hint = { fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: 0 }
 const statusTone = { applied: colors.soft, shortlisted: 'var(--sky)', offered: colors.accentText, accepted: colors.accentText, declined: 'var(--warn)', withdrawn: colors.muted }
 
 // The job board for freelancers (docs/CREW_NETWORK.md, N3): open positions matching their crew
@@ -52,67 +53,59 @@ export default function JobsPage() {
     loadMine()
   }
 
-  const tabBtn = active => ({ ...btn, background: active ? 'var(--selection)' : 'transparent', borderColor: active ? colors.accent : tint(colors.accent, 30) })
   return (
     <AppShell>
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('jobs.boardTitle')}</h1>
-            <PageHelp page="jobs" />
-          </div>
-          <p style={{ ...hint, fontSize: '13px', marginTop: '4px' }}>{t('jobs.boardIntro')}</p>
-        </div>
-        <div role="tablist" aria-label={t('jobs.boardTitle')} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {TABS.map(k => <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)} style={tabBtn(tab === k)}>{t(`jobs.tab.${k}`)}</button>)}
-        </div>
+      <div style={pageWrap}>
+        <PageHeader title={t('jobs.boardTitle')} help={<PageHelp page="jobs" />} />
+        <FilterTabs tabs label={t('jobs.boardTitle')} value={tab} onChange={setTab} style={{ marginBottom: space[5] }}
+          items={TABS.map(k => ({ key: k, label: t(`jobs.tab.${k}`) }))} />
 
         {tab !== 'mine' && (board?.needs_profile ? (
-          <div style={{ ...card, padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-start' }}>
-            <p style={{ fontSize: '14px', lineHeight: 1.6 }}>{t('jobs.needsProfile')}</p>
-            <Link to="/me/profile" style={{ ...btnPrimary, textDecoration: 'none' }}><Contact size={15} /> {t('crewProfile.open')}</Link>
-          </div>
+          <Stack gap={3} align="flex-start">
+            <p style={{ fontSize: '14px', lineHeight: 1.6, margin: 0 }}>{t('jobs.needsProfile')}</p>
+            <Link to="/me/profile" style={{ ...btnPrimary, textDecoration: 'none' }}><Contact size={16} aria-hidden="true" /> {t('crewProfile.open')}</Link>
+          </Stack>
         ) : !board ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><AvxLoader size={22} color={colors.accentText} /></div>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: space[6] }}><AvxLoader size={22} color={colors.accentText} /></div>
         ) : (
-          <section aria-labelledby="jobs-found" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <h2 id="jobs-found" role="status" style={{ fontSize: '15px', fontWeight: 700 }}>{t('jobs.found', { count: board.total })}</h2>
+          <section aria-labelledby="jobs-found" style={{ display: 'flex', flexDirection: 'column', gap: space[3] }}>
+            <h2 id="jobs-found" role="status" className="avx-section__title">{t('jobs.found', { count: board.total })}</h2>
             {board.total === 0 && <p style={hint}>{tab === 'forYou' ? t('jobs.noneForYou') : t('jobs.none')}</p>}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '12px' }}>
+            <ul style={rowList}>
               {board.results.map(j => (
                 <JobCard key={j.id} job={j}>
-                  <div style={{ marginTop: '12px' }}>
+                  <div style={{ marginTop: space[3], display: 'flex', alignItems: 'center', gap: space[4], flexWrap: 'wrap' }}>
                     {j.my_status ? (
                       <span role="status" style={{ fontSize: '13px', fontWeight: 600, color: statusTone[j.my_status] }}>{t(`jobs.myStatus.${j.my_status}`)}</span>
                     ) : (
-                      <button type="button" onClick={() => setApplying(j)} style={btnPrimary} aria-label={t('jobs.applyFor', { title: j.title })}><Send size={14} /> {t('jobs.apply')}</button>
+                      <button type="button" onClick={() => setApplying(j)} style={btn} aria-label={t('jobs.applyFor', { title: j.title })}><Send size={15} aria-hidden="true" /> {t('jobs.apply')}</button>
                     )}
                     <button type="button" onClick={() => setReporting(j)} aria-label={t('trust.report.jobNamed', { title: j.title })}
-                      style={{ background: 'none', border: 'none', padding: 0, marginLeft: '12px', font: 'inherit', fontSize: '12px', color: colors.muted, cursor: 'pointer', display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
-                      <Flag size={12} aria-hidden="true" /> {t('trust.report.action')}
+                      style={{ background: 'none', border: 'none', padding: `${space[2]} 0`, font: 'inherit', fontSize: '13px', color: colors.muted, cursor: 'pointer', display: 'inline-flex', gap: space[1], alignItems: 'center' }}>
+                      <Flag size={14} aria-hidden="true" /> {t('trust.report.action')}
                     </button>
                   </div>
                 </JobCard>
               ))}
-            </div>
+            </ul>
             {board.more && <div><button type="button" onClick={() => loadBoard(board.results.length)} disabled={loading} style={btn}>{t('crewSearch.more')}</button></div>}
           </section>
         ))}
 
         {tab === 'mine' && (!mine ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><AvxLoader size={22} color={colors.accentText} /></div>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: space[6] }}><AvxLoader size={22} color={colors.accentText} /></div>
         ) : mine.length === 0 ? (
           <p style={hint}>{t('jobs.noApplications')}</p>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <ul style={rowList}>
             {mine.map(a => (
-              <li key={a.id} style={{ ...card, padding: '14px 16px', display: 'flex', flexWrap: 'wrap', gap: '8px 16px', alignItems: 'center' }}>
+              <li key={a.id} style={{ ...row, flexWrap: 'wrap', gap: `${space[2]} ${space[4]}` }}>
                 <div style={{ flex: '1 1 220px', minWidth: 0 }}>
                   <div style={{ fontWeight: 700, overflowWrap: 'anywhere' }}>{a.post.title} · {a.post.org_name}</div>
                   <div style={hint}>{fmt(a.post.starts_on, 'd MMM yyyy')}{a.post.place && <> · {a.post.place}</>}{a.day_rate != null && <> · {t('jobs.yourRate', { rate: money(Number(a.day_rate), a.currency || 'EUR', lang) })}</>}</div>
                 </div>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: statusTone[a.status] }}>{t(`jobs.myStatus.${a.status}`)}</span>
-                <Link to="/messages" style={{ ...btn, textDecoration: 'none' }}><MessageCircle size={14} /> {t('jobs.messages')}</Link>
+                <Link to="/messages" style={{ ...btn, textDecoration: 'none' }}><MessageCircle size={15} aria-hidden="true" /> {t('jobs.messages')}</Link>
                 {['applied', 'shortlisted', 'offered'].includes(a.status) && (
                   <button type="button" onClick={() => withdraw(a)} style={{ ...btn, background: 'transparent' }}>{t('jobs.withdraw')}</button>
                 )}

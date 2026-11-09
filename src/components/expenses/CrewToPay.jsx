@@ -6,7 +6,7 @@ import { logger } from '../../lib/logger'
 import { formatMoney } from '../../lib/quotes'
 import { moneyLines } from '../../lib/analytics/tiles'
 import { useI18n, fmt } from '../../i18n'
-import { btn, card, colors, AvxLoader } from '../ui'
+import { btn, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { Hint } from '../help/HelpParts'
 import { PaidModal } from '../gig/LabourCost'
@@ -32,11 +32,12 @@ export default function CrewToPay({ orgId, isAdmin }) {
   const estimated = rows.filter(r => r.estimated).length
 
   return (
-    <section aria-labelledby="crew-pay-title" style={{ ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <h2 id="crew-pay-title" style={{ fontSize: '15px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <Users size={15} color="var(--accent-text)" aria-hidden="true" /> {t('crewPay.title')} <Hint id="crew-to-pay" />
+    <section aria-labelledby="crew-pay-title" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+      <h2 id="crew-pay-title" className="avx-section__title">
+        <Users size={16} color="var(--accent-text)" aria-hidden="true" /> {t('crewPay.title')}
+        {/* The intro sits behind ⓘ (DESIGN.md rule 4); members see which gigs they cover */}
+        {isAdmin ? <Hint id="crew-to-pay" /> : <Hint text={t('crewPay.introMember')} label={t('crewPay.title')} />}
       </h2>
-      <p style={{ fontSize: '12px', color: colors.muted, margin: 0, lineHeight: 1.5 }}>{t(isAdmin ? 'crewPay.intro' : 'crewPay.introMember')}</p>
       {rows.length === 0 ? (
         <EmptyState compact icon={<BadgeCheck size={26} />} title={t('crewPay.emptyTitle')} body={t('crewPay.emptyBody')} guide="office-expenses" />
       ) : (
