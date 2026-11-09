@@ -19,7 +19,8 @@ begin
 
   -- New organisations get all six tools
   select array_to_string(field_tools, ',') into t from organisations where id = org_a;
-  if t <> 'stage_plot,input_list,patch,dmx_patch,light_plot,system_calc' then raise exception 'CHECK FAILED: default tools %', t; end if;
+  -- New organisations get the default tools (20270106000001 added power and rigging)
+  if t not like 'stage_plot,input_list,patch,dmx_patch,light_plot,system_calc%' then raise exception 'CHECK FAILED: default tools %', t; end if;
 
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   set local role authenticated;
