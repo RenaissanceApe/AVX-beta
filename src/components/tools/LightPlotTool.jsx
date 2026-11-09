@@ -349,9 +349,9 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
           {loose.length > 0 && (
             <section aria-labelledby="light-loose" style={{ marginBottom: '14px' }}>
               <h3 id="light-loose" style={{ ...label, marginBottom: '6px' }}>{t('light.notOnPlot', { count: loose.length })}</h3>
-              <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column' }}>
                 {loose.map(f => (
-                  <li key={f.id} style={{ ...card, padding: '6px 12px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', fontSize: '13px' }}>
+                  <li key={f.id} style={{ padding: '8px 0', borderBottom: `1px solid ${colors.line}`, display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', fontSize: '13px' }}>
                     <span style={{ flex: '1 1 160px', minWidth: 0 }}><strong>{f.name}</strong> <span style={{ color: colors.muted }}>· {f.fixture_type}{f.position ? ` · ${f.position}` : ''}</span></span>
                     {canEdit && (
                       <select aria-label={t('light.hangOn', { name: f.name })} value="" onChange={e => hangOn(f, e.target.value)}

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { AlertTriangle, BookOpen } from 'lucide-react'
 import { guide, term, shotUrl } from '../../help'
 import { useI18n } from '../../i18n'
-import { colors } from '../ui'
+import { colors, space } from '../ui'
 
 // One how-to guide (docs/HELP.md, H2): what it's for, numbered steps with a screenshot each
 // (the button to tap is outlined in green), common mistakes and the words it uses.
@@ -18,16 +18,16 @@ export default function GuideView({ id, compact = false }) {
     <article aria-labelledby={`guide-${id}`}>
       {compact
         ? <h2 id={`guide-${id}`} style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>{g.title}</h2>
-        : <h1 id={`guide-${id}`} style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>{g.title}</h1>}
+        : <h1 id={`guide-${id}`} className="avx-page-head__title" style={{ color: 'var(--text)', marginBottom: space[2] }}>{g.title}</h1>}
       <p style={{ fontSize: compact ? '14px' : '15px', lineHeight: 1.6, color: 'var(--text-2)' }}>{g.intro}</p>
 
-      <ol style={{ listStyle: 'none', padding: 0, margin: '18px 0 0', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <ol style={{ listStyle: 'none', padding: 0, margin: `${compact ? space[4] : space[6]} 0 0`, display: 'flex', flexDirection: 'column', gap: compact ? space[4] : space[5] }}>
         {g.steps.map((text, i) => (
           <li key={i} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
               <span aria-hidden="true" style={{
-                flexShrink: 0, width: '26px', height: '26px', background: colors.accent, color: 'var(--on-accent)',
-                fontWeight: 700, fontSize: '14px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, width: '28px', height: '28px', border: `1px solid ${colors.lineStrong}`, color: colors.accentText,
+                fontWeight: 700, fontSize: '14px', fontFamily: 'var(--font-mono)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               }}>{i + 1}</span>
               <p style={{ fontSize: compact ? '14px' : '15px', lineHeight: 1.6, color: 'var(--text-2)', paddingTop: '2px' }}>
                 <span className="sr-only">{t('help.step', { n: i + 1 })} </span>{text}
@@ -35,14 +35,14 @@ export default function GuideView({ id, compact = false }) {
             </div>
             {g.shots[i] && (
               <img src={shotUrl(g.shots[i])} alt="" loading="lazy" width={imgWidth} height={Math.round(imgWidth * 844 / 390)}
-                style={{ marginLeft: '36px', width: `${imgWidth}px`, maxWidth: 'calc(100% - 36px)', height: 'auto', border: `1px solid ${colors.border}`, background: 'var(--bg)' }} />
+                style={{ marginLeft: '40px', width: `${imgWidth}px`, maxWidth: 'calc(100% - 40px)', height: 'auto', border: `1px solid ${colors.border}`, background: 'var(--bg)' }} />
             )}
           </li>
         ))}
       </ol>
 
       {g.mistakes.length > 0 && (
-        <section style={{ marginTop: '24px', padding: '14px 16px', background: 'var(--warn-soft)', border: '1px solid var(--warn)' }}>
+        <section style={{ marginTop: compact ? space[5] : space.section, padding: `${space[3]} ${space[4]}`, background: 'var(--warn-soft)', border: '1px solid var(--warn)' }}>
           <H style={{ fontSize: '16px', fontWeight: 700, color: 'var(--yellow)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <AlertTriangle size={15} aria-hidden="true" /> {t('help.mistakes')}
           </H>
@@ -53,14 +53,14 @@ export default function GuideView({ id, compact = false }) {
       )}
 
       {g.terms.length > 0 && (
-        <section style={{ marginTop: '20px' }}>
+        <section style={{ marginTop: compact ? space[5] : space.section }}>
           <H style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <BookOpen size={15} aria-hidden="true" /> {t('help.wordsUsed')}
           </H>
           <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {g.terms.map(tid => (
               <li key={tid}>
-                <Link to={`/help#${tid}`} style={{ display: 'inline-block', padding: '5px 10px', border: `1px solid ${colors.border}`, color: colors.accentText, fontSize: '13px', textDecoration: 'none' }}>
+                <Link to={`/help#${tid}`} style={{ display: 'inline-flex', alignItems: 'center', minHeight: '32px', padding: '4px 12px', border: `1px solid ${colors.border}`, color: colors.accentText, fontSize: '13px', textDecoration: 'none' }}>
                   {term(tid)?.term}
                 </Link>
               </li>

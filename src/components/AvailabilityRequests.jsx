@@ -92,10 +92,10 @@ function RequestCard({ request: r, onDone }) {
         {r.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={13} aria-hidden="true" /> {r.venue}</span>}
       </div>
       {r.starts_at && <DayStrip from={r.starts_at} until={r.ends_at || r.starts_at} />}
-      {r.message && <p style={{ fontSize: '13px', marginTop: '10px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>“{r.message}”</p>}
+      {r.message && <p style={{ fontSize: '14px', marginTop: '12px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>“{r.message}”</p>}
       <input value={note} onChange={e => setNote(e.target.value)} maxLength={500} placeholder={t('requests.notePlaceholder')}
-        aria-label={t('requests.note')} style={{ ...input, marginTop: '12px', padding: '8px 10px', fontSize: '13px' }} />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '10px' }}>
+        aria-label={t('requests.note')} style={{ ...input, marginTop: '12px', minHeight: '44px', fontSize: '16px' }} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '12px' }}>
         <button onClick={() => answer('unavailable')} disabled={!!saving} style={{ ...btn, minHeight: '44px', justifyContent: 'center' }}>
           {saving === 'unavailable' ? <AvxLoader size={14} /> : <X size={14} aria-hidden="true" />} {t('requests.unavailable')}
         </button>
@@ -116,7 +116,7 @@ function DayStrip({ from, until }) {
   for (let d = new Date(start); d <= end && days.length < 14; d.setDate(d.getDate() + 1)) days.push(new Date(d))
   if (!days.length) return null
   return (
-    <div aria-hidden="true" style={{ display: 'flex', gap: '4px', marginTop: '10px', flexWrap: 'wrap' }}>
+    <div aria-hidden="true" style={{ display: 'flex', gap: '4px', marginTop: '12px', flexWrap: 'wrap' }}>
       {days.map(d => (
         <span key={d.toISOString()} style={{ width: '40px', padding: '4px 0', textAlign: 'center', background: 'var(--fill)', border: '1px solid var(--line-strong)', fontFamily: 'var(--font-mono)' }}>
           <span style={{ display: 'block', fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.muted }}>{fmt(d, 'EEE')}</span>
