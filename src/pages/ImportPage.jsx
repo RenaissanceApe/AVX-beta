@@ -10,7 +10,7 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { KINDS, CONTACT_KINDS, HELD_KINDS, JOB_KINDS, FIELDS, looksLikeRentman, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, buildRows, dryRun, toPayload, reportCsv, serverMessage } from '../lib/importer'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
-import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors, AvxLoader } from '../components/ui'
+import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors, AvxLoader, PageHeader, space } from '../components/ui'
 
 const STEPS = ['choose', 'match', 'check', 'done']
 const KIND_ICONS = { locations: MapPin, items: Package, units: Barcode, kits: Boxes, clients: Building2, suppliers: Truck, crew: Users, gigs: CalendarDays, gig_equipment: PackageCheck, quotes: Receipt }
@@ -74,21 +74,20 @@ export default function ImportPage() {
 
   return (
     <AppShell>
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 60px' }}>
-        <Link to={homeOf(orgId, kind)[0]} style={{ ...btn, background: 'transparent', color: colors.soft, padding: '6px 10px', textDecoration: 'none', marginBottom: '12px' }}>
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: `${space[5]} var(--gutter) ${space[7]}` }}>
+        <Link to={homeOf(orgId, kind)[0]} style={{ ...btn, background: 'transparent', color: colors.soft, padding: '6px 12px', textDecoration: 'none', marginBottom: space[4] }}>
           <ArrowLeft size={14} /> {t(homeOf(orgId, kind)[1])}
         </Link>
-        <div style={{ fontSize: '12px', color: colors.muted }}>{org?.name}</div>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>{t('imp.title')}</h1>
-        <p style={{ fontSize: '14px', color: colors.soft, lineHeight: 1.6, marginBottom: '16px', maxWidth: '640px' }}>{t('imp.subtitle')}</p>
+        <PageHeader eyebrow={org?.name} title={t('imp.title')} line={t('imp.subtitle')} />
 
-        <ol aria-label={t('imp.steps')} style={{ listStyle: 'none', padding: 0, display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '18px' }}>
+        {/* The steps: the current one is the text colour with a 2px accent bar under it, not a box (DESIGN.md rule 3) */}
+        <ol aria-label={t('imp.steps')} style={{ listStyle: 'none', padding: 0, margin: `0 0 ${space[6]}`, display: 'flex', gap: `${space[1]} ${space[4]}`, flexWrap: 'wrap', borderBottom: `1px solid ${colors.border}` }}>
           {STEPS.map((s, i) => {
             const on = s === step, done = STEPS.indexOf(step) > i
             return (
-              <li key={s} aria-current={on ? 'step' : undefined} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: on ? 800 : 600,
-                color: on ? colors.accentText : done ? colors.soft : colors.muted, padding: '4px 10px', border: `1px solid ${on ? 'var(--accent)' : colors.border}` }}>
-                <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)' }}>{done ? '✓' : i + 1}</span> {t(`imp.step.${s}`)}
+              <li key={s} aria-current={on ? 'step' : undefined} style={{ display: 'flex', alignItems: 'center', gap: space[2], fontSize: '14px', fontWeight: on ? 700 : 400,
+                color: on ? 'var(--text)' : done ? colors.soft : colors.muted, padding: `${space[2]} 0`, marginBottom: '-1px', borderBottom: `2px solid ${on ? 'var(--accent)' : 'transparent'}` }}>
+                <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', color: done ? colors.accentText : undefined }}>{done ? '✓' : i + 1}</span> {t(`imp.step.${s}`)}
               </li>
             )
           })}
@@ -149,26 +148,26 @@ function SwitchChecklist({ orgId, kinds, kind, onPick }) {
   const steps = CHECKLIST.filter(c => kinds.includes(c.kind))
   const done = steps.filter(c => counts[c.kind] > 0).length
   return (
-    <section aria-labelledby="switch-title" style={{ ...card, marginBottom: '18px' }}>
-      <button type="button" onClick={toggle} aria-expanded={open} style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '8px', background: 'none', border: 'none', padding: 0, color: 'var(--text)', font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
-        <h2 id="switch-title" style={{ fontSize: '15px', fontWeight: 700, flex: 1 }}>{t('imp.switch.title')}</h2>
-        <span style={{ fontSize: '12px', color: colors.soft }}>{t('imp.switch.progress', { done, total: steps.length })}</span>
+    <section aria-labelledby="switch-title" style={{ marginBottom: space.section }}>
+      <button type="button" onClick={toggle} aria-expanded={open} style={{ display: 'flex', width: '100%', alignItems: 'baseline', gap: space[3], background: 'none', border: 'none', padding: 0, minHeight: '44px', color: 'var(--text)', font: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
+        <h2 id="switch-title" style={{ font: '700 16px/24px var(--font-mono)', margin: 0, flex: 1 }}>{t('imp.switch.title')}</h2>
+        <span style={{ fontSize: '13px', color: colors.soft }}>{t('imp.switch.progress', { done, total: steps.length })}</span>
       </button>
       {open && (
         <>
-          <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, margin: '4px 0 8px' }}>{t('imp.switch.intro')}</p>
-          <ol style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: `0 0 ${space[3]}` }}>{t('imp.switch.intro')}</p>
+          <ol style={{ listStyle: 'none', padding: 0, margin: 0, borderTop: `1px solid ${colors.border}` }}>
             {steps.map((c, i) => {
               const n = counts[c.kind]
               return (
                 <li key={c.kind}>
                   <button type="button" onClick={() => onPick(c.kind)} aria-pressed={kind === c.kind} style={{
-                    display: 'flex', width: '100%', alignItems: 'center', gap: '8px', padding: '5px 6px', border: 'none', cursor: 'pointer', font: 'inherit', textAlign: 'left',
-                    background: kind === c.kind ? 'var(--selection)' : 'none', color: 'var(--text)', fontSize: '13px',
+                    display: 'flex', width: '100%', alignItems: 'center', gap: space[2], minHeight: '44px', padding: `${space[2]} ${space[2]}`, border: 'none', borderBottom: `1px solid ${colors.border}`, cursor: 'pointer', font: 'inherit', textAlign: 'left',
+                    background: kind === c.kind ? 'var(--selection)' : 'none', borderLeft: `2px solid ${kind === c.kind ? colors.accent : 'transparent'}`, color: 'var(--text)', fontSize: '14px',
                   }}>
-                    <span aria-hidden="true" style={{ width: '18px', textAlign: 'center', color: n ? colors.accentText : colors.muted, fontWeight: 700 }}>{n ? '✓' : i + 1}</span>
+                    <span aria-hidden="true" style={{ width: '20px', textAlign: 'center', color: n ? colors.accentText : colors.muted, fontWeight: 700 }}>{n ? '✓' : i + 1}</span>
                     <span style={{ flex: 1 }}>{t(`imp.kind.${c.kind}`)}</span>
-                    <span style={{ fontSize: '12px', color: colors.muted }}>{n ? t('imp.switch.count', { count: n }) : t('imp.switch.todo')}</span>
+                    <span style={{ fontSize: '13px', color: colors.muted }}>{n ? t('imp.switch.count', { count: n }) : t('imp.switch.todo')}</span>
                   </button>
                 </li>
               )
@@ -206,47 +205,49 @@ function ChooseStep({ kinds, kind, setKind, source, setSource, headerRow, setHea
   }
   const tooMany = table.rows.length > MAX_ROWS
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[6] }}>
       <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-        <legend style={{ ...label, marginBottom: '8px' }}>{t('imp.what')}</legend>
+        <legend style={{ font: '700 16px/24px var(--font-mono)', padding: 0, marginBottom: space[3] }}>{t('imp.what')}</legend>
         {KIND_GROUPS.map(group => {
           const inGroup = group.kinds.filter(k => kinds.includes(k))
           if (!inGroup.length) return null
           return (
-            <div key={group.key} style={{ marginBottom: '12px' }}>
-              <p style={{ fontSize: '13px', fontWeight: 700, color: colors.soft, margin: '0 0 6px' }}>{t(`imp.group.${group.key}`)}</p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px' }}>
+            <div key={group.key} style={{ marginBottom: space[5] }}>
+              <p style={{ ...label, margin: `0 0 ${space[2]}` }}>{t(`imp.group.${group.key}`)}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: `0 ${space[5]}` }}>
                 {inGroup.map((k, i) => {
                   const Icon = KIND_ICONS[k]
                   return (
-                    <label key={k} style={{ ...card, display: 'flex', gap: '10px', alignItems: 'flex-start', cursor: 'pointer', borderColor: kind === k ? colors.accent : undefined }}>
+                    // A choice row, not a box: the radio and a 2px bar show the chosen one (one box deep)
+                    <label key={k} style={{ display: 'flex', gap: space[3], alignItems: 'flex-start', cursor: 'pointer', padding: `${space[3]} ${space[2]}`, borderBottom: `1px solid ${colors.border}`,
+                      borderLeft: `2px solid ${kind === k ? colors.accent : 'transparent'}` }}>
                       <input type="radio" name="imp-kind" value={k} checked={kind === k} onChange={() => setKind(k)} style={{ accentColor: 'var(--accent)', marginTop: '3px' }} />
                       <span>
-                        <strong style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '14px' }}><Icon size={15} color={colors.accentText} aria-hidden="true" /> {group.numbered ? `${i + 1}. ` : ''}{t(`imp.kind.${k}`)}</strong>
-                        <span style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t(`imp.kindAbout.${k}`)}</span>
+                        <strong style={{ display: 'flex', gap: space[2], alignItems: 'center', fontSize: '14px' }}><Icon size={15} color={colors.accentText} aria-hidden="true" /> {group.numbered ? `${i + 1}. ` : ''}{t(`imp.kind.${k}`)}</strong>
+                        <span style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5 }}>{t(`imp.kindAbout.${k}`)}</span>
                       </span>
                     </label>
                   )
                 })}
               </div>
-              {group.note && <p style={{ fontSize: '12px', color: colors.muted, marginTop: '6px' }}>{t(group.note)}</p>}
+              {group.note && <p style={{ fontSize: '13px', color: colors.muted, marginTop: space[2] }}>{t(group.note)}</p>}
             </div>
           )
         })}
       </fieldset>
 
       <div>
-        <span style={{ ...label, marginBottom: '6px', display: 'block' }}>{t('imp.file')}</span>
+        <span style={{ font: '700 16px/24px var(--font-mono)', marginBottom: space[3], display: 'block' }}>{t('imp.file')}</span>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '8px' }}>
           <button type="button" onClick={() => fileRef.current?.click()} style={btn}><Upload size={14} /> {t('imp.chooseFile')}</button>
           <input ref={fileRef} type="file" accept=".csv,.tsv,.txt,.xlsx,text/csv,text/plain,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden onChange={e => { readFile(e.target.files?.[0]); e.target.value = '' }} />
-          {source.fileName && <span style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center' }}><FileText size={14} aria-hidden="true" /> {source.fileName}</span>}
-          <span style={{ fontSize: '12px', color: colors.muted }}>{t('imp.fileHint')}</span>
+          {source.fileName && <span style={{ fontSize: '13px', display: 'flex', gap: space[2], alignItems: 'center' }}><FileText size={14} aria-hidden="true" /> {source.fileName}</span>}
+          <span style={{ fontSize: '13px', color: colors.muted }}>{t('imp.fileHint')}</span>
         </div>
         <label htmlFor="imp-paste" style={{ ...label }}>{t('imp.paste')}</label>
         <textarea id="imp-paste" rows={6} wrap="off" value={source.fileName ? '' : source.text} placeholder={source.fileName ? t('imp.fromFile') : t('imp.pastePlaceholder')}
           onChange={e => setSource({ text: e.target.value, fileName: null })}
-          style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '12px', resize: 'vertical' }} />
+          style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '13px', resize: 'vertical' }} />
         <label style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', marginTop: '8px', cursor: 'pointer' }}>
           <input type="checkbox" checked={headerRow} onChange={e => setHeaderRow(e.target.checked)} style={{ accentColor: 'var(--accent)' }} /> {t('imp.headerRow')}
         </label>
@@ -320,7 +321,7 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[4] }}>
       {presets.length > 0 && (
         <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div style={{ minWidth: '220px' }}>
@@ -334,18 +335,19 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
         </div>
       )}
       {looksLikeRentman(table.headers) && (
-        <p role="status" style={{ fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center', color: colors.accentText }}>
+        <p role="status" style={{ fontSize: '13px', display: 'flex', gap: space[2], alignItems: 'center', color: colors.accentText }}>
           <Check size={14} aria-hidden="true" /> {t('imp.rentman')}
         </p>
       )}
       <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>{t('imp.matchHelp')}</p>
-      <ul aria-label={t('imp.step.match')} style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      {/* One row per column of the file, hairlines between (an ignored column's choice reads muted) */}
+      <ul aria-label={t('imp.step.match')} style={{ listStyle: 'none', padding: 0, margin: 0, borderTop: `1px solid ${colors.border}` }}>
         {table.headers.map((h, i) => (
-          <li key={h + i} style={{ ...card, padding: '8px 12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '6px 12px', alignItems: 'center',
-            borderColor: mapping[h] ? 'var(--accent)' : undefined }}>
+          <li key={h + i} style={{ padding: `${space[3]} 0`, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: `${space[2]} ${space[3]}`, alignItems: 'center',
+            borderBottom: `1px solid ${colors.border}` }}>
             <span style={{ minWidth: 0 }}>
               <strong style={{ display: 'block', fontSize: '14px', overflowWrap: 'anywhere' }}>{h}</strong>
-              <span style={{ display: 'block', fontSize: '12px', color: colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{samples(i) || '—'}</span>
+              <span style={{ display: 'block', fontSize: '13px', color: colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{samples(i) || '—'}</span>
             </span>
             <select aria-label={t('imp.becomesFor', { column: h })} value={mapping[h] || ''} onChange={e => pick(h, e.target.value || null)}
               style={{ ...input, appearance: 'auto', padding: '6px 8px', minHeight: '36px', fontSize: '13px', color: mapping[h] ? 'var(--text)' : colors.muted }}>
@@ -362,11 +364,11 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
             <option value="">{t('imp.defaultLocationNone')}</option>
             {locations.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
           </select>
-          <p style={{ fontSize: '12px', color: colors.muted, marginTop: '4px' }}>{t('imp.defaultLocationHint')}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, marginTop: space[1] }}>{t('imp.defaultLocationHint')}</p>
         </div>
       )}
       {missing.length > 0 && (
-        <p role="status" style={{ fontSize: '13px', color: 'var(--warn)', display: 'flex', gap: '6px', alignItems: 'center' }}>
+        <p role="status" style={{ fontSize: '13px', color: 'var(--warn)', display: 'flex', gap: space[2], alignItems: 'center' }}>
           <AlertTriangle size={14} aria-hidden="true" /> {t(`imp.missing.${kind}`)}
         </p>
       )}
@@ -442,25 +444,25 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fi
 
   if (!run) return <AvxLoader size={20} color={colors.accentText} />
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <div role="status" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[5] }}>
+      <div role="status" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: space[4] }}>
         <Count label={t('imp.willCreate')} value={run.counts.create} />
         <Count label={t('imp.willMatch')} value={run.counts.match} hint={t('imp.willMatchHint')} />
         <Count label={t('imp.willSkip')} value={run.counts.skip} warn={run.counts.skip > 0} />
       </div>
       {problems.length > 0 && (
         <section aria-labelledby="imp-problems" style={{ ...card, borderColor: 'var(--warn)' }}>
-          <h2 id="imp-problems" style={{ fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>{t('imp.problemsTitle', { count: problems.length })}</h2>
+          <h2 id="imp-problems" style={{ font: '700 16px/24px var(--font-mono)', marginBottom: space[2] }}>{t('imp.problemsTitle', { count: problems.length })}</h2>
           <ul style={{ listStyle: 'none', padding: 0, fontSize: '13px', lineHeight: 1.7, maxHeight: '220px', overflowY: 'auto' }} tabIndex={0} aria-label={t('imp.problemsTitle', { count: problems.length })}>
             {problems.slice(0, 200).map(({ row, p }) => (
               <li key={row}><strong>{t('imp.line', { n: row })}</strong> · {p.field ? `${t(`imp.field.${kind}.${p.field}`)}: ` : ''}{t(`imp.err.${p.reason}`, { value: p.value })}</li>
             ))}
           </ul>
-          <p style={{ fontSize: '12px', color: colors.muted, marginTop: '6px' }}>{t('imp.problemsHint')}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, marginTop: space[2] }}>{t('imp.problemsHint')}</p>
         </section>
       )}
       <div role="region" aria-label={t('imp.preview')} tabIndex={0} style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
           <caption style={{ ...label, display: 'table-caption', captionSide: 'top', textAlign: 'left', paddingBottom: '6px', marginBottom: 0 }}>{t('imp.preview')}</caption>
           <thead>
             <tr style={{ textAlign: 'left', color: colors.muted }}>
@@ -482,7 +484,7 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fi
             })}
           </tbody>
         </table>
-        {rows.length > 30 && <p style={{ fontSize: '12px', color: colors.muted, marginTop: '4px' }}>{t('imp.andMore', { count: rows.length - 30 })}</p>}
+        {rows.length > 30 && <p style={{ fontSize: '13px', color: colors.muted, marginTop: space[1] }}>{t('imp.andMore', { count: rows.length - 30 })}</p>}
       </div>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button type="button" onClick={onBack} style={btn}><ArrowLeft size={14} /> {t('imp.back')}</button>
@@ -496,10 +498,11 @@ function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fi
 
 function Count({ label: text, value, hint, warn }) {
   return (
-    <div style={{ ...card, padding: '10px 12px', borderColor: warn ? 'var(--warn)' : undefined }}>
-      <div style={{ fontSize: '22px', fontWeight: 700, color: warn ? 'var(--warn)' : 'var(--text)' }}>{value}</div>
-      <div style={{ fontSize: '12px', color: colors.soft }}>{text}</div>
-      {hint && <div style={{ fontSize: '11px', color: colors.muted, marginTop: '2px' }}>{hint}</div>}
+    // A big number and its label on the page ground (a count you don't open isn't a card)
+    <div style={{ minWidth: 0 }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '24px', fontWeight: 700, color: warn ? 'var(--warn)' : 'var(--text)' }}>{value}</div>
+      <div style={{ fontSize: '13px', color: colors.soft }}>{text}</div>
+      {hint && <div style={{ fontSize: '13px', color: colors.muted, marginTop: space[1] }}>{hint}</div>}
     </div>
   )
 }
@@ -518,15 +521,15 @@ function DoneStep({ orgId, kind, result, onAgain }) {
     URL.revokeObjectURL(url)
   }
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <p role="status" style={{ ...card, display: 'flex', gap: '8px', alignItems: 'center', fontSize: '14px', borderColor: 'var(--accent)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space[4] }}>
+      <p role="status" style={{ display: 'flex', gap: space[2], alignItems: 'center', fontSize: '16px', fontWeight: 600, margin: 0 }}>
         <Check size={16} color={colors.accentText} aria-hidden="true" /> {t('imp.doneSummary', { created: result.created, updated: result.updated, unchanged: result.unchanged, skipped: result.skipped })}
       </p>
       {isHeld(kind) && <p style={{ fontSize: '14px', color: colors.soft, lineHeight: 1.6 }}>{t('imp.heldNote')}</p>}
       {isJob(kind) && <p style={{ fontSize: '14px', color: colors.soft, lineHeight: 1.6 }}>{t(`imp.jobNote.${kind}`)}</p>}
       {problems.length > 0 && (
         <section aria-labelledby="imp-report">
-          <h2 id="imp-report" style={{ ...label, marginBottom: '6px' }}>{t('imp.report')}</h2>
+          <h2 id="imp-report" style={{ font: '700 16px/24px var(--font-mono)', marginBottom: space[2] }}>{t('imp.report')}</h2>
           <ul tabIndex={0} aria-label={t('imp.report')} style={{ listStyle: 'none', padding: 0, fontSize: '13px', lineHeight: 1.7, maxHeight: '260px', overflowY: 'auto' }}>
             {problems.map((p, i) => (
               <li key={i} style={{ color: p.level === 'skip' ? 'var(--warn)' : colors.soft }}>
@@ -560,19 +563,19 @@ function History({ orgId }) {
   useEffect(() => { load() }, [load])
   if (!batches?.length) return null
   return (
-    <section aria-labelledby="imp-history" style={{ marginTop: '32px' }}>
-      <h2 id="imp-history" style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>{t('imp.history')}</h2>
-      <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+    <section aria-labelledby="imp-history" style={{ marginTop: space.section }}>
+      <h2 id="imp-history" style={{ font: '700 16px/24px var(--font-mono)', marginBottom: space[3] }}>{t('imp.history')}</h2>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, borderTop: `1px solid ${colors.border}` }}>
         {batches.map(b => (
-          <li key={b.id} style={{ ...card, padding: '8px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', opacity: b.undone_at ? 0.75 : 1 }}>
+          <li key={b.id} style={{ padding: `${space[3]} 0`, minHeight: '52px', borderBottom: `1px solid ${colors.border}`, display: 'flex', gap: space[3], alignItems: 'center', flexWrap: 'wrap', opacity: b.undone_at ? 0.75 : 1 }}>
             <span style={{ flex: '1 1 240px', minWidth: 0 }}>
               <strong style={{ fontSize: '14px' }}>{t(`imp.kind.${b.subject || b.kind}`)}</strong>
-              <span style={{ fontSize: '12px', color: colors.muted }}> · {fmt(b.created_at, 'd MMM yyyy, HH:mm')}{b.file_name ? ` · ${b.file_name}` : ''}{b.preset ? ` · ${b.preset}` : ''}</span>
-              <span style={{ display: 'block', fontSize: '12px', color: colors.soft }}>{t('imp.doneSummary', { created: b.created, updated: b.updated, unchanged: b.unchanged, skipped: b.skipped })}</span>
+              <span style={{ fontSize: '13px', color: colors.muted }}> · {fmt(b.created_at, 'd MMM yyyy, HH:mm')}{b.file_name ? ` · ${b.file_name}` : ''}{b.preset ? ` · ${b.preset}` : ''}</span>
+              <span style={{ display: 'block', fontSize: '13px', color: colors.soft }}>{t('imp.doneSummary', { created: b.created, updated: b.updated, unchanged: b.unchanged, skipped: b.skipped })}</span>
             </span>
             {b.undone_at
-              ? <span style={{ fontSize: '12px', fontWeight: 700, color: colors.muted }}>{t('imp.undone')}</span>
-              : (b.created > 0 || b.updated > 0) && <button type="button" onClick={() => setUndoing(b)} style={{ ...btnDanger, padding: '6px 10px', fontSize: '12px' }}><Undo2 size={13} /> {t('imp.undo')}</button>}
+              ? <span style={{ fontSize: '13px', fontWeight: 700, color: colors.muted }}>{t('imp.undone')}</span>
+              : (b.created > 0 || b.updated > 0) && <button type="button" onClick={() => setUndoing(b)} style={{ ...btnDanger, padding: '6px 12px', fontSize: '13px' }}><Undo2 size={13} /> {t('imp.undo')}</button>}
           </li>
         ))}
       </ul>

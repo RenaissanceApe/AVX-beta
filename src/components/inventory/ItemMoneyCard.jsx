@@ -6,7 +6,7 @@ import { logger } from '../../lib/logger'
 import { formatMoney } from '../../lib/quotes'
 import { moneyLines } from '../../lib/analytics/tiles'
 import { useI18n } from '../../i18n'
-import { card, label, colors } from '../ui'
+import { label, colors, space } from '../ui'
 import { Hint } from '../help/HelpParts'
 
 // The numbers card on the item page (K5): lifetime revenue, payback, use over 12 months and the
@@ -48,19 +48,19 @@ export default function ItemMoneyCard({ orgId, item }) {
     )],
   ]
   return (
-    <section aria-labelledby="item-money" style={{ ...card, marginBottom: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        <h2 id="item-money" style={{ fontSize: '15px', fontWeight: 700, margin: 0, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
+    <section aria-labelledby="item-money" style={{ display: 'flex', flexDirection: 'column', gap: space[4] }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: space[3], flexWrap: 'wrap' }}>
+        <h2 id="item-money" style={{ font: '700 16px/24px var(--font-mono)', margin: 0, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: space[2] }}>
           {t('itemMoney.title')} <Hint id="item-money" />
         </h2>
-        <Link to={`/org/${orgId}/reports?tab=equipment&view=payback`} style={{ fontSize: '13px', color: colors.accentText, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <Link to={`/org/${orgId}/reports?tab=equipment&view=payback`} style={{ fontSize: '13px', color: colors.accentText, display: 'inline-flex', alignItems: 'center', gap: space[1] }}>
           <BarChart3 size={14} aria-hidden="true" /> {t('itemMoney.report')}
         </Link>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px 16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: space[4] }}>
         {facts.map(([k, v]) => (
           <div key={k} style={{ minWidth: 0 }}>
-            <div style={{ ...label, marginBottom: '2px' }}>{k}</div>
+            <div style={{ ...label, marginBottom: space[1] }}>{k}</div>
             <div style={{ fontSize: '14px', overflowWrap: 'anywhere' }}>{v}</div>
           </div>
         ))}

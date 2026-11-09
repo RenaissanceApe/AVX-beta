@@ -6,7 +6,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { buildOrgExport, slug } from '../lib/orgExport'
 import { useI18n } from '../i18n'
-import { btn, label, colors, AvxLoader } from './ui'
+import { btn, colors, AvxLoader } from './ui'
 
 // Organisation settings → Your data (docs/SWITCHING.md, S5): everything the organisation holds as
 // CSV files in one zip, so an admin can keep a copy or take it to another tool.
@@ -42,10 +42,10 @@ export default function OrgExportSettings({ org }) {
     }
   }
 
-  const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+  const hint = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
   return (
-    <section aria-labelledby="org-export-title" style={{ marginTop: '20px', paddingTop: '16px', borderTop: `1px solid ${colors.border}`, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <span id="org-export-title" style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 0 }}><Archive size={13} /> {t('orgExport.title')}</span>
+    <section aria-labelledby="org-export-title" style={{ marginTop: 'var(--space-section)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <h3 id="org-export-title" style={{ font: '700 16px/24px var(--font-mono)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}><Archive size={16} aria-hidden="true" /> {t('orgExport.title')}</h3>
       <p style={hint}>{t('orgExport.hint')}</p>
       <div>
         <button type="button" onClick={download} disabled={!!progress} style={btn}>

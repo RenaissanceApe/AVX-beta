@@ -90,8 +90,8 @@ export default function OrgCrewRatesSettings({ org }) {
   }
 
   return (
-    <section aria-labelledby="org-rates" style={{ marginTop: '20px', paddingTop: '16px', borderTop: `1px solid ${colors.border}` }}>
-      <h3 id="org-rates" style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><Coins size={13} /> {t('rates.title')}</h3>
+    <section aria-labelledby="org-rates" style={{ marginTop: 'var(--space-section)' }}>
+      <h3 id="org-rates" style={{ font: '700 16px/24px var(--font-mono)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 8px' }}><Coins size={16} aria-hidden="true" /> {t('rates.title')}</h3>
       <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>{t('rates.intro')}</p>
       {card.loaded && card.rates.length === 0 && <p style={{ fontSize: '13px', color: colors.muted, marginBottom: '8px' }}>{t('rates.empty')}</p>}
       {card.rates.length > 0 && (

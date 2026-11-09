@@ -32,7 +32,7 @@ export default function ManagementPack({ orgId, orgName, timeZone }) {
   return (
     <section aria-labelledby="rp-pack" className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        <h2 id="rp-pack" style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{t('reports.pack.title')}</h2>
+        <h2 id="rp-pack" style={{ font: '700 16px/24px var(--font-mono)', margin: 0 }}>{t('reports.pack.title')}</h2>
         <Hint id="management-pack" label={t('reports.pack.title')} />
       </div>
       <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{t('reports.pack.intro')}</p>

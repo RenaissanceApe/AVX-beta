@@ -324,7 +324,9 @@ const SCENES = {
     return page.getByRole('button', { name: L('quote.addPhase') }).first()
   } },
   'quote-versions': { persona: 'pm', url: '/quote/q1', async run(page, L) {
-    await page.getByRole('button', { name: L('quoteVersions.button') }).first().click()
+    // DR4: Versions is in the quote's ⋯ menu
+    await page.getByRole('button', { name: L('common.moreActions'), exact: true }).click()
+    await page.getByRole('menuitem', { name: L('quoteVersions.button') }).click()
     const dialog = page.getByRole('dialog')
     await dialog.getByPlaceholder(L('quoteVersions.notePlaceholder')).fill(page.lang === 'pt' ? 'Antes de mudar o som' : 'Before changing the audio')
     return dialog.getByRole('button', { name: L('quoteVersions.save') })
@@ -334,7 +336,8 @@ const SCENES = {
     return page.getByRole('dialog').getByRole('button', { name: L('send.sendEmail') })
   } },
   'quote-gig': { persona: 'pm', url: '/quote/q1', async run(page, L) {
-    await page.getByRole('button', { name: L('plan.button') }).first().click()
+    await page.getByRole('button', { name: L('common.moreActions'), exact: true }).click()
+    await page.getByRole('menuitem', { name: L('plan.button') }).click()
     await page.waitForTimeout(500)
     return page.getByRole('dialog').getByRole('button', { name: /^\S/ }).last()
   } },

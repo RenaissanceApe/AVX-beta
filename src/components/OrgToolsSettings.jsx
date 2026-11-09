@@ -6,7 +6,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { TOOLS, ALL_TOOL_IDS } from '../lib/tools'
 import { useI18n } from '../i18n'
-import { label, colors } from './ui'
+import { colors } from './ui'
 
 // Organisation settings → Field tools (docs/FIELD_TOOLS.md): the tools the company uses on its
 // gigs. A tool turned off is no longer offered; gigs that already use it keep what they made.
@@ -36,8 +36,8 @@ export default function OrgToolsSettings({ org }) {
 
   if (!chosen) return null
   return (
-    <section aria-labelledby="org-tools" style={{ marginTop: '20px', paddingTop: '16px', borderTop: `1px solid ${colors.border}` }}>
-      <h3 id="org-tools" style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><Wrench size={13} /> {t('orgTools.title')}</h3>
+    <section aria-labelledby="org-tools" style={{ marginTop: 'var(--space-section)' }}>
+      <h3 id="org-tools" style={{ font: '700 16px/24px var(--font-mono)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 8px' }}><Wrench size={16} aria-hidden="true" /> {t('orgTools.title')}</h3>
       <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '8px' }}>{t('orgTools.hint')}</p>
       <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {TOOLS.map(tool => (

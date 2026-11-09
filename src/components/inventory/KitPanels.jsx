@@ -8,10 +8,10 @@ import { logger, userMessage } from '../../lib/logger'
 import { alternativesOf } from '../../lib/inventory'
 import { useUndoRemove } from '../../lib/undo'
 import { t } from '../../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, card, colors, AvxLoader } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, colors, AvxLoader } from '../ui'
 
 const select = { ...input, appearance: 'auto' }
-const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+const small = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
 const ICONS = { content: Boxes, accessory: Puzzle, alternative: Shuffle }
 
 // Kits on an item's page (docs/INVENTORY.md, I4): a set's or case's contents, an item's
@@ -23,7 +23,7 @@ export function KitPanel({ orgId, item, kits }) {
   if (item.tracking !== 'none') sections.push('alternative')
   if (!kits.loaded || !sections.length) return null
   return (
-    <section style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+    <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '40px 32px' }}>
       {sections.map(kind => <PartList key={kind} orgId={orgId} item={item} kits={kits} kind={kind} />)}
     </section>
   )
@@ -81,12 +81,13 @@ function PartList({ orgId, item, kits, kind }) {
   }
 
   return (
-    <div style={card}>
-      <h2 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}><Icon size={15} color={colors.accentText} /> {t(`kit.section.${kind}`)}</h2>
+    // One box deep: each list is a heading and rows on the page ground, side by side on a wide screen
+    <div style={{ minWidth: 0 }}>
+      <h2 style={{ font: '700 16px/24px var(--font-mono)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 4px' }}><Icon size={15} color={colors.accentText} /> {t(`kit.section.${kind}`)}</h2>
       <p style={{ ...small, marginBottom: '8px' }}>{t(`kit.sectionHint.${kind === 'content' ? item.kit_type : kind}`)}</p>
       {rows.length === 0 && <p style={{ ...small, marginBottom: '8px' }}>{t('kit.none')}</p>}
       {rows.filter(r => !hidden.has(r.id)).map(r => (
-        <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 0', borderTop: `1px solid ${colors.border}` }}>
+        <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '44px', padding: '4px 0', borderTop: `1px solid ${colors.border}` }}>
           <Link to={`/org/${orgId}/inventory/${r.child_id}`} style={{ flex: 1, minWidth: 0, fontSize: '13px', color: 'var(--text)', overflowWrap: 'anywhere' }}>
             {name(r.child_id)}{kits.items[r.child_id]?.kit_type === 'set' && <span style={small}> · {t('kit.typeOpt.set')}</span>}
           </Link>
@@ -97,7 +98,7 @@ function PartList({ orgId, item, kits, kind }) {
           <button onClick={() => remove(r)} aria-label={t('kit.removeNamed', { name: name(r.child_id) })} title={t('equip.remove')} style={iconBtn}><Trash2 size={13} /></button>
         </div>
       ))}
-      <form onSubmit={add} style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+      <form onSubmit={add} style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
         <select value={adding} onChange={e => setAdding(e.target.value)} aria-label={t(`kit.add.${kind}`)} style={{ ...select, flex: '1 1 150px', padding: '6px 8px', fontSize: '13px' }}>
           <option value="">{t(`kit.add.${kind}`)}</option>
           {candidates.map(i => <option key={i.id} value={i.id}>{i.name}{i.category ? ` · ${i.category}` : ''}</option>)}

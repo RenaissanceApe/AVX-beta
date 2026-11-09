@@ -1119,7 +1119,7 @@ export default {
         'Open Quotes, tap "New quote", type the title and the client, and start blank or from a template.',
         'Name the first phase and set its dates. Add sections (Audio, Lighting, Crew) and lines, from the price list or typed.',
         'Use the factor for days or hours (3 days = factor 3) and a discount per line, per phase or on the total.',
-        'In Details, check the client, the VAT and the validity. "Preview & print" shows what the client will see.',
+        'In Details, check the client, the VAT and the validity. "Preview & print" (in the ⋯ menu on a phone) shows what the client will see.',
       ],
       mistakes: [
         'An optional phase is priced separately and is not in the total. Use it for extras the client may add.',
@@ -1130,7 +1130,7 @@ export default {
       title: 'Keep versions of a quote',
       intro: 'A version is a frozen copy of the quote as the client would see it. Go back to one at any time.',
       steps: [
-        'Before a big change, open the quote and tap Versions.',
+        'Before a big change, open the quote, tap ⋯ (More actions) and then Versions.',
         'Add a note (for example "Before cutting the LED wall") and tap "Save version". Every quote you send is saved as a version too.',
         'To go back, open a version with View, then Restore. What you have now is saved as a new version first.',
       ],
@@ -1142,7 +1142,7 @@ export default {
       title: 'Send a quote to the client',
       intro: 'The client gets a private link to the quote, where they can print it and accept or decline.',
       steps: [
-        'Check the quote with "Preview & print".',
+        'Check the quote with "Preview & print" (on a phone it is in the ⋯ menu).',
         'Tap "Send to client", type their email and tap "Send quote". To send the link yourself, untick the email and tap "Create link".',
         'You are notified when the client accepts or declines. The client can also write to you from the quote\'s page.',
         'If the client declines, or you mark the quote Declined, AVX asks why it was lost (optional). Over time this shows why quotes are lost.',
@@ -1156,8 +1156,8 @@ export default {
       title: 'From accepted quote to gig',
       intro: 'Once the client accepts, turn the quote into a gig with its schedule, crew positions and equipment.',
       steps: [
-        'Open the accepted quote and tap "Create gig". The gig gets the quote\'s title, its dates and the client\'s name, and stays linked to the quote.',
-        'AVX then offers to fill the gig (later: "Fill gig from quote"). Untick anything you don\'t want, or change titles and numbers.',
+        'Open the accepted quote and tap "Create gig" (on a phone, in the ⋯ menu). The gig gets the quote\'s title, its dates and the client\'s name, and stays linked to the quote.',
+        'AVX then offers to fill the gig (later: ⋯ → "Fill gig from quote"). Untick anything you don\'t want, or change titles and numbers.',
         'Tap "Add to the gig": the phases become schedule items, the crew lines become positions to fill and the catalogue lines become planned equipment.',
       ],
       mistakes: [

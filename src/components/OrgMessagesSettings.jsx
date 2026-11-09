@@ -92,10 +92,10 @@ export default function OrgMessagesSettings({ org }) {
     }
   }
 
-  const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+  const hint = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
   return (
-    <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: `1px solid ${colors.border}`, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <span style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: 0 }}><MessageSquare size={13} /> {t('orgMessages.title')}</span>
+    <div style={{ marginTop: 'var(--space-section)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <h3 style={{ font: '700 16px/24px var(--font-mono)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}><MessageSquare size={16} aria-hidden="true" /> {t('orgMessages.title')}</h3>
       {stats && (
         <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>
           {t('orgMessages.usage', { messages: Number(stats.messages), conversations: Number(stats.conversations) })}

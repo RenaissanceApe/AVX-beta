@@ -429,9 +429,9 @@ export function ItemMaintenance({ orgId, item, onChanged }) {
 
   if (item.tracking === 'none') return null
   return (
-    <section style={{ marginBottom: '24px' }}>
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '8px' }}>
-        <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto' }}>{t('repair.maintenance')}</h2>
+    <section>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '16px' }}>
+        <h2 style={{ font: '700 16px/24px var(--font-mono)', margin: 0, flex: '1 1 auto' }}>{t('repair.maintenance')}</h2>
         <button onClick={() => setEditing({})} style={{ ...btn, padding: '6px 10px' }}><Wrench size={13} /> {t('repair.new')}</button>
         <button onClick={() => setInspecting(true)} style={{ ...btn, padding: '6px 10px' }}><ClipboardCheck size={13} /> {t('inspect.record')}</button>
       </div>

@@ -87,7 +87,7 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
           <label style={label} htmlFor="org-name">{t('dash.orgName')}</label>
           <input id="org-name" value={name} onChange={e => setName(e.target.value)} maxLength={120} style={input} />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
           <div>
             <HintLabel htmlFor="org-prep" hint="prep-days">{t('orgSettings.prepDays')}</HintLabel>
             <input id="org-prep" type="number" min={0} max={14} value={prep} onChange={e => setPrep(e.target.value)} style={input} />
@@ -97,11 +97,11 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
             <input id="org-return" type="number" min={0} max={14} value={ret} onChange={e => setRet(e.target.value)} style={input} />
           </div>
         </div>
-        <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginTop: '-4px' }}>{t('orgSettings.equipmentDaysHint')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginTop: '-4px' }}>{t('orgSettings.equipmentDaysHint')}</p>
         <button type="submit" disabled={saving || !name.trim() || !changed} style={{ ...btnPrimary, justifyContent: 'center' }}>
           {saving ? <AvxLoader size={15} /> : <CheckCircle size={15} />} {t('common.saveChanges')}
         </button>
-        <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('orgSettings.companyHint')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5 }}>{t('orgSettings.companyHint')}</p>
       </form>
       <OrgVerificationSettings org={org} onChanged={onChanged} />
       <OrgGigLabelsSettings org={org} />

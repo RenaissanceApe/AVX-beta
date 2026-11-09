@@ -384,7 +384,7 @@ Mapped to the screens in the app; full specs and previews in the design system a
 - **CrewRow + clash** — `danger-soft` row, "Clash" status and a sentence saying where and what to do; holds use `warn`.
 - **AvailabilityAsk** — question card with a day strip and two 44px answers.
 - **Calendar** — `fill` day cells, event = panel block with a label square; holds dashed; unavailable hatched.
-- **QuoteEditor / QuoteVersions** — square phase tabs (optional = dashed), 32px line grid, mono right-aligned numbers, autosave square, totals block.
+- **QuoteEditor / QuoteVersions** — square phase tabs (optional = dashed), 32px line grid, mono right-aligned numbers, autosave square, totals block. Header actions (DR4): Send to client is the one primary; Preview & print and the gig action (Create gig / Open gig) are secondary; Fill gig from quote, Availability, Versions, Duplicate, Save as template and Delete are in ⋯ (on phone the secondaries join ⋯). Details and Summary are headed groups on the page ground; line sections are unboxed, 32px apart.
 - **InventoryItem / StepBar / ScanPanel / QRLabel** — 14-day availability strip, unit statuses, square counters "7 / 12", camera brackets and log with ✓ ⚠ ✕ + words.
 - **Chat** — no bubbles, square avatars, announcements with a `warn` edge and acknowledgements.
 - **Banner / Offline bar / Toast / Dialog / EmptyState + First steps / StatTile / DataTable / TimecodeClock / ToolCard / JobCard / AppearancePicker / FieldHint / StatusBadge / LabelChip**.

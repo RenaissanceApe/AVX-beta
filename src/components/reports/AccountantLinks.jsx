@@ -42,7 +42,7 @@ export default function AccountantLinks({ orgId, timeZone }) {
   return (
     <section aria-labelledby="rp-links" className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-        <h2 id="rp-links" style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{t('reports.links.title')}</h2>
+        <h2 id="rp-links" style={{ font: '700 16px/24px var(--font-mono)', margin: 0 }}>{t('reports.links.title')}</h2>
         <Hint id="accountant-link" label={t('reports.links.title')} />
         <button type="button" onClick={() => setCreating(true)} style={{ ...btn, padding: '6px 10px', fontSize: '13px', marginLeft: 'auto' }}>
           <Plus size={14} aria-hidden="true" /> {t('reports.links.new')}

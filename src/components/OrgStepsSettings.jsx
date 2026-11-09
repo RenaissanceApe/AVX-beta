@@ -6,7 +6,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { STEPS, OPTIONAL_STEPS, activeSteps } from '../lib/inventory'
 import { useI18n } from '../i18n'
-import { label, colors } from './ui'
+import { colors } from './ui'
 
 // Organisation settings → Equipment steps (docs/HELP.md, H5b): which steps between the
 // warehouse and back the organisation uses. Scanning out (loaded) and in (returned) are always on.
@@ -36,8 +36,8 @@ export default function OrgStepsSettings({ org }) {
 
   if (!chosen) return null
   return (
-    <section aria-labelledby="org-steps" style={{ marginTop: '20px', paddingTop: '16px', borderTop: `1px solid ${colors.border}` }}>
-      <h3 id="org-steps" style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><ListChecks size={13} /> {t('orgSteps.title')}</h3>
+    <section aria-labelledby="org-steps" style={{ marginTop: 'var(--space-section)' }}>
+      <h3 id="org-steps" style={{ font: '700 16px/24px var(--font-mono)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 8px' }}><ListChecks size={16} aria-hidden="true" /> {t('orgSteps.title')}</h3>
       <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '8px' }}>{t('orgSteps.hint')}</p>
       <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {STEPS.map(step => {
