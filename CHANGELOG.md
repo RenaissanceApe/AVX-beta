@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.79.1 — Workspace list drops down on phones
+
+#### Fixed
+- **Workspace switcher on a phone.** Tapping the company name in the top bar now opens the list of
+  workspaces just below the bar, the full width of the screen, instead of as a sheet from the bottom.
+  A long list scrolls and stops above the bottom tabs. Tapping outside or pressing Esc still closes it.
+  The More sheet is unchanged.
+
 ## 0.79.0 — Tools, part 1: speaker library, MVR and GDTF, and e-signature
 
 ### S07: Speaker library (step 13)
