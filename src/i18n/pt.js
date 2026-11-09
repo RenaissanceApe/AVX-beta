@@ -347,6 +347,8 @@ export default {
   'callsheet.venueTbc': 'Local a confirmar',
   'callsheet.datesTbc': 'Datas a confirmar',
   'callsheet.printed': 'Impresso a {date}',
+  'callsheet.qrHint': 'Leia para abrir esta página ao vivo no AVX (precisa de sessão iniciada)',
+  'callsheet.qrAlt': 'Código QR que abre esta página no AVX',
   'callsheet.call': 'Chamada',
   'callsheet.name': 'Nome',
   'callsheet.role': 'Função',

@@ -7,6 +7,7 @@ import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
 import { DEPARTMENTS, byDepartment, msToTc } from '../lib/rehearsal'
 import { useI18n } from '../i18n'
 import { AvxLoader } from '../components/ui'
+import PrintFooter from '../components/PrintFooter'
 
 // Printable rehearsal notes (docs/TOOLS_PLAN.md §2, R1): one section per department, notes in
 // timecode order, open ones first to read. ?dept=lighting prints one department.
@@ -123,6 +124,7 @@ export default function RehearsalReportPage() {
             </div>
           </section>
         ))}
+        <PrintFooter />
       </article>
     </div>
   )

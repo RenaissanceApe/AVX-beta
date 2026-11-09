@@ -13,6 +13,7 @@ import { groupByDay, shortTime, sortCrewForCallSheet, callSheetSpeech } from '..
 import { readAppearance } from '../lib/appearance'
 import ReadAloud from '../components/ReadAloud'
 import { AvxLoader } from '../components/ui'
+import PrintFooter from '../components/PrintFooter'
 
 // Large print (docs/HELP.md, H5): remembered on this device; starts on for people who use a
 // larger text size in Appearance
@@ -174,7 +175,6 @@ export default function CallSheetPage() {
           </div>
           <div className="muted" style={{ textAlign: 'right', fontSize: '13px' }}>
             {gig.organisations?.name && <div><strong style={{ color: '#111' }}>{gig.organisations.name}</strong></div>}
-            <div>{t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}</div>
           </div>
         </header>
 
@@ -217,6 +217,7 @@ export default function CallSheetPage() {
             </tbody>
           </table>
         )}
+        <PrintFooter />
       </article>
     </div>
   )
