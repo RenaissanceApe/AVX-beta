@@ -149,6 +149,7 @@ Use your second email address as a crew member. Each line is a few minutes. New 
 | T102 | **Quote signed with a drawing (S11, 0.79.0):** accept a quote from its link on a phone with a drawn signature: the page shows the signature and its fingerprint, the client's PDF has the signature block, and "Send to client" → **Signed PDF** downloads the signed quote (with a gig, it appears in the gig's Files). Accept another without drawing: works as before, no "Signed" line | 0.79.0 |
 | T103 | **Delivery note signed on site (S11, 0.79.0):** Packing list → **Delivery note: sign** on a phone, signing with a finger: the list shows the note, **Signed PDF** downloads it, the gig's Files has a copy. **Hide** and **Show again** work. Crew on the gig (not managers) see the signed notes but no "Delivery note: sign" button | 0.79.0 |
 | T104 | **Signed gigs can't be erased (S11, 0.79.0):** try to delete for good a gig with a signed delivery note (Edit gig → Delete): it is refused with a message saying to cancel it instead, and nothing (no file) is removed | 0.79.0 |
+| T105 | **Workspace switcher on a phone (0.79.1):** tap the company name in the top bar: the list opens right under the bar, full width; with many companies it scrolls and stops above the bottom tabs; tap outside or pick a company and it closes | 0.79.1 |
 
 ## 3. Decisions still open
 

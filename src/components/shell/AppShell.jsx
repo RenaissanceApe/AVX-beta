@@ -363,9 +363,14 @@ const SHELL_CSS = `
     .shell-switch-btn { max-width: none; width: 100%; min-width: 0; height: 40px; padding: 0 8px 0 4px; border-color: transparent; }
     .shell-switch-name { flex: 1; min-width: 0; text-align: left; font-family: var(--font-mono); font-weight: 700; font-size: 16px; }
     .shell-switch-btn .shell-role { display: none; }
-    .shell-switcher { flex: 1; min-width: 0; }
-    .shell-switch-pop { position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 82vh; overflow-y: auto;
-      padding-bottom: calc(12px + env(safe-area-inset-bottom)); border-width: 1px 0 0; animation-name: shellUp; }
+    /* The switcher's list drops down from the top bar, full width of the bar (the bar is its containing block),
+       and scrolls when it would run under the bottom tab bar. */
+    .shell-switcher { flex: 1; min-width: 0; position: static; }
+    .shell-switch-pop { top: calc(100% + 1px); left: 0; right: 0; width: auto; overflow-y: auto; overscroll-behavior: contain;
+      max-height: calc(100vh - 52px - 64px - 16px - var(--safe-top) - env(safe-area-inset-bottom));
+      max-height: calc(100dvh - 52px - 64px - 16px - var(--safe-top) - env(safe-area-inset-bottom));
+      border-width: 0 0 1px; animation-name: shellDown; }
+    @keyframes shellDown { from { transform: translateY(-8px); opacity: 0 } to { transform: none; opacity: 1 } }
     .shell-ws, .shell-pop-link { min-height: 44px; }
     .shell-main { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
     .shell-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
