@@ -3,7 +3,8 @@ import { useSearchParams } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, Anchor } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
-import { barRigging } from '../../lib/rigging'
+import { barRigging, linesOf, settingsOf } from '../../lib/rigging'
+import { arraysOf, arrayLoadsOnLine } from '../../lib/lineArray'
 import { t } from '../../i18n'
 import { colors } from '../ui'
 
@@ -26,7 +27,9 @@ export function useRigging(gigId) {
 export default function RiggingMarker({ gig, bar, bars, fixtures, rigging, canEdit, onToolsChanged }) {
   const [, setParams] = useSearchParams()
   if (rigging === null) return null
-  const r = barRigging(bar, bars, fixtures, rigging, {})
+  // Line arrays hung from the bar's line count too (RG3)
+  const loadsFor = id => arrayLoadsOnLine(arraysOf(rigging), id, { lines: linesOf(rigging), settings: settingsOf(rigging) })
+  const r = barRigging(bar, bars, fixtures, rigging, {}, loadsFor)
   if (r.state === 'none') return null
 
   async function open() {

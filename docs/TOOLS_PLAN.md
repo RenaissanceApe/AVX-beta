@@ -301,6 +301,22 @@ each stage is useful and safe on its own, and so the hard engineering comes last
 
 Checks: `supabase/tests/rigging.sql`; `src/lib/rigging.test.js`.
 
+### How RG3 works (step 18)
+
+| Piece | How it works |
+|---|---|
+| Where | Gig → Tools → Rigging, section "Line arrays" (no new tool id). Arrays are kept in `gig_show.rigging.arrays`, beside RG1's truss lines: same rights, same offline copy |
+| An array | Elements (a catalogue speaker, line-array element or subwoofer, or typed by hand: name and weight), how many, one splay angle per element (`splays[0]` is bumper → top element), the bumper or frame, extra load, one or two picks and an optional pullback. Elements copy the item's weight, preset and the state of its rigging check, so crew who can't read the catalogue see the same |
+| Bumper data | `src/data/lineArrays.js`, keyed by speaker preset: each frame's parts and weights, its safe limit, maximum, SWL (where printed) and whether it is a pullback frame, each with the manufacturer's wording, document, version and PDF page, opened 2026-11-09. K2 (K2-BUMP, + K2-BAR, K2-RIGBAR, pullback), Kara II (M-BUMP, + M-BAR, KARA-MINIBU, M-BUMP + KARA-PULLBACK), KS28 (KS28-BUMP), d&b V8 and V-SUB (Z5380 V Flying frame), NEXO GEO M1220 (VNT-BUMPM12, + VNT-EXBARM12), Meyer LEOPARD (MG-LEOPARD/900, no weight printed). RCF HDL 30-A has none (its manual couldn't be opened): its fly bar is typed by hand. Any bumper can be typed by hand from the manual (shown as needing a check) |
+| Check | `bumperCheck` in `src/lib/lineArray.js`: **pass** within the safe limit (and d&b's 340 kg, cabinets only) and under the SWL; **check** between the safe limit and the maximum, or when the manufacturer gives only a maximum: the manufacturer's software must confirm; **fail** over the maximum or the SWL (frame, elements and extra load) |
+| Loads | No datasheet prints a centre of gravity (D74), so nothing is invented: with two picks the user types the centre of gravity behind the front pick and the pick spacing from the manufacturer's software and AVX shares the weight by the lever rule (outside the picks: one is pulled up, fail); or types the point loads, checked to add up to the weight within 5%. One pick carries the whole weight. A pullback needs typed loads. Tilt and pick position (hole) are typed from the software too. Every array names the software that decides (Soundvision, ArrayCalc, NS-1, MAPP, RCF Easy Shape Designer) |
+| Picks | Each pick has its own hoist (checked like RG1's points: × the dynamic factor against the WLL, D8 over people flagged, via `hoistCheck` in `src/lib/rigging.js`) or hangs from a point on an RG1 truss line: then its load is added to that line as a point load and checked with the line's hang points (also in the light plot's "Rigging" mark) |
+| Drawing | `LineArraySvg`: a schematic side view, boxes hinged at the front, angles as typed, sizes not to scale |
+| Sign-off (D73) | `price_items.rigging` keeps who typed it (`entered_by`); any change to the data clears the check, and the check fields can't be written by a plain update (trigger `private.price_items_rigging_before`). On the item page, "Mark the rigging data as checked" calls `mark_speaker_rigging_checked(item, frames)`: someone who can edit the catalogue and isn't the typist. It keeps who and when, and a fingerprint of the bumper data AVX shows; if that data changes, the check shows as out of date |
+| Connected | Sound system calculator: "Add an array from the sound system calculator" takes a source's name, count and speaker, offers to update when they change, and the source shows the array's weight and result. Gig equipment: the array warns when the gig has fewer of the element than the arrays need; the Tools tab suggests the rigging tool when line-array elements are on the gig. RG1: picks can hang from truss lines |
+
+Checks: `supabase/tests/line_arrays.sql`; `src/lib/lineArray.test.js` (the d&b V-Series rigging manual's own limits: 10 V8 = 340 kg in any splay, 24 V8 and 13 V-SUB inside 860 kg; L-Acoustics safe and maximum limits; the lever rule against hand calculations).
+
 ### Prompting from other tools
 
 Yes, this is viable, because the data is already connected:

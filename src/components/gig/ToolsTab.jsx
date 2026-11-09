@@ -46,10 +46,16 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
   const canSuggestRigging = canEdit && !offline && available.includes('rigging')
   useEffect(() => {
     if (!canSuggestRigging) return
-    supabase.from('gig_equipment').select('item_name').eq('gig_id', gig.id).limit(500)
-      .then(({ data, error }) => {
+    supabase.from('gig_equipment').select('item_name, item_id').eq('gig_id', gig.id).limit(500)
+      .then(async ({ data, error }) => {
         if (error) logger.warn('tools', error, { step: 'hoists' })
-        setHoists((data || []).some(l => looksLikeHoist(l.item_name)))
+        if ((data || []).some(l => looksLikeHoist(l.item_name))) return setHoists(true)
+        // Line-array elements in the equipment (RG3) suggest it too
+        const ids = [...new Set((data || []).map(l => l.item_id).filter(Boolean))].slice(0, 200)
+        if (!ids.length) return
+        const { data: items, error: e2 } = await supabase.from('price_items').select('id').in('id', ids).eq('speaker_type', 'line_array').limit(1)
+        if (e2) logger.warn('tools', e2, { step: 'arrays' })
+        if (items?.length) setHoists(true)
       })
   }, [canSuggestRigging, gig.id])
 
