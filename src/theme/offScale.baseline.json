@@ -71,10 +71,6 @@
     "sizes": 9,
     "gaps": 8
   },
-  "components/gig/ToolsTab.jsx": {
-    "sizes": 4,
-    "gaps": 1
-  },
   "components/GigCalendar.jsx": {
     "sizes": 5,
     "gaps": 4

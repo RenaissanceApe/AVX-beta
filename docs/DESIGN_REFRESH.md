@@ -44,7 +44,7 @@ session regenerates the help screenshots of the guides whose screens it changed,
 | Step | Screens | Why this order |
 | --- | --- | --- |
 | **DR1** Foundations + Home ✅ built (see "How the foundations work") | `Section`, `Stack`, `PageHeader`, `SwipeRow`, `MoreMenu` in `ui.jsx`; CSS variables for the spacing steps; a test that stops new off-scale sizes and gaps (counts may only go down); the modular home with Arrange home, the swipe row, the phone header and the slim First steps | Everything after uses the pieces; the home is the first screen everyone sees |
-| **DR2** Gig | Gig header, Overview (next-event card included), Schedule, Crew, Equipment, Feed/Chat tabs | The most used screen |
+| **DR2** Gig ✅ built (see "How the gig page works") | Gig header, Overview (next-event card included), Schedule, Crew, Equipment, Feed/Chat tabs | The most used screen |
 | **DR3** Lists | Quotes, Invoices, Inventory, Contacts, Members, Expenses, Hours, Leave, Jobs, Find crew | Same pattern repeated: header, filters, list rows |
 | **DR4** Detail and editors | Quote editor (stays compact in the line grid), Inventory item, Reports, Settings and organisation settings dialogs, Import | Denser screens: apply rules 2–5 without losing data |
 | **DR5** Field and crew | My work, Simple home, On-site, Scan and Dispatch, field tools, Messages, Help | Used standing up and on phones |
@@ -81,6 +81,31 @@ numbers, in a `SwipeRow`), `events`. "Arrange home" at the end opens `ArrangeHom
 modules are saved in `localStorage` under `avx.home.layout.<user>.<workspace>` by `src/lib/homeLayout.js`
 (standard order = nothing saved; a module the saved order doesn't know joins at its standard place). Key numbers
 are no longer folded with their heading: hiding them is done in Arrange home.
+
+## How the gig page works (DR2, built)
+
+**Header** (`GigHeader.jsx`): Back, the organisation and your role there, and Refresh (an icon) on one row; then
+`PageHeader` with the gig name, its status and type labels, your call (a plain `CallChip`, no green fill: the
+screen's one green thing is its primary action) and the ⓘ; one line with venue · dates · your role; **Edit gig**
+as the secondary action (in ⋯ on a phone). The tabs mark the chosen one with the 2 px bar; counts are plain muted
+numbers, no boxes.
+
+**Tabs** share `TabHeader` (`gig/parts.jsx`): a 16 px heading, an optional short line (a count), the ⓘ holding what
+used to be the description line, one primary and at most one more action in view, the rest in a `MoreMenu`.
+Crew: Invite + Crew call in view, Find crew and Post a job in ⋯. Equipment: Add + Packing list, Dispatch and Report
+damage in ⋯ (crew, who can't add gear, keep Report damage in view). Schedule: Add + Call sheet. Files: Upload +
+Keep all offline.
+
+**Sections, not cards**: Overview is `Section`s on the page ground, most important first (Coming up, Description,
+Details, Crew, Files, Recent updates, then Gig finance); links to other tabs sit on a section's right. Lists
+(schedule rows, crew, positions, crew calls, pending invites, labour, equipment, files, posts, history) are rows
+with hairlines between them. A row that needs attention (a booking clash, gear short) keeps its soft wash with a
+2 px bar on the left instead of a full border. The running order's CSS is `.avx-sched` in `brand.css`.
+
+**Chosen views** (Chat channels, Updates posts/history, Tasks filters) are text + the 2 px accent bar, not a fill.
+
+**Not in DR2**: On-site mode (`OnSiteView.jsx`) and the next-event card on the Simple home (`SimpleHome.jsx`) are
+DR5's; the card's two visible actions were picked here (Call sheet and Chat).
 
 ## Not changing
 

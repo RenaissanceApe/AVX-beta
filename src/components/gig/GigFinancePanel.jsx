@@ -148,7 +148,8 @@ function FinanceBilling({ b, t, lang }) {
   const amount = { margin: 0, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }
   return (
     <>
-      <dt><Term id="invoice">{t('finance.invoiced')}</Term></dt><dd style={amount}>{m(Number(b.invoiced) - Number(b.credited))}</dd>
+      {/* No glossary button here: its name ("Invoice") wouldn't contain the visible "Invoiced (incl. VAT)" (axe) */}
+      <dt>{t('finance.invoiced')}</dt><dd style={amount}>{m(Number(b.invoiced) - Number(b.credited))}</dd>
       <dt>{t('finance.paid')}</dt><dd style={amount}>{m(b.paid)}</dd>
       {Number(b.outstanding) > 0 && <><dt style={{ color: Number(b.overdue) > 0 ? colors.danger : undefined }}>{t(Number(b.overdue) > 0 ? 'finance.unpaidOverdue' : 'finance.unpaid', { overdue: m(b.overdue) })}</dt><dd style={amount}>{m(b.outstanding)}</dd></>}
       {Number(b.to_issue) > 0 && <><dt style={{ color: colors.muted }}>{t('finance.toIssue')}</dt><dd style={{ ...amount, color: colors.muted }}>{m(b.to_issue)}</dd></>}

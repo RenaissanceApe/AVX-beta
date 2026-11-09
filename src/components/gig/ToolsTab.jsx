@@ -84,7 +84,7 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
       {open === 'light_plot' && <LightPlotTool gig={gig} canEdit={canEdit && !offline} hasDmxPatch={tools.includes('dmx_patch')} onToolsChanged={onChanged} />}
       {open === 'system_calc' && <SystemCalcTool gig={gig} canEdit={canEdit && !offline} />}
       {canEdit && !offline && (
-        <button type="button" onClick={() => remove(open)} style={{ ...btn, background: 'transparent', color: colors.muted, fontSize: '12px', marginTop: '24px' }}>
+        <button type="button" onClick={() => remove(open)} style={{ ...btn, background: 'transparent', color: colors.muted, fontSize: '13px', marginTop: '24px' }}>
           {t('tools.removeFromGig')}
         </button>
       )}
@@ -93,7 +93,7 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
-      <TabHeader title={t('gig.tab.tools')} subtitle={t('tools.subtitle')}
+      <TabHeader title={t('gig.tab.tools')} hint={t('tools.subtitle')}
         action={canEdit && !offline && available.length > 0 && <button type="button" onClick={() => setAdding(true)} style={btnPrimary}><Plus size={14} /> {t('tools.add')}</button>} />
 
       <h3 style={groupHead}>{t('tools.group.onSite')}</h3>
@@ -138,22 +138,22 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
               )
             })}
           </ul>
-          <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginTop: '12px' }}>{t('tools.more')}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginTop: '12px' }}>{t('tools.more')}</p>
         </Modal>
       )}
     </div>
   )
 }
 
-const groupHead = { fontSize: '12px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }
+const groupHead = { fontSize: '13px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }
 
 function ToolButton({ icon, name, about, onClick }) {
   const Icon = icon
   return (
-    <button type="button" onClick={onClick} style={{ ...card, width: '100%', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', textAlign: 'left', color: 'var(--text)', font: 'inherit', minHeight: '64px' }}>
+    <button type="button" onClick={onClick} style={{ ...card, width: '100%', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', textAlign: 'left', color: 'var(--text)', font: 'inherit', minHeight: '64px' }}>
       <Icon size={22} color={colors.accentText} aria-hidden="true" />
       <span style={{ flex: 1, minWidth: 0 }}>
-        <strong style={{ display: 'block', fontSize: '15px' }}>{name}</strong>
+        <strong style={{ display: 'block', fontSize: '16px' }}>{name}</strong>
         <span style={{ fontSize: '13px', color: colors.muted }}>{about}</span>
       </span>
       <ChevronRight size={18} color={colors.muted} aria-hidden="true" />
