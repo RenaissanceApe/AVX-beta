@@ -224,6 +224,12 @@ export function parseMvr(bytes) {
   return { provider: doc.attrs.provider || '', fixtures, gdtf, gdtfFiles }
 }
 
+// The GDTF file a fixture's GDTFSpec names, from those carried in the MVR: { name, bytes } or null
+export function gdtfFileFor(parsed, spec) {
+  const name = Object.keys(parsed.gdtfFiles || {}).find(n => specKey(n) === specKey(spec))
+  return name ? { name, bytes: parsed.gdtfFiles[name] } : null
+}
+
 // ── From MVR to the gig ──────────────────────────────────────────────────────
 // MVR's origin is taken as the middle of the stage's front edge (the centre line on the setting
 // line, as plans are usually drawn), y towards the back of the stage, z up. The light plot

@@ -15,6 +15,7 @@ import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import LightPlotSvg from './LightPlotSvg'
 import { FixtureForm } from './DmxPatchTool'
+import MvrButtons from './MvrImport'
 
 const FIELDS = 'id, name, fixture_type, mode, footprint, universe, address, position, item_id, notes, sort, plot_x, plot_y, symbol, power_w, weight_kg'
 
@@ -247,7 +248,10 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
             {t('light.barCount', { count: bars.length })} · {t('dmx.count', { count: fixtures.length })}{power.total.watts > 0 && ` · ${watts(power.total.watts)}`}
           </p>
         </div>
-        {(bars.length > 0 || fixtures.length > 0) && <Link to={`/gig/${gig.id}/lights`} style={{ ...btn, textDecoration: 'none' }}><Printer size={14} /> {t('inputs.print')}</Link>}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {(bars.length > 0 || fixtures.length > 0) && <Link to={`/gig/${gig.id}/lights`} style={{ ...btn, textDecoration: 'none' }}><Printer size={14} /> {t('inputs.print')}</Link>}
+          <MvrButtons gig={gig} canEdit={canEdit} canExport={fixtures.length > 0} catalogue={catalogue} onImported={() => { load(); onToolsChanged?.() }} />
+        </div>
       </div>
       {savedAt && <p role="status" style={{ fontSize: '13px', color: 'var(--warn)', marginBottom: '10px' }}>{t('light.offline')}</p>}
 

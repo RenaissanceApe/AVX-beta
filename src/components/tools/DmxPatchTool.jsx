@@ -15,6 +15,8 @@ import { t } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
+import MvrButtons from './MvrImport'
+import { fixtureTypesFor } from '../../lib/fixtureTypes'
 
 const FIELDS = 'id, name, fixture_type, mode, footprint, universe, address, position, item_id, notes, sort'
 const order = (a, b) => a.universe - b.universe || (a.address ?? 9999) - (b.address ?? 9999) || a.sort - b.sort || a.name.localeCompare(b.name)
@@ -22,7 +24,7 @@ const order = (a, b) => a.universe - b.universe || (a.address ?? 9999) - (b.addr
 // The DMX patch (docs/FIELD_TOOLS.md, F2): every lighting fixture with its universe, start
 // address and footprint. Editors add fixtures in bulk on free addresses, edit and remove them,
 // and repack a universe; overlapping channels are flagged. Everyone on the gig reads it.
-export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
+export default function DmxPatchTool({ gig, canEdit, canPlanEquipment, onToolsChanged }) {
   const { notify } = useToast()
   const [fixtures, setFixtures] = useState(null)
   const [savedAt, setSavedAt] = useState(null)
@@ -110,6 +112,7 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
           {canEdit && <button type="button" onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} /> {t('dmx.add')}</button>}
           {shown.length > 0 && <Link to={`/gig/${gig.id}/dmx`} style={{ ...btn, textDecoration: 'none' }}><Printer size={14} /> {t('inputs.print')}</Link>}
           {shown.some(f => f.address) && <Link to={`/gig/${gig.id}/dmx/walk`} style={{ ...btn, textDecoration: 'none' }}><Footprints size={14} /> {t('dmxWalk.open')}</Link>}
+          <MvrButtons gig={gig} canEdit={canEdit} canExport={shown.length > 0} catalogue={catalogue} onImported={() => { load(); onToolsChanged?.() }} />
           {shown.some(f => f.address) && (
             <button type="button" aria-pressed={showDips} onClick={() => setShowDips(s => !s)} style={btn}><ToggleLeft size={14} /> {t('dmx.showDips')}</button>
           )}
@@ -191,6 +194,24 @@ export function FixtureForm({ gig, fixture, existing, catalogue, defaults, onClo
     : { name: '', fixture_type: '', mode: '', footprint: '', universe: '1', address: '', position: defaults?.position || '', item_id: '', notes: '', count: '1' }))
   const [saving, setSaving] = useState(false)
   const set = patch => setForm(f => ({ ...f, ...patch }))
+  // The modes of the item's fixture type (from its GDTF file): offered for Mode, and a mode picked
+  // fills the footprint; an item with a single mode fills both when they're empty
+  const [modes, setModes] = useState([])
+  useEffect(() => {
+    let live = true
+    const load = form.item_id ? fixtureTypesFor([form.item_id]) : Promise.resolve([])
+    load.then(rows => {
+      if (!live) return
+      const list = rows[0]?.modes || []
+      setModes(list)
+      if (list.length === 1 && list[0].footprint) setForm(f => (f.mode || f.footprint ? f : { ...f, mode: list[0].name, footprint: String(list[0].footprint) }))
+    })
+    return () => { live = false }
+  }, [form.item_id])
+  function pickMode(mode) {
+    const hit = modes.find(m => m.name.toLowerCase() === mode.trim().toLowerCase())
+    set({ mode, ...(hit?.footprint ? { footprint: String(hit.footprint) } : {}) })
+  }
   const num = (v, min, max) => { const n = Math.round(Number(v)); return n >= min && n <= max ? n : null }
 
   function pickItem(id) {
@@ -242,7 +263,12 @@ export function FixtureForm({ gig, fixture, existing, catalogue, defaults, onClo
           </div>
           <div>
             <label style={label} htmlFor="fx-mode">{t('dmx.mode')}</label>
-            <input id="fx-mode" maxLength={40} value={form.mode} onChange={e => set({ mode: e.target.value })} placeholder={t('dmx.modePlaceholder')} style={input} />
+            <input id="fx-mode" maxLength={40} value={form.mode} onChange={e => pickMode(e.target.value)} placeholder={t('dmx.modePlaceholder')} style={input} list={modes.length ? 'fx-modes' : undefined} />
+            {modes.length > 0 && (
+              <datalist id="fx-modes">
+                {modes.map(m => <option key={m.name} value={m.name}>{m.footprint ? t('dmx.channelsShort', { count: m.footprint }) : ''}</option>)}
+              </datalist>
+            )}
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: isNew ? 'repeat(3, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))', gap: '12px' }}>

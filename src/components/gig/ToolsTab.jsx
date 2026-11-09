@@ -74,7 +74,7 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
       <button type="button" onClick={() => setOpen(null)} style={{ ...btn, background: 'transparent', color: colors.soft, padding: '6px 10px', marginBottom: '14px' }}>
         <ArrowLeft size={14} /> {t('gig.tab.tools')}
       </button>
-      {open === 'input_list' && <InputListTool gig={gig} canEdit={canEdit && !offline} canPlanEquipment={canPlanEquipment && !offline} />}
+      {open === 'input_list' && <InputListTool gig={gig} canEdit={canEdit && !offline} canPlanEquipment={canPlanEquipment && !offline} onToolsChanged={onChanged} />}
       {open === 'stage_plot' && (
         <StagePlotTool gig={gig} canEdit={canEdit && !offline} canPlanEquipment={canPlanEquipment && !offline}
           hasInputList={tools.includes('input_list')} onToolsChanged={onChanged} />
