@@ -93,6 +93,8 @@ export default {
     'equipment-steps': { term: 'Equipment steps', definition: 'Where a gig\'s equipment is between the warehouse and back: prepped, out, on site, loaded back, back in, checked in.', example: '60 of 69 prepped, 40 out.', where: 'Gig → Equipment, Scan out / in, packing list' },
     'dmx-universe': { term: 'DMX universe', definition: 'One line of 512 lighting control channels. A fixture takes some of them, from its start address.', example: 'Universe 1 for the moving heads, universe 2 for the LED bars.', where: 'Gig → Tools → DMX patch' },
     'dmx-address': { term: 'DMX address', definition: 'The first channel a fixture listens to on its universe. It uses that one and the next ones, as many as its footprint.', example: 'A 14-channel spot on address 15 uses channels 15 to 28.', where: 'Gig → Tools → DMX patch' },
+    mvr: { term: 'MVR', definition: 'My Virtual Rig: an open file format (DIN SPEC 15801) for a lighting rig, with every fixture\'s type, mode, place and DMX address. Lighting programs like Vectorworks, grandMA3 and Capture read and write it.', example: 'The lighting designer sends an .mvr from Vectorworks; AVX fills the DMX patch and the light plot from it.', where: 'Gig → Tools → DMX patch or Light plot' },
+    gdtf: { term: 'GDTF', definition: 'General Device Type Format: an open file (DIN SPEC 15800) that describes one fixture type: its DMX modes and channels, weight and power. Manufacturers publish them on GDTF Share.', example: 'A spot\'s .gdtf says its Standard mode takes 18 channels and it weighs 21.5 kg.', where: 'Inventory → item → ⋯ → GDTF fixture-type file' },
     split: { term: 'Split', definition: 'Sending the same stage inputs to two desks, usually front of house and monitors.', example: 'SB1 is split to the monitor desk.', where: 'Gig → Tools → Patch' },
     haas: { term: 'Haas effect', definition: 'We hear sound as coming from where it reaches us first. Delaying a delay tower a few milliseconds past the main keeps the sound seeming to come from the stage.', example: 'Delay tower set 10 ms later than the sound from the mains.', where: 'Gig → Tools → Sound system calculator' },
     spl: { term: 'SPL', definition: 'Sound pressure level: how loud, in decibels. It drops about 6 dB each time the distance doubles.', example: '136 dB at 1 m is about 106 dB at 32 m.', where: 'Gig → Tools → Sound system calculator' },
@@ -205,6 +207,8 @@ export default {
     'email-summary': 'One email a day with what you haven’t read in the app. Nothing is sent when you are up to date.',
     'two-step': 'Signing in will also ask for a 6-digit code from an app on your phone. Recommended for admins.',
     'dmx-footprint': 'How many DMX channels one fixture takes in its mode, from its manual (e.g. 14 for a MAC Aura in Extended).',
+    'mvr-file': 'An .mvr exported from your lighting program. Fixtures already imported from the same file are updated, not added twice.',
+    'gdtf-file': 'The manufacturer\'s fixture-type file (.gdtf). Its modes and channel counts are kept with this item.',
     'dmx-universe': 'A DMX line of 512 channels. Big rigs use several; each fixture is on one.',
     'sys-temp': 'Sound travels faster in warm air. Use the temperature expected during the show.',
     'sys-haas': 'How much later than the main a delay or fill should arrive, so the sound still seems to come from the stage. 5–15 ms is usual.',
@@ -899,6 +903,20 @@ export default {
       mistakes: [
         'Power is an estimate from the fixtures\' figures: fixtures without one count as 0 W. Check the real supply with the electrician.',
         'Removing a position doesn\'t delete its fixtures: they go to "not on the plot" (and stay in the DMX patch).',
+      ],
+    },
+    'pm-mvr': {
+      title: 'Bring a rig in from MVR, and send it back',
+      intro: 'An MVR file from Vectorworks, grandMA3 or Capture fills the DMX patch and the light plot in one go: fixtures with their type, mode, channels, place and address. The gig\'s rig goes back out as MVR the same way.',
+      steps: [
+        'In Tools, open the DMX patch or the light plot and tap "Import MVR". Choose the .mvr file; nothing is saved yet.',
+        'For each fixture type, pick the catalogue item it is (AVX suggests one when the name or GDTF file matches). If the file doesn\'t say how many channels a type takes, type it.',
+        'Check "What will happen" and tap Import. New positions appear on the light plot; fixtures from the same file imported before are updated instead of added twice.',
+        'To give a catalogue item its modes, weight and power, open the item in Inventory, ⋯ → "GDTF fixture-type file". "Export MVR" downloads the gig\'s rig, with those GDTF files inside, for the lighting desk or the drawing program.',
+      ],
+      mistakes: [
+        'Places are measured from the middle of the stage\'s front edge: set the stage size in the stage plot before importing, or the rig may sit off to one side.',
+        'Weight and power are the manufacturer\'s figures, an aid only: rigging and power still need checking by a competent person.',
       ],
     },
     'pm-stage-plot': {
