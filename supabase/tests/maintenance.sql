@@ -107,7 +107,7 @@ begin
   select due_on into d from maintenance_due(org_a) where unit_id = u1;
   if d <> (current_date - 400 + interval '12 months')::date then raise exception 'CHECK FAILED: u1 due %', d; end if;
   select due_on into d from maintenance_due(org_a) where unit_id = u3;
-  if d <> current_date then raise exception 'CHECK FAILED: never inspected due %', d; end if;
+  if d <> private.org_today(org_a) then raise exception 'CHECK FAILED: never inspected due %', d; end if;
   select count(*) into n from maintenance_due(org_a) where unit_id = u2;
   if n <> 0 then raise exception 'CHECK FAILED: retired unit due'; end if;
   insert into inspections (item_id, unit_id, result, notes) values (speaker, u3, 'fail', 'Earth fault');

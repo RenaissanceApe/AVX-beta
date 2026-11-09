@@ -58,6 +58,7 @@ export default {
     'call-time': { term: 'Call time', definition: 'When a person must arrive for the gig.', example: 'Call time 08:00 at the venue’s loading dock.', where: 'Gig → Crew, call sheet' },
     'timecode': { term: 'Timecode', definition: 'A clock shown as hours:minutes:seconds:frames that cameras, consoles and show control share. Rehearsal notes are marked against it so everyone talks about the same moment.', example: '01:02:15:12 is one hour, two minutes, fifteen seconds and twelve frames.', where: 'Gig → Tools → Rehearsal notes' },
     'booking-times': { term: 'Booking times (shift)', definition: 'The hours someone is booked for. Without them, they count as busy for the gig’s whole days.', example: 'Booked only from 14:00 to 20:00 on the first day.', where: 'Gig → Crew → Set times' },
+    'time-zone': { term: 'Time zone (organisation)', definition: 'The clock the organisation’s dates are read on: a gig’s days, crew bookings and leave, clashes, “today” in reports and reminders. Lisbon unless an admin changes it.', example: 'A company in London picks Europe/London, so a gig on 10 January runs from midnight to midnight London time.', where: 'Organisation → Settings → Time zone' },
     'double-booking': { term: 'Double booking', definition: 'A person or item booked on two things at the same time. AVX warns you; it does not forbid it.', example: 'Carla is on two gigs on Saturday afternoon.', where: 'Gig → Crew, equipment, calendar' },
     'availability-request': { term: 'Availability question', definition: 'A question to someone: are you free for these dates? They answer yes or no from their phone.', example: '"Can you do 13–14 November?" → "Available, from 10:00".', where: 'Gig → Crew, My work → Requests, messages' },
     'crew-call': { term: 'Crew call', definition: 'An offer of a place on a gig to one or more people. Whoever accepts first takes the place.', example: 'Two sound technicians wanted; offered to five people.', where: 'Gig → Crew → Crew call' },
@@ -191,6 +192,7 @@ export default {
     'quote-crew-margin': 'Each crew line is matched to the rate card by its description (the function) and unit: per day uses the day rate, per hour the hour rate. Only your organisation sees this.',
     'prep-days': 'Days before a gig when its equipment is already booked, for loading and testing. Example: 1 = the gear is busy from the day before.',
     'return-days': 'Days after a gig when its equipment is still booked, for unloading and checking it back in. Example: 1 = busy until the day after.',
+    'time-zone': 'The clock your gig days, crew bookings, leave and reports are read on. Changing it moves the bookings of current and coming gigs and leave to the new clock; booking times keep their real time.',
     tracking: 'Counted in bulk: you keep a number per location (cables). By serial number: each unit has its own record and QR label (moving heads). This can’t change once there is stock.',
     'kit-type': 'Set: items always hired together and priced as one (a DJ set). Case: a flight case holding units; scanning the case scans what is inside.',
     'signature.plain': "A simple electronic signature records who signed (the drawing and the typed name), when, and a fingerprint of the exact document. Nobody can change it afterwards, not even AVX. It is not a qualified signature: for a contract that needs one, use Chave Móvel Digital or Cartão de Cidadão outside AVX.",
@@ -1343,6 +1345,7 @@ export default {
         'Open Members (on a phone, under More).',
         'Type an email, choose the role and tap Invite. Admin: everything, including members and settings. Member: gigs, files and quotes. Viewer: sees the gigs, no quotes or prices.',
         'Change a role with the list next to each person, or remove them with ×.',
+        'Companies outside Portugal: in Settings, choose the organisation\'s time zone. Gig days, crew bookings, leave and reports are read on that clock (Lisbon until you change it).',
       ],
       mistakes: [
         'Keep at least two admins, so the company is never locked out if one leaves.',

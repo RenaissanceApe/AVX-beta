@@ -25,7 +25,7 @@
 // Logs carry counts only, never addresses or content.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { type Lang, type Notification, DIRECT_KINDS, STRINGS, fill, describe, linkFor } from '../_shared/notification-text.ts'
+import { type Lang, type Notification, DIRECT_KINDS, STRINGS, fill, describe, linkFor, zoneFor, zoneIds } from '../_shared/notification-text.ts'
 import { claimSend } from '../_shared/send-limits.ts'
 import { fetchWithTimeout, isTimeout, runBudget } from '../_shared/timeout.ts'
 
@@ -36,12 +36,14 @@ function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 }
 
-function renderEmail(items: Notification[], lang: Lang, names: Record<string, string>, appUrl: string) {
+type Zones = { gigs: Record<string, string>, orgs: Record<string, string> }
+
+function renderEmail(items: Notification[], lang: Lang, names: Record<string, string>, appUrl: string, zones: Zones) {
   const s = STRINGS[lang]
   const shown = items.slice(0, MAX_LINES)
   const extra = items.length - shown.length
   const subject = items.length === 1 ? s.subjectOne : fill(s.subjectMany, { count: items.length })
-  const lines = shown.map(n => ({ text: describe(n, lang, n.actor_id ? names[n.actor_id] : undefined), href: linkFor(n, appUrl) }))
+  const lines = shown.map(n => ({ text: describe(n, lang, n.actor_id ? names[n.actor_id] : undefined, zoneFor(n, zones.gigs, zones.orgs)), href: linkFor(n, appUrl) }))
 
   const html = `<!doctype html><html lang="${lang}"><body style="margin:0;padding:24px;background:#f4f5f7;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
@@ -116,11 +118,21 @@ Deno.serve(async (req) => {
 
   const userIds = [...byUser.keys()]
   const actorIds = [...new Set((pending ?? []).map(n => n.actor_id).filter(Boolean))] as string[]
-  const [{ data: recipients }, { data: actors }, { data: mutes }] = await Promise.all([
+  // Times in the text are read on the organisation's clock (U1)
+  const { gigIds, orgIds } = zoneIds((pending ?? []) as Notification[])
+  const [{ data: recipients }, { data: actors }, { data: mutes }, { data: gigZones }, { data: orgZones }] = await Promise.all([
     admin.from('profiles').select('id, language, email_digest').in('id', userIds),
     actorIds.length ? admin.from('profiles').select('id, full_name').in('id', actorIds) : Promise.resolve({ data: [] }),
     admin.from('org_mutes').select('user_id, org_id').in('user_id', userIds),
+    gigIds.length ? admin.from('gigs').select('id, organisations(time_zone)').in('id', gigIds.slice(0, 300)) : Promise.resolve({ data: [] }),
+    orgIds.length ? admin.from('organisations').select('id, time_zone').in('id', orgIds.slice(0, 300)) : Promise.resolve({ data: [] }),
   ])
+  const zones: Zones = {
+    // deno-lint-ignore no-explicit-any
+    gigs: Object.fromEntries((gigZones ?? []).filter((g: any) => g.organisations?.time_zone).map((g: any) => [g.id, g.organisations.time_zone])),
+    // deno-lint-ignore no-explicit-any
+    orgs: Object.fromEntries((orgZones ?? []).map((o: any) => [o.id, o.time_zone])),
+  }
   const muted = new Set((mutes ?? []).map(m => `${m.user_id}:${m.org_id}`))
   const prefs = new Map((recipients ?? []).map(p => [p.id, p]))
   const names: Record<string, string> = Object.fromEntries((actors ?? []).filter(p => p.full_name).map(p => [p.id, p.full_name]))
@@ -147,7 +159,7 @@ Deno.serve(async (req) => {
     if (claim === 'error') { failed++; continue }
 
     const lang: Lang = pref.language === 'pt' ? 'pt' : 'en'
-    const { subject, html, text } = renderEmail(items, lang, names, appUrl)
+    const { subject, html, text } = renderEmail(items, lang, names, appUrl, zones)
     let res: Response
     try {
       res = await fetchWithTimeout('https://api.brevo.com/v3/smtp/email', {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildCalendar, gigEvent, leaveEvent, escapeText, fold } from '../../supabase/functions/_shared/ics.ts'
+import { buildCalendar, gigEvent, leaveEvent, escapeText, fold, feedZone } from '../../supabase/functions/_shared/ics.ts'
 
 const APP = 'https://avx-beta.vercel.app'
 const NOW = new Date('2026-10-21T12:00:00Z')
@@ -59,5 +59,20 @@ describe('calendar feed', () => {
     expect(half).toContain('SUMMARY:Formação (08/03 manhã)')
     const cal = buildCalendar([], 'en', APP, NOW, [{ id: 'l3', type: 'other', start_date: '2027-04-01', end_date: '2027-04-01' }])
     expect(cal).toContain('SUMMARY:Unavailable')
+  })
+
+  it('names the calendar\'s time zone after the organisations\' (U1), Lisbon by default', () => {
+    expect(buildCalendar([], 'en', APP, NOW)).toContain('X-WR-TIMEZONE:Europe/Lisbon')
+    const ny = { id: 'g1', name: 'NY gig', start_date: '2027-01-10', status: 'confirmed', call_time: '09:30:00', time_zone: 'America/New_York' }
+    const ldn = { id: 'g2', name: 'London gig', start_date: '2027-01-12', status: 'confirmed', call_time: '08:00:00', time_zone: 'Europe/London' }
+    const ny2 = { ...ny, id: 'g3' }
+    expect(feedZone([ny, ldn, ny2])).toBe('America/New_York')
+    expect(feedZone([])).toBe('Europe/Lisbon')
+    const cal = buildCalendar([ny, ldn, ny2], 'en', APP, NOW)
+    expect(cal).toContain('X-WR-TIMEZONE:America/New_York')
+    // All-day dates stay the gig's own dates; a call time on another clock names its zone
+    expect(cal).toContain('DTSTART;VALUE=DATE:20270110')
+    expect(cal).toContain('Call time: 09:30\\n')
+    expect(cal).toContain('Call time: 08:00 (Europe/London)')
   })
 })

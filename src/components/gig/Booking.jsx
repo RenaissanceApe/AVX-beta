@@ -5,6 +5,7 @@ import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { clashText, rangeText, dayRange } from '../../lib/clashes'
+import { toZonedInput, fromZonedInput, deviceTimeZone } from '../../lib/timeZone'
 import { useI18n, t } from '../../i18n'
 import { Modal, btn, btnPrimary, input, label, colors, AvxLoader } from '../ui'
 import { Term } from '../help/HelpParts'
@@ -17,7 +18,7 @@ const smallBtn = { ...btn, padding: '4px 12px', fontSize: '13px' }
 
 // The warning shown next to someone who is booked elsewhere (or unavailable) during
 // their time on this gig, with the state of any "are you available?" request.
-export function ClashBox({ name, clashes, request, canAsk, onAsk, onWithdraw }) {
+export function ClashBox({ name, clashes, request, canAsk, onAsk, onWithdraw, timeZone }) {
   const { ago } = useI18n()
   const booked = clashes.some(c => c.kind === 'booked')
   return (
@@ -26,7 +27,7 @@ export function ClashBox({ name, clashes, request, canAsk, onAsk, onWithdraw }) 
         <AlertTriangle size={14} aria-hidden="true" color={booked ? 'var(--danger)' : AMBER} style={{ flexShrink: 0, marginTop: '2px' }} />
         {booked ? t('clash.advice', { name }) : t('clash.unavailableAdvice', { name })}
       </strong>
-      {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '20px', color: 'var(--text-2)' }}>{clashText(c)}</div>)}
+      {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '20px', color: 'var(--text-2)' }}>{clashText(c, timeZone)}</div>)}
       <RequestState request={request} ago={ago} />
       {canAsk && (
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px', paddingLeft: '20px' }}>
@@ -63,7 +64,7 @@ export function RequestState({ request, ago }) {
 }
 
 // "Are you available?" — notifies the person, who answers from My work
-export function AskAvailabilityModal({ gigId, personId, name, clashes = [], onClose, onSent }) {
+export function AskAvailabilityModal({ gigId, personId, name, clashes = [], onClose, onSent, timeZone }) {
   const { notify } = useToast()
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
@@ -90,7 +91,7 @@ export function AskAvailabilityModal({ gigId, personId, name, clashes = [], onCl
         <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>{t('ask.intro')}</p>
         {clashes.length > 0 && (
           <div style={{ ...box, marginTop: 0 }}>
-            {clashes.map((c, i) => <div key={i}>{clashText(c)}</div>)}
+            {clashes.map((c, i) => <div key={i}>{clashText(c, timeZone)}</div>)}
           </div>
         )}
         <div>
@@ -106,21 +107,15 @@ export function AskAvailabilityModal({ gigId, personId, name, clashes = [], onCl
   )
 }
 
-// datetime-local works in local time without a zone
-const pad = n => String(n).padStart(2, '0')
-export function toLocalInput(value) {
-  if (!value) return ''
-  const d = new Date(value)
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-const fromLocalInput = value => (value ? new Date(value).toISOString() : null)
+// datetime-local has no zone: times are typed on the organisation's clock (the device's without one)
+export const toLocalInput = (value, timeZone) => toZonedInput(value, timeZone)
 
 // Booking times for one person on this gig. Without them they're booked for the gig's whole days.
-export function ShiftModal({ gig, member, name, onClose, onSaved }) {
+export function ShiftModal({ gig, member, name, onClose, onSaved, timeZone }) {
   const { notify } = useToast()
   const day = gig.start_date || new Date().toISOString().slice(0, 10)
-  const [from, setFrom] = useState(toLocalInput(member.booked_from) || `${day}T09:00`)
-  const [until, setUntil] = useState(toLocalInput(member.booked_until) || `${gig.end_date || day}T18:00`)
+  const [from, setFrom] = useState(toLocalInput(member.booked_from, timeZone) || `${day}T09:00`)
+  const [until, setUntil] = useState(toLocalInput(member.booked_until, timeZone) || `${gig.end_date || day}T18:00`)
   const [saving, setSaving] = useState(false)
   const invalid = !from || !until || new Date(until) <= new Date(from)
 
@@ -139,10 +134,11 @@ export function ShiftModal({ gig, member, name, onClose, onSaved }) {
 
   return (
     <Modal title={t('shift.title', { name })} onClose={onClose}>
-      <form onSubmit={e => { e.preventDefault(); if (!invalid) save({ booked_from: fromLocalInput(from), booked_until: fromLocalInput(until) }) }}
+      <form onSubmit={e => { e.preventDefault(); if (!invalid) save({ booked_from: fromZonedInput(from, timeZone), booked_until: fromZonedInput(until, timeZone) }) }}
         style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>{t('shift.intro')}</p>
         <p style={{ fontSize: '13px', color: colors.muted }}>{t('help.seeAlso')} <Term id="booking-times" /> · <Term id="double-booking" /></p>
+        {timeZone && timeZone !== deviceTimeZone() && <p style={{ fontSize: '13px', color: colors.soft }}>{t('shift.zone', { zone: timeZone })}</p>}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px' }}>
           <div>
             <label style={label} htmlFor="shift-from">{t('shift.from')}</label>
@@ -170,14 +166,14 @@ export function ShiftModal({ gig, member, name, onClose, onSaved }) {
   )
 }
 
-export const shiftText = member => (member.booked_from && member.booked_until ? rangeText(member.booked_from, member.booked_until) : null)
+export const shiftText = (member, timeZone) => (member.booked_from && member.booked_until ? rangeText(member.booked_from, member.booked_until, timeZone) : null)
 
 // In the gig form: your own bookings on the dates being entered. A warning only;
 // the gig can still be saved.
-export function OwnClashWarning({ startDate, endDate, excludeGig = null }) {
+export function OwnClashWarning({ startDate, endDate, excludeGig = null, timeZone }) {
   const [clashes, setClashes] = useState([])
   useEffect(() => {
-    const range = dayRange(startDate, endDate)
+    const range = dayRange(startDate, endDate, timeZone)
     if (!range) return setClashes([])
     let cancelled = false
     const timer = setTimeout(async () => {
@@ -187,14 +183,14 @@ export function OwnClashWarning({ startDate, endDate, excludeGig = null }) {
       setClashes(data || [])
     }, 350)
     return () => { cancelled = true; clearTimeout(timer) }
-  }, [startDate, endDate, excludeGig])
+  }, [startDate, endDate, excludeGig, timeZone])
   if (!clashes.length) return null
   return (
     <div role="status" style={{ ...box, marginTop: 0, padding: '10px 12px', border: '1px solid var(--warn)', background: 'var(--warn-soft)' }}>
       <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontWeight: 600 }}>
         <AlertTriangle size={14} aria-hidden="true" color={AMBER} style={{ flexShrink: 0, marginTop: '2px' }} /> {t('clash.selfWarning')}
       </strong>
-      {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '20px', color: 'var(--text-2)' }}>{clashText(c)}</div>)}
+      {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '20px', color: 'var(--text-2)' }}>{clashText(c, timeZone)}</div>)}
     </div>
   )
 }

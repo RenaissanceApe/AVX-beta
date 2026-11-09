@@ -17,6 +17,7 @@ import OrgCrewRatesSettings from './OrgCrewRatesSettings'
 import OrgToolsSettings from './OrgToolsSettings'
 import OrgVerificationSettings from './OrgVerificationSettings'
 import { HintLabel } from './help/HelpParts'
+import { DEFAULT_TIME_ZONE, timeZoneList } from '../lib/timeZone'
 
 // What deleting an organisation destroys, as readable lines for the confirmation dialog
 async function orgDeletionImpact(orgId, t) {
@@ -33,7 +34,7 @@ async function orgDeletionImpact(orgId, t) {
   ]
 }
 
-// Organisation settings for admins: name, equipment prep/return days, verification, equipment steps, field tools, messages (retention, export,
+// Organisation settings for admins: name, time zone, equipment prep/return days, verification, equipment steps, field tools, messages (retention, export,
 // usage) and (well hidden) deletion.
 export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted }) {
   const { t } = useI18n()
@@ -41,8 +42,12 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
   const [name, setName] = useState(org.name)
   const [prep, setPrep] = useState(String(org.equipment_prep_days ?? 0))
   const [ret, setRet] = useState(String(org.equipment_return_days ?? 0))
+  const savedZone = org.time_zone || DEFAULT_TIME_ZONE
+  const [zone, setZone] = useState(savedZone)
+  const [zones] = useState(() => timeZoneList(savedZone))
   const days = v => Math.min(14, Math.max(0, Math.round(Number(v) || 0)))
   const changed = name.trim() !== org.name || days(prep) !== (org.equipment_prep_days ?? 0) || days(ret) !== (org.equipment_return_days ?? 0)
+    || zone !== savedZone
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -51,7 +56,7 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
     if (!name.trim() || !changed) return
     setSaving(true)
     const { error } = await supabase.from('organisations')
-      .update({ name: name.trim(), equipment_prep_days: days(prep), equipment_return_days: days(ret) }).eq('id', org.id)
+      .update({ name: name.trim(), time_zone: zone, equipment_prep_days: days(prep), equipment_return_days: days(ret) }).eq('id', org.id)
     setSaving(false)
     if (error) {
       logger.error('org', error, { step: 'rename', orgId: org.id })
@@ -86,6 +91,13 @@ export default function OrgSettingsModal({ org, onClose, onChanged, onDeleted })
         <div>
           <label style={label} htmlFor="org-name">{t('dash.orgName')}</label>
           <input id="org-name" value={name} onChange={e => setName(e.target.value)} maxLength={120} style={input} />
+        </div>
+        <div>
+          <HintLabel htmlFor="org-time-zone" hint="time-zone">{t('orgSettings.timeZone')}</HintLabel>
+          <select id="org-time-zone" value={zone} onChange={e => setZone(e.target.value)} style={input} aria-describedby="org-time-zone-hint">
+            {zones.map(z => <option key={z} value={z}>{z.replace(/_/g, ' ')}</option>)}
+          </select>
+          <p id="org-time-zone-hint" style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginTop: '4px' }}>{t('orgSettings.timeZoneHint')}</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
           <div>

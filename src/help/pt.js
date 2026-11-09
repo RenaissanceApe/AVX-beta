@@ -55,6 +55,7 @@ export default {
     'call-time': { term: 'Hora de chamada', definition: 'A hora a que a pessoa tem de chegar ao evento.', example: 'Chamada às 08:00 no cais de carga.', where: 'Evento → Equipa, folha de serviço' },
     'timecode': { term: 'Timecode', definition: 'Um relógio em horas:minutos:segundos:frames partilhado por câmaras, mesas e controlo de espetáculo. As notas de ensaio são marcadas sobre ele para que todos falem do mesmo momento.', example: '01:02:15:12 é uma hora, dois minutos, quinze segundos e doze frames.', where: 'Evento → Ferramentas → Notas de ensaio' },
     'booking-times': { term: 'Horas marcadas (turno)', definition: 'As horas para que alguém está marcado. Sem elas, conta como ocupado nos dias inteiros do evento.', example: 'Marcado só das 14:00 às 20:00 no primeiro dia.', where: 'Evento → Equipa → Definir horas' },
+    'time-zone': { term: 'Fuso horário (organização)', definition: 'O relógio em que se leem as datas da organização: os dias de um evento, as marcações e ausências da equipa, as sobreposições, o “hoje” dos relatórios e dos lembretes. Lisboa, a não ser que um administrador o mude.', example: 'Uma empresa em Londres escolhe Europe/London, por isso um evento a 10 de janeiro vai da meia-noite à meia-noite de Londres.', where: 'Organização → Definições → Fuso horário' },
     'double-booking': { term: 'Marcação sobreposta', definition: 'Uma pessoa ou equipamento marcado em duas coisas à mesma hora. O AVX avisa, mas não impede.', example: 'A Carla está em dois eventos no sábado à tarde.', where: 'Evento → Equipa, equipamento, calendário' },
     'availability-request': { term: 'Pergunta de disponibilidade', definition: 'Uma pergunta a alguém: está livre nestas datas? A pessoa responde sim ou não no telemóvel.', example: '"Pode fazer 13–14 de novembro?" → "Disponível, a partir das 10:00".', where: 'Evento → Equipa, O meu trabalho → Pedidos, mensagens' },
     'crew-call': { term: 'Chamada de equipa', definition: 'Uma oferta de lugar num evento a uma ou mais pessoas. Quem aceitar primeiro fica com o lugar.', example: 'Procuram-se dois técnicos de som; oferta enviada a cinco pessoas.', where: 'Evento → Equipa → Chamada de equipa' },
@@ -188,6 +189,7 @@ export default {
     'quote-crew-margin': 'Cada linha de equipa corresponde à tabela pela descrição (a função) e pela unidade: por dia usa o valor por dia, por hora o valor por hora. Só a sua organização vê isto.',
     'prep-days': 'Dias antes do evento em que o equipamento já fica reservado, para carregar e testar. Exemplo: 1 = o material fica ocupado desde a véspera.',
     'return-days': 'Dias depois do evento em que o equipamento continua reservado, para descarregar e conferir. Exemplo: 1 = ocupado até ao dia seguinte.',
+    'time-zone': 'O relógio em que se leem os dias dos eventos, as marcações e ausências da equipa e os relatórios. Mudá-lo passa as marcações dos eventos atuais e futuros e as ausências para o novo relógio; as horas marcadas mantêm a hora real.',
     tracking: 'Contado a granel: guarda um número por local (cabos). Por número de série: cada unidade tem o seu registo e etiqueta QR (cabeças móveis). Não pode mudar depois de haver stock.',
     'kit-type': 'Conjunto: artigos que vão sempre juntos, com um só preço (um set de DJ). Case: uma flight case com unidades; ler a case regista tudo o que tem dentro.',
     'signature.plain': "Uma assinatura eletrónica simples regista quem assinou (o desenho e o nome escrito), quando, e uma impressão digital do documento exato. Ninguém a pode alterar depois, nem o AVX. Não é uma assinatura qualificada: para um contrato que precise de uma, use a Chave Móvel Digital ou o Cartão de Cidadão fora do AVX.",
@@ -1340,6 +1342,7 @@ export default {
         'Abra Membros (no telemóvel, em Mais).',
         'Escreva um email, escolha a função e toque em Convidar. Administrador: tudo, incluindo membros e definições. Membro: eventos, ficheiros e orçamentos. Leitor: vê os eventos, sem orçamentos nem preços.',
         'Mude a função na lista ao lado de cada pessoa, ou retire-a com ×.',
+        'Empresas fora de Portugal: em Definições, escolha o fuso horário da organização. Os dias dos eventos, as marcações, as ausências e os relatórios leem-se nesse relógio (Lisboa até o mudar).',
       ],
       mistakes: [
         'Tenha pelo menos dois administradores, para a empresa nunca ficar sem acesso se um sair.',

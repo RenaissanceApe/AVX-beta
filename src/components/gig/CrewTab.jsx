@@ -35,6 +35,8 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
   const navigate = useNavigate()
   const { notify } = useToast()
   const { orgs } = useWorkspace()
+  // Bookings are read on the organisation's clock (members of the organisation know it)
+  const timeZone = orgs.find(o => o.id === gig.org_id)?.time_zone
   const [clashes, setClashes] = useState({}) // user_id -> [clash]
   const [requests, setRequests] = useState({}) // user_id -> latest availability request
   const [orgMemberIds, setOrgMemberIds] = useState(null) // Set, for org admins only
@@ -135,7 +137,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
             const phone = phoneOf(m.user_id)
             const name = nameOf(m.user_id)
             const mine = clashes[m.user_id] || []
-            const shift = shiftText(m)
+            const shift = shiftText(m, timeZone)
             const canAddToOrg = isOrgAdmin && orgMemberIds && !orgMemberIds.has(m.user_id)
             const booked = mine.some(c => c.kind === 'booked')
             return (
@@ -194,7 +196,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
                 {(mine.length > 0 || isPM || canAddToOrg) && (
                   <div className="crew-extra">
                     {mine.length > 0 && (
-                      <ClashBox name={name} clashes={mine} request={requests[m.user_id]} canAsk={isPM && !self}
+                      <ClashBox timeZone={timeZone} name={name} clashes={mine} request={requests[m.user_id]} canAsk={isPM && !self}
                         onAsk={() => setAsking(m)} onWithdraw={() => withdraw(requests[m.user_id])} />
                     )}
                     {(isPM || canAddToOrg) && (
@@ -253,15 +255,15 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
           .crew-chips { order: 5; flex-basis: 100%; justify-content: flex-start !important; padding-left: 52px; margin-top: 8px; }
         }
       `}</style>
-      {showInvite && <InviteModal gigId={gigId} functionTitle={inviteFor} onClose={() => { setShowInvite(false); setInviteFor('') }} onInvited={onChanged} />}
+      {showInvite && <InviteModal timeZone={timeZone} gigId={gigId} functionTitle={inviteFor} onClose={() => { setShowInvite(false); setInviteFor('') }} onInvited={onChanged} />}
       {callFor && <CrewCallModal gigId={gigId} gig={gig} preset={callFor} onClose={() => setCallFor(null)} onSent={() => setCallsKey(k => k + 1)} />}
       {postingJob && <PostJobModal gig={gig} onClose={() => setPostingJob(false)} onPosted={() => setPostingJob(false)} />}
       {asking && (
-        <AskAvailabilityModal gigId={gigId} personId={asking.user_id} name={nameOf(asking.user_id)} clashes={clashes[asking.user_id] || []}
+        <AskAvailabilityModal timeZone={timeZone} gigId={gigId} personId={asking.user_id} name={nameOf(asking.user_id)} clashes={clashes[asking.user_id] || []}
           onClose={() => setAsking(null)} onSent={loadBookingState} />
       )}
       {shiftFor && (
-        <ShiftModal gig={gig} member={shiftFor} name={nameOf(shiftFor.user_id)} onClose={() => setShiftFor(null)} onSaved={onChanged} />
+        <ShiftModal timeZone={timeZone} gig={gig} member={shiftFor} name={nameOf(shiftFor.user_id)} onClose={() => setShiftFor(null)} onSaved={onChanged} />
       )}
     </div>
   )
@@ -271,7 +273,7 @@ const rowBtn = { ...btn, padding: '4px 12px', color: 'var(--text-2)' }
 
 const EMPTY_INVITE = { email: '', role: 'crew', function_title: '', call_time: '' }
 
-function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
+function InviteModal({ gigId, functionTitle, onClose, onInvited, timeZone }) {
   const { notify } = useToast()
   const [form, setForm] = useState({ ...EMPTY_INVITE, function_title: functionTitle || '' })
   const [sending, setSending] = useState(false)
@@ -333,7 +335,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
     <AskAvailabilityModal gigId={gigId} personId={picked.user_id} name={picked.full_name || ''} onClose={() => setAsking(false)} onSent={onClose} />
   )
   if (asking) return (
-    <AskAvailabilityModal gigId={gigId} personId={clashes[0].user_id} name={form.email.trim()} clashes={clashes}
+    <AskAvailabilityModal timeZone={timeZone} gigId={gigId} personId={clashes[0].user_id} name={form.email.trim()} clashes={clashes}
       onClose={() => setAsking(false)} onSent={onClose} />
   )
 
@@ -362,7 +364,7 @@ function InviteModal({ gigId, functionTitle, onClose, onInvited }) {
                 <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: '2px' }} />
                 {clashes.some(c => c.kind === 'booked') ? t('clash.advice', { name: form.email.trim() }) : t('clash.unavailableAdvice', { name: form.email.trim() })}
               </strong>
-              {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '18px' }}>{clashText(c)}</div>)}
+              {clashes.map((c, i) => <div key={i} style={{ paddingLeft: '18px' }}>{clashText(c, timeZone)}</div>)}
               <button type="button" onClick={() => setAsking(true)} style={{ ...btn, padding: '4px 12px', fontSize: '13px', marginTop: '8px', marginLeft: '20px', color: AMBER, borderColor: 'var(--warn)', background: 'var(--warn-soft)' }}>
                 {t('ask.first')}
               </button>
