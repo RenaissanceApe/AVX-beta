@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Boxes, Pencil, Archive, ArchiveRestore, PackagePlus, PackageMinus, ArrowRightLeft, ClipboardCheck, Plus, QrCode, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Boxes, Pencil, Archive, ArchiveRestore, PackagePlus, PackageMinus, ArrowRightLeft, ClipboardCheck, Plus, QrCode, AlertTriangle, FileUp } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -17,6 +17,7 @@ import { KitPanel, CaseContentsModal } from '../components/inventory/KitPanels'
 import ContextThread from '../components/messages/ContextThread'
 import { ItemMaintenance } from '../components/inventory/MaintenancePanels'
 import ItemMoneyCard from '../components/inventory/ItemMoneyCard'
+import FixtureTypeCard from '../components/inventory/FixtureTypeCard'
 import { MovementList, useNames, LOCATION_ICONS } from './InventoryPage'
 import { btn, btnPrimary, iconBtn, label, colors, StatusBadge, AvxLoader, PageHeader, Section, Stack, MoreMenu, space } from '../components/ui'
 import { PageHelp } from '../components/help/HelpParts'
@@ -49,6 +50,7 @@ export default function InventoryItemPage() {
   const [selected, setSelected] = useState([])
   const [packedIn, setPackedIn] = useState({}) // case unit id -> units packed in it
   const [packing, setPacking] = useState(null)
+  const [addingGdtf, setAddingGdtf] = useState(false)
   const item = inv.items.find(i => i.id === itemId)
   const nameOf = useNames(history.map(h => h.created_by))
   const highlight = params.get('unit')
@@ -132,7 +134,7 @@ export default function InventoryItemPage() {
             { label: t('common.edit'), icon: <Pencil size={14} aria-hidden="true" />, onClick: () => setEditing(true) },
             ...(item.tracking !== 'none' ? [{ label: selected.length ? t('inv.labelsSelected', { count: selected.length }) : t('inv.labels'), icon: <QrCode size={14} aria-hidden="true" />, onClick: () => navigate(labelsLink) }] : []),
           ]}
-          more={[item.archived_at
+          more={[{ label: t('gdtf.add'), icon: <FileUp size={15} aria-hidden="true" />, onClick: () => setAddingGdtf(true) }, item.archived_at
             ? { label: t('inv.restore'), icon: <ArchiveRestore size={15} aria-hidden="true" />, onClick: () => setArchived(false) }
             : { label: t('inv.archive'), icon: <Archive size={15} aria-hidden="true" />, onClick: () => setArchived(true) }]}
         />
@@ -249,6 +251,8 @@ export default function InventoryItemPage() {
             )
           )}
         </Section>
+
+        <FixtureTypeCard orgId={orgId} item={item} adding={addingGdtf} onCloseAdding={() => setAddingGdtf(false)} onItemChanged={inv.reload} />
 
         <KitPanel orgId={orgId} item={item} kits={kits} />
 
