@@ -25,66 +25,12 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77) and the design refresh DR1–DR6 (0.78) are built, and their prompts (S01–S06, K1–K9, DR1–DR6) removed. Sessions
-S07–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
+Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77), the design refresh DR1–DR6 (0.78), and steps 13, 14 and 16 (0.79) are built, and their prompts (S01–S08, S11, K1–K9, DR1–DR6) removed. Sessions
+S09–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
-
-## S07 · Step 13: A1 speaker library
-
-```
-Build ROADMAP step 13: A1, the speaker library. Read the ROADMAP row, docs/TOOLS_PLAN.md §6 (A1),
-docs/FIELD_TOOLS.md (F4), src/lib/systemCalc.js and src/components/tools/SystemCalcTool.jsx, and
-the catalogue item fields (docs/INVENTORY.md I1).
-
-Scope:
-- Catalogue items get speaker specs: sensitivity, max SPL, nominal dispersion H×V, frequency
-  range, impedance, weight, amplifier channels per cabinet, power draw.
-- Rigging data for RG3: centre of gravity, pickup points, the manufacturer's bumper/frame limits.
-- Presets for common models, typed from the manufacturers' datasheets with the source noted.
-- Import presets in the import wizard.
-
-Already decided: data only from manufacturers' datasheets; never derived.
-
-Ask me before building: which brands and models to preset first (the ones I own or rent most)?
-
-Connect: the F4 sound system calculator uses the specs (sensitivity, max SPL, dispersion) instead
-of typed numbers; later P1 (power) and RG3 (arrays) read the same fields; the import wizard (new
-fields guessed, and a FIXES entry for any new reason a row can be refused, IM1).
-
-Done when: unit tests; help hints on the new fields; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-## S08 · Step 14: MVR/GDTF import and MVR export
-
-```
-Build ROADMAP step 14: MVR and GDTF for the light plot and DMX patch. Read the ROADMAP row,
-docs/FIELD_TOOLS.md (F2 DMX patch, F3 light plot), src/lib/lightPlot.js and the import wizard
-(docs/SWITCHING.md).
-
-Scope:
-- Import an MVR file (Vectorworks, grandMA, Capture…): fixtures with type, mode, footprint,
-  position and DMX address into the gig's light plot and DMX patch, matched to catalogue items
-  where possible (ask the user to match the rest).
-- GDTF fixture types: weight, power, modes and footprints into the catalogue item.
-- Export the gig's light plot and patch as MVR.
-- Parse in the browser (fflate is already a dependency); no new package without my yes.
-
-Ask me before building: which programs do I or my clients use, and can I share a sample MVR file
-to test with?
-
-Connect: catalogue (weights and power for P1 and RG1), light plot, DMX patch, gig equipment; the
-import fix panel (IM1) for fixtures that need matching to catalogue items.
-
-Done when: unit tests with a small sample MVR/GDTF; the round trip (import → export → import) keeps
-fixtures and addresses; help guide; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
 
 ## S09 · Step 15a: P1 power distribution
 
@@ -139,34 +85,6 @@ Ask me before building: the cable types and lengths I stock (so the list maps to
 Connect: gig equipment and packing list, power report, labels (U5: distro and cable labels).
 
 Done when: unit tests for voltage drop and capacity; help guide; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-## S11 · Step 16: e-signature
-
-```
-Build ROADMAP step 16: e-signature. Read the ROADMAP row and docs/BUSINESS.md "Planned → 16", then
-how quotes are accepted today (quote-public function, docs/QUOTES.md) and the warehouse packing
-list (docs/INVENTORY.md I3).
-
-Scope:
-- A signature pad (finger or mouse), stored privately as an image with signer name, time and the
-  SHA-256 of the document signed.
-- A signed PDF kept with the record.
-- Used for:
-  - quote acceptance (optional drawn signature next to the typed name);
-  - delivery notes / packing slips on site (the client signs on the phone);
-  - later crew contracts (step 27) and the rigger's sign-off (RG4).
-- A plain electronic signature, not qualified; the terms will say so.
-
-Ask me before building: is a drawn signature enough for my clients, or do some need a qualified
-signature (Chave Móvel Digital / Cartão de Cidadão)? If so, that becomes a later integration.
-
-Connect: quotes, packing lists, gig files (signed PDFs), privacy notice and data map (signatures
-are personal data).
-
-Done when: database tests; signatures can't be changed after signing; help guide; PR open.
 Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
 ```
