@@ -125,6 +125,7 @@ export default {
     vat: { term: 'IVA', definition: 'Imposto somado ao preço. Cada linha do orçamento tem a sua taxa; a do orçamento é a que as novas linhas usam.', example: '23% no continente, 0% com motivo para um cliente noutro país da UE.', where: 'Editor do orçamento, coluna IVA %' },
     validity: { term: 'Validade', definition: 'Quantos dias o cliente tem para aceitar um orçamento.', example: 'Válido por 30 dias.', where: 'Orçamentos → Dados da empresa' },
     'client-link': { term: 'Ligação para o cliente', definition: 'Um endereço privado onde o cliente lê o orçamento, o aceita e lhe escreve, sem conta.', example: 'Enviado por email com o PDF.', where: 'Orçamento → Enviar' },
+    'quote-bin': { term: 'Apagados recentemente', definition: 'Onde um orçamento apagado fica 15 dias antes de ser apagado de vez. Enquanto lá está não conta em lado nenhum (listas, pesquisa, relatórios) e as suas ligações para o cliente dizem "não encontrado". Recuperar trá-lo de volta com as versões e ligações.', example: 'Apagou o Q0042 por engano na segunda-feira: pode recuperá-lo até duas semanas depois.', where: 'Orçamentos → Apagados recentemente' },
     'price-list': { term: 'Tabela de preços', definition: 'Os seus preços de equipamento e serviços, usados para fazer orçamentos.', example: 'SM58: 8 € por dia.', where: 'Orçamentos → Tabela de preços' },
     retention: { term: 'Guardar mensagens', definition: 'Durante quanto tempo uma organização guarda as mensagens das suas conversas antes de serem apagadas.', example: 'Guardar durante 1 ano.', where: 'Definições da organização → Mensagens' },
     report: { term: 'Denunciar uma mensagem', definition: 'Avisar quem gere uma conversa de que uma mensagem é spam ou abusiva. Não veem quem a denunciou.', example: 'Denunciar um anúncio publicado na conversa de um evento.', where: 'Mensagens → menu da mensagem' },
@@ -222,6 +223,7 @@ export default {
     'disposal-value': 'O que a unidade rendeu ao sair: o preço de venda, uma indemnização do seguro, ou 0 se nada. Serve para mostrar o lucro total da unidade.',
     'inspection-cost': 'Quanto custou esta inspeção, sem IVA (por exemplo, o técnico do teste PAT). Opcional; conta para a manutenção do artigo.',
     'lost-reason': 'Porque é que o cliente disse que não. Opcional, mas com o tempo mostra porque se perdem orçamentos (preço, outro fornecedor, eventos cancelados…). Só a sua equipa vê.',
+    'quote-bin': 'Só aparecem os orçamentos que pode recuperar: todos, para um administrador; os seus, para um membro. Cada um é apagado de vez 15 dias depois de ser apagado.',
     'gig-client': 'O cliente para quem é o evento, dos Contactos. Os relatórios agrupam os eventos e os resultados por cliente. A equipa técnica não o vê.',
   },
 
@@ -1121,6 +1123,7 @@ export default {
       mistakes: [
         'Uma fase opcional tem preço à parte e fica fora do total. Use-a para extras que o cliente possa querer.',
         'O orçamento guarda-se sozinho. Se outra pessoa o editar ao mesmo tempo, o AVX pede-lhe para recarregar.',
+        'Apagou um orçamento por engano? Fica em Orçamentos → Apagados recentemente durante 15 dias: toque em Recuperar.',
       ],
     },
     'of-versions': {

@@ -272,13 +272,23 @@ export default function QuoteEditorPage() {
     if (!window.confirm(t('quote.confirmDelete', { number: quoteNumber(quote, prefix), title: quote.title }))) return
     clearTimeout(timer.current)
     blocked.current = true
-    const { data, error } = await supabase.from('quotes').delete().eq('id', id).select('id')
-    if (error || !data?.length) {
+    // Goes to Recently deleted for 15 days (quote bin, issue 124); restore_quote brings it back
+    const { error } = await supabase.rpc('remove_quote', { p_quote: id })
+    if (error) {
       blocked.current = false
-      return notify(error ? userMessage(error) : t('error.permission'), 'error')
+      return notify(userMessage(error), 'error')
     }
     timer.current = null
-    notify(t('quote.deleted'), 'success')
+    notify(t('quote.deleted'), 'success', {
+      action: {
+        label: t('quote.undo'),
+        onClick: async () => {
+          const { error: undoError } = await supabase.rpc('restore_quote', { p_quote: id })
+          if (undoError) return notify(userMessage(undoError), 'error')
+          navigate(`/quote/${id}`)
+        },
+      },
+    })
     navigate(`/org/${quote.org_id}/quotes`, { replace: true })
   }
 
