@@ -266,7 +266,7 @@ function SupplyCard({ supply, plan, margin, edit, onSupply, onMargin }) {
     <section aria-labelledby="power-supply" style={card}>
       <h3 id="power-supply" style={h3}>{t('power.supply')}</h3>
       <p style={{ ...small, marginBottom: '12px' }}>
-        {supply.name ? `${supply.name} · ` : ''}{t(`power.kindOf.${supply.kind}`)} · {supply.phases === 3 ? t('power.voltsThree', { v: supply.volts, ll: Math.round(supply.volts * Math.sqrt(3)) }) : t('power.voltsSingle', { v: supply.volts })} · {supply.hz} Hz · {t('power.ampsPerPhase', { a: supply.amps })}
+        {supply.name ? `${supply.name} · ` : ''}{t(`power.kindOf.${supply.kind}`)} · {supply.phases === 3 ? t('power.voltsThree', { v: supply.volts, ll: Math.round((supply.volts * Math.sqrt(3)) / 10) * 10 }) : t('power.voltsSingle', { v: supply.volts })} · {supply.hz} Hz · {t('power.ampsPerPhase', { a: supply.amps })}
       </p>
       {edit && (
         <div style={{ ...row, marginBottom: '12px' }}>

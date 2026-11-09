@@ -25,7 +25,7 @@ export function figureLabel(load, tr) {
 export function supplyLine(supply, tr) {
   return [
     supply.name, tr(`power.kindOf.${supply.kind}`),
-    supply.phases === 3 ? tr('power.voltsThree', { v: supply.volts, ll: Math.round(supply.volts * Math.sqrt(3)) }) : tr('power.voltsSingle', { v: supply.volts }),
+    supply.phases === 3 ? tr('power.voltsThree', { v: supply.volts, ll: Math.round((supply.volts * Math.sqrt(3)) / 10) * 10 }) : tr('power.voltsSingle', { v: supply.volts }),
     `${supply.hz} Hz`, tr('power.ampsPerPhase', { a: supply.amps }),
   ].filter(Boolean).join(' · ')
 }
