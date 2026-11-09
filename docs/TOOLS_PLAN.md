@@ -337,7 +337,7 @@ team, the documents):
 
 | Stage | Scope | Size |
 |---|---|---|
-| **A1 · Speaker library** | Speaker cabinets in the catalogue with specs: sensitivity, max SPL, nominal dispersion H×V, frequency range, impedance, weight, rigging data (for RG3), power (for P1), amplifier channels per cabinet. Presets for common models, typed in from datasheets. Feeds rigging, power and the F4 calculator | 1 PR |
+| **A1 · Speaker library** ✅ (built in step 13; how it works: docs/INVENTORY.md, "How the speaker library works") | Speaker cabinets in the catalogue with specs: sensitivity, max SPL, nominal dispersion H×V, frequency range, impedance, weight, rigging data (for RG3), power (for P1), amplifier channels per cabinet. Presets for common models, typed in from datasheets. Feeds rigging, power and the F4 calculator | 1 PR |
 | **A2 · Simple coverage map** | A plan view of the venue with SPL estimates from point sources with nominal dispersion (inverse square and air absorption by frequency band), for fills, delays and small systems. **Labelled as an estimate, not a simulation**; line arrays are shown only as their aim lines and splays, never as a fake SPL map | 1 PR |
 | **A3 · Prediction and measurement files** | Attach the real prediction (EASE, ArrayCalc, Soundvision project or export) and measurement files (Smaart/SysTune captures, EQ settings) to the gig's sound system, versioned, with notes; a "system tuning sheet" print: delays, EQ, gains, splay angles, as built | 1 PR |
 
