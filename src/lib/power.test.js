@@ -207,3 +207,13 @@ describe('catalogue electrical fields', () => {
       .toEqual({ a: 8, v: 230, cin: 'cee16_1', name: 'Amp' })
   })
 })
+
+describe('the light plot from the power plan', () => {
+  it('shows only the fixtures, where they are plugged in', async () => {
+    const { fixtureShare } = await import('./power')
+    const power = { supply: { phases: 3, amps: 32 }, manual: [{ id: 'm', name: 'Bar', watts: 9000 }], assign: { 'fx:a': { phase: 'L2' }, 'm:m': { phase: 'L1' } } }
+    const s = fixtureShare(power, [{ id: 'a', name: 'Spot', power_w: 2300 }, { id: 'b', name: 'Wash', power_w: 460 }])
+    expect(s.amps).toEqual([0, 10, 0])
+    expect(s).toMatchObject({ count: 2, unplugged: 1, watts: 2760, state: 'ok' })
+  })
+})

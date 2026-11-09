@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ListOrdered, LayoutGrid, Cable, Lightbulb, LampCeiling, Speaker, Plus, ChevronRight, ArrowLeft, Wrench, Flag } from 'lucide-react'
+import { ListOrdered, LayoutGrid, Cable, Lightbulb, LampCeiling, Speaker, Plug, Plus, ChevronRight, ArrowLeft, Wrench, Flag } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -17,8 +17,9 @@ import DmxPatchTool from '../tools/DmxPatchTool'
 import LightPlotTool from '../tools/LightPlotTool'
 import SystemCalcTool from '../tools/SystemCalcTool'
 import RehearsalTool from '../tools/RehearsalTool'
+import PowerTool from '../power/PowerTool'
 
-export const TOOL_ICONS = { listOrdered: ListOrdered, layoutGrid: LayoutGrid, cable: Cable, lightbulb: Lightbulb, lampCeiling: LampCeiling, speaker: Speaker }
+export const TOOL_ICONS = { listOrdered: ListOrdered, layoutGrid: LayoutGrid, cable: Cable, lightbulb: Lightbulb, lampCeiling: LampCeiling, speaker: Speaker, plug: Plug }
 const iconOf = id => TOOL_ICONS[TOOLS.find(x => x.id === id)?.icon] || Wrench
 
 // A gig's Tools tab (docs/FIELD_TOOLS.md, docs/TOOLS_PLAN.md §1), in two groups:
@@ -83,6 +84,7 @@ export default function ToolsTab({ gig, tools, canEdit, canPlanEquipment, orgToo
       {open === 'dmx_patch' && <DmxPatchTool gig={gig} canEdit={canEdit && !offline} canPlanEquipment={canPlanEquipment && !offline} />}
       {open === 'light_plot' && <LightPlotTool gig={gig} canEdit={canEdit && !offline} hasDmxPatch={tools.includes('dmx_patch')} onToolsChanged={onChanged} />}
       {open === 'system_calc' && <SystemCalcTool gig={gig} canEdit={canEdit && !offline} />}
+      {open === 'power' && <PowerTool gig={gig} canEdit={canEdit && !offline} />}
       {canEdit && !offline && (
         <button type="button" onClick={() => remove(open)} style={{ ...btn, background: 'transparent', color: colors.muted, fontSize: '13px', marginTop: '24px' }}>
           {t('tools.removeFromGig')}

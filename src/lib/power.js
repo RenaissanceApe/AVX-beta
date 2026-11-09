@@ -547,3 +547,16 @@ export function distroFromItem(item, figures, name) {
     outputs: (spec?.outputs || []).map((o, i) => ({ ...o, id: `o${i + 1}` })),
   }
 }
+
+// The light plot's fixtures as the power plan sees them (P1 replaces the light plot's own
+// estimate): their current per phase where they're plugged in, against the plan's supply
+export function fixtureShare(power, fixtures) {
+  const supply = supplyOf(power)
+  const loads = gatherLoads({ fixtures, figures: figuresMap(power) })
+  const plan = powerPlan({ supply, distros: distrosOf(power), loads, assign: assignOf(power), margin: marginOf(power) })
+  return {
+    supply, amps: plan.supply.amps.slice(0, supply.phases), neutral: plan.supply.neutral,
+    watts: plan.total.watts, count: loads.length, unknown: plan.total.unknown, unplugged: plan.unplugged.count,
+    state: stateOf(Math.max(...plan.supply.amps) / supply.amps),
+  }
+}

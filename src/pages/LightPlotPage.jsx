@@ -4,6 +4,8 @@ import { ArrowLeft, Printer } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
+import { fixtureShare, PHASES } from '../lib/power'
+import { hasPlan } from '../components/power/usePowerPlan'
 import { barsOf, supplyOf, layoutFixtures, powerSummary, symbolOf, FIXTURE_SYMBOLS } from '../lib/lightPlot'
 import { useI18n } from '../i18n'
 import LightPlotSvg, { FixtureShape } from '../components/tools/LightPlotSvg'
@@ -23,8 +25,8 @@ export default function LightPlotPage() {
   useEffect(() => {
     Promise.all([
       supabase.from('gigs').select('name, venue, start_date, end_date, organisations(name)').eq('id', id).maybeSingle(),
-      supabase.from('gig_fixtures').select('id, name, fixture_type, mode, footprint, universe, address, position, plot_x, plot_y, symbol, power_w, weight_kg').eq('gig_id', id),
-      supabase.from('gig_show').select('stage, lighting').eq('gig_id', id).maybeSingle(),
+      supabase.from('gig_fixtures').select('id, name, fixture_type, mode, footprint, universe, address, position, plot_x, plot_y, symbol, power_w, weight_kg, item_id').eq('gig_id', id),
+      supabase.from('gig_show').select('stage, lighting, power').eq('gig_id', id).maybeSingle(),
     ]).then(([gigRes, fixRes, showRes]) => {
       if (gigRes.error && isNetworkError(gigRes.error)) {
         const snap = loadSnapshot(`lightsheet.${id}`)
@@ -34,7 +36,7 @@ export default function LightPlotPage() {
         if (gigRes.error) logger.error('lights', gigRes.error, { step: 'print' })
         return setError(true)
       }
-      const sheet = { gig: gigRes.data, fixtures: fixRes.data || [], stage: showRes.data?.stage || {}, lighting: showRes.data?.lighting || {} }
+      const sheet = { gig: gigRes.data, fixtures: fixRes.data || [], stage: showRes.data?.stage || {}, lighting: showRes.data?.lighting || {}, power: showRes.data?.power || {} }
       setData(sheet)
       saveSnapshot(`lightsheet.${id}`, sheet)
     })
@@ -44,6 +46,7 @@ export default function LightPlotPage() {
   if (!data) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><AvxLoader size={26} color="#1EC878" /></div>
 
   const { gig, fixtures, stage, lighting } = data
+  const fromPlan = hasPlan(data.power) ? fixtureShare(data.power, fixtures) : null
   const bars = barsOf(lighting)
   const supply = supplyOf(lighting)
   const layout = layoutFixtures(bars, fixtures)
@@ -125,6 +128,14 @@ export default function LightPlotPage() {
         )}
 
         <h2>{t('light.powerTitle')}</h2>
+        {fromPlan ? (
+          <>
+            <p className="muted" style={{ marginBottom: '6px' }}>{t('power.lightFromPlan')}</p>
+            <p>{fromPlan.amps.map((a, i) => `${fromPlan.supply.phases === 1 ? t('power.single') : PHASES[i]} ${t('power.ampsOf', { a, max: fromPlan.supply.amps, pct: Math.round((a / fromPlan.supply.amps) * 100) })}`).join(' · ')}</p>
+            <p style={{ marginTop: '6px' }}>{t('power.lightTotal', { watts: watts(fromPlan.watts), count: fromPlan.count })}{fromPlan.state !== 'ok' ? ` · ${t(`power.state.${fromPlan.state}`)}` : ''}</p>
+            {fromPlan.unplugged > 0 && <p className="muted">{t('power.lightUnplugged', { count: fromPlan.unplugged })}</p>}
+          </>
+        ) : <>
         <p className="muted" style={{ marginBottom: '6px' }}>{t('light.powerNote', { volts: supply.volts })}</p>
         <table style={{ maxWidth: '420px' }}>
           <tbody>
@@ -140,6 +151,7 @@ export default function LightPlotPage() {
         <p style={{ marginTop: '6px' }}>{t('light.total', { watts: watts(power.total.watts), amps: power.total.amps, kg: power.total.kg })}</p>
         {power.total.unknown > 0 && <p className="muted">{t('light.unknownPower', { count: power.total.unknown })}</p>}
         {(power.over || power.near) && <p style={{ fontWeight: 700 }}>{power.over ? t('light.over') : t('light.near')}</p>}
+        </>}
         <p className="muted" style={{ marginTop: '10px', fontSize: '11px' }}>{t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}</p>
       </article>
     </div>
