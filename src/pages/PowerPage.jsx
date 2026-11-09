@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Printer } from 'lucide-react'
+import { ArrowLeft, Printer, Tag } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
-import { placeLabel, ampsLine, figureLabel, supplyLine, generatorLine } from '../lib/powerPdf'
+import { placeLabel, ampsLine, figureLabel, supplyLine, generatorLine, cableRows, cableListRows, inrushRows } from '../lib/powerPdf'
 import { useI18n } from '../i18n'
 import usePowerPlan from '../components/power/usePowerPlan'
 import { AvxLoader } from '../components/ui'
@@ -40,7 +40,10 @@ export default function PowerPage() {
   if (error) return <div style={{ padding: '40px', textAlign: 'center' }}>{t('callsheet.notAvailable')} <button onClick={() => navigate('/dashboard')} style={toolbarBtn}>{t('common.back')}</button></div>
   if (!gig || !p.plan) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><AvxLoader size={26} color="#1EC878" /></div>
 
-  const { supply, distros, loads, assign, plan, warnings } = p
+  const { supply, distros, loads, assign, plan, warnings, cables, checks, inrush } = p
+  const runs = cableRows({ cables, checks, distros, tr: t })
+  const list = cableListRows(cables, t)
+  const surges = inrushRows({ inrush, distros, supply, tr: t })
   const dates = gig.start_date ? fmt(gig.start_date, 'd MMM yyyy') + (gig.end_date && gig.end_date !== gig.start_date ? ` – ${fmt(gig.end_date, 'd MMM yyyy')}` : '') : t('callsheet.datesTbc')
 
   return (
@@ -68,7 +71,10 @@ export default function PowerPage() {
       `}</style>
       <div className="toolbar">
         <button onClick={() => navigate(`/gig/${id}?tab=tools&tool=power`)} style={toolbarBtn}><ArrowLeft size={14} /> {t('callsheet.backToGig')}</button>
-        <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0B7A41', color: '#fff', border: 'none' }}><Printer size={14} /> {t('callsheet.print')}</button>
+        <span style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {(cables.length > 0 || distros.length > 0) && <button onClick={() => navigate(`/gig/${id}/power/labels`)} style={toolbarBtn}><Tag size={14} /> {t('cables.labels')}</button>}
+          <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0B7A41', color: '#fff', border: 'none' }}><Printer size={14} /> {t('callsheet.print')}</button>
+        </span>
       </div>
       <article className="sheet">
         <div className="muted" style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.1em' }}>{t('tools.name.power')}</div>
@@ -141,13 +147,52 @@ export default function PowerPage() {
           </>
         )}
 
+        {surges.length > 0 && (
+          <>
+            <h2>{t('inrush.title')}</h2>
+            <div className="wrap" tabIndex={0} role="region" aria-label={t('inrush.title')}>
+              <table>
+                <thead><tr><th>{t('inrush.where')}</th><th>{t('inrush.head')}</th><th>{t('power.breaker')}</th><th>{t('power.statusHead')}</th></tr></thead>
+                <tbody>{surges.map(r => <tr key={r.key}><td><strong>{r.where}</strong></td><td>{r.sum}</td><td>{r.breaker}</td><td><strong>{r.state}</strong></td></tr>)}</tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {runs.length > 0 && (
+          <>
+            <h2>{t('cables.title')}</h2>
+            <div className="wrap" tabIndex={0} role="region" aria-label={t('cables.title')}>
+              <table>
+                <thead><tr><th>{t('cables.run')}</th><th>{t('cables.type')}</th><th>{t('cables.length')}</th><th>{t('cables.laying')}</th><th>{t('power.current')}</th><th>{t('cables.capacityHead')}</th><th>{t('cables.dropHead')}</th><th>{t('power.statusHead')}</th></tr></thead>
+                <tbody>{runs.map(r => <tr key={r.key}><td><strong>{r.name}</strong></td><td>{r.type}</td><td>{r.length}</td><td>{r.laying}</td><td>{r.amps}</td><td>{r.cap}</td><td>{r.drop}</td><td><strong>{r.state}</strong></td></tr>)}</tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {list.length > 0 && (
+          <>
+            <h2>{t('cables.list')}</h2>
+            <div className="wrap" tabIndex={0} role="region" aria-label={t('cables.list')}>
+              <table>
+                <thead><tr><th>{t('power.qty')}</th><th>{t('cables.type')}</th><th>{t('cables.kindLabel')}</th></tr></thead>
+                <tbody>{list.map(r => <tr key={r.key}><td>{r.qty}</td><td><strong>{r.name}</strong></td><td>{r.kind}</td></tr>)}</tbody>
+              </table>
+            </div>
+          </>
+        )}
+
         <h2>{t('power.assumptions')}</h2>
         <ul>{['sum', 'pf', 'harmonics', 'amps', 'unplugged'].map(k => <li key={k}>{t(`power.assume.${k}`)}</li>)}</ul>
+        {(runs.length > 0 || surges.length > 0) && <ul>{CABLE_ASSUMPTIONS.map(k => <li key={k}>{t(`cables.assume.${k}`)}</li>)}</ul>}
         <p className="muted" style={{ marginTop: '12px', fontSize: '11px' }}>{t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}</p>
       </article>
     </div>
   )
 }
+
+export const CABLE_ASSUMPTIONS = ['drop', 'capacity', 'inrush', 'sources']
 
 const toolbarBtn = {
   display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 14px',
