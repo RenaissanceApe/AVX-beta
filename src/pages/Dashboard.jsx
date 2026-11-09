@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   Plus, Calendar, MapPin, ChevronRight, Building2, X, ArrowRight, Search, List, CalendarDays, Briefcase, AlertTriangle,
@@ -27,6 +27,7 @@ import EmptyState from '../components/EmptyState'
 import FirstSteps from '../components/FirstSteps'
 import { KeyNumbersStrip } from '../components/reports/OverviewTiles'
 import SimpleHome from '../components/SimpleHome'
+import MyNumbersStrip from '../components/mywork/MyNumbersStrip'
 import { useSimpleMode } from '../lib/simpleMode'
 import { useGigLabels, GIG_LABELS_EMBED } from '../lib/gigLabels'
 import { GigLabels } from '../components/gig/parts'
@@ -53,6 +54,9 @@ export default function Dashboard() {
   const role = orgId ? roleIn(orgId) : null
 
   const [gigs, setGigs] = useState([])
+  // The page stays mounted when you switch between an organisation and My work: only the newest load
+  // may fill the list, so a slower organisation list can't replace My work's (which has company names)
+  const loadSeq = useRef(0)
   const [loadingGigs, setLoadingGigs] = useState(true)
   const [savedAt, setSavedAt] = useState(null)
   const [clashIds, setClashIds] = useState(() => new Set()) // My work: gigs that overlap another booking
@@ -77,6 +81,7 @@ export default function Dashboard() {
 
   const load = useCallback(async () => {
     if (!user) return
+    const seq = ++loadSeq.current
     setLoadingGigs(true)
     const key = mode === 'me' ? 'me.gigs' : `dashboard.gigs.${orgId}`
     let rows, error
@@ -98,6 +103,7 @@ export default function Dashboard() {
       error = res.error
       rows = res.data || []
     }
+    if (seq !== loadSeq.current) return
     if (error && isNetworkError(error)) {
       const snap = loadSnapshot(key)
       setGigs(snap?.data || [])
@@ -151,6 +157,7 @@ export default function Dashboard() {
 
             {!loadingGigs && !loadingOrgs && (mode === 'me' || (org && role === 'admin')) && <FirstSteps mode={mode} org={org} gigCount={gigs.length} />}
             {mode === 'me' && <AvailabilityRequests />}
+            {mode === 'me' && <MyNumbersStrip />}
             {mode === 'org' && org && canCreateGig && !simple && <KeyNumbersStrip orgId={orgId} />}
 
             {(loadingGigs || loadingOrgs) ? (
@@ -325,7 +332,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
         )}
       </div>
       {view === 'calendar' ? (
-        <GigCalendar gigs={filterGigs(gigs, 'all', search).filter(g => g.status !== 'archived' && byLabel(g))} clashIds={clashIds} onOpen={onOpen} />
+        <GigCalendar gigs={filterGigs(gigs, 'all', search).filter(g => g.status !== 'archived' && g.status !== 'cancelled' && byLabel(g))} clashIds={clashIds} onOpen={onOpen} />
       ) : visible.length === 0 ? (
         <p style={{ color: 'var(--muted)', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>
           {search ? t('dash.noMatch') : t(`dash.noGigs.${filter}`)}

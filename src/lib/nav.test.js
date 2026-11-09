@@ -5,7 +5,7 @@ const keys = sections => sections.flatMap(s => s.items.map(i => i.key))
 
 describe('navigation', () => {
   it('My work lists your gigs and organisations', () => {
-    expect(keys(navSections({ workspace: MY_WORK }))).toEqual(['myGigs', 'myCalendar', 'availability', 'myTasks', 'myHours', 'jobs', 'pocketTools', 'allOrgs', 'newOrg'])
+    expect(keys(navSections({ workspace: MY_WORK }))).toEqual(['myGigs', 'myCalendar', 'availability', 'myTasks', 'myHours', 'myNumbers', 'jobs', 'pocketTools', 'allOrgs', 'newOrg'])
   })
 
   it('shows quotes and settings only to roles that can use them', () => {
@@ -28,8 +28,12 @@ describe('navigation', () => {
     expect(viewer).not.toContain('movements')
     expect(viewer).not.toContain('newGig')
     expect(viewer).not.toContain('orgSettings')
-    expect(member).toEqual(expect.arrayContaining(['reportsOverview', 'reportsRevenue', 'reportsMoney']))
+    expect(member).toEqual(expect.arrayContaining(['reportsOverview', 'reportsRevenue', 'reportsMoney', 'reportsSales']))
     expect(viewer).not.toContain('reportsOverview')
+    expect(member).toContain('reportsOperations')
+    expect(member).toContain('reportsWarehouse')
+    expect(viewer).not.toContain('reportsWarehouse')
+    expect(viewer).not.toContain('reportsOperations')
     expect(viewer).toContain('members')
     expect(viewer).toContain('orgTasks')
   })

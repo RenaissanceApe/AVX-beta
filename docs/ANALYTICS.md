@@ -5,7 +5,7 @@ built as the **K** steps ("key numbers"), in the order [ROADMAP.md](../ROADMAP.m
 in its own session with its prompt in [SESSION_PROMPTS.md](SESSION_PROMPTS.md). The expenses step
 they need (9b) is specified in [BUSINESS.md](BUSINESS.md).
 
-**Status (2026-11-07): K0 built (0.64.0), K1 built (0.69.0), K2 built (0.75.0), K3 built (0.76.0); the rest planned.** When a K step is built, its section below is
+**Status (2026-11-08): K0 built (0.64.0), K1 built (0.69.0), K2 built (0.75.0), K3 built (0.76.0), K4–K9 built (0.77.0); the rest planned.** When a K step is built, its section below is
 replaced by "How K… works", in the same shape as BUSINESS.md, so the next session can connect to it
 without reading its code first.
 
@@ -353,102 +353,164 @@ rate beside them and never multiplied in; the cash position looks **3 months** a
 | Tests | `finance_cash.sql`: a part payment, a removed payment, a credit note, a deposit, a draft invoice, another currency; overdue by the organisation's date (23:30 and 00:30 in Lisbon); every section and the position by hand; a recurring cost counted once per date (a draft with the counter behind, a removed draft not made again, a removed cost never projected, six and four months ahead); claims waiting not counted; spending adding up for every grouping; budgets (unique, another organisation's category refused, prorated, removed by marking); the tiles; who may call each function (admin and member yes; viewer, crew, another organisation, anonymous, the second sign-in step not done: no). Vitest for the helpers and tiles; the signed-in e2e journey opens the three views with axe |
 
 **For K4 and later:** read cash through `cash_report` and `client_balance`, spending through
-`spending`; K8 adds crew fees to pay as another `expected_out` part.
+`spending`; K8 added crew fees to pay as another `expected_out` part (`crew`).
 
-## K4 · Sales and clients
+## How K4 works (built in this feature set)
 
-Needs: K0, K1, 10.
+Sales and clients. Migration `20261227000000_sales_clients.sql` (functions only, no tables); checks
+in `supabase/tests/sales_clients.sql` (no delete statements). Decided with the owner on 2026-11-08:
+a quote needs a **follow-up after 7 days** with no answer (`FOLLOW_UP_DAYS` in
+`src/lib/analytics/sales.js`); the win rate **per person** is for admins and members (both see money,
+D23); the win rate can be grouped by a **custom field of kind "choice"**.
 
-- **Waiting for an answer**: quotes by age and status (sent, opened by the client, expiring soon)
-  with their value; a follow-up list (sent more than N days ago, no answer).
-- **Win rate** by count and value per period, gig type, client and quote author; time from sent to
-  decision (median); lost reasons; average quote value; discounts given (gross against net).
-- **Clients**: revenue, margin, gigs, quotes, win rate, first, last and next gig, average gig
-  value; new and returning clients; what the top 5 clients bring. A numbers card on the client in
-  Contacts.
-- Tiles: quotes waiting (value), win rate over 90 days, top client this year.
-- Ask: N days for follow-ups; win rate per person for members too, or admins only; grouping by a
-  custom field of kind "choice".
+| Piece | How it works |
+|---|---|
+| `private.sales_quotes(org)` | One row per quote that left draft: value (the K1 revenue rule, `private.report_quote_lines`), gross (`private.sales_quote_gross`: priced lines before line, phase and quote discounts, optional phases and comments left out), client key (the gig's client first, then the quote's, as `finance_results`; only a client of this organisation; else `name:<typed company or name>`), author (`created_by`), sent and decided dates in the organisation's time zone, lost reason, and the custom values of its gig and client. Runs as the reader, finance check |
+| `sales_waiting(org, days = 7, at)` | Each quote with status Sent: value, days waiting, days left, `opened` (any of its client links viewed), `expiring` (valid until today to 7 days ahead), `expired` (past its validity), `follow_up` (sent `days` or more days ago and still valid). The JS twin of `follow_up` is `needsFollowUp` |
+| `sales_win_rate(org, from, until, group_by)` | Quotes accepted or declined with a decided date in the period, per group and currency: decided, accepted, declined, values, win rate by count and by value, median days from sent to decided, average quote value, gross and discount of the accepted ones. Quotes still sent (expired ones too) are never in it. `group_by`: `total`, `month`, `quarter`, `gig_type`, `client`, `author`, `lost_reason`, `field:<id>` (a live "choice" field on gigs or clients of this organisation; others are refused). An empty `group_key` holds what has no such group, so every grouping adds up to the total (checked) |
+| `sales_clients(org, from, until, client, at)` | Per client and currency: revenue and gross margin (`finance_results` by client), gigs starting in the period and the average gig, quotes sent, decided and won (by count over every currency, by value in the row's currency), first gig, last gig up to today, next gig, `is_new` (first gig in the period) and `is_returning` (a gig in the period and one before). Gigs in draft (and `cancelled`, once K7 adds it) are left out. Counts and gig dates are the same on every row of a client; `client_key` '' holds revenue with no client. `p_client` gives one client (the Contacts card) |
+| `report_overview_k4(org, at)` | The K4 tiles, next to `report_overview` (not a wrapper): `follow_up` {count, totals}, `win_rate_90` {decided, by_count, by_value, currency} (decided in the 90 days up to today), `top_client_year` {key, name, currency, amount, share}. `useOverview` calls every tile's `source` (`OVERVIEW_SOURCES` in `tiles.js`) and merges the answers |
+| Screen | `components/reports/SalesReport.jsx`, tab `sales` of `REPORT_TABS`, menu Reports → Sales. Views (`?view=`): **Waiting** (as of today: tiles, value by age, the follow-up list linking each quote and the quote list's filter; details: every waiting quote with sent date, validity and author; a note on expired quotes), **Win rate** (`?by=` month, quarter, gig type, client, made by, lost reason or a choice field; tiles with the comparison: win rate by count and by value, median time to decide, average quote, discounts given; chart and table; lost reasons), **Clients** (tiles: what the top 5 bring, clients with gigs, new, returning; top 10 chart; table with revenue, margin, gigs, average gig; details: quotes, win rate, first, last and next gig). Currency picker when there's more than one; counts add up across currencies, money never. Helpers in `src/lib/analytics/sales.js` (unit tested on the same quotes as the database test) |
+| Connected | Quotes list: a "To follow up" filter (`?status=follow_up`, client side with `needsFollowUp`, by the organisation's date). Contacts: a numbers card on each client (`ClientNumbers`, last 12 months; hidden for anyone the database refuses) linking to Reports → Sales. Overview and Home: three tiles (`followUp` opens the quote list's filter, `winRate90`, `topClientYear`); K1's "Quotes waiting" tile now opens Reports → Sales |
+| Help | Terms follow-up, time to decide, discounts given, new and returning clients (win rate already existed); ⓘ `sales-report`, `client-numbers`; guide `office-sales` with four pictures (`sales-waiting`, `sales-winrate`, `sales-clients`, `client-numbers`) and the refreshed Home picture |
+| Tests | `sales_clients.sql`: expired quotes out of the win rate and the follow-ups, a quote with no client (in the empty group, never a client row), another organisation's client and quote never counted, a typed client, Lisbon month boundary on the decided date, gross leaving out optional phases and comments, every grouping adding up, a text field and another organisation's field refused, the tiles, who may call each function (admin and member yes; viewer, crew, another organisation, anonymous, second sign-in step not done: no). Vitest for the helpers and tiles; the signed-in e2e journey opens the three views with axe |
 
-## K5 · Equipment money
+**For K5 and later:** read quotes for sales through `private.sales_quotes` (one client rule, one
+value rule); add tiles through a function of your own and a `source` on the tile.
 
-Needs: K0, K1. Inventory → Reports opens Reports → Equipment.
+## How K5 works (built in 0.77.0)
 
-- **Profit** per item, category and unit: revenue (a set has no stock, so its revenue is shared out
-  to its contents by their day prices; lines typed by hand show as "not linked to an item: N%")
-  minus depreciation in the period (straight line, as I7; bulk purchases from their date with the
-  item's write-off period), repairs not charged, inspections, hire-in for the item and losses at
-  replacement value.
-- **Payback** per unit and item: revenue since purchase against purchase cost, the date it paid for
-  itself, or when it will at the current pace.
-- **Buy or keep hiring in**: hire-in spend over 12 months against the cost to buy (cost price, else
-  replacement value) and the months to pay back.
-- **Coverage**: how many units and items have a purchase cost, with a link to fill the gaps.
-- A numbers card on the item page: lifetime revenue, payback, use over 12 months, next bookings.
-- Tiles: best and worst earners this year, hire-in spend this year.
-- Ask: how a set's revenue is shared; the default write-off period; a share of labour (default no).
+Equipment money. Migration `20261228000000_equipment_money.sql` (functions only, no tables);
+checks in `supabase/tests/equipment_money.sql` (no delete statements). Decided with the owner on
+2026-11-08: a set's revenue is shared out to its contents by their **day prices**; the default
+write-off period is **60 months**; profit carries **no share of labour**. Defaults D42, D44, D49,
+D50 kept. Costs are in euros, as in K2; another currency shows its revenue only.
 
-## K6 · Warehouse and upkeep
+| Piece | How it works |
+|---|---|
+| `private.set_shares(org)` | Each set's share per content item: quantity × the content's price ÷ the set's total (contents with no price at all share by quantity); sets inside sets followed through (10 levels); a set inside a set with no contents keeps its share; a set with no contents keeps its own revenue |
+| `private.equipment_revenue(org, from, until)` | Rental lines of accepted quotes (`report_revenue_lines`, the K1 rule and dating), sets shared out by `set_shares`; lines with no catalogue item have an empty `item_id` ("not linked to an item") |
+| `private.equipment_units`, `equipment_bulk_moves` | When each unit was owned (purchase date, else when added, until the day it was lost or retired; a unit found again has no end) and each bulk movement that changes what is owned (+ purchase, found, count up; − sale, lost, retire, count down), in the organisation's time zone |
+| `private.equipment_depreciation(org, from, until)` | The K2 straight-line rule per unit and bulk purchase (`unit_id` empty): purchase cost, else the item's cost price (estimated); the unit's months, else the item's, else 60; an equal share each month, prorated by the days inside the period; stops after the month a unit was lost or retired. Unlike `depreciation_lines` it counts a unit also when an expense is linked (the item's cost either way) |
+| `private.equipment_hire_lines(org, from, until)` | Each subrental line's cost: confirmed or returned subrentals (or any with a confirmed expense), dated by the gig's start date else their own; the linked expense (euros), else the supplier's price, else the lines, shared over the lines by line cost, else by quantity |
+| `equipment_money(org, from, until, currency)` | One row per stock item (or any item with a figure) plus a row with an empty `item_id` for lines typed by hand, so the rows add up to the equipment revenue: `revenue`, `revenue_sets`, `depreciation` (+ `_estimated`), `repairs` (not charged; a linked expense replaces the cost; dated when opened), `inspections` (cost, by date), `hire_in`, `losses` (lost units at replacement value less the payout, by the day lost; bulk lost − found × replacement value, as I7), `profit`; coverage `owned`, `units`, `units_with_cost`, `has_cost` (cost price, else every live unit has a purchase cost, else a bulk purchase with a cost) |
+| `equipment_unit_money(org, from, until, item)` | Per unit: revenue = its item's × the unit's owned days ÷ all owned unit-days (units and bulk), its own depreciation, repairs, inspections and loss. Hire-in stays on the item |
+| `equipment_payback(org, item, at)` | `level` item: every unit's cost and bulk purchase against revenue since the first purchase; `level` unit: each day's revenue shared equally between what was owned that day, from purchase until lost or retired. `paid_back_on` = the report date the running revenue reached the cost; else `expected_on` at the pace of the last 12 months (or since purchase), none for a unit already gone; `pace_month` |
+| `equipment_buy_or_hire(org, at)` | Items hired in over the 12 months up to today: `hire_ins`, `peak` (most in one subrental), `spend`, `unit_price` (cost price, else replacement value, `price_source`), `cost_to_buy` = price × peak, `months_to_pay_back` = cost ÷ (spend ÷ 12) |
+| `item_money_card(item, at)` | JSON for the item page: `lifetime_revenue` per currency (up to today), `payback` (the item row), `use_12m` (as I7: booked unit-days ÷ owned unit-days), `next_bookings` (3) and `upcoming` |
+| `report_overview_k5(org, at)` | Its own function beside `report_overview`: `best_earner_year` and `worst_earner_year` (item, profit; the worst only with two items or more), `hire_in_year` (euros), this year up to today. `useOverview` calls `report_overview` plus every function a tile names as `source` in `OVERVIEW_TILES` and merges the answers; only `report_overview` failing hides the tiles |
+| Screen | `components/reports/EquipmentReport.jsx`, tab `equipment` of `REPORT_TABS` (menu Reports → Equipment; Inventory → Reports redirects here). Views (`?view=`): **Profit** (default; period and comparison, this year by default; tiles profit, revenue with the not-linked share, costs, losses; chart of the best and worst items or categories; "Show details" groups by item, category or unit (`?by=`); purchase-cost card), **Payback** (per item; details per unit), **Buy or hire in** (`?item=` picks one, as the subrental links do), **Purchase costs** (coverage with the items to fill in), **Use and value** (I7's table, `inventory/ReportsTab.jsx`). Helpers `src/lib/analytics/equipment.js` (unit tested) |
+| Connected | Item page: `ItemMoneyCard` (hidden for anyone who can't see money). Subrentals tab: "Buy instead?" for items hired in over 12 months. Overview and Home: tiles `bestEarnerYear`, `worstEarnerYear`, `hireInYear`; `equipmentUse90` now opens "Use and value". Menu: Reports → Equipment; Inventory → Reports points there |
+| Help | Terms equipment profit, payback, buy or keep hiring in; ⓘ `equipment-coverage`, `equipment-buy`, `item-money`; guide `warehouse-equipment-money` with five pictures (`equip-profit`, `equip-details`, `equip-payback`, `equip-buy`, `item-money`) |
+| Tests | `equipment_money.sql`: a set (2 moving heads + 10 cables, shared 2/3 and 1/3), serial units (one bought mid-period, one lost with a payout, one lost and found again, one with no purchase cost), a bulk item lost and found, one hire-in covering two items, a hire-in paid by an expense, a line typed by hand; profit per item and unit, payback (paid back, expected, a lost unit), buy or hire, the item card, the tiles, who may call each function, 2,000 quotes in under 2 s (1.4 s on the test project). Vitest for the helpers and tiles; the signed-in e2e journey opens three views with axe |
 
-Needs: K5.
+**For K6 and later:** read equipment figures through these functions (hire-in cost per line
+through `private.equipment_hire_lines`, units' owned periods through `private.equipment_units`),
+never by adding up rows in the browser.
 
-- **Demand against stock**: the busiest moment booked against what was owned then (from the
-  ledger and unit history), days short, how often it was hired in; idle stock and "sell?"
-  candidates (no confirmed booking in 12 months, with book value).
-- **Suppliers**: hire-in spend per supplier, requests confirmed or declined, time to answer.
-- **Damage and loss**: repairs per item, gig and client; time from reported to repaired; cost and
-  what was charged back; losses per gig and client; inspections due, overdue and their cost.
-- **Dispatch**: per gig, scanned out against planned and back against out, still missing; scans per
-  day (warehouse workload); how many days before the gig gear left.
-- Tiles: items short in the next 30 days, units in repair, inspections overdue.
-- Ask: which dispatch steps count as "prepped"; the idle period.
+## How K6 works (built in the "Money reports" set)
 
-## K7 · Operations and people
+Warehouse and upkeep. Migration `20261231000000_warehouse_numbers.sql` (two columns, a trigger and
+functions; only adds); checks in `supabase/tests/warehouse_numbers.sql` (no destructive statements).
+Decided with the owner on 2026-11-08: **"prepped" = scanned out**; the **idle period is 12 months**.
+Defaults D42, D44, D49, D50 kept. Cancelled gigs (K7) hold no equipment and are left out of demand
+and dispatch.
 
-Needs: K1, 8, 9.
+| Piece | How it works |
+|---|---|
+| Who may | `private.require_ops` (K7): the organisation's admins and members, second sign-in step when set up. Security definer, like K7's reports. Money (book value, spend, repair and loss costs) only where `private.can_see_finance`, else `null` and the screen hides those columns |
+| Request times | `subrentals.requested_at` (set when the status becomes `requested`) and `decided_at` (when a request goes from requested to confirmed or declined: the supplier's `answered_at`, else now). Written only by the trigger `subrentals_times` (after `subrentals_before`); nothing is backfilled: older requests use `created_at` and `answered_at` |
+| `private.warehouse_demand_rows(org, from, until)` | Per stock item (rental or sale, tracked, not a set: a set on a gig becomes its contents): **booked** = equipment reservations not cancelled (holds included, as the availability check; their periods include prep and return days); **owned on a day** = units owned that day (K5's `private.equipment_units`: purchase date, else added, until lost or retired) + the bulk ledger up to that day (`private.equipment_bulk_moves`); units in repair still count; **hired in** at a moment = confirmed or returned subrental lines covering it (not on a cancelled gig). Each day's busiest moment is found at the starts of the bookings running that day. Returns the peak (booked, when, owned then, hired then, short then), `days_over` (booked > owned), `days_short` (booked > owned + hired), `max_short`, `first_short` |
+| `warehouse_demand(org, from, until, at)` | jsonb `{ today, from, until, money, items }`: those rows for every stock item owned or booked, plus `owned` now, `hire_ins` / `hired_units` (subrentals with the item overlapping the period), `last_confirmed`, `idle` (owned now, no confirmed booking from 12 months ago onwards; future bookings count) and `book_value` (live units' cost less K5 depreciation so far, plus bulk purchases' cost less theirs for the share still owned; `book_value_estimated` when a unit uses the item's cost price). At most 400 days |
+| `warehouse_suppliers(org, from, until, at)` | Requests (not drafts) dated like hire-in (gig start, else their start): per supplier and in total, requests, confirmed (with returned), declined, waiting, cancelled, answered and the median time to answer (answer − sent); `spend` from K5's `private.equipment_hire_lines` (euros) |
+| `warehouse_damage(org, from, until, at)` | Repairs reported in the period: count, units, open, done, written off, median and average days to repair (done ones), cost (a confirmed linked expense in euros replaces it, as K5), charged back (cost of "charge client" repairs), invoiced; per item, per gig (with client) and per client. Losses: units lost in the period on the gig they last went out to with no later return (undone scans left out), bulk lost − found; value = replacement value, else cost, less any payout. Inspections from `private.maintenance_due_all` (never inspected = due today): overdue (before today), due now, due in 30 days, never; done, failed and cost in the period; per item |
+| `warehouse_dispatch(org, from, until, at)` | Gigs starting in the period (not cancelled) with gear planned or scanned: planned, out, back, `short_out` (planned − out per item), `missing` (out − back per item; totals count ended gigs), first out scan and `lead_days` (start date − its day; negative = after the start), lead buckets; scans per day (not undone, not on cancelled gigs) and the busiest day |
+| `report_overview_k6(org, at)` | K6's own tile function: `items_short_30` (items with a day still short from today to 29 days ahead), `units_in_repair` (`stock_totals.in_repair`), `inspections_overdue`, `never_inspected`. `OVERVIEW_TILES`: `itemsShort30` (opens Demand for the next 30 days), `unitsInRepair` (Inventory → Maintenance), `inspectionsOverdue` (Damage and loss). The morning reminders still notify due inspections; K6 sends nothing |
+| Screen | `components/reports/WarehouseReport.jsx`, tab `warehouse` of `REPORT_TABS` (menu Reports → Warehouse). Views `?view=demand|suppliers|damage|dispatch`, this month by default; "Show details" adds the tables: Demand's filter `?show=short|idle|all`, Damage's grouping `?by=item|gig|client`, losses and inspections due, Dispatch per gig and the lead-time chart. CSV and print. Helpers `src/lib/analytics/warehouse.js` (unit tested) |
+| Connected | Inventory → Maintenance: "Repair and inspection numbers"; Inventory → Subrentals: "Supplier numbers"; dispatch page: "Dispatch numbers" (admins and members); Overview and Home: the three tiles; Demand's hire-in count opens Reports → Equipment → Buy or hire in for the item |
+| Help | Terms demand against stock, idle stock; ⓘ `warehouse-report`; guide `warehouse-numbers` with four pictures (`wh-demand`, `wh-suppliers`, `wh-damage`, `wh-dispatch`) and the refreshed Overview picture |
+| Tests | `warehouse_numbers.sql`: past stock from the ledger (10 mics, 4 lost mid-month), a subrental covering part of a booking (days over 4, still short 3), a cancelled gig's booking and scan left out, idle items with book value (units and bulk), supplier answers (24 h and 6 h → median 15) and spend, repairs per gig and client, a unit lost after its return scan was undone, inspections overdue and never done, dispatch per gig with an undone scan left out, the tiles, who may call each function (admin, member; viewer, another organisation, anonymous refused), a too-long period, the request-time trigger. Vitest for the helpers and tiles; the signed-in e2e journey opens the four views with axe |
 
-- **Activity**: gigs and gig days per month by status and type; the busiest days; how far ahead
-  gigs are booked.
-- **People**: crew days and hours per person (staff and freelancers); overtime, night, weekend and
-  holiday hours; planned against approved hours; how long approvals take; staff utilisation; leave
-  taken and left; the share of crew days done by freelancers.
-- **Staffing**: positions filled and open by gig date; time to fill (from the activity log);
-  crew-call answers and time to answer; job posts (applications, filled).
-- **Tasks**: open, overdue and done on time, per person and per gig.
-- **Gig wrap-up**: a printable page per gig after it ends: planned against actual hours and costs
-  (money only for those who see it), damage, losses and missing items, open tasks and notes.
-- A person page for admins: their days, hours and cost with the organisation (a DATA_MAP.md row).
-- Tiles: crew days this month, open positions in the next 14 days, overdue tasks, hours waiting for
-  approval.
-- Built in step 9: `staff_utilisation(org, from, to)` gives each member of staff's working days, leave
-  per type, days and hours available and approved hours logged (docs/BUSINESS.md, "How leave
-  requests work").
-- Ask: per-person figures for admins only or members too; the wrap-up page; a "cancelled" status.
+**For later steps:** demand against stock is `private.warehouse_demand_rows`; read hire-in cost
+through K5's `private.equipment_hire_lines`.
 
-## K8 · Crew numbers
+## How K7 works (built with the "Money reports" set)
 
-Needs: K1, 7b, 8, 9b. AVX work only (D25).
+Operations and people. Migrations `20261229000000_gig_cancelled_status.sql` (part 1, **applied by
+hand**: it replaces two check constraints) and `20261229000001_reports_k7.sql` (functions, one
+column); checks in `supabase/tests/reports_k7.sql` (no delete statements). Decided with the owner on
+2026-11-08: **per-person figures for admins only**; the wrap-up shows planned against actual hours
+and costs (money only for those who see it), damage, losses and missing items, open tasks and notes;
+**yes to a "cancelled" gig status**. Defaults D42, D44, D49, D50 kept.
 
-- **My numbers** in My work: gigs, days and hours (approved and waiting), overtime, per company and
-  month; earnings from agreed fees and approved hours × fee; upcoming booked earnings; travel km and
-  time; busiest months; functions worked; job applications (shortlisted, accepted); crew calls
-  answered.
-- **Fee paid**: the gig's managers mark a fee paid in the labour panel, which records the linked
-  expense (9b) and notifies the person; the person sees only "paid on" for their own fees (through
-  a function, never the organisation's expenses) and can mark it received. Organisations get a
-  "crew to pay" list and K3's tile.
-- Reimbursements owed to the person, if expense claims were built in 9b.
-- **Year statement** per company (fees, hours, km) as CSV and a printable page; step 27 reuses the
-  same monthly summary for the "recibo verde".
-- Only the person's own rows; companies show only their name (`my_gig_companies`).
-- Tiles on My work: earned this month, not yet paid, next booked days.
-- Ask: may crew mark "received"; the year statement's layout.
+| Piece | How it works |
+|---|---|
+| Cancelled status | A sixth built-in status, `cancelled` (`gigs.status`, `gig_statuses.base_status`; part 1). A cancelled gig behaves like an archived one: `private.gig_reservation_status` gives `cancelled` (no crew or equipment held), `person_conflicts` and `crew_busy` leave it out, the calendar feed skips it, the gigs list puts it with the archived ones, Home, the calendar, Find crew, job posts and subrentals leave it out. The suggested own status "Cancelled" now stands for it. Reports count it as a cancellation and nothing else (no crew days, positions or tasks) |
+| Who may | `private.require_ops(org)`: the organisation's admins and members (`is_staff`), with the second sign-in step when set up. `private.require_ops_admin(org)`: admins only, for per-person figures. The functions run as their owner (`security definer`, like `private.gig_labour`) because hours and fees are readable only by a gig's managers; they check who asks first, and members get totals only (`persons` and `by_person` come back `null`) |
+| Crew days | `private.ops_crew_days(org, from, until)`: one row per gig, person and day inside the period, from the person's booking, else the gig's dates (as `gig_labour_hours`); viewers aren't booked; cancelled gigs don't count; staff = the organisation's admins and members |
+| `ops_activity(org, from, until)` | Gigs per month by start date, by built-in status, own status and type; gig days per month (each day of a gig inside the period); the 10 busiest days (gigs running, crew booked; not cancelled); booking lead time (created → start, gigs starting in the period, not draft or cancelled) as a median and four buckets; cancelled gigs in the period |
+| `ops_people(org, from, until)` | Totals: crew days (staff, freelance), people, hours planned (an hourly fee's quantity for its share of days in the period, else days × `overtime_after_hours`, 10 when not set), hours approved and their split (overtime, night, weekend, holiday) by work date, hours waiting (`private.entry_hours`: end − start − break, past midnight when the end is earlier), days waiting, time to approve (entered → approved, average). Admins: one row per person, plus staff with nothing booked, with booked working days (crew days on their working weekdays, not a national or organisation holiday, not on approved leave), `staff_utilisation`'s working and available days and leave per type, utilisation, and `leave_balances` for the year the period ends in. At most 400 days (the leave functions' limit) |
+| `ops_staffing(org, from, until)` | Gigs starting in the period (not cancelled): positions needed (titles compared ignoring case and spaces), filled (people on the gig with that function, at most the quantity), open, per gig; time to fill from `gig_activity` (`member_added` with the position's function, after the position was added): count, median, average hours; crew calls sent in the period with answers (accepted, declined, none yet, full) and the median time to answer; job posts made in the period (open, filled, closed, applications, accepted) |
+| `ops_tasks(org, from, until)` | The organisation's own tasks and its gigs' tasks (not removed, not on cancelled gigs): open and overdue as of today (organisation's date), done in the period, on time (done on or before the due date) and late; per gig for admins and members, per person for admins |
+| `private.person_labour(org, gigs)` | `private.gig_labour`'s rule per person instead of per gig (the test checks they add up to the same planned and counted labour), with each person's days, planned, approved and waiting hours and the split |
+| `ops_person(org, user, from, until)` | Admins only. The gigs starting in the period that the person was on (dated like the money reports), each with days, hours and cost (actual, else agreed fee, else rate card marked estimate), totals, first and last gig, and for staff `leave_balances` and utilisation. Someone who is neither a member nor ever on the organisation's gigs: `P0002` |
+| `gig_wrapup(gig)` | The gig's managers (`can_manage_gig`) and the organisation's admins and members; crew and viewers refused. Hours per gig (planned days and hours, approved, waiting, returned days, split) and, for managers and admins, per person; `gig_finance`'s row for those who see money; damaged returns and not-back counts from `gig_dispatch` (undone scans left out), units marked lost after going out and never scanned back, repairs on the gig (staff only; cost only with money), open tasks, and `gigs.wrapup_notes` (up to 4000 characters, written by whoever may edit the gig) |
+| Overview tiles | `report_overview_k7(org)` (K7's own function; `report_overview` unchanged): crew days this month, open positions on gigs starting today to 13 days ahead, overdue tasks, days and hours waiting for approval. `useOverview` merges it in as `k7`; the four tiles in `OVERVIEW_TILES` (`crewDaysMonth`, `openPositions14`, `overdueTasks`, `hoursWaiting`) hide themselves when it didn't load (`hide`) |
+| Screens | Reports → **Operations** (`components/reports/OperationsReport.jsx`, tab `operations`, menu Reports → Operations), views `?view=activity|people|staffing|tasks`. The whole period counts, days still to come included (bookings and positions are planned ahead); activity and people compare with the previous period or last year in full. "Show details" adds: activity by type (`?by=type`), gig days, lead time and busiest days; the per-person table (admins); positions per gig, crew-call answers and job posts; tasks per gig and per person (admins). CSV and print. Helpers in `src/lib/analytics/ops.js` (unit tested). **Gig wrap-up** at `/gig/:id/wrapup` (`pages/GigWrapupPage.jsx`), printable. **Person page** at `/org/:orgId/people/:userId` (`pages/PersonPage.jsx`), admins only, this year by default |
+| Connected | Gig page: once the gig has ended, its managers and the organisation's admins and members see "Open the wrap-up" (`GigWrapupLink`). Crew tab: admins get a link to each person's page. Organisation → Tasks: a link to Reports → Operations → Tasks. Overview and Home: the four tiles. DATA_MAP.md: a row for per-person reports. Reports → Operations → People links each name to the person page |
+| Help | Terms crew day, staff utilisation, time to fill, gig wrap-up; ⓘ `operations-report`; page notes `gig-wrapup`, `org-person`; guide `pm-operations` with four new pictures (`ops-activity`, `ops-people`, `ops-staffing`, `gig-wrapup`) and the refreshed Overview picture; the gig-status help mentions Cancelled |
+| Tests | `reports_k7.sql`: the cancelled status (no reservation, not busy, not a clash, an own status may stand for it), each view's numbers on hand-worked fixtures (a national holiday, a day of leave, an hourly fee, a booking shorter than the gig, a position split over two rows, an undone return scan), per-person labour adding up to `gig_labour`, who may call each function (admin and member; members get no per-person rows and no person page; viewer, crew, another organisation, anonymous: no; the second sign-in step), who may write the notes. Vitest for the helpers, tiles, nav, gigs list; the signed-in e2e journey opens the four views with axe |
 
-## K9 · Report extras (optional)
+**For K8 and later:** per-person labour is `private.person_labour`; crew days are
+`private.ops_crew_days`; add per-person figures behind `private.require_ops_admin`.
 
-Needs: K2–K8. Only what the owner picks: a weekly key-numbers email to admins (opt-in, through the
-email summary and Brevo); saved views pinned to the Overview; a monthly management pack as a PDF
-(jsPDF); a read-only link for the accountant (token, expiry, revocable, like quote links).
+## How K8 works (built in the "Money reports" set)
+
+Crew numbers in My work, fee paid, crew to pay and the year statement. Migration
+`20261230000000_crew_numbers.sql` (one table, functions and a trigger); checks in
+`supabase/tests/crew_numbers.sql` (no destructive statements). Decided with the owner on 2026-11-08:
+crew **may mark a fee received**; the year statement is **one row per month with totals, then each
+gig**. AVX work only (D25); only the person's own rows; companies show only their name.
+
+| Piece | How it works |
+|---|---|
+| `private.my_gig_rows(user)` | One row per gig the person is on (draft and cancelled gigs left out): company name only, dates, role, function, **days** (their booking, else the gig's dates, as `private.gig_labour_hours`), the agreed fee, **hours approved** (`split.worked`) and **waiting** (submitted days' start–end minus break), **overtime** (`split.overtime`), approved cost, **km and travel minutes** (submitted and approved days), **earned** (approved days' stored cost plus a fixed fee once; with no approved days, the agreed fee once the gig is over), **upcoming** (the agreed fee of a gig not over), **paid on** (the live confirmed expense linked to the fee) and **received at**. "Over" is by the gig's organisation's date. Never callable directly |
+| `my_gig_numbers(from, until, gig)` | The caller's own rows (security definer on `auth.uid()`, two-step sign-in rule), by the gig's start date (the K1 report date). `MyFee` reads one gig's paid on / received through it, never the organisation's expenses |
+| `my_monthly_summary(from, until, org)` | Per company and month (gig start date): gigs, days, hours approved and waiting, overtime, earned, paid (earned of gigs marked paid), km, travel minutes and **reimbursements** (approved claims, by claim date). **Step 27's "recibo verde" summary reuses this function** |
+| `my_crew_activity(from, until)` | Job posts applied to (shortlisted or further, offered, accepted), crew calls answered (accepted or declined) and accepted, and **reimbursements owed** (approved claims with no paid date, per currency) |
+| Fee paid | `mark_crew_fee_paid(gig, user, paid_on, how, amount_net, vat_rate, description)`: those who see money (`require_finance`: admins and members, two-step sign-in) mark an agreed fee paid. The live expense linked to the fee (9b) gets the date (a draft is confirmed); with none, one is recorded (confirmed, EUR, the starter "freelance crew" category when there is one, amount and VAT from the form, the fee total by default). An empty date takes the paid date off (the expense stays). A future date (beyond tomorrow) is refused |
+| Notification | Trigger `expenses_fee_paid` on `expenses`: whenever a crew fee's expense becomes confirmed with a paid date (labour panel, Crew to pay or Expenses), the person gets `fee_paid` with the gig and the date only, never the amount. Direct (shown when the organisation is muted); opens the gig's Crew tab. Push and email texts in `_shared/notification-text.ts` |
+| Received | `crew_fee_received` (gig, person, `received_at`; empty after unmarking, the row stays). Written only by `mark_fee_received(gig, received)`, by the person on the gig, once the fee is marked paid. Read by the person and the gig's managers (`can_manage_gig`) |
+| Crew to pay | `private.crew_to_pay_rows`: agreed fees on gigs that are over (organisation's date), not draft or cancelled, without a confirmed paid linked expense. Amount: the linked expense's total with VAT, else the agreed fee (`estimated`). `crew_to_pay(org)`: admins get every row, members only the gigs they manage (per-person money, Definitions) |
+| K3's tile | `report_overview_k8(org)`: `crew_to_pay` per currency, `crew_to_pay_count`, `crew_to_pay_estimated`, for everyone who sees money (totals only). `OVERVIEW_TILES` entry `crewToPay` has `source: 'report_overview_k8'`; `useOverview` (K5's change) calls `report_overview` plus each tile's `source` and merges the answers, so later steps add a tile without touching `report_overview` |
+| Screens | **My work**: `MyNumbersStrip` (earned this month, not yet paid, booked days in the next 30 days; shown in simple mode too, hidden until a gig has a fee or earnings). **My numbers** `/me/numbers?year=&org=` (`pages/MyNumbersPage.jsx`, menu My work → My numbers): tiles, earned by month, per company, busiest months, functions, job posts and crew calls, reimbursements owed, each gig with paid on / received. **Year statement** `/me/numbers/statement?year=&org=` (`pages/YearStatementPage.jsx`): twelve months with totals, then each gig; CSV and print. **Labour panel**: "Mark paid" per agreed fee for those who see money (`PaidModal`), "Paid on … · received". **MyFee**: "Paid on …", "Mark received" / "Not received". **Expenses → Crew to pay** (`components/expenses/CrewToPay.jsx`) |
+| Helpers | `src/lib/analytics/crewNumbers.js` (`crewTotals`, `notYetPaid`, `myWorkTiles`, `byCompany`, `byMonth`, `busiestMonths`, `functionsWorked`, `yearStatement`, `summaryCompanies`), unit tested on the database test's gigs |
+| Help | Terms fee paid, year statement; ⓘ `crew-to-pay`, `fee-paid`, `reimbursements-owed`; pages `my-numbers`, `my-statement`; guide `crew-numbers` with four pictures (`my-numbers-tiles`, `my-numbers`, `fee-paid`, `year-statement`) |
+| Tests | `finance_cash.sql` (K8 block): a fee with no invoice counts once as crew, its invoice moves it to unpaid (the position unchanged), another organisation's fee never appears. `crew_numbers.sql`: each person sees only their own gigs, fee, hours and received mark; earned, upcoming, hours waiting, overtime, km; the period and one-gig filters; crew to pay for admins, members (none unless they manage the gig) and the tile's totals; fee paid records the expense once, with VAT, refuses a missing fee and a future date, and notifies without the amount; paid through Expenses notifies too; received only after paid, only by the person, read by the company that owns the gig and nobody else; unpaying brings the fee back; reimbursements; the monthly summary; outsiders and anonymous calls refused. Vitest for the helpers and the tile |
+
+**Cash (D50 h):** migration `20261230000001_crew_fees_cash.sql` renames K3's `cash_report` to
+`private.cash_report_pre_k8` and wraps it (same signature and rights): fees to pay with **no invoice
+yet** join `expected_out` as `group_key` `crew` in this month, at the agreed fee
+(`private.crew_fees_unbilled`, totals per currency after the finance check), and the month's
+`position` drops by the same amount. A fee whose invoice is recorded already counts as `unpaid`
+through its expense, so nothing is counted twice (checked in `finance_cash.sql`, K8 block).
+
+## How K9 works (built in the "Money reports" set)
+
+Report extras; the owner picked all four. Migration `20270101000000_report_extras.sql`; checks in
+`supabase/tests/report_extras.sql` (no delete statements). Two Edge Functions: `send-key-numbers`
+and `report-link-public` (JWT verification off for both).
+
+| Piece | How it works |
+|---|---|
+| Counting without a reader | The weekly email and the accountant link have no signed-in reader, so their functions check the person first (an admin who opted in; the admin who made the link and still is one), then run the existing report functions **as that person** (`private.report_as` sets the request's claims, `private.report_unswap` puts the old ones back before returning). Same rules, same `require_finance`, no second copy of any number. Only service-role functions do this; `private.report_claims_swap` can't be called by users. The second sign-in step can't be asked for here (see PENDING) |
+| `private.key_numbers(org, at)` | The Overview's numbers in one object: `report_overview` and `report_overview_k4`…`k8` merged, as `useOverview` merges them in the browser |
+| Weekly key numbers | `profiles.weekly_numbers` (off by default), shown in Settings → Notifications to people who administer an organisation. `public.weekly_numbers_recipients()` (admins who opted in, once per organisation, not muted ones), `public.weekly_key_numbers(org, user, at)` (null unless still an admin who opted in), `public.claim_weekly_numbers(user, org, week)` (once per person, organisation and Monday-week, in `report_email_log`, and under `send_settings.daily_email_cap` counted together with `send_log`). `send-key-numbers` sends one email per admin and organisation through Brevo (same secrets as the daily summary), text in `_shared/key-numbers-email.ts` (EN/PT, Vitest in `src/lib/keyNumbersEmail.test.js`): twelve numbers, money per currency, each line a link to its report. `?dry=1` counts only. GitHub workflow `key-numbers.yml`, Mondays 07:41 UTC |
+| Saved views | `report_views` (org, user, name, tab, query string without the tab, pinned, removed_at): only its owner reads or changes it, and only while `can_see_finance`; 50 live views per person and organisation; removed by marking. `src/lib/analytics/reportViews.js` (`viewQuery`, `viewHref`, CRUD). "Save this view" on every report tab; Reports → Overview shows the pinned ones as links and "Manage" lists all to pin, unpin or remove (`components/reports/SavedViews.jsx`). A view opens as a plain link, so ReportsPage's `setParam` (#115) wasn't touched |
+| Monthly management pack | `src/lib/analytics/managementPack.js`: for a whole month already over, reads the Overview sources, `finance_results` (the month and the month before), `sales_win_rate`, `sales_clients` (top five by revenue) and `equipment_money` (five best and three worst earners), lays them out as tables (`packSections`, tested) and draws the PDF with jsPDF + autotable in the browser (`pdfSafe` for the built-in fonts). On Reports → Overview; usage count `pdf:reports:pack` |
+| Accountant link | `report_links` (org, SHA-256 `token_hash`, label, period of at most two years, `expires_at` 1–180 days, `revoked_at`, views). Admins see their organisation's links (never the hash) and make or revoke them through `public.create_report_link` (returns the token once; 20 live links per organisation) and `public.revoke_report_link`. `public.report_link_view(hash, at)` (service role only) returns null for unknown, revoked or expired links and when the maker is no longer an admin; otherwise `finance_results` by month and in total, invoiced / credited / received / paid out by month (`cash_report`) and spending by category, counted as the maker, and counts the view. `report-link-public` hashes the token and answers `not_found` for all failures alike. Page `/r/:token` (`pages/ReportLinkPage.jsx`, no sign-in, `noindex` and `no-referrer`): a table per currency, every month of the period, estimates starred, print |
+| Help | Terms saved view, management pack, accountant link, weekly key numbers; ⓘ hints on the three Overview sections; guide `office-report-extras` with six pictures (sample answers in `scripts/help-screens/sample-data.mjs`, Edge Function answers under `functions`) |
+| Tests | `report_extras.sql` (recipients, opt-in, muted, claims put back, once a week, who may call; saved views per person, viewers refused; links: hash only, admins only, valid shows the period, unknown, expired (by clock and by date), revoked and former-admin links show nothing); Vitest for views, links, the pack and the email; e2e: the journey saves, opens and removes a view and checks the Overview sections and the setting; axe on `/r/<unknown>` |
 
 ## K10 · Safety and compliance (suggested, D27)
 

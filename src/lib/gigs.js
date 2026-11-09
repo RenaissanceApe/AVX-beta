@@ -11,7 +11,7 @@ export const GIG_FILTERS = [{ value: 'upcoming' }, { value: 'past' }, { value: '
 // A gig is "past" once its last day (end date, else start date) is before today.
 // Gigs without dates count as upcoming so they stay visible.
 export function gigBucket(gig, today) {
-  if (gig.status === 'archived') return 'archived'
+  if (gig.status === 'archived' || gig.status === 'cancelled') return 'archived' // cancelled gigs sit with the archived ones
   const lastDay = gig.end_date || gig.start_date
   if (lastDay && lastDay < today) return 'past'
   return 'upcoming'

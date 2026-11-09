@@ -22,6 +22,7 @@ export function navSections({ workspace, role }) {
         { key: 'availability', icon: 'calendarOff', to: '/settings/availability' },
         { key: 'myTasks', icon: 'listTodo', to: '/tasks' },
         { key: 'myHours', icon: 'clock', to: '/me/hours' },
+        { key: 'myNumbers', icon: 'trendingUp', to: '/me/numbers' },
         { key: 'jobs', icon: 'handshake', to: '/jobs' },
         { key: 'pocketTools', icon: 'wrench', to: '/tools' },
       ] },
@@ -54,7 +55,7 @@ export function navSections({ workspace, role }) {
       { key: 'movements', icon: 'history', to: `${base}/inventory?tab=movements` },
       { key: 'maintenance', icon: 'wrench', to: `${base}/inventory?tab=maintenance` },
       { key: 'subrentals', icon: 'handshake', to: `${base}/inventory?tab=subrentals`, minor: true },
-      { key: 'reports', icon: 'barChart', to: `${base}/inventory?tab=reports`, minor: true },
+      { key: 'reports', icon: 'barChart', to: `${base}/reports?tab=equipment`, minor: true },
       { key: 'labels', icon: 'qrCode', to: `${base}/inventory/labels`, minor: true },
     ] })
   }
@@ -64,6 +65,10 @@ export function navSections({ workspace, role }) {
       { key: 'reportsOverview', icon: 'barChart', to: `${base}/reports` },
       { key: 'reportsRevenue', icon: 'trendingUp', to: `${base}/reports?tab=revenue` },
       { key: 'reportsMoney', icon: 'receipt', to: `${base}/reports?tab=money` },
+      { key: 'reportsSales', icon: 'handshake', to: `${base}/reports?tab=sales` },
+      { key: 'reportsEquipment', icon: 'package', to: `${base}/reports?tab=equipment` },
+      { key: 'reportsWarehouse', icon: 'wrench', to: `${base}/reports?tab=warehouse` },
+      { key: 'reportsOperations', icon: 'users', to: `${base}/reports?tab=operations` },
     ] })
   }
   sections.push({ key: 'organisation', icon: 'users', items: [

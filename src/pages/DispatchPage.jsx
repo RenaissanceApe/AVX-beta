@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Camera, CameraOff, ScanLine, Check, X, PackageCheck, ClipboardList, Maximize2, Volume2, VolumeX } from 'lucide-react'
+import { ArrowLeft, Camera, CameraOff, ScanLine, Check, X, PackageCheck, ClipboardList, Maximize2, Volume2, VolumeX, BarChart3 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useWorkspace } from '../lib/WorkspaceContext'
@@ -173,6 +173,10 @@ export default function DispatchPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
           <button onClick={() => navigate(`/gig/${id}?tab=equipment`)} style={{ ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft, padding: '6px 10px' }}><ArrowLeft size={14} /> {gig.name}</button>
           <button onClick={() => navigate(`/gig/${id}/packing`)} style={{ ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft, padding: '6px 10px', marginLeft: 'auto' }}><ClipboardList size={14} /> {t('dispatch.packingList')}</button>
+          {/* K6: the organisation's admins and members see the warehouse's dispatch numbers */}
+          {['admin', 'member'].includes(roleIn(gig.org_id)) && (
+            <button onClick={() => navigate(`/org/${gig.org_id}/reports?tab=warehouse&view=dispatch`)} style={{ ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft, padding: '6px 10px' }}><BarChart3 size={14} /> {t('wh.linkDispatch')}</button>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
           <h1 style={{ fontSize: '22px', fontWeight: 700, flex: 1 }}>{t('dispatch.title')}</h1>

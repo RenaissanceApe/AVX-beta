@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
-const PAGES = ['/auth', '/welcome', '/reset-password', '/privacy', '/terms', '/help', '/help/guide/crew-call-time']
+const PAGES = ['/auth', '/welcome', '/reset-password', '/privacy', '/terms', '/help', '/help/guide/crew-call-time', '/r/not-a-real-link-0000000000']
 
 async function blockingProblems(page) {
   await page.waitForLoadState('networkidle').catch(() => {})
@@ -28,7 +28,7 @@ for (const path of PAGES) {
 
 // The other themes (H3): the same checks, colour contrast included, in light and high contrast
 for (const theme of ['light', 'contrast']) {
-  for (const path of ['/auth', '/help', '/help/guide/crew-call-time']) {
+  for (const path of ['/auth', '/help', '/help/guide/crew-call-time', '/r/not-a-real-link-0000000000']) {
     test(`no serious accessibility problems on ${path} in the ${theme} theme`, async ({ page }) => {
       await page.addInitScript(t => { try { localStorage.setItem('avx.appearance', JSON.stringify({ theme: t })) } catch { /* ignore */ } }, theme)
       await page.goto(path)

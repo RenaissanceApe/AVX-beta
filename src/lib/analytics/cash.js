@@ -6,7 +6,7 @@
 export const CASH_VIEWS = ['cash', 'spending', 'forecast']
 export const SPENDING_GROUPS = ['category', 'supplier', 'gig', 'month']
 export const AGE_BANDS = ['0_30', '31_60', '61_90', '90_plus']
-export const OUT_PARTS = ['unpaid', 'claims', 'recurring']
+export const OUT_PARTS = ['unpaid', 'claims', 'recurring', 'crew'] // crew: fees to pay with no invoice yet (K8)
 // Months ahead for the cash position and the forecast (decided with the owner, 2026-11-07)
 export const MONTHS_AHEAD = 3
 
@@ -58,7 +58,7 @@ export function agedOverdue(rows, currency) {
   return out
 }
 
-// The months ahead, from this month: [{ key, in, inOverdue, out, unpaid, claims, recurring, position }]
+// The months ahead, from this month: [{ key, in, inOverdue, out, unpaid, claims, recurring, crew, position }]
 export function monthsAhead(rows, currency, today, count = MONTHS_AHEAD) {
   const out = []
   const [y, m] = String(today).split('-').map(Number)

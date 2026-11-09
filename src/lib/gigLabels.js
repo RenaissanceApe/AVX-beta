@@ -1,12 +1,12 @@
 // An organisation's own gig statuses and gig types (docs/TOOLS_PLAN.md build order step 6, S1).
-// Each status stands for one of the five built-in ones, which keep driving lists and archiving.
+// Each status stands for one of the six built-in ones (cancelled since K7), which keep driving lists and archiving.
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 
-export const BASE_STATUSES = ['draft', 'confirmed', 'active', 'completed', 'archived']
+export const BASE_STATUSES = ['draft', 'confirmed', 'active', 'completed', 'archived', 'cancelled']
 import { LABEL_COLOURS, labelVar } from './labelColours'
 export { LABEL_COLOURS, labelVar }
-const BASE_COLOUR = { draft: 'grey', confirmed: 'blue', active: 'green', completed: 'purple', archived: 'grey' }
+const BASE_COLOUR = { draft: 'grey', confirmed: 'blue', active: 'green', completed: 'purple', archived: 'grey', cancelled: 'red' }
 
 // Text colour for a label's word or square, from the theme (readable in every theme). No tinted
 // backgrounds: a label is a square + its word (DESIGN.md), never a wash.
@@ -35,7 +35,7 @@ export const SUGGESTED_STATUSES = [
   { key: 'onTheRoad', base: 'active', colour: 'green' },
   { key: 'done', base: 'completed', colour: 'purple' },
   { key: 'invoiced', base: 'completed', colour: 'sky' },
-  { key: 'cancelled', base: 'archived', colour: 'red' },
+  { key: 'cancelled', base: 'cancelled', colour: 'red' },
 ]
 
 export const sortLabels = list => [...(list || [])].sort((a, b) => a.position - b.position || String(a.created_at).localeCompare(String(b.created_at)))

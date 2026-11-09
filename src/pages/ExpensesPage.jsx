@@ -17,8 +17,9 @@ import { PageHelp } from '../components/help/HelpParts'
 import ExpenseForm from '../components/expenses/ExpenseForm'
 import { ExpenseRow, ClaimActions, Totals } from '../components/expenses/ExpenseParts'
 import { RecurringPanel, CategorySettings } from '../components/expenses/ExpenseSettings'
+import CrewToPay from '../components/expenses/CrewToPay'
 
-const VIEWS = ['month', 'unpaid', 'claims', 'recurring', 'categories']
+const VIEWS = ['month', 'unpaid', 'crew', 'claims', 'recurring', 'categories']
 const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
 const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
 const DETAILS_KEY = 'avx.expenses.details'
@@ -61,7 +62,7 @@ export default function ExpensesPage() {
   }, [canSee, orgId, version])
 
   const load = useCallback(async () => {
-    if (!canSee || view === 'recurring' || view === 'categories') return
+    if (!canSee || view === 'recurring' || view === 'categories' || view === 'crew') return
     setList(null)
     let q = supabase.from('expenses').select(EXPENSE_SELECT).eq('org_id', orgId).is('removed_at', null)
     if (view === 'month') {
@@ -154,6 +155,7 @@ export default function ExpensesPage() {
           ))}
         </nav>
 
+        {view === 'crew' && <CrewToPay orgId={orgId} isAdmin={isAdmin} />}
         {view === 'recurring' && <RecurringPanel orgId={orgId} categories={categories} version={version} onChanged={changed} />}
         {view === 'categories' && <CategorySettings orgId={orgId} categories={categories} onChanged={changed} />}
 

@@ -18,6 +18,8 @@ describe('gigBucket', () => {
   })
   it('archived wins over dates; undated gigs are upcoming', () => {
     expect(gigBucket(gigs[2], today)).toBe('archived')
+    // a cancelled gig (K7) sits with the archived ones, whatever its dates
+    expect(gigBucket({ status: 'cancelled', start_date: '2026-12-01' }, today)).toBe('archived')
     expect(gigBucket(gigs[3], today)).toBe('upcoming')
   })
 })

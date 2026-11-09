@@ -348,11 +348,50 @@ export function sampleData(persona, lang) {
     { id: 'pl3', org_id: orgId, name: w.sound, kind: 'crew', unit: 'day', unit_price: 200, category: tx('Equipa', 'Crew'), details: null, tracking: 'none' },
     { id: 'pl4', org_id: orgId, name: tx('Transporte', 'Transport'), kind: 'transport', unit: 'km', unit_price: 0.45, category: tx('Transporte', 'Transport'), details: null, tracking: 'none' },
   ]
+  // K5: Reports → Equipment's profit rows (one per item, and the lines typed by hand)
+  const equipmentMoney = [
+        { item_id: SPK, name: w.speaker, category: w.sys, tracking: 'serial', owned: 7, units: 7, units_with_cost: 7, has_cost: true, revenue: 6720, revenue_sets: 1840, depreciation: 3500, depreciation_estimated: 0, repairs: 180, inspections: 60, hire_in: 0, losses: 0, profit: 2980 },
+        { item_id: QL1, name: w.desk, category: w.sys, tracking: 'serial', owned: 1, units: 1, units_with_cost: 1, has_cost: true, revenue: 2160, revenue_sets: 0, depreciation: 2000, depreciation_estimated: 0, repairs: 0, inspections: 0, hire_in: 360, losses: 0, profit: -200 },
+        { item_id: XLR, name: w.cables, category: w.cab, tracking: 'bulk', owned: 120, units: 0, units_with_cost: 0, has_cost: true, revenue: 940, revenue_sets: 410, depreciation: 210, depreciation_estimated: 0, repairs: 0, inspections: 0, hire_in: 0, losses: 45, profit: 685 },
+        { item_id: PWC, name: w.powercon, category: w.cab, tracking: 'bulk', owned: 40, units: 0, units_with_cost: 0, has_cost: false, revenue: 0, revenue_sets: 0, depreciation: 0, depreciation_estimated: 0, repairs: 0, inspections: 0, hire_in: 0, losses: 0, profit: 0 },
+        { item_id: null, name: null, category: null, tracking: null, owned: 0, units: 0, units_with_cost: 0, has_cost: false, revenue: 780, revenue_sets: 0, depreciation: 0, depreciation_estimated: 0, repairs: 0, inspections: 0, hire_in: 0, losses: 0, profit: 780 },
+      ]
+  // K8 · My numbers: Carla's gigs this year at two companies (sample amounts)
+  const mg = (id, org, orgName, start, days, fn, fee, earned, extra = {}) => ({
+    gig_id: id, gig_name: extra.name, org_id: org, org_name: orgName, start_date: start, end_date: start, gig_status: 'completed', role: 'crew',
+    function_title: fn, days, fee_unit: 'day', fee_rate: fee, fee_quantity: days, fee_total: fee * days, hours_approved: extra.hours ?? days * 10,
+    hours_waiting: extra.waiting ?? 0, overtime_hours: extra.overtime ?? 0, approved_cost: earned, km: extra.km ?? 0, travel_minutes: extra.travel ?? 0,
+    earned, upcoming: extra.upcoming ?? null, finished: extra.upcoming == null, paid_on: extra.paid ?? null, received_at: extra.received ?? null })
+  const yr = new Date().getFullYear()
+  const myGigNumbers = [
+    mg('k1', orgId, 'Lumen and Pixel', `${yr}-02-14`, 2, w.sound, 180, 360, { name: tx('Gala Dia dos Namorados', 'Valentine\'s gala'), km: 72, travel: 80, paid: `${yr}-03-02`, received: `${yr}-03-04T10:00:00Z` }),
+    mg('k2', otherOrg, 'SoundWorks Lisboa', `${yr}-04-05`, 3, w.sound, 200, 690, { name: tx('Congresso Médico', 'Medical congress'), overtime: 6, km: 40, travel: 60, paid: `${yr}-05-10` }),
+    mg('k3', orgId, 'Lumen and Pixel', `${yr}-06-12`, 4, w.lights, 170, 680, { name: tx('Santos Populares', 'Saints festival'), overtime: 4, km: 18, travel: 30, paid: `${yr}-07-01`, received: `${yr}-07-03T10:00:00Z` }),
+    mg('k4', orgId, 'Lumen and Pixel', `${yr}-07-18`, 3, w.sound, 180, 540, { name: tx('Festival de Verão', 'Summer festival'), km: 210, travel: 300, paid: `${yr}-08-05` }),
+    mg('k5', otherOrg, 'SoundWorks Lisboa', `${yr}-09-20`, 2, w.sound, 200, 400, { name: tx('Lançamento de produto', 'Product launch'), waiting: 9, km: 25, travel: 40 }),
+    mg('k6', orgId, 'Lumen and Pixel', day(-6), 1, w.sound, 180, 180, { name: tx('Concerto acústico', 'Acoustic concert'), km: 12, travel: 20 }),
+    { ...mg(gigId, orgId, 'Lumen and Pixel', day(24), 2, w.sound, 180, null, { name: gig.name, upcoming: 360, hours: 0, paid: day(-1) }) },
+    mg(jazzId, otherOrg, 'SoundWorks Lisboa', day(40), 3, w.sound, 200, null, { name: jazz.name, upcoming: 600, hours: 0 }),
+  ]
+  const myMonthlySummary = Object.values(myGigNumbers.reduce((acc, r) => {
+    const k = `${r.org_id}|${r.start_date.slice(0, 7)}`
+    const a = acc[k] || (acc[k] = { org_id: r.org_id, org_name: r.org_name, month: `${r.start_date.slice(0, 7)}-01`, gigs: 0, days: 0, hours_approved: 0, hours_waiting: 0, overtime_hours: 0, earned: 0, paid: 0, km: 0, travel_minutes: 0, reimbursements: 0 })
+    a.gigs += 1; a.days += r.days; a.hours_approved += r.hours_approved; a.hours_waiting += r.hours_waiting; a.overtime_hours += r.overtime_hours
+    a.earned += r.earned || 0; a.paid += r.paid_on ? r.earned || 0 : 0; a.km += r.km; a.travel_minutes += r.travel_minutes
+    return acc
+  }, {}))
+
+  // K9: last year's months on the accountant's page
+  const linkMonths = Array.from({ length: 12 }, (_, i) => {
+    const revenue = 14000 + ((i * 3700) % 9000), direct = Math.round(revenue * 0.46), over = 3100
+    return { month: `${yr - 1}-${String(i + 1).padStart(2, '0')}`, currency: 'EUR', revenue, direct_costs: direct, gross_margin: revenue - direct, overheads: over, depreciation: 900, operating_result: revenue - direct - over - 900, estimated: i === 10 ? 640 : 0 }
+  })
+
   return {
     me, names, persona,
     user: { id: me, email: persona === 'pm' ? 'ricardo@example.com' : 'carla@example.com', aud: 'authenticated', role: 'authenticated', user_metadata: { full_name: names[me] }, app_metadata: {} },
     tables: {
-      profiles: Object.keys(names).map(id => ({ id, full_name: names[id], phone: phones[id], language: lang, findable: 'managers', email_digest: true })),
+      profiles: Object.keys(names).map(id => ({ id, full_name: names[id], phone: phones[id], language: lang, findable: 'managers', email_digest: true, weekly_numbers: id === ricardo })),
       organisations: [org],
       org_members: persona === 'pm'
         ? [{ org_id: orgId, user_id: ricardo, role: 'admin', organisations: org, joined_at: '2026-01-10T10:00:00Z' }, { org_id: orgId, user_id: duarte, role: 'member', organisations: org }]
@@ -370,7 +409,7 @@ export function sampleData(persona, lang) {
         { id: 'cr3', org_id: orgId, function_title: w.sound, user_id: carla, day_rate: 180, half_day_rate: null, hour_rate: null, created_at: ago(200) },
       ],
       crew_rate_factors: [{ org_id: orgId, overtime: 1.5, overtime_after_hours: 10, weekend: 1.25, night: 1.2, holiday: 2, night_from: '22:00:00', night_until: '07:00:00', km_rate: 0.36 }],
-      gig_crew_fees: persona === 'pm' ? [{ gig_id: gigId, user_id: duarte, org_id: orgId, unit: 'fixed', rate: 300, quantity: 1, note: null }] : [],
+      gig_crew_fees: persona === 'pm' ? [{ gig_id: gigId, user_id: duarte, org_id: orgId, unit: 'fixed', rate: 300, quantity: 1, note: null }] : [{ gig_id: gigId, user_id: carla, org_id: orgId, unit: 'day', rate: 180, quantity: 2, note: null }],
       // Time registration (step 8): Carla's first day waiting, her second sent back, Duarte's approved
       time_entries: [
         { id: 'te1', gig_id: gigId, user_id: carla, org_id: orgId, work_date: day(24), start_time: '08:00:00', end_time: '00:30:00', break_minutes: 60, travel_minutes: 40, km: 36, note: null, status: 'submitted', review_note: null, split: null, cost: null, removed_at: null, gigs: { name: gig.name } },
@@ -515,8 +554,23 @@ export function sampleData(persona, lang) {
       conversations: convs.map(c => ({ id: c.id, kind: c.kind, gig_id: c.gig_id, org_id: c.org_id || null, title: c.title || null, department: null, audience: c.kind === 'org' ? 'everyone' : null, admins_post: c.kind === 'org', archived_at: null, gigs: c.gig_id ? { name: gig.name } : null, organisations: c.org_id ? { name: 'Lumen and Pixel' } : null })),
       conversation_members: [{ user_id: carla }, { user_id: ricardo }, { user_id: duarte }],
       conversation_state: [{ muted: false }],
+      // K9: Ricardo's saved views and the accountant links of Lumen and Pixel
+      report_views: persona === 'pm' ? [
+        { id: 'rv1', name: tx('Tesouraria deste ano', 'Cash this year'), tab: 'money', query: 'view=cash&period=this_year', pinned: true, created_at: ago(400) },
+        { id: 'rv2', name: tx('Orçamentos a acompanhar', 'Quotes to follow up'), tab: 'sales', query: 'view=waiting', pinned: true, created_at: ago(300) },
+        { id: 'rv3', name: tx('Material: o que mais rende', 'Best earning gear'), tab: 'equipment', query: 'period=this_year', pinned: true, created_at: ago(200) },
+        { id: 'rv4', name: tx('Margens do trimestre', 'Margins this quarter'), tab: 'margins', query: 'period=this_quarter', pinned: false, created_at: ago(100) },
+      ] : [],
+      report_links: persona === 'pm' ? [
+        { id: 'rl1', label: tx('Contabilista – Marta Silva', 'Accountant – Marta Silva'), period_from: `${yr - 1}-01-01`, period_until: `${yr}-01-01`, expires_at: `${day(21)}T10:00:00Z`, revoked_at: null, last_viewed_at: ago(30), views: 3, created_at: ago(9 * 24) },
+        { id: 'rl2', label: tx('Auditoria IVA 3.º trimestre', 'VAT audit, 3rd quarter'), period_from: `${yr}-07-01`, period_until: `${yr}-10-01`, expires_at: `${day(-12)}T10:00:00Z`, revoked_at: null, last_viewed_at: ago(20 * 24), views: 1, created_at: ago(40 * 24) },
+      ] : [],
     },
     rpc: {
+      // K8: Carla's own numbers (My numbers, the year statement, her fee on the gig)
+      my_gig_numbers: args => (args.p_gig ? myGigNumbers.filter(r => r.gig_id === args.p_gig) : myGigNumbers),
+      my_monthly_summary: myMonthlySummary,
+      my_crew_activity: { applications: { total: 6, shortlisted: 3, offered: 2, accepted: 2 }, calls: { total: 9, answered: 8, accepted: 5 }, reimbursements_owed: { EUR: 26.45 }, reimbursements_count: 1 },
       my_gig_companies: persona === 'pm' ? [{ org_id: orgId, name: 'Lumen and Pixel' }] : [{ org_id: orgId, name: 'Lumen and Pixel' }, { org_id: otherOrg, name: 'SoundWorks Lisboa' }],
       my_availability_requests: persona === 'pm' ? [] : [request],
       my_unread_counts: [],
@@ -620,8 +674,146 @@ export function sampleData(persona, lang) {
       spending: spendingAnswer,
       revenue_forecast: revenueForecast,
       target_progress: targetProgress,
+      // K4: Reports → Sales and the client numbers card
+      report_overview_k4: { follow_up: { count: 2, totals: { EUR: 6380 } }, win_rate_90: { decided: 13, by_count: 0.62, by_value: 0.57, currency: 'EUR' },
+        top_client_year: { key: 'c1', name: 'Marcolino Produções', currency: 'EUR', amount: 28640, share: 0.31 } },
+      sales_waiting: [
+        { quote_id: 'q1', quote_number: 41, title: gig.name, client_key: 'c1', client_name: 'Marcolino Produções', author_id: ricardo, author_name: 'Ricardo Bedulho', currency: 'EUR', value: 4860, sent_on: day(-12), days_waiting: 12, valid_until: day(4), days_left: 4, opened: true, last_viewed_at: ago(3000), expiring: true, expired: false, follow_up: true },
+        { quote_id: 'q2', quote_number: 43, title: tx('Gala de fim de ano', 'End-of-year gala'), client_key: 'c2', client_name: tx('Câmara Municipal de Sintra', 'Sintra Town Council'), author_id: duarte, author_name: 'Duarte Silva', currency: 'EUR', value: 1520, sent_on: day(-9), days_waiting: 9, valid_until: day(21), days_left: 21, opened: false, last_viewed_at: null, expiring: false, expired: false, follow_up: true },
+        { quote_id: 'q3', quote_number: 45, title: tx('Casamento Joana', 'Joana\'s wedding'), client_key: 'c4', client_name: 'Joana Silva', author_id: ricardo, author_name: 'Ricardo Bedulho', currency: 'EUR', value: 3340, sent_on: day(-3), days_waiting: 3, valid_until: day(27), days_left: 27, opened: true, last_viewed_at: ago(600), expiring: false, expired: false, follow_up: false },
+        { quote_id: 'q4', quote_number: 38, title: tx('Feira do livro', 'Book fair'), client_key: 'c3', client_name: 'Festival Lumière', author_id: duarte, author_name: 'Duarte Silva', currency: 'EUR', value: 980, sent_on: day(-40), days_waiting: 40, valid_until: day(-10), days_left: -10, opened: false, last_viewed_at: null, expiring: false, expired: true, follow_up: false },
+      ],
+      sales_win_rate: ({ p_group = 'total' } = {}) => {
+        const row = (k, label, d, a, va, vd, med, avg, gross) => ({ group_key: k, group_label: label, currency: 'EUR', decided: d, accepted: a, declined: d - a,
+          value_accepted: va, value_declined: vd, win_rate_count: d ? Math.round(a / d * 10000) / 10000 : null, win_rate_value: va + vd ? Math.round(va / (va + vd) * 10000) / 10000 : null,
+          median_days: med, avg_value: avg, gross_accepted: gross, discount_accepted: Math.round((gross - va) * 100) / 100 })
+        if (p_group === 'lost_reason') return [row('price', null, 4, 0, 0, 9200, 6, 2300, 0), row('competitor', null, 2, 0, 0, 5100, 9, 2550, 0), row('cancelled', null, 1, 0, 0, 1800, 3, 1800, 0), row(null, null, 13, 12, 61200, 2400, 5, 4892, 66900)]
+        if (p_group === 'client') return [row('c1', 'Marcolino Produções', 7, 5, 28640, 6200, 4, 4977, 31200), row('c2', tx('Câmara Municipal de Sintra', 'Sintra Town Council'), 5, 3, 14800, 5900, 12, 4140, 15600), row('c3', 'Festival Lumière', 4, 2, 11300, 4800, 7, 4025, 12400), row('c4', 'Joana Silva', 2, 1, 3340, 1600, 3, 2470, 3600), row(null, null, 2, 1, 3120, 0, 2, 1560, 4100)]
+        if (p_group === 'author') return [row(ricardo, 'Ricardo Bedulho', 12, 8, 38400, 9800, 5, 4017, 42100), row(duarte, 'Duarte Silva', 8, 4, 22800, 8700, 8, 3938, 24800)]
+        if (p_group === 'month' || p_group === 'quarter') {
+          const months = [-5, -4, -3, -2, -1, 0].map(i => new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() + i, 1)).toISOString().slice(0, 7))
+          const n = [[3, 2], [4, 2], [2, 1], [5, 3], [3, 2], [3, 2]]
+          return months.map((m, i) => row(m, null, n[i][0], n[i][1], n[i][1] * 5100, (n[i][0] - n[i][1]) * 3000, 5 + i % 3, 4400, n[i][1] * 5500))
+        }
+        return [row('total', null, 20, 12, 61200, 18500, 6, 3985, 66900)]
+      },
+      sales_clients: ({ p_client } = {}) => {
+        const c = (k, name, rev, margin, gigs, quotes, decided, accepted, first, last, next, isNew, ret) => ({ client_key: k, client_id: k, client_name: name, currency: 'EUR',
+          revenue: rev, gross_margin: margin, margin_pct: rev ? Math.round(margin * 1000 / rev) / 10 : null, gigs, avg_gig_value: gigs ? Math.round(rev / gigs * 100) / 100 : null,
+          quotes, decided, accepted, win_rate_count: decided ? Math.round(accepted / decided * 10000) / 10000 : null, win_rate_value: null,
+          first_gig: first, last_gig: last, next_gig: next, is_new: isNew, is_returning: ret })
+        const rows = [
+          c('c1', 'Marcolino Produções', 28640, 11930, 6, 8, 7, 5, day(-700), day(-14), day(24), false, true),
+          c('c2', tx('Câmara Municipal de Sintra', 'Sintra Town Council'), 14800, 5480, 3, 6, 5, 3, day(-420), day(-40), day(52), false, true),
+          c('c3', 'Festival Lumière', 11300, 3620, 2, 5, 4, 2, day(-150), day(-60), null, true, false),
+          c('c4', 'Joana Silva', 3340, 1210, 1, 2, 2, 1, day(-30), day(-30), day(200), true, false),
+          { ...c('', null, 34100, 9800, 0, 0, 0, 0, null, null, null, false, false), client_id: null },
+        ]
+        return p_client ? rows.filter(r => r.client_key === p_client) : rows
+      },
       report_revenue_lines: revenueLines,
       gig_finance: gigFinance,
+      // Reports → Operations (K7): answers for each month of the asked period
+      // Reports → Warehouse (K6)
+      report_overview_k6: { items_short_30: 2, units_in_repair: 3, inspections_overdue: 4, never_inspected: 1 },
+      warehouse_demand: {
+        today: day(0), money: true,
+        items: [
+          { item_id: SPK, name: w.speaker, category: 'Audio', tracking: 'serial', owned: 8, peak_booked: 12, peak_day: day(-9), owned_at_peak: 8, hired_at_peak: 4, short_at_peak: 0, days_over: 3, days_short: 1, max_short: 2, hire_ins: 2, hired_units: 6, last_confirmed: day(-7), idle: false, book_value: 9600, book_value_estimated: false },
+          { item_id: XLR, name: w.cables, category: tx('Cabos', 'Cables'), tracking: 'bulk', owned: 120, peak_booked: 140, peak_day: day(6), owned_at_peak: 120, hired_at_peak: 0, short_at_peak: 20, days_over: 2, days_short: 2, max_short: 20, hire_ins: 0, hired_units: 0, last_confirmed: day(-3), idle: false, book_value: 410, book_value_estimated: false },
+          { item_id: QL1, name: w.desk, category: 'Audio', tracking: 'serial', owned: 2, peak_booked: 2, peak_day: day(-14), owned_at_peak: 2, hired_at_peak: 0, short_at_peak: 0, days_over: 0, days_short: 0, max_short: 0, hire_ins: 0, hired_units: 0, last_confirmed: day(-14), idle: false, book_value: 14200, book_value_estimated: false },
+          { item_id: PWC, name: w.powercon, category: tx('Cabos', 'Cables'), tracking: 'bulk', owned: 40, peak_booked: 0, owned_at_peak: null, hired_at_peak: 0, short_at_peak: 0, days_over: 0, days_short: 0, max_short: 0, hire_ins: 0, hired_units: 0, last_confirmed: day(-420), idle: true, book_value: 180, book_value_estimated: true },
+        ],
+      },
+      warehouse_suppliers: {
+        today: day(0), money: true,
+        totals: { requests: 9, confirmed: 6, declined: 2, waiting: 1, cancelled: 0, answered: 8, median_answer_hours: 5.5, spend: 2340 },
+        suppliers: [
+          { supplier_id: 'sp1', name: 'Audiomatic', requests: 5, confirmed: 4, declined: 1, waiting: 0, cancelled: 0, answered: 5, median_answer_hours: 3, spend: 1640 },
+          { supplier_id: 'sp2', name: 'LuzPro Aluguer', requests: 3, confirmed: 2, declined: 0, waiting: 1, cancelled: 0, answered: 2, median_answer_hours: 26, spend: 700 },
+          { supplier_id: 'sp3', name: 'Palco Norte', requests: 1, confirmed: 0, declined: 1, waiting: 0, cancelled: 0, answered: 1, median_answer_hours: 50, spend: 0 },
+        ],
+      },
+      warehouse_damage: {
+        today: day(0), money: true,
+        repairs: { count: 7, units: 9, open: 3, done: 4, written_off: 0, median_days: 6.5, average_days: 8.2, charged_count: 2, invoiced_count: 1, cost: 645, charged: 265 },
+        by_item: [
+          { item_id: SPK, name: w.speaker, repairs: 3, units: 3, open: 1, median_days: 9, cost: 435, charged: 180 },
+          { item_id: XLR, name: w.cables, repairs: 3, units: 5, open: 2, median_days: 2, cost: 60, charged: 0 },
+          { item_id: QL1, name: w.desk, repairs: 1, units: 1, open: 0, median_days: 14, cost: 150, charged: 85 },
+        ],
+        by_gig: [{ gig_id: gigId, name: gig.name, start_date: day(-20), client: 'Teatro Aveirense', repairs: 2, cost: 265, charged: 180, lost: 1, lost_value: 1450 }],
+        by_client: [{ client_id: 'cl0', name: 'Teatro Aveirense', repairs: 2, cost: 265, charged: 180, lost: 1, lost_value: 1450 }, { client_id: null, name: null, repairs: 5, cost: 380, charged: 85, lost: 0, lost_value: 0 }],
+        losses: { units: 1, bulk: 6, on_gigs: 1, value: 1510, items: [{ item_id: XLR, name: w.cables, units: 6, value: 60 }, { item_id: SPK, name: w.speaker, units: 1, value: 1450 }] },
+        inspections: { overdue: 4, due_now: 5, never: 1, due_30: 6, done: 12, failed: 1, cost: 240,
+          items: [{ item_id: XLR, name: w.cables, overdue: 1, due_30: 0, never: 1, next_due: day(-40) }, { item_id: SPK, name: w.speaker, overdue: 3, due_30: 5, never: 0, next_due: day(-12) }, { item_id: PWC, name: w.powercon, overdue: 0, due_30: 1, never: 0, next_due: day(18) }] },
+      },
+      warehouse_dispatch: ({ p_from, p_until }) => {
+        const scans = []
+        for (let d = new Date(`${p_from}T00:00:00Z`), i = 0; d.toISOString().slice(0, 10) < p_until; d.setUTCDate(d.getUTCDate() + 1), i++) {
+          if (i % 7 === 5 || i % 7 === 6) continue
+          scans.push({ day: d.toISOString().slice(0, 10), scans: 6 + ((i * 7) % 23), units: 40 + i, scans_out: 4, scans_in: 2 })
+        }
+        return {
+          today: day(0),
+          totals: { gigs: 6, planned: 412, out: 398, back: 380, short_out: 14, missing: 9, gigs_missing: 2, scans: scans.reduce((n, r) => n + r.scans, 0),
+            busiest_day: scans.length ? { day: scans[3]?.day || scans[0].day, scans: 28 } : null, median_lead_days: 1,
+            lead: { after: 0, same_day: 2, one: 3, two_three: 1, more: 0 } },
+          gigs: [
+            { gig_id: gigId, name: gig.name, start_date: day(-20), end_date: day(-18), ended: true, planned: 96, out: 96, back: 90, short_out: 0, missing: 6, lead_days: 1 },
+            { gig_id: 'g-jazz', name: 'Jazz no Parque', start_date: day(-8), end_date: day(-8), ended: true, planned: 54, out: 50, back: 47, short_out: 4, missing: 3, lead_days: 0 },
+            { gig_id: 'g-gala', name: 'Gala Sintra', start_date: day(4), end_date: day(4), ended: false, planned: 62, out: 52, back: 0, short_out: 10, missing: 52, lead_days: 2 },
+          ],
+          scans_by_day: scans,
+        }
+      },
+      report_overview_k7: { crew_days_month: 46, open_positions_14: 3, overdue_tasks: 2, hours_waiting: { days: 5, hours: 47.5 } },
+      ops_activity: ({ p_from, p_until }) => {
+        const months = []
+        for (let m = new Date(`${p_from.slice(0, 7)}-01T00:00:00Z`); m.toISOString().slice(0, 10) < p_until; m.setUTCMonth(m.getUTCMonth() + 1)) months.push(m.toISOString().slice(0, 7))
+        const gigs = months.flatMap((mo, i) => [
+          { month: mo, status: 'completed', custom_status_id: null, gig_type_id: null, gigs: 4 + (i % 3) },
+          { month: mo, status: 'confirmed', custom_status_id: null, gig_type_id: null, gigs: 2 + (i % 2) },
+          ...(i % 2 ? [{ month: mo, status: 'cancelled', custom_status_id: null, gig_type_id: null, gigs: 1 }] : []),
+        ])
+        const days = gigs.map(g => ({ ...g, gig_days: g.gigs * 2, gigs: undefined }))
+        return { gigs, days, cancelled: months.length > 1 ? Math.floor(months.length / 2) : 1,
+          busiest: [{ day: day(-12), gigs: 3, crew: 14 }, { day: day(-26), gigs: 2, crew: 11 }, { day: day(-5), gigs: 2, crew: 9 }],
+          lead: { gigs: 18, median_days: 34, under_7: 2, d7_29: 6, d30_89: 7, d90_plus: 3 } }
+      },
+      ops_people: {
+        totals: { people: 9, staff: 3, crew_days: 64, crew_days_staff: 28, crew_days_freelance: 36, hours_planned: 640, hours_approved: 598.5,
+          overtime: 41, night: 22.5, weekend: 96, holiday: 10, hours_waiting: 47.5, days_waiting: 5, approval_hours: 30.4 },
+        persons: [
+          { user_id: ricardo, full_name: 'Ricardo Bedulho', staff: true, days: 14, gigs: 6, hours_planned: 140, hours_approved: 131, overtime: 9, night: 4, weekend: 20, holiday: 0, hours_waiting: 0, approval_hours: 12.5, booked_working_days: 10, working_days: 21, available_days: 19, utilisation: 0.5263, leave: { holiday: 2 }, leave_allowance: 22, leave_used: 9, leave_left: 13 },
+          { user_id: carla, full_name: 'Carla Mendes', staff: false, days: 12, gigs: 5, hours_planned: 120, hours_approved: 118, overtime: 12, night: 6, weekend: 24, holiday: 10, hours_waiting: 10, approval_hours: 36, booked_working_days: null, utilisation: null, leave: null, leave_left: null },
+          { user_id: duarte, full_name: 'Duarte Silva', staff: true, days: 9, gigs: 4, hours_planned: 90, hours_approved: 84, overtime: 4, night: 2.5, weekend: 16, holiday: 0, hours_waiting: 8, approval_hours: 20, booked_working_days: 7, working_days: 21, available_days: 21, utilisation: 0.3333, leave: {}, leave_allowance: 22, leave_used: 4, leave_left: 18 },
+        ],
+        year: Number(day(0).slice(0, 4)) },
+      ops_staffing: { positions: { needed: 38, filled: 33, open: 5, gigs_open: 2 },
+        gigs: [{ gig_id: gigId, name: gig.name, start_date: gig.start_date, needed: 6, filled: 4, open: 2 }, { gig_id: 'g-gala', name: tx('Gala da empresa', 'Company gala'), start_date: day(9), needed: 4, filled: 1, open: 3 }],
+        time_to_fill: { count: 31, median_hours: 26, avg_hours: 41.2 },
+        calls: { calls: 7, invited: 24, accepted: 15, declined: 5, none: 3, full: 1, median_answer_hours: 3.5 },
+        posts: { posts: 3, open: 1, filled: 2, closed: 0, applications: 11, accepted: 2 } },
+      ops_tasks: { today: day(0), totals: { open: 12, overdue: 2, done: 27, on_time: 21, late: 4 },
+        by_gig: [{ gig_id: gigId, name: gig.name, start_date: gig.start_date, open: 5, overdue: 1, done: 6, on_time: 5, late: 1 }, { gig_id: null, name: null, start_date: null, open: 4, overdue: 1, done: 3, on_time: 2, late: 0 }],
+        by_person: [{ user_id: ricardo, full_name: 'Ricardo Bedulho', open: 6, overdue: 1, done: 14, on_time: 12, late: 2 }] },
+      gig_wrapup: { gig: { id: gigId, org_id: orgId, name: gig.name, venue: gig.venue, start_date: day(-9), end_date: day(-8), status: 'completed', custom_status_id: null, gig_type_id: null,
+          wrapup_notes: tx('A carga demorou mais 40 minutos: pedir o cais de carga às 07:30 da próxima vez.', 'The load-in took 40 minutes longer: ask for the loading dock at 07:30 next time.'), ended: true },
+        can: { manage: true, money: true, people: true },
+        hours: { people: 4, days_planned: 8, hours_planned: 80, hours_approved: 86.5, hours_waiting: 0, overtime: 6.5, night: 4, weekend: 0, holiday: 0, days_returned: 0 },
+        people: [
+          { user_id: ricardo, full_name: 'Ricardo Bedulho', function_title: w.production, days: 2, hours_planned: 20, hours_approved: 22, hours_waiting: 0, overtime: 2 },
+          { user_id: carla, full_name: 'Carla Mendes', function_title: w.sound, days: 2, hours_planned: 20, hours_approved: 23.5, hours_waiting: 0, overtime: 3.5 },
+          { user_id: duarte, full_name: 'Duarte Silva', function_title: w.lights, days: 2, hours_planned: 20, hours_approved: 21, hours_waiting: 0, overtime: 1 },
+          { user_id: ana, full_name: 'Ana Costa', function_title: w.stage, days: 2, hours_planned: 20, hours_approved: 20, hours_waiting: 0, overtime: 0 },
+        ],
+        money: { revenue: 4140, revenue_source: 'accepted', labour_planned: 1600, labour_actual: 1745, subrentals: 420, repairs: 180, other_costs: 95, cost: 2440, estimated_cost: 0, margin: 1700 },
+        damaged: [{ item_name: w.cables, quantity: 1, note: tx('Pino dobrado', 'Bent pin'), unit_code: null, at: ago(200) }],
+        repairs: [{ id: 'r3', item_name: w.speaker, quantity: 1, problem: tx('Grelha partida na descarga', 'Grille broken at the get-out'), status: 'in_repair', charge_client: true, cost: 180 }],
+        not_back: [{ item_id: XLR, item_name: w.cables, out: 60, back: 58, missing: 2 }],
+        lost: [],
+        tasks: { open: 1, done: 6, items: [{ id: 't9', title: tx('Enviar fotos ao cliente', 'Send the photos to the client'), assignee: 'Ricardo Bedulho', due_on: day(-2), overdue: true }] } },
       // Step 11b: the organisation's invoicing program, connected
       invoicing_status: [{ provider: 'invoicexpress', connected: true, expired: false, account: 'lumen-pixel', company_name: null, document_set_name: '2026', ready: true, connected_at: ago(2000) }],
       invoice_summary: [{ ref_id: 'q1', currency: 'EUR', invoiced_net: 2120, invoiced: 2607.6, credited: 0, paid: 1282.28, outstanding: 1325.32, overdue: 1325.32, to_issue: 66.42, invoices: 3, last_issue: day(-35), last_paid: day(-12) }],
@@ -631,6 +823,46 @@ export function sampleData(persona, lang) {
         { item_id: XLR, name: w.cables, category: w.cab, owned: 120, use: 0.22, gigs: 11, last_used: ago(240), revenue: 940, return_on_cost: null, repairs: 0, repair_cost: 0, charged: 0, lost: 3, lost_value: 45, hired_in: 0, book_value: 0, cost: 0, idle: false },
         { item_id: PWC, name: w.powercon, category: w.cab, owned: 40, use: 0, gigs: 0, last_used: null, revenue: 0, return_on_cost: null, repairs: 0, repair_cost: 0, charged: 0, lost: 0, lost_value: 0, hired_in: 0, book_value: 0, cost: 0, idle: true },
       ],
+      // K5: Reports → Equipment, the item page's numbers card and the two equipment tiles
+      // The comparison period (it starts before this one) earned a little less
+      equipment_money: args => (args.p_from < `${day(0).slice(0, 4)}-01-01` ? equipmentMoney.map(r => ({ ...r, revenue: Math.round(r.revenue * 0.85), profit: Math.round(r.profit * 0.7) })) : equipmentMoney),
+      equipment_unit_money: [],
+      equipment_payback: [
+        { level: 'item', item_id: SPK, unit_id: null, code: null, name: w.speaker, category: w.sys, since: '2024-03-01', cost: 21000, estimated: false, revenue: 23940, ratio: 1.14, paid_back_on: day(-60), pace_month: 610, expected_on: null },
+        { level: 'item', item_id: QL1, unit_id: null, code: null, name: w.desk, category: w.sys, since: '2025-02-10', cost: 12000, estimated: false, revenue: 5280, ratio: 0.44, paid_back_on: null, pace_month: 180, expected_on: day(1120) },
+        { level: 'item', item_id: XLR, unit_id: null, code: null, name: w.cables, category: w.cab, since: '2024-01-15', cost: 1260, estimated: false, revenue: 2870, ratio: 2.28, paid_back_on: day(-300), pace_month: 78, expected_on: null },
+      ],
+      equipment_buy_or_hire: [
+        { item_id: QL1, name: w.desk, category: w.sys, owned: 1, hire_ins: 4, peak: 1, spend: 1440, unit_price: 12000, price_source: 'cost', cost_to_buy: 12000, months_to_pay_back: 100 },
+        { item_id: SPK, name: w.speaker, category: w.sys, owned: 7, hire_ins: 6, peak: 4, spend: 4320, unit_price: 3000, price_source: 'cost', cost_to_buy: 12000, months_to_pay_back: 33.3 },
+      ].sort((a, b) => a.months_to_pay_back - b.months_to_pay_back),
+      item_money_card: { today: day(0), owned: 7, lifetime_revenue: { EUR: 23940 },
+        payback: { cost: 21000, revenue: 23940, ratio: 1.14, since: '2024-03-01', paid_back_on: day(-60), expected_on: null, estimated: false },
+        use_12m: 0.41, upcoming: 3, next_bookings: [{ gig_id: gigId, gig_name: gig.name, starts_at: `${day(24)}T08:00:00Z`, quantity: 6 }] },
+      create_report_link: { id: 'rl3', token: 'sample-link-token-not-real-0000', expires_at: `${day(30)}T10:00:00Z` },
+      report_overview_k5: { best_earner_year: { item_id: SPK, name: w.speaker, amount: 11420 }, worst_earner_year: { item_id: QL1, name: w.desk, amount: -840 }, hire_in_year: { EUR: 5760 } },
+    },
+    // Edge Functions the screens call (by name); anything else answers {}
+    functions: {
+      'report-link-public': {
+        state: 'ok',
+        report: {
+          org: { name: 'Lumen and Pixel', legal_name: 'Lumen and Pixel, Lda.' }, label: tx('Contabilista – Marta Silva', 'Accountant – Marta Silva'),
+          from: `${yr - 1}-01-01`, until: `${yr}-01-01`, expires_at: `${day(21)}T10:00:00Z`, at: ago(0),
+          months: linkMonths,
+          total: [Object.fromEntries([['currency', 'EUR'], ...['revenue', 'direct_costs', 'gross_margin', 'overheads', 'depreciation', 'operating_result', 'estimated'].map(k => [k, linkMonths.reduce((sum, m) => sum + m[k], 0)])])],
+          cash: Array.from({ length: 12 }, (_, i) => [
+            { section: 'invoiced', month: `${yr - 1}-${String(i + 1).padStart(2, '0')}-01`, currency: 'EUR', amount: Math.round((14000 + ((i * 3700) % 9000)) * 1.23) },
+            { section: 'received', month: `${yr - 1}-${String(i + 1).padStart(2, '0')}-01`, currency: 'EUR', amount: Math.round((13000 + ((i * 2900) % 9000)) * 1.23) },
+            { section: 'paid_out', month: `${yr - 1}-${String(i + 1).padStart(2, '0')}-01`, currency: 'EUR', amount: 9200 + i * 150 },
+          ]).flat(),
+          spending: [
+            { category: tx('Renda', 'Rent'), starter_key: null, currency: 'EUR', amount: 21600 },
+            { category: tx('Subalugueres', 'Hire-in'), starter_key: null, currency: 'EUR', amount: 14320 },
+            { category: tx('Combustível', 'Fuel'), starter_key: null, currency: 'EUR', amount: 6210 },
+          ],
+        },
+      },
     },
   }
 }

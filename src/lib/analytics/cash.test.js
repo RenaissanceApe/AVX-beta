@@ -57,6 +57,10 @@ describe('cash report helpers', () => {
     expect(ahead[0]).toMatchObject({ in: 1984, inOverdue: 1738, out: 848.7, unpaid: 676.5, claims: 49.2, recurring: 123, position: 1135.3 })
     expect(ahead[2]).toMatchObject({ in: 0, out: 123, position: -123 })
     expect(monthsAhead(rows, 'EUR', '2026-12-31', 2).map(m => m.key)).toEqual(['2026-12', '2027-01'])
+    // K8: crew fees to pay with no invoice yet are their own part of what goes out
+    const withCrew = [...rows, { section: 'expected_out', month: '2026-10-01', group_key: 'crew', currency: 'EUR', amount: 400, items: 1 }]
+    expect(monthsAhead(withCrew, 'EUR', '2026-10-15')[0]).toMatchObject({ crew: 400, out: 1248.7 })
+    expect(ahead[0].crew).toBe(0)
   })
   it('lists recurring costs once each', () => {
     expect(recurringList(rows, 'EUR')).toEqual([{ id: 'r1', label: 'Cloud storage', amount: 369, dates: 3 }])

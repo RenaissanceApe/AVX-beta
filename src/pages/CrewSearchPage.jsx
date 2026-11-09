@@ -66,7 +66,7 @@ export default function CrewSearchPage() {
   useEffect(() => {
     if (!canSearch) return
     const today = new Date().toISOString().slice(0, 10)
-    supabase.from('gigs').select('id, org_id, name, venue, start_date, end_date, status').eq('org_id', orgId).neq('status', 'archived')
+    supabase.from('gigs').select('id, org_id, name, venue, start_date, end_date, status').eq('org_id', orgId).not('status', 'in', '(archived,cancelled)')
       .or(`end_date.gte.${today},and(end_date.is.null,start_date.gte.${today})`).order('start_date').limit(100)
       .then(({ data, error }) => {
         if (error) return logger.error('crewSearch', error, { step: 'gigs' })

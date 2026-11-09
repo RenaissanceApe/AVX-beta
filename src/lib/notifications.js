@@ -58,6 +58,7 @@ export function describeNotification(n, nameOf) {
     case 'expense_claimed':   return t('notif.expenseClaimed', { actor, gig, description: d.description || '', amount: d.total != null ? formatMoney(d.total, d.currency || 'EUR', getLanguage()) : '' })
     case 'expense_approved':  return t('notif.expenseApproved', { actor, description: d.description || '', amount: d.total != null ? formatMoney(d.total, d.currency || 'EUR', getLanguage()) : '' })
     case 'expense_returned':  return t('notif.expenseReturned', { actor, description: d.description || '' }) + (d.note ? `: “${d.note}”` : '')
+    case 'fee_paid':          return t('notif.feePaid', { gig, date: d.paid_on ? fmt(d.paid_on, 'd MMM') : '' })
     case 'expense_drafted':   return t('notif.expenseDrafted', { count: d.count || 1 })
     case 'invoice_overdue':   return t('notif.invoiceOverdue', { number: d.number || '', client: d.client || '', count: Number(d.days) || 1 })
     case 'leave_requested':
@@ -74,7 +75,7 @@ export function describeNotification(n, nameOf) {
 }
 
 // Kinds that are a direct question to you: they still count when the organisation is muted
-export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned', 'leave_requested', 'leave_sick', 'leave_cancelled', 'leave_approved', 'leave_refused', 'expense_claimed', 'expense_approved', 'expense_returned'])
+export const DIRECT_KINDS = new Set(['availability_request', 'message', 'announcement', 'crew_call', 'guest_message', 'message_report', 'message_removed', 'job_application', 'job_declined', 'task_assigned', 'leave_requested', 'leave_sick', 'leave_cancelled', 'leave_approved', 'leave_refused', 'expense_claimed', 'expense_approved', 'expense_returned', 'fee_paid'])
 export const countsAsUnread = (n, mutedOrgIds) => !n.read_at && (!n.org_id || !mutedOrgIds?.has(n.org_id) || DIRECT_KINDS.has(n.kind))
 
 export function notificationLink(n) {
@@ -87,6 +88,7 @@ export function notificationLink(n) {
   if (n.kind === 'crew_match' && n.org_id) return `/org/${n.org_id}/crew?search=${n.details?.search_id || ''}`
   if (n.kind.startsWith('leave_') && n.org_id) return `/org/${n.org_id}/leave`
   if ((n.kind === 'expense_claimed' || n.kind === 'expense_approved' || n.kind === 'expense_returned') && n.details?.gig_id) return `/gig/${n.details.gig_id}?tab=crew`
+  if (n.kind === 'fee_paid' && n.details?.gig_id) return `/gig/${n.details.gig_id}?tab=crew`
   if (n.kind === 'expense_drafted' && n.org_id) return `/org/${n.org_id}/expenses`
   if (n.kind === 'invoice_overdue' && n.org_id) return `/org/${n.org_id}/invoices?view=unpaid`
   if (n.kind === 'task_assigned') return n.gig_id ? `/gig/${n.gig_id}?tab=tasks` : '/tasks'

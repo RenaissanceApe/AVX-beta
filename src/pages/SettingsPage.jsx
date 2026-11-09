@@ -12,6 +12,7 @@ import TwoStepSection from '../components/TwoStepSection'
 import CalendarFeedSection from '../components/CalendarFeedSection'
 import { supabase } from '../lib/supabase'
 import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
+import { useWorkspace } from '../lib/WorkspaceContext'
 import AppShell from '../components/shell/AppShell'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
@@ -28,6 +29,8 @@ const ICONS = { profile: User, security: KeyRound, availability: CalendarOff, no
 export default function SettingsPage() {
   const { section: current } = useParams()
   const { user, profile, updateProfile, signOut } = useAuth()
+  const { orgs } = useWorkspace()
+  const isAnyAdmin = orgs.some(o => o.myRole === 'admin')
   const { notify } = useToast()
   const [fullName, setFullName] = useState(profile?.full_name || '')
   const [phone, setPhone] = useState(profile?.phone || '')
@@ -88,6 +91,14 @@ export default function SettingsPage() {
     const { error } = await updateProfile({ findable_by: value })
     if (error) {
       logger.error('account', error, { step: 'findableBy' })
+      notify(userMessage(error), 'error')
+    }
+  }
+
+  async function changeWeekly(on) {
+    const { error } = await updateProfile({ weekly_numbers: on })
+    if (error) {
+      logger.error('account', error, { step: 'weeklyNumbers' })
       notify(userMessage(error), 'error')
     }
   }
@@ -240,6 +251,19 @@ export default function SettingsPage() {
           </span>
         </label>
       </div>
+      {/* K9: the weekly key numbers, for admins only (off unless they turn it on) */}
+      {isAnyAdmin && (
+        <div style={section}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+            <input type="checkbox" checked={profile?.weekly_numbers === true} onChange={e => changeWeekly(e.target.checked)}
+              style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
+            <span>
+              <span style={{ fontWeight: 600 }}>{t('account.weeklyNumbers')}</span>
+              <span style={{ display: 'block', color: 'var(--muted)', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.weeklyNumbersHint')}</span>
+            </span>
+          </label>
+        </div>
+      )}
       <div style={section}><PushSettings /></div>
     </>,
     preferences: <>

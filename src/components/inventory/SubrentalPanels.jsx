@@ -53,7 +53,7 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
   useEffect(() => {
     Promise.all([
       selectAll(() => supabase.from('suppliers').select('id, name, partner_org_id, archived_at').eq('org_id', orgId).order('name').order('id')),
-      supabase.from('gigs').select('id, name, start_date, end_date').eq('org_id', orgId).neq('status', 'archived').order('start_date', { ascending: false }).limit(150),
+      supabase.from('gigs').select('id, name, start_date, end_date').eq('org_id', orgId).not('status', 'in', '(archived,cancelled)').order('start_date', { ascending: false }).limit(150),
     ]).then(([s, g]) => {
       setSuppliers((s.data || []).filter(x => !x.archived_at || x.id === subrental?.supplier_id))
       setGigs(g.data || [])
@@ -436,10 +436,13 @@ export function SubrentalsTab({ orgId, inv }) {
         </>
       )}
 
+      <BuyInstead orgId={orgId} subs={subs} items={inv.items} />
+
       <section style={{ marginTop: '18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
           <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '7px' }}><Truck size={16} color={colors.accentText} /> {t('sub.suppliers')}</h2>
           <Link to={`/org/${orgId}/contacts?tab=suppliers`} style={{ fontSize: '12px', color: colors.accentText }}>{t('contacts.allSuppliers')}</Link>
+          {['admin', 'member'].includes(inv.role) && <Link to={`/org/${orgId}/reports?tab=warehouse&view=suppliers`} style={{ fontSize: '12px', color: colors.accentText }}>{t('wh.linkSuppliers')}</Link>}
           {suppliers.some(s => s.archived_at) && <button onClick={() => setShowArchived(v => !v)} style={{ ...btn, padding: '5px 10px', fontSize: '12px' }}>{showArchived ? t('inv.hideArchived') : t('inv.showArchived')}</button>}
           <button onClick={() => setSupplier({})} style={btn}><Plus size={14} /> {t('sub.newSupplier')}</button>
         </div>
@@ -466,6 +469,34 @@ export function SubrentalsTab({ orgId, inv }) {
       {editing && <SubrentalModal orgId={orgId} org={inv.org} subrental={editing.id ? editing : null} items={inv.items} onClose={() => setEditing(null)} onSaved={load} />}
       {supplier && <SupplierModal orgId={orgId} supplier={supplier.id ? supplier : null} onClose={() => setSupplier(null)} onSaved={load} />}
     </div>
+  )
+}
+
+// K5: catalogue items hired in during the last 12 months, each linking to Reports → Equipment →
+// "Buy or keep hiring in" for that item (hire-in spend against the cost to buy)
+function BuyInstead({ orgId, subs, items }) {
+  const since = new Date(Date.now() - 365 * 86400000).toISOString()
+  const counts = new Map()
+  for (const s of subs) {
+    if (!['confirmed', 'returned'].includes(s.status) || s.starts_at < since) continue
+    for (const l of s.lines || []) if (l.item_id) counts.set(l.item_id, (counts.get(l.item_id) || 0) + 1)
+  }
+  const list = [...counts.entries()].map(([id, n]) => ({ id, n, name: items.find(i => i.id === id)?.name })).filter(x => x.name)
+    .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name)).slice(0, 8)
+  if (!list.length) return null
+  return (
+    <section aria-labelledby="sub-buy" style={{ marginBottom: '14px' }}>
+      <h3 id="sub-buy" style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 6px' }}>{t('sub.buyTitle')}</h3>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        {list.map(x => (
+          <li key={x.id}>
+            <Link to={`/org/${orgId}/reports?tab=equipment&view=buy&item=${x.id}`} style={{ ...btn, padding: '5px 10px', fontSize: '12px', textDecoration: 'none' }}>
+              {t('sub.buyInstead', { name: x.name, count: x.n })}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 

@@ -43,7 +43,7 @@ export default function OrgJobsPage() {
     const today = new Date().toISOString().slice(0, 10)
     const [p, g] = await Promise.all([
       supabase.from('job_posts').select('*, gigs(name)').eq('org_id', orgId).order('created_at', { ascending: false }).limit(100),
-      supabase.from('gigs').select('id, org_id, name, venue, start_date, end_date').eq('org_id', orgId).neq('status', 'archived')
+      supabase.from('gigs').select('id, org_id, name, venue, start_date, end_date').eq('org_id', orgId).not('status', 'in', '(archived,cancelled)')
         .or(`end_date.gte.${today},and(end_date.is.null,start_date.gte.${today})`).order('start_date').limit(100),
     ])
     if (p.error) logger.error('jobs', p.error, { step: 'posts' })

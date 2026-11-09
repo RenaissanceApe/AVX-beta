@@ -299,7 +299,7 @@ const SCENES = {
     await page.waitForTimeout(400)
     return null
   } },
-  reports: { persona: 'pm', url: `/org/${ids.org}/inventory?tab=reports`, async run(page, L) {
+  reports: { persona: 'pm', url: `/org/${ids.org}/reports?tab=equipment&view=use`, async run(page, L) {
     return page.getByRole('button', { name: L('report.csv') }).first()
   } },
 
@@ -382,6 +382,29 @@ const SCENES = {
     const dialog = page.getByRole('dialog')
     await dialog.locator('#hours-start').waitFor()
     return dialog.locator('#hours-end')
+  } },
+  // K8: crew numbers (Carla)
+  'my-numbers-tiles': { persona: 'crew', url: '/me', async run(page) {
+    const box = page.locator('section[aria-labelledby="my-numbers-strip"]')
+    await box.locator('li').first().waitFor()
+    return box
+  } },
+  'my-numbers': { persona: 'crew', url: '/me/numbers', async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await page.locator('section[aria-labelledby="mn-companies"]').evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('section[aria-labelledby="mn-companies"]')
+  } },
+  'fee-paid': { persona: 'crew', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
+    const button = page.getByRole('button', { name: L('labour.markReceived') })
+    await button.waitFor()
+    await button.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return button
+  } },
+  'year-statement': { persona: 'crew', url: '/me/numbers/statement', async run(page) {
+    const table = page.locator('table').first()
+    await table.locator('tfoot').waitFor()
+    return null
   } },
   'gig-hours': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
     const box = page.locator('section[aria-labelledby="hours-title"]')
@@ -502,6 +525,38 @@ const SCENES = {
     await box.waitFor()
     return box.locator('ul')
   } },
+  // K9: saved views, the monthly pack, the accountant's links and page, the weekly email setting
+  'views-save': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&period=this_year`, async run(page, L) {
+    await page.getByRole('button', { name: L('reports.views.save') }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog.waitFor()
+    return dialog.locator('form')
+  } },
+  'views-pinned': { persona: 'pm', url: `/org/${ids.org}/reports`, async run(page) {
+    const box = page.locator('section[aria-labelledby="rp-views"]')
+    await box.locator('ul').waitFor()
+    return box
+  } },
+  'reports-pack': { persona: 'pm', url: `/org/${ids.org}/reports`, async run(page) {
+    const box = page.locator('section[aria-labelledby="rp-pack"]')
+    await box.waitFor()
+    return box
+  } },
+  'accountant-links': { persona: 'pm', url: `/org/${ids.org}/reports`, async run(page) {
+    const box = page.locator('section[aria-labelledby="rp-links"]')
+    await box.locator('ul').waitFor()
+    return box
+  } },
+  'accountant-page': { persona: 'pm', url: '/r/sample-link-token-not-real-0000', async run(page) {
+    const table = page.locator('table').first()
+    await table.waitFor()
+    return table
+  } },
+  'weekly-numbers': { persona: 'pm', url: '/settings/notifications', async run(page, L) {
+    const box = page.getByText(L('account.weeklyNumbers'))
+    await box.waitFor()
+    return box.locator('xpath=ancestor::label')
+  } },
   'reports-revenue': { persona: 'pm', url: `/org/${ids.org}/reports?tab=revenue&period=last_12_months`, async run(page) {
     const fig = page.locator('figure').first()
     await fig.waitFor()
@@ -548,6 +603,113 @@ const SCENES = {
   'money-labour': { persona: 'pm', url: `/org/${ids.org}/reports?tab=money&view=labour&period=this_quarter`, async run(page) {
     const table = page.locator('table').last()
     await table.waitFor()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  // K4: Reports → Sales and the client numbers card in Contacts
+  'sales-waiting': { persona: 'pm', url: `/org/${ids.org}/reports?tab=sales`, async run(page) {
+    const box = page.locator('section[aria-labelledby="sl-follow"]')
+    await box.locator('ul').waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box
+  } },
+  'sales-winrate': { persona: 'pm', url: `/org/${ids.org}/reports?tab=sales&view=winrate&period=last_12_months`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'sales-clients': { persona: 'pm', url: `/org/${ids.org}/reports?tab=sales&view=clients&period=this_year`, async run(page) {
+    const table = page.locator('table').last()
+    await table.waitFor()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'client-numbers': { persona: 'pm', url: `/org/${ids.org}/contacts`, async run(page) {
+    await page.getByRole('button', { name: /Marcolino/ }).first().click()
+    const box = page.locator('section[aria-labelledby="cl-numbers"]')
+    await box.locator('dl').waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box
+  } },
+  // K5: Reports → Equipment and the item page's numbers card (guide warehouse-equipment-money)
+  'equip-profit': { persona: 'pm', url: `/org/${ids.org}/reports?tab=equipment`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'equip-details': { persona: 'pm', url: `/org/${ids.org}/reports?tab=equipment&by=category`, async run(page, L) {
+    await page.getByLabel(L('reports.showDetails')).check()
+    const table = page.locator('table').last()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'equip-payback': { persona: 'pm', url: `/org/${ids.org}/reports?tab=equipment&view=payback`, async run(page) {
+    const table = page.locator('table').last()
+    await table.waitFor()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'equip-buy': { persona: 'pm', url: `/org/${ids.org}/reports?tab=equipment&view=buy`, async run(page) {
+    const table = page.locator('table').last()
+    await table.waitFor()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'item-money': { persona: 'pm', url: `/org/${ids.org}/inventory/${ids.speaker}`, async run(page) {
+    const box = page.locator('section[aria-labelledby="item-money"]')
+    await box.waitFor()
+    await box.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return box
+  } },
+  // K7: Reports → Operations and the gig wrap-up
+  'ops-activity': { persona: 'pm', url: `/org/${ids.org}/reports?tab=operations&period=last_12_months`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'ops-people': { persona: 'pm', url: `/org/${ids.org}/reports?tab=operations&view=people`, async run(page, L) {
+    await page.getByLabel(L('reports.showDetails')).check()
+    const table = page.locator('table').last()
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'ops-staffing': { persona: 'pm', url: `/org/${ids.org}/reports?tab=operations&view=staffing`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'gig-wrapup': { persona: 'pm', url: `/gig/${ids.gig}/wrapup`, async run(page) {
+    const box = page.locator('section[aria-labelledby="wu-hours"]')
+    await box.waitFor()
+    await page.evaluate(() => window.scrollTo(0, 0))
+    return box
+  } },
+  // K6: Reports → Warehouse (guide warehouse-numbers)
+  'wh-demand': { persona: 'pm', url: `/org/${ids.org}/reports?tab=warehouse`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'wh-suppliers': { persona: 'pm', url: `/org/${ids.org}/reports?tab=warehouse&view=suppliers`, async run(page, L) {
+    await page.getByLabel(L('reports.showDetails')).check()
+    const table = page.locator('table', { hasText: L('wh.perSupplier') })
+    await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return table
+  } },
+  'wh-damage': { persona: 'pm', url: `/org/${ids.org}/reports?tab=warehouse&view=damage`, async run(page) {
+    const fig = page.locator('figure').first()
+    await fig.waitFor()
+    await fig.evaluate(el => el.scrollIntoView({ block: 'center' }))
+    return page.locator('main').locator('div', { has: fig }).last()
+  } },
+  'wh-dispatch': { persona: 'pm', url: `/org/${ids.org}/reports?tab=warehouse&view=dispatch`, async run(page, L) {
+    await page.getByLabel(L('reports.showDetails')).check()
+    const table = page.locator('table', { hasText: L('wh.perGig') })
     await table.evaluate(el => el.scrollIntoView({ block: 'center' }))
     return table
   } },
@@ -736,7 +898,7 @@ async function newPhone(browser, persona, lang) {
     if (p.startsWith('/auth/v1/user')) return respond(route, data.user)
     if (p.startsWith('/auth/v1/')) return respond(route, {})
     if (p.startsWith('/storage/')) return respond(route, { signedURL: '/x' })
-    if (p.startsWith('/functions/')) return respond(route, {})
+    if (p.startsWith('/functions/')) return respond(route, data.functions?.[p.split('/').pop()] ?? {})
     const single = (req.headers()['accept'] || '').includes('vnd.pgrst.object')
     if (req.method() === 'HEAD') return route.fulfill({ status: 200, headers: { 'access-control-expose-headers': 'content-range', 'access-control-allow-origin': '*', 'content-range': '0-0/0' }, body: '' })
     if (req.method() !== 'GET' && !p.startsWith('/rest/v1/rpc/')) return respond(route, single ? {} : [])
