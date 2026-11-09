@@ -2,6 +2,7 @@
 // to AVX's fields, cleaning the values and predicting what an import will do. The import itself
 // runs in the database (run_import), which checks everything again.
 import { parsePrice } from './quotes'
+import { SPEC_FIELDS, inRange, findPreset, fillFromPreset } from './speakers'
 
 export const KINDS = ['locations', 'items', 'units', 'kits', 'clients', 'suppliers', 'crew', 'gigs', 'gig_equipment', 'quotes']
 // Kinds that go to the contacts directory (S2), not the inventory
@@ -40,6 +41,13 @@ const WORDS = {
     none: ['none', 'no', 'nee', 'nao', 'not tracked', 'geen', 'exclude from stock tracking', 'niet bijhouden', 'nao controlar'],
     bulk: ['bulk', 'quantity', 'count', 'counted', 'aantal', 'quantidade', 'ja', 'yes', 'sim', 'track stock', 'voorraad bijhouden', 'controlar stock'],
     serial: ['serial', 'serials', 'serial numbers', 'serienummer', 'serienummers', 'serie', 'numero de serie', 'individual', 'unit'],
+  },
+  speakerType: {
+    point_source: ['point source', 'point', 'top', 'full range', 'fullrange', 'coluna', 'topo'],
+    line_array: ['line array', 'array', 'line array element', 'line source', 'linha', 'array de linha'],
+    subwoofer: ['subwoofer', 'sub', 'subs', 'bass', 'grave', 'graves'],
+    monitor: ['monitor', 'wedge', 'floor monitor', 'retorno', 'monitor de palco'],
+    column: ['column', 'column array', 'steerable column', 'coluna linear'],
   },
   partKind: {
     content: ['content', 'contents', 'inhoud', 'conteudo', 'in case', 'in set', 'packed', 'case content', 'set content'],
@@ -115,6 +123,18 @@ export const FIELDS = {
     { key: 'weight_kg', type: 'number', names: ['weight', 'weight kg', 'gewicht', 'peso', 'kg'] },
     { key: 'power_w', type: 'int', max: 1000000, names: ['power', 'power w', 'vermogen', 'potencia', 'watt', 'watts', 'w'] },
     { key: 'dimensions', type: 'text', max: 80, names: ['dimensions', 'size', 'afmetingen', 'dimensoes', 'measurements'] },
+    // Speaker specs (A1): a preset fills what the file leaves empty
+    { key: 'speaker_preset', type: 'text', max: 120, names: ['speaker preset', 'preset', 'speaker model', 'predefinicao', 'modelo de coluna'] },
+    { key: 'speaker_type', type: 'enum', words: 'speakerType', names: ['speaker type', 'speaker kind', 'tipo de coluna', 'tipo de altifalante', 'luidspreker type'] },
+    { key: 'sensitivity_db', type: 'number', names: ['sensitivity', 'sensitivity db', 'sensibilidade', 'gevoeligheid'] },
+    { key: 'max_spl_db', type: 'number', names: ['max spl', 'maximum spl', 'spl max', 'max spl db', 'spl', 'spl maximo'] },
+    { key: 'dispersion_h', type: 'number', names: ['horizontal dispersion', 'dispersion h', 'h dispersion', 'horizontal coverage', 'dispersao horizontal', 'cobertura horizontal'] },
+    { key: 'dispersion_v', type: 'number', names: ['vertical dispersion', 'dispersion v', 'v dispersion', 'vertical coverage', 'dispersao vertical', 'cobertura vertical'] },
+    { key: 'freq_low_hz', type: 'number', names: ['low frequency', 'frequency low', 'freq low', 'min frequency', 'frequency from', 'frequencia minima'] },
+    { key: 'freq_high_hz', type: 'number', names: ['high frequency', 'frequency high', 'freq high', 'max frequency', 'frequency to', 'frequencia maxima'] },
+    { key: 'impedance_ohm', type: 'number', names: ['impedance', 'impedance ohm', 'ohm', 'ohms', 'impedancia', 'impedantie'] },
+    { key: 'amp_channels', type: 'int', max: 1000, names: ['amp channels', 'amplifier channels', 'canais de amplificador', 'versterkerkanalen'] },
+    { key: 'spec_source', type: 'text', max: 500, names: ['datasheet', 'data sheet', 'spec source', 'specs source', 'fonte das especificacoes'] },
     { key: 'replacement_value', type: 'money', names: ['list price', 'replacement value', 'vervangingswaarde', 'new price', 'nieuwprijs', 'valor de reposicao', 'value', 'waarde', 'insured value'] },
     { key: 'cost_price', type: 'money', names: ['cost price', 'cost', 'purchase price', 'purchase cost', 'purchase costs', 'kostprijs', 'inkoopprijs', 'aankoopprijs', 'custo', 'preco de custo', 'preco de compra', 'valor de compra'] },
     { key: 'depreciation_months', type: 'int', max: 600, names: ['depreciation months', 'depreciation', 'write off months', 'write off period', 'useful life', 'afschrijving', 'afschrijvingstermijn', 'amortizacao', 'meses de amortizacao', 'vida util'] },
@@ -382,6 +402,7 @@ export function buildRows(table, mapping, kind, { headerRow = true, defaultLocat
     if (kind === 'crew' && !row.email && !row._errors.some(e => e.field === 'email')) row._errors.push({ field: 'email', error: 'missing' })
     if ((kind === 'locations' || CONTACT_KINDS.includes(kind)) && !row.name) row._errors.push({ field: 'name', error: 'missing' })
     if (kind === 'items' && !row.name && !row.code) row._errors.push({ field: 'name', error: 'missing' })
+    if (kind === 'items') speakerChecks(row)
     if (kind === 'units' && !row.item && !row.item_code) row._errors.push({ field: 'item', error: 'missing' })
     if (kind === 'kits' && !row.kit && !row.kit_code) row._errors.push({ field: 'kit', error: 'missing' })
     if (kind === 'kits' && !row.item && !row.item_code) row._errors.push({ field: 'item', error: 'missing' })
@@ -391,6 +412,20 @@ export function buildRows(table, mapping, kind, { headerRow = true, defaultLocat
     out.push(row)
   })
   return out
+}
+
+// A catalogue row's speaker specs (A1): a named preset fills the cells the file left empty (never
+// replaces the file's values); values outside the limits the database checks are refused here
+function speakerChecks(row) {
+  if (row.speaker_preset) {
+    const p = findPreset(row.speaker_preset)
+    if (!p) row._errors.push({ field: 'speaker_preset', error: 'unknownPreset' })
+    else Object.assign(row, fillFromPreset({ ...row, speaker_preset: p.id }, p), { speaker_preset: p.id })
+  }
+  for (const f of SPEC_FIELDS) {
+    if (row[f.key] !== undefined && row[f.key] !== null && !inRange(f, row[f.key])) row._errors.push({ field: f.key, error: 'speakerRange' })
+  }
+  if (row.freq_low_hz != null && row.freq_high_hz != null && row.freq_low_hz >= row.freq_high_hz) row._errors.push({ field: 'freq_high_hz', error: 'freqOrder' })
 }
 
 // Street, postcode, city and country → the address, on separate lines (after a whole address
@@ -570,6 +605,7 @@ const SERVER = [
   [/^An item can't contain itself/, 'selfKit'],
   [/violates check constraint "price_items_kit_check"/, 'kitType'],
   [/^Stock tracking can't change/, 'trackingLocked'],
+  [/violates check constraint "price_items_speaker_check"/, 'speakerSpec'],
   [/^Not an e-mail address: (.+)$/, 'email'],
   [/^Several contacts are called (.+?): add their tax numbers/, 'sameContact'],
   [/^The e-mail address is missing/, 'emailMissing'],

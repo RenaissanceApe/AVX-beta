@@ -13,6 +13,8 @@ import { HintLabel } from '../help/HelpParts'
 import { useCustomFields, mergeValues } from '../../lib/customFields'
 import { CustomFieldInputs } from '../CustomFields'
 import { updateIfUnchanged, notifyConflict } from '../../lib/staleSave'
+import { specsForm, specsRow, specProblems } from '../../lib/speakers'
+import SpeakerSpecsFields from './SpeakerSpecsFields'
 
 // A form field; hint adds an ⓘ with its explanation (src/help)
 const Field = ({ id, text, hint, children }) => (
@@ -44,6 +46,8 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
     inspection_kind: item?.inspection_kind || '', inspection_months: item?.inspection_months ?? '',
     cost_price: item?.cost_price ?? '', depreciation_months: item?.depreciation_months ?? '',
   })
+  const [spk, setSpk] = useState(() => specsForm(item))
+  const spkOk = !Object.keys(specProblems(spk)).length
   const [saving, setSaving] = useState(false)
   const { fields } = useCustomFields(orgId, 'item')
   const [custom, setCustom] = useState({})
@@ -60,7 +64,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
 
   async function save(e) {
     e.preventDefault()
-    if (!form.name.trim() || !Number.isFinite(price) || price < 0 || !codeOk || !costOk) return
+    if (!form.name.trim() || !Number.isFinite(price) || price < 0 || !codeOk || !costOk || !spkOk) return
     setSaving(true)
     const int = v => { const n = numberOrNull(v); return n == null ? null : Math.round(n) }
     const row = {
@@ -72,6 +76,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
       packing_note: form.packing_note.trim() || null, details: form.details.trim() || null, updated_at: new Date().toISOString(),
       inspection_kind: form.inspection_kind.trim() || null,
       inspection_months: form.tracking === 'none' ? null : Math.min(120, Math.max(1, int(form.inspection_months) || 0)) || null,
+      ...specsRow(spk),
     }
     if (Object.keys(custom).length) row.custom_values = mergeValues(item?.custom_values, fields, custom)
     const { data, error, conflict } = item
@@ -167,10 +172,14 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
             </Field>
           </div>
         )}
+        <SpeakerSpecsFields form={spk} setForm={setSpk} onPreset={p => setForm(f => ({
+          ...f, brand: f.brand || p.brand, model: f.model || p.model,
+          weight_kg: p.weight_kg ?? f.weight_kg, power_w: p.power_w ?? f.power_w,
+        }))} />
         <Field id="it-details" text={t('quote.lineDetails')}>
           <textarea id="it-details" value={form.details} onChange={set('details')} rows={2} maxLength={1000} style={{ ...input, resize: 'vertical' }} />
         </Field>
-        <SaveButton saving={saving} disabled={!form.name.trim() || !codeOk || !costOk}>{t('common.save')}</SaveButton>
+        <SaveButton saving={saving} disabled={!form.name.trim() || !codeOk || !costOk || !spkOk}>{t('common.save')}</SaveButton>
       </form>
     </Modal>
   )

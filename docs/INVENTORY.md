@@ -153,6 +153,22 @@ Since K5 (0.77.0) Inventory → Reports opens Reports → Equipment; this table 
 value" view, beside profit, payback and buy or keep hiring in ([ANALYTICS.md](ANALYTICS.md),
 "How K5 works").
 
+## How the speaker library works (A1)
+
+Built in step 13 (docs/TOOLS_PLAN.md §6). Speaker cabinets are ordinary catalogue items with a
+speaker part in the item form.
+
+| Piece | How it works |
+|---|---|
+| Specs | `price_items`: kind of speaker (point source, line array element, subwoofer, stage monitor, column), sensitivity (1 W/1 m), maximum SPL, nominal dispersion horizontal × vertical, lowest and highest frequency, impedance, amplifier channels per cabinet, and the datasheet they come from (`spec_source`). Weight and power draw stay in `weight_kg` and `power_w`. The database checks the limits (`price_items_speaker_check`) and the form shows the same limits |
+| Rigging data | `price_items.rigging` (an object): centre of gravity, pickup points and bumper/frame limits, copied as printed from the manufacturer's rigging manual, and its source. It is safety-relevant: the item form and page say it needs a second person's check before use (the rule in docs/TRUSS_DATA.md). `checked` stays false; RG3 adds the sign-off and reads these fields |
+| Presets | `src/data/speakers.js`: ten models (L-Acoustics K2, Kara II, X12, KS28; d&b V8, Y10P, V-SUB; RCF HDL 30-A; Meyer Sound LEOPARD; NEXO GEO M1220), each typed from the manufacturer's own document, with its address, title, version and the date it was opened, the document's wording for every value and how it was measured. A value the document doesn't give is left empty, never worked out (no power draw in watts and no centre of gravity is printed in any of them). "Fill from a preset" in the item form writes those values, the source and the rigging data (not checked); `speaker_preset` remembers which. A unit test checks every preset has its source, wording and values in range |
+| Sound system calculator (F4) | Editors who can read the catalogue pick a speaker per source: its maximum SPL and horizontal dispersion are copied into the source (so crew who can't read the catalogue get the same results) and those fields lock. "Update from catalogue" appears when the item's specs change; "Typed by hand" unlinks it |
+| Import | The equipment import guesses the speaker columns. A "Speaker preset" column (brand and model, e.g. "L-Acoustics K2") fills the cells the file left empty; an unknown name, a value outside the limits or a highest frequency below the lowest refuses the row (`unknownPreset`, `speakerRange`, `freqOrder`; the database's own refusal reads as `speakerSpec`) |
+| Later | P1 (power) reads `power_w`, RG3 (line arrays) reads `weight_kg` and `rigging` |
+
+Migration `20270103000000_speaker_specs.sql`, checks `supabase/tests/speaker_specs.sql`.
+
 ## How it builds on what exists
 
 - **Reservations** ([RESERVATIONS.md](RESERVATIONS.md)): gear on a gig becomes reservations with
