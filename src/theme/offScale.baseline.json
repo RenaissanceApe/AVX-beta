@@ -67,64 +67,12 @@
     "sizes": 2,
     "gaps": 0
   },
-  "components/gig/ActivityTab.jsx": {
-    "sizes": 2,
-    "gaps": 0
-  },
-  "components/gig/AssetsTab.jsx": {
-    "sizes": 6,
-    "gaps": 4
-  },
-  "components/gig/AssetVersionsModal.jsx": {
-    "sizes": 2,
-    "gaps": 1
-  },
-  "components/gig/Booking.jsx": {
-    "sizes": 3,
-    "gaps": 4
-  },
-  "components/gig/ChatTab.jsx": {
-    "sizes": 0,
-    "gaps": 2
-  },
-  "components/gig/EditGigModal.jsx": {
-    "sizes": 0,
-    "gaps": 1
-  },
-  "components/gig/EquipmentTab.jsx": {
-    "sizes": 12,
-    "gaps": 7
-  },
-  "components/gig/FeedTab.jsx": {
-    "sizes": 1,
-    "gaps": 3
-  },
-  "components/gig/FeeFields.jsx": {
-    "sizes": 2,
-    "gaps": 1
-  },
   "components/gig/OnSiteView.jsx": {
     "sizes": 9,
     "gaps": 8
   },
-  "components/gig/ReportDamageModal.jsx": {
-    "sizes": 2,
-    "gaps": 1
-  },
-  "components/gig/StepBars.jsx": {
-    "sizes": 1,
-    "gaps": 3
-  },
-  "components/gig/TasksTab.jsx": {
-    "sizes": 0,
-    "gaps": 1
-  },
   "components/gig/ToolsTab.jsx": {
     "sizes": 4,
-    "gaps": 1
-  },
-  "components/gig/UpdatesTab.jsx": {
-    "sizes": 0,
     "gaps": 1
   },
   "components/GigCalendar.jsx": {

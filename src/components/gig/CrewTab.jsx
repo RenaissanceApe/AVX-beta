@@ -249,7 +249,7 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
       <style>{`
         .crew-extra { flex-basis: 100%; padding-left: 52px; min-width: 0; }
         @media (max-width: 640px) {
-          .crew-extra { padding-left: 0; }
+          .crew-extra { order: 6; padding-left: 52px; }
           .crew-chips { order: 5; flex-basis: 100%; justify-content: flex-start !important; padding-left: 52px; margin-top: 8px; }
         }
       `}</style>

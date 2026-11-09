@@ -573,7 +573,7 @@ const SCENES = {
   } },
   'gig-finance': { persona: 'pm', url: `/gig/${ids.gig}`, async run(page) {
     const box = page.locator('section[aria-labelledby="finance-title"]')
-    await box.locator('dl').waitFor()
+    await box.locator('dl').first().waitFor()
     await box.evaluate(el => window.scrollTo(0, document.documentElement.scrollHeight))
     return box
   } },

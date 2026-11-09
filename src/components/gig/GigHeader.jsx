@@ -1,7 +1,7 @@
 import { ArrowLeft, RefreshCw, Pencil } from 'lucide-react'
 import { shortTime } from '../../lib/schedule'
 import { useI18n } from '../../i18n'
-import { colors, btn, mono, CallChip, PageHeader } from '../ui'
+import { colors, btn, iconBtn, mono, CallChip, PageHeader } from '../ui'
 import { GigLabels } from './parts'
 import { PageHelp } from '../help/HelpParts'
 
@@ -10,7 +10,7 @@ export const GIG_TABS = ['overview', 'schedule', 'tasks', 'assets', 'crew', 'equ
 export const TAB_ALIASES = { feed: 'updates', activity: 'updates' }
 
 // The gig's header (DESIGN.md "Room to breathe"): back and where the gig belongs, then the title with its
-// labels and your call, one line (venue · dates · your role), Edit in view and Refresh in ⋯, then the tabs.
+// labels and your call, one line (venue · dates · your role), Edit (in ⋯ on a phone), then the tabs.
 export default function GigHeader({ gig, myMembership, canEdit, tab, setTab, tabs = GIG_TABS, counts, onBack, onRefresh, onEdit, company, orgRole }) {
   const { t, fmt } = useI18n()
   const dates = gig.start_date
@@ -24,22 +24,25 @@ export default function GigHeader({ gig, myMembership, canEdit, tab, setTab, tab
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-5)', flexWrap: 'wrap' }}>
           <button type="button" onClick={onBack} style={{ ...btn, padding: '4px 12px', fontWeight: 500 }}><ArrowLeft size={14} aria-hidden="true" /> {t('common.back')}</button>
           {company && <span style={{ fontSize: '13px', color: colors.muted }}>{company}{orgRole ? ` · ${t(`orgRole.${orgRole}`)}` : ''}</span>}
+          <button type="button" onClick={onRefresh} aria-label={t('common.refresh')} title={t('common.refresh')} style={{ ...iconBtn, marginLeft: 'auto' }}>
+            <RefreshCw size={16} aria-hidden="true" />
+          </button>
         </div>
         <PageHeader className="avx-gig-head" title={gig.name}
           after={<>
             <GigLabels gig={gig} />
-            {myMembership?.call_time && <CallChip me label={t('crew.callKey')} time={shortTime(myMembership.call_time)} title={t('crew.call', { time: shortTime(myMembership.call_time) })} />}
+            {/* Your call, without the green fill: the screen's one green thing is its primary action */}
+            {myMembership?.call_time && <CallChip label={t('crew.callKey')} time={shortTime(myMembership.call_time)} title={t('crew.call', { time: shortTime(myMembership.call_time) })} />}
           </>}
           help={<PageHelp page="gig" />}
           line={line.length > 0 && (
             <span>
               {line.map((part, i) => (
-                <span key={i} style={part === dates ? { ...mono, color: 'var(--text-2)' } : { color: 'var(--text-2)' }}>{i > 0 && ' · '}{part}</span>
+                <span key={i} style={{ color: 'var(--text-2)' }}>{i > 0 && ' · '}<span style={part === dates ? { ...mono, whiteSpace: 'nowrap' } : undefined}>{part}</span></span>
               ))}
             </span>
           )}
-          secondary={canEdit ? [{ label: t('gig.edit'), icon: <Pencil size={14} aria-hidden="true" />, onClick: onEdit }] : []}
-          more={[{ label: t('common.refresh'), icon: <RefreshCw size={15} aria-hidden="true" />, onClick: onRefresh }]} />
+          secondary={canEdit ? [{ label: t('gig.edit'), icon: <Pencil size={14} aria-hidden="true" />, onClick: onEdit }] : []} />
 
         {/* Scrolls sideways only: without overflow-y hidden, phones let the tabs (1 px taller than the
             strip, for the underline) be dragged up and down too */}

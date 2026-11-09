@@ -75,39 +75,32 @@ export default function AssetsTab({ gigId, assets, canUpload, offline = false, o
 
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
-      <TabHeader title={t('gig.tab.assets')} subtitle={t('assets.subtitle')}
-        action={
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {!offline && assets.length > 0 && assets.some(a => !savedIds.has(a.id)) && (
-              <button onClick={saveAll} disabled={!!bulk} style={btn}>
-                {bulk ? <AvxLoader size={14} /> : <DownloadCloud size={14} />}
-                {bulk ? t('offline.savingAll', bulk) : t('offline.saveAll')}
-              </button>
-            )}
-            {canUpload && !offline && <button onClick={() => setShowUpload(true)} style={btnPrimary}><Upload size={14} /> {t('assets.upload')}</button>}
-          </div>
-        } />
+      <TabHeader title={t('gig.tab.assets')} hint={t('assets.subtitle')}
+        secondary={!offline && assets.length > 0 && assets.some(a => !savedIds.has(a.id)) && (
+          <button type="button" onClick={saveAll} disabled={!!bulk} style={btn}>
+            {bulk ? <AvxLoader size={14} /> : <DownloadCloud size={14} aria-hidden="true" />}
+            {bulk ? t('offline.savingAll', bulk) : t('offline.saveAll')}
+          </button>
+        )}
+        action={canUpload && !offline && <button type="button" onClick={() => setShowUpload(true)} style={btnPrimary}><Upload size={14} aria-hidden="true" /> {t('assets.upload')}</button>} />
 
       {assets.length === 0 ? (
         <EmptyState icon={<Upload size={26} />} title={t('assets.emptyTitle')} body={t('assets.emptyBody')}
           action={canUpload ? t('assets.uploadFirst') : null} actionIcon={<Upload size={14} />} onAction={() => setShowUpload(true)} guide="crew-offline" />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {assets.map(a => {
+        <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+          {assets.map((a, i) => {
             const cfg = assetType(a.type)
             const Icon = cfg.icon
             return (
-              <div key={a.id} style={{
-                background: 'var(--fill)', border: `1px solid ${colors.border}`, 
-                padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '16px', animation: 'fadeIn 0.3s ease',
+              // Rows with hairlines, not a card each (DESIGN.md "One box deep")
+              <li key={a.id} style={{
+                borderTop: i > 0 ? `1px solid ${colors.border}` : 'none',
+                padding: 'var(--space-3) 0', display: 'flex', alignItems: 'center', gap: '12px', animation: 'fadeIn 0.3s ease',
               }}>
-                <div style={{
-                  width: '44px', height: '44px', flexShrink: 0,
-                  background: tint(cfg.color, 9), border: `1px solid ${tint(cfg.color, 19)}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}><Icon size={20} color={cfg.color} /></div>
+                <Icon size={20} color={cfg.color} aria-hidden="true" style={{ flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: '16px', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.name}</div>
+                  <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.name}</div>
                   <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', fontSize: '13px' }}>
                     <span style={{ color: cfg.color, fontWeight: 600 }}>{t(`assetType.${a.type}`)}</span>
                     <span style={{ color: colors.muted }}>{t('assets.version', { version: a.version })}</span>
@@ -115,12 +108,8 @@ export default function AssetsTab({ gigId, assets, canUpload, offline = false, o
                     <span style={{ color: 'var(--muted)' }}>{ago(a.created_at)}</span>
                   </div>
                 </div>
-                <button onClick={() => onOpen(a)} style={{
-                  display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', flexShrink: 0,
-                  background: 'var(--hover)', border: '1px solid var(--line)', color: 'var(--text)',
-                  fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-                }}>
-                  <Eye size={13} /> {a.version > 1 ? t('assets.openHistory') : t('common.open')}
+                <button type="button" onClick={() => onOpen(a)} style={{ ...btn, padding: '8px 12px' }}>
+                  <Eye size={14} aria-hidden="true" /> {a.version > 1 ? t('assets.openHistory') : t('common.open')}
                 </button>
                 {!offline && (
                   <button onClick={() => toggleOffline(a)} disabled={savingId === a.id} style={{ ...iconBtn, color: savedIds.has(a.id) ? colors.accentText : colors.muted }}
@@ -136,10 +125,10 @@ export default function AssetsTab({ gigId, assets, canUpload, offline = false, o
                     <Trash2 size={15} />
                   </button>
                 )}
-              </div>
+              </li>
             )
           })}
-        </div>
+        </ul>
       )}
 
       {showUpload && <UploadModal gigId={gigId} assets={assets} onClose={() => setShowUpload(false)} onUploaded={onChanged} />}

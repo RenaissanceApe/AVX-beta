@@ -91,7 +91,7 @@ export function EmptyMini({ text }) {
 
 // The top of a gig tab: a 16px heading, an optional short line (a count), the ⓘ for what the tab is for,
 // one primary action and at most one more in view; the rest go in the ⋯ menu (DESIGN.md "Room to breathe" 4, 5).
-//   <TabHeader title="Crew" subtitle="4 crew" hint={t('crew.hint')} action={<button style={btnPrimary}>Invite</button>}
+//   <TabHeader title="Crew" subtitle="4 crew" hint="What this tab is for" action={<button style={btnPrimary}>Invite</button>}
 //     secondary={<button style={btn}>Crew call</button>} more={[{ label: 'Post a job', onClick }]} />
 export function TabHeader({ title, subtitle, hint, action, secondary, more = [] }) {
   return (

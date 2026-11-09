@@ -10,7 +10,7 @@ export default function StepBars({ gig }) {
   if (!loaded || !Object.keys(counts).length) return null
   const planned = lines.filter(l => l.planned > 0)
   return (
-    <section aria-labelledby="step-bars" style={{ marginBottom: '14px' }}>
+    <section aria-labelledby="step-bars" style={{ marginBottom: 'var(--space-5)' }}>
       <h3 id="step-bars" className="sr-only">{t('steps.title')}</h3>
       <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '8px 16px' }}>
         {steps.map(step => {

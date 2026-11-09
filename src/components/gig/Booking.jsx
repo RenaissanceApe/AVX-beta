@@ -13,7 +13,7 @@ export const AMBER = 'var(--warn)'
 // The sentence under a person's name: what and where, and what to do. The icon carries the colour
 // (danger for a booking clash, warn for a self-reported unavailability); the words stay in text colour.
 const box = { marginTop: '8px', fontSize: '13px', color: 'var(--text)', lineHeight: 1.5 }
-const smallBtn = { ...btn, padding: '5px 10px', fontSize: '13px' }
+const smallBtn = { ...btn, padding: '4px 12px', fontSize: '13px' }
 
 // The warning shown next to someone who is booked elsewhere (or unavailable) during
 // their time on this gig, with the state of any "are you available?" request.
