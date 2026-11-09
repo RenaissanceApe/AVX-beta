@@ -64,7 +64,7 @@ export default function AvailabilitySection() {
   return (
     <div>
       <span style={label}>{t('availability.title')}</span>
-      <p style={{ color: colors.muted, fontSize: '12px', marginBottom: '10px', lineHeight: 1.5 }}>{t('availability.hint')}</p>
+      <p style={{ color: colors.muted, fontSize: '13px', marginBottom: '10px', lineHeight: 1.5 }}>{t('availability.hint')}</p>
       {items.map(i => (
         <div key={i.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', borderBottom: `1px solid ${colors.border}`, fontSize: '13px', flexWrap: 'wrap' }}>
           <span style={{ fontWeight: 600 }}>{range(i)}</span>
@@ -75,16 +75,16 @@ export default function AvailabilitySection() {
         </div>
       ))}
       <form onSubmit={add} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '8px', marginTop: '10px' }}>
-        <label style={{ minWidth: 0, fontSize: '12px', color: colors.soft, gridColumn: '1 / -1' }}>{t('leave.typeLabel')}
+        <label style={{ minWidth: 0, fontSize: '13px', color: colors.soft, gridColumn: '1 / -1' }}>{t('leave.typeLabel')}
           <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} style={{ ...input, marginTop: '4px' }}>
             {LEAVE_TYPES.map(type => <option key={type} value={type}>{t(`leave.type.${type}`)}</option>)}
           </select>
         </label>
-        <label style={{ minWidth: 0, fontSize: '12px', color: colors.soft }}>{t('availability.from')}
+        <label style={{ minWidth: 0, fontSize: '13px', color: colors.soft }}>{t('availability.from')}
           <input type="date" value={form.start_date} min={localToday()} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
             style={{ ...input, marginTop: '4px' }} required />
         </label>
-        <label style={{ minWidth: 0, fontSize: '12px', color: colors.soft }}>{t('availability.to')}
+        <label style={{ minWidth: 0, fontSize: '13px', color: colors.soft }}>{t('availability.to')}
           <input type="date" value={form.end_date} min={form.start_date || localToday()} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
             style={{ ...input, marginTop: '4px' }} />
         </label>
@@ -95,8 +95,8 @@ export default function AvailabilitySection() {
         </button>
       </form>
       {staffOrgs.length > 0 && (
-        <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <p style={{ color: colors.muted, fontSize: '12px', lineHeight: 1.5, margin: 0 }}>{t('availability.staffHint')}</p>
+        <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <p style={{ color: colors.muted, fontSize: '13px', lineHeight: 1.5, margin: 0 }}>{t('availability.staffHint')}</p>
           {staffOrgs.map(o => (
             <Link key={o.id} to={`/org/${o.id}/leave`} style={{ ...btn, justifyContent: 'center', textDecoration: 'none' }}>
               <CalendarOff size={14} aria-hidden="true" /> {t('availability.askOrg', { org: o.name })}

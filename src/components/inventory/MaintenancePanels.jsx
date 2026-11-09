@@ -16,8 +16,8 @@ import { Hint, HintLabel } from '../help/HelpParts'
 
 const AMBER = 'var(--warn)'
 const select = { ...input, appearance: 'auto' }
-const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }
-const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }
+const small = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
 const STATUS_TONE = { open: 'warn', in_repair: 'info', done: 'ok', written_off: 'off' }
 const DUE_TONE = { overdue: 'danger', soon: 'warn', ok: 'off' }
 const REPAIR_SELECT = '*, unit:unit_id(code), gig:gig_id(name), invoice:invoice_id(number, legal_number)'
@@ -55,7 +55,7 @@ function PhotoLink({ path }) {
     supabase.storage.from('repair-photos').createSignedUrl(path, 600).then(({ data }) => setUrl(data?.signedUrl || null))
   }, [path])
   if (!url) return null
-  return <a href={url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--sky)', fontSize: '12px' }}><ImageIcon size={12} /> {t('repair.photo')}</a>
+  return <a href={url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--sky)', fontSize: '13px' }}><ImageIcon size={12} /> {t('repair.photo')}</a>
 }
 
 // A new repair (from the warehouse) or an existing one: status, repairer, cost, outcome
@@ -162,7 +162,7 @@ export function RepairModal({ orgId, repair, items = [], preset = {}, onClose, o
           <Field id="rp-cost" text={t('repair.cost')}><input id="rp-cost" inputMode="decimal" value={form.cost} onChange={set('cost')} style={input} /></Field>
           <Field id="rp-back" text={t('repair.expectedBack')}><input id="rp-back" type="date" value={form.expected_back} onChange={set('expected_back')} style={input} /></Field>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: colors.soft, cursor: 'pointer' }}>
             <input type="checkbox" checked={form.charge_client} onChange={set('charge_client')} disabled={!!repair?.invoice_id} style={{ accentColor: colors.accent }} /> {t('repair.chargeClient')}
           </label>
@@ -173,7 +173,7 @@ export function RepairModal({ orgId, repair, items = [], preset = {}, onClose, o
           <Field id="rp-outcome" text={t('repair.outcome')}><input id="rp-outcome" value={form.outcome} onChange={set('outcome')} maxLength={1000} style={input} /></Field>
         )}
         {form.status === 'written_off' && form.status !== repair?.status && (
-          <p role="alert" style={{ fontSize: '12px', color: AMBER }}>{t(serial ? 'repair.writeOffUnit' : 'repair.writeOffBulk')}</p>
+          <p role="alert" style={{ fontSize: '13px', color: AMBER }}>{t(serial ? 'repair.writeOffUnit' : 'repair.writeOffBulk')}</p>
         )}
         {!repair?.photo_path && <PhotoInput file={file} setFile={setFile} />}
         <button type="submit" disabled={saving || invalid} style={{ ...btnPrimary, justifyContent: 'center' }}>
@@ -181,9 +181,9 @@ export function RepairModal({ orgId, repair, items = [], preset = {}, onClose, o
         </button>
       </form>
       {repair && isOpenRepair(repair) && (
-        <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <button type="button" onClick={makeTask} disabled={taskBusy} style={btn}><ListTodo size={14} /> {t('repair.makeTask')}</button>
-          <Link to={`/org/${orgId}/tasks`} style={{ fontSize: '12px', color: colors.accentText }}>{t('repair.seeTasks')}</Link>
+          <Link to={`/org/${orgId}/tasks`} style={{ fontSize: '13px', color: colors.accentText }}>{t('repair.seeTasks')}</Link>
         </div>
       )}
       {repair && (
@@ -262,7 +262,7 @@ export function InspectionModal({ item, unitId: presetUnit, onClose, onSaved }) 
           ))}
         </div>
         <Field id="in-notes" text={t('inv.note')}><input id="in-notes" value={form.notes} onChange={set('notes')} maxLength={1000} style={input} /></Field>
-        {form.result === 'fail' && <p role="alert" style={{ fontSize: '12px', color: AMBER }}>{t('inspect.failHint')}</p>}
+        {form.result === 'fail' && <p role="alert" style={{ fontSize: '13px', color: AMBER }}>{t('inspect.failHint')}</p>}
         <button type="submit" disabled={saving || (serial && !unitId) || !costOk} style={{ ...btnPrimary, justifyContent: 'center' }}>
           {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('common.save')}
         </button>
@@ -274,18 +274,18 @@ export function InspectionModal({ item, unitId: presetUnit, onClose, onSaved }) 
 function RepairRow({ r, itemName, onOpen }) {
   const { lang, fmt } = useI18n()
   return (
-    <button onClick={() => onOpen(r)} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', width: '100%', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', font: 'inherit' }}>
+    <button onClick={() => onOpen(r)} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', width: '100%', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', font: 'inherit' }}>
       <span style={{ flex: '1 1 220px', minWidth: 0 }}>
         <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>
           {itemName && <>{itemName} · </>}
           {r.unit?.code ? <span style={{ fontFamily: 'var(--font-mono)' }}>{r.unit.code}</span> : t('repair.quantity', { count: r.quantity })}
         </span>
-        <span style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>
+        <span style={{ fontSize: '13px', color: colors.muted, overflowWrap: 'anywhere' }}>
           {[r.problem, r.gig?.name && t('repair.fromGig', { gig: r.gig.name }), r.repairer, r.cost != null && formatMoney(r.cost, 'EUR', lang), r.charge_client && t('repair.charged'), r.charge_client && (r.invoice_id ? t('repair.billedOn', { number: r.invoice?.legal_number || `#${r.invoice?.number ?? ''}` }) : t('repair.notBilled'))].filter(Boolean).join(' · ')}
         </span>
       </span>
       {r.photo_path && <ImageIcon size={13} color={colors.muted} aria-label={t('repair.photo')} />}
-      <span style={{ fontSize: '12px', color: colors.muted, whiteSpace: 'nowrap' }}>{fmt(r.created_at, 'd MMM')}{r.expected_back && isOpenRepair(r) ? ` → ${fmt(r.expected_back, 'd MMM')}` : ''}</span>
+      <span style={{ fontSize: '13px', color: colors.muted, whiteSpace: 'nowrap' }}>{fmt(r.created_at, 'd MMM')}{r.expected_back && isOpenRepair(r) ? ` → ${fmt(r.expected_back, 'd MMM')}` : ''}</span>
       <StatusBadge small tone={STATUS_TONE[r.status] || 'open'}>{t(`repair.status.${r.status}`)}</StatusBadge>
     </button>
   )
@@ -295,18 +295,18 @@ function DueRow({ d, orgId, onRecord }) {
   const { fmt } = useI18n()
   const state = dueState(d.due_on)
   return (
-    <div style={{ ...card, padding: '9px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+    <div style={{ ...card, padding: '9px 12px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
       <span style={{ flex: '1 1 220px', minWidth: 0 }}>
         <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>
           <Link to={`/org/${orgId}/inventory/${d.item_id}`} style={{ color: 'var(--text)' }}>{d.item_name}</Link>
           {d.unit_code && <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 400 }}> · {d.unit_code}</span>}
         </span>
-        <span style={{ fontSize: '12px', color: colors.muted }}>
+        <span style={{ fontSize: '13px', color: colors.muted }}>
           {[d.inspection_kind, d.last_done ? t('inspect.lastDone', { date: fmt(d.last_done, 'd MMM yyyy') }) : t('inspect.never'), d.last_result === 'fail' && t('inspect.lastFailed')].filter(Boolean).join(' · ')}
         </span>
       </span>
       <StatusBadge small tone={DUE_TONE[state]}>{t(`inspect.due.${state}`, { date: fmt(d.due_on, 'd MMM yyyy') })}</StatusBadge>
-      <button onClick={() => onRecord(d)} style={{ ...btn, padding: '5px 9px', fontSize: '12px' }}><ClipboardCheck size={12} /> {t('inspect.record')}</button>
+      <button onClick={() => onRecord(d)} style={{ ...btn, padding: '5px 9px', fontSize: '13px' }}><ClipboardCheck size={12} /> {t('inspect.record')}</button>
     </div>
   )
 }
@@ -314,7 +314,7 @@ function DueRow({ d, orgId, onRecord }) {
 function H({ icon, children, count }) {
   const Icon = icon
   return (
-    <h2 style={{ fontSize: '17px', fontWeight: 700, margin: '4px 0 8px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+    <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '4px 0 8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
       <Icon size={16} color={colors.accentText} /> {children}{count != null && <span style={{ color: colors.soft, fontWeight: 600 }}>· {count}</span>}
     </h2>
   )
@@ -354,10 +354,10 @@ export function MaintenanceTab({ orgId, inv }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '8px' }}>
         {/* K6: repair, loss and inspection numbers in Reports → Warehouse (admins and members) */}
         {['admin', 'member'].includes(inv.role) && (
-          <Link to={`/org/${orgId}/reports?tab=warehouse&view=damage`} style={{ fontSize: '12px', color: colors.accentText, marginRight: 'auto' }}>{t('wh.linkDamage')}</Link>
+          <Link to={`/org/${orgId}/reports?tab=warehouse&view=damage`} style={{ fontSize: '13px', color: colors.accentText, marginRight: 'auto' }}>{t('wh.linkDamage')}</Link>
         )}
         <button onClick={() => setEditing({})} style={btnPrimary}><Plus size={15} /> {t('repair.new')}</button>
       </div>
@@ -378,7 +378,7 @@ export function MaintenanceTab({ orgId, inv }) {
               {shownDue.map(d => <DueRow key={`${d.item_id}-${d.unit_id}`} d={d} orgId={orgId} onRecord={setInspecting} />)}
             </div>
             {due.length > dueSoon.length && (
-              <button onClick={() => setAllDue(v => !v)} style={{ ...btn, marginTop: '8px', padding: '5px 10px', fontSize: '12px' }}>
+              <button onClick={() => setAllDue(v => !v)} style={{ ...btn, marginTop: '8px', padding: '5px 10px', fontSize: '13px' }}>
                 {allDue ? t('inspect.showDue') : t('inspect.showAll', { count: due.length })}
               </button>
             )}
@@ -441,7 +441,7 @@ export function ItemMaintenance({ orgId, item, onChanged }) {
           : t('inspect.notSetUp')}
       </p>
       {due.length > 0 && (
-        <p role="status" style={{ fontSize: '13px', color: AMBER, display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '8px' }}>
+        <p role="status" style={{ fontSize: '13px', color: AMBER, display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
           <AlertTriangle size={14} /> {t('inspect.dueOnItem', { count: due.length })}
         </p>
       )}
@@ -453,7 +453,7 @@ export function ItemMaintenance({ orgId, item, onChanged }) {
       {inspections.length > 0 && (
         <div style={{ fontSize: '13px' }}>
           {inspections.map(i => (
-            <div key={i.id} style={{ display: 'flex', gap: '10px', padding: '6px 4px', borderBottom: `1px solid ${colors.border}`, flexWrap: 'wrap' }}>
+            <div key={i.id} style={{ display: 'flex', gap: '12px', padding: '6px 4px', borderBottom: `1px solid ${colors.border}`, flexWrap: 'wrap' }}>
               <span style={{ color: colors.soft, minWidth: '90px' }}>{fmt(i.done_on, 'd MMM yyyy')}</span>
               {i.unit?.code && <span style={{ fontFamily: 'var(--font-mono)' }}>{i.unit.code}</span>}
               <span style={{ fontWeight: 700, color: i.result === 'pass' ? colors.accentText : colors.danger }}>{t(`inspect.${i.result}`)}</span>

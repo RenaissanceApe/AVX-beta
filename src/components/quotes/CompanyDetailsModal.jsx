@@ -81,7 +81,7 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
       <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5 }}>{canEdit ? t('company.intro') : t('company.adminOnly')}</p>
         <fieldset disabled={!canEdit} style={{ border: 'none', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
             <div>
               <label style={label} htmlFor="co-legal">{t('company.legalName')}</label>
               <input id="co-legal" value={form.legal_name} onChange={e => set('legal_name', e.target.value)} placeholder={org.name} maxLength={200} style={input} />
@@ -95,7 +95,7 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
             <label style={label} htmlFor="co-address">{t('company.address')}</label>
             <textarea id="co-address" value={form.address} onChange={e => set('address', e.target.value)} rows={2} maxLength={500} style={{ ...input, resize: 'vertical' }} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
             <div>
               <label style={label} htmlFor="co-email">{t('common.email')}</label>
               <input id="co-email" type="email" value={form.email} onChange={e => set('email', e.target.value)} maxLength={200} style={input} />
@@ -109,7 +109,7 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
               <input id="co-web" value={form.website} onChange={e => set('website', e.target.value)} maxLength={200} style={input} />
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
             <div>
               <HintLabel htmlFor="co-vat" hint="vat">{t('company.defaultVat')}</HintLabel>
               <input id="co-vat" type="number" min="0" max="100" step="0.01" value={form.default_vat_rate} onChange={e => set('default_vat_rate', e.target.value)} style={input} />
@@ -144,7 +144,7 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
                 )}
               </div>
             ) : (
-              <p style={{ fontSize: '12px', color: colors.muted, marginBottom: '6px' }}>{t('company.noHeader')}</p>
+              <p style={{ fontSize: '13px', color: colors.muted, marginBottom: '6px' }}>{t('company.noHeader')}</p>
             )}
             {canEdit && (
               <label style={{ ...btn, marginTop: '8px', background: 'transparent', borderColor: 'color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: colors.soft }}>
@@ -152,9 +152,9 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
                 <input type="file" accept={HEADER_TYPES.join(',')} onChange={pickHeader} style={{ display: 'none' }} />
               </label>
             )}
-            <p style={{ fontSize: '12px', color: colors.muted, marginTop: '6px', lineHeight: 1.5 }}>{t('company.headerHint')}</p>
+            <p style={{ fontSize: '13px', color: colors.muted, marginTop: '6px', lineHeight: 1.5 }}>{t('company.headerHint')}</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
             <div>
               <label style={label} htmlFor="co-color">{t('company.brandColor')}</label>
               <input id="co-color" type="color" value={branding.brand_color} onChange={e => setBranding(b => ({ ...b, brand_color: e.target.value }))}
@@ -169,7 +169,7 @@ export default function CompanyDetailsModal({ org, canEdit, onClose, onSaved }) 
               <input id="co-next" type="number" min="1" value={form.quote_next_number} onChange={e => set('quote_next_number', e.target.value)} style={input} />
             </div>
           </div>
-          <p style={{ fontSize: '12px', color: colors.muted, marginTop: '-4px', lineHeight: 1.5 }}>{t('company.numberHint')}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, marginTop: '-4px', lineHeight: 1.5 }}>{t('company.numberHint')}</p>
           <div>
             <label style={label} htmlFor="co-terms">{t('company.defaultTerms')}</label>
             <textarea id="co-terms" value={form.quote_terms} onChange={e => set("quote_terms", e.target.value)} rows={8} maxLength={5000}

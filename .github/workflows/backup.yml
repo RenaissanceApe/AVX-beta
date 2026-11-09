@@ -24,6 +24,7 @@ jobs:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
     steps:
       # Checkout comes first: run later, it empties the folder and deletes the database dump.
       - uses: actions/checkout@v4
@@ -64,7 +65,10 @@ jobs:
         if: steps.config.outputs.enabled == 'true' && env.SUPABASE_SERVICE_ROLE_KEY != ''
         run: |
           set -euo pipefail
-          set -a; . ./.env; set +a
+          if [ -z "$VITE_SUPABASE_URL" ]; then
+            echo "::error::Repository variable SUPABASE_URL is not set (Settings → Secrets and variables → Actions → Variables)."
+            exit 1
+          fi
           SUPABASE_URL="$VITE_SUPABASE_URL" node scripts/backup-storage.mjs files
           name="avx-files-$(date -u +%Y-%m-%dT%H%M)"
           tar -czf "$name.tar.gz" -C files .

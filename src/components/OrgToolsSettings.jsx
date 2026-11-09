@@ -38,14 +38,14 @@ export default function OrgToolsSettings({ org }) {
   return (
     <section aria-labelledby="org-tools" style={{ marginTop: 'var(--space-section)' }}>
       <h3 id="org-tools" style={{ font: '700 16px/24px var(--font-mono)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 8px' }}><Wrench size={16} aria-hidden="true" /> {t('orgTools.title')}</h3>
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '8px' }}>{t('orgTools.hint')}</p>
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '8px' }}>{t('orgTools.hint')}</p>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {TOOLS.map(tool => (
           <li key={tool.id}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
               <input type="checkbox" checked={chosen.includes(tool.id)} disabled={busy} onChange={e => toggle(tool.id, e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
               {t(`tools.name.${tool.id}`)}
-              {!tool.ready && <span style={{ fontSize: '12px', color: colors.muted }}>· {t('orgTools.soon')}</span>}
+              {!tool.ready && <span style={{ fontSize: '13px', color: colors.muted }}>· {t('orgTools.soon')}</span>}
             </label>
           </li>
         ))}

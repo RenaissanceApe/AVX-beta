@@ -160,7 +160,7 @@ function ApplyModal({ job, onClose, onApplied }) {
           <textarea id="ap-message" rows={4} value={message} onChange={e => setMessage(e.target.value)} maxLength={1000} placeholder={t('jobs.applyPlaceholder')} style={{ ...input, resize: 'vertical' }} />
         </div>
         {needsRate && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '12px' }}>
             <div><label style={label} htmlFor="ap-rate">{t('jobs.dayRate')} *</label>
               <input id="ap-rate" inputMode="decimal" value={rate} onChange={e => setRate(e.target.value)} style={input} /></div>
             <div><label style={label} htmlFor="ap-cur">{t('jobs.currency')}</label>
@@ -169,7 +169,7 @@ function ApplyModal({ job, onClose, onApplied }) {
               </select></div>
           </div>
         )}
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', cursor: 'pointer' }}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
           <input type="checkbox" checked={free} onChange={e => setFree(e.target.checked)} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
           <span>{t('jobs.confirmFree', { dates })}</span>
         </label>

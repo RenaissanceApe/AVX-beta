@@ -43,10 +43,10 @@ export default function ReportModal({ kind, target, name, blockUser, onClose, on
     <Modal title={t(`trust.report.title.${kind}`, { name: name || '' })} onClose={onClose}>
       <form onSubmit={send} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5 }}>{t(`trust.report.intro.${kind}`)}</p>
-        <fieldset style={{ border: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <fieldset style={{ border: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <legend style={{ ...label, marginBottom: '6px' }}>{t('trust.report.why')} *</legend>
           {REPORT_REASONS.map(r => (
-            <label key={r} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', cursor: 'pointer' }}>
+            <label key={r} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
               <input type="radio" name="report-reason" checked={reason === r} onChange={() => setReason(r)} style={{ accentColor: 'var(--accent)' }} />
               {t(`trust.reason.${r}`)}
             </label>
@@ -57,12 +57,12 @@ export default function ReportModal({ kind, target, name, blockUser, onClose, on
           <textarea id="report-note" rows={3} value={note} onChange={e => setNote(e.target.value)} maxLength={1000} style={{ ...input, resize: 'vertical' }} />
         </div>
         {kind === 'profile' && blockUser && (
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '14px', cursor: 'pointer' }}>
             <input type="checkbox" checked={block} onChange={e => setBlock(e.target.checked)} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
             <span>{t('trust.report.alsoBlock')}</span>
           </label>
         )}
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <button type="submit" disabled={sending || !reason} style={btnDanger}>
             {sending ? <AvxLoader size={15} /> : <Flag size={15} />} {t('trust.report.send')}
           </button>

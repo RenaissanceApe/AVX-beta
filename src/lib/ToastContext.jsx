@@ -39,7 +39,7 @@ export function ToastProvider({ children }) {
           const Icon = cfg.icon
           return (
             <div key={toast.id} role={toast.kind === 'error' ? 'alert' : 'status'} style={{
-              pointerEvents: 'auto', display: 'flex', alignItems: 'flex-start', gap: '10px',
+              pointerEvents: 'auto', display: 'flex', alignItems: 'flex-start', gap: '12px',
               background: 'var(--panel)', border: `1px solid ${cfg.border}`,
               padding: '12px 14px', color: 'var(--text)', fontSize: '14px', lineHeight: '1.5',
               whiteSpace: 'pre-line', wordBreak: 'break-word'

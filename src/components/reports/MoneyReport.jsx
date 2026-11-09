@@ -81,7 +81,7 @@ export default function MoneyReport({ orgId, timeZone, labels, params, setParam 
         onCustom={c => { setParam('from', c.from || null); setParam('until', c.until || null) }}
         compare={compare} onCompare={v => setParam('compare', v === 'previous' ? null : v)} range={range} compared={compared} />
 
-      <div className="no-print" role="group" aria-label={t('money.views')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+      <div className="no-print" role="group" aria-label={t('money.views')} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         {MONEY_VIEWS.map(v => (
           <button key={v} type="button" onClick={() => setView(v)} aria-pressed={view === v}
             style={{ ...btn, padding: '6px 10px', ...(view === v ? { borderColor: colors.accentText, color: colors.accentText, fontWeight: 700 } : {}) }}>
@@ -91,7 +91,7 @@ export default function MoneyReport({ orgId, timeZone, labels, params, setParam 
         {!cashView && <Hint id="money-report" label={t('reports.tab.money')} />}
         <span style={{ flex: '1 1 auto' }} />
         {!cashView && view !== 'labour' && currencies.length > 1 && (
-          <label style={{ display: 'flex', flexDirection: 'column', fontSize: '12px', color: colors.muted, gap: '2px' }}>
+          <label style={{ display: 'flex', flexDirection: 'column', fontSize: '13px', color: colors.muted, gap: '4px' }}>
             {t('reports.currency')}
             <select value={currency} onChange={e => setPicked(e.target.value)} style={{ ...btn, padding: '6px 8px' }}>
               {currencies.map(c => <option key={c} value={c}>{c}</option>)}
@@ -119,8 +119,8 @@ export default function MoneyReport({ orgId, timeZone, labels, params, setParam 
   )
 }
 
-const noteStyle = { fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }
-const warnStyle = { fontSize: '12px', color: 'var(--warn)', lineHeight: 1.6, margin: 0 }
+const noteStyle = { fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }
+const warnStyle = { fontSize: '13px', color: 'var(--warn)', lineHeight: 1.6, margin: 0 }
 const tiles = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '8px' }
 
 function Results({ orgId, range, row, prevRow, grouped, details, toggleDetails, money, pct, compareLabel, est, currency, currencies, t, fmt }) {
@@ -156,7 +156,7 @@ function Results({ orgId, range, row, prevRow, grouped, details, toggleDetails, 
 
       <BarChart title={t(months.length > 1 ? 'money.chart.byMonth' : 'money.chart.steps', { currency })} data={chart} format={money} valueLabel={t('money.line.operatingResult')} />
 
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
         <DetailsToggle on={details} onToggle={toggleDetails} />
         <span style={{ flex: '1 1 auto' }} />
         <ExportButtons onCsv={csv} />
@@ -226,12 +226,12 @@ function Margins({ group, setParam, grouped, details, toggleDetails, money, pct,
       .map(c => (c.key === 'pct' ? { ...c, csv: r => r.margin_pct ?? '' } : c)), 'csv:reports:money')
   return (
     <>
-      <div className="no-print" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+      <div className="no-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <GroupBy value={group} options={MARGIN_GROUPS} onChange={v => setParam('by', v === MARGIN_GROUPS[0] ? null : v)} />
         <Link to={`?tab=margins`} style={{ ...btn, textDecoration: 'none' }}>{t('money.perGig')}</Link>
       </div>
       {chart.length > 0 && <BarChart title={t('money.chart.marginBy', { group: t(`reports.group.${group}`), currency })} data={chart} format={money} valueLabel={t('money.line.grossMargin')} />}
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
         <DetailsToggle on={details} onToggle={toggleDetails} />
         <span style={{ flex: '1 1 auto' }} />
         <ExportButtons onCsv={csv} disabled={!rows.length} />
@@ -273,7 +273,7 @@ function Labour({ group, setParam, grouped, row, prevRow, details, toggleDetails
         <NumberTile label={t('money.col.labourCounted')} value={money(v.counted)} change={change(v.counted, pv.counted)} compareLabel={compareLabel} estimate={Number(row.labour_estimated) > 0}
           sub={t('money.difference', { amount: `${v.money > 0 ? '+' : v.money < 0 ? '−' : ''}${money(Math.abs(v.money))}` })} />
       </div>
-      <div className="no-print" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+      <div className="no-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <GroupBy value={group} options={LABOUR_GROUPS} onChange={g => setParam('by', g === LABOUR_GROUPS[0] ? null : g)} />
         <span style={{ flex: '1 1 auto' }} />
         <DetailsToggle on={details} onToggle={toggleDetails} />

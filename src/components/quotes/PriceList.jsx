@@ -51,16 +51,16 @@ export function PriceListTab({ orgId, userId, items, setItems }) {
         <EmptyState icon={<Tags size={26} />} body={t('prices.empty')} action={t('prices.add')} onAction={() => setEditing('new')} guide="of-price-list" />
       ) : byCategory(visible).map(([category, list]) => (
         <section key={category || '—'} style={{ marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.05em', color: colors.muted, marginBottom: '6px' }}>{category || t('prices.noCategory')}</h3>
+          <h3 style={{ fontSize: '13px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.05em', color: colors.muted, marginBottom: '6px' }}>{category || t('prices.noCategory')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {list.map(item => (
-              <div key={item.id} style={{ ...card, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div key={item.id} style={{ ...card, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{item.name}</span>
-                  <span style={{ fontSize: '12px', color: colors.muted }}>{t(`lineKind.${item.kind}`)}</span>
+                  <span style={{ fontSize: '13px', color: colors.muted }}>{t(`lineKind.${item.kind}`)}</span>
                 </span>
                 <span style={{ fontWeight: 700, fontSize: '14px', whiteSpace: 'nowrap' }}>
-                  {formatMoney(item.unit_price, 'EUR', lang)} <span style={{ fontWeight: 400, color: colors.muted, fontSize: '12px' }}>/ {t(`unit.${item.unit}`, { count: 1 })}</span>
+                  {formatMoney(item.unit_price, 'EUR', lang)} <span style={{ fontWeight: 400, color: colors.muted, fontSize: '13px' }}>/ {t(`unit.${item.unit}`, { count: 1 })}</span>
                 </span>
                 <button onClick={() => setEditing(item)} aria-label={t('prices.editNamed', { name: item.name })} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>
                 <button onClick={() => remove(item)} aria-label={t('prices.deleteNamed', { name: item.name })} title={t('common.delete')} style={iconBtn}><Trash2 size={14} /></button>
@@ -126,7 +126,7 @@ function PriceItemModal({ orgId, userId, item, categories, onClose, onSaved }) {
           <label style={label} htmlFor="pi-name">{t('prices.name')} *</label>
           <input id="pi-name" value={form.name} onChange={e => set('name', e.target.value)} maxLength={200} style={input} autoFocus required />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
           <div>
             <label style={label} htmlFor="pi-price">{t('prices.price')} *</label>
             <input id="pi-price" inputMode="decimal" value={form.unit_price} onChange={e => set('unit_price', e.target.value)} style={input} required />
@@ -186,11 +186,11 @@ function ImportModal({ orgId, userId, onClose, onImported }) {
   return (
     <Modal title={t('prices.import')} onClose={onClose} maxWidth={600}>
       <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, marginBottom: '8px' }}>{t('prices.importHelp')}</p>
-      <pre style={{ fontSize: '12px', background: 'var(--hover)', padding: '8px 10px', marginBottom: '10px', whiteSpace: 'pre-wrap' }}>
+      <pre style={{ fontSize: '13px', background: 'var(--hover)', padding: '8px 10px', marginBottom: '10px', whiteSpace: 'pre-wrap' }}>
         {t('prices.importExample')}
       </pre>
       <textarea value={text} onChange={e => setText(e.target.value)} rows={10} aria-label={t('prices.import')} autoFocus
-        style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '12px', resize: 'vertical' }} />
+        style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '13px', resize: 'vertical' }} />
       <p role="status" style={{ fontSize: '13px', margin: '8px 0 12px', color: parsed.errors.length ? 'var(--warn)' : colors.soft }}>
         {t('prices.importReady', { count: parsed.items.length })}
         {parsed.errors.length > 0 && ` · ${t('prices.importSkipped', { lines: parsed.errors.join(', ') })}`}
@@ -217,12 +217,12 @@ export function PricePickerModal({ items, onPick, onClose }) {
       ) : (
         <>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('prices.search')} aria-label={t('prices.search')} autoFocus style={{ ...input, marginBottom: '10px' }} />
-          <div style={{ maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '12px' }}>
+          <div style={{ maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
             {byCategory(visible).map(([category, list]) => (
               <div key={category || '—'}>
                 <div style={{ fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: colors.muted, padding: '8px 4px 4px' }}>{category || t('prices.noCategory')}</div>
                 {list.map(item => (
-                  <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 8px', cursor: 'pointer', background: picked.includes(item.id) ? 'var(--selection)' : 'transparent' }}>
+                  <label key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '7px 8px', cursor: 'pointer', background: picked.includes(item.id) ? 'var(--selection)' : 'transparent' }}>
                     <input type="checkbox" checked={picked.includes(item.id)} onChange={() => toggle(item.id)} style={{ accentColor: colors.accent }} />
                     <span style={{ flex: 1, fontSize: '14px' }}>{item.name}</span>
                     <span style={{ fontSize: '13px', color: colors.soft, whiteSpace: 'nowrap' }}>{formatMoney(item.unit_price, 'EUR', lang)}</span>

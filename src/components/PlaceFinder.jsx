@@ -6,7 +6,7 @@ import { logger } from '../lib/logger'
 import { useI18n } from '../i18n'
 import { btn, input, label as labelStyle, colors, AvxLoader } from './ui'
 
-const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+const hint = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
 
 // Type a town, tap Find, pick one (docs/CREW_NETWORK.md): asks the geocode Edge Function (LocationIQ),
 // which returns towns with coordinates rounded to about 1 km. Used by the crew profile and crew search.
@@ -47,7 +47,7 @@ export default function PlaceFinder({ id, label, hint: hintText, initialQuery = 
       </div>
       {places && (
         places.length ? (
-          <ul aria-label={t('crewProfile.places')} style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <ul aria-label={t('crewProfile.places')} style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {places.map(p => (
               <li key={p.label}>
                 <button type="button" onClick={() => { onChoose(p); setPlaces(null); setQuery('') }} style={{ ...btn, width: '100%', justifyContent: 'flex-start', textAlign: 'left' }}>

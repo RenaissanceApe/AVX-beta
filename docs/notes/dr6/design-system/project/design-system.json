@@ -1,0 +1,444 @@
+{
+ "v": 3,
+ "layout": "files",
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-11-05T05:10:00Z"
+ },
+ "title": "AVX",
+ "namespace": "AVX",
+ "libraries": [],
+ "sections": {},
+ "groups": [
+  "Logos",
+  "Icons"
+ ],
+ "assetGroups": {
+  "Logos": {
+   "name": "Logos",
+   "tile": "l",
+   "order": [
+    "avx-glyph.svg",
+    "avx-glyph-olive.svg",
+    "avx-glyph-navy.svg",
+    "avx-lockup.svg",
+    "lp-mark.svg"
+   ],
+   "files": {
+    "avx-glyph.svg": {
+     "name": "avx-glyph.svg",
+     "blob": "10c0cd7cf673a552c260ee24ec9eec28",
+     "size": 204,
+     "type": "image/svg+xml"
+    },
+    "avx-glyph-navy.svg": {
+     "name": "avx-glyph-navy.svg",
+     "blob": "735b3465025a562d900afa062c7156f1",
+     "size": 204,
+     "type": "image/svg+xml"
+    },
+    "avx-glyph-olive.svg": {
+     "name": "avx-glyph-olive.svg",
+     "blob": "9b281f3052e1b50d12b7cb3fa2ee6d1b",
+     "size": 204,
+     "type": "image/svg+xml"
+    },
+    "avx-lockup.svg": {
+     "name": "avx-lockup.svg",
+     "blob": "5232a13cbcf3770d568a31d28072bdde",
+     "size": 553,
+     "type": "image/svg+xml"
+    },
+    "lp-mark.svg": {
+     "name": "lp-mark.svg",
+     "blob": "dc243e319553dbba828e262e300d13d9",
+     "size": 1058,
+     "type": "image/svg+xml"
+    }
+   }
+  },
+  "Icons": {
+   "name": "Icons",
+   "tile": "xs",
+   "order": [
+    "arrow-r.svg",
+    "audio.svg",
+    "bell.svg",
+    "briefcase.svg",
+    "building.svg",
+    "calendar.svg",
+    "camera-scan.svg",
+    "camera.svg",
+    "chat.svg",
+    "check.svg",
+    "chev-d.svg",
+    "chev-l.svg",
+    "chev-r.svg",
+    "clock.svg",
+    "close.svg",
+    "console.svg",
+    "contrast.svg",
+    "dmx-xlr.svg",
+    "doc.svg",
+    "euro.svg",
+    "filter.svg",
+    "info.svg",
+    "led-wall.svg",
+    "list.svg",
+    "loudspeaker.svg",
+    "menu.svg",
+    "moon.svg",
+    "more.svg",
+    "moving-head.svg",
+    "network-switch.svg",
+    "offline.svg",
+    "package.svg",
+    "pin.svg",
+    "plus.svg",
+    "previz.svg",
+    "print.svg",
+    "production-doc.svg",
+    "qr.svg",
+    "rj45-ethercon.svg",
+    "scan.svg",
+    "schedule.svg",
+    "search.svg",
+    "send.svg",
+    "signal-node.svg",
+    "sun.svg",
+    "swap.svg",
+    "timecode.svg",
+    "truss.svg",
+    "users.svg",
+    "warning.svg",
+    "wash-par.svg",
+    "wrench.svg"
+   ],
+   "files": {
+    "arrow-r.svg": {
+     "name": "arrow-r.svg",
+     "blob": "49e9260dd590476ca068fa467e9b9ec6",
+     "size": 276,
+     "type": "image/svg+xml"
+    },
+    "audio.svg": {
+     "name": "audio.svg",
+     "blob": "f23f4113de1f2b012542de3165186e7d",
+     "size": 460,
+     "type": "image/svg+xml"
+    },
+    "bell.svg": {
+     "name": "bell.svg",
+     "blob": "311e868a71dea665ac4cc5c04dc09e7d",
+     "size": 327,
+     "type": "image/svg+xml"
+    },
+    "briefcase.svg": {
+     "name": "briefcase.svg",
+     "blob": "a7e4a3c282cae890a492fa38fdb29ab3",
+     "size": 319,
+     "type": "image/svg+xml"
+    },
+    "building.svg": {
+     "name": "building.svg",
+     "blob": "e7758f1ec8c2ad161b835e0a37dd18e6",
+     "size": 429,
+     "type": "image/svg+xml"
+    },
+    "calendar.svg": {
+     "name": "calendar.svg",
+     "blob": "1fe79e06c61f230f309983156dc1485e",
+     "size": 353,
+     "type": "image/svg+xml"
+    },
+    "camera-scan.svg": {
+     "name": "camera-scan.svg",
+     "blob": "15bf749fd136dd66ca5980772d6e3017",
+     "size": 322,
+     "type": "image/svg+xml"
+    },
+    "camera.svg": {
+     "name": "camera.svg",
+     "blob": "fedd344089b9f386f4c2c8ba2b1635dd",
+     "size": 355,
+     "type": "image/svg+xml"
+    },
+    "chat.svg": {
+     "name": "chat.svg",
+     "blob": "03e6e4b2f099c1204ad484c57b7fc8e9",
+     "size": 256,
+     "type": "image/svg+xml"
+    },
+    "check.svg": {
+     "name": "check.svg",
+     "blob": "d35d2796765fede4b0318110337b3c86",
+     "size": 237,
+     "type": "image/svg+xml"
+    },
+    "chev-d.svg": {
+     "name": "chev-d.svg",
+     "blob": "8416a628f8488bb007f5f21e3bda5cc7",
+     "size": 236,
+     "type": "image/svg+xml"
+    },
+    "chev-l.svg": {
+     "name": "chev-l.svg",
+     "blob": "5b5f81a3baf77984a3f0369c0803079e",
+     "size": 237,
+     "type": "image/svg+xml"
+    },
+    "chev-r.svg": {
+     "name": "chev-r.svg",
+     "blob": "5376f90cad9a51c670f273c32a2735b2",
+     "size": 236,
+     "type": "image/svg+xml"
+    },
+    "clock.svg": {
+     "name": "clock.svg",
+     "blob": "35632a821532f2868ce99a680f4b0bb5",
+     "size": 280,
+     "type": "image/svg+xml"
+    },
+    "close.svg": {
+     "name": "close.svg",
+     "blob": "93bcbfeb81b02359aff08502bcf6809a",
+     "size": 275,
+     "type": "image/svg+xml"
+    },
+    "console.svg": {
+     "name": "console.svg",
+     "blob": "5c19f87588bbf3bfc23c1ac798ec4d54",
+     "size": 497,
+     "type": "image/svg+xml"
+    },
+    "contrast.svg": {
+     "name": "contrast.svg",
+     "blob": "866662b2b73a426e40756a6bc6eb9b38",
+     "size": 314,
+     "type": "image/svg+xml"
+    },
+    "dmx-xlr.svg": {
+     "name": "dmx-xlr.svg",
+     "blob": "3130484910bd914d1699af0fd20889be",
+     "size": 453,
+     "type": "image/svg+xml"
+    },
+    "doc.svg": {
+     "name": "doc.svg",
+     "blob": "8130b27ce7b372da0ba944619e2ebc0f",
+     "size": 337,
+     "type": "image/svg+xml"
+    },
+    "euro.svg": {
+     "name": "euro.svg",
+     "blob": "edf665ef51ea4860ca65146aa4751ace",
+     "size": 326,
+     "type": "image/svg+xml"
+    },
+    "filter.svg": {
+     "name": "filter.svg",
+     "blob": "7c12b9c956cb15bc43a0cde499e5149c",
+     "size": 258,
+     "type": "image/svg+xml"
+    },
+    "info.svg": {
+     "name": "info.svg",
+     "blob": "71017b93e07871ba6939e1805d78ada9",
+     "size": 352,
+     "type": "image/svg+xml"
+    },
+    "led-wall.svg": {
+     "name": "led-wall.svg",
+     "blob": "642a6451aaeffc43091d2c003cd583f4",
+     "size": 503,
+     "type": "image/svg+xml"
+    },
+    "list.svg": {
+     "name": "list.svg",
+     "blob": "23fd490b3e158a4aa218edddaea76db4",
+     "size": 522,
+     "type": "image/svg+xml"
+    },
+    "loudspeaker.svg": {
+     "name": "loudspeaker.svg",
+     "blob": "9a7cb2beac2a4bcfb34dc007f0e0d53c",
+     "size": 354,
+     "type": "image/svg+xml"
+    },
+    "menu.svg": {
+     "name": "menu.svg",
+     "blob": "6b2b5009c32a2625f0f8eebcc5858886",
+     "size": 313,
+     "type": "image/svg+xml"
+    },
+    "moon.svg": {
+     "name": "moon.svg",
+     "blob": "87038d62f63a2073dcce9b6ea341e291",
+     "size": 269,
+     "type": "image/svg+xml"
+    },
+    "more.svg": {
+     "name": "more.svg",
+     "blob": "da932de09ab69c67edf36fc32e985ff8",
+     "size": 413,
+     "type": "image/svg+xml"
+    },
+    "moving-head.svg": {
+     "name": "moving-head.svg",
+     "blob": "1fdc5e47b37c78885a981519f2d35d38",
+     "size": 432,
+     "type": "image/svg+xml"
+    },
+    "network-switch.svg": {
+     "name": "network-switch.svg",
+     "blob": "d51279a3b450ebc1a536ca379c707335",
+     "size": 524,
+     "type": "image/svg+xml"
+    },
+    "offline.svg": {
+     "name": "offline.svg",
+     "blob": "229e4b4f932b8d5455c12d5a4a1e0ab3",
+     "size": 430,
+     "type": "image/svg+xml"
+    },
+    "package.svg": {
+     "name": "package.svg",
+     "blob": "57fdb09ec3a9beedff1b68f8137f25ab",
+     "size": 319,
+     "type": "image/svg+xml"
+    },
+    "pin.svg": {
+     "name": "pin.svg",
+     "blob": "ed11e180031f57472d9ffff61712596f",
+     "size": 287,
+     "type": "image/svg+xml"
+    },
+    "plus.svg": {
+     "name": "plus.svg",
+     "blob": "f00711a5aa873e7d4a7f6d8d73d2720d",
+     "size": 277,
+     "type": "image/svg+xml"
+    },
+    "previz.svg": {
+     "name": "previz.svg",
+     "blob": "63b1374b9e9fdd5ac71ef189646182aa",
+     "size": 395,
+     "type": "image/svg+xml"
+    },
+    "print.svg": {
+     "name": "print.svg",
+     "blob": "2fdb66c51361a2ddec076f5efb3000e8",
+     "size": 322,
+     "type": "image/svg+xml"
+    },
+    "production-doc.svg": {
+     "name": "production-doc.svg",
+     "blob": "15b28e3f363f4375bbfcd952b7249bfa",
+     "size": 391,
+     "type": "image/svg+xml"
+    },
+    "qr.svg": {
+     "name": "qr.svg",
+     "blob": "b051b911be95982d04f84b9fd89a8609",
+     "size": 465,
+     "type": "image/svg+xml"
+    },
+    "rj45-ethercon.svg": {
+     "name": "rj45-ethercon.svg",
+     "blob": "a16ad996efc228b2cf26b13c7af93d27",
+     "size": 440,
+     "type": "image/svg+xml"
+    },
+    "scan.svg": {
+     "name": "scan.svg",
+     "blob": "e388949b1cf513ad01b23ad1e0481ce6",
+     "size": 379,
+     "type": "image/svg+xml"
+    },
+    "schedule.svg": {
+     "name": "schedule.svg",
+     "blob": "667fc040086f9db53e85ab971132782c",
+     "size": 424,
+     "type": "image/svg+xml"
+    },
+    "search.svg": {
+     "name": "search.svg",
+     "blob": "851dc86d5b56ab317e335c2812aef1e2",
+     "size": 282,
+     "type": "image/svg+xml"
+    },
+    "send.svg": {
+     "name": "send.svg",
+     "blob": "d6823655fb084f781585a9c492b8683a",
+     "size": 278,
+     "type": "image/svg+xml"
+    },
+    "signal-node.svg": {
+     "name": "signal-node.svg",
+     "blob": "d376947a6f27d9d46104052183b743ed",
+     "size": 561,
+     "type": "image/svg+xml"
+    },
+    "sun.svg": {
+     "name": "sun.svg",
+     "blob": "1a150db3080aa9282628e65831e4e708",
+     "size": 393,
+     "type": "image/svg+xml"
+    },
+    "swap.svg": {
+     "name": "swap.svg",
+     "blob": "438afdd54a746d9561d802d31397046c",
+     "size": 271,
+     "type": "image/svg+xml"
+    },
+    "timecode.svg": {
+     "name": "timecode.svg",
+     "blob": "e618d6fc51ad6430e7cb4ccb47caa54c",
+     "size": 350,
+     "type": "image/svg+xml"
+    },
+    "truss.svg": {
+     "name": "truss.svg",
+     "blob": "a0e5dfa45585f7d1bd0952736d162538",
+     "size": 391,
+     "type": "image/svg+xml"
+    },
+    "users.svg": {
+     "name": "users.svg",
+     "blob": "2ba88eb4f524934f2777ea090e49d51d",
+     "size": 357,
+     "type": "image/svg+xml"
+    },
+    "warning.svg": {
+     "name": "warning.svg",
+     "blob": "65a8e18e10e1dd87b7e881f67236f526",
+     "size": 345,
+     "type": "image/svg+xml"
+    },
+    "wash-par.svg": {
+     "name": "wash-par.svg",
+     "blob": "1625106af99735b9cff7a70e42d643f0",
+     "size": 431,
+     "type": "image/svg+xml"
+    },
+    "wrench.svg": {
+     "name": "wrench.svg",
+     "blob": "9c1deba113fe29d018e3e74a3cf595b4",
+     "size": 312,
+     "type": "image/svg+xml"
+    }
+   }
+  }
+ },
+ "blobs": {},
+ "docs": {
+  "readme": "project/README.md",
+  "sections": []
+ },
+ "lastChange": {
+  "by": "Ricardo Bedulho",
+  "at": "2026-11-09T12:00:00Z",
+  "via": "Claude Code (AVX-beta design refresh DR6)",
+  "note": "Brought in line with DESIGN.md after the design refresh: seven type sizes, the spacing steps with space-section and gutter, 52/44px rows, a Room to breathe section, and component notes (Button, StatTile, SegmentedControl, Dialog, GigCard, GigHeader, EmptyState, JobCard, QuoteEditor, AppShell)."
+ }
+}

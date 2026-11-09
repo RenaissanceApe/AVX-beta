@@ -10,8 +10,8 @@ import { track } from '../../lib/usage'
 import { useI18n } from '../../i18n'
 import { Modal, btnPrimary, input, label, colors, AvxLoader } from '../ui'
 
-const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
-const row = { display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderTop: `1px solid ${colors.border}` }
+const small = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
+const row = { display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0', borderTop: `1px solid ${colors.border}` }
 
 // Fill a gig from its quote: schedule items from the phase dates, crew positions
 // from the crew lines, equipment from lines picked from the catalogue. Everything is listed first; untick or adjust before adding.
@@ -106,7 +106,7 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
       <p style={{ ...small, marginBottom: '14px' }}>{t('plan.intro')}</p>
       {loading ? <AvxLoader size={18} color={colors.accentText} /> : (
         <>
-          <h3 style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><CalendarClock size={13} /> {t('plan.schedule')}</h3>
+          <h3 style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px' }}><CalendarClock size={13} /> {t('plan.schedule')}</h3>
           {schedule.length === 0 ? <p style={{ ...small, marginBottom: '14px' }}>{t('plan.noDates')}</p> : (
             <div style={{ marginBottom: '16px' }}>
               {schedule.map(i => (
@@ -120,7 +120,7 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
             </div>
           )}
 
-          <h3 style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><Users size={13} /> {t('plan.positions')}</h3>
+          <h3 style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px' }}><Users size={13} /> {t('plan.positions')}</h3>
           {positions.length === 0 ? <p style={{ ...small, marginBottom: '14px' }}>{t('plan.noCrew')}</p> : (
             <div style={{ marginBottom: '16px' }}>
               {positions.map(pos => (
@@ -135,7 +135,7 @@ export default function GigPlanModal({ quoteId, body, gig, userId, onClose, onDo
             </div>
           )}
 
-          <h3 style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><Package size={13} /> {t('plan.equipment')}</h3>
+          <h3 style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px' }}><Package size={13} /> {t('plan.equipment')}</h3>
           {equipment.length === 0 ? <p style={{ ...small, marginBottom: '14px' }}>{t('plan.noEquipment')}</p> : (
             <div style={{ marginBottom: '16px' }}>
               {equipment.map(g => (

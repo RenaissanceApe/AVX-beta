@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: 'var(--font-ui)' }}>
       <div style={{ width: '100%', maxWidth: '400px' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px' }}>
             <AvxMark size={28} style={{ color: 'var(--accent-text)' }} />
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '28px', fontWeight: 700, color: 'var(--text)', letterSpacing: '0.06em' }}>AVX</span>
           </div>
@@ -62,7 +62,7 @@ export default function ResetPasswordPage() {
               <button onClick={() => navigate('/auth')} style={btn}>{t('auth.backToSignIn')}</button>
             </>
           ) : (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                 placeholder={t('auth.newPasswordPlaceholder', { min: MIN_PASSWORD_LENGTH })} autoComplete="new-password" style={input} autoFocus required />
               <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
@@ -94,6 +94,6 @@ const input = {
 const btn = {
   width: '100%', padding: '13px', border: 'none', cursor: 'pointer',
   background: 'var(--accent)',
-  color: 'var(--on-accent)', fontWeight: '700', fontSize: '15px', fontFamily: 'var(--font-ui)',
+  color: 'var(--on-accent)', fontWeight: '700', fontSize: '16px', fontFamily: 'var(--font-ui)',
   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
 }

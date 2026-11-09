@@ -8,7 +8,7 @@ import { useI18n } from '../i18n'
 import { btn, btnPrimary, btnDanger, card, colors, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 
-const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+const hint = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
 const h2 = { fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }
 const item = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }
 const row = { display: 'flex', flexWrap: 'wrap', gap: '8px' }
@@ -60,13 +60,13 @@ export default function TrustAdminPage() {
 
   return (
     <AppShell>
-      <div style={{ maxWidth: '880px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <div style={{ maxWidth: '880px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}><ShieldCheck size={22} aria-hidden="true" /> {t('trust.admin.title')}</h1>
           <p style={{ ...hint, fontSize: '13px', marginTop: '4px' }}>{t('trust.admin.intro')}</p>
         </div>
 
-        <section aria-labelledby="ta-ver" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <section aria-labelledby="ta-ver" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <h2 id="ta-ver" style={h2}><Building2 size={16} aria-hidden="true" /> {t('trust.admin.verifications', { count: q.verifications.length })}</h2>
           {q.verifications.length === 0 && <p style={hint}>{t('trust.admin.nothing')}</p>}
           {q.verifications.map(v => (
@@ -87,7 +87,7 @@ export default function TrustAdminPage() {
           ))}
         </section>
 
-        <section aria-labelledby="ta-proofs" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <section aria-labelledby="ta-proofs" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <h2 id="ta-proofs" style={h2}><FileText size={16} aria-hidden="true" /> {t('trust.admin.proofs', { count: q.proofs.length })}</h2>
           {q.proofs.length === 0 && <p style={hint}>{t('trust.admin.nothing')}</p>}
           {q.proofs.map(p => (
@@ -106,7 +106,7 @@ export default function TrustAdminPage() {
           ))}
         </section>
 
-        <section aria-labelledby="ta-reports" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <section aria-labelledby="ta-reports" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <h2 id="ta-reports" style={h2}><Flag size={16} aria-hidden="true" /> {t('trust.admin.reports', { count: groups.length })}</h2>
           {groups.length === 0 && <p style={hint}>{t('trust.admin.nothing')}</p>}
           {groups.map(({ key, first: f, reports }) => {

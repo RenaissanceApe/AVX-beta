@@ -46,7 +46,7 @@ export default function QuoteInvoices({ quote, body, prefix, clients = [], dueDa
           {list.map(i => (
             <li key={i.id} style={{ borderTop: `1px solid ${colors.border}` }}>
               <button type="button" onClick={() => setOpen({ invoice: i })} style={{ all: 'unset', boxSizing: 'border-box', width: '100%', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', padding: '8px 2px', minHeight: '44px', fontSize: '13px' }}>
-                <span style={{ flex: 1, minWidth: 0, display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>{invoiceTitle(i, t)} <InvoiceBadge invoice={i} credits={credits} /></span>
+                <span style={{ flex: 1, minWidth: 0, display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>{invoiceTitle(i, t)} <InvoiceBadge invoice={i} credits={credits} /></span>
                 <span style={{ fontVariantNumeric: 'tabular-nums' }}>{i.kind === 'credit_note' ? '−' : ''}{money(i.total)}</span>
               </button>
             </li>

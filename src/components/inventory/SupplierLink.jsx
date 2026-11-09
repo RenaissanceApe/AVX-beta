@@ -57,24 +57,24 @@ export default function SupplierLink({ subrental }) {
   }
 
   if (link === undefined) return <AvxLoader size={14} />
-  const small = { ...btn, padding: '6px 10px', fontSize: '12px' }
+  const small = { ...btn, padding: '6px 10px', fontSize: '13px' }
   const mail = url && email
     ? `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(t('supplierLink.mailSubject', { reference: subrental.reference || '' }))}&body=${encodeURIComponent(t('supplierLink.mailBody', { url }))}`
     : null
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5 }}>
         {link ? t('supplierLink.active', { when: ago(link.created_at) }) + (link.last_seen_at ? ` · ${t('supplierLink.seen', { when: ago(link.last_seen_at) })}` : ` · ${t('supplierLink.notSeen')}`) : t('supplierLink.none')}
       </p>
       {url && (
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          <input readOnly value={url} onFocus={e => e.target.select()} aria-label={t('supplierLink.label')} style={{ ...input, flex: '1 1 220px', fontSize: '12px', padding: '7px 10px' }} />
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <input readOnly value={url} onFocus={e => e.target.select()} aria-label={t('supplierLink.label')} style={{ ...input, flex: '1 1 220px', fontSize: '13px', padding: '7px 10px' }} />
           <button type="button" onClick={copy} style={small}><Copy size={13} /> {t('supplierLink.copy')}</button>
           {mail && <a href={mail} style={{ ...small, textDecoration: 'none' }}><Mail size={13} /> {t('supplierLink.email')}</a>}
         </div>
       )}
       {url && <p style={{ fontSize: '11px', color: colors.muted }}>{t('supplierLink.onlyNow')}</p>}
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button type="button" onClick={make} disabled={busy} style={small}>
           {busy ? <AvxLoader size={13} /> : <Link2 size={13} />} {link ? t('supplierLink.new') : t('supplierLink.make')}
         </button>

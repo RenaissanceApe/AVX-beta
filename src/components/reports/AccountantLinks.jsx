@@ -54,7 +54,7 @@ export default function AccountantLinks({ orgId, timeZone }) {
         : links.length === 0
           ? <EmptyState compact icon={<Link2 size={20} />} title={t('reports.links.emptyTitle')} body={t('reports.links.emptyBody')} />
           : (
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {links.map(l => {
                 const status = linkStatus(l)
                 return (
@@ -62,7 +62,7 @@ export default function AccountantLinks({ orgId, timeZone }) {
                     <span style={{ flex: '1 1 200px', minWidth: 0 }}>
                       <span style={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{l.label}</span>{' '}
                       <StatusBadge tone={statusTone[status]} small>{t(`reports.links.status.${status}`)}</StatusBadge>
-                      <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
+                      <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>
                         {t('reports.links.period', { from: day(l.period_from), until: day(new Date(new Date(`${l.period_until}T00:00:00`).getTime() - 86400000)) })}
                         {' · '}{status === 'active' ? t('reports.links.expires', { date: day(l.expires_at) }) : status === 'expired' ? t('reports.links.expired', { date: day(l.expires_at) }) : t('reports.links.revokedOn', { date: day(l.revoked_at) })}
                         {' · '}{t('reports.links.views', { count: l.views || 0 })}
@@ -70,10 +70,10 @@ export default function AccountantLinks({ orgId, timeZone }) {
                     </span>
                     {status === 'active' && (confirm === l.id
                       ? <>
-                        <button type="button" onClick={() => revoke(l.id)} aria-label={`${t('reports.links.confirmRevoke')}: ${l.label}`} style={{ ...btnDanger, padding: '6px 8px', fontSize: '12px' }}>{t('reports.links.confirmRevoke')}</button>
-                        <button type="button" onClick={() => setConfirm(null)} style={{ ...btn, padding: '6px 8px', fontSize: '12px' }}>{t('common.cancel')}</button>
+                        <button type="button" onClick={() => revoke(l.id)} aria-label={`${t('reports.links.confirmRevoke')}: ${l.label}`} style={{ ...btnDanger, padding: '6px 8px', fontSize: '13px' }}>{t('reports.links.confirmRevoke')}</button>
+                        <button type="button" onClick={() => setConfirm(null)} style={{ ...btn, padding: '6px 8px', fontSize: '13px' }}>{t('common.cancel')}</button>
                       </>
-                      : <button type="button" onClick={() => setConfirm(l.id)} aria-label={`${t('reports.links.revoke')}: ${l.label}`} style={{ ...btn, padding: '6px 8px', fontSize: '12px' }}>
+                      : <button type="button" onClick={() => setConfirm(l.id)} aria-label={`${t('reports.links.revoke')}: ${l.label}`} style={{ ...btn, padding: '6px 8px', fontSize: '13px' }}>
                         <ShieldOff size={13} aria-hidden="true" /> {t('reports.links.revoke')}
                       </button>)}
                   </li>
@@ -120,7 +120,7 @@ function NewLink({ orgId, timeZone, onClose, onCreated }) {
   return (
     <Modal title={t('reports.links.new')} onClose={onClose}>
       {made ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <p style={{ fontSize: '13px', lineHeight: 1.5, margin: 0 }}>{t('reports.links.madeIntro')}</p>
           <label htmlFor="link-url" style={labelStyle}>{t('reports.links.url')}</label>
           <input id="link-url" readOnly value={made} onFocus={e => e.target.select()} style={input} />
@@ -147,7 +147,7 @@ function NewLink({ orgId, timeZone, onClose, onCreated }) {
               {LINK_DAYS.map(d => <option key={d} value={d}>{t('reports.links.days', { count: d })}</option>)}
             </select>
           </div>
-          <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{t('reports.links.warning')}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{t('reports.links.warning')}</p>
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button type="button" onClick={onClose} style={btn}>{t('common.cancel')}</button>
             <button type="submit" disabled={saving || !label.trim()} style={btnPrimary}>{saving && <AvxLoader size={14} />} {t('reports.links.create')}</button>

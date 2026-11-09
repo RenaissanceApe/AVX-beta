@@ -265,7 +265,7 @@ function NewQuoteModal({ org, templates, clients = [], onClose, onCreated }) {
             </select>
           </div>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
           <div>
             <label style={label} htmlFor="nq-company">{t('quotes.clientCompany')}</label>
             <input id="nq-company" value={form.client_company} onChange={e => setForm(f => ({ ...f, client_company: e.target.value }))} maxLength={200} style={input} />
@@ -275,7 +275,7 @@ function NewQuoteModal({ org, templates, clients = [], onClose, onCreated }) {
             <input id="nq-contact" value={form.client_name} onChange={e => setForm(f => ({ ...f, client_name: e.target.value }))} maxLength={200} style={input} />
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
           <div>
             <label style={label} htmlFor="nq-template">{t('quotes.startFrom')}</label>
             <select id="nq-template" value={form.template} onChange={e => setForm(f => ({ ...f, template: e.target.value }))} style={{ ...input, cursor: 'pointer' }}>

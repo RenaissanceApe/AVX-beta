@@ -302,7 +302,7 @@ function Bookings({ item, owned }) {
       </p>
       {/* Square day cells (DESIGN.md "InventoryItem"): line nothing booked, accent-text enough free,
           warn partly booked, danger fully booked. The day's numbers are in each cell's title and the legend says the words. */}
-      <div role="img" aria-label={t('inv.availabilityStrip', { days: DAYS })} style={{ display: 'grid', gridTemplateColumns: `repeat(${DAYS}, 1fr)`, gap: '2px', marginBottom: space[1] }}>
+      <div role="img" aria-label={t('inv.availabilityStrip', { days: DAYS })} style={{ display: 'grid', gridTemplateColumns: `repeat(${DAYS}, 1fr)`, gap: '4px', marginBottom: space[1] }}>
         {days.map(d => (
           <div key={d.day} title={`${fmt(d.day, 'EEE d MMM')}: ${t('inv.freeOn', { free: Math.max(0, d.free), owned })}`} style={{
             height: '16px', background: stripColour(d, owned),

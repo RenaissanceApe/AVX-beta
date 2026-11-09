@@ -76,8 +76,8 @@ export function OverviewTiles({ orgId, overview, compact = false }) {
         const sub = tile.sub?.(overview)
         return (
           <li key={tile.key} style={{ minWidth: 0 }}>
-            <Link to={tile.to(base)} style={{ ...card, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '2px', height: '100%', boxSizing: 'border-box', color: 'var(--text)', textDecoration: 'none' }}>
-              <span style={{ fontSize: '12px', color: colors.muted }}>{t(`reports.tile.${tile.key}`)}</span>
+            <Link to={tile.to(base)} style={{ ...card, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '4px', height: '100%', boxSizing: 'border-box', color: 'var(--text)', textDecoration: 'none' }}>
+              <span style={{ fontSize: '13px', color: colors.muted }}>{t(`reports.tile.${tile.key}`)}</span>
               <TileValue tile={tile} overview={overview} />
               {sub && <span style={{ fontSize: '11px', color: colors.muted }}>{sub.vars.count == null ? t(sub.key, subVars(sub.vars, lang)) : t(`${sub.key}.${sub.vars.count === 1 ? 'one' : 'other'}`, sub.vars)}</span>}
               {!compact && <span style={{ fontSize: '11px', color: colors.muted, marginTop: '4px' }}>{t(`reports.tileHint.${tile.key}`)}</span>}

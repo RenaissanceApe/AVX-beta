@@ -135,10 +135,10 @@ export default function AuthPage() {
           <Mail size={32} color="var(--accent-text)" />
         </div>
         <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text)', marginBottom: '12px' }}>{t('auth.checkEmail')}</h2>
-        <p style={{ color: 'var(--muted)', fontSize: '15px', lineHeight: '1.7', marginBottom: '8px' }}>
+        <p style={{ color: 'var(--muted)', fontSize: '16px', lineHeight: '1.7', marginBottom: '8px' }}>
           {t('auth.sentLinkTo')}
         </p>
-        <p style={{ color: 'var(--text)', fontWeight: '700', fontSize: '15px', marginBottom: '24px' }}>{email}</p>
+        <p style={{ color: 'var(--text)', fontWeight: '700', fontSize: '16px', marginBottom: '24px' }}>{email}</p>
         <p style={{ color: 'var(--muted)', fontSize: '14px', lineHeight: '1.7', marginBottom: '28px' }}>
           {t('auth.clickLink')}
         </p>
@@ -171,13 +171,13 @@ export default function AuthPage() {
           <CheckCircle size={32} color="var(--accent-text)" />
         </div>
         <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text)', marginBottom: '12px' }}>{t('auth.emailConfirmed')}</h2>
-        <p style={{ color: 'var(--muted)', fontSize: '15px', lineHeight: '1.7', marginBottom: '28px' }}>
+        <p style={{ color: 'var(--muted)', fontSize: '16px', lineHeight: '1.7', marginBottom: '28px' }}>
           {t('auth.verified')}
         </p>
         <button onClick={() => setConfirmed(false)} style={{
           background: 'var(--accent)',
           border: 'none', padding: '13px 32px',
-          color: 'var(--on-accent)', fontSize: '15px', fontWeight: '700',
+          color: 'var(--on-accent)', fontSize: '16px', fontWeight: '700',
           fontFamily: 'var(--font-ui)', cursor: 'pointer',
         }}>
           {t('auth.signIn')} →
@@ -197,7 +197,7 @@ export default function AuthPage() {
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '400px' }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
             <AvxMark size={28} style={{ color: 'var(--accent-text)' }} />
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '28px', fontWeight: 700, color: 'var(--text)', letterSpacing: '0.06em' }}>AVX</span>
           </div>
@@ -232,7 +232,7 @@ export default function AuthPage() {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {mode === 'signup' && (
               <div>
-                <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <label style={{ display: 'block', fontSize: '13px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   {t('auth.fullName')}
                 </label>
                 <input
@@ -246,7 +246,7 @@ export default function AuthPage() {
               </div>
             )}
             <div>
-              <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {t('common.email')}
               </label>
               <input
@@ -259,7 +259,7 @@ export default function AuthPage() {
               />
             </div>
             {mode !== 'reset' && mode !== 'magic' && <div>
-              <label style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: 'var(--muted)', marginBottom: '6px', fontWeight: '600', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {t('auth.password')}
               </label>
               <div style={{ position: 'relative' }}>
@@ -294,7 +294,7 @@ export default function AuthPage() {
             </div>}
 
             {mode === 'signup' && (
-              <p style={{ color: 'var(--muted)', fontSize: '12px', lineHeight: '1.6', margin: 0 }}>
+              <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: '1.6', margin: 0 }}>
                 {t('auth.agreePrefix')} <Link to="/terms" style={footerLink}>{t('auth.agreeTerms')}</Link> {t('auth.agreeAnd')}
                 {' '}<Link to="/privacy" style={footerLink}>{t('auth.agreePrivacy')}</Link>.
               </p>
@@ -329,7 +329,7 @@ export default function AuthPage() {
               marginTop: '4px',
               padding: '13px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
               background: loading ? 'var(--selection)' : 'var(--accent)',
-              color: 'var(--on-accent)', fontWeight: '700', fontSize: '15px',
+              color: 'var(--on-accent)', fontWeight: '700', fontSize: '16px',
               fontFamily: 'var(--font-ui)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               transition: 'background-color .15s',
@@ -346,15 +346,15 @@ export default function AuthPage() {
           </form>
         </div>
 
-        <p style={{ textAlign: 'center', color: 'var(--muted)', fontSize: '12px', marginTop: '24px' }}>
+        <p style={{ textAlign: 'center', color: 'var(--muted)', fontSize: '13px', marginTop: '24px' }}>
           AVX Beta · Lumen and Pixel, Lda. ·{' '}
           <Link to="/privacy" style={footerLink}>{t('legal.privacyShort')}</Link> ·{' '}
           <Link to="/terms" style={footerLink}>{t('legal.termsShort')}</Link>
         </p>
-        <div role="group" aria-label={t('account.language')} style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '10px' }}>
+        <div role="group" aria-label={t('account.language')} style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '10px' }}>
           {LANGUAGES.map(l => (
             <button key={l.value} type="button" onClick={() => setLang(l.value)} aria-pressed={lang === l.value} style={{
-              background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', padding: '2px 4px',
+              background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', padding: '2px 4px',
               color: lang === l.value ? 'var(--accent-text)' : 'var(--muted)', fontWeight: lang === l.value ? 700 : 500,
             }}>{l.label}</button>
           ))}

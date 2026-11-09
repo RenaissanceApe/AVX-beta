@@ -53,7 +53,7 @@ export default function InputListPage() {
         .sheet table { width: 100%; border-collapse: collapse; margin-top: 16px; }
         .sheet th { text-align: left; font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; color: #555; padding: 5px 6px; border-bottom: 2px solid #111; }
         .sheet td { padding: 6px; border-bottom: 1px solid #ddd; vertical-align: top; }
-        .sheet .ch { font-family: monospace; font-weight: 800; font-size: 15px; width: 40px; text-align: right; }
+        .sheet .ch { font-family: monospace; font-weight: 800; font-size: 16px; width: 40px; text-align: right; }
         .sheet .p48 { font-weight: 800; }
         .sheet .box { white-space: nowrap; }
         .sheet .muted { color: #555; }
@@ -106,6 +106,6 @@ export default function InputListPage() {
 }
 
 const toolbarBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', 
+  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 14px', 
   border: '1px solid #c5ccd4', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }

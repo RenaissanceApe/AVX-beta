@@ -37,14 +37,14 @@ export default function CalendarFeedSection({ label, input, smallBtn }) {
   return (
     <div>
       <span style={label} id="feed-title">{t('calFeed.title')}</span>
-      <p style={{ color: 'var(--muted)', fontSize: '12px', lineHeight: 1.5, marginBottom: '10px' }}>{t('calFeed.intro')}</p>
+      <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.5, marginBottom: '10px' }}>{t('calFeed.intro')}</p>
       {!token ? (
         <button type="button" onClick={() => load(false)} disabled={busy} style={smallBtn}>
           {busy ? <AvxLoader size={14} /> : <CalendarPlus size={14} />} {t('calFeed.show')}
         </button>
       ) : (
         <>
-          <input readOnly value={url} aria-labelledby="feed-title" onFocus={e => e.target.select()} style={{ ...input, fontSize: '12px', fontFamily: 'var(--font-mono)', marginBottom: '8px' }} />
+          <input readOnly value={url} aria-labelledby="feed-title" onFocus={e => e.target.select()} style={{ ...input, fontSize: '13px', fontFamily: 'var(--font-mono)', marginBottom: '8px' }} />
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <a href={webcal} style={{ ...smallBtn, textDecoration: 'none' }}><CalendarPlus size={14} /> {t('calFeed.apple')}</a>
             <a href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcal)}`} target="_blank" rel="noopener noreferrer" style={{ ...smallBtn, textDecoration: 'none' }}>
@@ -55,7 +55,7 @@ export default function CalendarFeedSection({ label, input, smallBtn }) {
               {busy ? <AvxLoader size={14} /> : <RefreshCw size={14} />} {t('calFeed.new')}
             </button>
           </div>
-          <p style={{ color: 'var(--muted)', fontSize: '12px', lineHeight: 1.5, marginTop: '8px' }}>{t('calFeed.private')}</p>
+          <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.5, marginTop: '8px' }}>{t('calFeed.private')}</p>
         </>
       )}
     </div>

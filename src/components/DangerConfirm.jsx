@@ -53,7 +53,7 @@ export function DangerConfirmModal({ title, name, loadImpact, onConfirm, onClose
 
   return (
     <Modal title={title} onClose={busy ? () => {} : onClose} maxWidth={500}>
-      <div role="alert" style={{ display: 'flex', gap: '10px', padding: '12px 14px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', color: red, fontSize: '13px', lineHeight: 1.55, marginBottom: '14px' }}>
+      <div role="alert" style={{ display: 'flex', gap: '12px', padding: '12px 14px', background: 'var(--danger-soft)', border: '1px solid var(--danger)', color: red, fontSize: '13px', lineHeight: 1.55, marginBottom: '14px' }}>
         <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '1px' }} />
         <div><strong>{t('danger.irreversible')}</strong> {t('danger.noUndo')}</div>
       </div>
@@ -85,7 +85,7 @@ export function DangerConfirmModal({ title, name, loadImpact, onConfirm, onClose
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', padding: '6px 10px', marginBottom: '8px', background: 'var(--hover)', userSelect: 'all' }}>{name}</div>
           <input id="danger-name" value={typed} onChange={e => setTyped(e.target.value)} autoComplete="off" autoFocus
             onPaste={e => e.preventDefault()} style={{ ...input, borderColor: typed && !matches ? 'var(--danger)' : undefined }} />
-          <p style={{ fontSize: '12px', color: colors.muted, margin: '6px 0 14px' }}>{t('danger.noPaste')} {t('danger.lenient')}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, margin: '6px 0 14px' }}>{t('danger.noPaste')} {t('danger.lenient')}</p>
           {error && <p role="alert" style={{ color: red, fontSize: '13px', marginBottom: '10px' }}>{error}</p>}
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button onClick={onClose} disabled={busy} style={{ ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }}>{t('danger.cancel')}</button>

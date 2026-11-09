@@ -213,13 +213,13 @@ export function MovementList({ rows, itemName, locationName, nameOf, unitCode })
   const { fmt } = useI18n()
   if (!rows.length) return <p style={{ color: colors.muted, fontSize: '13px', padding: '20px 0' }}>{t('inv.noMovements')}</p>
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       {rows.map(m => {
         const out = m.from_location_id && !m.to_location_id
         const where = [m.from_location_id && locationName(m.from_location_id), m.to_location_id && locationName(m.to_location_id)].filter(Boolean).join(' → ')
         return (
-          <div key={m.id} style={{ display: 'flex', gap: '10px', padding: '8px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px', alignItems: 'baseline', flexWrap: 'wrap' }}>
-            <span style={{ color: colors.muted, fontSize: '12px', minWidth: '96px' }}>{fmt(m.created_at, 'd MMM yyyy HH:mm')}</span>
+          <div key={m.id} style={{ display: 'flex', gap: '12px', padding: '8px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px', alignItems: 'baseline', flexWrap: 'wrap' }}>
+            <span style={{ color: colors.muted, fontSize: '13px', minWidth: '96px' }}>{fmt(m.created_at, 'd MMM yyyy HH:mm')}</span>
             <span style={{ flex: '1 1 220px', minWidth: 0 }}>
               {itemName && <strong>{itemName(m.item_id)} · </strong>}
               {t(`inv.kind.${m.kind}`)}
@@ -228,7 +228,7 @@ export function MovementList({ rows, itemName, locationName, nameOf, unitCode })
               {m.note && <span style={{ color: colors.muted }}> · {m.note}</span>}
             </span>
             {!m.unit_id && <strong style={{ color: out ? colors.danger : m.to_location_id && !m.from_location_id ? colors.accentText : 'var(--text)', whiteSpace: 'nowrap' }}>{out ? '−' : m.from_location_id ? '' : '+'}{m.quantity}</strong>}
-            <span style={{ fontSize: '12px', color: colors.muted }}>{nameOf(m.created_by)}</span>
+            <span style={{ fontSize: '13px', color: colors.muted }}>{nameOf(m.created_by)}</span>
           </div>
         )
       })}

@@ -38,12 +38,12 @@ export default function LinkedExpense({ orgId, kind, id, preset = {}, planned = 
               <span style={{ color: colors.muted }}> · {t('expenses.linkedPlanned', { amount: formatMoney(planned, 'EUR', lang) })}</span>
             )}
           </span>
-          <button type="button" onClick={() => setOpen(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px' }}>{t('expenses.open')}</button>
+          <button type="button" onClick={() => setOpen(true)} style={{ ...btn, padding: '5px 10px', fontSize: '13px' }}>{t('expenses.open')}</button>
         </>
       ) : (
         <>
           <span style={{ flex: '1 1 160px', color: colors.muted }}>{t('expenses.linkedNone')}</span>
-          <button type="button" onClick={() => setOpen(true)} style={{ ...btn, padding: '5px 10px', fontSize: '12px' }}><Plus size={12} /> {t('expenses.addInvoice')}</button>
+          <button type="button" onClick={() => setOpen(true)} style={{ ...btn, padding: '5px 10px', fontSize: '13px' }}><Plus size={12} /> {t('expenses.addInvoice')}</button>
         </>
       )}
       {open && (

@@ -13,6 +13,10 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # The app needs a Supabase URL and anon key to load (src/lib/supabase.js); .env isn't committed.
+    env:
+      VITE_SUPABASE_URL: ${{ vars.TEST_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.TEST_SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,6 +31,10 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # The app needs a Supabase URL and anon key to load (src/lib/supabase.js); .env isn't committed.
+    env:
+      VITE_SUPABASE_URL: ${{ vars.TEST_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.TEST_SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

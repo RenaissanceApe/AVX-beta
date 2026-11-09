@@ -70,14 +70,14 @@ export default function OrgVerificationSettings({ org, onChanged }) {
     <section aria-labelledby="org-verify-title" style={{ marginTop: 'var(--space-section)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <h3 id="org-verify-title" style={{ font: '700 16px/24px var(--font-mono)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}><ShieldCheck size={16} aria-hidden="true" /> {t('trust.verify.title')}</h3>
       {org.verified_at ? (
-        <p role="status" style={{ fontSize: '14px', display: 'flex', gap: '6px', alignItems: 'center', color: 'var(--sky)', fontWeight: 600 }}>
+        <p role="status" style={{ fontSize: '14px', display: 'flex', gap: '8px', alignItems: 'center', color: 'var(--sky)', fontWeight: 600 }}>
           <BadgeCheck size={15} aria-hidden="true" /> {t('trust.verify.isVerified', { name: org.verified_name || org.name })}
           <span style={{ ...hint, fontWeight: 400 }}>· {t(`trust.verify.method.${org.verified_method || 'manual'}`)}</span>
         </p>
       ) : (
         <>
           <p style={hint}>{t('trust.verify.hint')}</p>
-          <form onSubmit={checkVies} noValidate style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px', alignItems: 'end' }}>
+          <form onSubmit={checkVies} noValidate style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px', alignItems: 'end' }}>
             <div>
               <label style={label} htmlFor="vies-country">{t('trust.verify.country')}</label>
               <select id="vies-country" value={country} onChange={e => setCountry(e.target.value)} style={{ ...input, cursor: 'pointer' }}>
