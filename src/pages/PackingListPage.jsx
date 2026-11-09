@@ -8,6 +8,7 @@ import { useI18n } from '../i18n'
 import { AvxLoader } from '../components/ui'
 import { useAuth } from '../lib/AuthContext'
 import { DeliveryNoteModal, DeliveryNoteList } from '../components/signatures/DeliveryNotes'
+import PrintFooter from '../components/PrintFooter'
 
 // Printable packing list: what goes to the gig, by category, with packing notes, what's
 // already been scanned out and back, and how far each line has got through the organisation's
@@ -99,7 +100,6 @@ export default function PackingListPage() {
           </div>
           <div className="muted" style={{ textAlign: 'right', fontSize: '13px' }}>
             {gig.organisations?.name && <div><strong style={{ color: '#111' }}>{gig.organisations.name}</strong></div>}
-            <div>{t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}</div>
           </div>
         </header>
         {rows.length === 0 ? <p className="muted" style={{ marginTop: '20px' }}>{t('equip.empty')}</p> : Object.entries(groups)
@@ -130,6 +130,7 @@ export default function PackingListPage() {
           ))}
         <p className="muted" style={{ marginTop: '18px', fontSize: '11px' }}>{t('packing.footer')}</p>
         <DeliveryNoteList gigId={id} canSign={data.canSign} refreshKey={signedKey} />
+        <PrintFooter />
       </article>
     </div>
   )

@@ -8,6 +8,7 @@ import { settingsOf, sourcesOf, listenersOf, speedOfSound, delays, listenerRepor
 import { useI18n } from '../i18n'
 import SystemPlotSvg from '../components/tools/SystemPlotSvg'
 import { AvxLoader } from '../components/ui'
+import PrintFooter from '../components/PrintFooter'
 
 // Printable sound system sheet (docs/FIELD_TOOLS.md, F4): the plan, each source with its delay
 // and coverage, and each listening position with its level and arrival checks, all marked as
@@ -135,7 +136,8 @@ export default function SystemCalcPage() {
             </div>
           </>
         )}
-        <p className="muted" style={{ marginTop: '10px', fontSize: '11px' }}>{t('sys.axes')} {t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}</p>
+        <p className="muted" style={{ marginTop: '10px', fontSize: '11px' }}>{t('sys.axes')}</p>
+        <PrintFooter />
       </article>
     </div>
   )
