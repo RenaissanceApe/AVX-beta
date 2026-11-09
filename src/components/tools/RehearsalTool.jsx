@@ -68,7 +68,7 @@ export default function RehearsalTool({ gig, members, nameOf, userId, canNote, c
     <div>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '14px', flexWrap: 'wrap' }}>
         <div style={{ minWidth: 0, flex: '1 1 240px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 700 }}>{t('tools.name.rehearsal')}</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 700 }}>{t('tools.name.rehearsal')}</h2>
           <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5 }}>{t('rehearsal.intro')}</p>
         </div>
         {canNote && !offline && <button type="button" onClick={() => setCreating(true)} style={btnPrimary}><Plus size={14} /> {t('rehearsal.new')}</button>}
@@ -85,7 +85,7 @@ export default function RehearsalTool({ gig, members, nameOf, userId, canNote, c
                   <Flag size={18} color={s.ended_at ? colors.muted : colors.accentText} aria-hidden="true" />
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <strong style={{ display: 'block' }}>{s.name}</strong>
-                    <span style={{ fontSize: '12px', color: colors.muted }}>
+                    <span style={{ fontSize: '13px', color: colors.muted }}>
                       {fmt(s.created_at, 'd MMM, HH:mm')} · {fpsLabel(s)} · {s.ended_at ? t('rehearsal.ended') : t(`rehearsal.clock.${s.clock}`)}
                     </span>
                   </span>
@@ -113,7 +113,7 @@ function NewSession({ count, onCancel, onCreate }) {
   }
   return (
     <Modal title={t('rehearsal.new')} onClose={onCancel}>
-      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
           <label htmlFor="rh-name" style={label}>{t('rehearsal.name')}</label>
           <input id="rh-name" value={form.name} maxLength={80} required onChange={e => set({ name: e.target.value })} style={input} />
@@ -138,7 +138,7 @@ function NewSession({ count, onCancel, onCreate }) {
             <input type="checkbox" checked={form.df} onChange={e => set({ df: e.target.checked })} /> {t('rehearsal.dropFrame')}
           </label>
         )}
-        <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('rehearsal.clockHint')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5 }}>{t('rehearsal.clockHint')}</p>
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button type="button" onClick={onCancel} style={{ ...btn, background: 'transparent' }}>{t('common.cancel')}</button>
           <button type="submit" disabled={busy || !form.name.trim()} style={btnPrimary}>{t('rehearsal.start')}</button>
@@ -300,13 +300,13 @@ function SessionView({ session: initial, gig, members, nameOf, userId, canNote, 
       </button>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
         <div style={{ minWidth: 0 }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, overflowWrap: 'anywhere' }}>{session.name}</h2>
-          <p style={{ fontSize: '12px', color: colors.muted }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 700, overflowWrap: 'anywhere' }}>{session.name}</h2>
+          <p style={{ fontSize: '13px', color: colors.muted }}>
             {fpsLabel(session)} · {session.ended_at ? t('rehearsal.endedAt', { time: fmt(session.ended_at, 'd MMM, HH:mm') }) : t(`rehearsal.clock.${session.clock}`)}
             {session.clock_set_by ? ` · ${t('rehearsal.clockBy', { name: nameOf(session.clock_set_by) })}` : ''}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <Link to={`/gig/${gig.id}/rehearsal/${session.id}`} style={{ ...btn, textDecoration: 'none' }}><FileText size={14} /> {t('rehearsal.report')}</Link>
           <button type="button" onClick={() => download('csv')} style={btn}><Download size={14} /> CSV</button>
           <button type="button" onClick={() => download('json')} style={btn} title={t('rehearsal.jsonHint')}><Download size={14} /> JSON</button>
@@ -315,7 +315,7 @@ function SessionView({ session: initial, gig, members, nameOf, userId, canNote, 
 
       <ClockPanel session={session} offset={offset} df={df}>
         {canMark && !offline && (
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
             {session.clock === 'stopwatch' && (session.running
               ? <button type="button" onClick={() => setTo(now(), { running: false })} style={btn}><Pause size={14} /> {t('rehearsal.pause')}</button>
               : <button type="button" onClick={() => setTo(session.anchor_ms, { running: true })} style={btn}><Play size={14} /> {t('rehearsal.run')}</button>)}
@@ -334,12 +334,12 @@ function SessionView({ session: initial, gig, members, nameOf, userId, canNote, 
 
       {canMark && (
         <button type="button" onClick={() => setComposer({ tc_ms: now() })}
-          style={{ ...btnPrimary, width: '100%', justifyContent: 'center', fontSize: '18px', padding: '18px', margin: '12px 0 18px', minHeight: '64px' }}>
+          style={{ ...btnPrimary, width: '100%', justifyContent: 'center', fontSize: '20px', padding: '18px', margin: '12px 0 18px', minHeight: '64px' }}>
           <Flag size={20} /> {t('rehearsal.mark')}
         </button>
       )}
 
-      <div role="group" aria-label={t('rehearsal.filters')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '10px' }}>
+      <div role="group" aria-label={t('rehearsal.filters')} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '10px' }}>
         <label htmlFor="rh-dept-filter" className="sr-only" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>{t('rehearsal.department')}</label>
         <select id="rh-dept-filter" value={filter.department} onChange={e => setFilter(f => ({ ...f, department: e.target.value }))} style={{ ...input, width: 'auto', padding: '7px 10px' }}>
           <option value="all">{t('rehearsal.allDepartments')}</option>
@@ -347,7 +347,7 @@ function SessionView({ session: initial, gig, members, nameOf, userId, canNote, 
         </select>
         <Chip on={filter.mine} onClick={() => setFilter(f => ({ ...f, mine: !f.mine }))}>{t('rehearsal.mine')}</Chip>
         <Chip on={filter.open} onClick={() => setFilter(f => ({ ...f, open: !f.open }))}>{t('rehearsal.openOnly')}</Chip>
-        <span style={{ fontSize: '12px', color: colors.muted, marginLeft: 'auto' }} aria-live="polite">{t('rehearsal.count', { count: shown.length })}</span>
+        <span style={{ fontSize: '13px', color: colors.muted, marginLeft: 'auto' }} aria-live="polite">{t('rehearsal.count', { count: shown.length })}</span>
       </div>
 
       {notes === null ? <AvxLoader size={20} color={colors.accentText} /> : (
@@ -426,7 +426,7 @@ function DriftNote({ session, offset }) {
   if (!['camera', 'ltc'].includes(session.clock) || !session.running || session.ended_at) return null
   const minutes = Math.floor((Date.now() + offset - new Date(session.anchor_at).getTime()) / 60000)
   if (minutes < 20) return null
-  return <p role="note" style={{ fontSize: '12px', color: 'var(--warn)', lineHeight: 1.5 }}>{t('rehearsal.drift', { min: minutes })}</p>
+  return <p role="note" style={{ fontSize: '13px', color: 'var(--warn)', lineHeight: 1.5 }}>{t('rehearsal.drift', { min: minutes })}</p>
 }
 
 // The big timecode, redrawn every frame from the shared anchor
@@ -463,7 +463,7 @@ function SetClock({ session, current, onCancel, onSet }) {
           <input id="rh-set" value={text} onChange={e => setText(e.target.value)} inputMode="numeric" autoComplete="off"
             aria-describedby="rh-set-hint" aria-invalid={ms === null}
             style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '22px', textAlign: 'center' }} />
-          <p id="rh-set-hint" style={{ fontSize: '12px', color: ms === null ? colors.danger : colors.muted, marginTop: '6px', lineHeight: 1.5 }}>
+          <p id="rh-set-hint" style={{ fontSize: '13px', color: ms === null ? colors.danger : colors.muted, marginTop: '6px', lineHeight: 1.5 }}>
             {ms === null ? t('rehearsal.badTimecode') : t('rehearsal.setHint')}
           </p>
         </div>
@@ -532,25 +532,25 @@ function NoteComposer({ tc, session, gig, members, nameOf, defaultDept, offline,
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
           <legend style={label}>{t('rehearsal.department')}</legend>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {DEPARTMENTS.map(d => <Chip key={d} on={form.department === d} onClick={() => set({ department: d })}>{t(`rehearsal.dept.${d}`)}</Chip>)}
           </div>
         </fieldset>
         <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
           <legend style={label}>{t('rehearsal.priorityLabel')}</legend>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {PRIORITIES.map(p => <Chip key={p} on={form.priority === p} onClick={() => set({ priority: p })}>{t(`rehearsal.priority.${p}`)}</Chip>)}
           </div>
         </fieldset>
         <div>
           <label htmlFor="rh-body" style={label}>{t('rehearsal.note')}</label>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '6px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
             {QUICK.map(q => (
               <button key={q} type="button" onClick={() => setForm(f => ({ ...f, body: f.body ? `${f.body} ${t(`rehearsal.quick.${q}`)}` : t(`rehearsal.quick.${q}`) }))}
-                style={{ ...btn, padding: '5px 10px', fontSize: '12px', background: 'transparent' }}>{t(`rehearsal.quick.${q}`)}</button>
+                style={{ ...btn, padding: '5px 10px', fontSize: '13px', background: 'transparent' }}>{t(`rehearsal.quick.${q}`)}</button>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
             <textarea id="rh-body" value={form.body} maxLength={2000} rows={3} autoFocus onChange={e => set({ body: e.target.value })} style={{ ...input, resize: 'vertical', flex: 1 }} />
             {Speech && (
               <button type="button" onClick={dictate} aria-pressed={listening} aria-label={listening ? t('rehearsal.stopDictation') : t('rehearsal.dictate')}
@@ -580,7 +580,7 @@ function NoteComposer({ tc, session, gig, members, nameOf, defaultDept, offline,
               style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }} />
           </div>
         )}
-        {offline && <p style={{ fontSize: '12px', color: colors.muted, display: 'flex', gap: '6px', alignItems: 'center' }}><CloudOff size={14} /> {t('rehearsal.offlineNote')}</p>}
+        {offline && <p style={{ fontSize: '13px', color: colors.muted, display: 'flex', gap: '8px', alignItems: 'center' }}><CloudOff size={14} /> {t('rehearsal.offlineNote')}</p>}
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button type="button" onClick={onCancel} style={{ ...btn, background: 'transparent' }}>{t('common.cancel')}</button>
           <button type="submit" disabled={busy || (!form.body.trim() && !file)} style={btnPrimary}>{busy ? <AvxLoader size={14} /> : <Check size={14} />} {t('rehearsal.saveNote')}</button>
@@ -609,13 +609,13 @@ function NoteRow({ note, session, nameOf, canNote, canRemove, onToggle, onRemove
   const df = session.frame_count === 'df'
   const done = note.status === 'done'
   return (
-    <li style={{ ...card, padding: '10px 12px', display: 'flex', gap: '10px', alignItems: 'flex-start', borderLeft: `4px solid ${done ? colors.border : PRIORITY_COLOUR[note.priority]}`, background: done ? 'transparent' : card.background }}>
+    <li style={{ ...card, padding: '10px 12px', display: 'flex', gap: '12px', alignItems: 'flex-start', borderLeft: `4px solid ${done ? colors.border : PRIORITY_COLOUR[note.priority]}`, background: done ? 'transparent' : card.background }}>
       {canNote && !note.pending ? (
         <input type="checkbox" checked={done} onChange={onToggle} aria-label={t('rehearsal.markDone', { tc: msToTc(note.tc_ms, session.fps, df) })}
           style={{ width: '20px', height: '20px', marginTop: '2px', flexShrink: 0 }} />
       ) : null}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'baseline', fontSize: '12px', color: colors.muted }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'baseline', fontSize: '13px', color: colors.muted }}>
           <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)', fontSize: '13px' }}>{msToTc(note.tc_ms, session.fps, df)}</strong>
           <span>{t(`rehearsal.dept.${note.department}`)}</span>
           {note.priority !== 'note' && <span style={{ color: PRIORITY_COLOUR[note.priority], fontWeight: 700 }}>{t(`rehearsal.priority.${note.priority}`)}</span>}
@@ -625,7 +625,7 @@ function NoteRow({ note, session, nameOf, canNote, canRemove, onToggle, onRemove
         </div>
         {note.body && <p style={{ fontSize: '14px', lineHeight: 1.5, margin: '4px 0 0', textDecoration: done ? 'line-through' : 'none', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}>{note.body}</p>}
         {note.photo_path && <NotePhoto path={note.photo_path} />}
-        <div style={{ fontSize: '12px', color: colors.muted, marginTop: '4px' }}>
+        <div style={{ fontSize: '13px', color: colors.muted, marginTop: '4px' }}>
           {nameOf(note.author_id)}{note.assignee_id ? ` → ${nameOf(note.assignee_id)}` : ''}
           {done && note.done_by ? ` · ${t('rehearsal.doneBy', { name: nameOf(note.done_by) })}` : ''}
         </div>

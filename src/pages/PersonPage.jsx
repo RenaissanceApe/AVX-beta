@@ -18,7 +18,7 @@ import { NumberTile } from '../components/reports/Charts'
 import { PeriodBar, ReportTable, ExportButtons, downloadCsv, PrintStyles } from '../components/reports/ReportParts'
 
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '8px' }
-const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }
+const small = { fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }
 
 // A person's days, hours and cost with the organisation (K7), at /org/:orgId/people/:userId, from
 // public.ops_person. Admins only (the owner's choice; docs/DATA_MAP.md): members and everyone else
@@ -91,7 +91,7 @@ export default function PersonPage() {
   return (
     <AppShell>
       <PrintStyles />
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div className="no-print">
           <Link to={`/org/${orgId}/reports?tab=operations&view=people`} style={{ ...btn, textDecoration: 'none' }}><ArrowLeft size={14} aria-hidden="true" /> {t('person.toReport')}</Link>
         </div>

@@ -213,11 +213,11 @@ export default function SettingsPage() {
             {savingName ? <AvxLoader size={14} /> : <CheckCircle size={14} />} {t('common.save')}
           </button>
         </div>
-        <p style={{ color: 'var(--muted)', fontSize: '12px', marginTop: '6px' }}>{t('account.phoneHint')}</p>
+        <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '6px' }}>{t('account.phoneHint')}</p>
       </form>
       <div style={section}>
         <span style={label} id="account-crew-profile">{t('crewProfile.title')}</span>
-        <p style={{ color: 'var(--muted)', fontSize: '12px', lineHeight: 1.5, marginBottom: '10px' }}>{t('crewProfile.accountHint')}</p>
+        <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.5, marginBottom: '10px' }}>{t('crewProfile.accountHint')}</p>
         <button type="button" aria-describedby="account-crew-profile" onClick={() => navigate('/me/profile')} style={smallBtn}><Contact size={14} /> {t('crewProfile.open')}</button>
       </div>
     </>,
@@ -242,24 +242,24 @@ export default function SettingsPage() {
     availability: <div style={section}><AvailabilitySection /></div>,
     notifications: <>
       <div style={section}>
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer', fontSize: '14px' }}>
           <input type="checkbox" checked={profile?.email_digest !== false} onChange={e => changeDigest(e.target.checked)}
             style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
           <span>
             <span style={{ fontWeight: 600 }}>{t('account.emailDigest')}</span>
-            <span style={{ display: 'block', color: 'var(--muted)', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.emailDigestHint')}</span>
+            <span style={{ display: 'block', color: 'var(--muted)', fontSize: '13px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.emailDigestHint')}</span>
           </span>
         </label>
       </div>
       {/* K9: the weekly key numbers, for admins only (off unless they turn it on) */}
       {isAnyAdmin && (
         <div style={section}>
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer', fontSize: '14px' }}>
             <input type="checkbox" checked={profile?.weekly_numbers === true} onChange={e => changeWeekly(e.target.checked)}
               style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
             <span>
               <span style={{ fontWeight: 600 }}>{t('account.weeklyNumbers')}</span>
-              <span style={{ display: 'block', color: 'var(--muted)', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.weeklyNumbersHint')}</span>
+              <span style={{ display: 'block', color: 'var(--muted)', fontSize: '13px', marginTop: '3px', lineHeight: 1.5 }}>{t('account.weeklyNumbersHint')}</span>
             </span>
           </label>
         </div>
@@ -278,14 +278,14 @@ export default function SettingsPage() {
     privacy: <>
       <div style={section}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}><span style={{ ...label, marginBottom: 0 }} id="account-findable">{t('account.findable')}</span><Hint id="findable" label={t('account.findable')} /></div>
-        <div role="radiogroup" aria-labelledby="account-findable" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div role="radiogroup" aria-labelledby="account-findable" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {['managers', 'crew'].map(v => (
-            <label key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+            <label key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer', fontSize: '14px' }}>
               <input type="radio" name="findable" checked={(profile?.findable_by || 'managers') === v} onChange={() => changeFindable(v)}
                 style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
               <span>
                 <span style={{ fontWeight: 600 }}>{t(`account.findableOpt.${v}`)}</span>
-                <span style={{ display: 'block', color: 'var(--muted)', fontSize: '12px', marginTop: '2px', lineHeight: 1.5 }}>{t(`account.findableHint.${v}`)}</span>
+                <span style={{ display: 'block', color: 'var(--muted)', fontSize: '13px', marginTop: '2px', lineHeight: 1.5 }}>{t(`account.findableHint.${v}`)}</span>
               </span>
             </label>
           ))}
@@ -304,13 +304,13 @@ export default function SettingsPage() {
           {deleting ? <AvxLoader size={14} /> : <Trash2 size={14} />} {t('account.delete')}
         </button>
       </div>
-      <p style={{ color: 'var(--muted)', fontSize: '12px', marginTop: '8px', lineHeight: 1.5 }}>
+      <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '8px', lineHeight: 1.5 }}>
         {t('account.privacyPrefix')} <a href="/privacy" target="_blank" rel="noopener" style={{ color: 'var(--accent-text)' }}>{t('auth.agreePrivacy')}</a> {t('account.privacySuffix')}
       </p>
     </div>,
     reviews: <div style={section}>
       <span style={label} id="account-trust">{t('trust.admin.title')}</span>
-      <p style={{ color: 'var(--muted)', fontSize: '12px', lineHeight: 1.5, marginBottom: '10px' }}>{t('trust.admin.accountHint', { count: queue ?? 0 })}</p>
+      <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.5, marginBottom: '10px' }}>{t('trust.admin.accountHint', { count: queue ?? 0 })}</p>
       <button type="button" aria-describedby="account-trust" onClick={() => navigate('/admin/trust')} style={smallBtn}><ShieldCheck size={14} /> {t('trust.admin.open')}</button>
     </div>,
   }
@@ -328,8 +328,8 @@ export default function SettingsPage() {
         {(wide || !shown) && (
           <nav className="settings-nav" aria-labelledby="settings-title">
             <h1 id="settings-title" style={{ fontSize: '22px', fontWeight: 700 }}>{t('settings.title')}</h1>
-            <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '4px 0 14px', wordBreak: 'break-all' }}>{user?.email}</p>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '4px 0 16px', wordBreak: 'break-all' }}>{user?.email}</p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {sections.map(s => {
                 const Icon = ICONS[s]
                 const on = s === shown
@@ -344,14 +344,14 @@ export default function SettingsPage() {
                 )
               })}
             </ul>
-            <div style={{ marginTop: '18px' }}>{signOutBtn}</div>
+            <div style={{ marginTop: '24px' }}>{signOutBtn}</div>
           </nav>
         )}
         {shown && (
           <section className="settings-body" aria-labelledby="settings-section-title">
             {!wide && <Link to="/settings" className="settings-back"><ChevronLeft size={16} aria-hidden="true" /> {t('settings.title')}</Link>}
-            <h2 id="settings-section-title" style={{ fontSize: '20px', fontWeight: 700, marginBottom: '6px' }}>{title(shown)}</h2>
-            <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.5, marginBottom: '20px' }}>{t(`settings.hint.${shown}`)}</p>
+            <h2 id="settings-section-title" style={{ fontSize: '22px', fontWeight: 700, marginBottom: '4px' }}>{title(shown)}</h2>
+            <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.5, marginBottom: '32px' }}>{t(`settings.hint.${shown}`)}</p>
             {content[shown]}
           </section>
         )}
@@ -375,28 +375,31 @@ function useWide() {
 }
 
 const SETTINGS_CSS = `
-.settings { max-width: 1040px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr); }
+.settings { max-width: 1040px; margin: 0 auto; padding: var(--space-5) var(--gutter) var(--space-7); display: grid; gap: var(--space-6) var(--space-7); grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 760px) { .settings { grid-template-columns: 240px minmax(0, 1fr); } .settings-nav { position: sticky; top: 76px; align-self: start; } }
-.settings-link { display: flex; align-items: center; gap: 10px; padding: 11px 12px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; }
+.settings-link { display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 10px; min-height: 44px; border-left: 2px solid transparent; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; }
 .settings-link:hover { background: color-mix(in srgb, var(--fg) 6%, transparent); }
-.settings-link.on { background: var(--selection); color: var(--accent-text); }
+/* The open section: text colour with a 2px accent bar, not a wash (DESIGN.md rule 3) */
+.settings-link.on { color: var(--text); border-left-color: var(--accent); background: color-mix(in srgb, var(--fg) 4%, transparent); }
 .settings-link:focus-visible, .settings-back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .settings-badge { color: var(--accent-text); }
 .settings-back { display: inline-flex; align-items: center; gap: 4px; color: var(--accent-text); text-decoration: none; font-size: 14px; font-weight: 600; margin-bottom: 12px; }
 .settings-body { min-width: 0; max-width: 620px; }
 `
 
-const section = { marginBottom: '22px', paddingBottom: '22px', borderBottom: '1px solid var(--line)' }
+// One group of settings: space shows where it ends, no rule under it (DESIGN.md "Room to breathe")
+const section = { marginBottom: 'var(--space-section)' }
 const label = {
-  display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--muted)',
-  fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px'
+  display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--muted)',
+  fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: '8px'
 }
 const input = {
   width: '100%', padding: '10px 13px', background: 'var(--shade)', border: '1px solid var(--line)',
   color: 'var(--text)', fontSize: '14px', outline: 'none'
 }
+// A plain button: settings have no single loud action, so none of them is green (rule 3)
 const smallBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '10px 14px', 
-  border: '1px solid var(--accent)', background: 'var(--selection)', color: 'var(--accent-text)',
-  fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0
+  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', minHeight: '36px',
+  border: '1px solid var(--line-strong)', background: 'transparent', color: 'var(--text)',
+  fontWeight: 600, fontSize: '14px', cursor: 'pointer', flexShrink: 0
 }

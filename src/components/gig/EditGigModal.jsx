@@ -89,7 +89,7 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
 
   return (
     <Modal title={t('gig.edit')} onClose={onClose}>
-      <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
           <label style={label} htmlFor="eg-name">{t('gigForm.name')} *</label>
           <input id="eg-name" value={form.name} onChange={set('name')} maxLength={200} style={input} autoFocus required />

@@ -204,13 +204,13 @@ export default function QuoteDocument({ quote, org = {}, branding = {}, toolbar,
 
 
 export const toolbarBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', 
+  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 14px', 
   border: '1px solid #ccc', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }
 
 const QUOTE_PRINT_CSS = `
   .quote-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
-  .toolbar { max-width: 210mm; margin: 0 auto 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .toolbar { max-width: 210mm; margin: 0 auto 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   .doc { max-width: 210mm; margin: 0 auto; background: #fff; color: #1a1a1a; overflow: hidden;
     font-family: 'Inter', 'DM Sans', sans-serif; font-weight: 300; font-size: 10.5pt; line-height: 1.45;
     -webkit-print-color-adjust: exact; print-color-adjust: exact; }

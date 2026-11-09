@@ -113,15 +113,15 @@ export default function CallSheetPage() {
         .callsheet-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
         .sheet { max-width: 800px; margin: 0 auto; background: #fff; color: #111; padding: 32px; font-size: 13px; }
         .sheet h1 { font-size: 24px; margin-bottom: 2px; }
-        .sheet h2 { font-size: 12px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 22px 0 8px; border-bottom: 2px solid #111; padding-bottom: 4px; }
+        .sheet h2 { font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 22px 0 8px; border-bottom: 2px solid #111; padding-bottom: 4px; }
         .sheet table { width: 100%; border-collapse: collapse; }
         .sheet th { text-align: left; font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; color: #666; padding: 4px 6px; border-bottom: 1px solid #ccc; }
         .sheet td { padding: 6px; border-bottom: 1px solid #eee; vertical-align: top; }
         .sheet .time { white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 700; width: 110px; }
         .sheet .muted { color: #666; }
         .sheet tr.me td { background: #fff4c2; font-weight: 700; }
-        .sheet.large { font-size: 18px; line-height: 1.5; }
-        .sheet.large h1 { font-size: 34px; }
+        .sheet.large { font-size: 20px; line-height: 1.5; }
+        .sheet.large h1 { font-size: 28px; }
         .sheet.large h2 { font-size: 16px; color: #222; }
         .sheet.large th { font-size: 14px; color: #333; }
         .sheet.large td { padding: 10px 8px; }
@@ -172,7 +172,7 @@ export default function CallSheetPage() {
             <h1>{gig.name}</h1>
             <div>{gig.venue || t('callsheet.venueTbc')} · {dates}</div>
           </div>
-          <div className="muted" style={{ textAlign: 'right', fontSize: '12px' }}>
+          <div className="muted" style={{ textAlign: 'right', fontSize: '13px' }}>
             {gig.organisations?.name && <div><strong style={{ color: '#111' }}>{gig.organisations.name}</strong></div>}
             <div>{t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}</div>
           </div>
@@ -223,6 +223,6 @@ export default function CallSheetPage() {
 }
 
 const toolbarBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', 
+  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 14px', 
   border: '1px solid #c5ccd4', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }

@@ -53,27 +53,27 @@ export default function PushSettings() {
     }
   }
 
-  const hint = { display: 'block', color: 'var(--muted)', fontSize: '12px', marginTop: '3px', lineHeight: 1.5 }
+  const hint = { display: 'block', color: 'var(--muted)', fontSize: '13px', marginTop: '3px', lineHeight: 1.5 }
   if (support !== 'ok') return (
     <div style={{ fontSize: '14px' }}>
-      <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}><BellRing size={14} /> {t('push.title')}</span>
+      <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}><BellRing size={14} /> {t('push.title')}</span>
       <span style={hint}>{t(support === 'install' ? 'push.installFirst' : 'push.unsupported')}</span>
     </div>
   )
   return (
     <div>
-      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: busy || on === null ? 'default' : 'pointer', fontSize: '14px' }}>
+      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: busy || on === null ? 'default' : 'pointer', fontSize: '14px' }}>
         <input type="checkbox" checked={!!on} disabled={busy || on === null} onChange={e => toggle(e.target.checked)}
           style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
         <span>
-          <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
             {t('push.title')} {busy && <AvxLoader size={13} />}
           </span>
           <span style={hint}>{t('push.hint')}</span>
         </span>
       </label>
       {on && (
-        <button type="button" onClick={test} disabled={busy} style={{ marginTop: '8px', marginLeft: '26px', background: 'none', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: 'var(--soft)', padding: '5px 10px', fontSize: '12px', cursor: 'pointer' }}>
+        <button type="button" onClick={test} disabled={busy} style={{ marginTop: '8px', marginLeft: '26px', background: 'none', border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(12% * var(--line-k))), transparent)', color: 'var(--soft)', padding: '5px 10px', fontSize: '13px', cursor: 'pointer' }}>
           {t('push.test')}
         </button>
       )}

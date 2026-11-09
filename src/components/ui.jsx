@@ -1,4 +1,7 @@
-import { X } from 'lucide-react'
+import { Children, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { X, MoreHorizontal, ChevronRight } from 'lucide-react'
+import { useI18n } from '../i18n'
 import { labelVar } from '../lib/labelColours'
 
 // Lumen and Pixel brand system (Brand Book v1.2, DESIGN.md): every corner is square, no gradients,
@@ -21,7 +24,7 @@ export const colors = {
 export const tint = (color, percent) => `color-mix(in srgb, ${color} ${percent}%, transparent)`
 
 export const btn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px',
+  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '9px 14px',
   border: '1px solid var(--line-strong)', background: 'transparent', color: 'var(--text)',
   fontWeight: 600, fontSize: '13px', cursor: 'pointer', flexShrink: 0, fontFamily: 'var(--font-ui)',
 }
@@ -60,7 +63,7 @@ export function Modal({ title, onClose, children, maxWidth = 480 }) {
         animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '12px' }}>
-          <h2 style={{ fontFamily: 'var(--font-mono)', fontSize: '17px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</h2>
+          <h2 style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</h2>
           <button onClick={onClose} aria-label="Close" style={iconBtn}><X size={18} /></button>
         </div>
         {children}
@@ -119,4 +122,172 @@ export function CallChip({ label, time, me, small, title }) {
 export function Avatar({ name, size = 32 }) {
   const initials = (name || '?').split(' ').filter(Boolean).map(x => x[0]).join('').toUpperCase().slice(0, 2) || '?'
   return <span aria-hidden="true" className="avx-avatar" style={{ width: size, height: size, fontSize: Math.round(size * 0.36) }}>{initials}</span>
+}
+
+// ── Layout pieces (DESIGN.md "Room to breathe"; DR1). CSS in src/theme/brand.css, spacing steps in index.html.
+
+// The spacing steps as CSS values: space[3] → 'var(--space-3)' (12px), space.section → 40px phone / 48px desktop.
+export const space = {
+  1: 'var(--space-1)', 2: 'var(--space-2)', 3: 'var(--space-3)', 4: 'var(--space-4)',
+  5: 'var(--space-5)', 6: 'var(--space-6)', 7: 'var(--space-7)', section: 'var(--space-section)',
+}
+
+// True below 768px (DESIGN.md "Responsive Behavior"), and follows the window as it changes.
+const PHONE_QUERY = '(max-width: 767px)'
+export function usePhone() {
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.(PHONE_QUERY).matches)
+  useEffect(() => {
+    const mq = window.matchMedia?.(PHONE_QUERY)
+    if (!mq) return
+    const on = () => setPhone(mq.matches)
+    on()
+    mq.addEventListener?.('change', on)
+    return () => mq.removeEventListener?.('change', on)
+  }, [])
+  return phone
+}
+
+// Items in a column (or a row) with a gap from the spacing steps (1 to 7, or 'section').
+//   <Stack gap={2}><Name /><Meta /></Stack>        within an item: 4–8 (1–2)
+//   <Stack gap={3}>{rows}</Stack>                 between items: 12–16 (3–4)
+//   <Stack direction="row" gap={2} align="center" wrap>…</Stack>
+export function Stack({ gap = 3, direction = 'column', align, justify, wrap, as = 'div', style, children, ...rest }) {
+  const Tag = as
+  return (
+    <Tag {...rest} style={{ display: 'flex', flexDirection: direction, gap: space[gap] ?? space[3], alignItems: align, justifyContent: justify,
+      flexWrap: wrap ? 'wrap' : undefined, minWidth: 0, ...style }}>
+      {children}
+    </Tag>
+  )
+}
+
+// A page section: a 16px heading, an optional link on the right, then the content on the page ground (no card).
+// Sections that follow each other sit 40px (phone) / 48px (desktop) apart on their own.
+//   <Section id="key-numbers" title={t('reports.keyNumbers')} link={{ to: '/org/1/reports', label: t('reports.allReports') }}>…</Section>
+// id names the heading (aria-labelledby); `aside` takes any other element for the right (a button, a Hint);
+// sectionRef reaches the <section> (to scroll to it).
+export function Section({ id, title, link, aside, level = 2, sectionRef, children, style, className = '', ...rest }) {
+  const H = `h${level}`
+  return (
+    <section {...rest} ref={sectionRef} className={`avx-section ${className}`.trim()} aria-labelledby={title ? id : undefined} style={style}>
+      {(title || link || aside) && (
+        <div className="avx-section__head">
+          {title && <H id={id} className="avx-section__title">{title}</H>}
+          {link && <Link to={link.to} className="avx-section__link">{link.label} <ChevronRight size={14} aria-hidden="true" /></Link>}
+          {aside}
+        </div>
+      )}
+      {children}
+    </section>
+  )
+}
+
+// A page header (rule 4 and 5): the title, at most one short line, the ⓘ, one primary action and up to two
+// secondary ones; anything more goes in the ⋯ menu. On phone the secondary actions move into the ⋯ menu too.
+//   <PageHeader title="Quotes" line="12 open" help={<PageHelp page="quotes" />}
+//     primary={<button style={btnPrimary}>New quote</button>}
+//     secondary={[{ label: 'Export', icon: <Download size={15} />, onClick }]}
+//     more={[{ label: 'Settings', onClick }]} />
+// eyebrow: a small line above the title (the home's greeting). after: chips next to the title (a role chip).
+// An action: { label, icon?, onClick, disabled? }.
+export function PageHeader({ title, eyebrow, line, help, after, primary, secondary = [], more = [], className = '' }) {
+  const phone = usePhone()
+  const shown = phone ? [] : secondary.slice(0, 2)
+  const menu = [...(phone ? secondary : secondary.slice(2)), ...more]
+  return (
+    <header className={`avx-page-head ${className}`.trim()}>
+      <div className="avx-page-head__text">
+        {eyebrow && <p className="avx-page-head__eyebrow">{eyebrow}</p>}
+        {/* The ⓘ sits beside the heading, not inside it, so the heading's name is just the title */}
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: space[2], minWidth: 0 }}>
+          <h1 className="avx-page-head__title">{title}</h1>{after}{help}
+        </div>
+        {line && <p className="avx-page-head__line">{line}</p>}
+      </div>
+      {(primary || shown.length > 0 || menu.length > 0) && (
+        <div className="avx-page-head__actions">
+          {shown.map(a => (
+            <button key={a.label} type="button" onClick={a.onClick} disabled={a.disabled} style={btn}>{a.icon}{a.label}</button>
+          ))}
+          {primary}
+          <MoreMenu items={menu} />
+        </div>
+      )}
+    </header>
+  )
+}
+
+// A row of tiles: on phone a sideways swipe row (scroll-snap, the next tile shows cut off), from 768px a grid.
+// It is a focusable region with a label, and the arrow keys scroll it. Each child becomes a list item.
+//   <SwipeRow label={t('reports.keyNumbers')} cols={3}>{tiles}</SwipeRow>
+// item: a tile's width on phone (default 44%, so two and a bit show); cols: columns on desktop.
+export function SwipeRow({ label, cols = 3, item, children, style }) {
+  const ref = useRef(null)
+  const onKeyDown = e => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
+    const el = ref.current
+    const first = el?.querySelector('li')
+    if (!el || !first || el.scrollWidth <= el.clientWidth) return
+    e.preventDefault()
+    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || document.documentElement.hasAttribute('data-comfort')
+    el.scrollBy({ left: (e.key === 'ArrowRight' ? 1 : -1) * (first.offsetWidth + 12), behavior: still ? 'auto' : 'smooth' })
+  }
+  return (
+    <div ref={ref} role="region" aria-label={label} tabIndex={0} onKeyDown={onKeyDown} className="avx-swipe"
+      style={{ '--swipe-cols': cols, ...(item ? { '--swipe-item': item } : {}), ...style }}>
+      <ul className="avx-swipe__list">
+        {Children.toArray(children).filter(Boolean).map((child, i) => <li key={child.key ?? i}>{child}</li>)}
+      </ul>
+    </div>
+  )
+}
+
+// The ⋯ button with a menu of actions past the visible ones ("More actions"). Nothing to show: renders nothing.
+//   <MoreMenu items={[{ label: 'Duplicate', icon: <Copy size={15} />, onClick }, { label: 'Archive', onClick, disabled: true }]} />
+// Opens on click or Enter; ↑ ↓ move between items, Escape or a click outside closes and returns focus to ⋯.
+export function MoreMenu({ items = [], label }) {
+  const { t } = useI18n()
+  const [open, setOpen] = useState(false)
+  const box = useRef(null)
+  const button = useRef(null)
+  useEffect(() => {
+    if (!open) return
+    box.current?.querySelector('[role="menuitem"]')?.focus()
+    const onDown = e => { if (!box.current?.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('touchstart', onDown)
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('touchstart', onDown) }
+  }, [open])
+  if (!items.length) return null
+  const close = () => { setOpen(false); button.current?.focus() }
+  const onKeyDown = e => {
+    if (e.key === 'Escape') { e.preventDefault(); close(); return }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return
+    const all = [...box.current.querySelectorAll('[role="menuitem"]')]
+    const at = all.indexOf(document.activeElement)
+    const next = e.key === 'Home' ? 0 : e.key === 'End' ? all.length - 1 : (at + (e.key === 'ArrowDown' ? 1 : -1) + all.length) % all.length
+    e.preventDefault()
+    all[next]?.focus()
+  }
+  const name = label || t('common.moreActions')
+  return (
+    <div ref={box} className="avx-more" onKeyDown={open ? onKeyDown : undefined}>
+      <button ref={button} type="button" onClick={() => setOpen(o => !o)} aria-haspopup="menu" aria-expanded={open}
+        aria-label={name} title={name} className="avx-more__button" style={{ ...btn, padding: '8px', justifyContent: 'center' }}>
+        <MoreHorizontal size={18} aria-hidden="true" />
+      </button>
+      {open && (
+        <ul role="menu" aria-label={name} className="avx-more__menu">
+          {items.map(a => (
+            <li key={a.label} role="none">
+              <button type="button" role="menuitem" tabIndex={-1} className="avx-more__item" aria-disabled={a.disabled || undefined}
+                onClick={() => { if (a.disabled) return; setOpen(false); button.current?.focus(); a.onClick?.() }}>
+                {a.icon}{a.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
 }

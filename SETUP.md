@@ -117,16 +117,25 @@ In Supabase dashboard → **Settings → API**:
 
 ## Step 5 — Configure the app
 
-Copy `.env.example` to `.env` in the root of this project and fill in:
+A fresh clone has no `.env`: it is not in the repository (it's listed in `.gitignore`), so each
+person makes their own. Copy `.env.example` to `.env` in the root of this project and fill in:
+
+```bash
+cp .env.example .env
+```
 
 ```
-VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJyour-anon-key-here
+VITE_SUPABASE_URL=https://your-test-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-test-project-anon-key
 VITE_CONTACT_EMAIL=privacy@your-domain.com   # shown on /privacy and /terms
 VITE_SENTRY_DSN=                              # optional error monitoring
 ```
 
-Add the same variables in Vercel → Project → Settings → Environment Variables.
+For local work and the e2e tests, use the **test** project's URL and anon key, not production's.
+Never commit `.env`, and never put the `service_role` key in it.
+
+Production doesn't use `.env`: add the same variables (with the production project's values) in
+Vercel → Project → Settings → Environment Variables, for **Production** and **Preview**.
 
 ---
 

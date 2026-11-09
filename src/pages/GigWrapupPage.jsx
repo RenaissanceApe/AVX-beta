@@ -16,8 +16,8 @@ import { PageHelp } from '../components/help/HelpParts'
 import { PrintStyles } from '../components/reports/ReportParts'
 
 const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '8px', breakInside: 'avoid' }
-const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
-const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }
+const h2 = { fontSize: '16px', fontWeight: 700, margin: 0 }
+const small = { fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }
 const row = { display: 'flex', justifyContent: 'space-between', gap: '12px', fontSize: '13px', padding: '3px 0', borderBottom: `1px solid ${colors.border}` }
 const list = { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }
 
@@ -87,7 +87,7 @@ export default function GigWrapupPage() {
   return (
     <AppShell>
       <PrintStyles />
-      <div style={{ maxWidth: '820px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div style={{ maxWidth: '820px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div className="no-print" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
           <Link to={`/gig/${id}`} style={{ ...btn, textDecoration: 'none' }}><ArrowLeft size={14} aria-hidden="true" /> {t('wrapup.backToGig')}</Link>
           <span style={{ flex: '1 1 auto' }} />
@@ -119,7 +119,7 @@ export default function GigWrapupPage() {
           {people && people.length > 0 && (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                <caption style={{ textAlign: 'left', fontSize: '12px', color: colors.muted, padding: '4px 0' }}>{t('wrapup.perPerson')}</caption>
+                <caption style={{ textAlign: 'left', fontSize: '13px', color: colors.muted, padding: '4px 0' }}>{t('wrapup.perPerson')}</caption>
                 <thead>
                   <tr>
                     {cols.map((k, i) => (

@@ -101,12 +101,12 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
 
   return (
     <section aria-labelledby="dmx-title">
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
         <div style={{ flex: '1 1 200px' }}>
-          <h2 id="dmx-title" style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>{t('tools.name.dmx_patch')}</h2>
+          <h2 id="dmx-title" style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>{t('tools.name.dmx_patch')}</h2>
           <p style={{ color: colors.muted, fontSize: '13px' }}>{t('dmx.count', { count: shown.length })}{universes.length > 0 && ` · ${t('dmx.universes', { count: universes.length })}`}</p>
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {canEdit && <button type="button" onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} /> {t('dmx.add')}</button>}
           {shown.length > 0 && <Link to={`/gig/${gig.id}/dmx`} style={{ ...btn, textDecoration: 'none' }}><Printer size={14} /> {t('inputs.print')}</Link>}
           {shown.some(f => f.address) && <Link to={`/gig/${gig.id}/dmx/walk`} style={{ ...btn, textDecoration: 'none' }}><Footprints size={14} /> {t('dmxWalk.open')}</Link>}
@@ -115,7 +115,7 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
           )}
         </div>
       </div>
-      {savedAt && <p role="status" style={{ fontSize: '12px', color: 'var(--warn)', marginBottom: '10px' }}>{t('dmx.offline')}</p>}
+      {savedAt && <p role="status" style={{ fontSize: '13px', color: 'var(--warn)', marginBottom: '10px' }}>{t('dmx.offline')}</p>}
       {bad.size > 0 && (
         <p role="status" style={{ ...card, borderColor: 'var(--warn)', color: 'var(--warn)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
           <AlertTriangle size={15} aria-hidden="true" /> {t('dmx.overlapBanner', { count: bad.size })}
@@ -129,10 +129,10 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
         const list = shown.filter(f => f.universe === u.universe)
         return (
           <section key={u.universe} aria-labelledby={`universe-${u.universe}`} style={{ marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
-              <h3 id={`universe-${u.universe}`} style={{ fontSize: '15px', fontWeight: 700 }}>{t('dmx.universe', { n: u.universe })}</h3>
-              <span style={{ fontSize: '12px', color: u.channels > UNIVERSE_SIZE ? 'var(--warn)' : colors.muted }}>{t('dmx.used', { used: u.channels, total: UNIVERSE_SIZE })}</span>
-              {canEdit && <button type="button" onClick={() => repack(u.universe)} disabled={busy} style={{ ...btn, padding: '4px 10px', fontSize: '12px', marginLeft: 'auto' }}><ListRestart size={13} /> {t('dmx.repack')}</button>}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '6px' }}>
+              <h3 id={`universe-${u.universe}`} style={{ fontSize: '16px', fontWeight: 700 }}>{t('dmx.universe', { n: u.universe })}</h3>
+              <span style={{ fontSize: '13px', color: u.channels > UNIVERSE_SIZE ? 'var(--warn)' : colors.muted }}>{t('dmx.used', { used: u.channels, total: UNIVERSE_SIZE })}</span>
+              {canEdit && <button type="button" onClick={() => repack(u.universe)} disabled={busy} style={{ ...btn, padding: '4px 10px', fontSize: '13px', marginLeft: 'auto' }}><ListRestart size={13} /> {t('dmx.repack')}</button>}
             </div>
             <div aria-hidden="true" style={{ height: '6px', background: 'var(--hover)', overflow: 'hidden', marginBottom: '8px' }}>
               <div style={{ height: '100%', width: `${Math.min(100, (100 * u.channels) / UNIVERSE_SIZE)}%`, background: colors.accent }} />
@@ -145,18 +145,18 @@ export default function DmxPatchTool({ gig, canEdit, canPlanEquipment }) {
                     <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, minWidth: '5.5em', color: f.address ? colors.accentText : colors.muted }}>{dmxRange(f, t('dmx.noAddress'))}</span>
                     <span style={{ flex: '1 1 160px', minWidth: 0 }}>
                       <strong style={{ display: 'block', fontSize: '14px' }}>{f.name}</strong>
-                      <span style={{ fontSize: '12px', color: colors.soft }}>
+                      <span style={{ fontSize: '13px', color: colors.soft }}>
                         {[f.fixture_type, f.mode, t('dmx.channelsShort', { count: f.footprint }), f.position].filter(Boolean).join(' · ')}
                       </span>
-                      {clash && <span style={{ display: 'block', fontSize: '12px', color: 'var(--warn)' }}>{t('dmx.overlap')}</span>}
+                      {clash && <span style={{ display: 'block', fontSize: '13px', color: 'var(--warn)' }}>{t('dmx.overlap')}</span>}
                       {showDips && f.address && (
-                        <span style={{ display: 'block', fontSize: '12px', fontFamily: 'var(--font-mono)', color: colors.soft }}>
+                        <span style={{ display: 'block', fontSize: '13px', fontFamily: 'var(--font-mono)', color: colors.soft }}>
                           {f.address > 511 ? t('dip.over511') : t('dip.onShort', { list: switchesOn(f.address, layout).join(' ') || '—' })}
                         </span>
                       )}
                     </span>
                     {canEdit && (
-                      <span style={{ display: 'flex', gap: '2px', marginLeft: 'auto' }}>
+                      <span style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
                         <button type="button" onClick={() => setEditing(f)} aria-label={t('inputs.edit', { name: f.name })} style={iconBtn}><Pencil size={14} /></button>
                         <button type="button" onClick={() => remove(f)} aria-label={t('inputs.remove', { name: f.name })} style={iconBtn}><Trash2 size={14} /></button>
                       </span>
@@ -235,7 +235,7 @@ export function FixtureForm({ gig, fixture, existing, catalogue, defaults, onClo
             </select>
           </div>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
           <div>
             <label style={label} htmlFor="fx-type">{t('dmx.type')}</label>
             <input id="fx-type" required maxLength={80} value={form.fixture_type} onChange={e => set({ fixture_type: e.target.value })} placeholder="MAC Aura XB" style={input} />
@@ -245,7 +245,7 @@ export function FixtureForm({ gig, fixture, existing, catalogue, defaults, onClo
             <input id="fx-mode" maxLength={40} value={form.mode} onChange={e => set({ mode: e.target.value })} placeholder={t('dmx.modePlaceholder')} style={input} />
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: isNew ? 'repeat(3, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isNew ? 'repeat(3, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))', gap: '12px' }}>
           <div>
             <HintLabel htmlFor="fx-footprint" hint="dmx-footprint">{t('dmx.footprint')}</HintLabel>
             <input id="fx-footprint" type="number" required min={1} max={512} value={form.footprint} onChange={e => set({ footprint: e.target.value })} style={input} />
@@ -266,7 +266,7 @@ export function FixtureForm({ gig, fixture, existing, catalogue, defaults, onClo
             </div>
           )}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
           <div>
             <label style={label} htmlFor="fx-name">{isNew && Number(form.count) > 1 ? t('dmx.namePrefix') : t('dmx.name')}</label>
             <input id="fx-name" required maxLength={56} value={form.name} onChange={e => set({ name: e.target.value })} placeholder={t('dmx.namePlaceholder')} style={input} />
@@ -282,7 +282,7 @@ export function FixtureForm({ gig, fixture, existing, catalogue, defaults, onClo
             <input id="fx-address-new" type="number" min={1} max={512} value={form.address} onChange={e => set({ address: e.target.value })} style={input} />
           </div>
         )}
-        {isNew && <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('dmx.addHint')}</p>}
+        {isNew && <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5 }}>{t('dmx.addHint')}</p>}
         <button type="submit" disabled={saving} style={{ ...btnPrimary, justifyContent: 'center' }}>
           {saving && <AvxLoader size={15} />} {isNew ? t('dmx.addButton', { count: Number(form.count) || 1 }) : t('common.save')}
         </button>

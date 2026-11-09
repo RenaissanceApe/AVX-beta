@@ -128,6 +128,7 @@ export default {
     vat: { term: 'VAT (IVA)', definition: 'Tax added to the price. Each quote line has its own rate; the quote’s rate is the one new lines start with.', example: '23% in mainland Portugal, 0% with a reason for a client elsewhere in the EU.', where: 'Quote editor, VAT % column' },
     validity: { term: 'Validity', definition: 'How many days the client has to accept a quote.', example: 'Valid for 30 days.', where: 'Quotes → Company details' },
     'client-link': { term: 'Client link', definition: 'A private web address where the client reads the quote, accepts it and writes to you, without an account.', example: 'Sent by email with the PDF.', where: 'Quote → Send' },
+    'quote-bin': { term: 'Recently deleted', definition: 'Where a deleted draft or declined quote waits for 15 days before it is erased for good. Only drafts and declined quotes can be deleted: a sent or accepted quote is cancelled instead (⋯ → Cancel quote), which keeps it and its gig, crew, equipment and invoices but stops it counting as waiting or as revenue. While it is there it counts nowhere (lists, search, reports) and its client links show "not found". Restore brings it back with its versions and links.', example: 'Deleted Q0042 by mistake on Monday: restore it any day until two weeks later.', where: 'Quotes → Recently deleted' },
     'price-list': { term: 'Price list', definition: 'Your prices for equipment and services, used to build quotes.', example: 'SM58: €8 a day.', where: 'Quotes → Price list' },
     'retention': { term: 'Keeping messages', definition: 'How long an organisation keeps messages in its conversations before they are deleted.', example: 'Keep for 1 year.', where: 'Organisation settings → Messages' },
     report: { term: 'Report a message', definition: 'Telling the people who run a conversation that a message is spam or abusive. They don’t see who reported it.', example: 'Reporting an advert posted in a gig’s chat.', where: 'Messages → message menu' },
@@ -225,6 +226,7 @@ export default {
     'disposal-value': 'What the unit brought in when it left: its sale price, an insurance payout, or 0 if nothing. Used to show the unit’s whole profit.',
     'inspection-cost': 'What this inspection cost, without VAT (e.g. the PAT tester’s fee). Optional; it counts towards the item’s upkeep.',
     'lost-reason': 'Why the client said no. Optional, but over time it shows why quotes are lost (price, another supplier, cancelled events…). Only your team sees it.',
+    'quote-bin': 'Only the quotes you may restore are listed: all of them for an admin, your own for a member. Each is erased for good 15 days after it was deleted.',
     'gig-client': 'The client the gig is for, from Contacts. Reports group gigs and their results by client. Crew don’t see it.',
   },
 
@@ -240,7 +242,7 @@ export default {
     'my-statement': { title: 'Year statement', summary: 'Per company and year: one row per month with the totals, then each gig. Download it as a CSV or print it for your tax return. An aid: check it against your own records.' },
     'org-hours': { title: 'Hours', summary: 'Everyone\'s logged hours on the organisation\'s gigs, per person and month, with the cost stored when each day was approved. Admins only. Download them as a CSV.' },
     'pocket-tools': { title: 'Pocket tools', summary: 'Calculators for any venue, with or without a gig in AVX: DMX addresses and dipswitches, a block of fixtures, universes and absolute channels, and value conversions. They work offline.' },
-    home: { title: 'Gigs', summary: 'The gigs of the company you chose at the top, or all of yours in "My work". Open one to see its crew, schedule, files and chat. The calendar shows the same gigs by date.' },
+    home: { title: 'Gigs', summary: 'The gigs of the company you chose at the top, or all of yours in "My work". Open one to see its crew, schedule, files and chat. The calendar shows the same gigs by date. “Arrange home”, at the bottom, moves or hides the numbers, questions and gigs; it is saved on this device for this workspace.' },
     gig: { title: 'A gig', summary: 'Everything about one gig, in tabs: overview, crew, schedule, equipment, files, updates and chat. Managers change things; crew see them and can write in the chat.' },
     messages: { title: 'Messages', summary: 'Your conversations: direct messages, gig chats, department channels and the organisation’s channels. Unread ones are at the top. Use the menu on a message to reply, react, save or report it.' },
     inventory: { title: 'Inventory', summary: 'Your equipment: the catalogue, where it is kept, its stock and movements, maintenance and subrentals.' },
@@ -418,7 +420,7 @@ export default {
         'Tap "Add expense": the date, supplier (from Contacts or typed), what for, the category and the amount excl. VAT or the total. Add the receipt from the phone camera or a PDF. Link it to a gig, or to the subrental, repair, crew fee or stock purchase it pays for.',
         'Anyone on a gig can claim what they paid themselves: Crew tab → Expenses → "Claim an expense", with a photo of the receipt.',
         'The gig\'s managers approve claims there (or in Expenses → Claims), or send them back with a note. Approved claims show under "Unpaid and due" as to reimburse until you add the date they were paid.',
-        'Add rent, insurance and leasing once under "Recurring": AVX drafts each one on its date for you to confirm. "CSV for the accountant" downloads the confirmed expenses you see.',
+        'Add rent, insurance and leasing once under "Recurring": AVX drafts each one on its date for you to confirm. "CSV for the accountant" (on a phone, under ⋯) downloads the confirmed expenses you see.',
       ],
       mistakes: [
         'A subrental, repair or crew fee can have only one expense: open it from the record to change it.',
@@ -433,7 +435,7 @@ export default {
         'Choose what to invoice: the whole quote, some phases, a deposit % or, after a deposit, the rest. Each line keeps its VAT rate; lines at 0% need a reason.',
         'Check the client and lines, create the invoice in your certified program (Moloni, InvoiceXpress, Vendus…) and tap "Mark as sent to my program". Then add the number it gave and the link to its PDF.',
         'Connected your program (an admin, at the top of Invoices: Invoicing program)? Tap "Send to …" instead: the draft goes there. Finalise it in the program, then tap "Check …" to bring back its number, dates and PDF.',
-        'Invoices lists what is still to send, what is unpaid (overdue first) and what is paid. Overdue invoices also notify you each week. No connector for your program? "CSV" downloads the invoices shown, one row per line, to import there.',
+        'Invoices lists what is still to send, what is unpaid (overdue first) and what is paid. Overdue invoices also notify you each week. No connector for your program? "CSV" (on a phone, under ⋯) downloads the invoices shown, one row per line, to import there.',
         'When the client pays, record the payment under Payments ("Mark as paid" for the whole amount left; part payments too). Overdue? Email the client a reminder. Something to give back? Make a credit note.',
       ],
       mistakes: [
@@ -459,7 +461,7 @@ export default {
       title: 'Approve leave and keep holiday days right',
       intro: 'Decide requests, see who is away, and set each person\'s holiday days and working week.',
       steps: [
-        'In Leave, "requests waiting for you" lists each request with its days. Tap "Approve", or "Refuse" with a reason they will see. "Add for someone" enters leave (a sick call, say) that counts at once.',
+        'In Leave, "requests waiting for you" lists each request with its days. Tap "Approve", or "Refuse" with a reason they will see. "Add for someone" (on a phone, under ⋯) enters leave (a sick call, say) that counts at once.',
         'Under "Holiday days and working weeks", set the organisation\'s days per year (22 to start). "Edit" a person for their own allowance, the days carried over from last year, their working days and hours a day.',
         '"Who is away" shows the month day by day. Approved leave blocks the person for gigs, Find crew and hours; the organisation export has the leave, balances and working weeks.',
       ],
@@ -501,7 +503,7 @@ export default {
       steps: [
         'In a gig\'s Crew tab, "Hours" lists everyone\'s days. Each waiting day shows its split (normal, overtime, night, weekend, holiday) and its cost. Tap "Approve", or "Send back" with a note. You can also log hours for anyone on the gig.',
         'Approved days lock with their split and cost. "Labour cost" now shows the actual cost from approved hours next to the planned one: agreed fees per day or hour, fixed fees once, plus travel and km.',
-        'In the organisation, "Hours" (admins) shows everyone per month with their hours and approved cost. Download a CSV for payroll; the organisation export has the hours too. Set the night window, the rate per km and your own holidays in the organisation\'s settings under "Crew rates".',
+        'In the organisation, "Hours" (admins) shows everyone per month with their hours and approved cost. Download a CSV for payroll (on a phone, under ⋯); the organisation export has the hours too. Set the night window, the rate per km and your own holidays in the organisation\'s settings under "Crew rates".',
       ],
       mistakes: [
         'Changing a rate later never changes an approved day: the cost stays as it was approved.',
@@ -540,7 +542,7 @@ export default {
       title: 'Find your call time and the call sheet',
       intro: 'Your call time is when you must be there. The call sheet has the day\'s plan and everyone\'s phone number.',
       steps: [
-        'In "My work", your next gig is at the top, with your call time in green. "Call sheet" opens it straight away; "Open the gig" shows everything else.',
+        'In "My work", your next gig is at the top, with your call time in green. "Call sheet" opens it straight away; "Open the gig" (under ⋯) shows everything else.',
         'On the gig, your call time is under the gig\'s name, in green.',
         'Tap Schedule to see the running order. Tap "Call sheet" for the full sheet.',
         'The call sheet shows the schedule and the crew with their phones. You can print it or save it as a PDF.',
@@ -654,7 +656,7 @@ export default {
       ],
       mistakes: [
         'Changing a certificate\'s name or expiry date removes its confirmations and checks: they were for the certificate as it was.',
-        'See a fake profile or a dodgy job? Tap Report under it. You stop seeing it at once and AVX looks into it; nobody is told who reported.',
+        'See a fake profile or a dodgy job? Tap Report under it (on a crew profile, under ⋯). You stop seeing it at once and AVX looks into it; nobody is told who reported.',
       ],
     },
     'crew-profile': {
@@ -713,7 +715,7 @@ export default {
       title: 'Report damaged equipment',
       intro: 'Something broke on site? Tell the warehouse straight away, so it is repaired before the next job.',
       steps: [
-        'In "My work", tap "Report damage" on your next gig. For another gig, open it, tap Equipment, then "Report damage".',
+        'In "My work", tap ⋯ on your next gig, then "Report damage". For another gig, open it, tap Equipment, then "Report damage".',
         'Choose the item. For gear with its own label, type the code from the label. For cables and other counted items, say how many.',
         'Say what is wrong and add a photo if you can. Tap Send. The organisation\'s admins are notified.',
       ],
@@ -944,7 +946,7 @@ export default {
       title: 'Import your equipment from a spreadsheet or another tool',
       intro: 'Bring your locations, catalogue, serial numbers and kits into AVX in one go, from an Excel or CSV export (Rentman, another rental tool or a spreadsheet), instead of typing them in.',
       steps: [
-        'In Inventory, tap Import. Import in this order: locations, then equipment, then units (serial numbers), then kit contents, because each one refers to the ones before.',
+        'In Inventory, tap Import (on a phone, under ⋯). Import in this order: locations, then equipment, then units (serial numbers), then kit contents, because each one refers to the ones before.',
         'Choose what you are importing, then choose the file (Excel .xlsx or CSV; from Excel the first sheet is read) or paste the rows from your spreadsheet (with their headings).',
         'AVX guesses what each column is, also from Dutch or Portuguese headings. Check the guesses and change any that are wrong. Save the matching with a name ("Rentman equipment export") so the next file needs none.',
         'The check shows what will be new, what matches what is already in AVX, and which rows have problems (they are left out). Import, then read the report. Fix the skipped rows in the file and import it again: what is already in AVX is matched, not doubled.',
@@ -1064,7 +1066,7 @@ export default {
       title: 'Set up your company details',
       intro: 'Your details are printed at the top of every quote. Set them once; new quotes use them.',
       steps: [
-        'Open Quotes → Company details (only admins can change them).',
+        'Open Quotes → Company details (on a phone, under ⋯) (only admins can change them).',
         'Fill in the legal name, VAT number, address, phone and website, the default VAT and how long quotes are valid.',
         'Write your default terms and conditions, then save.',
       ],
@@ -1089,7 +1091,7 @@ export default {
       intro: 'Type a client once and pick them on every quote. Suppliers live here too, for subrentals.',
       steps: [
         'Open Contacts (in the Quotes menu). Clients and Suppliers each have a tab. Tap "New client" to add one: the company or name, the contact person, e-mail, phone, tax number and address.',
-        'Moving from another tool or a spreadsheet? Tap Import and bring them in from the export. Already have quotes? "Add them to contacts" turns the clients typed on them into contacts and links those quotes.',
+        'Moving from another tool or a spreadsheet? Tap Import (on a phone, under ⋯) and bring them in from the export. Already have quotes? "Add them to contacts" turns the clients typed on them into contacts and links those quotes.',
         'On a quote, in Details, pick the client from "Client from contacts": their details are filled in. A client typed by hand can be kept with "Save to contacts".',
         'Open a client to see their quotes. Archive the ones you no longer work with: they stay on old quotes but leave the lists.',
       ],
@@ -1119,18 +1121,21 @@ export default {
         'Open Quotes, tap "New quote", type the title and the client, and start blank or from a template.',
         'Name the first phase and set its dates. Add sections (Audio, Lighting, Crew) and lines, from the price list or typed.',
         'Use the factor for days or hours (3 days = factor 3) and a discount per line, per phase or on the total.',
-        'In Details, check the client, the VAT and the validity. "Preview & print" shows what the client will see.',
+        'In Details, check the client, the VAT and the validity. "Preview & print" (in the ⋯ menu on a phone) shows what the client will see.',
       ],
       mistakes: [
         'An optional phase is priced separately and is not in the total. Use it for extras the client may add.',
         'The quote saves by itself. If someone else edits it at the same time, AVX asks you to reload.',
+        'Client said no? On a declined quote, ⋯ → Revise and resend puts it back to draft to change and send again; the old versions and the client\'s answer stay.',
+        'Deleted a draft by mistake? It waits in Quotes → Recently deleted for 15 days: tap Restore.',
+        'A sent or accepted quote can\'t be deleted: use ⋯ → Cancel quote. It stays in the list as Cancelled and counts nowhere.',
       ],
     },
     'of-versions': {
       title: 'Keep versions of a quote',
       intro: 'A version is a frozen copy of the quote as the client would see it. Go back to one at any time.',
       steps: [
-        'Before a big change, open the quote and tap Versions.',
+        'Before a big change, open the quote, tap ⋯ (More actions) and then Versions.',
         'Add a note (for example "Before cutting the LED wall") and tap "Save version". Every quote you send is saved as a version too.',
         'To go back, open a version with View, then Restore. What you have now is saved as a new version first.',
       ],
@@ -1142,7 +1147,7 @@ export default {
       title: 'Send a quote to the client',
       intro: 'The client gets a private link to the quote, where they can print it and accept or decline.',
       steps: [
-        'Check the quote with "Preview & print".',
+        'Check the quote with "Preview & print" (on a phone it is in the ⋯ menu).',
         'Tap "Send to client", type their email and tap "Send quote". To send the link yourself, untick the email and tap "Create link".',
         'You are notified when the client accepts or declines. The client can also write to you from the quote\'s page.',
         'If the client declines, or you mark the quote Declined, AVX asks why it was lost (optional). Over time this shows why quotes are lost.',
@@ -1156,8 +1161,8 @@ export default {
       title: 'From accepted quote to gig',
       intro: 'Once the client accepts, turn the quote into a gig with its schedule, crew positions and equipment.',
       steps: [
-        'Open the accepted quote and tap "Create gig". The gig gets the quote\'s title, its dates and the client\'s name, and stays linked to the quote.',
-        'AVX then offers to fill the gig (later: "Fill gig from quote"). Untick anything you don\'t want, or change titles and numbers.',
+        'Open the accepted quote and tap "Create gig" (on a phone, in the ⋯ menu). The gig gets the quote\'s title, its dates and the client\'s name, and stays linked to the quote.',
+        'AVX then offers to fill the gig (later: ⋯ → "Fill gig from quote"). Untick anything you don\'t want, or change titles and numbers.',
         'Tap "Add to the gig": the phases become schedule items, the crew lines become positions to fill and the catalogue lines become planned equipment.',
       ],
       mistakes: [

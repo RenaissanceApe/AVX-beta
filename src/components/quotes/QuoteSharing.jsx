@@ -11,7 +11,7 @@ import { useI18n } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
-const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+const small = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
 
 // Saved versions of a quote: save the current state with a note, view an old one,
 // or restore it (the current state is saved as a version first, so nothing is lost).
@@ -83,7 +83,7 @@ export function VersionsModal({ quoteId, prepare, currency, onRestore, onClose }
           : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {versions.map(v => (
-                <div key={v.id} style={{ ...card, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div key={v.id} style={{ ...card, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <History size={15} color={colors.soft} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: '14px' }}>
@@ -206,10 +206,10 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
   return (
     <Modal title={t('send.title')} onClose={onClose} maxWidth={560}>
       {result ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '18px' }}>
           <p style={{ fontSize: '14px', lineHeight: 1.5 }}>{result.emailed ? t('send.doneEmailed', { email: email.trim() }) : t('send.doneLink')}</p>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <input readOnly value={result.link} aria-label={t('send.link')} onFocus={e => e.target.select()} style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '12px' }} />
+            <input readOnly value={result.link} aria-label={t('send.link')} onFocus={e => e.target.select()} style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '13px' }} />
             <button onClick={copy} style={btn}>{copied ? <Check size={14} /> : <Copy size={14} />} {copied ? t('send.copied') : t('send.copy')}</button>
           </div>
           <p style={small}>{t('send.linkOnce')}</p>

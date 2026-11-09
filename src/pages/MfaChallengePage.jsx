@@ -52,8 +52,8 @@ export default function MfaChallengePage() {
         <button type="submit" disabled={busy || code.length !== 6 || !factorId} style={{ ...btnPrimary, width: '100%', justifyContent: 'center', marginTop: '14px' }}>
           {busy ? <AvxLoader size={16} /> : <ShieldCheck size={16} />} {t('mfa.verify')}
         </button>
-        <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.6, marginTop: '16px' }}>{t('mfa.lostDevice')}</p>
-        <button type="button" onClick={signOut} style={{ background: 'none', border: 'none', color: colors.soft, fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px', padding: 0 }}>
+        <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, marginTop: '16px' }}>{t('mfa.lostDevice')}</p>
+        <button type="button" onClick={signOut} style={{ background: 'none', border: 'none', color: colors.soft, fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: 0 }}>
           <LogOut size={14} /> {t('mfa.signOutAs', { email: user?.email || '' })}
         </button>
       </form>

@@ -10,7 +10,7 @@ import { useRateCard } from '../../lib/useCrewRates'
 import { personActual } from '../../lib/timeRegistration'
 import { useI18n, fmt } from '../../i18n'
 import { PAID_HOW } from '../../lib/expenses'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader, Section } from '../ui'
 import ExpenseForm from '../expenses/ExpenseForm'
 
 const money = (v, lang) => formatMoney(v, 'EUR', lang)
@@ -73,18 +73,16 @@ export function LabourCost({ gig, members, nameOf, refreshKey, canFinance = fals
   const actual = actuals.some(a => a != null) ? Math.round(actuals.reduce((s, a) => s + (a || 0), 0) * 100) / 100 : null
 
   return (
-    <section aria-labelledby="labour-title" style={{ ...card, padding: '14px 16px', marginTop: '16px' }}>
-      <h3 id="labour-title" style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-        <Coins size={15} color="var(--accent-text)" /> {t('labour.title')}
-      </h3>
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>{t('labour.intro')}</p>
-      <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {lines.map(l => (
-          <li key={l.member.user_id} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', fontSize: '14px' }}>
+    // A section on the page ground with hairline rows (DESIGN.md "One box deep")
+    <Section id="labour-title" level={3} title={t('labour.title')}>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: '0 0 var(--space-2)' }}>{t('labour.intro')}</p>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        {lines.map((l, i) => (
+          <li key={l.member.user_id} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', fontSize: '14px', padding: 'var(--space-3) 0', borderTop: i > 0 ? `1px solid ${colors.border}` : 'none' }}>
             <span style={{ flex: '1 1 150px', minWidth: 0 }}>
               <span style={{ fontWeight: 600 }}>{nameOf(l.member.user_id)}</span>
               {l.member.function_title && <span style={{ color: colors.muted }}> · {l.member.function_title}</span>}
-              <span style={{ display: 'block', fontSize: '12px', color: l.source ? colors.muted : 'var(--warn)' }}>
+              <span style={{ display: 'block', fontSize: '13px', color: l.source ? colors.muted : 'var(--warn)' }}>
                 {l.source === 'agreed' ? t('labour.agreed', { text: feeText(l.fee, t, lang) })
                   : l.source === 'card' ? t('labour.fromCard', { text: feeText(l.suggestion, t, lang) }) + (l.suggestion.weekendDays ? ` ${t('labour.weekendDays', { count: l.suggestion.weekendDays })}` : '')
                   : t('labour.noRate')}
@@ -92,15 +90,15 @@ export function LabourCost({ gig, members, nameOf, refreshKey, canFinance = fals
             </span>
             <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>
               {l.total != null ? money(l.total, lang) : '—'}
-              {actualOf(l) != null && <span style={{ display: 'block', fontSize: '12px', fontWeight: 400, color: colors.muted }}>{t(invoiceOf(l) ? 'labour.invoicedShort' : 'labour.actualShort', { amount: money(actualOf(l), lang) })}</span>}
+              {actualOf(l) != null && <span style={{ display: 'block', fontSize: '13px', fontWeight: 400, color: colors.muted }}>{t(invoiceOf(l) ? 'labour.invoicedShort' : 'labour.actualShort', { amount: money(actualOf(l), lang) })}</span>}
               {canFinance && paidOn(l) && (
-                <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: colors.accentText }}>
+                <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: colors.accentText }}>
                   {t('labour.paidOn', { date: fmt(paidOn(l), 'd MMM yyyy') })}{receivedOf(l) && ` · ${t('labour.receivedShort')}`}
                 </span>
               )}
             </span>
             {canFinance && l.source === 'agreed' && (
-              <button type="button" onClick={() => setPaying(l)} style={{ ...btn, padding: '4px 8px', fontSize: '12px' }}
+              <button type="button" onClick={() => setPaying(l)} style={{ ...btn, padding: '4px 8px', fontSize: '13px' }}
                 aria-label={paidOn(l) ? t('labour.paidFor', { name: nameOf(l.member.user_id) }) : t('labour.markPaidFor', { name: nameOf(l.member.user_id) })}>
                 <BadgeCheck size={13} aria-hidden="true" /> {paidOn(l) ? t('labour.paid') : t('labour.markPaid')}
               </button>
@@ -128,8 +126,8 @@ export function LabourCost({ gig, members, nameOf, refreshKey, canFinance = fals
           </dd></>
         )}
       </dl>
-      {sum.missing > 0 && <p style={{ fontSize: '12px', color: 'var(--warn)', marginTop: '6px' }}>{t('labour.missing', { count: sum.missing })}</p>}
-      {!crew && gig.org_id && <p style={{ fontSize: '12px', color: colors.muted, marginTop: '6px' }}>{t('labour.noQuote')}</p>}
+      {sum.missing > 0 && <p style={{ fontSize: '13px', color: 'var(--warn)', marginTop: '6px' }}>{t('labour.missing', { count: sum.missing })}</p>}
+      {!crew && gig.org_id && <p style={{ fontSize: '13px', color: colors.muted, marginTop: '6px' }}>{t('labour.noQuote')}</p>}
       {invoicing && (
         <ExpenseForm orgId={gig.org_id} onClose={() => setInvoicing(null)} onSaved={load}
           preset={{ gig_id: gig.id, gigs: [{ id: gig.id, name: gig.name, start_date: gig.start_date }], link_kind: 'crew_fee', link_id: invoicing.member.user_id,
@@ -144,7 +142,7 @@ export function LabourCost({ gig, members, nameOf, refreshKey, canFinance = fals
         <FeeModal gigId={gig.id} line={editing} name={nameOf(editing.member.user_id)} exists={fees.some(f => f.user_id === editing.member.user_id)}
           onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load() }} />
       )}
-    </section>
+    </Section>
   )
 }
 
@@ -173,7 +171,7 @@ function FeeModal({ gigId, line, name, exists, onClose, onSaved }) {
   return (
     <Modal title={t('labour.feeFor', { name })} onClose={onClose}>
       <form onSubmit={e => { e.preventDefault(); if (ok) save({ unit: form.unit, rate, quantity, note: form.note }) }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
           <div>
             <label htmlFor="fee-unit" style={label}>{t('labour.unitLabel')}</label>
             <select id="fee-unit" value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} style={{ ...input, appearance: 'auto' }}>
@@ -196,7 +194,7 @@ function FeeModal({ gigId, line, name, exists, onClose, onSaved }) {
           <input id="fee-note" value={form.note} maxLength={300} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} placeholder={t('labour.notePlaceholder')} style={input} />
         </div>
         {ok && <p style={{ fontSize: '14px', margin: 0 }}>{t('labour.total')}: <strong>{formatMoney(feeTotal({ unit: form.unit, rate, quantity }), 'EUR')}</strong></p>}
-        <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{t('labour.feeHint')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{t('labour.feeHint')}</p>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button type="submit" disabled={saving || !ok} style={{ ...btnPrimary, flex: 1, justifyContent: 'center' }}>
             {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('common.save')}
@@ -238,7 +236,7 @@ export function PaidModal({ gig, line, name, invoice, paidOn, onClose, onSaved }
   if (paidOn) return (
     <Modal title={t('labour.paidTitle', { name })} onClose={onClose}>
       <p style={{ fontSize: '14px', marginTop: 0 }}>{t('labour.paidOn', { date: fmt(paidOn, 'd MMM yyyy') })}</p>
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('labour.unpayHint')}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5 }}>{t('labour.unpayHint')}</p>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button type="button" onClick={onClose} style={{ ...btnPrimary, flex: 1, justifyContent: 'center' }}>{t('common.close')}</button>
         <button type="button" disabled={saving} onClick={() => save(false)} style={btn}>{t('labour.unpay')}</button>
@@ -248,7 +246,7 @@ export function PaidModal({ gig, line, name, invoice, paidOn, onClose, onSaved }
   return (
     <Modal title={t('labour.markPaidTitle', { name })} onClose={onClose}>
       <form onSubmit={e => { e.preventDefault(); if (ok) save(true) }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
           <div>
             <label htmlFor="paid-date" style={label}>{t('labour.paidDate')}</label>
             <input id="paid-date" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} style={input} required />
@@ -272,7 +270,7 @@ export function PaidModal({ gig, line, name, invoice, paidOn, onClose, onSaved }
             </>
           )}
         </div>
-        <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{t(invoice ? 'labour.markPaidInvoiceHint' : 'labour.markPaidHint')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: 0 }}>{t(invoice ? 'labour.markPaidInvoiceHint' : 'labour.markPaidHint')}</p>
         <button type="submit" disabled={saving || !ok} style={{ ...btnPrimary, justifyContent: 'center' }}>
           {saving ? <AvxLoader size={15} /> : <Check size={15} />} {t('labour.markPaid')}
         </button>
@@ -312,8 +310,8 @@ export function MyFee({ gigId, userId }) {
 
   if (!fee || fee.rate == null) return null
   return (
-    <div style={{ ...card, padding: '10px 14px', fontSize: '14px', marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-      <Coins size={15} color="var(--accent-text)" aria-hidden="true" />
+    <Section id="my-fee" style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+      <Coins size={16} color="var(--muted)" aria-hidden="true" />
       <span>{t('labour.myFee')}: <strong>{formatMoney(feeTotal(fee), 'EUR', lang)}</strong></span>
       {fee.unit !== 'fixed' && <span style={{ color: colors.muted, fontSize: '13px' }}>({feeText(fee, t, lang)})</span>}
       {status?.paid_on && (
@@ -322,10 +320,10 @@ export function MyFee({ gigId, userId }) {
           <span style={{ fontWeight: 600, color: colors.accentText }}>{t('labour.paidOn', { date: fmt(status.paid_on, 'd MMM yyyy') })}</span>
           {status.received_at
             ? <><span>{t('labour.receivedOn', { date: fmt(status.received_at, 'd MMM yyyy') })}</span>
-              <button type="button" disabled={saving} onClick={() => markReceived(false)} style={{ ...btn, padding: '3px 8px', fontSize: '12px' }}>{t('labour.notReceived')}</button></>
-            : <button type="button" disabled={saving} onClick={() => markReceived(true)} style={{ ...btn, padding: '3px 8px', fontSize: '12px' }}><Check size={13} aria-hidden="true" /> {t('labour.markReceived')}</button>}
+              <button type="button" disabled={saving} onClick={() => markReceived(false)} style={{ ...btn, padding: '4px 8px', fontSize: '13px' }}>{t('labour.notReceived')}</button></>
+            : <button type="button" disabled={saving} onClick={() => markReceived(true)} style={{ ...btn, padding: '4px 8px', fontSize: '13px' }}><Check size={13} aria-hidden="true" /> {t('labour.markReceived')}</button>}
         </span>
       )}
-    </div>
+    </Section>
   )
 }

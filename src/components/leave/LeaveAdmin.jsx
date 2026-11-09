@@ -9,11 +9,12 @@ import { track } from '../../lib/usage'
 import { DEFAULT_ALLOWANCE, DEFAULT_WEEK, WEEKDAYS, decideLeave, leaveError, leaveRange } from '../../lib/leave'
 import { useI18n, fmt } from '../../i18n'
 import { HintLabel } from '../help/HelpParts'
-import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors, AvxLoader } from '../ui'
+import { Modal, btn, btnPrimary, btnDanger, input, label, colors, AvxLoader } from '../ui'
 import { TypeChip, daysText } from './LeaveParts'
 
-const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
-const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
+// Page sections on the page ground, no card (DESIGN.md rule 2)
+const section = { display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }
+const h2 = { font: '700 16px/24px var(--font-mono)', margin: 0 }
 // 1 January 2024 was a Monday: weekday names in the UI language
 const dayName = (d, pattern = 'EEE') => fmt(new Date(2024, 0, d), pattern)
 export function weekText(days, t) {
@@ -59,12 +60,12 @@ export function LeaveRequests({ orgId, version, onChanged }) {
 
   if (!list || list.length === 0) return null
   return (
-    <section style={section} aria-labelledby="leave-requests">
+    <section className="avx-section" style={section} aria-labelledby="leave-requests">
       <h2 id="leave-requests" style={h2}>{t('leave.waitingForYou', { count: list.length })}</h2>
       <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column' }}>
         {list.map(l => (
-          <li key={l.id} style={{ padding: '8px 0', borderTop: `1px solid ${colors.border}`, display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px' }}>
-            <span style={{ display: 'flex', gap: '6px 10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <li key={l.id} style={{ padding: '8px 0', borderTop: `1px solid ${colors.border}`, display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px' }}>
+            <span style={{ display: 'flex', gap: '8px 12px', alignItems: 'center', flexWrap: 'wrap' }}>
               <strong>{names[l.user_id] || '…'}</strong>
               <span>{leaveRange(l, t, fmt)}</span>
               <TypeChip type={l.type} />
@@ -131,8 +132,8 @@ export function LeaveBalances({ orgId, version, onChanged }) {
   }
 
   return (
-    <section style={section} aria-labelledby="leave-balances">
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
+    <section className="avx-section" style={section} aria-labelledby="leave-balances">
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', flexWrap: 'wrap' }}>
         <h2 id="leave-balances" style={{ ...h2, flex: '1 1 160px' }}>{t('leave.balances')}</h2>
         <div>
           <label htmlFor="leave-year" style={label}>{t('leave.year')}</label>
@@ -227,7 +228,7 @@ function PersonLeaveForm({ orgId, year, row, onSaved, onClose }) {
         </div>
         <fieldset style={{ gridColumn: '1 / -1', border: 'none', padding: 0, margin: 0 }}>
           <legend style={{ ...label, marginBottom: '6px' }}>{t('leave.workWeek')}</legend>
-          <span style={{ display: 'flex', gap: '6px 12px', flexWrap: 'wrap', fontSize: '13px' }}>
+          <span style={{ display: 'flex', gap: '8px 12px', flexWrap: 'wrap', fontSize: '13px' }}>
             {WEEKDAYS.map(d => (
               <label key={d} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <input type="checkbox" checked={week.includes(d)} onChange={() => toggle(d)} /> {dayName(d)}

@@ -98,7 +98,7 @@ export function SavedViewsSection({ orgId, saved }) {
   return (
     <section aria-labelledby="rp-views" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        <h2 id="rp-views" style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
+        <h2 id="rp-views" style={{ font: '700 16px/24px var(--font-mono)', margin: 0 }}>
           {t('reports.views.title')}
         </h2>
         <Hint id="saved-view" label={t('reports.views.title')} />
@@ -116,7 +116,7 @@ export function SavedViewsSection({ orgId, saved }) {
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '8px' }}>
               {pinned.map(v => (
                 <li key={v.id} style={{ minWidth: 0 }}>
-                  <Link to={viewHref(orgId, v)} style={{ ...card, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '2px', height: '100%', boxSizing: 'border-box', color: 'var(--text)', textDecoration: 'none' }}>
+                  <Link to={viewHref(orgId, v)} style={{ ...card, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '4px', height: '100%', boxSizing: 'border-box', color: 'var(--text)', textDecoration: 'none' }}>
                     <span style={{ fontSize: '14px', fontWeight: 600, overflowWrap: 'anywhere' }}>{v.name}</span>
                     <span style={{ fontSize: '11px', color: colors.muted }}>{t(`reports.tab.${v.tab}`)}</span>
                   </Link>
@@ -126,7 +126,7 @@ export function SavedViewsSection({ orgId, saved }) {
           )}
       {managing && (
         <Modal title={t('reports.views.title')} onClose={() => setManaging(false)}>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {saved.views.map(v => (
               <li key={v.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: `1px solid ${colors.line}`, padding: '6px 0' }}>
                 <span style={{ flex: '1 1 auto', minWidth: 0 }}>
@@ -135,10 +135,10 @@ export function SavedViewsSection({ orgId, saved }) {
                     {t(`reports.tab.${v.tab}`)} · {v.pinned ? t('reports.views.pinned') : t('reports.views.notPinned')}
                   </span>
                 </span>
-                <button type="button" onClick={() => togglePin(v)} aria-label={`${v.pinned ? t('reports.views.unpin') : t('reports.views.pin')}: ${v.name}`} style={{ ...btn, padding: '6px 8px', fontSize: '12px' }}>
+                <button type="button" onClick={() => togglePin(v)} aria-label={`${v.pinned ? t('reports.views.unpin') : t('reports.views.pin')}: ${v.name}`} style={{ ...btn, padding: '6px 8px', fontSize: '13px' }}>
                   {v.pinned ? <PinOff size={13} aria-hidden="true" /> : <Pin size={13} aria-hidden="true" />} {v.pinned ? t('reports.views.unpin') : t('reports.views.pin')}
                 </button>
-                <button type="button" onClick={() => remove(v)} aria-label={`${t('reports.views.remove')}: ${v.name}`} style={{ ...btn, padding: '6px 8px', fontSize: '12px' }}>
+                <button type="button" onClick={() => remove(v)} aria-label={`${t('reports.views.remove')}: ${v.name}`} style={{ ...btn, padding: '6px 8px', fontSize: '13px' }}>
                   <Trash2 size={13} aria-hidden="true" /> {t('reports.views.remove')}
                 </button>
               </li>

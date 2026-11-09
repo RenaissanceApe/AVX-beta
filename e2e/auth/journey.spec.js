@@ -136,7 +136,9 @@ test('the organisation builds a quote, saves it as a template and prints it', as
   await expect(page.locator('footer')).toContainText('€200.00')
   await expect(page.getByRole('status').filter({ hasText: /^\s*Saved\s*$/ })).toBeVisible({ timeout: 10_000 })
 
-  await page.getByRole('button', { name: 'Save as template' }).click()
+  // DR4: past Send, Preview and the gig, the quote's actions are in its ⋯ menu
+  await page.getByRole('button', { name: 'More actions', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Save as template' }).click()
   await page.getByRole('dialog', { name: 'Save as template' }).getByRole('button', { name: 'Save template' }).click()
   await expect(page.getByText(/Template ".*" saved/)).toBeVisible()
 
@@ -144,6 +146,59 @@ test('the organisation builds a quote, saves it as a template and prints it', as
   await expect(page).toHaveURL(/\/print$/)
   await expect(page.getByRole('heading', { name: `E2E Quote ${run}` })).toBeVisible()
   await expect(page.locator('.totals')).toContainText('€246.00')
+})
+
+// Quote bin (issue 124): Delete moves a quote to Recently deleted, where it can be restored
+test('a deleted quote waits in Recently deleted and can be restored', async ({ page }) => {
+  const title = `E2E Bin ${run}`
+  await english(page)
+  await signIn(page, pm)
+  await page.getByRole('button', { name: 'Quotes' }).click()
+  await page.getByRole('link', { name: /^Quotes/ }).first().click()
+  await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}\/quotes$/)
+  await page.getByRole('button', { name: 'New quote' }).first().click()
+  const dialog = page.getByRole('dialog', { name: 'New quote' })
+  await dialog.getByPlaceholder(/Annual conference/).fill(title)
+  await dialog.getByRole('button', { name: 'Create quote' }).click()
+  await expect(page).toHaveURL(/\/quote\/[0-9a-f-]{36}$/, { timeout: 15_000 })
+
+  // Delete: a browser confirm, then back to the list without it
+  page.once('dialog', d => d.accept())
+  await page.getByRole('button', { name: 'More actions', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Delete' }).click()
+  await expect(page.getByText('Quote moved to Recently deleted.')).toBeVisible()
+  await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}\/quotes$/)
+  await expect(page.getByRole('button', { name: new RegExp(title) })).toHaveCount(0)
+
+  // It's in Recently deleted, with the date it will be erased
+  await page.getByRole('button', { name: 'Recently deleted' }).click()
+  await expect(page).toHaveURL(/tab=bin/)
+  const bin = page.getByRole('list', { name: 'Recently deleted' })
+  await expect(bin.getByText(title)).toBeVisible({ timeout: 15_000 })
+  await expect(bin.getByText(/Erased for good on/)).toBeVisible()
+  await expectAccessible(page)
+
+  // Restore: it leaves the bin and is back in the list
+  await bin.getByRole('button', { name: new RegExp(`^Restore .*${title}`) }).click()
+  await expect(page.getByText('Quote restored.')).toBeVisible()
+  await expect(page.getByText('Nothing in Recently deleted')).toBeVisible()
+  await page.getByRole('button', { name: 'Back to quotes' }).click()
+  await expect(page.getByRole('button', { name: new RegExp(title) })).toBeVisible()
+
+  // Only a draft can be deleted: once sent, the ⋯ menu offers Cancel quote instead of Delete
+  await page.getByRole('button', { name: new RegExp(title) }).click()
+  await expect(page).toHaveURL(/\/quote\/[0-9a-f-]{36}$/, { timeout: 15_000 })
+  await page.getByRole('combobox', { name: 'Status' }).selectOption('sent')
+  await expect(page.getByRole('status').filter({ hasText: /^\s*Saved\s*$/ })).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('button', { name: 'More actions', exact: true }).click()
+  await expect(page.getByRole('menuitem', { name: 'Delete' })).toHaveCount(0)
+  page.once('dialog', d => d.accept())
+  await page.getByRole('menuitem', { name: 'Cancel quote' }).click()
+  await expect(page.getByText('Quote cancelled.')).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Status' })).toHaveValue('cancelled')
+  // It stays in the list, shown as Cancelled
+  await page.getByRole('button', { name: 'Back to quotes' }).click()
+  await expect(page.getByRole('button', { name: new RegExp(title) })).toContainText('Cancelled')
 })
 
 test('a gig opened before stays readable offline', async ({ page, context }) => {
@@ -311,13 +366,17 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   await page.getByRole('menuitemradio', { name: new RegExp(ORG) }).click()
   await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}$/)
   const home = page.url()
-  // The key numbers on the organisation's Home, folded and unfolded
+  // The key numbers on the organisation's Home; hidden and shown again with Arrange home
   const strip = page.locator('section[aria-labelledby="key-numbers"]')
   await expect(strip.getByText('Gigs this month', { exact: true })).toBeVisible({ timeout: 15_000 })
-  await strip.getByRole('button', { name: 'Key numbers' }).click()
-  await expect(strip.getByText('Gigs this month', { exact: true })).toHaveCount(0)
-  await strip.getByRole('button', { name: 'Key numbers' }).click()
-  // Unfolding reloads the key numbers: let them arrive before Reports loads its own copy
+  await page.getByRole('button', { name: 'Arrange home' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Arrange home' })
+  await expectAccessible(page)
+  await sheet.getByRole('switch', { name: 'Show Key numbers' }).click()
+  await expect(strip).toHaveCount(0)
+  await sheet.getByRole('button', { name: 'Back to the standard' }).click()
+  await sheet.getByRole('button', { name: 'Done', exact: true }).click()
+  // Shown again, it reloads the key numbers: let them arrive before Reports loads its own copy
   await expect(strip.getByText('Gigs this month', { exact: true })).toBeVisible({ timeout: 30_000 })
   await strip.getByRole('link', { name: 'All reports' }).click()
   await expect(page).toHaveURL(/\/reports$/)
@@ -477,8 +536,9 @@ test('the logo goes home and the workspace switcher lists My work and the organi
   await page.getByRole('menuitemradio', { name: /My work/ }).click()
   await expect(page).toHaveURL(/\/me$/)
   // The PM created the gig, so it is one of their own gigs, labelled with the company and their role
-  await expect(page.getByText(GIG).first()).toBeVisible()
-  await expect(page.getByText(ORG).first()).toBeVisible()
+  // (15 s like the other home checks: the test project can be slow to answer, #114)
+  await expect(page.getByText(GIG).first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(ORG).first()).toBeVisible({ timeout: 15_000 })
 })
 
 test('the user can delete their account and everything they created', async ({ page }) => {

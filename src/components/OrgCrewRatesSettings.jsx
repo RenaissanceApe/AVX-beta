@@ -90,22 +90,22 @@ export default function OrgCrewRatesSettings({ org }) {
   }
 
   return (
-    <section aria-labelledby="org-rates" style={{ marginTop: '20px', paddingTop: '16px', borderTop: `1px solid ${colors.border}` }}>
-      <h3 id="org-rates" style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><Coins size={13} /> {t('rates.title')}</h3>
+    <section aria-labelledby="org-rates" style={{ marginTop: 'var(--space-section)' }}>
+      <h3 id="org-rates" style={{ font: '700 16px/24px var(--font-mono)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 8px' }}><Coins size={16} aria-hidden="true" /> {t('rates.title')}</h3>
       <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>{t('rates.intro')}</p>
       {card.loaded && card.rates.length === 0 && <p style={{ fontSize: '13px', color: colors.muted, marginBottom: '8px' }}>{t('rates.empty')}</p>}
       {card.rates.length > 0 && (
-        <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px', marginBottom: '4px' }}>
+        <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', marginBottom: '4px' }}>
           {AMOUNTS.map(k => <span key={k} style={{ ...label, fontSize: '11px', marginBottom: 0 }}>{t(`rates.${k}`)}</span>)}
         </div>
       )}
       {card.rates.length > 0 && (
-        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
+        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '12px' }}>
           {card.rates.map(r => (
-            <li key={r.id} style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+            <li key={r.id} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
               <span style={{ flex: '1 1 160px', minWidth: 0, fontSize: '14px', fontWeight: 600, overflowWrap: 'anywhere' }}>{rateName(r)}</span>
               <button type="button" onClick={() => remove(r)} disabled={busy} aria-label={t('rates.remove', { name: rateName(r) })} style={iconBtn}><Trash2 size={14} /></button>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px', width: '100%' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', width: '100%' }}>
                 {AMOUNTS.map(k => (
                   <input key={`${k}:${r[k]}`} defaultValue={amountInput(r[k])} inputMode="decimal" disabled={busy}
                     aria-label={t(`rates.${k}Of`, { name: rateName(r) })} placeholder="—"
@@ -116,7 +116,7 @@ export default function OrgCrewRatesSettings({ org }) {
           ))}
         </ul>
       )}
-      <form onSubmit={add} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px', alignItems: 'end' }}>
+      <form onSubmit={add} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', alignItems: 'end' }}>
         <div>
           <label htmlFor="rate-fn" style={{ ...label, fontSize: '11px' }}>{t('rates.function')}</label>
           <input id="rate-fn" list="rate-fns" value={draft.function_title} maxLength={120} placeholder={t('rates.functionPlaceholder')}
@@ -139,13 +139,13 @@ export default function OrgCrewRatesSettings({ org }) {
         ))}
         <button type="submit" disabled={busy || !draftOk} style={{ ...btn, justifyContent: 'center' }}><Plus size={14} /> {t('labels.add')}</button>
       </form>
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginTop: '8px' }}>{t('rates.hint')}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginTop: '8px' }}>{t('rates.hint')}</p>
 
       {factors && (
         <form onSubmit={saveFactors} style={{ marginTop: '14px' }}>
           <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>{t('rates.factors')}</h4>
-          <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '8px' }}>{t('rates.factorsHint')}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '6px', alignItems: 'end' }}>
+          <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '8px' }}>{t('rates.factorsHint')}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '8px', alignItems: 'end' }}>
             {[...FACTOR_KEYS.slice(0, 1), 'overtime_after_hours', ...FACTOR_KEYS.slice(1)].map(k => (
               <div key={k}>
                 <label htmlFor={`factor-${k}`} style={{ ...label, fontSize: '11px' }}>{t(`rates.factor.${k}`)}</label>
@@ -200,8 +200,8 @@ function OrgHolidays({ orgId }) {
   if (!list) return null
   return (
     <div style={{ marginTop: '14px' }}>
-      <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><CalendarHeart size={13} aria-hidden="true" /> {t('holidays.title')}</h4>
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '8px' }}>{t('holidays.intro')}</p>
+      <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}><CalendarHeart size={13} aria-hidden="true" /> {t('holidays.title')}</h4>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '8px' }}>{t('holidays.intro')}</p>
       {list.length > 0 && (
         <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {list.map(h => (
@@ -213,7 +213,7 @@ function OrgHolidays({ orgId }) {
           ))}
         </ul>
       )}
-      <form onSubmit={add} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px', alignItems: 'end' }}>
+      <form onSubmit={add} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', alignItems: 'end' }}>
         <div>
           <label htmlFor="holiday-day" style={{ ...label, fontSize: '11px' }}>{t('holidays.day')}</label>
           <input id="holiday-day" type="date" value={draft.day} onChange={e => setDraft(d => ({ ...d, day: e.target.value }))} style={small} />

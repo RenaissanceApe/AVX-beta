@@ -73,7 +73,7 @@ export default function YearStatementPage() {
   return (
     <AppShell>
       <PrintStyles />
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <Link to={`/me/numbers?year=${year}`} className="no-print" style={{ fontSize: '13px', color: colors.muted, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
           <ArrowLeft size={14} aria-hidden="true" /> {t('myNumbers.title')}
         </Link>
@@ -83,7 +83,7 @@ export default function YearStatementPage() {
         <p style={{ fontSize: '14px', margin: 0 }}>
           {[profile?.full_name, orgName].filter(Boolean).join(' · ')}
         </p>
-        <div className="no-print" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div className="no-print" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div>
             <label htmlFor="st-year" style={label}>{t('myNumbers.year')}</label>
             <select id="st-year" value={year} onChange={e => set('year', e.target.value)} style={{ ...input, appearance: 'auto', width: 'auto' }}>
@@ -152,7 +152,7 @@ export default function YearStatementPage() {
                 </tbody>
               </table>
             </div>
-            <p style={{ fontSize: '12px', color: colors.muted, margin: 0, lineHeight: 1.5 }}>{t('statement.note')}</p>
+            <p style={{ fontSize: '13px', color: colors.muted, margin: 0, lineHeight: 1.5 }}>{t('statement.note')}</p>
           </>
         )}
       </div>

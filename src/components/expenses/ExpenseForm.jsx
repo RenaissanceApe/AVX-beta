@@ -20,7 +20,7 @@ import { HintLabel } from '../help/HelpParts'
 import { Modal, btn, btnPrimary, btnDanger, input, colors, AvxLoader } from '../ui'
 import { ReceiptLink } from './ExpenseParts'
 
-const field = { minWidth: 0, fontSize: '12px', color: colors.soft, display: 'flex', flexDirection: 'column', gap: '4px' }
+const field = { minWidth: 0, fontSize: '13px', color: colors.soft, display: 'flex', flexDirection: 'column', gap: '4px' }
 const full = { gridColumn: '1 / -1' }
 
 // Records that can be linked, per kind: [{ id, text }]
@@ -165,7 +165,7 @@ export default function ExpenseForm({ orgId, expense = null, preset = {}, claim 
   const title = isClaim ? (expense ? t('expenses.editClaim') : t('expenses.newClaim')) : expense ? t('expenses.edit') : t('expenses.add')
   return (
     <Modal title={title} onClose={onClose} maxWidth={560}>
-      <form onSubmit={submit} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
+      <form onSubmit={submit} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
         {isClaim && <p style={{ ...full, fontSize: '13px', color: colors.muted, margin: 0, lineHeight: 1.5 }}>{t('expenses.claimIntro')}</p>}
         {status === 'returned' && expense.review_note && (
           <p style={{ ...full, fontSize: '13px', color: colors.danger, margin: 0 }}>{t('expenses.returnedNote', { note: expense.review_note })}</p>
@@ -179,7 +179,7 @@ export default function ExpenseForm({ orgId, expense = null, preset = {}, claim 
         <label style={{ ...field, ...full }}>{t('expenses.description')}
           <input required value={form.description} onChange={e => set({ description: e.target.value })} maxLength={300} placeholder={t('expenses.descriptionPlaceholder')} style={input} />
         </label>
-        <div style={{ ...full, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
+        <div style={{ ...full, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
           {suppliers.length > 0 && (
             <label style={field}>{t('expenses.supplier')}
               <select value={form.supplier_id} onChange={e => set({ supplier_id: e.target.value })} style={input}>
@@ -219,7 +219,7 @@ export default function ExpenseForm({ orgId, expense = null, preset = {}, claim 
         <label style={field}>{t('expenses.totalWithVat')}
           <input inputMode="decimal" value={totalText !== '' ? totalText : form.amount_net !== '' ? String(total) : ''} onChange={e => onTotal(e.target.value)} style={input} />
         </label>
-        <p style={{ ...full, fontSize: '12px', color: colors.muted, margin: 0 }}>{t('expenses.vatHelp')}</p>
+        <p style={{ ...full, fontSize: '13px', color: colors.muted, margin: 0 }}>{t('expenses.vatHelp')}</p>
         {!isClaim && (
           <>
             <label style={field}>{t('expenses.currency')}
@@ -253,7 +253,7 @@ export default function ExpenseForm({ orgId, expense = null, preset = {}, claim 
           </label>
         )}
         {!isClaim && (
-          <div style={{ ...full, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ ...full, display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ minWidth: 0 }}>
               <HintLabel htmlFor="expense-link" hint="expense-link">{t('expenses.linkLabel')}</HintLabel>
               <select id="expense-link" value={form.link_kind} disabled={locked} onChange={e => set({ link_kind: e.target.value, link_id: '' })} style={input}>

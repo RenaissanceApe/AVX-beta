@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft, Printer, Copy, LayoutTemplate, Trash2, Plus, CalendarPlus, ExternalLink, AlertTriangle, Download,
-  History, Send, ListChecks, Package,
+  History, Send, ListChecks, Package, Ban, RotateCcw,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { selectAll } from '../lib/selectAll'
@@ -10,7 +10,7 @@ import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { useI18n } from '../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader } from '../components/ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, colors, AvxLoader, MoreMenu, space, usePhone } from '../components/ui'
 import PhaseEditor, { QUOTE_EDITOR_CSS } from '../components/quotes/PhaseEditor'
 import QuoteDetails from '../components/quotes/QuoteDetails'
 import QuoteInvoices from '../components/invoices/QuoteInvoices'
@@ -42,6 +42,7 @@ export default function QuoteEditorPage() {
   const { orgs } = useWorkspace()
   const { notify } = useToast()
   const { t, lang } = useI18n()
+  const phone = usePhone()
   const navigate = useNavigate()
 
   const [quote, setQuote] = useState(null)
@@ -271,14 +272,57 @@ export default function QuoteEditorPage() {
     if (!window.confirm(t('quote.confirmDelete', { number: quoteNumber(quote, prefix), title: quote.title }))) return
     clearTimeout(timer.current)
     blocked.current = true
-    const { data, error } = await supabase.from('quotes').delete().eq('id', id).select('id')
-    if (error || !data?.length) {
+    // Goes to Recently deleted for 15 days (quote bin, issue 124); restore_quote brings it back
+    const { error } = await supabase.rpc('remove_quote', { p_quote: id })
+    if (error) {
       blocked.current = false
-      return notify(error ? userMessage(error) : t('error.permission'), 'error')
+      return notify(userMessage(error), 'error')
     }
     timer.current = null
-    notify(t('quote.deleted'), 'success')
+    notify(t('quote.deleted'), 'success', {
+      action: {
+        label: t('quote.undo'),
+        onClick: async () => {
+          const { error: undoError } = await supabase.rpc('restore_quote', { p_quote: id })
+          if (undoError) return notify(userMessage(undoError), 'error')
+          navigate(`/quote/${id}`)
+        },
+      },
+    })
     navigate(`/org/${quote.org_id}/quotes`, { replace: true })
+  }
+
+  // A sent or accepted quote is cancelled instead of deleted (owner's decision on issue 124).
+  // Nothing else changes: its gig, crew, equipment and invoices stay as they are.
+  function cancelQuote() {
+    if (!window.confirm(t('quote.confirmCancel', { number: quoteNumber(quote, prefix), title: quote.title }))) return
+    flushThen(async () => {
+      const { data, error } = await supabase.rpc('cancel_quote', { p_quote: id })
+      if (error) return notify(userMessage(error), 'error')
+      version.current = data
+      setQuote(q => {
+        const next = { ...q, status: 'cancelled', lost_reason: null, lost_note: null }
+        latest.current.quote = next
+        return next
+      })
+      notify(t('quote.cancelledDone'), 'success')
+    })
+  }
+
+  // A declined quote goes back to draft to be changed and sent again (owner's decision on issue 124);
+  // its versions and the client's answer stay as the record
+  function reviseQuote() {
+    flushThen(async () => {
+      const { data, error } = await supabase.rpc('revise_quote', { p_quote: id })
+      if (error) return notify(userMessage(error), 'error')
+      version.current = data
+      setQuote(q => {
+        const next = { ...q, status: 'draft', lost_reason: null, lost_note: null }
+        latest.current.quote = next
+        return next
+      })
+      notify(t('quote.revisedDone'), 'success')
+    })
   }
 
   async function createGig() {
@@ -311,18 +355,40 @@ export default function QuoteEditorPage() {
     ...body.phases.map((p, i) => ({ key: `phase:${p.id}`, label: p.name || t('quote.phaseN', { n: i + 1 }), amount: totals.phases[i]?.net, optional: p.optional })),
   ]
 
+  const preview = { label: t('quote.preview'), icon: <Printer size={14} aria-hidden="true" />, onClick: () => flushThen(() => navigate(`/quote/${id}/print`)) }
+  const gigAction = linkedGig
+    ? { label: t('quote.openGig'), icon: <ExternalLink size={14} aria-hidden="true" />, onClick: () => flushThen(() => navigate(`/gig/${linkedGig.id}`)) }
+    : { label: t('quote.createGig'), icon: <CalendarPlus size={14} aria-hidden="true" />, onClick: createGig }
+  const secondary = phone ? [] : [preview, gigAction]
+  const moreActions = [
+    ...(phone ? [preview, gigAction] : []),
+    ...(linkedGig ? [{ label: t('plan.button'), icon: <ListChecks size={15} aria-hidden="true" />, onClick: () => setModal({ kind: 'plan', gig: linkedGig }) }] : []),
+    { label: t('quoteAvail.button'), icon: <Package size={15} aria-hidden="true" />, onClick: () => setModal({ kind: 'availability' }) },
+    { label: t('quoteVersions.button'), icon: <History size={15} aria-hidden="true" />, onClick: () => setModal({ kind: 'versions' }) },
+    { label: t('quote.duplicate'), icon: <Copy size={15} aria-hidden="true" />, onClick: duplicateQuote },
+    { label: t('quote.saveAsTemplate'), icon: <LayoutTemplate size={15} aria-hidden="true" />, onClick: () => setModal({ kind: 'saveTemplate', body, name: quote.title }) },
+    // Draft and declined quotes are deleted (to Recently deleted); sent and accepted ones are cancelled
+    ...(quote.status === 'declined' ? [{ label: t('quote.revise'), icon: <RotateCcw size={15} aria-hidden="true" />, onClick: reviseQuote }] : []),
+    ...(canDelete && ['draft', 'declined'].includes(quote.status) ? [{ label: t('common.delete'), icon: <Trash2 size={15} aria-hidden="true" color={colors.danger} />, onClick: deleteQuote }] : []),
+    ...(canDelete && ['sent', 'accepted'].includes(quote.status) ? [{ label: t('quote.cancel'), icon: <Ban size={15} aria-hidden="true" color={colors.danger} />, onClick: cancelQuote }] : []),
+  ]
+
   return (
     <div style={{ minHeight: '100vh', color: 'var(--text)', paddingBottom: '90px' }}>
       <style>{QUOTE_EDITOR_CSS}</style>
       <header className="q-header" style={{ borderBottom: `1px solid ${colors.border}`, background: colors.bg, zIndex: 40 }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '12px 16px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: `${space[3]} var(--gutter) 0` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: space[2], flexWrap: 'wrap' }}>
             <button onClick={() => flushThen(() => navigate(`/org/${quote.org_id}/quotes`))} aria-label={t('quote.backToQuotes')} title={t('quote.backToQuotes')} style={iconBtn}><ArrowLeft size={18} /></button>
             <span style={{ fontFamily: 'var(--font-mono)', color: colors.soft, fontSize: '13px' }}>{quoteNumber(quote, prefix)}</span>
             <input value={quote.title} onChange={e => updateQuote({ title: e.target.value })} aria-label={t('quotes.quoteTitle')} maxLength={200}
-              style={{ ...input, flex: '1 1 220px', fontFamily: 'var(--font-mono)', fontSize: '18px', fontWeight: 700, background: 'transparent', border: '1px solid transparent', padding: '6px 8px' }} />
-            <select value={quote.status} onChange={e => changeStatus(e.target.value)} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', padding: '7px 10px', cursor: 'pointer' }}>
-              {QUOTE_STATUSES.map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
+              style={{ ...input, flex: '1 1 220px', fontFamily: 'var(--font-mono)', fontSize: '20px', fontWeight: 700, background: 'transparent', border: '1px solid transparent', padding: '6px 8px' }} />
+            <select value={quote.status} onChange={e => changeStatus(e.target.value)} aria-label={t('quotes.status')} disabled={quote.status === 'cancelled'}
+              style={{ ...input, width: 'auto', padding: '7px 10px', cursor: quote.status === 'cancelled' ? 'default' : 'pointer' }}>
+              {/* The database allows the same (quotes_status_guard): Cancelled only from ⋯ → Cancel quote and
+                  final; back to Draft only from Declined, with ⋯ → Revise and resend */}
+              {QUOTE_STATUSES.filter(s => quote.status === 'cancelled' ? s === 'cancelled' : s !== 'cancelled' && (s !== 'draft' || quote.status === 'draft'))
+                .map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
             </select>
             {quote.status === 'declined' && (
               <button onClick={() => setModal({ kind: 'lost' })} style={{ ...btnGhost, padding: '7px 10px' }}>
@@ -332,30 +398,24 @@ export default function QuoteEditorPage() {
             <SaveIndicator state={saveState} onRetry={save} />
             <PageHelp page="quote" />
           </div>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', padding: '8px 0 10px' }}>
-            <button onClick={() => flushThen(() => navigate(`/quote/${id}/print`))} style={btn}><Printer size={14} /> {t('quote.preview')}</button>
-            <button onClick={() => setModal({ kind: 'send' })} style={{ ...btnPrimary, fontSize: '13px', padding: '9px 14px' }}><Send size={14} /> {t('send.button')}</button>
-            <button onClick={() => setModal({ kind: 'versions' })} style={btnGhost}><History size={14} /> {t('quoteVersions.button')}</button>
-            <button onClick={() => setModal({ kind: 'availability' })} style={btnGhost}><Package size={14} /> {t('quoteAvail.button')}</button>
-            <button onClick={duplicateQuote} style={btnGhost}><Copy size={14} /> {t('quote.duplicate')}</button>
-            <button onClick={() => setModal({ kind: 'saveTemplate', body, name: quote.title })} style={btnGhost}><LayoutTemplate size={14} /> {t('quote.saveAsTemplate')}</button>
-            {linkedGig
-              ? <>
-                  <button onClick={() => flushThen(() => navigate(`/gig/${linkedGig.id}`))} style={btnGhost}><ExternalLink size={14} /> {t('quote.openGig')}</button>
-                  <button onClick={() => setModal({ kind: 'plan', gig: linkedGig })} style={btnGhost}><ListChecks size={14} /> {t('plan.button')}</button>
-                </>
-              : <button onClick={createGig} style={btnGhost}><CalendarPlus size={14} /> {t('quote.createGig')}</button>}
-            {canDelete && <button onClick={deleteQuote} style={{ ...btnGhost, color: colors.danger, marginLeft: 'auto' }}><Trash2 size={14} /> {t('common.delete')}</button>}
+          {/* One primary (Send), up to two secondary (Preview, the gig) and the rest in ⋯ (DESIGN.md rule 5);
+              on phone the secondary ones join the ⋯ menu */}
+          <div style={{ display: 'flex', gap: space[2], flexWrap: 'wrap', alignItems: 'center', padding: `${space[2]} 0 ${space[3]}` }}>
+            {secondary.map(a => (
+              <button key={a.label} onClick={a.onClick} style={btn}>{a.icon} {a.label}</button>
+            ))}
+            <button onClick={() => setModal({ kind: 'send' })} style={btnPrimary}><Send size={14} /> {t('send.button')}</button>
+            <MoreMenu items={moreActions} />
           </div>
           {saveState === 'conflict' && (
-            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '10px 12px', marginBottom: '10px', background: 'var(--warn-soft)', border: '1px solid var(--warn)', color: 'var(--text)', fontSize: '13px' }}>
+            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: space[3], flexWrap: 'wrap', padding: `${space[3]} ${space[3]}`, marginBottom: space[3], background: 'var(--warn-soft)', border: '1px solid var(--warn)', color: 'var(--text)', fontSize: '13px' }}>
               <AlertTriangle size={15} color="var(--warn)" aria-hidden="true" /> <span style={{ flex: 1 }}>{t('quote.conflict')}</span>
               <button onClick={() => window.location.reload()} style={btn}>{t('quote.reload')}</button>
             </div>
           )}
           {/* The tabs (phases, details, summary) and, between them on screen, the add buttons, which
               aren't tabs: the tab list takes no box of its own and `order` places the buttons */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'thin', marginBottom: '-1px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: space[1], overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'thin', marginBottom: '-1px' }}>
             <div role="tablist" aria-label={t('quote.phases')} style={{ display: 'contents' }}>
             {tabs.map(tb => (
               <button key={tb.key} role="tab" aria-selected={tab === tb.key} onClick={() => setTab(tb.key)} style={tabStyle(tab === tb.key, tb.optional)}>
@@ -379,12 +439,12 @@ export default function QuoteEditorPage() {
         </div>
       </header>
 
-      <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 16px' }}>
+      <main style={{ maxWidth: '1100px', margin: '0 auto', padding: `${space[5]} var(--gutter)` }}>
         {tab === 'details' && <QuoteDetails quote={quote} gigs={gigs} clients={clients} onChange={updateQuote} onSaveClient={saveClientToContacts}
           onApplyVat={() => { if (window.confirm(t('quote.applyVatConfirm', { pct: quote.vat_rate }))) updateBody(setAllVatRates(body, quote.vat_rate)) }} />}
         {tab === 'summary' && <QuoteSummary quote={quote} body={body} totals={totals} rates={rateCard.rates} onOpenPhase={i => setTab(`phase:${body.phases[i].id}`)} />}
         {tab === 'summary' && <QuoteInvoices quote={quote} body={body} prefix={prefix} clients={clients} dueDays={dueDays} />}
-        {tab === 'summary' && <div style={{ marginTop: '18px' }}><ContextThread type="quote" id={quote.id} /></div>}
+        {tab === 'summary' && <div style={{ marginTop: space.section }}><ContextThread type="quote" id={quote.id} /></div>}
         {phase && (
           <PhaseEditor key={phase.id} phase={phase} index={phaseIndex} count={body.phases.length} currency={quote.currency} vatRate={quote.vat_rate} priceItems={priceItems} rates={rateCard.rates}
             onChange={updatePhase}
@@ -401,7 +461,7 @@ export default function QuoteEditorPage() {
       </main>
 
       <footer style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--chrome)', borderTop: `1px solid ${colors.border}`, zIndex: 40 }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '13px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: `${space[3]} var(--gutter)`, display: 'flex', alignItems: 'center', gap: space[4], flexWrap: 'wrap', fontSize: '13px' }}>
           <QuoteStatusBadge status={quote.status} />
           {totals.optional > 0 && <span style={{ color: colors.muted }}>{t('quote.optionsNotIncluded')}: <span style={{ fontFamily: 'var(--font-mono)' }}>{formatMoney(totals.optional, quote.currency, lang)}</span></span>}
           <span style={{ marginLeft: 'auto', color: colors.soft }}>{t('quote.totalExVat')} <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)', fontSize: '14px', fontWeight: 400 }}>{formatMoney(totals.net, quote.currency, lang)}</strong></span>
@@ -435,13 +495,13 @@ export default function QuoteEditorPage() {
       {modal?.kind === 'insertTemplate' && (
         <Modal title={t('quote.insertTemplate')} onClose={() => setModal(null)}>
           <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '12px' }}>{t('quote.insertTemplateIntro')}</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: space[2] }}>
             {templates.map(tpl => (
               <button key={tpl.id} onClick={() => insertTemplate(tpl)} style={{ ...btnGhost, justifyContent: 'flex-start', padding: '10px 12px', textAlign: 'left' }}>
                 <LayoutTemplate size={14} />
                 <span style={{ flex: 1 }}>
                   <span style={{ display: 'block', color: 'var(--text)' }}>{tpl.name}</span>
-                  <span style={{ display: 'block', fontSize: '12px', color: colors.muted, fontWeight: 400 }}>
+                  <span style={{ display: 'block', fontSize: '13px', color: colors.muted, fontWeight: 400 }}>
                     {[tpl.description, t('quotes.phaseCount', { count: tpl.body?.phases?.length || 0 })].filter(Boolean).join(' · ')}
                   </span>
                 </span>
@@ -466,9 +526,9 @@ function SaveIndicator({ state, onRetry }) {
   }
   const [color, text] = map[state]
   return (
-    <span role="status" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: state === 'error' ? colors.danger : colors.soft, whiteSpace: 'nowrap' }}>
+    <span role="status" style={{ display: 'flex', alignItems: 'center', gap: space[2], fontSize: '13px', color: state === 'error' ? colors.danger : colors.soft, whiteSpace: 'nowrap' }}>
       <span aria-hidden="true" style={{ width: '8px', height: '8px', background: color, flexShrink: 0, animation: state === 'saving' ? 'blink 0.6s steps(1, end) infinite' : undefined }} /> {text}
-      {state === 'error' && <button onClick={onRetry} style={{ ...iconBtn, color: colors.accentText, fontSize: '12px', padding: '2px 4px' }}>{t('quote.retry')}</button>}
+      {state === 'error' && <button onClick={onRetry} style={{ ...iconBtn, color: colors.accentText, fontSize: '13px', padding: '2px 4px' }}>{t('quote.retry')}</button>}
     </span>
   )
 }
@@ -519,7 +579,7 @@ function SaveTemplateModal({ orgId, userId, body, defaultName, onClose, onSaved 
 const btnGhost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
 // Square phase tabs: fill ground, a 2px accent top edge when selected, dashed when optional (not in the total)
 const tabStyle = (active, optional) => ({
-  padding: '8px 14px', whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer', textAlign: 'left',
+  padding: `${space[2]} ${space[4]}`, whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer', textAlign: 'left',
   fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
   color: active ? 'var(--text)' : colors.muted, background: active ? 'var(--panel)' : 'var(--fill)',
   border: `1px ${optional ? 'dashed' : 'solid'} ${active ? 'var(--line-strong)' : 'var(--line)'}`, borderBottom: active ? '1px solid var(--panel)' : '1px solid var(--line)',

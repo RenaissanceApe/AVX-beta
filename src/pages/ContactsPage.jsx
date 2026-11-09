@@ -11,7 +11,8 @@ import { quoteNumber, formatMoney } from '../lib/quotes'
 import { useCustomFields, mergeValues } from '../lib/customFields'
 import { CustomFieldInputs } from '../components/CustomFields'
 import { useI18n, t, getLanguage } from '../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../components/ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader, PageHeader, space } from '../components/ui'
+import { FilterTabs, pageWrap, rowList, row, rowName, rowMeta } from '../components/ListParts'
 import EmptyState from '../components/EmptyState'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
@@ -21,8 +22,8 @@ import ClientNumbers from '../components/reports/ClientNumbers'
 import { updateIfUnchanged, notifyConflict } from '../lib/staleSave'
 
 const TABS = ['clients', 'suppliers']
-const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }
-const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }
+const small = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
 const Field = ({ id, text, children }) => <div><label style={label} htmlFor={id}>{text}</label>{children}</div>
 
 // The contacts directory (docs/SWITCHING.md, S2): clients (quotes pick from them) and suppliers
@@ -33,9 +34,8 @@ export default function ContactsPage() {
   const { orgId } = useParams()
   const navigate = useNavigate()
   const { notify } = useToast()
-  const { orgs, roleIn, loading, setWorkspace } = useWorkspace()
+  const { roleIn, loading, setWorkspace } = useWorkspace()
   const role = roleIn(orgId)
-  const org = orgs.find(o => o.id === orgId)
   const canEdit = role === 'admin' || role === 'member'
   const [params, setParams] = useSearchParams()
   const tab = TABS.includes(params.get('tab')) ? params.get('tab') : 'clients'
@@ -110,37 +110,21 @@ export default function ContactsPage() {
   const Icon = tab === 'clients' ? Building2 : Truck
   return (
     <AppShell>
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 0', display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-          <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org?.name}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('contacts.title')}</h1><PageHelp page="contacts" /></div>
-        </div>
-        <Link to={`/org/${orgId}/inventory/import?kind=${tab}`} style={{ ...btn, textDecoration: 'none' }}><Upload size={14} /> {t('contacts.import')}</Link>
-        <button onClick={() => setEditing({})} style={btnPrimary}><Plus size={15} /> {t(`contacts.new.${tab}`)}</button>
-      </div>
+      <div style={pageWrap}>
+        <PageHeader title={t('contacts.title')} help={<PageHelp page="contacts" />}
+          primary={<button onClick={() => setEditing({})} style={btnPrimary}><Plus size={16} aria-hidden="true" /> {t(`contacts.new.${tab}`)}</button>}
+          secondary={[{ label: t('contacts.import'), icon: <Upload size={15} aria-hidden="true" />, onClick: () => navigate(`/org/${orgId}/inventory/import?kind=${tab}`) }]} />
 
-      <main style={{ maxWidth: '960px', margin: '0 auto', padding: '20px 16px 60px' }}>
-        <div role="tablist" style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: `1px solid ${colors.border}`, overflowX: 'auto', overflowY: 'hidden' }}>
-          {TABS.map(key => {
-            const TabIcon = key === 'clients' ? Building2 : Truck
-            return (
-              <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)} style={{
-                padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600,
-                color: tab === key ? colors.accentText : colors.muted, borderBottom: tab === key ? `2px solid ${colors.accent}` : '2px solid transparent',
-                display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', flexShrink: 0,
-              }}>
-                <TabIcon size={14} /> {t(`contacts.tab.${key}`)} <span style={{ fontSize: '11px', opacity: 0.7 }}>{lists[key].filter(c => !c.archived_at).length}</span>
-              </button>
-            )
-          })}
-        </div>
+        <FilterTabs tabs label={t('contacts.title')} value={tab} onChange={setTab} style={{ marginBottom: space[5] }}
+          items={TABS.map(key => ({ key, label: t(`contacts.tab.${key}`), count: lists[key].filter(c => !c.archived_at).length,
+            icon: key === 'clients' ? <Building2 size={15} aria-hidden="true" /> : <Truck size={15} aria-hidden="true" /> }))} />
 
         {tab === 'clients' && unlinked > 0 && (
-          <section style={{ ...card, display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px', borderColor: 'var(--accent)' }}>
+          <section aria-label={t('contacts.fromQuotes')} style={{ display: 'flex', gap: space[3], alignItems: 'center', flexWrap: 'wrap', marginBottom: space[5] }}>
             <FileText size={18} color={colors.accentText} aria-hidden="true" style={{ flexShrink: 0 }} />
-            <p style={{ flex: '1 1 260px', fontSize: '13px', lineHeight: 1.6 }}>{t('contacts.fromQuotesText', { count: unlinked })}</p>
+            <p style={{ flex: '1 1 260px', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>{t('contacts.fromQuotesText', { count: unlinked })}</p>
             <button onClick={fillFromQuotes} disabled={filling} style={btn}>
-              {filling ? <AvxLoader size={14} /> : <Users size={14} />} {t('contacts.fromQuotes')}
+              {filling ? <AvxLoader size={16} /> : <Users size={15} aria-hidden="true" />} {t('contacts.fromQuotes')}
             </button>
           </section>
         )}
@@ -150,44 +134,44 @@ export default function ContactsPage() {
             action={t(`contacts.new.${tab}`)} onAction={() => setEditing({})} guide="of-contacts" />
         ) : (
           <>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', gap: space[2], flexWrap: 'wrap', marginBottom: space[4] }}>
               <div style={{ position: 'relative', flex: '1 1 220px' }}>
-                <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+                <Search size={14} color={colors.muted} aria-hidden="true" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('contacts.search')} aria-label={t('contacts.search')} style={{ ...input, paddingLeft: '32px' }} />
               </div>
               {all.some(c => c.archived_at) && (
                 <button onClick={() => setShowArchived(v => !v)} style={btn}>{showArchived ? t('inv.hideArchived') : t('inv.showArchived')}</button>
               )}
             </div>
-            {visible.length === 0 ? <p style={{ color: colors.muted, fontSize: '14px', textAlign: 'center', padding: '32px' }}>{t('contacts.noMatch')}</p> : (
-              <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {visible.length === 0 ? <p style={{ color: colors.muted, fontSize: '14px', textAlign: 'center', padding: space[6] }}>{t('contacts.noMatch')}</p> : (
+              <ul style={rowList}>
                 {visible.map(c => (
-                  <li key={c.id} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '6px', alignItems: 'center', opacity: c.archived_at ? 0.6 : 1 }}>
-                    <button onClick={() => setEditing(c)} style={{ flex: '1 1 auto', minWidth: 0, textAlign: 'left', background: 'none', border: 'none', padding: 0, color: 'var(--text)', font: 'inherit', cursor: 'pointer' }}>
-                      <span style={{ display: 'block', fontWeight: 600, fontSize: '14px', overflowWrap: 'anywhere' }}>
+                  <li key={c.id} style={{ ...row, gap: space[2], color: c.archived_at ? colors.muted : undefined }}>
+                    <button onClick={() => setEditing(c)} style={{ flex: '1 1 auto', minWidth: 0, textAlign: 'left', background: 'none', border: 'none', padding: 0, color: 'inherit', font: 'inherit', cursor: 'pointer' }}>
+                      <span style={{ ...rowName, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>
                         {c.name}
-                        {c.partner_org_id && <span style={{ fontSize: '11px', color: 'var(--sky)', marginLeft: '6px' }}>{t('sub.onAvx')}</span>}
-                        {c.archived_at && <span style={{ fontSize: '11px', color: colors.muted, marginLeft: '6px' }}>{t('contacts.archivedBadge')}</span>}
+                        {c.partner_org_id && <span style={{ fontSize: '11px', color: 'var(--sky)', marginLeft: space[2] }}>{t('sub.onAvx')}</span>}
+                        {c.archived_at && <span style={{ fontSize: '11px', fontWeight: 400, color: colors.muted, marginLeft: space[2] }}>{t('contacts.archivedBadge')}</span>}
                       </span>
-                      <span style={{ display: 'block', fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{[c.contact_name, c.phone, c.email].filter(Boolean).join(' · ') || '—'}</span>
-                      {tab === 'clients' && quoteCount.get(c.id) > 0 && <span style={{ display: 'block', fontSize: '12px', color: colors.soft }}>{t('contacts.quoteCount', { count: quoteCount.get(c.id) })}</span>}
+                      <span style={rowMeta}>{[c.contact_name, c.phone, c.email].filter(Boolean).join(' · ') || '—'}</span>
+                      {tab === 'clients' && quoteCount.get(c.id) > 0 && <span style={{ ...rowMeta, color: colors.soft }}>{t('contacts.quoteCount', { count: quoteCount.get(c.id) })}</span>}
                       {tab === 'clients' && (lists.invoiced || []).filter(r => r.ref_id === c.id && Number(r.invoiced) > 0).map(r => (
-                        <span key={r.currency} style={{ display: 'block', fontSize: '12px', color: colors.soft }}>
+                        <span key={r.currency} style={{ ...rowMeta, color: colors.soft }}>
                           {t('contacts.invoiced', { amount: formatMoney(r.invoiced, r.currency, getLanguage()) })}
                           {Number(r.outstanding) > 0 && ` · ${t('contacts.invoiceUnpaid', { amount: formatMoney(r.outstanding, r.currency, getLanguage()) })}`}
                           {Number(r.overdue) > 0 && <span style={{ color: colors.danger }}> · {t('contacts.invoiceOverdue', { amount: formatMoney(r.overdue, r.currency, getLanguage()) })}</span>}
                         </span>
                       ))}
                       {tab === 'suppliers' && (lists.spend || []).filter(r => r.supplier_id === c.id).map(r => (
-                        <span key={r.currency} style={{ display: 'block', fontSize: '12px', color: colors.soft }}>
+                        <span key={r.currency} style={{ ...rowMeta, color: colors.soft }}>
                           {t('contacts.spendYear', { amount: formatMoney(r.net, r.currency, getLanguage()) })}
                           {Number(r.unpaid) > 0 && ` · ${t('contacts.spendUnpaid', { amount: formatMoney(r.unpaid, r.currency, getLanguage()) })}`}
                         </span>
                       ))}
                     </button>
-                    <button onClick={() => setEditing(c)} aria-label={`${t('common.edit')}: ${c.name}`} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>
+                    <button onClick={() => setEditing(c)} aria-label={`${t('common.edit')}: ${c.name}`} title={t('common.edit')} style={iconBtn}><Pencil size={16} /></button>
                     <button onClick={() => archive(c)} title={c.archived_at ? t('inv.restore') : t('inv.archive')} aria-label={`${c.archived_at ? t('inv.restore') : t('inv.archive')}: ${c.name}`} style={iconBtn}>
-                      {c.archived_at ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+                      {c.archived_at ? <ArchiveRestore size={16} /> : <Archive size={16} />}
                     </button>
                   </li>
                 ))}
@@ -195,11 +179,11 @@ export default function ContactsPage() {
             )}
           </>
         )}
-        {tab === 'suppliers' && <p style={{ ...small, marginTop: '14px' }}>{t('contacts.suppliersHint')} <Link to={`/org/${orgId}/inventory?tab=subrentals`} style={{ color: colors.accentText }}>{t('nav.subrentals')}</Link></p>}
+        {tab === 'suppliers' && <p style={{ ...small, marginTop: space[4] }}>{t('contacts.suppliersHint')} <Link to={`/org/${orgId}/inventory?tab=subrentals`} style={{ color: colors.accentText }}>{t('nav.subrentals')}</Link></p>}
         {/* K3: who owes what and spending by supplier, in Reports → Money */}
-        {tab === 'clients' && <p style={{ ...small, marginTop: '14px' }}>{t('contacts.clientsCash')} <Link to={`/org/${orgId}/reports?tab=money&view=cash`} style={{ color: colors.accentText }}>{t('contacts.cashReport')}</Link></p>}
-        {tab === 'suppliers' && <p style={{ ...small, marginTop: '6px' }}>{t('contacts.suppliersSpend')} <Link to={`/org/${orgId}/reports?tab=money&view=spending&by=supplier&period=this_year`} style={{ color: colors.accentText }}>{t('contacts.spendingReport')}</Link></p>}
-      </main>
+        {tab === 'clients' && <p style={{ ...small, marginTop: space[4] }}>{t('contacts.clientsCash')} <Link to={`/org/${orgId}/reports?tab=money&view=cash`} style={{ color: colors.accentText }}>{t('contacts.cashReport')}</Link></p>}
+        {tab === 'suppliers' && <p style={{ ...small, marginTop: space[2] }}>{t('contacts.suppliersSpend')} <Link to={`/org/${orgId}/reports?tab=money&view=spending&by=supplier&period=this_year`} style={{ color: colors.accentText }}>{t('contacts.spendingReport')}</Link></p>}
+      </div>
 
       {editing && tab === 'clients' && <ClientModal orgId={orgId} client={editing.id ? editing : null} onClose={() => setEditing(null)} onSaved={load} />}
       {editing && tab === 'suppliers' && <SupplierModal orgId={orgId} supplier={editing.id ? editing : null} onClose={() => setEditing(null)} onSaved={load} />}

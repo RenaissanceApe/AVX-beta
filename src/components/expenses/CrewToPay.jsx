@@ -6,7 +6,7 @@ import { logger } from '../../lib/logger'
 import { formatMoney } from '../../lib/quotes'
 import { moneyLines } from '../../lib/analytics/tiles'
 import { useI18n, fmt } from '../../i18n'
-import { btn, card, colors, AvxLoader } from '../ui'
+import { btn, colors, AvxLoader } from '../ui'
 import EmptyState from '../EmptyState'
 import { Hint } from '../help/HelpParts'
 import { PaidModal } from '../gig/LabourCost'
@@ -32,18 +32,19 @@ export default function CrewToPay({ orgId, isAdmin }) {
   const estimated = rows.filter(r => r.estimated).length
 
   return (
-    <section aria-labelledby="crew-pay-title" style={{ ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <h2 id="crew-pay-title" style={{ fontSize: '15px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <Users size={15} color="var(--accent-text)" aria-hidden="true" /> {t('crewPay.title')} <Hint id="crew-to-pay" />
+    <section aria-labelledby="crew-pay-title" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+      <h2 id="crew-pay-title" className="avx-section__title">
+        <Users size={16} color="var(--accent-text)" aria-hidden="true" /> {t('crewPay.title')}
+        {/* The intro sits behind ⓘ (DESIGN.md rule 4); members see which gigs they cover */}
+        {isAdmin ? <Hint id="crew-to-pay" /> : <Hint text={t('crewPay.introMember')} label={t('crewPay.title')} />}
       </h2>
-      <p style={{ fontSize: '12px', color: colors.muted, margin: 0, lineHeight: 1.5 }}>{t(isAdmin ? 'crewPay.intro' : 'crewPay.introMember')}</p>
       {rows.length === 0 ? (
         <EmptyState compact icon={<BadgeCheck size={26} />} title={t('crewPay.emptyTitle')} body={t('crewPay.emptyBody')} guide="office-expenses" />
       ) : (
         <>
           <p style={{ margin: 0, fontSize: '14px' }}>
             {t('crewPay.total', { count: rows.length })}: <strong>{moneyLines(totals).map(l => formatMoney(l.amount, l.currency, lang)).join(' · ')}</strong>
-            {estimated > 0 && <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{t('crewPay.estimated', { count: estimated })}</span>}
+            {estimated > 0 && <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>{t('crewPay.estimated', { count: estimated })}</span>}
           </p>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column' }}>
             {rows.map(r => (
@@ -51,7 +52,7 @@ export default function CrewToPay({ orgId, isAdmin }) {
                 <span style={{ flex: '1 1 180px', minWidth: 0 }}>
                   <span style={{ fontWeight: 600 }}>{r.person_name || '—'}</span>
                   {r.function_title && <span style={{ color: colors.muted }}> · {r.function_title}</span>}
-                  <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
+                  <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>
                     <Link to={`/gig/${r.gig_id}?tab=crew`} style={{ color: colors.accentText }}>{r.gig_name}</Link>
                     {' · '}{t('crewPay.ended', { date: fmt(r.end_date || r.start_date, 'd MMM yyyy'), count: r.days_waiting })}
                   </span>
@@ -60,7 +61,7 @@ export default function CrewToPay({ orgId, isAdmin }) {
                   {formatMoney(r.amount, r.currency, lang)}
                   <span style={{ display: 'block', fontSize: '11px', fontWeight: 400, color: colors.muted }}>{t(r.estimated ? 'crewPay.agreedFee' : 'crewPay.invoice')}</span>
                 </span>
-                <button type="button" onClick={() => setPaying(r)} style={{ ...btn, padding: '4px 8px', fontSize: '12px' }} aria-label={t('labour.markPaidFor', { name: r.person_name || '—' })}>
+                <button type="button" onClick={() => setPaying(r)} style={{ ...btn, padding: '4px 8px', fontSize: '13px' }} aria-label={t('labour.markPaidFor', { name: r.person_name || '—' })}>
                   <BadgeCheck size={13} aria-hidden="true" /> {t('labour.markPaid')}
                 </button>
               </li>

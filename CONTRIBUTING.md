@@ -80,7 +80,8 @@ only signal, and keep text plain.
 
 ## Secrets
 
-- `.env` only contains the Supabase URL and the **public** anon key (safe in a browser app;
+- `.env` is not committed (it's in `.gitignore`): copy `.env.example` and point it at the **test**
+  project. It holds only the Supabase URL and the **public** anon key (safe in a browser app;
   security comes from the database rules). Never commit the `service_role` key or SMTP passwords —
   those belong in Supabase / Vercel settings.
 

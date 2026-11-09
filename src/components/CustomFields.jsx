@@ -21,9 +21,9 @@ export function CustomFieldInputs({ fields, values, onChange, idPrefix, inputSty
       return (
         <fieldset key={f.id} style={{ border: 'none', padding: 0, margin: 0 }}>
           <legend style={labelStyle}>{f.label}</legend>
-          <div style={{ display: 'flex', gap: '14px', fontSize: '14px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '16px', fontSize: '14px', flexWrap: 'wrap' }}>
             {[[true, t('custom.yes')], [false, t('custom.no')], [null, t('custom.unset')]].map(([val, text]) => (
-              <label key={String(val)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+              <label key={String(val)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                 <input type="radio" name={id} checked={(v ?? null) === val} onChange={() => set(val)} /> {text}
               </label>
             ))}
@@ -59,7 +59,7 @@ export function CustomFieldList({ fields, values, title }) {
   return (
     <div>
       {title && <h3 style={{ fontSize: '13px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>{title}</h3>}
-      <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(90px, max-content) minmax(0, 1fr)', gap: '4px 14px', fontSize: '14px', margin: 0 }}>
+      <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(90px, max-content) minmax(0, 1fr)', gap: '4px 16px', fontSize: '14px', margin: 0 }}>
         {rows.map(({ f, text }) => (
           <div key={f.id} style={{ display: 'contents' }}>
             <dt style={{ color: colors.muted }}>{f.label}</dt>

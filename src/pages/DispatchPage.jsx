@@ -12,7 +12,7 @@ import { useGigSteps } from '../lib/useSteps'
 import { useFieldKit, beep, buzz, speak } from '../lib/fieldKit'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
-import { btn, btnPrimary, input, label, card, colors, AvxLoader } from '../components/ui'
+import { btn, btnPrimary, input, label, card, colors, AvxLoader, PageHeader, Stack, space } from '../components/ui'
 import { Hint } from '../components/help/HelpParts'
 import { Segments } from '../components/gig/StepBars'
 import { CameraScanner, FeedRow, ScanMode, StepPicker, feedText, AMBER } from '../components/dispatch/ScanParts'
@@ -170,44 +170,43 @@ export default function DispatchPage() {
   return (
     <AppShell>
       <div style={{ maxWidth: '760px', margin: '0 auto', padding: '16px 16px 60px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <button onClick={() => navigate(`/gig/${id}?tab=equipment`)} style={{ ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft, padding: '6px 10px' }}><ArrowLeft size={14} /> {gig.name}</button>
-          <button onClick={() => navigate(`/gig/${id}/packing`)} style={{ ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft, padding: '6px 10px', marginLeft: 'auto' }}><ClipboardList size={14} /> {t('dispatch.packingList')}</button>
-          {/* K6: the organisation's admins and members see the warehouse's dispatch numbers */}
-          {['admin', 'member'].includes(roleIn(gig.org_id)) && (
-            <button onClick={() => navigate(`/org/${gig.org_id}/reports?tab=warehouse&view=dispatch`)} style={{ ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft, padding: '6px 10px' }}><BarChart3 size={14} /> {t('wh.linkDispatch')}</button>
-          )}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-          <h1 style={{ fontSize: '22px', fontWeight: 700, flex: 1 }}>{t('dispatch.title')}</h1>
-          <button type="button" aria-pressed={kit.sound} onClick={() => setKit({ sound: !kit.sound })} style={btn}>
-            {kit.sound ? <Volume2 size={15} /> : <VolumeX size={15} />} {t('scanMode.sound')}
-          </button>
-          <button type="button" onClick={() => setScanMode(true)} style={btnPrimary}><Maximize2 size={15} /> {t('scanMode.open')}</button>
-        </div>
+        <button onClick={() => navigate(`/gig/${id}?tab=equipment`)} style={{ ...btn, background: 'transparent', border: 'none', color: colors.soft, padding: '8px 0', minHeight: '44px', marginBottom: space[2] }}><ArrowLeft size={14} aria-hidden="true" /> {gig.name}</button>
+        <PageHeader title={t('dispatch.title')}
+          secondary={[
+            { label: t('dispatch.packingList'), icon: <ClipboardList size={14} aria-hidden="true" />, onClick: () => navigate(`/gig/${id}/packing`) },
+            // K6: the organisation's admins and members see the warehouse's dispatch numbers
+            ['admin', 'member'].includes(roleIn(gig.org_id)) && { label: t('wh.linkDispatch'), icon: <BarChart3 size={14} aria-hidden="true" />, onClick: () => navigate(`/org/${gig.org_id}/reports?tab=warehouse&view=dispatch`) },
+          ].filter(Boolean)}
+          primary={<>
+            <button type="button" aria-pressed={kit.sound} onClick={() => setKit({ sound: !kit.sound })} style={{ ...btn, minHeight: '44px' }}>
+              {kit.sound ? <Volume2 size={16} aria-hidden="true" /> : <VolumeX size={16} aria-hidden="true" />} {t('scanMode.sound')}
+            </button>
+            <button type="button" onClick={() => setScanMode(true)} style={{ ...btn, minHeight: '44px' }}><Maximize2 size={16} aria-hidden="true" /> {t('scanMode.open')}</button>
+          </>} />
 
-        <div style={{ marginBottom: '12px' }}>
+        <div style={{ marginBottom: space[4] }}>
           <StepPicker steps={steps} step={step} onChange={next => { setStep(next); inputRef.current?.focus() }} />
         </div>
 
-        <div style={{ ...card, marginBottom: '12px' }}>
+        <Stack gap={4} style={{ marginBottom: space.section }}>
+        <div style={{ ...card, padding: space[4] }}>
           {camera && <CameraScanner onCode={scan} onClose={() => setCamera(false)} />}
           <form onSubmit={e => { e.preventDefault(); if (code.trim()) scan(code) }} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div style={{ flex: '1 1 200px' }}>
               <label style={label} htmlFor="scan-code">{t('dispatch.code')}</label>
               <input id="scan-code" ref={inputRef} value={code} onChange={e => setCode(e.target.value)} autoFocus autoComplete="off" autoCapitalize="characters"
-                placeholder={t('dispatch.codePlaceholder')} style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: '16px' }} />
+                placeholder={t('dispatch.codePlaceholder')} style={{ ...input, minHeight: '44px', fontFamily: 'var(--font-mono)', fontSize: '16px' }} />
             </div>
             <div style={{ width: '90px' }}>
               <label style={label} htmlFor="scan-qty">{t('dispatch.qty')}</label>
-              <input id="scan-qty" type="number" min={1} max={100000} value={quantity} onChange={e => setQuantity(e.target.value)} style={input} />
+              <input id="scan-qty" type="number" min={1} max={100000} value={quantity} onChange={e => setQuantity(e.target.value)} style={{ ...input, minHeight: '44px' }} />
             </div>
-            <button type="submit" disabled={busy || !code.trim()} style={btnPrimary}>
+            <button type="submit" disabled={busy || !code.trim()} style={{ ...btnPrimary, minHeight: '44px' }}>
               {busy ? <AvxLoader size={15} /> : <ScanLine size={15} />} {t('dispatch.record')}
             </button>
-            <button type="button" onClick={() => setCamera(c => !c)} style={btn}>{camera ? <CameraOff size={15} /> : <Camera size={15} />} {camera ? t('dispatch.cameraOff') : t('dispatch.cameraOn')}</button>
+            <button type="button" onClick={() => setCamera(c => !c)} style={{ ...btn, minHeight: '44px' }}>{camera ? <CameraOff size={15} /> : <Camera size={15} />} {camera ? t('dispatch.cameraOff') : t('dispatch.cameraOn')}</button>
           </form>
-          <p style={{ fontSize: '12px', color: colors.muted, marginTop: '8px', lineHeight: 1.5 }}>{t('dispatch.hint')}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, marginTop: '8px', lineHeight: 1.5 }}>{t('dispatch.hint')}</p>
           {step === 'returned' && (
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: damaged ? AMBER : colors.soft, marginTop: '8px', cursor: 'pointer' }}>
               <input type="checkbox" checked={damaged} onChange={e => setDamaged(e.target.checked)} style={{ accentColor: AMBER }} /> {t('dispatch.damaged')}
@@ -216,13 +215,14 @@ export default function DispatchPage() {
         </div>
 
         {feed.length > 0 && (
-          <section aria-live="polite" style={{ marginBottom: '16px' }}>
+          <section aria-live="polite">
             {feed.slice(0, 8).map(f => <FeedRow key={f.key} entry={f} onUndo={undo} />)}
           </section>
         )}
+        </Stack>
 
-        <section style={{ marginBottom: '16px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <section style={{ marginBottom: space.section }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-mono)', marginBottom: space[3], display: 'flex', alignItems: 'center', gap: '8px' }}>
             <PackageCheck size={16} /> {t(`steps.progress.${step}`, progress)}
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '12px', alignItems: 'center', marginBottom: '10px' }}>
@@ -230,13 +230,13 @@ export default function DispatchPage() {
             <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{progress.done} / {progress.total}</span>
           </div>
           {summary.length === 0 ? <p style={{ fontSize: '13px', color: colors.muted }}>{t('dispatch.nothingPlanned')}</p> : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
               {summary.map(r => {
                 const target = stepTarget(step, r, counts[r.item_id])
                 const done = counts[r.item_id]?.[step] || 0
                 const complete = target > 0 && done >= target
                 return (
-                  <div key={r.item_id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '7px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
+                  <div key={r.item_id} style={{ display: 'flex', alignItems: 'center', gap: '12px', minHeight: '44px', padding: '8px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
                     <span style={{ width: '18px', color: complete ? colors.accentText : done > target && target > 0 ? AMBER : colors.muted }}>{complete ? <Check size={14} /> : null}</span>
                     <span style={{ flex: 1, minWidth: 0 }}>{r.item_name}{!r.planned && <span style={{ color: AMBER, fontSize: '11px' }}> · {t('dispatch.notPlannedShort')}</span>}</span>
                     <strong style={{ fontVariantNumeric: 'tabular-nums', color: done > target && target > 0 ? AMBER : 'var(--text)' }}>{done} / {target}</strong>
@@ -248,9 +248,9 @@ export default function DispatchPage() {
         </section>
 
         {unitsOut.length > 0 && (
-          <section style={{ ...card }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>{t('dispatch.unitsOut', { count: unitsOut.length })}</h2>
-            <div style={{ fontSize: '12px', color: colors.soft, lineHeight: 1.8, marginBottom: '10px' }}>
+          <section>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-mono)', marginBottom: space[3] }}>{t('dispatch.unitsOut', { count: unitsOut.length })}</h2>
+            <div style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.8, marginBottom: '10px' }}>
               {unitsOut.map(u => <div key={u.unit_id}><span style={{ fontFamily: 'var(--font-mono)' }}>{u.code}</span> · {u.item_name}{u.serial ? ` · ${u.serial}` : ''} · {ago(u.out_since)}</div>)}
             </div>
             {step === 'returned' && (

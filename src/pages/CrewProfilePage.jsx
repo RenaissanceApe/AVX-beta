@@ -16,9 +16,9 @@ import CrewProfileCard from '../components/CrewProfileCard'
 import PlaceFinder from '../components/PlaceFinder'
 
 const EMPTY = { enabled: false, visibility: 'companies', contact_from: 'any', job_alerts: true, headline: '', functions: [], other_functions: '', bio: '', base_place: null, base_country: null, base_lat: null, base_lng: null, travel_scope: 'km', travel_km: 100, languages: [], experience_years: '', links: ['', '', ''], certificates: [] }
-const section = { ...card, padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }
-const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
-const h2 = { fontSize: '15px', fontWeight: 700 }
+const section = { ...card, padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }
+const hint = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
+const h2 = { fontSize: '16px', fontWeight: 700 }
 
 const fromRow = r => r ? {
   ...EMPTY, ...Object.fromEntries(Object.entries(r).filter(([, v]) => v != null)),
@@ -110,17 +110,17 @@ export default function CrewProfilePage() {
     return !!was && was.name === c.name && (was.expires_on || '') === (c.expires_on || '') ? was : null
   }
   const gaps = missing(form)
-  const pressed = on => ({ ...btn, padding: '6px 11px', fontSize: '12px', background: on ? 'var(--selection)' : 'transparent', borderColor: on ? colors.accent : tint(colors.accent, 30) })
+  const pressed = on => ({ ...btn, padding: '6px 11px', fontSize: '13px', background: on ? 'var(--selection)' : 'transparent', borderColor: on ? colors.accent : tint(colors.accent, 30) })
   return (
     <AppShell>
-      <form onSubmit={save} noValidate style={{ maxWidth: '720px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={save} noValidate style={{ maxWidth: '720px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('crewProfile.title')}</h1>
           <PageHelp page="crew-profile" />
         </div>
         <p style={{ ...hint, fontSize: '13px' }}>{t('crewProfile.intro')}</p>
         {suspended && (
-          <p role="alert" style={{ ...card, padding: '12px 14px', display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '14px', lineHeight: 1.5, borderColor: 'var(--warn)' }}>
+          <p role="alert" style={{ ...card, padding: '12px 14px', display: 'flex', gap: '12px', alignItems: 'flex-start', fontSize: '14px', lineHeight: 1.5, borderColor: 'var(--warn)' }}>
             <AlertTriangle size={16} color="var(--warn)" style={{ flexShrink: 0, marginTop: '3px' }} aria-hidden="true" />
             <span>{t('trust.profileSuspended')} <Link to="/privacy" style={{ color: colors.accentText }}>{t('trust.privacyLink')}</Link></span>
           </p>
@@ -128,33 +128,33 @@ export default function CrewProfilePage() {
 
         <section style={section} aria-labelledby="cp-show">
           <h2 id="cp-show" style={h2}>{t('crewProfile.showTitle')}</h2>
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer', fontSize: '14px' }}>
             <input type="checkbox" checked={form.enabled} onChange={e => set({ enabled: e.target.checked })} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
             <span><span style={{ fontWeight: 600 }}>{t('crewProfile.enabled')}</span>
               <span style={{ display: 'block', ...hint, marginTop: '2px' }}>{form.enabled ? t('crewProfile.enabledOn') : t('crewProfile.enabledOff')}</span></span>
           </label>
           {form.enabled && gaps.length > 0 && <p role="alert" style={{ ...hint, color: colors.danger }}>{t('crewProfile.needs', { what: gaps.map(g => t(`crewProfile.need.${g}`)).join(', ') })}</p>}
-          <div role="radiogroup" aria-labelledby="cp-who" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div role="radiogroup" aria-labelledby="cp-who" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span id="cp-who" style={{ ...label, marginBottom: 0 }}>{t('crewProfile.who')}</span>
             {['companies', 'crew'].map(v => (
-              <label key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+              <label key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer', fontSize: '14px' }}>
                 <input type="radio" name="cp-visibility" checked={form.visibility === v} onChange={() => set({ visibility: v })} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
                 <span><span style={{ fontWeight: 600 }}>{t(`crewProfile.vis.${v}`)}</span>
                   <span style={{ display: 'block', ...hint, marginTop: '2px' }}>{t(`crewProfile.visHint.${v}`)}</span></span>
               </label>
             ))}
           </div>
-          <div role="radiogroup" aria-labelledby="cp-contact" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div role="radiogroup" aria-labelledby="cp-contact" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span id="cp-contact" style={{ ...label, marginBottom: 0 }}>{t('trust.contact.who')}</span>
             {['any', 'known'].map(v => (
-              <label key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+              <label key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer', fontSize: '14px' }}>
                 <input type="radio" name="cp-contact" checked={(form.contact_from || 'any') === v} onChange={() => set({ contact_from: v })} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
                 <span><span style={{ fontWeight: 600 }}>{t(`trust.contact.${v}`)}</span>
                   <span style={{ display: 'block', ...hint, marginTop: '2px' }}>{t(`trust.contact.${v}Hint`)}</span></span>
               </label>
             ))}
           </div>
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'pointer', fontSize: '14px' }}>
             <input type="checkbox" checked={form.job_alerts !== false} onChange={e => set({ job_alerts: e.target.checked })} style={{ marginTop: '3px', accentColor: 'var(--accent)' }} />
             <span><span style={{ fontWeight: 600 }}>{t('crewProfile.jobAlerts')}</span>
               <span style={{ display: 'block', ...hint, marginTop: '2px' }}>{t('crewProfile.jobAlertsHint')}</span></span>
@@ -166,7 +166,7 @@ export default function CrewProfilePage() {
           <h2 id="cp-work" style={h2}>{t('crewProfile.workTitle')}</h2>
           <div>
             <span style={label} id="cp-functions">{t('crewProfile.functions')}</span>
-            <div role="group" aria-labelledby="cp-functions" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            <div role="group" aria-labelledby="cp-functions" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {FUNCTIONS.map(f => <button key={f} type="button" aria-pressed={form.functions.includes(f)} onClick={() => toggleFn(f)} style={pressed(form.functions.includes(f))}>{t(`crewFn.${f}`)}</button>)}
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function CrewProfilePage() {
         <section style={section} aria-labelledby="cp-where">
           <h2 id="cp-where" style={h2}>{t('crewProfile.whereTitle')}</h2>
           {form.base_place && (
-            <p style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}><MapPin size={14} aria-hidden="true" /> <strong>{form.base_place}</strong></p>
+            <p style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}><MapPin size={14} aria-hidden="true" /> <strong>{form.base_place}</strong></p>
           )}
           <PlaceFinder id="cp-place" label={form.base_place ? t('crewProfile.changeBase') : t('crewProfile.base')} hint={t('crewProfile.baseHint')}
             onChoose={p => set({ base_place: p.place, base_country: p.country, base_lat: p.lat, base_lng: p.lng })} />
@@ -205,7 +205,7 @@ export default function CrewProfilePage() {
           <div>
             <label style={label} htmlFor="cp-lang">{t('crewProfile.languages')}</label>
             {form.languages.length > 0 && (
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {form.languages.map(l => (
                   <li key={l} style={{ ...pressed(true), cursor: 'default' }}>{languageName(l, lang)}
                     <button type="button" onClick={() => set({ languages: form.languages.filter(x => x !== l) })} aria-label={t('crewProfile.removeLanguage', { name: languageName(l, lang) })} style={{ ...iconBtn, padding: 0, color: 'inherit' }}><X size={13} /></button>
@@ -253,7 +253,7 @@ export default function CrewProfilePage() {
           ))}
         </section>
 
-        <div style={{ position: 'sticky', bottom: '12px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', ...card, padding: '10px 12px' }}>
+        <div style={{ position: 'sticky', bottom: '12px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', ...card, padding: '10px 12px' }}>
           <button type="submit" disabled={saving || !changed} style={btnPrimary}>
             {saving ? <AvxLoader size={15} /> : <CheckCircle size={15} />} {t('common.saveChanges')}
           </button>
@@ -261,7 +261,7 @@ export default function CrewProfilePage() {
         </div>
 
         <section aria-labelledby="cp-preview" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <h2 id="cp-preview" style={{ ...h2, display: 'flex', alignItems: 'center', gap: '6px' }}><Eye size={15} aria-hidden="true" /> {t('crewProfile.preview')}</h2>
+          <h2 id="cp-preview" style={{ ...h2, display: 'flex', alignItems: 'center', gap: '8px' }}><Eye size={15} aria-hidden="true" /> {t('crewProfile.preview')}</h2>
           <p style={hint}>{t(`crewProfile.previewHint.${form.visibility}`)}</p>
           <CrewProfileCard profile={{ ...toRow(form).row, certificates: form.certificates.filter(c => String(c.name || '').trim()) }} name={profile?.full_name} />
         </section>
@@ -278,7 +278,7 @@ export default function CrewProfilePage() {
 // Under a saved certificate: how it stands, and a button to send a proof to AVX
 function CertProof({ c, saved, onUpload }) {
   const { t } = useI18n()
-  const hint = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+  const hint = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
   if (!saved) return <p style={{ ...hint, gridColumn: '1 / -1' }}>{t('trust.proof.saveFirst')}</p>
   const status = certStatus(saved)
   return (
@@ -290,7 +290,7 @@ function CertProof({ c, saved, onUpload }) {
         {saved.proof_pending && <> · {t('trust.proof.pending')}</>}
       </span>
       {status !== 'verified' && (
-        <button type="button" onClick={onUpload} style={{ ...btn, padding: '5px 10px', fontSize: '12px' }} aria-label={t(saved.proof_pending ? 'trust.proof.replaceNamed' : 'trust.proof.uploadNamed', { name: c.name })}>
+        <button type="button" onClick={onUpload} style={{ ...btn, padding: '5px 10px', fontSize: '13px' }} aria-label={t(saved.proof_pending ? 'trust.proof.replaceNamed' : 'trust.proof.uploadNamed', { name: c.name })}>
           <Upload size={13} /> {saved.proof_pending ? t('trust.proof.replace') : t('trust.proof.upload')}
         </button>
       )}

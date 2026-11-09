@@ -49,11 +49,11 @@ export default function QuoteAvailabilityModal({ quote, body, org, onClose }) {
             {short.length ? <AlertTriangle size={15} /> : <Check size={15} />}
             {short.length ? t('quoteAvail.short', { count: short.length }) : t('quoteAvail.allFree')}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {rows.map(r => {
               const missing = shortBy(r)
               return (
-                <div key={r.item_id} style={{ display: 'flex', gap: '10px', alignItems: 'center', padding: '8px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
+                <div key={r.item_id} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '8px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
                   <span style={{ flex: 1, minWidth: 0 }}>{r.description}</span>
                   <span style={{ color: colors.muted, whiteSpace: 'nowrap' }}>{t('quoteAvail.need', { count: r.quantity })}</span>
                   <span style={{ whiteSpace: 'nowrap', fontWeight: 700, color: missing ? AMBER : colors.accentText }}>
@@ -65,7 +65,7 @@ export default function QuoteAvailabilityModal({ quote, body, org, onClose }) {
           </div>
         </>
       )}
-      {unlinked > 0 && <p style={{ fontSize: '12px', color: colors.muted, marginTop: '12px', lineHeight: 1.5 }}>{t('quoteAvail.unlinked', { count: unlinked })}</p>}
+      {unlinked > 0 && <p style={{ fontSize: '13px', color: colors.muted, marginTop: '12px', lineHeight: 1.5 }}>{t('quoteAvail.unlinked', { count: unlinked })}</p>}
     </Modal>
   )
 }

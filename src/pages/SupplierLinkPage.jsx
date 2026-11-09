@@ -34,7 +34,7 @@ export default function SupplierLinkPage() {
 
   return (
     <div style={page}>
-      <div style={{ maxWidth: '210mm', margin: '0 auto', display: 'flex', justifyContent: 'flex-end', gap: '6px' }} role="group" aria-label="Language">
+      <div style={{ maxWidth: '210mm', margin: '0 auto', display: 'flex', justifyContent: 'flex-end', gap: '8px' }} role="group" aria-label="Language">
         {['pt', 'en'].map(l => (
           <button key={l} onClick={() => setLang(l)} aria-pressed={lang === l} style={{ ...langBtn, fontWeight: lang === l ? 700 : 400 }}>{l.toUpperCase()}</button>
         ))}
@@ -42,18 +42,18 @@ export default function SupplierLinkPage() {
       {about === undefined && <div style={{ textAlign: 'center', padding: '40px' }}><AvxLoader size={24} color="#555" /></div>}
       {about === null && (
         <div style={card}>
-          <h1 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>{tr('supplierPage.notFoundTitle')}</h1>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '8px' }}>{tr('supplierPage.notFoundTitle')}</h1>
           <p style={{ fontSize: '14px', color: '#555', lineHeight: 1.6 }}>{tr('supplierPage.notFoundBody')}</p>
         </div>
       )}
       {about && (
         <article style={card}>
-          <div style={{ fontSize: '12px', color: '#666', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr('supplierPage.title')}</div>
+          <div style={{ fontSize: '13px', color: '#666', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr('supplierPage.title')}</div>
           <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '2px 0 4px' }}>{org?.name}</h1>
           <p style={{ fontSize: '14px', color: '#333', margin: 0 }}>
             {[about.reference && tr('supplierPage.reference', { reference: about.reference }), about.supplier && tr('supplierPage.for', { supplier: about.supplier })].filter(Boolean).join(' · ')}
           </p>
-          <p style={{ fontSize: '15px', fontWeight: 700, margin: '10px 0' }}>{about.starts_at && about.ends_at ? rangeText(about.starts_at, about.ends_at) : ''}</p>
+          <p style={{ fontSize: '16px', fontWeight: 700, margin: '10px 0' }}>{about.starts_at && about.ends_at ? rangeText(about.starts_at, about.ends_at) : ''}</p>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr><th style={th}>{tr('supplierPage.item')}</th><th style={{ ...th, textAlign: 'right', width: '90px' }}>{tr('supplierPage.quantity')}</th></tr>
@@ -64,7 +64,7 @@ export default function SupplierLinkPage() {
               ))}
             </tbody>
           </table>
-          <p style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
+          <p style={{ fontSize: '13px', color: '#666', marginTop: '10px' }}>
             {tr('supplierPage.contact', { org: org?.name || '' })}{' '}
             {[org?.email && <a key="e" href={`mailto:${org.email}`}>{org.email}</a>, org?.phone && <a key="p" href={`tel:${org.phone.replace(/[^+\d]/g, '')}`}>{org.phone}</a>]
               .filter(Boolean).reduce((acc, el, i) => (i ? [...acc, ' · ', el] : [el]), [])}
@@ -80,4 +80,4 @@ const page = { minHeight: '100vh', background: '#e9edf1', color: '#111', padding
 const card = { maxWidth: '210mm', margin: '12px auto 0', background: '#fff', padding: '20px' }
 const th = { textAlign: 'left', fontSize: '11px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: '#666', padding: '6px', borderBottom: '1px solid #ccc' }
 const td = { padding: '7px 6px', borderBottom: '1px solid #eee' }
-const langBtn = { background: 'none', border: '1px solid #c5ccd4', padding: '4px 8px', fontSize: '12px', cursor: 'pointer', color: '#111' }
+const langBtn = { background: 'none', border: '1px solid #c5ccd4', padding: '4px 8px', fontSize: '13px', cursor: 'pointer', color: '#111' }

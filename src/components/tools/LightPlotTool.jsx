@@ -240,25 +240,25 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
 
   return (
     <section aria-labelledby="light-plot-title">
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
         <div style={{ flex: '1 1 200px' }}>
-          <h2 id="light-plot-title" style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>{t('tools.name.light_plot')}</h2>
+          <h2 id="light-plot-title" style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>{t('tools.name.light_plot')}</h2>
           <p style={{ color: colors.muted, fontSize: '13px' }}>
             {t('light.barCount', { count: bars.length })} · {t('dmx.count', { count: fixtures.length })}{power.total.watts > 0 && ` · ${watts(power.total.watts)}`}
           </p>
         </div>
         {(bars.length > 0 || fixtures.length > 0) && <Link to={`/gig/${gig.id}/lights`} style={{ ...btn, textDecoration: 'none' }}><Printer size={14} /> {t('inputs.print')}</Link>}
       </div>
-      {savedAt && <p role="status" style={{ fontSize: '12px', color: 'var(--warn)', marginBottom: '10px' }}>{t('light.offline')}</p>}
+      {savedAt && <p role="status" style={{ fontSize: '13px', color: 'var(--warn)', marginBottom: '10px' }}>{t('light.offline')}</p>}
 
       {canEdit && (
         <div style={{ marginBottom: '12px' }}>
           <h3 style={{ ...label, marginBottom: '6px' }}>{t('light.addBar')}</h3>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
             {BAR_KINDS.map(kind => (
               <button key={kind} type="button" onClick={() => addBar(kind)} style={{ ...btn, padding: '6px 10px', fontSize: '13px' }}><Plus size={13} /> {t(`light.kind.${kind}`)}</button>
             ))}
-            <p style={{ fontSize: '12px', color: colors.muted, flex: '1 1 220px', lineHeight: 1.5 }}>{t('light.howTo')}</p>
+            <p style={{ fontSize: '13px', color: colors.muted, flex: '1 1 220px', lineHeight: 1.5 }}>{t('light.howTo')}</p>
           </div>
         </div>
       )}
@@ -271,14 +271,14 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
       </div>
 
       {canEdit && bar && (
-        <div role="group" aria-label={t('plot.selected', { name: bar.name })} style={{ ...card, marginBottom: '12px', borderColor: 'var(--accent)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div role="group" aria-label={t('plot.selected', { name: bar.name })} style={{ ...card, marginBottom: '12px', borderColor: 'var(--accent)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <strong style={{ fontSize: '14px' }}>{bar.name} · {t(`light.kind.${bar.kind}`)}</strong>
           <Moves onMove={(dx, dy) => nudge(bar, null, dx, dy)}>
             <button type="button" onClick={() => editBar(bar.id, { rotation: bar.rotation === 90 ? 0 : 90 })} style={btn}><RotateCw size={14} /> {t('plot.rotate')}</button>
             <button type="button" onClick={() => setAdding(bar.name)} style={btn}><Plus size={14} /> {t('light.addFixtures')}</button>
             <button type="button" onClick={() => removeBar(bar)} style={{ ...btn, color: colors.danger }}><Trash2 size={14} /> {t('plot.remove')}</button>
           </Moves>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
             <div>
               <label style={label} htmlFor="bar-name">{t('light.barName')}</label>
               <input id="bar-name" maxLength={40} defaultValue={bar.name} key={`n${bar.id}${bar.name}`} onBlur={e => renameBar(bar, e.target.value)} style={input} />
@@ -311,16 +311,16 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
       )}
 
       {canEdit && fixture && (
-        <div role="group" aria-label={t('plot.selected', { name: fixture.name })} style={{ ...card, marginBottom: '12px', borderColor: 'var(--accent)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div role="group" aria-label={t('plot.selected', { name: fixture.name })} style={{ ...card, marginBottom: '12px', borderColor: 'var(--accent)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <strong style={{ fontSize: '14px' }}>{fixture.name} · {fixture.fixture_type}</strong>
           <Moves onMove={(dx, dy) => nudge(null, fixture, dx, dy)} disabled={!layout[fixture.id]}>
             {layout[fixture.id] && !layout[fixture.id].auto && layout[fixture.id].bar && (
               <button type="button" onClick={() => changeFixture(fixture.id, { plot_x: null, plot_y: null }, { now: true })} style={btn}><Undo2 size={14} /> {t('light.respace')}</button>
             )}
             {layout[fixture.id] && <button type="button" onClick={() => takeOff(fixture)} style={btn}><LogOut size={14} /> {t('light.takeOff')}</button>}
-            <span style={{ fontSize: '12px', color: colors.muted }}>{fixture.position || t('light.noBar')}</span>
+            <span style={{ fontSize: '13px', color: colors.muted }}>{fixture.position || t('light.noBar')}</span>
           </Moves>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
             <div>
               <label style={label} htmlFor="fx-symbol">{t('light.symbol')}</label>
               <select id="fx-symbol" value={fixture.symbol || ''} onChange={e => changeFixture(fixture.id, { symbol: e.target.value || null }, { now: true })} style={{ ...input, appearance: 'auto' }}>
@@ -349,9 +349,9 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
           {loose.length > 0 && (
             <section aria-labelledby="light-loose" style={{ marginBottom: '14px' }}>
               <h3 id="light-loose" style={{ ...label, marginBottom: '6px' }}>{t('light.notOnPlot', { count: loose.length })}</h3>
-              <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column' }}>
                 {loose.map(f => (
-                  <li key={f.id} style={{ ...card, padding: '6px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', fontSize: '13px' }}>
+                  <li key={f.id} style={{ padding: '8px 0', borderBottom: `1px solid ${colors.line}`, display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', fontSize: '13px' }}>
                     <span style={{ flex: '1 1 160px', minWidth: 0 }}><strong>{f.name}</strong> <span style={{ color: colors.muted }}>· {f.fixture_type}{f.position ? ` · ${f.position}` : ''}</span></span>
                     {canEdit && (
                       <select aria-label={t('light.hangOn', { name: f.name })} value="" onChange={e => hangOn(f, e.target.value)}
@@ -377,18 +377,18 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
                   <li key={b.id}>
                     <button type="button" onClick={() => setSelected({ kind: 'bar', id: b.id })} disabled={!canEdit} aria-pressed={canEdit ? bar?.id === b.id : undefined}
                       style={{ ...card, width: '100%', textAlign: 'left', padding: '8px 12px', font: 'inherit', color: 'var(--text)', cursor: canEdit ? 'pointer' : 'default', opacity: 1,
-                        borderColor: bar?.id === b.id ? colors.accent : undefined, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        borderColor: bar?.id === b.id ? colors.accent : undefined, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <span style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'baseline' }}>
                         <strong style={{ fontSize: '14px' }}>{b.name}</strong>
-                        <span style={{ fontSize: '12px', color: colors.muted }}>
+                        <span style={{ fontSize: '13px', color: colors.muted }}>
                           {[t(`light.kind.${b.kind}`), `${b.length} m`, b.height !== null && b.kind !== 'floor' ? t('light.trimAt', { m: b.height }) : null, b.phase ? `L${b.phase}` : null].filter(Boolean).join(' · ')}
                         </span>
-                        <span style={{ fontSize: '12px', color: colors.soft, marginLeft: 'auto' }}>
+                        <span style={{ fontSize: '13px', color: colors.soft, marginLeft: 'auto' }}>
                           {t('dmx.count', { count: row.count })}{row.watts > 0 && ` · ${watts(row.watts)} · ${row.amps} A`}{row.kg > 0 && ` · ${row.kg} kg`}
                         </span>
                       </span>
-                      {list.length > 0 && <span style={{ fontSize: '12px', color: colors.soft, lineHeight: 1.5 }}>{list.map(f => `${f.name}${f.address ? ` (${f.universe}/${f.address})` : ''}`).join(' · ')}</span>}
-                      {row.unknown > 0 && <span style={{ fontSize: '12px', color: 'var(--warn)' }}>{t('light.unknownPower', { count: row.unknown })}</span>}
+                      {list.length > 0 && <span style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.5 }}>{list.map(f => `${f.name}${f.address ? ` (${f.universe}/${f.address})` : ''}`).join(' · ')}</span>}
+                      {row.unknown > 0 && <span style={{ fontSize: '13px', color: 'var(--warn)' }}>{t('light.unknownPower', { count: row.unknown })}</span>}
                     </button>
                   </li>
                 )
@@ -401,7 +401,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
       )}
 
       {canEdit && !hasDmxPatch && fixtures.length === 0 && (
-        <p style={{ fontSize: '12px', color: colors.muted, marginTop: '10px', lineHeight: 1.5 }}>{t('light.dmxNote')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, marginTop: '10px', lineHeight: 1.5 }}>{t('light.dmxNote')}</p>
       )}
 
       {adding !== null && (
@@ -424,7 +424,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
 
 function Moves({ onMove, disabled, children }) {
   return (
-    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
       {!disabled && (
         <>
           <button type="button" onClick={() => onMove(-STEP_M, 0)} aria-label={t('plot.moveLeft')} style={iconBtn}><ArrowLeft size={16} /></button>
@@ -443,12 +443,12 @@ function PowerPanel({ power, supply, canEdit, onSupply, watts }) {
   const warn = power.over ? colors.danger : 'var(--warn)'
   return (
     <section aria-labelledby="light-power" style={card}>
-      <h3 id="light-power" style={{ fontSize: '15px', fontWeight: 700, marginBottom: '4px' }}>{t('light.powerTitle')}</h3>
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>
+      <h3 id="light-power" style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>{t('light.powerTitle')}</h3>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>
         {t('light.powerNote', { volts: supply.volts })}
       </p>
       {canEdit && (
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '10px' }}>
           <div style={{ width: '160px' }}>
             <label style={label} htmlFor="supply-phases">{t('light.phases')}</label>
             <select id="supply-phases" value={supply.phases} onChange={e => onSupply({ phases: Number(e.target.value) })} style={{ ...input, appearance: 'auto' }}>
@@ -468,7 +468,7 @@ function PowerPanel({ power, supply, canEdit, onSupply, watts }) {
           </div>
         </div>
       )}
-      <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {power.phases.map(p => (
           <li key={p.phase} style={{ fontSize: '13px' }}>
             <span style={{ display: 'flex', gap: '8px', justifyContent: 'space-between' }}>
@@ -484,9 +484,9 @@ function PowerPanel({ power, supply, canEdit, onSupply, watts }) {
       <p style={{ fontSize: '13px', marginTop: '10px' }}>
         {t('light.total', { watts: watts(power.total.watts), amps: power.total.amps, kg: power.total.kg })}
       </p>
-      {power.total.unknown > 0 && <p style={{ fontSize: '12px', color: 'var(--warn)', marginTop: '4px' }}>{t('light.unknownPower', { count: power.total.unknown })}</p>}
+      {power.total.unknown > 0 && <p style={{ fontSize: '13px', color: 'var(--warn)', marginTop: '4px' }}>{t('light.unknownPower', { count: power.total.unknown })}</p>}
       {(power.over || power.near) && (
-        <p role="status" style={{ fontSize: '13px', color: warn, marginTop: '8px', display: 'flex', gap: '6px', alignItems: 'center', fontWeight: 700 }}>
+        <p role="status" style={{ fontSize: '13px', color: warn, marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center', fontWeight: 700 }}>
           <AlertTriangle size={14} aria-hidden="true" /> {power.over ? t('light.over') : t('light.near')}
         </p>
       )}

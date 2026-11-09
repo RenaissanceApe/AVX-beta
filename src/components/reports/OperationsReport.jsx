@@ -18,7 +18,7 @@ import { PeriodBar, GroupBy, ReportTable, ExportButtons, DetailsToggle, useDetai
 
 const FUNCTIONS = { activity: 'ops_activity', people: 'ops_people', staffing: 'ops_staffing', tasks: 'ops_tasks' }
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '8px' }
-const note = { fontSize: '12px', color: colors.muted, lineHeight: 1.6, margin: 0 }
+const note = { fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }
 const h3 = { fontSize: '14px', fontWeight: 700, margin: '6px 0 0' }
 
 // Reports → Operations (K7): activity, people, staffing and tasks, counted in the database
@@ -284,7 +284,7 @@ export default function OperationsReport({ orgId, timeZone, labels, params, setP
 
   function toolbar(csv) {
     return (
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
         <DetailsToggle on={details} onToggle={toggleDetails} />
         <span style={{ flex: '1 1 auto' }} />
         <ExportButtons onCsv={csv || (() => {})} disabled={!csv} />
@@ -297,7 +297,7 @@ export default function OperationsReport({ orgId, timeZone, labels, params, setP
       <PeriodBar period={period} onPeriod={v => setParam('period', v === 'this_month' ? null : v)} custom={custom}
         onCustom={c => { setParam('from', c.from || null); setParam('until', c.until || null) }}
         compare={compare} onCompare={v => setParam('compare', v === 'previous' ? null : v)} range={range} compared={compared} />
-      <div className="no-print" role="group" aria-label={t('ops.views')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="no-print" role="group" aria-label={t('ops.views')} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
         {OPS_VIEWS.map(v => (
           <button key={v} type="button" onClick={() => setView(v)} aria-pressed={view === v}
             style={{ ...btn, padding: '6px 10px', ...(view === v ? { borderColor: colors.accentText, color: colors.accentText, fontWeight: 700 } : {}) }}>

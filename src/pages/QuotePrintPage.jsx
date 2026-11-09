@@ -62,7 +62,7 @@ export default function QuotePrintPage() {
     <QuoteDocument quote={data.quote} org={data.org} branding={data.branding} toolbar={<>
       <button onClick={() => navigate(`/quote/${id}`)} style={toolbarBtn}><ArrowLeft size={14} /> {t('quote.backToEditor')}</button>
       {version
-        ? <span style={{ flex: 1, fontSize: '13px', color: '#555', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+        ? <span style={{ flex: 1, fontSize: '13px', color: '#555', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
             <History size={14} /> {t('quoteVersions.viewing', { n: version.version_no, date: fmt(version.created_at, 'd MMM yyyy HH:mm') })}{version.note ? ` · ${version.note}` : ''}
           </span>
         : <span style={{ flex: 1, fontSize: '13px', color: '#555' }}>{t('quote.printHint')}</span>}

@@ -87,7 +87,8 @@ const SCENES = {
     return page.getByText(L('push.title'), { exact: true }).first().locator('xpath=ancestor::div[1]')
   } },
   requests: { persona: 'crew', url: '/me', async run(page, L) {
-    return page.getByText(L('requests.title.one', { count: 1 })).locator('xpath=..')
+    await page.getByText(L('requests.title.one', { count: 1 })).waitFor()
+    return page.locator('section[aria-labelledby="requests-title"]')
   } },
   appearance: { persona: 'crew', url: '/settings/preferences', async run(page, L) {
     return page.getByText(L('appearance.title'), { exact: true }).locator('xpath=..')
@@ -323,7 +324,9 @@ const SCENES = {
     return page.getByRole('button', { name: L('quote.addPhase') }).first()
   } },
   'quote-versions': { persona: 'pm', url: '/quote/q1', async run(page, L) {
-    await page.getByRole('button', { name: L('quoteVersions.button') }).first().click()
+    // DR4: Versions is in the quote's ⋯ menu
+    await page.getByRole('button', { name: L('common.moreActions'), exact: true }).click()
+    await page.getByRole('menuitem', { name: L('quoteVersions.button') }).click()
     const dialog = page.getByRole('dialog')
     await dialog.getByPlaceholder(L('quoteVersions.notePlaceholder')).fill(page.lang === 'pt' ? 'Antes de mudar o som' : 'Before changing the audio')
     return dialog.getByRole('button', { name: L('quoteVersions.save') })
@@ -333,7 +336,8 @@ const SCENES = {
     return page.getByRole('dialog').getByRole('button', { name: L('send.sendEmail') })
   } },
   'quote-gig': { persona: 'pm', url: '/quote/q1', async run(page, L) {
-    await page.getByRole('button', { name: L('plan.button') }).first().click()
+    await page.getByRole('button', { name: L('common.moreActions'), exact: true }).click()
+    await page.getByRole('menuitem', { name: L('plan.button') }).click()
     await page.waitForTimeout(500)
     return page.getByRole('dialog').getByRole('button', { name: /^\S/ }).last()
   } },
@@ -345,7 +349,7 @@ const SCENES = {
     return dialog.getByRole('button', { name: L('common.invite'), exact: true }).locator('xpath=..')
   } },
   'jobs-board': { persona: 'crew', url: '/jobs', async run(page, L) {
-    const first = page.locator('#jobs-found').locator('xpath=following-sibling::div[1]/div[1]')
+    const first = page.locator('#jobs-found ~ ul > li').first()
     await first.waitFor()
     await first.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
     return first
@@ -572,7 +576,7 @@ const SCENES = {
   } },
   'gig-finance': { persona: 'pm', url: `/gig/${ids.gig}`, async run(page) {
     const box = page.locator('section[aria-labelledby="finance-title"]')
-    await box.locator('dl').waitFor()
+    await box.locator('dl').first().waitFor()
     await box.evaluate(el => window.scrollTo(0, document.documentElement.scrollHeight))
     return box
   } },
@@ -752,7 +756,9 @@ const SCENES = {
     return fee
   } },
   'job-pay': { persona: 'pm', url: `/gig/${ids.gig}?tab=crew`, async run(page, L) {
-    await page.getByRole('button', { name: L('jobs.postButton') }).first().click()
+    // Post a job sits in the Crew tab's own ⋯ (the header's ⋯ comes first)
+    await page.getByRole('button', { name: L('common.moreActions') }).last().click()
+    await page.getByRole('menuitem', { name: L('jobs.postButton') }).click()
     const dialog = page.getByRole('dialog')
     await dialog.locator('#pj-title').fill(page.lang === 'pt' ? 'Técnica de som' : 'Sound technician')
     const pay = dialog.locator('fieldset').last()
@@ -858,7 +864,9 @@ const SCENES = {
     return page.getByRole('button', { name: L('mute.muteNamed', { name: 'Lumen and Pixel' }) }).first()
   } },
   'gig-danger': { persona: 'pm', url: `/gig/${ids.gig}`, async run(page, L) {
-    await page.getByRole('button', { name: L('gig.edit') }).first().click()
+    // On a phone Edit gig sits in the header's ⋯ menu
+    await page.getByRole('button', { name: L('common.moreActions') }).first().click()
+    await page.getByRole('menuitem', { name: L('gig.edit') }).click()
     const dialog = page.getByRole('dialog')
     const zone = dialog.getByRole('button', { name: new RegExp(L('danger.zone')) })
     await zone.click()

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { UserPlus, Check } from 'lucide-react'
 import { useI18n } from '../../i18n'
-import { input, label, colors, btn, AvxLoader } from '../ui'
+import { input, label, colors, btn, AvxLoader, space } from '../ui'
 import { HintLabel } from '../help/HelpParts'
 
 // A client from the contacts directory as the quote's client fields. The quote keeps its own
@@ -38,10 +38,10 @@ export default function QuoteDetails({ quote, gigs, clients = [], onChange, onSa
   )
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', animation: 'fadeIn 0.2s ease' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: space.section, animation: 'fadeIn 0.2s ease' }}>
       <fieldset style={box}>
         <legend style={legend}>{t('quote.client')}</legend>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', gap: space[2], alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: space[3] }}>
           <div style={{ flex: '1 1 240px', minWidth: 0 }}>
             <HintLabel htmlFor="qd-client" hint="quote-client">{t('contacts.pick')}</HintLabel>
             <select id="qd-client" value={quote.client_id || ''} onChange={e => pick(e.target.value)} style={{ ...input, cursor: 'pointer' }}>
@@ -57,7 +57,7 @@ export default function QuoteDetails({ quote, gigs, clients = [], onChange, onSa
             </button>
           )}
           {linked && (
-            <Link to={`/org/${linked.org_id}/contacts`} style={{ fontSize: '12px', color: colors.accentText, display: 'flex', alignItems: 'center', gap: '4px', paddingBottom: '10px' }}>
+            <Link to={`/org/${linked.org_id}/contacts`} style={{ fontSize: '13px', color: colors.accentText, display: 'flex', alignItems: 'center', gap: space[1], paddingBottom: space[3] }}>
               <Check size={13} aria-hidden="true" /> {t('contacts.inContacts')}
             </Link>
           )}
@@ -98,7 +98,7 @@ export default function QuoteDetails({ quote, gigs, clients = [], onChange, onSa
             <HintLabel htmlFor="qd-vat" hint="vat">{t('quote.vatRate')}</HintLabel>
             <input id="qd-vat" type="number" min="0" max="100" step="0.01" value={quote.vat_rate} onChange={e => set('vat_rate', e.target.value)} style={input} />
             {onApplyVat && (
-              <button type="button" onClick={onApplyVat} style={{ background: 'none', border: 'none', padding: '6px 0', minHeight: '32px', color: colors.accentText, fontSize: '12px', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>
+              <button type="button" onClick={onApplyVat} style={{ background: 'none', border: 'none', padding: '6px 0', minHeight: '32px', color: colors.accentText, fontSize: '13px', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>
                 {t('quote.applyVat')}
               </button>
             )}
@@ -118,7 +118,7 @@ export default function QuoteDetails({ quote, gigs, clients = [], onChange, onSa
             <input type="checkbox" checked={quote.show_line_prices} onChange={e => set('show_line_prices', e.target.checked)} style={{ marginTop: '3px', accentColor: colors.accent }} />
             <span>
               {t('quote.showLinePrices')}
-              <span style={{ display: 'block', fontSize: '12px', color: colors.muted, marginTop: '2px' }}>{t('quote.showLinePricesHint')}</span>
+              <span style={{ display: 'block', fontSize: '13px', color: colors.muted, marginTop: space[1] }}>{t('quote.showLinePricesHint')}</span>
             </span>
           </label>
         </div>
@@ -143,6 +143,7 @@ export default function QuoteDetails({ quote, gigs, clients = [], onChange, onSa
   )
 }
 
-const box = { border: '1px solid color-mix(in srgb, var(--fg) min(100%, calc(7% * var(--line-k))), transparent)', padding: '14px 16px 16px', minWidth: 0 }
-const legend = { padding: '0 6px', fontSize: '13px', fontWeight: 700, color: colors.soft }
-const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }
+// One box deep (DESIGN.md "Room to breathe"): each group is a heading on the page ground, no border
+const box = { border: 'none', padding: 0, margin: 0, minWidth: 0 }
+const legend = { padding: 0, marginBottom: space[4], font: '700 16px/24px var(--font-mono)', color: 'var(--text)' }
+const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: `${space[3]} ${space[4]}` }

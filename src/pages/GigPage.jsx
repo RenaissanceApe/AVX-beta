@@ -6,7 +6,7 @@ import { useAuth } from '../lib/AuthContext'
 import { logger } from '../lib/logger'
 import { useI18n } from '../i18n'
 import { useToast } from '../lib/ToastContext'
-import { btn, btnPrimary, colors, AvxLoader } from '../components/ui'
+import { btn, btnPrimary, colors, AvxLoader, Stack } from '../components/ui'
 import GigHeader, { GIG_TABS, TAB_ALIASES } from '../components/gig/GigHeader'
 import { useSimpleMode, SIMPLE_GIG_TABS } from '../lib/simpleMode'
 import OverviewTab from '../components/gig/OverviewTab'
@@ -233,30 +233,33 @@ export default function GigPage() {
   return (
     <AppShell>
       <OfflineBanner savedAt={savedAt} />
-      <GigHeader gig={gig} crewCount={members.length} myMembership={myMembership} canEdit={isPM}
+      <GigHeader gig={gig} myMembership={myMembership} canEdit={isPM}
         tab={tab} setTab={setTab} tabs={tabs} counts={{ assets: assets.length, crew: members.length, updates: posts.length, schedule: schedule.length, tools: tools.length, tasks: (data.tasks || []).filter(x => x.status === 'open').length }}
         onBack={goBack} onRefresh={() => loadAll()} onEdit={() => setShowEdit(true)}
         company={company} orgRole={orgRole} />
 
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '24px 16px' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: 'var(--space-6) var(--gutter)' }}>
         {tab === 'overview' && onSiteWhy && (
           <OnSiteView gig={gig} schedule={schedule} tools={tools} tasks={data.tasks || []} userId={user.id} myMembership={myMembership} canScan={canUpload} why={onSiteWhy}
             noteSeen={onSite.noteSeen} onDismissNote={() => saveOnSite({ ...readOnSite(), noteSeen: true })}
             onLeave={() => saveOnSite({ ...switchOnSite(readOnSite(), gig.id, false), noteSeen: true })} setTab={setTab} />
         )}
         {tab === 'overview' && !onSiteWhy && (
-          <button type="button" onClick={() => saveOnSite(switchOnSite(readOnSite(), gig.id, true))}
-            style={{ ...btn, background: 'transparent', marginBottom: '12px' }}><HardHat size={14} /> {t('onsite.enter')}</button>
-        )}
-        {tab === 'overview' && !onSiteWhy && (isPM || orgRole === 'admin' || orgRole === 'member') && <GigWrapupLink gig={gig} />}
-        {tab === 'overview' && !onSiteWhy && (
-          <OverviewTab gig={gig} assets={assets} members={members} posts={posts} schedule={schedule}
-            canUpload={canUpload} isPM={isPM} nameOf={nameOf} setTab={setTab} onOpenAsset={setVersionsAsset}
-            openUpload={() => { setTab('assets'); setShowUpload(true) }}
-            openInvite={() => { setTab('crew'); setShowInvite(true) }} />
-        )}
-        {tab === 'overview' && !onSiteWhy && !simple && gig.org_id && (orgRole === 'admin' || orgRole === 'member') && (
-          <GigFinancePanel gig={gig} members={members} canManage={isPM} />
+          <>
+            {/* The way into on-site mode and, once it's over, the wrap-up: one quiet row above the sections */}
+            <Stack gap={3} style={{ marginBottom: 'var(--space-section)' }}>
+              <button type="button" onClick={() => saveOnSite(switchOnSite(readOnSite(), gig.id, true))}
+                style={{ ...btn, alignSelf: 'flex-start' }}><HardHat size={14} aria-hidden="true" /> {t('onsite.enter')}</button>
+              {(isPM || orgRole === 'admin' || orgRole === 'member') && <GigWrapupLink gig={gig} />}
+            </Stack>
+            <OverviewTab gig={gig} assets={assets} members={members} posts={posts} schedule={schedule}
+              canUpload={canUpload} isPM={isPM} nameOf={nameOf} setTab={setTab} onOpenAsset={setVersionsAsset}
+              openUpload={() => { setTab('assets'); setShowUpload(true) }}
+              openInvite={() => { setTab('crew'); setShowInvite(true) }} />
+            {!simple && gig.org_id && (orgRole === 'admin' || orgRole === 'member') && (
+              <GigFinancePanel gig={gig} members={members} canManage={isPM} />
+            )}
+          </>
         )}
         {tab === 'schedule' && (
           <ScheduleTab gig={gig} items={schedule} canManage={isPM}

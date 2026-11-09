@@ -6,7 +6,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { BASE_STATUSES, LABEL_COLOURS, SUGGESTED_STATUSES, labelVar, useGigLabels } from '../lib/gigLabels'
 import { useI18n } from '../i18n'
-import { btn, iconBtn, input, label, colors } from './ui'
+import { btn, iconBtn, input, colors } from './ui'
 
 const select = { ...input, appearance: 'auto', width: 'auto', minWidth: 0 }
 
@@ -18,8 +18,8 @@ export default function OrgGigLabelsSettings({ org }) {
   const labels = useGigLabels(org.id)
   if (!labels.loaded) return null
   return (
-    <section aria-labelledby="org-labels" style={{ marginTop: '20px', paddingTop: '16px', borderTop: `1px solid ${colors.border}` }}>
-      <h3 id="org-labels" style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><Tags size={13} /> {t('labels.title')}</h3>
+    <section aria-labelledby="org-labels" style={{ marginTop: 'var(--space-section)' }}>
+      <h3 id="org-labels" style={{ font: '700 16px/24px var(--font-mono)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 8px' }}><Tags size={16} aria-hidden="true" /> {t('labels.title')}</h3>
       <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>{t('labels.intro')}</p>
       <LabelList org={org} kind="statuses" items={labels.statuses} reload={labels.reload} />
       <LabelList org={org} kind="types" items={labels.types} reload={labels.reload} />
@@ -75,11 +75,11 @@ function LabelList({ org, kind, items, reload }) {
   return (
     <div style={{ marginTop: '12px' }}>
       <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '4px' }}>{t(`labels.${kind}.title`)}</h4>
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '8px' }}>{t(`labels.${kind}.hint`)}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '8px' }}>{t(`labels.${kind}.hint`)}</p>
       {items.length > 0 && (
-        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
+        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
           {items.map((item, i) => (
-            <li key={item.id} style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <li key={item.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <span aria-hidden="true" style={{ background: labelVar(item.colour), width: '12px', height: '12px', flexShrink: 0 }} />
               <input defaultValue={item.name} maxLength={40} aria-label={t('labels.name')} disabled={busy}
                 onBlur={e => { const v = e.target.value.trim(); if (v && v !== item.name) update(item, { name: v }); else e.target.value = item.name }}
@@ -92,7 +92,7 @@ function LabelList({ org, kind, items, reload }) {
                   {BASE_STATUSES.map(b => <option key={b} value={b}>{t('labels.means', { status: t(`status.${b}`) })}</option>)}
                 </select>
               )}
-              <span style={{ display: 'inline-flex', gap: '2px', marginLeft: 'auto' }}>
+              <span style={{ display: 'inline-flex', gap: '4px', marginLeft: 'auto' }}>
                 <button type="button" onClick={() => move(i, -1)} disabled={busy || i === 0} aria-label={t('labels.moveUp', { name: item.name })} style={iconBtn}><ArrowUp size={14} /></button>
                 <button type="button" onClick={() => move(i, 1)} disabled={busy || i === items.length - 1} aria-label={t('labels.moveDown', { name: item.name })} style={iconBtn}><ArrowDown size={14} /></button>
                 <button type="button" onClick={() => remove(item)} disabled={busy} aria-label={t('labels.remove', { name: item.name })} style={iconBtn}><Trash2 size={14} /></button>
@@ -105,7 +105,7 @@ function LabelList({ org, kind, items, reload }) {
         <button type="button" onClick={suggest} disabled={busy} style={{ ...btn, marginBottom: '8px' }}><Sparkles size={14} /> {t('labels.suggest.button')}</button>
       )}
       {items.length < 30 && (
-        <form onSubmit={add} style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <form onSubmit={add} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <input value={draft.name} maxLength={40} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
             aria-label={t(`labels.${kind}.newName`)} placeholder={t(`labels.${kind}.placeholder`)} style={{ ...input, flex: '1 1 140px', minWidth: 0, padding: '6px 10px' }} />
           <select value={draft.colour} aria-label={t('labels.colour')} onChange={e => setDraft(d => ({ ...d, colour: e.target.value }))} style={{ ...select, padding: '6px 8px' }}>

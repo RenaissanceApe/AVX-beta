@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
-  Plus, Calendar, MapPin, ChevronRight, Building2, X, ArrowRight, Search, List, CalendarDays, Briefcase, AlertTriangle,
+  Plus, Calendar, MapPin, ChevronRight, Building2, X, ArrowRight, Search, List, CalendarDays, Briefcase, ArrowUpDown,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { selectAll } from '../lib/selectAll'
@@ -22,7 +22,7 @@ import { useI18n, t, fmt } from '../i18n'
 import OfflineBanner from '../components/OfflineBanner'
 import { OwnClashWarning } from '../components/gig/Booking'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../lib/offline'
-import { PageHelp } from '../components/help/HelpParts'
+import { PageHelp, Hint } from '../components/help/HelpParts'
 import EmptyState from '../components/EmptyState'
 import FirstSteps from '../components/FirstSteps'
 import { KeyNumbersStrip } from '../components/reports/OverviewTiles'
@@ -31,7 +31,9 @@ import MyNumbersStrip from '../components/mywork/MyNumbersStrip'
 import { useSimpleMode } from '../lib/simpleMode'
 import { useGigLabels, GIG_LABELS_EMBED } from '../lib/gigLabels'
 import { GigLabels } from '../components/gig/parts'
-import { StatusBadge, CallChip, AvxLoader } from '../components/ui'
+import { StatusBadge, CallChip, AvxLoader, PageHeader, Section, usePhone } from '../components/ui'
+import ArrangeHome from '../components/ArrangeHome'
+import { arrangeModules, loadLayout, saveLayout } from '../lib/homeLayout'
 import { shortTime } from '../lib/schedule'
 import GigLabelFields from '../components/gig/GigLabelFields'
 import GigClientField from '../components/gig/GigClientField'
@@ -41,7 +43,8 @@ import { CustomFieldInputs } from '../components/CustomFields'
 // Home of a workspace:
 //   /me           My work: every gig you're on, at any company, with your role on each
 //   /org/:orgId   An organisation's gigs; ?panel=members|settings and ?new=gig open dialogs
-// Both take ?view=calendar.
+// Both take ?view=calendar. The home is a column of modules (DESIGN.md "Home"): First steps on top, then
+// availability requests, key numbers and events in the order the person chose with "Arrange home".
 export default function Dashboard() {
   const { orgId } = useParams()
   const { user, profile } = useAuth()
@@ -64,6 +67,8 @@ export default function Dashboard() {
   const [gigSearch, setGigSearch] = useState('')
   const { simple } = useSimpleMode()
   const [showAll, setShowAll] = useState(false) // simple mode: the full list instead of the next gig
+  const [arranging, setArranging] = useState(false) // the Arrange home sheet
+  const phone = usePhone()
   const view = params.get('view') === 'calendar' ? 'calendar' : 'list'
   const panel = params.get('panel')
   const setParam = (key, value) => {
@@ -129,63 +134,93 @@ export default function Dashboard() {
   const margins = useGigMargins(mode === 'org' && canCreateGig && !simple ? orgId : null)
   const notMember = mode === 'org' && !loadingOrgs && !org
 
+  // The modules this home can show this person (DESIGN.md "Home"), arranged their way on this device
+  const modules = [
+    mode === 'me' && { id: 'requests', name: t('home.module.requests') },
+    (mode === 'me' || (org && canCreateGig && !simple)) && { id: 'numbers', name: mode === 'me' ? t('myNumbers.stripTitle') : t('reports.keyNumbers') },
+    { id: 'events', name: t('home.events') },
+  ].filter(Boolean)
+  const layoutScope = mode === 'me' ? 'me' : orgId
+  const [layout, setLayoutState] = useState(() => loadLayout(user?.id, layoutScope))
+  useEffect(() => { setLayoutState(loadLayout(user?.id, layoutScope)) }, [user?.id, layoutScope])
+  const setLayout = next => { saveLayout(user?.id, layoutScope, next); setLayoutState(loadLayout(user?.id, layoutScope)) }
+  const arranged = arrangeModules(layout, modules.map(m => m.id)).filter(m => !m.hidden)
+
+  const loading = loadingGigs || loadingOrgs
+  const events = (
+    <Section key="events" id="home-events" title={mode === 'me' && simple && !showAll ? null : t('home.events')}>
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}>
+          <AvxLoader size={25} color="var(--accent-text)" />
+        </div>
+      ) : gigs.length === 0 ? (
+        mode === 'me' ? (
+          orgs.length === 0 ? (
+            <EmptyState icon={<Building2 size={32} color="var(--accent-text)" />} title={t('dash.emptyOrgTitle')} body={t('dash.emptyOrgBody')}
+              action={t('dash.createOrg')} onAction={() => navigate('/orgs?new=1')} />
+          ) : (
+            <EmptyState icon={<Briefcase size={32} color="var(--accent-text)" />} title={t('home.noAssignedTitle')} body={t('home.noAssignedBody')}
+              action={t('home.openOrg', { org: orgs[0].name })} onAction={() => { setWorkspace(orgs[0].id); navigate(homePath(orgs[0].id)) }} guide="crew-unavailable" />
+          )
+        ) : (
+          <EmptyState icon={<Calendar size={32} color="var(--accent-text)" />} title={t('dash.emptyGigsTitle')} body={t('dash.emptyGigsBody')}
+            action={canCreateGig ? t('dash.createFirstGig') : null} onAction={() => setParam('new', 'gig')} guide={canCreateGig ? 'pm-create-gig' : null} />
+        )
+      ) : (
+        mode === 'me' && simple && !showAll ? <SimpleHome gigs={gigs} onShowAll={() => setShowAll(true)} /> :
+        <GigList gigs={gigs} view={view} setView={v => setParam('view', v === 'calendar' ? 'calendar' : null)}
+          filter={gigFilter} setFilter={setGigFilter} search={gigSearch} setSearch={setGigSearch}
+          showCompany={mode === 'me'} clashIds={mode === 'me' ? clashIds : null} margins={margins} onOpen={gig => navigate(`/gig/${gig.id}`)} />
+      )}
+    </Section>
+  )
+  const render = {
+    requests: () => <AvailabilityRequests key="requests" />,
+    numbers: () => (mode === 'me' ? <MyNumbersStrip key="numbers" /> : <KeyNumbersStrip key="numbers" orgId={orgId} />),
+    events: () => events,
+  }
+  const greeting = t('dash.welcome', { name: firstName })
+  const roleChip = role && (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+      <RoleChip role={role} />
+      <Hint text={t(`nav.roleDesc.${role}`)} label={t(`orgRole.${role}`)} />
+    </span>
+  )
+
   return (
     <AppShell>
       <OfflineBanner savedAt={savedAt} />
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '28px 20px' }}>
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: 'var(--space-6) var(--gutter)' }}>
         {notMember ? (
           <EmptyState icon={<Building2 size={32} color="var(--accent-text)" />} title={t('home.noAccessTitle')} body={t('home.noAccessBody')}
             action={t('nav.myWork')} onAction={() => navigate('/me')} />
         ) : (
           <>
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
-              <div style={{ minWidth: 0 }}>
-                <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '0 0 4px 0' }}>{t('dash.welcome', { name: firstName })}</p>
-                <h1 style={{ fontSize: '26px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                  {mode === 'me' ? t('nav.myWork') : org?.name || '…'}
-                  {role && <RoleChip role={role} />}
-                  <PageHelp page="home" />
-                </h1>
-                <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '6px 0 0' }}>
-                  {mode === 'me' ? t('home.myWorkIntro') : role ? t(`nav.roleDesc.${role}`) : ''}
-                </p>
-              </div>
-              {mode === 'org' && canCreateGig && (
-                <button onClick={() => setParam('new', 'gig')} style={btnPrimary}><Plus size={15} /> {t('dash.newGig')}</button>
-              )}
-            </div>
+            {/* Phone: the top bar already names the workspace, so the greeting is the title (DESIGN.md "Home") */}
+            <PageHeader
+              eyebrow={phone ? null : greeting}
+              title={phone ? greeting : mode === 'me' ? t('nav.myWork') : org?.name || '…'}
+              after={roleChip}
+              help={<PageHelp page="home" />}
+              primary={mode === 'org' && canCreateGig && (
+                <button onClick={() => setParam('new', 'gig')} style={btnPrimary}><Plus size={16} aria-hidden="true" /> {t('dash.newGig')}</button>
+              )} />
 
-            {!loadingGigs && !loadingOrgs && (mode === 'me' || (org && role === 'admin')) && <FirstSteps mode={mode} org={org} gigCount={gigs.length} />}
-            {mode === 'me' && <AvailabilityRequests />}
-            {mode === 'me' && <MyNumbersStrip />}
-            {mode === 'org' && org && canCreateGig && !simple && <KeyNumbersStrip orgId={orgId} />}
+            {!loading && (mode === 'me' || (org && role === 'admin')) && <FirstSteps mode={mode} org={org} gigCount={gigs.length} />}
+            {arranged.map(m => render[m.id]())}
 
-            {(loadingGigs || loadingOrgs) ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
-                <AvxLoader size={24} color="var(--accent-text)" />
+            {modules.length > 1 && (
+              <div style={{ marginTop: 'var(--space-6)', display: 'flex', justifyContent: 'center' }}>
+                <button type="button" onClick={() => setArranging(true)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-text)', font: 'inherit', fontSize: '13px', padding: 'var(--space-3)', display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', minHeight: '44px' }}>
+                  <ArrowUpDown size={16} aria-hidden="true" /> {t('home.arrange')}
+                </button>
               </div>
-            ) : gigs.length === 0 ? (
-              mode === 'me' ? (
-                orgs.length === 0 ? (
-                  <EmptyState icon={<Building2 size={32} color="var(--accent-text)" />} title={t('dash.emptyOrgTitle')} body={t('dash.emptyOrgBody')}
-                    action={t('dash.createOrg')} onAction={() => navigate('/orgs?new=1')} />
-                ) : (
-                  <EmptyState icon={<Briefcase size={32} color="var(--accent-text)" />} title={t('home.noAssignedTitle')} body={t('home.noAssignedBody')}
-                    action={t('home.openOrg', { org: orgs[0].name })} onAction={() => { setWorkspace(orgs[0].id); navigate(homePath(orgs[0].id)) }} guide="crew-unavailable" />
-                )
-              ) : (
-                <EmptyState icon={<Calendar size={32} color="var(--accent-text)" />} title={t('dash.emptyGigsTitle')} body={t('dash.emptyGigsBody')}
-                  action={canCreateGig ? t('dash.createFirstGig') : null} onAction={() => setParam('new', 'gig')} guide={canCreateGig ? 'pm-create-gig' : null} />
-              )
-            ) : (
-              mode === 'me' && simple && !showAll ? <SimpleHome gigs={gigs} onShowAll={() => setShowAll(true)} /> :
-              <GigList gigs={gigs} view={view} setView={v => setParam('view', v === 'calendar' ? 'calendar' : null)}
-                filter={gigFilter} setFilter={setGigFilter} search={gigSearch} setSearch={setGigSearch}
-                showCompany={mode === 'me'} clashIds={mode === 'me' ? clashIds : null} margins={margins} onOpen={gig => navigate(`/gig/${gig.id}`)} />
             )}
           </>
         )}
       </div>
+      {arranging && <ArrangeHome layout={layout} modules={modules} onChange={setLayout} onClose={() => setArranging(false)} />}
 
       {mode === 'org' && org && panel === 'members' && (
         <OrgMembersModal org={org} onClose={() => setParam('panel', null)} onChanged={refresh} />
@@ -235,7 +270,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
 
   return (
     <Modal title={t('dash.newGig')} onClose={onClose}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <FieldLabel label={`${t('gigForm.name')} *`}>
           <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
             placeholder={t('gigForm.namePlaceholder')} style={modalInput} autoFocus />
@@ -292,21 +327,21 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
     background: 'var(--shade)', border: '1px solid var(--line)' }
   return (
     <div>
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
-        <div role="group" aria-label="View" style={{ display: 'flex', gap: '2px', background: 'var(--shade)', padding: '3px' }}>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px' }}>
+        <div role="group" aria-label="View" style={{ display: 'flex', gap: '4px', background: 'var(--shade)', padding: '4px' }}>
           {[['list', <List key="i" size={15} />, t('dash.viewList')], ['calendar', <CalendarDays key="i" size={15} />, t('dash.viewCalendar')]].map(([v, icon, labelText]) => (
             <button key={v} onClick={() => setView(v)} aria-pressed={view === v} aria-label={labelText} title={labelText} style={{
-              padding: '6px 9px', border: 'none', cursor: 'pointer', display: 'flex',
-              background: view === v ? 'var(--selection)' : 'transparent', color: view === v ? 'var(--accent-text)' : 'var(--muted)'
+              padding: '6px 8px', border: 'none', borderBottom: `2px solid ${view === v ? 'var(--accent)' : 'transparent'}`, cursor: 'pointer', display: 'flex',
+              background: 'transparent', color: view === v ? 'var(--text)' : 'var(--muted)'
             }}>{icon}</button>
           ))}
         </div>
-        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'var(--shade)', padding: '3px', overflowX: 'auto', overflowY: 'hidden' }}>
+        {view === 'list' && <div role="tablist" aria-label="Filter gigs" style={{ display: 'flex', gap: '4px', background: 'var(--shade)', padding: '4px', overflowX: 'auto', overflowY: 'hidden' }}>
           {GIG_FILTERS.map(f => (
             <button key={f.value} role="tab" aria-selected={filter === f.value} onClick={() => setFilter(f.value)} style={{
               padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
-              background: filter === f.value ? 'var(--selection)' : 'transparent',
-              color: filter === f.value ? 'var(--accent-text)' : 'var(--muted)'
+              background: 'transparent', borderBottom: `2px solid ${filter === f.value ? 'var(--accent)' : 'transparent'}`,
+              color: filter === f.value ? 'var(--text)' : 'var(--muted)'
             }}>
               {t(`gigFilter.${f.value}`)} <span style={{ opacity: 0.7 }}>{counts[f.value]}</span>
             </button>
@@ -356,9 +391,9 @@ function GigCard({ gig, onOpen, showCompany, clash, margin }) {
       <span className="gig-card-date" aria-hidden={gig.start_date ? 'true' : undefined}>
         {gig.start_date ? <>{fmt(gig.start_date, 'EEE')}<b>{fmt(gig.start_date, 'dd')}</b>{fmt(gig.start_date, 'MMM')}</> : <b>—</b>}
       </span>
-      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '15px', lineHeight: '20px', overflowWrap: 'anywhere' }}>{gig.name}</span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '6px 8px', flexWrap: 'wrap' }}>
+      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '16px', lineHeight: '20px', overflowWrap: 'anywhere' }}>{gig.name}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '4px 8px', flexWrap: 'wrap' }}>
           <GigLabels gig={gig} />
           {clash && <StatusBadge tone="warn" title={t('clash.doubleBookingHint')}>{t('clash.doubleBooking')}</StatusBadge>}
           {hasMargin(margin) && margin.margin_pct != null && (
@@ -368,13 +403,13 @@ function GigCard({ gig, onOpen, showCompany, clash, margin }) {
           )}
           {gig.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--text-2)' }}><MapPin size={13} aria-hidden="true" /> {gig.venue}</span>}
           {gig.start_date && (
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-2)' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--text-2)' }}>
               {fmt(gig.start_date, 'dd MMM yyyy')}{multi && ` → ${fmt(gig.end_date, 'dd MMM')}`}
             </span>
           )}
         </span>
         {showCompany && (
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--muted)' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--muted)' }}>
             <Building2 size={12} aria-hidden="true" /> {gig.company || t('home.otherCompany')} · {gig.myFunction || t(`gigRoleLong.${gig.myGigRole || 'crew'}`)}
           </span>
         )}
@@ -393,7 +428,7 @@ const GIG_CARD_CSS = `
   .gig-card:last-child { border-bottom: none; }
   .gig-card:hover { background: var(--hover); }
   .gig-card-date { flex-shrink: 0; width: 64px; align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    border-right: 1px solid var(--line); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    border-right: 1px solid var(--line); font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
   .gig-card-date b { font-size: 20px; line-height: 24px; letter-spacing: 0; color: var(--text); }
 `
 
@@ -408,7 +443,7 @@ function Modal({ title, onClose, children }) {
         animation: 'fadeIn 0.2s ease', maxHeight: 'calc(100vh - 32px - var(--safe-top))', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{title}</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>{title}</h2>
           <button onClick={onClose} aria-label={t('common.close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '4px', display: 'flex' }}>
             <X size={18} />
           </button>
@@ -423,18 +458,18 @@ function Modal({ title, onClose, children }) {
 function FieldLabel({ label, children }) {
   return (
     <label style={{ display: 'block' }}>
-      <span style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</span>
+      <span style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>{label}</span>
       {children}
     </label>
   )
 }
 
 const btnPrimary = {
-  display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 18px', border: 'none', cursor: 'pointer',
+  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 18px', border: 'none', cursor: 'pointer',
   background: 'var(--accent)', color: 'var(--on-accent)', fontWeight: 700, fontSize: '14px',
   fontFamily: 'var(--font-ui)', transition: 'background-color .15s'
 }
-const btnModal = { ...btnPrimary, width: '100%', justifyContent: 'center', padding: '13px', fontSize: '15px', marginTop: '4px' }
+const btnModal = { ...btnPrimary, width: '100%', justifyContent: 'center', padding: '13px', fontSize: '16px', marginTop: '4px' }
 const modalInput = {
   width: '100%', padding: '10px 13px', background: 'var(--shade)', border: '1px solid var(--line)',
   color: 'var(--text)', fontSize: '14px', outline: 'none',

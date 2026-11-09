@@ -12,9 +12,10 @@ import AppShell from '../components/shell/AppShell'
 import { ItemModal, LocationModal } from '../components/inventory/InventoryModals'
 import { MaintenanceTab } from '../components/inventory/MaintenancePanels'
 import { SubrentalsTab } from '../components/inventory/SubrentalPanels'
-import { btn, btnPrimary, iconBtn, input, card, colors, AvxLoader } from '../components/ui'
+import { btn, btnPrimary, iconBtn, input, label, colors, AvxLoader, PageHeader, space } from '../components/ui'
+import { FilterTabs, pageWrap, rowList, row, rowButton, rowName, rowMeta } from '../components/ListParts'
 import EmptyState from '../components/EmptyState'
-import { PageHelp } from '../components/help/HelpParts'
+import { PageHelp, Hint } from '../components/help/HelpParts'
 
 const TABS = ['catalogue', 'locations', 'movements', 'maintenance', 'subrentals', 'reports']
 const TAB_ICONS = { catalogue: Package, locations: MapPin, movements: History, maintenance: Wrench, subrentals: Handshake, reports: BarChart3 }
@@ -27,6 +28,7 @@ export default function InventoryPage() {
   const { orgId } = useParams()
   const [params, setParams] = useSearchParams()
   const inv = useInventory(orgId)
+  const navigate = useNavigate()
   const tab = TABS.includes(params.get('tab')) ? params.get('tab') : 'catalogue'
   const setTab = key => { const next = new URLSearchParams(params); if (key === 'catalogue') next.delete('tab'); else next.set('tab', key); setParams(next, { replace: true }) }
 
@@ -39,23 +41,14 @@ export default function InventoryPage() {
 
   return (
     <AppShell>
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 60px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
-          <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-            <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{inv.org?.name}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('inv.title')}</h1><PageHelp page="inventory" /></div>
-          </div>
-          <Link to={`/org/${orgId}/inventory/labels`} style={{ ...ghost, textDecoration: 'none' }}><QrCode size={14} /> {t('inv.labels')}</Link>
-        </div>
-        <div role="tablist" style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: `1px solid ${colors.border}`, overflowX: 'auto', overflowY: 'hidden' }}>
-          {TABS.map(key => { const Icon = TAB_ICONS[key]; return (
-            <button key={key} role="tab" aria-selected={tab === key} onClick={() => setTab(key)} style={{
-              padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0,
-              color: tab === key ? colors.accentText : colors.muted, borderBottom: tab === key ? `2px solid ${colors.accent}` : '2px solid transparent',
-              display: 'flex', alignItems: 'center', gap: '6px',
-            }}><Icon size={14} /> {t(`inv.tab.${key}`)}</button>
-          ) })}
-        </div>
+      <div style={pageWrap}>
+        <PageHeader title={t('inv.title')} help={<PageHelp page="inventory" />}
+          secondary={[
+            { label: t('inv.import'), icon: <Upload size={15} aria-hidden="true" />, onClick: () => navigate(`/org/${orgId}/inventory/import`) },
+            { label: t('inv.labels'), icon: <QrCode size={15} aria-hidden="true" />, onClick: () => navigate(`/org/${orgId}/inventory/labels`) },
+          ]} />
+        <FilterTabs tabs label={t('inv.title')} value={tab} onChange={setTab} style={{ marginBottom: space[5] }}
+          items={TABS.map(key => { const Icon = TAB_ICONS[key]; return { key, label: t(`inv.tab.${key}`), icon: <Icon size={15} aria-hidden="true" /> } })} />
         {tab === 'catalogue' && <Catalogue inv={inv} orgId={orgId} goLocations={() => setTab('locations')} />}
         {tab === 'locations' && <Locations inv={inv} orgId={orgId} />}
         {tab === 'movements' && <Movements inv={inv} orgId={orgId} />}
@@ -91,69 +84,64 @@ function Catalogue({ inv, orgId, goLocations }) {
   return (
     <div>
       {inv.activeLocations.length === 0 && (
-        <div style={{ ...card, borderColor: 'var(--warn)', marginBottom: '14px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <MapPin size={16} color="var(--warn)" />
+        <div role="status" style={{ marginBottom: space[4], display: 'flex', gap: space[3], alignItems: 'center', flexWrap: 'wrap' }}>
+          <MapPin size={16} color={colors.warn} aria-hidden="true" />
           <span style={{ flex: '1 1 220px', fontSize: '13px', color: colors.soft, lineHeight: 1.5 }}>{t('inv.noLocationsYet')}</span>
-          <button onClick={goLocations} style={btn}><Plus size={14} /> {t('inv.addLocation')}</button>
+          <button onClick={goLocations} style={btn}><Plus size={15} aria-hidden="true" /> {t('inv.addLocation')}</button>
         </div>
       )}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', gap: space[2], flexWrap: 'wrap', marginBottom: space[3] }}>
         <div style={{ position: 'relative', flex: '1 1 220px' }}>
-          <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+          <Search size={14} color={colors.muted} aria-hidden="true" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('inv.search')} aria-label={t('inv.search')} style={{ ...input, paddingLeft: '32px' }} />
         </div>
-        <Link to={`/org/${orgId}/inventory/import`} style={{ ...ghost, textDecoration: 'none' }}><Upload size={14} /> {t('inv.import')}</Link>
-        <button onClick={() => setAdding(true)} style={btnPrimary}><Plus size={15} /> {t('inv.addItem')}</button>
+        <button onClick={() => setAdding(true)} style={btnPrimary}><Plus size={16} aria-hidden="true" /> {t('inv.addItem')}</button>
       </div>
-      <div role="group" aria-label={t('inv.filter')} style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '14px' }}>
-        {['all', 'tracked', 'low', 'archived'].map(f => (
-          <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f} style={{
-            padding: '5px 11px', fontSize: '12px', fontWeight: 600, cursor: 'pointer',
-            border: `1px solid ${filter === f ? 'var(--accent)' : colors.border}`,
-            background: filter === f ? 'var(--selection)' : 'transparent', color: filter === f ? colors.accentText : f === 'low' && lowCount ? 'var(--warn)' : colors.soft,
-          }}>{t(`inv.filterOpt.${f}`)}{f === 'low' && lowCount ? ` · ${lowCount}` : ''}</button>
-        ))}
-      </div>
+      <FilterTabs label={t('inv.filter')} value={filter} onChange={setFilter} style={{ marginBottom: space[5] }}
+        items={['all', 'tracked', 'low', 'archived'].map(f => ({
+          key: f, count: f === 'low' && lowCount ? lowCount : null,
+          label: f === 'low' && lowCount ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: space[1] }}><AlertTriangle size={14} color={colors.warn} aria-hidden="true" />{t(`inv.filterOpt.${f}`)}</span> : t(`inv.filterOpt.${f}`),
+        }))} />
 
       {inv.items.length === 0 ? (
         <EmptyState icon={<Package size={28} />} body={t('inv.empty')} action={t('inv.import')} actionIcon={<Upload size={14} />} onAction={() => navigate(`/org/${orgId}/inventory/import`)} guide="wh-import" />
       ) : visible.length === 0 ? (
-        <p style={{ color: colors.muted, fontSize: '13px', textAlign: 'center', padding: '30px 20px' }}>{t('inv.noMatch')}</p>
-      ) : groups.map(([category, list]) => (
-        <section key={category || '—'} style={{ marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.05em', color: colors.muted, marginBottom: '6px' }}>{category || t('prices.noCategory')}</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <p style={{ color: colors.muted, fontSize: '13px', textAlign: 'center', padding: `${space[6]} ${space[4]}` }}>{t('inv.noMatch')}</p>
+      ) : groups.map(([category, list], gi) => (
+        <section key={category || '—'} aria-label={category || t('prices.noCategory')} style={{ marginTop: gi ? space[6] : 0 }}>
+          <h2 style={{ ...label, marginBottom: space[2] }}>{category || t('prices.noCategory')}</h2>
+          <ul style={rowList}>
             {list.map(item => {
               const s = inv.stock[item.id]
               const low = isLowStock(item, s?.total)
               return (
-                <button key={item.id} onClick={() => navigate(`/org/${orgId}/inventory/${item.id}`)} style={{
-                  ...card, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', textAlign: 'left', color: 'var(--text)', font: 'inherit', width: '100%',
-                }}>
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontWeight: 600, fontSize: '14px', overflowWrap: 'anywhere' }}>{item.name}</span>
-                    <span style={{ fontSize: '12px', color: colors.muted, display: 'flex', gap: '4px 10px', flexWrap: 'wrap' }}>
-                      {item.code && <span style={{ fontFamily: 'var(--font-mono)' }}>{item.code}</span>}
-                      {item.kit_type && <span style={{ color: colors.accentText }}>{t(`kit.typeOpt.${item.kit_type}`)}</span>}
-                      {item.kit_type !== 'set' && <span>{t(`inv.trackingOpt.${item.tracking}`)}</span>}
-                      {[item.brand, item.model].filter(Boolean).length > 0 && <span>{[item.brand, item.model].filter(Boolean).join(' ')}</span>}
-                    </span>
-                  </span>
-                  {item.tracking !== 'none' && (
-                    <span style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 700, fontSize: '16px', color: low ? 'var(--warn)' : 'var(--text)', justifyContent: 'flex-end' }}>
-                        {low && <AlertTriangle size={13} aria-label={t('inv.lowStock')} />}{s?.total || 0}
-                      </span>
-                      <span style={{ fontSize: '11px', color: colors.muted }}>
-                        {s?.inRepair ? t('inv.inRepairCount', { count: s.inRepair }) : t('inv.inStock')}
+                <li key={item.id}>
+                  <button onClick={() => navigate(`/org/${orgId}/inventory/${item.id}`)} style={rowButton}>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ ...rowName, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{item.name}</span>
+                      <span style={{ ...rowMeta, display: 'flex', gap: `${space[1]} ${space[3]}`, flexWrap: 'wrap' }}>
+                        {item.code && <span style={{ fontFamily: 'var(--font-mono)' }}>{item.code}</span>}
+                        {item.kit_type && <span style={{ color: colors.accentText }}>{t(`kit.typeOpt.${item.kit_type}`)}</span>}
+                        {item.kit_type !== 'set' && <span>{t(`inv.trackingOpt.${item.tracking}`)}</span>}
+                        {[item.brand, item.model].filter(Boolean).length > 0 && <span>{[item.brand, item.model].filter(Boolean).join(' ')}</span>}
                       </span>
                     </span>
-                  )}
-                  <ChevronRight size={16} color={colors.muted} />
-                </button>
+                    {item.tracking !== 'none' && (
+                      <span style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: space[1], fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '16px', color: low ? colors.warn : colors.text, justifyContent: 'flex-end' }}>
+                          {low && <AlertTriangle size={14} aria-label={t('inv.lowStock')} />}{s?.total || 0}
+                        </span>
+                        <span style={{ fontSize: '11px', color: colors.muted }}>
+                          {s?.inRepair ? t('inv.inRepairCount', { count: s.inRepair }) : t('inv.inStock')}
+                        </span>
+                      </span>
+                    )}
+                    <ChevronRight size={16} color={colors.muted} aria-hidden="true" />
+                  </button>
+                </li>
               )
             })}
-          </div>
+          </ul>
         </section>
       ))}
 
@@ -182,36 +170,36 @@ function Locations({ inv, orgId }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px' }}>
-        <p style={{ flex: '1 1 260px', fontSize: '13px', color: colors.muted, lineHeight: 1.5 }}>{t('inv.locationsIntro')}</p>
-        <button onClick={() => setEditing('new')} style={btnPrimary}><Plus size={15} /> {t('inv.addLocation')}</button>
+      <div style={{ display: 'flex', gap: space[2], alignItems: 'center', justifyContent: 'flex-end', marginBottom: space[4] }}>
+        <Hint text={t('inv.locationsIntro')} label={t('inv.tab.locations')} />
+        <button onClick={() => setEditing('new')} style={btnPrimary}><Plus size={16} aria-hidden="true" /> {t('inv.addLocation')}</button>
       </div>
       {inv.locations.length === 0 ? (
         <EmptyState compact icon={<Warehouse size={24} />} body={t('inv.noLocationsYet')} action={t('inv.addLocation')} onAction={() => setEditing('new')} guide="wh-locations" />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <ul style={rowList}>
           {list.map(loc => {
             const Icon = LOCATION_ICONS[loc.kind] || Box
             return (
-              <div key={loc.id} style={{ ...card, display: 'flex', alignItems: 'center', gap: '12px', opacity: loc.archived_at ? 0.55 : 1 }}>
-                <Icon size={18} color={colors.soft} />
+              <li key={loc.id} style={{ ...row, color: loc.archived_at ? colors.muted : undefined }}>
+                <Icon size={18} color={colors.soft} aria-hidden="true" />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: '14px' }}>{loc.name}{loc.archived_at && <span style={{ fontSize: '11px', color: colors.muted }}> · {t('inv.archived')}</span>}</div>
-                  <div style={{ fontSize: '12px', color: colors.muted }}>{[t(`inv.locationKind.${loc.kind}`), loc.address].filter(Boolean).join(' · ')}</div>
+                  <span style={rowName}>{loc.name}{loc.archived_at && <span style={{ fontSize: '11px', fontWeight: 400, color: colors.muted }}> · {t('inv.archived')}</span>}</span>
+                  <span style={rowMeta}>{[t(`inv.locationKind.${loc.kind}`), loc.address].filter(Boolean).join(' · ')}</span>
                 </div>
                 <span style={{ fontSize: '13px', color: colors.soft, whiteSpace: 'nowrap' }}>{t('inv.itemsHere', { count: count(loc.id) })}</span>
-                {!loc.archived_at && <button onClick={() => setEditing(loc)} aria-label={t('inv.editLocationNamed', { name: loc.name })} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>}
+                {!loc.archived_at && <button onClick={() => setEditing(loc)} aria-label={t('inv.editLocationNamed', { name: loc.name })} title={t('common.edit')} style={iconBtn}><Pencil size={16} /></button>}
                 <button onClick={() => setArchived(loc, !loc.archived_at)} aria-label={loc.archived_at ? t('inv.restoreNamed', { name: loc.name }) : t('inv.archiveNamed', { name: loc.name })}
                   title={loc.archived_at ? t('inv.restore') : t('inv.archive')} style={iconBtn}>
-                  {loc.archived_at ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+                  {loc.archived_at ? <ArchiveRestore size={16} /> : <Archive size={16} />}
                 </button>
-              </div>
+              </li>
             )
           })}
-        </div>
+        </ul>
       )}
       {inv.locations.some(l => l.archived_at) && (
-        <button onClick={() => setShowArchived(s => !s)} style={{ ...ghost, marginTop: '12px', padding: '6px 10px', fontSize: '12px' }}>
+        <button onClick={() => setShowArchived(s => !s)} style={{ ...ghost, marginTop: space[3] }}>
           {showArchived ? t('inv.hideArchived') : t('inv.showArchived')}
         </button>
       )}
@@ -225,13 +213,13 @@ export function MovementList({ rows, itemName, locationName, nameOf, unitCode })
   const { fmt } = useI18n()
   if (!rows.length) return <p style={{ color: colors.muted, fontSize: '13px', padding: '20px 0' }}>{t('inv.noMovements')}</p>
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       {rows.map(m => {
         const out = m.from_location_id && !m.to_location_id
         const where = [m.from_location_id && locationName(m.from_location_id), m.to_location_id && locationName(m.to_location_id)].filter(Boolean).join(' → ')
         return (
-          <div key={m.id} style={{ display: 'flex', gap: '10px', padding: '8px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px', alignItems: 'baseline', flexWrap: 'wrap' }}>
-            <span style={{ color: colors.muted, fontSize: '12px', minWidth: '96px' }}>{fmt(m.created_at, 'd MMM yyyy HH:mm')}</span>
+          <div key={m.id} style={{ display: 'flex', gap: '12px', padding: '8px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px', alignItems: 'baseline', flexWrap: 'wrap' }}>
+            <span style={{ color: colors.muted, fontSize: '13px', minWidth: '96px' }}>{fmt(m.created_at, 'd MMM yyyy HH:mm')}</span>
             <span style={{ flex: '1 1 220px', minWidth: 0 }}>
               {itemName && <strong>{itemName(m.item_id)} · </strong>}
               {t(`inv.kind.${m.kind}`)}
@@ -240,7 +228,7 @@ export function MovementList({ rows, itemName, locationName, nameOf, unitCode })
               {m.note && <span style={{ color: colors.muted }}> · {m.note}</span>}
             </span>
             {!m.unit_id && <strong style={{ color: out ? colors.danger : m.to_location_id && !m.from_location_id ? colors.accentText : 'var(--text)', whiteSpace: 'nowrap' }}>{out ? '−' : m.from_location_id ? '' : '+'}{m.quantity}</strong>}
-            <span style={{ fontSize: '12px', color: colors.muted }}>{nameOf(m.created_by)}</span>
+            <span style={{ fontSize: '13px', color: colors.muted }}>{nameOf(m.created_by)}</span>
           </div>
         )
       })}
@@ -270,7 +258,9 @@ function Movements({ inv, orgId }) {
   const itemName = id => inv.items.find(i => i.id === id)?.name || '—'
   return (
     <div>
-      <p style={{ fontSize: '13px', color: colors.muted, marginBottom: '10px', lineHeight: 1.5 }}>{t('inv.movementsIntro')}</p>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: space[2] }}>
+        <Hint text={t('inv.movementsIntro')} label={t('inv.tab.movements')} />
+      </div>
       <MovementList rows={rows} itemName={itemName} locationName={id => inv.locationName(id) || '—'} nameOf={nameOf} />
     </div>
   )

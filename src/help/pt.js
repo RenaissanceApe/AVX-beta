@@ -125,6 +125,7 @@ export default {
     vat: { term: 'IVA', definition: 'Imposto somado ao preço. Cada linha do orçamento tem a sua taxa; a do orçamento é a que as novas linhas usam.', example: '23% no continente, 0% com motivo para um cliente noutro país da UE.', where: 'Editor do orçamento, coluna IVA %' },
     validity: { term: 'Validade', definition: 'Quantos dias o cliente tem para aceitar um orçamento.', example: 'Válido por 30 dias.', where: 'Orçamentos → Dados da empresa' },
     'client-link': { term: 'Ligação para o cliente', definition: 'Um endereço privado onde o cliente lê o orçamento, o aceita e lhe escreve, sem conta.', example: 'Enviado por email com o PDF.', where: 'Orçamento → Enviar' },
+    'quote-bin': { term: 'Apagados recentemente', definition: 'Onde um rascunho ou orçamento recusado apagado fica 15 dias antes de ser apagado de vez. Só os rascunhos e os recusados podem ser apagados: um orçamento enviado ou aceite é cancelado (⋯ → Cancelar orçamento), o que o mantém, com o evento, a equipa, o equipamento e as faturas, mas deixa de contar como à espera ou como receita. Enquanto lá está não conta em lado nenhum (listas, pesquisa, relatórios) e as suas ligações para o cliente dizem "não encontrado". Recuperar trá-lo de volta com as versões e ligações.', example: 'Apagou o Q0042 por engano na segunda-feira: pode recuperá-lo até duas semanas depois.', where: 'Orçamentos → Apagados recentemente' },
     'price-list': { term: 'Tabela de preços', definition: 'Os seus preços de equipamento e serviços, usados para fazer orçamentos.', example: 'SM58: 8 € por dia.', where: 'Orçamentos → Tabela de preços' },
     retention: { term: 'Guardar mensagens', definition: 'Durante quanto tempo uma organização guarda as mensagens das suas conversas antes de serem apagadas.', example: 'Guardar durante 1 ano.', where: 'Definições da organização → Mensagens' },
     report: { term: 'Denunciar uma mensagem', definition: 'Avisar quem gere uma conversa de que uma mensagem é spam ou abusiva. Não veem quem a denunciou.', example: 'Denunciar um anúncio publicado na conversa de um evento.', where: 'Mensagens → menu da mensagem' },
@@ -222,6 +223,7 @@ export default {
     'disposal-value': 'O que a unidade rendeu ao sair: o preço de venda, uma indemnização do seguro, ou 0 se nada. Serve para mostrar o lucro total da unidade.',
     'inspection-cost': 'Quanto custou esta inspeção, sem IVA (por exemplo, o técnico do teste PAT). Opcional; conta para a manutenção do artigo.',
     'lost-reason': 'Porque é que o cliente disse que não. Opcional, mas com o tempo mostra porque se perdem orçamentos (preço, outro fornecedor, eventos cancelados…). Só a sua equipa vê.',
+    'quote-bin': 'Só aparecem os orçamentos que pode recuperar: todos, para um administrador; os seus, para um membro. Cada um é apagado de vez 15 dias depois de ser apagado.',
     'gig-client': 'O cliente para quem é o evento, dos Contactos. Os relatórios agrupam os eventos e os resultados por cliente. A equipa técnica não o vê.',
   },
 
@@ -237,7 +239,7 @@ export default {
     'my-statement': { title: 'Resumo anual', summary: 'Por empresa e ano: uma linha por mês com os totais e depois cada evento. Descarregue em CSV ou imprima para a sua declaração de impostos. Uma ajuda: confirme com os seus registos.' },
     'org-hours': { title: 'Horas', summary: 'As horas registadas de todos nos eventos da organização, por pessoa e mês, com o custo guardado quando cada dia foi aprovado. Só administradores. Descarregue-as em CSV.' },
     'pocket-tools': { title: 'Ferramentas de bolso', summary: 'Calculadoras para qualquer sala, com ou sem evento no AVX: endereços DMX e dipswitches, um bloco de projetores, universos e canais absolutos, e conversão de valores. Funcionam sem ligação.' },
-    home: { title: 'Eventos', summary: 'Os eventos da empresa escolhida no topo, ou todos os seus em "O meu trabalho". Abra um para ver a equipa, o horário, os ficheiros e a conversa. O calendário mostra os mesmos eventos por data.' },
+    home: { title: 'Eventos', summary: 'Os eventos da empresa escolhida no topo, ou todos os seus em "O meu trabalho". Abra um para ver a equipa, o horário, os ficheiros e a conversa. O calendário mostra os mesmos eventos por data. “Organizar o início”, no fundo, muda a ordem ou esconde os números, as perguntas e os eventos; fica guardado neste dispositivo para este espaço de trabalho.' },
     gig: { title: 'Um evento', summary: 'Tudo sobre um evento, em separadores: resumo, equipa, horário, equipamento, ficheiros, atualizações e conversa. Quem gere altera; a equipa vê e pode escrever na conversa.' },
     messages: { title: 'Mensagens', summary: 'As suas conversas: mensagens diretas, conversas de eventos, canais de departamento e da organização. As que têm mensagens por ler aparecem primeiro. Use o menu de uma mensagem para responder, reagir, guardar ou denunciar.' },
     inventory: { title: 'Inventário', summary: 'O seu equipamento: o catálogo, onde está guardado, o stock e os movimentos, a manutenção e os alugueres externos.' },
@@ -415,7 +417,7 @@ export default {
         'Toque em "Adicionar despesa": a data, o fornecedor (dos Contactos ou escrito), para quê, a categoria e o valor sem IVA ou o total. Junte o comprovativo com a câmara do telemóvel ou em PDF. Ligue-a a um evento, ou ao subaluguer, reparação, cachê ou compra de stock que paga.',
         'Quem trabalha num evento pode pedir o reembolso do que pagou: separador Equipa → Despesas → "Pedir reembolso", com uma foto do comprovativo.',
         'Os responsáveis do evento aprovam aí os pedidos (ou em Despesas → Reembolsos), ou devolvem-nos com uma nota. Os aprovados aparecem em "Por pagar" como a reembolsar até indicar a data em que foram pagos.',
-        'Adicione a renda, o seguro e o leasing uma vez em "Recorrentes": o AVX prepara cada um na sua data para confirmar. "CSV para o contabilista" descarrega as despesas confirmadas que está a ver.',
+        'Adicione a renda, o seguro e o leasing uma vez em "Recorrentes": o AVX prepara cada um na sua data para confirmar. "CSV para o contabilista" (no telemóvel, em ⋯) descarrega as despesas confirmadas que está a ver.',
       ],
       mistakes: [
         'Um subaluguer, reparação ou cachê só pode ter uma despesa: abra-a a partir do registo para a alterar.',
@@ -430,7 +432,7 @@ export default {
         'Escolha o que faturar: todo o orçamento, algumas fases, um adiantamento em % ou, depois de um adiantamento, o resto. Cada linha mantém a sua taxa de IVA; as linhas a 0% precisam de motivo.',
         'Confirme o cliente e as linhas, crie a fatura no seu programa certificado (Moloni, InvoiceXpress, Vendus…) e toque em "Marcar como enviada ao programa". Depois indique o número que ele deu e o link para o PDF.',
         'Ligou o seu programa (um administrador, no topo de Faturas: Programa de faturação)? Toque antes em "Enviar para o …": o rascunho vai para lá. Finalize-o no programa e toque em "Verificar no …" para trazer o número, as datas e o PDF.',
-        'Faturas mostra o que falta enviar, o que está por pagar (as vencidas primeiro) e o que está pago. As faturas vencidas também o avisam todas as semanas. O seu programa não tem ligação? "CSV" descarrega as faturas mostradas, uma linha por linha da fatura, para importar lá.',
+        'Faturas mostra o que falta enviar, o que está por pagar (as vencidas primeiro) e o que está pago. As faturas vencidas também o avisam todas as semanas. O seu programa não tem ligação? "CSV" (no telemóvel, em ⋯) descarrega as faturas mostradas, uma linha por linha da fatura, para importar lá.',
         'Quando o cliente pagar, registe o pagamento em Pagamentos ("Marcar como paga" para todo o valor em falta; também pagamentos parciais). Vencida? Envie um lembrete ao cliente. Algo a devolver? Faça uma nota de crédito.',
       ],
       mistakes: [
@@ -456,7 +458,7 @@ export default {
       title: 'Aprovar ausências e manter os dias de férias certos',
       intro: 'Decida pedidos, veja quem está ausente e defina os dias de férias e a semana de trabalho de cada pessoa.',
       steps: [
-        'Em Ausências, "pedidos à sua espera" lista cada pedido com os seus dias. Toque em "Aprovar", ou em "Recusar" com um motivo que a pessoa vê. "Registar para alguém" regista uma ausência (uma baixa por telefone, por exemplo) que conta logo.',
+        'Em Ausências, "pedidos à sua espera" lista cada pedido com os seus dias. Toque em "Aprovar", ou em "Recusar" com um motivo que a pessoa vê. "Registar para alguém" (no telemóvel, em ⋯) regista uma ausência (uma baixa por telefone, por exemplo) que conta logo.',
         'Em "Dias de férias e semanas de trabalho", defina os dias por ano da organização (22 para começar). "Editar" uma pessoa para o seu direito próprio, os dias transitados do ano passado, os seus dias de trabalho e horas por dia.',
         '"Quem está ausente" mostra o mês dia a dia. Uma ausência aprovada bloqueia a pessoa para eventos, Procurar equipa e horas; a exportação da organização tem as ausências, os saldos e as semanas de trabalho.',
       ],
@@ -498,7 +500,7 @@ export default {
       steps: [
         'No separador Equipa de um evento, "Horas" mostra os dias de todos. Cada dia a aguardar mostra a divisão (normais, extra, noturnas, fim de semana, feriado) e o custo. Toque em "Aprovar", ou em "Devolver" com uma nota. Também pode registar horas por qualquer pessoa no evento.',
         'Os dias aprovados ficam fechados com a divisão e o custo. "Custo de mão de obra" mostra agora o custo real das horas aprovadas ao lado do previsto: cachês combinados por dia ou hora, valores fixos uma vez, mais viagens e km.',
-        'Na organização, "Horas" (administradores) mostra todos por mês com as horas e o custo aprovado. Descarregue um CSV para os salários; a exportação da organização também tem as horas. Defina a janela noturna, o valor por km e os seus feriados nas definições da organização, em "Tabela de cachês da equipa".',
+        'Na organização, "Horas" (administradores) mostra todos por mês com as horas e o custo aprovado. Descarregue um CSV para os salários (no telemóvel, em ⋯); a exportação da organização também tem as horas. Defina a janela noturna, o valor por km e os seus feriados nas definições da organização, em "Tabela de cachês da equipa".',
       ],
       mistakes: [
         'Alterar um valor depois nunca muda um dia aprovado: o custo fica como foi aprovado.',
@@ -537,7 +539,7 @@ export default {
       title: 'Ver a hora de chamada e a folha de serviço',
       intro: 'A hora de chamada é a hora a que tem de chegar. A folha de serviço tem o plano do dia e o telefone de toda a gente.',
       steps: [
-        'Em "O meu trabalho", o seu próximo evento está no topo, com a hora de chamada a verde. "Folha de serviço" abre-a logo; "Abrir o evento" mostra o resto.',
+        'Em "O meu trabalho", o seu próximo evento está no topo, com a hora de chamada a verde. "Folha de serviço" abre-a logo; "Abrir o evento" (em ⋯) mostra o resto.',
         'No evento, a sua hora de chamada está por baixo do nome do evento, a verde.',
         'Toque em Horário para ver o alinhamento. Toque em "Folha de serviço" para a folha completa.',
         'A folha de serviço mostra o horário e a equipa com os telefones. Pode imprimi-la ou guardá-la em PDF.',
@@ -651,7 +653,7 @@ export default {
       ],
       mistakes: [
         'Mudar o nome ou a validade de um certificado retira as confirmações e verificações: eram para o certificado como estava.',
-        'Viu um perfil falso ou uma vaga duvidosa? Toque em Denunciar por baixo. Deixa de a ver de imediato e a AVX analisa; ninguém sabe quem denunciou.',
+        'Viu um perfil falso ou uma vaga duvidosa? Toque em Denunciar por baixo (num perfil de equipa, em ⋯). Deixa de a ver de imediato e a AVX analisa; ninguém sabe quem denunciou.',
       ],
     },
     'crew-profile': {
@@ -710,7 +712,7 @@ export default {
       title: 'Reportar equipamento danificado',
       intro: 'Algo se partiu no local? Avise logo o armazém, para ser reparado antes do próximo trabalho.',
       steps: [
-        'Em "O meu trabalho", toque em "Reportar dano" no seu próximo evento. Para outro evento, abra-o, toque em Equipamento e depois em "Reportar dano".',
+        'Em "O meu trabalho", toque em ⋯ no seu próximo evento e depois em "Reportar dano". Para outro evento, abra-o, toque em Equipamento e depois em "Reportar dano".',
         'Escolha o artigo. Para equipamento com etiqueta própria, escreva o código da etiqueta. Para cabos e outros artigos contados, diga quantos.',
         'Diga o que se passa e junte uma fotografia, se puder. Toque em Enviar. Os administradores da organização são avisados.',
       ],
@@ -941,7 +943,7 @@ export default {
       title: 'Importar o equipamento de uma folha de cálculo ou de outra ferramenta',
       intro: 'Traga os locais, o catálogo, os números de série e os kits para o AVX de uma vez, a partir de uma exportação Excel ou CSV (Rentman, outra ferramenta de aluguer ou uma folha de cálculo), em vez de os escrever.',
       steps: [
-        'Em Inventário, toque em Importar. Importe por esta ordem: locais, depois equipamento, depois unidades (números de série), depois conteúdos dos kits, porque cada um se refere aos anteriores.',
+        'Em Inventário, toque em Importar (no telemóvel, em ⋯). Importe por esta ordem: locais, depois equipamento, depois unidades (números de série), depois conteúdos dos kits, porque cada um se refere aos anteriores.',
         'Escolha o que vai importar e depois o ficheiro (Excel .xlsx ou CSV; do Excel é lida a primeira folha), ou cole as linhas da folha de cálculo (com os títulos).',
         'O AVX adivinha o que é cada coluna, também a partir de títulos em neerlandês ou inglês. Confirme e corrija o que estiver errado. Guarde a correspondência com um nome ("Exportação de equipamento do Rentman") para o próximo ficheiro não precisar de nada.',
         'A verificação mostra o que é novo, o que corresponde ao que já está no AVX e que linhas têm problemas (ficam de fora). Importe e leia o relatório. Corrija as linhas ignoradas no ficheiro e importe-o de novo: o que já está no AVX é reconhecido, não duplicado.',
@@ -1061,7 +1063,7 @@ export default {
       title: 'Configurar os dados da empresa',
       intro: 'Os seus dados aparecem no topo de cada orçamento. Configure-os uma vez; os novos orçamentos usam-nos.',
       steps: [
-        'Abra Orçamentos → Dados da empresa (só os administradores os podem alterar).',
+        'Abra Orçamentos → Dados da empresa (no telemóvel, em ⋯) (só os administradores os podem alterar).',
         'Preencha o nome legal, o NIF, a morada, o telefone e o site, o IVA predefinido e a validade dos orçamentos.',
         'Escreva os seus termos e condições habituais e guarde.',
       ],
@@ -1086,7 +1088,7 @@ export default {
       intro: 'Escreva um cliente uma vez e escolha-o em cada orçamento. Os fornecedores também estão aqui, para os sub-alugueres.',
       steps: [
         'Abra Contactos (no menu Orçamentos). Clientes e Fornecedores têm cada um o seu separador. Toque em "Novo cliente" para adicionar um: empresa ou nome, pessoa de contacto, e-mail, telefone, NIF e morada.',
-        'Vem de outra ferramenta ou de uma folha de cálculo? Toque em Importar e traga-os da exportação. Já tem orçamentos? "Adicionar aos contactos" transforma os clientes escritos neles em contactos e liga esses orçamentos.',
+        'Vem de outra ferramenta ou de uma folha de cálculo? Toque em Importar (no telemóvel, em ⋯) e traga-os da exportação. Já tem orçamentos? "Adicionar aos contactos" transforma os clientes escritos neles em contactos e liga esses orçamentos.',
         'Num orçamento, em Detalhes, escolha o cliente em "Cliente dos contactos": os dados dele são preenchidos. Um cliente escrito à mão pode ser guardado com "Guardar nos contactos".',
         'Abra um cliente para ver os orçamentos dele. Arquive os que já não trabalham consigo: ficam nos orçamentos antigos mas saem das listas.',
       ],
@@ -1116,18 +1118,21 @@ export default {
         'Abra Orçamentos, toque em "Novo orçamento", escreva o título e o cliente e comece em branco ou a partir de um modelo.',
         'Dê nome à primeira fase e defina as datas. Junte secções (Som, Luz, Equipa) e linhas, da tabela de preços ou escritas à mão.',
         'Use o fator para dias ou horas (3 dias = fator 3) e um desconto por linha, por fase ou no total.',
-        'Em Detalhes, confirme o cliente, o IVA e a validade. "Pré-visualizar e imprimir" mostra o que o cliente vai ver.',
+        'Em Detalhes, confirme o cliente, o IVA e a validade. "Pré-visualizar e imprimir" (no menu ⋯ num telemóvel) mostra o que o cliente vai ver.',
       ],
       mistakes: [
         'Uma fase opcional tem preço à parte e fica fora do total. Use-a para extras que o cliente possa querer.',
         'O orçamento guarda-se sozinho. Se outra pessoa o editar ao mesmo tempo, o AVX pede-lhe para recarregar.',
+        'O cliente recusou? Num orçamento recusado, ⋯ → Rever e reenviar põe-no de novo em rascunho para o alterar e voltar a enviar; as versões antigas e a resposta do cliente ficam.',
+        'Apagou um rascunho por engano? Fica em Orçamentos → Apagados recentemente durante 15 dias: toque em Recuperar.',
+        'Um orçamento enviado ou aceite não pode ser apagado: use ⋯ → Cancelar orçamento. Fica na lista como Cancelado e não conta em lado nenhum.',
       ],
     },
     'of-versions': {
       title: 'Guardar versões de um orçamento',
       intro: 'Uma versão é uma cópia fixa do orçamento tal como o cliente o veria. Pode voltar a ela quando quiser.',
       steps: [
-        'Antes de uma grande alteração, abra o orçamento e toque em Versões.',
+        'Antes de uma grande alteração, abra o orçamento, toque em ⋯ (Mais ações) e depois em Versões.',
         'Escreva uma nota (por exemplo "Antes de cortar o ecrã LED") e toque em "Guardar versão". Cada orçamento enviado também fica guardado como versão.',
         'Para voltar atrás, abra uma versão com Ver e depois Repor. O que tem agora é guardado primeiro como nova versão.',
       ],
@@ -1139,7 +1144,7 @@ export default {
       title: 'Enviar um orçamento ao cliente',
       intro: 'O cliente recebe um link privado para o orçamento, onde o pode imprimir e aceitar ou recusar.',
       steps: [
-        'Confirme o orçamento em "Pré-visualizar e imprimir".',
+        'Confirme o orçamento em "Pré-visualizar e imprimir" (num telemóvel, está no menu ⋯).',
         'Toque em "Enviar ao cliente", escreva o email e toque em "Enviar orçamento". Para enviar o link por si, desmarque o email e toque em "Criar link".',
         'É avisado quando o cliente aceita ou recusa. O cliente também lhe pode escrever a partir da página do orçamento.',
         'Se o cliente recusar, ou se marcar o orçamento como Recusado, o AVX pergunta porque se perdeu (opcional). Com o tempo, isto mostra porque se perdem orçamentos.',
@@ -1153,8 +1158,8 @@ export default {
       title: 'Do orçamento aceite ao evento',
       intro: 'Quando o cliente aceita, transforme o orçamento num evento com horário, funções e equipamento.',
       steps: [
-        'Abra o orçamento aceite e toque em "Criar evento". O evento recebe o título do orçamento, as datas e o nome do cliente, e fica ligado ao orçamento.',
-        'O AVX propõe logo preencher o evento (mais tarde: "Preencher evento a partir do orçamento"). Desmarque o que não quer, ou mude títulos e números.',
+        'Abra o orçamento aceite e toque em "Criar evento" (num telemóvel, no menu ⋯). O evento recebe o título do orçamento, as datas e o nome do cliente, e fica ligado ao orçamento.',
+        'O AVX propõe logo preencher o evento (mais tarde: ⋯ → "Preencher evento a partir do orçamento"). Desmarque o que não quer, ou mude títulos e números.',
         'Toque em "Adicionar ao evento": as fases passam a itens do horário, as linhas de equipa a funções por preencher e as linhas do catálogo a equipamento previsto.',
       ],
       mistakes: [

@@ -45,8 +45,8 @@ export default function PhaseEditor({ phase, index, count, currency, vatRate = 2
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', margin: '10px 0 18px' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13px', color: colors.soft, cursor: 'pointer', marginRight: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', margin: '12px 0 24px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: colors.soft, cursor: 'pointer', marginRight: 'auto' }}>
           <input type="checkbox" checked={phase.optional} onChange={e => set({ optional: e.target.checked })} style={{ accentColor: colors.accent }} />
           {t('quote.optionalPhase')}
         </label>
@@ -72,7 +72,7 @@ export default function PhaseEditor({ phase, index, count, currency, vatRate = 2
         <Plus size={14} /> {t('quote.addSection')}
       </button>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '18px', flexWrap: 'wrap', fontSize: '13px', color: colors.soft, marginTop: '14px' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', flexWrap: 'wrap', fontSize: '13px', color: colors.soft, marginTop: '16px' }}>
         <span>{t('quote.phaseSubtotal')}: <strong style={{ color: 'var(--text)' }}>{formatMoney(totals.gross, currency, lang)}</strong></span>
         {totals.discount > 0 && <span>{t('quote.discount')}: <strong style={{ color: 'var(--text)' }}>−{formatMoney(totals.discount, currency, lang)}</strong></span>}
         <span>{t('quote.phaseTotal')}: <strong style={{ color: colors.accentText }}>{formatMoney(totals.net, currency, lang)}</strong></span>
@@ -89,7 +89,7 @@ function SectionEditor({ section, currency, vatRate, priceItems, rates, first, l
 
   return (
     <section className="q-section">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
         <input value={section.name} onChange={e => onChange({ ...section, name: e.target.value })} aria-label={t('quote.sectionName')}
           placeholder={t('quote.sectionNamePlaceholder')} maxLength={120}
           style={{ ...input, fontWeight: 700, background: 'transparent', border: '1px solid transparent', padding: '6px 8px', flex: 1 }} />
@@ -121,7 +121,7 @@ function SectionEditor({ section, currency, vatRate, priceItems, rates, first, l
           onRemove={() => setLines(section.lines.filter((_, j) => j !== i))} />
       ))}
 
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
         {LINE_KINDS.map(kind => (
           <button key={kind} onClick={() => setLines([...section.lines, emptyLine(kind, vatRate)])} className="q-add-line">
             <Plus size={12} /> {t(`lineKind.${kind}`)}
@@ -192,15 +192,15 @@ function LineEditor({ line, currency, vatRate, rates, first, last, onChange, onM
         </span>
       </div>
       {cost && (
-        <p style={{ fontSize: '12px', color: cost.margin < 0 ? colors.danger : colors.muted, margin: '2px 0 0', textAlign: 'right' }}>
+        <p style={{ fontSize: '13px', color: cost.margin < 0 ? colors.danger : colors.muted, margin: '2px 0 0', textAlign: 'right' }}>
           {t(cost.marginPct != null ? 'quote.rateCostPct' : 'quote.rateCost', { cost: formatMoney(cost.cost, currency, lang), margin: formatMoney(cost.margin, currency, lang), pct: cost.marginPct })}
         </p>
       )}
       {!isComment && line.vat_rate !== '' && Number(line.vat_rate ?? vatRate) === 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end', marginTop: '4px', flexWrap: 'wrap' }}>
-          <label htmlFor={`vx-${line.id}`} style={{ fontSize: '12px', color: line.vat_exemption ? colors.muted : 'var(--warn)' }}>{t('quote.vatExemption')}</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end', marginTop: '4px', flexWrap: 'wrap' }}>
+          <label htmlFor={`vx-${line.id}`} style={{ fontSize: '13px', color: line.vat_exemption ? colors.muted : 'var(--warn)' }}>{t('quote.vatExemption')}</label>
           <select id={`vx-${line.id}`} value={line.vat_exemption || ''} onChange={e => set({ vat_exemption: e.target.value || undefined })}
-            style={{ ...input, width: 'auto', maxWidth: '100%', height: '32px', padding: '0 6px', fontSize: '12px', cursor: 'pointer' }}>
+            style={{ ...input, width: 'auto', maxWidth: '100%', height: '32px', padding: '0 6px', fontSize: '13px', cursor: 'pointer' }}>
             <option value="">{t('quote.vatExemptionPick')}</option>
             {VAT_EXEMPTIONS.map(code => <option key={code} value={code}>{code} · {t(`vatExemption.${code}`)}</option>)}
           </select>
@@ -247,16 +247,17 @@ export const QUOTE_EDITOR_CSS = `
   @media (max-width: 760px), (max-height: 560px) { .q-header { position: static; } }
   .q-cell { min-width: 0; }
   .q-cell-label { display: none; }
-  .q-phase-head { display: flex; gap: 10px; flex-wrap: wrap; }
-  .q-section { background: var(--panel); border: 1px solid var(--line); padding: 12px; margin-bottom: 12px; }
-  .q-line { display: grid; grid-template-columns: 112px minmax(140px,1fr) 64px 82px 58px 92px 58px 58px 96px auto; gap: 6px; align-items: center; }
+  .q-phase-head { display: flex; gap: 12px; flex-wrap: wrap; }
+  /* One box deep: a section of lines is a heading row on the page ground, groups 32px apart (DR4) */
+  .q-section { margin-bottom: 32px; }
+  .q-line { display: grid; grid-template-columns: 112px minmax(140px,1fr) 64px 82px 58px 92px 58px 58px 96px auto; gap: 8px; align-items: center; }
   .q-line.q-comment { grid-template-columns: 112px 1fr auto; }
-  .q-line-head { font-size: 9.5px; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .12em; color: var(--muted); padding: 0 2px 4px; }
+  .q-line-head { font-size: 11px; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .12em; color: var(--muted); padding: 0 2px 4px; }
   /* Lines sit on a 32px grid (DESIGN.md "QuoteEditor"); phones get 44px fields below */
   .q-line input:not([type="checkbox"]), .q-line select { height: 32px; min-height: 32px; padding-top: 0; padding-bottom: 0; }
   .q-line-head .q-total, .q-line-head .q-qty, .q-line-head .q-factor, .q-line-head .q-price, .q-line-head .q-disc, .q-line-head .q-vat { text-align: right; }
   .q-line-wrap { padding: 4px 0; border-top: 1px solid var(--line); }
-  .q-add-line, .q-add-section { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+  .q-add-line, .q-add-section { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 12px; font-size: 13px; font-weight: 600; cursor: pointer;
     background: transparent; color: var(--text-2); border: 1px dashed var(--line-strong); }
   .q-add-section { height: 36px; padding: 0 14px; font-size: 13px; width: 100%; justify-content: center; }
   .q-add-line:hover, .q-add-section:hover { color: var(--text); border-color: var(--text); }
@@ -277,7 +278,7 @@ export const QUOTE_EDITOR_CSS = `
     .q-line-wrap { padding: 10px 0; }
     .q-line { row-gap: 8px; align-items: end; }
     .q-line input:not([type="checkbox"]), .q-line select { height: 44px; min-height: 44px; }
-    .q-cell-label { display: block; font-size: 10px; font-weight: 600; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .q-cell-label { display: block; font-size: 11px; font-weight: 600; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .q-total .q-cell-label { text-align: right; }
   }
 `

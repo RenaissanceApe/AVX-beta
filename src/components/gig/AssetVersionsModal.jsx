@@ -111,12 +111,12 @@ export default function AssetVersionsModal({ asset, nameOf, onClose }) {
       </h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {versions.map((v, i) => (
-          <div key={v.id} style={{ ...card, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <div key={v.id} style={{ ...card, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: '160px' }}>
               <div style={{ fontWeight: 700, fontSize: '14px' }}>
-                {t('assets.version', { version: v.version })} {i === 0 && <span style={{ color: colors.accentText, fontSize: '12px' }}>· {t('versions.current')}</span>}
+                {t('assets.version', { version: v.version })} {i === 0 && <span style={{ color: colors.accentText, fontSize: '13px' }}>· {t('versions.current')}</span>}
               </div>
-              <div style={{ fontSize: '12px', color: colors.muted }}>
+              <div style={{ fontSize: '13px', color: colors.muted }}>
                 {fmt(v.created_at, 'd MMM yyyy, HH:mm')}
                 {v.created_by && ` · ${nameOf(v.created_by)}`}
                 {v.file_size ? ` · ${formatBytes(v.file_size)}` : ''}

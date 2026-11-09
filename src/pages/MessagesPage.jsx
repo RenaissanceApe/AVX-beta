@@ -12,9 +12,11 @@ import { conversationTitle, conversationContext, contextLink } from '../lib/mess
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import Conversation from '../components/messages/Conversation'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../components/ui'
+import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader, PageHeader } from '../components/ui'
 import { PageHelp } from '../components/help/HelpParts'
 
+// 44px targets for the conversation header's icon buttons (used on phones, standing)
+const tap = { ...iconBtn, minWidth: '44px', minHeight: '44px', justifyContent: 'center' }
 const spinner = <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}><AvxLoader size={22} color={colors.accentText} /></div>
 const KIND_ICONS = { direct: MessageCircle, gig: Hash, department: Users, org: Megaphone, context: Package }
 
@@ -62,11 +64,11 @@ export default function MessagesPage() {
 
   const setView = v => { const next = new URLSearchParams(params); if (v) next.set('view', v); else next.delete('view'); setParams(next, { replace: true }) }
   const side = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <div style={{ display: 'flex', gap: '6px' }}>
-        <button onClick={() => setView(view === 'search' ? null : 'search')} aria-pressed={view === 'search'} style={{ ...btn, flex: 1, justifyContent: 'center', borderColor: view === 'search' ? colors.accent : undefined }}><Search size={14} /> {t('chat.search')}</button>
-        <button onClick={() => setView(view === 'saved' ? null : 'saved')} aria-pressed={view === 'saved'} style={{ ...btn, flex: 1, justifyContent: 'center', borderColor: view === 'saved' ? colors.accent : undefined }}><Bookmark size={14} /> {t('chat.saved')}</button>
-        {adminOrgs.length > 0 && <button onClick={() => setCreating(true)} aria-label={t('chat.newChannel')} title={t('chat.newChannel')} style={{ ...btn, padding: '8px 10px' }}><Plus size={15} /></button>}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button onClick={() => setView(view === 'search' ? null : 'search')} aria-pressed={view === 'search'} style={{ ...btn, flex: 1, justifyContent: 'center', minHeight: '44px', borderBottom: view === 'search' ? '2px solid var(--accent)' : undefined }}><Search size={14} /> {t('chat.search')}</button>
+        <button onClick={() => setView(view === 'saved' ? null : 'saved')} aria-pressed={view === 'saved'} style={{ ...btn, flex: 1, justifyContent: 'center', minHeight: '44px', borderBottom: view === 'saved' ? '2px solid var(--accent)' : undefined }}><Bookmark size={14} /> {t('chat.saved')}</button>
+        {adminOrgs.length > 0 && <button onClick={() => setCreating(true)} aria-label={t('chat.newChannel')} title={t('chat.newChannel')} style={{ ...btn, padding: '8px 12px', minHeight: '44px', minWidth: '44px', justifyContent: 'center' }}><Plus size={16} aria-hidden="true" /></button>}
       </div>
       {view === 'search' ? <SearchPanel conversations={conversations} />
         : view === 'saved' ? <SavedPanel conversations={conversations} />
@@ -79,12 +81,12 @@ export default function MessagesPage() {
   return (
     <AppShell>
       <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '24px 16px 40px' }}>
-        {(!narrow || !id) && <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('chat.title')}</h1><PageHelp page="messages" /></div>}
+        {(!narrow || !id) && <PageHeader title={t('chat.title')} help={<PageHelp page="messages" />} />}
         {to ? spinner : narrow ? (id ? open : side) : (
           <div style={{ display: 'grid', gridTemplateColumns: '320px minmax(0, 1fr)', gap: '16px', alignItems: 'start' }}>
             {side}
             {open || (
-              <div style={{ ...card, padding: '48px 20px', textAlign: 'center', color: colors.muted, fontSize: '14px' }}>
+              <div style={{ padding: '48px 24px', textAlign: 'center', color: colors.muted, fontSize: '14px' }}>
                 <MessageCircle size={26} style={{ marginBottom: '8px' }} /><div>{t('chat.pick')}</div>
               </div>
             )}
@@ -103,10 +105,10 @@ function ConversationList({ conversations, openId }) {
   const when = d => (!d ? '' : new Date(d).toDateString() === today ? fmt(d, 'HH:mm') : fmt(d, 'd MMM'))
   if (!conversations) return spinner
   if (!conversations.length) return (
-    <div style={{ ...card, padding: '32px 20px', textAlign: 'center', color: colors.muted, fontSize: '14px', lineHeight: 1.6 }}>{t('chat.none')}</div>
+    <div style={{ padding: '32px 16px', textAlign: 'center', color: colors.muted, fontSize: '14px', lineHeight: 1.6 }}>{t('chat.none')}</div>
   )
   return (
-    <nav aria-label={t('chat.title')} style={{ ...card, padding: '6px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+    <nav aria-label={t('chat.title')} style={{ display: 'flex', flexDirection: 'column', borderTop: `1px solid ${colors.line}` }}>
       {conversations.map(c => {
         const Icon = KIND_ICONS[c.kind] || MessageCircle
         const context = conversationContext(c)
@@ -114,19 +116,19 @@ function ConversationList({ conversations, openId }) {
           : `${c.last_author === user.id ? `${t('chat.you')}: ` : ''}${c.last_body || ''}`
         return (
           <Link key={c.id} to={`/messages/${c.id}`} aria-current={c.id === openId ? 'page' : undefined} style={{
-            display: 'flex', gap: '10px', alignItems: 'center', padding: '10px', textDecoration: 'none', color: 'var(--text)',
+            display: 'flex', gap: '12px', alignItems: 'center', minHeight: '52px', padding: '8px 12px', borderBottom: `1px solid ${colors.line}`, textDecoration: 'none', color: 'var(--text)',
             background: c.id === openId ? 'var(--selection)' : 'transparent', opacity: c.archived ? 0.55 : 1,
           }}>
             <Icon size={16} color={c.unread ? colors.accentText : colors.muted} style={{ flexShrink: 0 }} />
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
                 <span style={{ flex: 1, minWidth: 0, fontSize: '14px', fontWeight: c.unread ? 800 : 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {conversationTitle(c, t)}{context && <span style={{ fontWeight: 400, color: colors.muted, fontSize: '12px' }}> · {context}</span>}
+                  {conversationTitle(c, t)}{context && <span style={{ fontWeight: 400, color: colors.muted, fontSize: '13px' }}> · {context}</span>}
                 </span>
                 <span style={{ fontSize: '11px', color: colors.muted, whiteSpace: 'nowrap' }}>{c.archived ? t('chat.archived') : when(c.last_message_at)}</span>
               </span>
               <span style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <span style={{ flex: 1, minWidth: 0, fontSize: '12px', color: c.unread ? colors.soft : colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preview}</span>
+                <span style={{ flex: 1, minWidth: 0, fontSize: '13px', color: c.unread ? colors.soft : colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preview}</span>
                 {c.muted && <BellOff size={12} color={colors.muted} aria-label={t('chat.muted')} />}
                 {c.unread > 0 && <span style={{ minWidth: '18px', height: '18px', padding: '0 5px', background: colors.accent, color: 'var(--on-accent)', fontSize: '11px', fontWeight: 700, lineHeight: '18px', textAlign: 'center' }}>{c.unread > 98 ? '99+' : c.unread}</span>}
               </span>
@@ -143,8 +145,8 @@ function ResultRow({ m, conversations, names }) {
   const { fmt } = useI18n()
   const c = conversations?.find(x => x.id === m.conversation_id)
   return (
-    <Link to={`/messages/${m.conversation_id}?m=${m.id}`} style={{ display: 'block', padding: '9px 10px', textDecoration: 'none', color: 'var(--text)' }}>
-      <span style={{ display: 'flex', gap: '8px', fontSize: '12px', color: colors.muted }}>
+    <Link to={`/messages/${m.conversation_id}?m=${m.id}`} style={{ display: 'block', padding: '8px 0', borderBottom: `1px solid ${colors.line}`, textDecoration: 'none', color: 'var(--text)' }}>
+      <span style={{ display: 'flex', gap: '8px', fontSize: '13px', color: colors.muted }}>
         <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, color: colors.soft }}>{c ? conversationTitle(c, t) : '…'}</span>
         <span>{fmt(m.created_at, 'd MMM')}</span>
       </span>
@@ -183,9 +185,9 @@ function SearchPanel({ conversations }) {
     return () => { on = false; clearTimeout(timer) }
   }, [query])
   return (
-    <div style={{ ...card, padding: '8px' }}>
-      <input value={query} onChange={e => setQuery(e.target.value)} autoFocus placeholder={t('chat.searchPlaceholder')} aria-label={t('chat.search')} style={{ ...input, marginBottom: '6px' }} />
-      {rows === null ? <p style={{ fontSize: '12px', color: colors.muted, padding: '6px 4px' }}>{t('chat.searchHint')}</p>
+    <div>
+      <input value={query} onChange={e => setQuery(e.target.value)} autoFocus placeholder={t('chat.searchPlaceholder')} aria-label={t('chat.search')} style={{ ...input, marginBottom: '8px' }} />
+      {rows === null ? <p style={{ fontSize: '13px', color: colors.muted, padding: '6px 4px' }}>{t('chat.searchHint')}</p>
         : rows.length === 0 ? <p style={{ fontSize: '13px', color: colors.muted, padding: '6px 4px' }}>{t('chat.searchNone')}</p>
           : rows.map(m => <ResultRow key={m.id} m={m} conversations={conversations} names={names} />)}
     </div>
@@ -204,7 +206,7 @@ function SavedPanel({ conversations }) {
       })
   }, [])
   return (
-    <div style={{ ...card, padding: '8px' }}>
+    <div>
       {!rows ? spinner : rows.length === 0 ? <p style={{ fontSize: '13px', color: colors.muted, padding: '10px 4px', lineHeight: 1.5 }}>{t('chat.savedNone')}</p>
         : rows.map(m => <ResultRow key={m.id} m={m} conversations={conversations} names={names} />)}
     </div>
@@ -245,18 +247,18 @@ function ChannelModal({ orgs, channel, onClose, onSaved }) {
         <label style={label}>{t('chat.channelName')}
           <input value={title} onChange={e => setTitle(e.target.value)} maxLength={80} required placeholder={t('chat.channelNameHint')} style={{ ...input, marginTop: '4px' }} />
         </label>
-        <fieldset style={{ border: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <fieldset style={{ border: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <legend style={{ ...label, marginBottom: '4px' }}>{t('chat.channelAudience')}</legend>
           {['everyone', 'staff', 'admins'].map(a => (
             <label key={a} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '14px', cursor: 'pointer' }}>
               <input type="radio" name="audience" checked={audience === a} onChange={() => setAudience(a)} style={{ marginTop: '3px' }} />
-              <span><strong>{t(`chat.audience.${a}`)}</strong><span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{t(`chat.audienceHint.${a}`)}</span></span>
+              <span><strong>{t(`chat.audience.${a}`)}</strong><span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>{t(`chat.audienceHint.${a}`)}</span></span>
             </label>
           ))}
         </fieldset>
         <label style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '14px', cursor: 'pointer' }}>
           <input type="checkbox" checked={adminsPost} onChange={e => setAdminsPost(e.target.checked)} style={{ marginTop: '3px' }} />
-          <span><strong>{t('chat.adminsPost')}</strong><span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{t('chat.adminsPostHint')}</span></span>
+          <span><strong>{t('chat.adminsPost')}</strong><span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>{t('chat.adminsPostHint')}</span></span>
         </label>
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between', flexWrap: 'wrap' }}>
           {channel ? (
@@ -324,10 +326,10 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
   return (
     <section aria-label={info.title} style={{ ...card, padding: '10px 12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: `1px solid ${colors.border}` }}>
-        {back && <Link to="/messages" aria-label={t('chat.back')} title={t('chat.back')} style={{ ...iconBtn, color: colors.soft }}><ArrowLeft size={16} /></Link>}
+        {back && <Link to="/messages" aria-label={t('chat.back')} title={t('chat.back')} style={{ ...tap, color: colors.soft }}><ArrowLeft size={16} /></Link>}
         <Icon size={16} color={colors.accentText} />
         <span style={{ flex: 1, minWidth: 0 }}>
-          <strong style={{ display: 'block', fontSize: '15px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.title}</strong>
+          <strong style={{ display: 'block', fontSize: '16px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.title}</strong>
           {info.kind === 'context' && (
             <span style={{ display: 'block', fontSize: '11px', color: colors.muted }}>{[t(`chat.context.kind.${info.context_type}`), info.orgName].filter(Boolean).join(' · ')}</span>
           )}
@@ -337,17 +339,17 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
             </span>
           )}
         </span>
-        {info.kind === 'context' && contextLink(info) && <Link to={contextLink(info)} style={{ fontSize: '12px', color: colors.accentText, whiteSpace: 'nowrap' }}>{t(`chat.context.open.${info.context_type}`)}</Link>}
-        {(info.kind === 'gig' || info.kind === 'department') && <Link to={`/gig/${info.gig_id}?tab=chat`} style={{ fontSize: '12px', color: colors.accentText, whiteSpace: 'nowrap' }}>{t('chat.openGig')}</Link>}
-        {info.isAdmin && <button onClick={() => setEditing(true)} aria-label={t('chat.channelSettings')} title={t('chat.channelSettings')} style={{ ...iconBtn, color: colors.soft }}><Settings size={16} /></button>}
+        {info.kind === 'context' && contextLink(info) && <Link to={contextLink(info)} style={{ fontSize: '13px', color: colors.accentText, whiteSpace: 'nowrap' }}>{t(`chat.context.open.${info.context_type}`)}</Link>}
+        {(info.kind === 'gig' || info.kind === 'department') && <Link to={`/gig/${info.gig_id}?tab=chat`} style={{ fontSize: '13px', color: colors.accentText, whiteSpace: 'nowrap' }}>{t('chat.openGig')}</Link>}
+        {info.isAdmin && <button onClick={() => setEditing(true)} aria-label={t('chat.channelSettings')} title={t('chat.channelSettings')} style={{ ...tap, color: colors.soft }}><Settings size={16} /></button>}
         <button onClick={toggleMute} aria-pressed={muted} aria-label={muted ? t('chat.unmute') : t('chat.mute')} title={muted ? t('chat.unmute') : t('chat.mute')}
-          style={{ ...iconBtn, color: muted ? colors.muted : colors.soft }}>{muted ? <BellOff size={16} /> : <Bell size={16} />}</button>
+          style={{ ...tap, color: muted ? colors.muted : colors.soft }}>{muted ? <BellOff size={16} /> : <Bell size={16} />}</button>
       </div>
       {info.kind === 'context' && (info.context_type === 'quote' || info.context_type === 'supplier') && (
-        <p style={{ fontSize: '12px', color: 'var(--warn)', padding: '6px 2px', display: 'flex', gap: '6px', alignItems: 'center' }}><Eye size={13} /> {t(`chat.guest.notice.${info.context_type}`)}</p>
+        <p style={{ fontSize: '13px', color: 'var(--warn)', padding: '6px 2px', display: 'flex', gap: '8px', alignItems: 'center' }}><Eye size={13} /> {t(`chat.guest.notice.${info.context_type}`)}</p>
       )}
       {info.archived_at && (
-        <p style={{ fontSize: '12px', color: colors.muted, padding: '6px 2px', display: 'flex', gap: '6px', alignItems: 'center' }}><Archive size={13} /> {t('chat.archivedNote')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, padding: '6px 2px', display: 'flex', gap: '8px', alignItems: 'center' }}><Archive size={13} /> {t('chat.archivedNote')}</p>
       )}
       <Conversation conversationId={id} focusId={focusId} canPost={info.canPost} height={back ? 'calc(100dvh - 210px)' : '65vh'}
         emptyText={info.kind === 'direct' ? t('chat.emptyDirect', { name: info.title }) : info.kind === 'org' ? t('chat.emptyChannel') : undefined} />

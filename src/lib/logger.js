@@ -73,6 +73,13 @@ export function userMessage(error, fallback) {
     const text = t(key)
     return text === key ? t('error.generic') : text
   }
+  // Quote bin (issue 124): remove_quote, cancel_quote and the cancelled-status guard
+  const quoteError = /^quote:(\w+)$/.exec(msg)
+  if (quoteError) {
+    const key = `quote.error.${quoteError[1]}`
+    const text = t(key)
+    return text === key ? t('error.generic') : text
+  }
   if (/Only a draft can be (changed|removed)/i.test(msg)) return t('invoice.error.notDraft')
   if (/credits more than is left/i.test(msg)) return t('invoice.error.creditTooMuch')
   if (/A credit note needs an issued invoice/i.test(msg)) return t('invoice.error.creditNeedsIssued')

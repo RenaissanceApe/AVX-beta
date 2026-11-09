@@ -45,14 +45,14 @@ export default function ReportDamageModal({ gig, lines, onClose }) {
   return (
     <Modal title={t('report.title')} onClose={onClose}>
       <form onSubmit={send} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5 }}>{t('report.intro')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5 }}>{t('report.intro')}</p>
         <div>
           <label style={label} htmlFor="rd-item">{t('repair.item')}</label>
           <select id="rd-item" value={itemId} onChange={e => setItemId(e.target.value)} style={select}>
             {lines.map(l => <option key={l.item_id} value={l.item_id}>{l.item_name}</option>)}
           </select>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
           <div>
             <label style={label} htmlFor="rd-code">{t('report.unitCode')}</label>
             <input id="rd-code" value={code} onChange={e => setCode(e.target.value)} maxLength={40} placeholder="U-…" style={{ ...input, fontFamily: 'var(--font-mono)' }} />
@@ -64,7 +64,7 @@ export default function ReportDamageModal({ gig, lines, onClose }) {
             </div>
           )}
         </div>
-        <p style={{ fontSize: '12px', color: colors.muted, marginTop: '-6px' }}>{t('report.codeHint')}</p>
+        <p style={{ fontSize: '13px', color: colors.muted, marginTop: '-6px' }}>{t('report.codeHint')}</p>
         <div>
           <label style={label} htmlFor="rd-problem">{t('repair.problem')} *</label>
           <textarea id="rd-problem" value={problem} onChange={e => setProblem(e.target.value)} maxLength={1000} rows={3} style={{ ...input, resize: 'vertical' }} required />

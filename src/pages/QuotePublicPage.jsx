@@ -38,7 +38,7 @@ export default function QuotePublicPage() {
   if (!data.quote) return (
     <div style={page}>
       <div style={notice}>
-        <h1 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '8px' }}>
           {data.state === 'expired' ? t('publicQuote.expiredTitle') : t('publicQuote.notFoundTitle')}
         </h1>
         <p style={{ fontSize: '14px', color: '#555', lineHeight: 1.6 }}>
@@ -74,11 +74,22 @@ function Answer({ token, lang, data, onAnswered }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
+  // Cancelled by the company (quote bin, issue 124): shown, but no longer answerable
+  if (data.state === 'cancelled') {
+    return (
+      <div className="no-print" style={{ ...bar, borderColor: '#ccc' }}>
+        <strong style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <X size={16} color="#B91C1C" /> {tr('publicQuote.cancelled', { org: data.org?.name || '' })}
+        </strong>
+      </div>
+    )
+  }
+
   if (data.state === 'accepted' || data.state === 'declined') {
     const accepted = data.state === 'accepted'
     return (
       <div className="no-print" style={{ ...bar, borderColor: accepted ? '#1EC878' : '#ccc' }}>
-        <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <strong style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {accepted ? <Check size={16} color="#0FA85A" /> : <X size={16} color="#B91C1C" />}
           {tr(accepted ? 'publicQuote.acceptedBy' : 'publicQuote.declinedBy', {
             name: data.responder_name || '', date: data.responded_at ? fmtIn(lang, data.responded_at, lang === 'pt' ? 'dd-MM-yyyy HH:mm' : 'd MMM yyyy HH:mm') : '',
@@ -98,6 +109,7 @@ function Answer({ token, lang, data, onAnswered }) {
     setBusy(false)
     if (res.error) {
       if (res.error === 'already_answered') return setError(tr('publicQuote.alreadyAnswered'))
+      if (res.error === 'cancelled') return onAnswered({ state: 'cancelled' })
       return setError(tr('publicQuote.failed'))
     }
     onAnswered(res)
@@ -109,13 +121,13 @@ function Answer({ token, lang, data, onAnswered }) {
         <>
           <span style={{ flex: '1 1 220px', fontSize: '14px' }}>
             {tr('publicQuote.prompt')}
-            {data.expires_at && <span style={{ display: 'block', fontSize: '12px', color: '#666' }}>{tr('publicQuote.openUntil', { date: fmtIn(lang, data.expires_at, lang === 'pt' ? 'dd-MM-yyyy' : 'd MMM yyyy') })}</span>}
+            {data.expires_at && <span style={{ display: 'block', fontSize: '13px', color: '#666' }}>{tr('publicQuote.openUntil', { date: fmtIn(lang, data.expires_at, lang === 'pt' ? 'dd-MM-yyyy' : 'd MMM yyyy') })}</span>}
           </span>
           <button onClick={() => setChoice('decline')} style={toolbarBtn}><X size={14} /> {tr('publicQuote.decline')}</button>
           <button onClick={() => setChoice('accept')} style={{ ...toolbarBtn, background: '#0B7A41', borderColor: '#0B7A41', color: '#fff' }}><Check size={14} /> {tr('publicQuote.accept')}</button>
         </>
       ) : (
-        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
           <strong>{tr(choice === 'accept' ? 'publicQuote.acceptTitle' : 'publicQuote.declineTitle')}</strong>
           <label style={fieldLabel}>
             {tr('publicQuote.yourName')} *
@@ -125,7 +137,7 @@ function Answer({ token, lang, data, onAnswered }) {
             {tr(choice === 'accept' ? 'publicQuote.noteAccept' : 'publicQuote.noteDecline')}
             <textarea value={note} onChange={e => setNote(e.target.value)} maxLength={1000} rows={3} style={{ ...field, resize: 'vertical' }} />
           </label>
-          {choice === 'accept' && <p style={{ fontSize: '12px', color: '#555', lineHeight: 1.5, margin: 0 }}>{tr('publicQuote.acceptLegal', { org: data.org?.legal_name || data.org?.name || '' })}</p>}
+          {choice === 'accept' && <p style={{ fontSize: '13px', color: '#555', lineHeight: 1.5, margin: 0 }}>{tr('publicQuote.acceptLegal', { org: data.org?.legal_name || data.org?.name || '' })}</p>}
           {error && <p role="alert" style={{ fontSize: '13px', color: '#B91C1C', margin: 0 }}>{error}</p>}
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             <button type="button" onClick={() => setChoice(null)} style={toolbarBtn}>{tr('publicQuote.back')}</button>
@@ -144,7 +156,7 @@ const page = { minHeight: '100vh', background: '#e9edf1', display: 'flex', align
 const notice = { background: '#fff', color: '#111', padding: '28px', maxWidth: '420px', textAlign: 'center' }
 const bar = {
   maxWidth: '210mm', margin: '12px auto 0', background: '#fff', color: '#111', border: '2px solid #1EC878',
-  padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontFamily: "'Inter', sans-serif",
+  padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', fontFamily: "'Inter', sans-serif",
   position: 'sticky', bottom: '12px',
 }
 const fieldLabel = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#333' }

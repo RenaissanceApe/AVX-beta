@@ -7,7 +7,8 @@ import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { useI18n } from '../i18n'
-import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader } from '../components/ui'
+import { Modal, btnPrimary, iconBtn, input, label, colors, AvxLoader, PageHeader, space } from '../components/ui'
+import { FilterTabs, pageWrap, rowList, row, rowButton, rowName, rowMeta } from '../components/ListParts'
 import EmptyState from '../components/EmptyState'
 import { invoiceSummary } from '../lib/invoiceApi'
 import { needsFollowUp, dayIn, FOLLOW_UP_DAYS } from '../lib/analytics/sales'
@@ -16,6 +17,7 @@ import { QUOTE_STATUSES, quoteNumber, formatMoney, cloneBody, emptyPhase, localI
 import CompanyDetailsModal from '../components/quotes/CompanyDetailsModal'
 import { PriceListTab } from '../components/quotes/PriceList'
 import { QuoteStatusBadge } from '../components/quotes/parts'
+import QuoteBin from '../components/quotes/QuoteBin'
 import AppShell from '../components/shell/AppShell'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { PageHelp } from '../components/help/HelpParts'
@@ -39,7 +41,7 @@ export default function QuotesPage() {
   const [loading, setLoading] = useState(true)
   const [params, setParams] = useSearchParams()
   const { setWorkspace } = useWorkspace()
-  const view = ['templates', 'prices'].includes(params.get('tab')) ? params.get('tab') : 'quotes'
+  const view = ['templates', 'prices', 'bin'].includes(params.get('tab')) ? params.get('tab') : 'quotes'
   const setView = key => {
     const next = new URLSearchParams(params)
     if (key === 'quotes') next.delete('tab'); else next.set('tab', key)
@@ -118,43 +120,28 @@ export default function QuotesPage() {
 
   return (
     <AppShell>
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px 0', display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
-        {/* Title takes its own line on phones; the buttons wrap below it instead of squeezing it */}
-        <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-          <div style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>{org.name}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('quotes.title')}</h1><PageHelp page="quotes" /></div>
-        </div>
-        <button onClick={() => setShowCompany(true)} style={btn}><Building2 size={14} /> {t('quotes.company')}</button>
-        <button onClick={() => setShowNew(true)} style={btnPrimary}><Plus size={15} /> {t('quotes.new')}</button>
-      </div>
+      <div style={pageWrap}>
+        <PageHeader title={t('quotes.title')} help={<PageHelp page="quotes" />}
+          primary={<button onClick={() => setShowNew(true)} style={btnPrimary}><Plus size={16} aria-hidden="true" /> {t('quotes.new')}</button>}
+          secondary={[{ label: t('quotes.company'), icon: <Building2 size={15} aria-hidden="true" />, onClick: () => setShowCompany(true) },
+            { label: t('quotes.bin.title'), icon: <Trash2 size={15} aria-hidden="true" />, onClick: () => setView('bin') }]} />
 
-      <main style={{ maxWidth: '960px', margin: '0 auto', padding: '20px 16px 60px' }}>
-        <div role="tablist" style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: `1px solid ${colors.border}`, overflowX: 'auto', overflowY: 'hidden' }}>
-          {[['quotes', <FileText key="i" size={14} />, quotes.length], ['templates', <LayoutTemplate key="i" size={14} />, templates.length], ['prices', <Tags key="i" size={14} />, priceItems.length]].map(([key, icon, count]) => (
-            <button key={key} role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
-              padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600,
-              color: view === key ? colors.accentText : colors.muted, borderBottom: view === key ? `2px solid ${colors.accent}` : '2px solid transparent',
-              display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', flexShrink: 0,
-            }}>
-              {icon} {t(`quotes.tab.${key}`)} <span style={{ fontSize: '11px', opacity: 0.7 }}>{count}</span>
-            </button>
-          ))}
-        </div>
+        {view === 'bin' && <QuoteBin org={org} onBack={() => setView('quotes')} onRestored={load} />}
+
+        {view !== 'bin' && <FilterTabs tabs label={t('quotes.title')} value={view} onChange={setView} style={{ marginBottom: space[5] }}
+          items={[['quotes', <FileText key="i" size={15} aria-hidden="true" />, quotes.length], ['templates', <LayoutTemplate key="i" size={15} aria-hidden="true" />, templates.length],
+            ['prices', <Tags key="i" size={15} aria-hidden="true" />, priceItems.length]].map(([key, icon, count]) => ({ key, label: t(`quotes.tab.${key}`), icon, count }))} />}
 
         {view === 'quotes' && (
           <>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
-              <div style={{ position: 'relative', flex: '1 1 220px' }}>
-                <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('quotes.search')} aria-label={t('quotes.search')}
-                  style={{ ...input, paddingLeft: '32px' }} />
-              </div>
-              <select value={status} onChange={e => setStatus(e.target.value)} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', cursor: 'pointer' }}>
-                <option value="all">{t('quotes.allStatuses')}</option>
-                {QUOTE_STATUSES.map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
-                <option value="follow_up">{t('quotes.followUp', { days: FOLLOW_UP_DAYS })}</option>
-              </select>
+            <div style={{ position: 'relative', marginBottom: space[3] }}>
+              <Search size={14} color={colors.muted} aria-hidden="true" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('quotes.search')} aria-label={t('quotes.search')}
+                style={{ ...input, paddingLeft: '32px' }} />
             </div>
+            <FilterTabs label={t('quotes.status')} value={status} onChange={setStatus} style={{ marginBottom: space[4] }}
+              items={[{ key: 'all', label: t('quotes.filter.all') }, ...QUOTE_STATUSES.map(s => ({ key: s, label: t(`quoteStatus.${s}`) })),
+                { key: 'follow_up', label: t('quotes.filter.followUp', { days: FOLLOW_UP_DAYS }) }]} />
 
             {quotes.length === 0 ? (
               <EmptyState icon={<FileText size={28} />} title={t('quotes.emptyTitle')} body={t('quotes.emptyBody')}
@@ -162,28 +149,28 @@ export default function QuotesPage() {
             ) : visible.length === 0 ? (
               <p style={{ color: colors.muted, fontSize: '14px', textAlign: 'center', padding: '40px' }}>{t('quotes.noMatch')}</p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <ul style={rowList}>
                 {visible.map(q => (
-                  <button key={q.id} onClick={() => navigate(`/quote/${q.id}`)} style={{
-                    ...card, textAlign: 'left', cursor: 'pointer', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
-                  }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: colors.soft }}>{quoteNumber(q, org.quote_number_prefix ?? 'Q')}</span>
-                    <span style={{ flex: '1 1 200px', minWidth: 0 }}>
-                      <span style={{ display: 'block', fontWeight: 700, fontSize: '15px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.title}</span>
-                      <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>
-                        {[q.client_company || q.client_name, q.issue_date && fmt(q.issue_date, 'd MMM yyyy')].filter(Boolean).join(' · ') || '—'}
-                      </span>
-                      {invoiced.has(q.id) && (
-                        <span style={{ display: 'block', fontSize: '12px', color: colors.soft }}>
-                          {t('invoice.invoicedOfQuote', { amount: formatMoney(invoiced.get(q.id), q.currency, lang) })}
+                  <li key={q.id}>
+                    <button onClick={() => navigate(`/quote/${q.id}`)} style={{ ...rowButton, flexWrap: 'wrap' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: colors.soft }}>{quoteNumber(q, org.quote_number_prefix ?? 'Q')}</span>
+                      <span style={{ flex: '1 1 200px', minWidth: 0 }}>
+                        <span style={rowName}>{q.title}</span>
+                        <span style={rowMeta}>
+                          {[q.client_company || q.client_name, q.issue_date && fmt(q.issue_date, 'd MMM yyyy')].filter(Boolean).join(' · ') || '—'}
                         </span>
-                      )}
-                    </span>
-                    <QuoteStatusBadge status={q.status} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '14px', minWidth: '100px', textAlign: 'right' }}>{formatMoney(q.total_net, q.currency, lang)}</span>
-                  </button>
+                        {invoiced.has(q.id) && (
+                          <span style={rowMeta}>
+                            {t('invoice.invoicedOfQuote', { amount: formatMoney(invoiced.get(q.id), q.currency, lang) })}
+                          </span>
+                        )}
+                      </span>
+                      <QuoteStatusBadge status={q.status} />
+                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '14px', minWidth: '100px', textAlign: 'right' }}>{formatMoney(q.total_net, q.currency, lang)}</span>
+                    </button>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </>
         )}
@@ -192,33 +179,29 @@ export default function QuotesPage() {
 
         {view === 'templates' && (
           templates.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <LayoutTemplate size={30} color={colors.accentText} />
-              <h2 style={{ fontWeight: 700, margin: '12px 0 8px', fontSize: '17px' }}>{t('quotes.noTemplatesTitle')}</h2>
-              <p style={{ color: colors.muted, fontSize: '13px', lineHeight: 1.6, maxWidth: '420px', margin: '0 auto' }}>{t('quotes.noTemplatesBody')}</p>
-            </div>
+            <EmptyState icon={<LayoutTemplate size={28} />} title={t('quotes.noTemplatesTitle')} body={t('quotes.noTemplatesBody')} />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <ul style={rowList}>
               {templates.map(tpl => (
-                <div key={tpl.id} style={{ ...card, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <LayoutTemplate size={16} color={colors.accentText} />
+                <li key={tpl.id} style={row}>
+                  <LayoutTemplate size={16} color={colors.accentText} aria-hidden="true" />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700 }}>{tpl.name}</div>
-                    <div style={{ fontSize: '12px', color: colors.muted }}>
+                    <span style={rowName}>{tpl.name}</span>
+                    <span style={rowMeta}>
                       {[tpl.description, t('quotes.phaseCount', { count: tpl.body?.phases?.length || 0 })].filter(Boolean).join(' · ')}
-                    </div>
+                    </span>
                   </div>
                   {(role === 'admin' || tpl.created_by === user.id) && (
                     <button onClick={() => deleteTemplate(tpl)} aria-label={t('quotes.deleteTemplateNamed', { name: tpl.name })} title={t('common.delete')} style={iconBtn}>
-                      <Trash2 size={15} />
+                      <Trash2 size={16} />
                     </button>
                   )}
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )
         )}
-      </main>
+      </div>
 
       {showNew && <NewQuoteModal org={org} templates={templates} clients={clients} onClose={() => setShowNew(false)} onCreated={id => navigate(`/quote/${id}`)} />}
       {showCompany && <CompanyDetailsModal org={org} canEdit={role === 'admin'} onClose={() => setShowCompany(false)} onSaved={next => setOrg(next)} />}
@@ -286,7 +269,7 @@ function NewQuoteModal({ org, templates, clients = [], onClose, onCreated }) {
             </select>
           </div>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
           <div>
             <label style={label} htmlFor="nq-company">{t('quotes.clientCompany')}</label>
             <input id="nq-company" value={form.client_company} onChange={e => setForm(f => ({ ...f, client_company: e.target.value }))} maxLength={200} style={input} />
@@ -296,7 +279,7 @@ function NewQuoteModal({ org, templates, clients = [], onClose, onCreated }) {
             <input id="nq-contact" value={form.client_name} onChange={e => setForm(f => ({ ...f, client_name: e.target.value }))} maxLength={200} style={input} />
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
           <div>
             <label style={label} htmlFor="nq-template">{t('quotes.startFrom')}</label>
             <select id="nq-template" value={form.template} onChange={e => setForm(f => ({ ...f, template: e.target.value }))} style={{ ...input, cursor: 'pointer' }}>

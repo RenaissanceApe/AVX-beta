@@ -21,8 +21,8 @@ import LinkedExpense from '../expenses/LinkedExpense'
 
 const AMBER = 'var(--warn)'
 const select = { ...input, appearance: 'auto' }
-const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }
-const small = { fontSize: '12px', color: colors.muted, lineHeight: 1.5 }
+const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }
+const small = { fontSize: '13px', color: colors.muted, lineHeight: 1.5 }
 const STATUS_TONE = { draft: 'draft', requested: 'open', confirmed: 'ok', declined: 'danger', returned: 'off', cancelled: 'off' }
 export const SUBRENTAL_SELECT = '*, supplier:supplier_id(name, partner_org_id), gig:gig_id(name), lines:subrental_lines(*)'
 const fromLocalInput = v => (v ? new Date(v).toISOString() : null)
@@ -160,7 +160,7 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
           <div>
             <div style={{ ...label, marginBottom: '6px' }}>{t('sub.lines')}</div>
             {lines.map(l => (
-              <div key={l.key} style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '6px' }}>
+              <div key={l.key} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '6px' }}>
                 <select value={l.item_id || ''} aria-label={t('sub.coversItem')} style={{ ...select, flex: '1 1 150px', padding: '6px 8px', fontSize: '13px' }}
                   onChange={e => { const it = items.find(i => i.id === e.target.value); setLine(l.key, { item_id: e.target.value, description: l.description || it?.name || '' }) }}>
                   <option value="">{t('sub.notInCatalogue')}</option>
@@ -178,7 +178,7 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
             ))}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <button type="button" onClick={() => setLines(ls => [...ls, { key: `l${Date.now()}`, item_id: '', description: '', quantity: 1, unit_cost: '' }])}
-                style={{ ...btn, padding: '5px 10px', fontSize: '12px' }}><Plus size={12} /> {t('sub.addLine')}</button>
+                style={{ ...btn, padding: '5px 10px', fontSize: '13px' }}><Plus size={12} /> {t('sub.addLine')}</button>
               <strong style={{ fontSize: '14px' }}>{t('sub.total')} {money(total, lang)}</strong>
             </div>
             <p style={{ ...small, marginTop: '6px' }}>{t('sub.linesHint')}</p>
@@ -190,7 +190,7 @@ export function SubrentalModal({ orgId, org, subrental, items = [], preset = {},
         </form>
       )}
       {subrental && (
-        <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <LinkedExpense orgId={orgId} kind="subrental" id={subrental.id} planned={total}
             preset={{ supplier_id: subrental.supplier_id, gig_id: subrental.gig_id || '', description: t('expenses.subrentalDescription', { ref: subrental.reference || supplier?.name || '' }), category_starter: 'hire_in' }} />
           <ContextThread type="supplier" id={subrental.id} height="260px"><SupplierLink subrental={subrental} /></ContextThread>
@@ -259,16 +259,16 @@ export function SupplierModal({ orgId, supplier, onClose, onSaved }) {
         <CustomFieldInputs key={fields.length} fields={fields} values={supplier?.custom_values} idPrefix="sp" onChange={(id, v) => setCustom(c => ({ ...c, [id]: v }))} />
         {supplier && (
           <div style={{ ...card, padding: '10px 12px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}><Link2 size={13} /> {t('sub.onAvxTitle')}</div>
+            <div style={{ fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}><Link2 size={13} /> {t('sub.onAvxTitle')}</div>
             {linked !== null ? (
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', fontSize: '13px' }}>
                 <span style={{ color: colors.accentText, flex: 1 }}>{linked ? t('sub.linked', { org: linked }) : t('sub.isLinked')}</span>
-                <button type="button" onClick={unlink} style={{ ...btn, padding: '4px 9px', fontSize: '12px' }}>{t('sub.unlink')}</button>
+                <button type="button" onClick={unlink} style={{ ...btn, padding: '4px 9px', fontSize: '13px' }}>{t('sub.unlink')}</button>
               </div>
             ) : (
               <>
                 <p style={{ ...small, marginBottom: '6px' }}>{t('sub.linkHint')}</p>
-                <div style={{ display: 'flex', gap: '6px' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
                   <input value={code} onChange={e => setCode(e.target.value)} maxLength={20} placeholder="P-…" aria-label={t('sub.code')} style={{ ...input, fontFamily: 'var(--font-mono)' }} />
                   <button type="button" onClick={link} disabled={!code.trim()} style={btn}>{t('sub.link')}</button>
                 </div>
@@ -288,14 +288,14 @@ export function SubrentalRow({ s, onOpen }) {
   const { lang } = useI18n()
   const count = (s.lines || []).reduce((n, l) => n + (l.quantity || 0), 0)
   return (
-    <button onClick={() => onOpen(s)} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', width: '100%', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', font: 'inherit' }}>
+    <button onClick={() => onOpen(s)} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', width: '100%', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', font: 'inherit' }}>
       <span style={{ flex: '1 1 220px', minWidth: 0 }}>
         <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{s.supplier?.name}{s.reference ? <span style={{ color: colors.muted, fontWeight: 400 }}> · {s.reference}</span> : null}</span>
-        <span style={{ fontSize: '12px', color: colors.muted, overflowWrap: 'anywhere' }}>
+        <span style={{ fontSize: '13px', color: colors.muted, overflowWrap: 'anywhere' }}>
           {[rangeText(s.starts_at, s.ends_at), s.gig?.name, (s.lines || []).map(l => `${l.quantity} × ${l.description}`).join(', ')].filter(Boolean).join(' · ')}
         </span>
       </span>
-      <span style={{ fontSize: '12px', color: colors.soft, whiteSpace: 'nowrap' }}>{t('sub.pieces', { count })} · {money(subrentalTotal(s), lang)}</span>
+      <span style={{ fontSize: '13px', color: colors.soft, whiteSpace: 'nowrap' }}>{t('sub.pieces', { count })} · {money(subrentalTotal(s), lang)}</span>
       <StatusBadge small tone={STATUS_TONE[s.status] || 'open'} struck={s.status === 'cancelled'}>{t(`sub.status.${s.status}`)}</StatusBadge>
     </button>
   )
@@ -325,19 +325,19 @@ function IncomingRequests({ orgId }) {
   const setA = (id, changes) => setAnswers(m => ({ ...m, [id]: { ...m[id], ...changes } }))
   return (
     <section style={{ marginBottom: '22px' }}>
-      <h2 style={{ fontSize: '17px', fontWeight: 700, margin: '4px 0 8px', display: 'flex', alignItems: 'center', gap: '7px' }}><Inbox size={16} color={colors.accentText} /> {t('sub.incoming')}</h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <h2 style={{ fontSize: '16px', fontWeight: 700, margin: '4px 0 8px', display: 'flex', alignItems: 'center', gap: '8px' }}><Inbox size={16} color={colors.accentText} /> {t('sub.incoming')}</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {rows.slice(0, 30).map(r => (
           <div key={r.id} style={{ ...card, padding: '10px 12px', borderColor: r.status === 'requested' ? 'var(--warn)' : colors.border }}>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'baseline', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'baseline', flexWrap: 'wrap' }}>
               <strong style={{ flex: '1 1 200px' }}>{r.from_org}{r.reference ? <span style={{ color: colors.muted, fontWeight: 400 }}> · {r.reference}</span> : null}</strong>
-              <span style={{ fontSize: '12px', color: colors.soft }}>{rangeText(r.starts_at, r.ends_at)}</span>
+              <span style={{ fontSize: '13px', color: colors.soft }}>{rangeText(r.starts_at, r.ends_at)}</span>
               <StatusBadge small tone={STATUS_TONE[r.status] || 'open'} struck={r.status === 'cancelled'}>{t(`sub.status.${r.status}`)}</StatusBadge>
             </div>
             <div style={{ fontSize: '13px', color: colors.soft, margin: '4px 0' }}>{(r.lines || []).map(l => `${l.quantity} × ${l.description}`).join(', ')}</div>
             {r.notes && <div style={small}>“{r.notes}”</div>}
             {r.status === 'requested' ? (
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
                 <input value={answers[r.id]?.note || ''} onChange={e => setA(r.id, { note: e.target.value })} maxLength={1000} placeholder={t('sub.replyNote')}
                   aria-label={t('sub.replyNote')} style={{ ...input, flex: '2 1 200px', padding: '6px 8px' }} />
                 <input inputMode="decimal" value={answers[r.id]?.total || ''} onChange={e => setA(r.id, { total: e.target.value })} placeholder={t('sub.price')}
@@ -369,13 +369,13 @@ function CrossHireCode({ orgId, isAdmin }) {
   }
   return (
     <section style={{ ...card, marginTop: '22px' }}>
-      <h2 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}><Link2 size={15} color={colors.accentText} /> {t('sub.ourCode')} <Hint id="cross-hire-code" label={t('sub.ourCode')} /></h2>
+      <h2 style={{ fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}><Link2 size={15} color={colors.accentText} /> {t('sub.ourCode')} <Hint id="cross-hire-code" label={t('sub.ourCode')} /></h2>
       <p style={{ ...small, marginBottom: '8px' }}>{t('sub.ourCodeHint')}</p>
       {code ? (
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <code style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '0.05em', padding: '4px 10px', background: 'var(--hover)',  }}>{code}</code>
-          <button onClick={copy} style={{ ...btn, padding: '5px 9px', fontSize: '12px' }}><Copy size={12} /> {t('sub.copy')}</button>
-          {isAdmin && <button onClick={() => load(true)} style={{ ...btn, padding: '5px 9px', fontSize: '12px' }}><RefreshCw size={12} /> {t('sub.newCode')}</button>}
+          <button onClick={copy} style={{ ...btn, padding: '5px 9px', fontSize: '13px' }}><Copy size={12} /> {t('sub.copy')}</button>
+          {isAdmin && <button onClick={() => load(true)} style={{ ...btn, padding: '5px 9px', fontSize: '13px' }}><RefreshCw size={12} /> {t('sub.newCode')}</button>}
         </div>
       ) : <button onClick={() => load(false)} style={btn}>{t('sub.showCode')}</button>}
     </section>
@@ -421,7 +421,7 @@ export function SubrentalsTab({ orgId, inv }) {
     <div>
       <IncomingRequests orgId={orgId} />
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-        <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '7px' }}><Handshake size={16} color={colors.accentText} /> {t('sub.current')} <span style={{ color: colors.soft, fontWeight: 600 }}>· {current.length}</span></h2>
+        <h2 style={{ fontSize: '16px', fontWeight: 700, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '8px' }}><Handshake size={16} color={colors.accentText} /> {t('sub.current')} <span style={{ color: colors.soft, fontWeight: 600 }}>· {current.length}</span></h2>
         <button onClick={() => setEditing({})} style={btnPrimary}><Plus size={15} /> {t('sub.new')}</button>
       </div>
       {current.length === 0 ? <p style={{ ...small, marginBottom: '14px' }}>{t('sub.noneCurrent')}</p> : (
@@ -431,7 +431,7 @@ export function SubrentalsTab({ orgId, inv }) {
       )}
       {past.length > 0 && (
         <>
-          <button onClick={() => setShowPast(v => !v)} style={{ ...btn, padding: '5px 10px', fontSize: '12px', marginBottom: '8px' }}>{showPast ? t('sub.hidePast') : t('sub.showPast', { count: past.length })}</button>
+          <button onClick={() => setShowPast(v => !v)} style={{ ...btn, padding: '5px 10px', fontSize: '13px', marginBottom: '8px' }}>{showPast ? t('sub.hidePast') : t('sub.showPast', { count: past.length })}</button>
           {showPast && <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '14px' }}>{past.map(s => <SubrentalRow key={s.id} s={s} onOpen={setEditing} />)}</div>}
         </>
       )}
@@ -440,19 +440,19 @@ export function SubrentalsTab({ orgId, inv }) {
 
       <section style={{ marginTop: '18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-          <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '7px' }}><Truck size={16} color={colors.accentText} /> {t('sub.suppliers')}</h2>
-          <Link to={`/org/${orgId}/contacts?tab=suppliers`} style={{ fontSize: '12px', color: colors.accentText }}>{t('contacts.allSuppliers')}</Link>
-          {['admin', 'member'].includes(inv.role) && <Link to={`/org/${orgId}/reports?tab=warehouse&view=suppliers`} style={{ fontSize: '12px', color: colors.accentText }}>{t('wh.linkSuppliers')}</Link>}
-          {suppliers.some(s => s.archived_at) && <button onClick={() => setShowArchived(v => !v)} style={{ ...btn, padding: '5px 10px', fontSize: '12px' }}>{showArchived ? t('inv.hideArchived') : t('inv.showArchived')}</button>}
+          <h2 style={{ fontSize: '16px', fontWeight: 700, flex: '1 1 auto', display: 'flex', alignItems: 'center', gap: '8px' }}><Truck size={16} color={colors.accentText} /> {t('sub.suppliers')}</h2>
+          <Link to={`/org/${orgId}/contacts?tab=suppliers`} style={{ fontSize: '13px', color: colors.accentText }}>{t('contacts.allSuppliers')}</Link>
+          {['admin', 'member'].includes(inv.role) && <Link to={`/org/${orgId}/reports?tab=warehouse&view=suppliers`} style={{ fontSize: '13px', color: colors.accentText }}>{t('wh.linkSuppliers')}</Link>}
+          {suppliers.some(s => s.archived_at) && <button onClick={() => setShowArchived(v => !v)} style={{ ...btn, padding: '5px 10px', fontSize: '13px' }}>{showArchived ? t('inv.hideArchived') : t('inv.showArchived')}</button>}
           <button onClick={() => setSupplier({})} style={btn}><Plus size={14} /> {t('sub.newSupplier')}</button>
         </div>
         {visibleSuppliers.length === 0 ? <p style={small}>{t('sub.noSuppliers')}</p> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {visibleSuppliers.map(sp => (
-              <div key={sp.id} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', opacity: sp.archived_at ? 0.6 : 1 }}>
+              <div key={sp.id} style={{ ...card, padding: '9px 12px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', opacity: sp.archived_at ? 0.6 : 1 }}>
                 <span style={{ flex: '1 1 200px', minWidth: 0 }}>
                   <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{sp.name}{sp.partner_org_id && <span style={{ fontSize: '11px', color: 'var(--sky)', marginLeft: '6px' }}>{t('sub.onAvx')}</span>}</span>
-                  <span style={{ fontSize: '12px', color: colors.muted }}>{[sp.contact_name, sp.phone, sp.email].filter(Boolean).join(' · ')}</span>
+                  <span style={{ fontSize: '13px', color: colors.muted }}>{[sp.contact_name, sp.phone, sp.email].filter(Boolean).join(' · ')}</span>
                 </span>
                 <button onClick={() => setSupplier(sp)} aria-label={t('common.edit')} title={t('common.edit')} style={iconBtn}><Pencil size={14} /></button>
                 <button onClick={() => archive(sp)} title={sp.archived_at ? t('inv.restore') : t('inv.archive')} aria-label={sp.archived_at ? t('inv.restore') : t('inv.archive')} style={iconBtn}>
@@ -487,10 +487,10 @@ function BuyInstead({ orgId, subs, items }) {
   return (
     <section aria-labelledby="sub-buy" style={{ marginBottom: '14px' }}>
       <h3 id="sub-buy" style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 6px' }}>{t('sub.buyTitle')}</h3>
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {list.map(x => (
           <li key={x.id}>
-            <Link to={`/org/${orgId}/reports?tab=equipment&view=buy&item=${x.id}`} style={{ ...btn, padding: '5px 10px', fontSize: '12px', textDecoration: 'none' }}>
+            <Link to={`/org/${orgId}/reports?tab=equipment&view=buy&item=${x.id}`} style={{ ...btn, padding: '5px 10px', fontSize: '13px', textDecoration: 'none' }}>
               {t('sub.buyInstead', { name: x.name, count: x.n })}
             </Link>
           </li>

@@ -38,7 +38,7 @@ deletes their organisation and gig too).
    | Name | Value |
    |---|---|
    | `TEST_SUPABASE_URL` | `https://idvebeadnrxudfgortzg.supabase.co` |
-   | `TEST_SUPABASE_ANON_KEY` | the test project's anon key (Project Settings → API; it's public, like the production one in `.env`) |
+   | `TEST_SUPABASE_ANON_KEY` | the test project's anon key (Project Settings → API; it's public, like the production one) |
    | `E2E_AUTH_ENABLED` | `true` |
 
    The keep-alive workflow also pings the test project once `TEST_SUPABASE_URL` is set.

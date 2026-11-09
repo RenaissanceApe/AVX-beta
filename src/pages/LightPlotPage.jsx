@@ -61,14 +61,14 @@ export default function LightPlotPage() {
         .lights-page { min-height: 100vh; background: #e9edf1; padding: 16px; }
         .sheet { max-width: 1000px; margin: 0 auto; background: #fff; color: #111; padding: 28px; font-size: 13px; }
         .sheet h1 { font-size: 22px; margin-bottom: 2px; }
-        .sheet h2 { font-size: 12px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 18px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; }
+        .sheet h2 { font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: #555; margin: 18px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; }
         .sheet h3 { font-size: 14px; margin: 10px 0 2px; }
         .sheet table { width: 100%; border-collapse: collapse; }
         .sheet th, .sheet td { text-align: left; padding: 3px 6px; border-bottom: 1px solid #ddd; vertical-align: top; }
         .sheet th { font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: #555; }
         .sheet .muted { color: #555; }
-        .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; }
-        .legend span { display: inline-flex; align-items: center; gap: 6px; }
+        .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px; }
+        .legend span { display: inline-flex; align-items: center; gap: 8px; }
         .toolbar { max-width: 1000px; margin: 0 auto 12px; display: flex; justify-content: space-between; gap: 8px; }
         .wrap { overflow-x: auto; }
         @media (max-width: 600px) { .sheet { padding: 18px 14px; } }
@@ -109,7 +109,7 @@ export default function LightPlotPage() {
           const list = onBar(b)
           return (
             <div key={b.id} className="bar">
-              <h3>{b.name} <span className="muted" style={{ fontWeight: 400, fontSize: '12px' }}>
+              <h3>{b.name} <span className="muted" style={{ fontWeight: 400, fontSize: '13px' }}>
                 · {[t(`light.kind.${b.kind}`), `${b.length} m`, b.height !== null && b.kind !== 'floor' ? t('light.trimAt', { m: b.height }) : null, b.phase ? `L${b.phase}` : null,
                   row.watts > 0 ? `${watts(row.watts)} · ${row.amps} A` : null, row.kg > 0 ? `${row.kg} kg` : null].filter(Boolean).join(' · ')}
               </span></h3>
@@ -173,6 +173,6 @@ function FixtureTable({ list, t, showPosition = false }) {
 }
 
 const toolbarBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', 
+  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 14px', 
   border: '1px solid #c5ccd4', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }

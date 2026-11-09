@@ -11,7 +11,7 @@ import { btn, input, label, card, colors } from '../ui'
 // device.
 
 const select = { ...input, width: 'auto', minWidth: 0, maxWidth: '100%', padding: '7px 10px' }
-const field = { display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0, flex: '1 1 140px' }
+const field = { display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, flex: '1 1 140px' }
 const lab = { ...label, marginBottom: 0 }
 
 // "Show details", remembered on this device per report
@@ -28,7 +28,7 @@ export function useDetails(key) {
 export function DetailsToggle({ on, onToggle }) {
   const { t } = useI18n()
   return (
-    <label className="no-print" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+    <label className="no-print" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
       <input type="checkbox" checked={on} onChange={onToggle} /> {t('reports.showDetails')}
     </label>
   )
@@ -73,7 +73,7 @@ export function PeriodBar({ period, onPeriod, custom, onCustom, compare, onCompa
           </select>
         </div>
       )}
-      <p style={{ flex: '1 1 100%', fontSize: '12px', color: colors.muted, margin: 0 }}>
+      <p style={{ flex: '1 1 100%', fontSize: '13px', color: colors.muted, margin: 0 }}>
         {range ? <><PeriodDates range={range} />{compared && <> · {t('reports.comparedWith')} <PeriodDates range={compared} /></>}{range.partial && compared && <> · {t('reports.dayForDay')}</>}</> : t('reports.pickDates')}
       </p>
     </div>
@@ -137,7 +137,7 @@ export function downloadCsv(fileName, rows, columns, event) {
 export function ExportButtons({ onCsv, disabled }) {
   const { t } = useI18n()
   return (
-    <div className="no-print" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+    <div className="no-print" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
       <button type="button" onClick={onCsv} disabled={disabled} style={btn}><Download size={14} aria-hidden="true" /> {t('reports.csv')}</button>
       <button type="button" onClick={() => window.print()} style={btn}><Printer size={14} aria-hidden="true" /> {t('reports.print')}</button>
     </div>
@@ -161,7 +161,7 @@ export function ReportTable({ columns, rows, sort, onSort, caption, empty }) {
               <th key={c.key} scope="col" aria-sort={sort.key === c.key ? (sort.dir > 0 ? 'ascending' : 'descending') : undefined}
                 style={{ padding: '8px 10px', textAlign: c.left ? 'left' : 'right', borderBottom: `1px solid ${colors.border}`, whiteSpace: 'nowrap' }}>
                 <button type="button" onClick={() => onSort({ key: c.key, dir: sort.key === c.key ? -sort.dir : (c.left ? 1 : -1) })}
-                  style={{ background: 'none', border: 'none', color: sort.key === c.key ? colors.accentText : colors.muted, font: 'inherit', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.04em', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px', padding: 0 }}>
+                  style={{ background: 'none', border: 'none', color: sort.key === c.key ? colors.accentText : colors.muted, font: 'inherit', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.04em', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', padding: 0 }}>
                   {c.label}{sort.key === c.key && (sort.dir > 0 ? <ArrowUp size={11} aria-hidden="true" /> : <ArrowDown size={11} aria-hidden="true" />)}
                 </button>
               </th>
