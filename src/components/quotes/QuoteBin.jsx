@@ -45,9 +45,9 @@ export default function QuoteBin({ org, onBack, onRestored }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: space[2], marginBottom: space[4], flexWrap: 'wrap' }}>
-        <button type="button" onClick={onBack} style={btn}><ArrowLeft size={16} aria-hidden="true" /> {t('quotes.bin.back')}</button>
-        <h2 style={{ margin: 0, fontSize: '16px', fontFamily: 'var(--font-mono)', flex: 1, minWidth: 0 }}>{t('quotes.bin.title')}</h2>
+      <button type="button" onClick={onBack} style={{ ...btn, marginBottom: space[4] }}><ArrowLeft size={16} aria-hidden="true" /> {t('quotes.bin.back')}</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: space[2], marginBottom: space[4] }}>
+        <h2 style={{ margin: 0, fontSize: '16px', fontFamily: 'var(--font-mono)', minWidth: 0, overflowWrap: 'anywhere' }}>{t('quotes.bin.title')}</h2>
         <Hint id="quote-bin" />
       </div>
       {rows === null ? (
