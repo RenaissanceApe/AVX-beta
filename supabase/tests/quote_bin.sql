@@ -1,13 +1,13 @@
 -- Checks for migrations 20270102000000 / 20270102000001 (quote bin, #124): deleting a draft puts it
 -- in Recently deleted, every reader skips it, the same people as before may remove and restore it,
 -- the nightly clean-up erases what has been in the bin for more than 15 days, and a sent or
--- accepted quote is cancelled instead of deleted.
+-- accepted quote is cancelled instead of deleted, and a declined one can be revised and sent again.
 -- Run in the TEST project's SQL editor. Rolls itself back; ends with
 --   "ALL QUOTE BIN CHECKS PASSED"  → good
 do $$
 declare
   a uuid := gen_random_uuid(); m uuid := gen_random_uuid(); o uuid := gen_random_uuid();
-  org_a uuid; org_o uuid; g uuid; g2 uuid; q1 uuid; q2 uuid; q3 uuid; q4 uuid; v uuid; n int; ver int; x numeric;
+  org_a uuid; org_o uuid; g uuid; g2 uuid; q1 uuid; q2 uuid; q3 uuid; q4 uuid; q5 uuid; v uuid; n int; ver int; x numeric;
   qtok text := 'quotebintoken_abcdefghijklmnop';
   body jsonb := '{"phases": [{"id": "p1", "sections": [{"id": "s1", "lines": [{"id": "l1", "kind": "rental", "qty": 1, "unit_price": 100}]}]}]}';
 begin
@@ -218,6 +218,33 @@ begin
   if x <> 100 then raise exception 'CHECK FAILED: revenue after moving back (%)', x; end if;
   reset role;
 
+  -- ── Declined quotes: deleted to the bin, or revised and sent again ─────────
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into quotes (org_id, title, status, body) values (org_a, 'Turned down', 'declined', body) returning id into q5;
+  select count(*) into n from quotes where id = q5 and sent_at is not null and decided_at is not null;
+  if n <> 1 then raise exception 'CHECK FAILED: a declined quote has its dates'; end if;
+  perform remove_quote(q5);
+  select count(*) into n from removed_quotes(org_a) where id = q5;
+  if n <> 1 then raise exception 'CHECK FAILED: a declined quote did not go to the bin'; end if;
+  perform restore_quote(q5);
+  begin
+    perform revise_quote(q3);
+    raise exception 'CHECK FAILED: a draft was revised';
+  exception when invalid_parameter_value then null;
+  end;
+  reset role;
+  -- Any member who may edit it may revise it; the old decline stops counting and the dates start afresh
+  perform set_config('request.jwt.claims', json_build_object('sub', m, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  ver := revise_quote(q5);
+  select count(*) into n from quotes where id = q5 and status = 'draft' and version = ver and sent_at is null and decided_at is null;
+  if n <> 1 then raise exception 'CHECK FAILED: revise_quote'; end if;
+  update quotes set status = 'sent' where id = q5;
+  select count(*) into n from quotes where id = q5 and sent_at > now() - interval '1 minute' and decided_at is null;
+  if n <> 1 then raise exception 'CHECK FAILED: a revised quote sent again is waiting afresh'; end if;
+  reset role;
+
   -- ── The nightly clean-up ──────────────────────────────────────────────────
   -- q2 has been in the bin for 16 days; q1 is removed again today and stays
   update quotes set removed_at = now() - interval '16 days' where id = q2;
@@ -238,7 +265,8 @@ begin
   if has_function_privilege('anon', 'public.removed_quotes(uuid)', 'execute')
      or has_function_privilege('anon', 'public.remove_quote(uuid)', 'execute')
      or has_function_privilege('anon', 'public.restore_quote(uuid)', 'execute')
-     or has_function_privilege('anon', 'public.cancel_quote(uuid)', 'execute') then
+     or has_function_privilege('anon', 'public.cancel_quote(uuid)', 'execute')
+     or has_function_privilege('anon', 'public.revise_quote(uuid)', 'execute') then
     raise exception 'CHECK FAILED: signed-out visitors can use the bin';
   end if;
   if has_function_privilege('authenticated', 'private.erase_removed_quotes()', 'execute') then

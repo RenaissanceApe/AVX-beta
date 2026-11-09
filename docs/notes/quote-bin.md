@@ -1,8 +1,8 @@
-# quote-bin: Recently deleted for quotes, and cancelling sent ones (#124)
+# quote-bin: Recently deleted for quotes, cancelling sent ones, revising declined ones (#124)
 
 ## Changelog
 #### Added
-- **Quotes → Recently deleted:** deleting a draft quote no longer erases it at once. It moves to
+- **Quotes → Recently deleted:** deleting a draft or declined quote no longer erases it at once. It moves to
   Recently deleted (Quotes page, header button or ⋯ menu on a phone) for 15 days, with an **Undo**
   on the message. While it is there it counts nowhere: not in lists, search, counts, reports, gig
   finance or chat, and its client link shows "not found". **Restore** brings it back as it was,
@@ -11,8 +11,11 @@
   marks it **Cancelled** instead. It stays in the list (with its own filter), stops counting as
   waiting, in the win rate and in revenue, and the client's link shows it as cancelled with no
   accept button. Its gig, crew, equipment and invoices stay as they are.
+- **Revise and resend:** on a declined quote, ⋯ → Revise and resend puts it back to draft to change
+  and send again. The old decline no longer counts in the win rate; once sent again it is waiting
+  (and its follow-up clock starts) from the new send. Its versions and the client's answer stay.
 - Help: the term "Recently deleted", a ⓘ hint on the bin, and two lines in the guide "Build a quote
-  in phases".
+  in phases" (three, with revising a declined quote).
 
 #### Changed
 - The delete question on a quote now says where the quote goes ("…goes to Quotes → Recently
@@ -25,9 +28,10 @@
 - `20270102000000_quote_cancelled_status.sql` (applied by hand): `quotes.status` gains `cancelled`.
 - `20270102000001_quote_bin.sql`: `quotes.removed_at` / `removed_by`; `quotes_select`,
   `quotes_insert` and `quotes_update` skip or refuse removed quotes; the app's direct delete right on
-  `quotes` is revoked; RPCs `remove_quote` (drafts only), `restore_quote`, `removed_quotes`,
-  `cancel_quote` (sent or accepted); trigger `quotes_cancel_guard` (only `cancel_quote` sets
-  cancelled); nightly `private.erase_removed_quotes()` (pg_cron `avx-quote-bin`, 03:41 UTC).
+  `quotes` is revoked; RPCs `remove_quote` (drafts and declined), `restore_quote`, `removed_quotes`,
+  `cancel_quote` (sent or accepted), `revise_quote` (declined → draft); triggers
+  `quotes_cancel_guard` (only `cancel_quote` sets cancelled) and `quotes_revise_dates` (a revised
+  quote's sent/decided dates start afresh); nightly `private.erase_removed_quotes()` (pg_cron `avx-quote-bin`, 03:41 UTC).
   Readers that don't run as the reader got the bin filter by hand: `private.report_quote_lines`,
   `public.gig_finance`, `private.can_see_card`, `private.guest_resolve`,
   `public.clients_from_quotes`. Reports needed no change for cancelled: they already count only
@@ -39,8 +43,9 @@
   restored" (also: a sent quote has no Delete, and Cancel quote works).
 
 ## Roadmap
-Nothing to mark: a fix from issue #124 (owner's decisions: a 15-day bin; only drafts deletable,
-sent and accepted quotes cancelled), not a ROADMAP step.
+Nothing to mark: a fix from issue #124 (owner's decisions: a 15-day bin; drafts and declined
+quotes deletable, sent and accepted ones cancelled, declined ones revised and resent), not a
+ROADMAP step.
 
 ## Production steps (in this order, after the owner's yes)
 1. **By hand** in the SQL editor: `supabase/migrations/20270102000000_quote_cancelled_status.sql`
@@ -50,7 +55,7 @@ sent and accepted quotes cancelled), not a ROADMAP step.
 3. Compare `md5(prosrc)` on test and production for: `public.gig_finance`, `private.can_see_card`,
    `private.guest_resolve`, `public.clients_from_quotes`, `private.can_remove_quote`,
    `public.remove_quote`, `public.restore_quote`, `public.removed_quotes`, `public.cancel_quote`,
-   `private.quotes_cancel_guard`, `private.erase_removed_quotes`.
+   `public.revise_quote`, `private.quotes_cancel_guard`, `private.quotes_revise_dates`, `private.erase_removed_quotes`.
 4. Deploy the Edge Function `quote-public` (JWT verification stays **off**, as now). Until then, a
    client link to a quote in the bin or a cancelled quote still opens the quote's page on
    production.
@@ -62,12 +67,16 @@ sent and accepted quotes cancelled), not a ROADMAP step.
 - A sent or accepted quote: ⋯ has no Delete, but Cancel quote. Cancel it: it shows Cancelled in the
   list, its gig is unchanged, its client link says it was cancelled (no accept button), and it no
   longer counts in Reports → Sales (waiting, win rate) or in the gig's revenue.
+- A declined quote: ⋯ shows Revise and resend and Delete. Revise: it is a draft again with its
+  versions; send it, and it is waiting in Reports → Sales from today (not flagged for follow-up).
+  Delete instead: it goes to Recently deleted.
 - A gig with an accepted quote: cancel the quote and the gig's revenue drops; set the status back
   to Accepted and it returns.
 
 ## Pending: new questions (section 3)
-- **Declined quotes** can be neither deleted nor cancelled (as decided). Say if they should be
-  deletable too.
+- **The decline's reason:** when a declined quote is revised, its lost reason and note are cleared
+  (as the status menu already did). The client's answer on the old link and the versions stay. Say
+  if the reason should be kept somewhere.
 - **The status menu still moves any quote to any status but Cancelled.** So an accepted quote can
   be set back to Draft and then deleted, and a cancelled one can be reopened. Kept on purpose so
   mistakes can be undone; say if a sent or accepted quote should never go back to Draft.

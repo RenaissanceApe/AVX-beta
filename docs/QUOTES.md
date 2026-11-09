@@ -49,13 +49,16 @@ client is saved as a version automatically.
 
 ## Recently deleted (the quote bin)
 
-Only a **draft** can be deleted. **Delete** (quote ⋯ menu) moves it to **Quotes → Recently deleted**
+Only a **draft** or a **declined** quote can be deleted. **Delete** (quote ⋯ menu) moves it to **Quotes → Recently deleted**
 instead of erasing it, with an **Undo** on the message. A **sent or accepted** quote is cancelled
 instead (⋯ → **Cancel quote**, `public.cancel_quote`): it stays in the list as Cancelled, counts
 nowhere (not waiting, not in the win rate, not in revenue), its client link shows it as cancelled
 with no answer buttons, and its gig, crew, equipment and invoices stay as they are. Only Cancel
 quote sets that status (`private.quotes_cancel_guard`); the status menu can move it back. A
-declined quote can be neither deleted nor cancelled. While it waits there it counts nowhere: lists, search, counts, reports,
+declined quote can also be **revised and resent** (⋯ → Revise and resend, `public.revise_quote`): it
+goes back to draft and its sent and decided dates start afresh (`private.quotes_revise_dates`), so
+the old decline drops out of the win rate and the follow-up clock starts when it is sent again. Its
+versions and the client's answer on the old link (`quote_shares`) stay as the record. While it waits there it counts nowhere: lists, search, counts, reports,
 gig finance, chat cards and the client's link (which shows "not found"). **Restore** brings it back
 as it was, with its versions, client links and number. Fifteen days after it was deleted, a nightly
 clean-up in the database (`private.erase_removed_quotes`, pg_cron job `avx-quote-bin`) erases it for

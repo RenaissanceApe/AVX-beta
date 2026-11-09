@@ -12,11 +12,15 @@
 --   (quote cards in chat), private.guest_resolve (the client's chat on a quote link) and
 --   public.clients_from_quotes.
 -- - public.remove_quote(id) / public.restore_quote(id): the same people as before (an organisation
---   admin or the quote's author), drafts only. public.removed_quotes(org): the bin, only the quotes
---   the reader may restore.
+--   admin or the quote's author), drafts and declined quotes only. public.removed_quotes(org): the
+--   bin, only the quotes the reader may restore.
 -- - public.cancel_quote(id): a sent or accepted quote becomes "cancelled" (same people). Nothing else
 --   changes: its gig, crew, equipment and invoices stay. Only this function moves a quote to
 --   cancelled (private.quotes_cancel_guard); the status menu can still move it back.
+-- - public.revise_quote(id): a declined quote goes back to draft to be changed and sent again. Its
+--   sent and decided dates start afresh (private.quotes_revise_dates), so the old decline no longer
+--   counts in the win rate and the follow-up clock starts when it is sent again; its versions and
+--   the client's answer on the old link stay as the record.
 -- - private.erase_removed_quotes(): erases for good what has been in the bin for more than
 --   15 days; pg_cron runs it every night. Versions and client links go with the quote (as before);
 --   crew positions, gig equipment and invoices keep their rows without the link.
@@ -302,8 +306,8 @@ begin
   if v_org is null or not private.can_remove_quote(v_org, v_by) then
     raise exception 'Not allowed' using errcode = '42501';
   end if;
-  -- Only a draft goes to the bin; a sent or accepted quote is cancelled instead
-  if v_status <> 'draft' then
+  -- Only a draft or a declined quote goes to the bin; a sent or accepted quote is cancelled instead
+  if v_status not in ('draft', 'declined') then
     raise exception 'quote:onlyDraftDeletes' using errcode = '22023';
   end if;
   update public.quotes set removed_at = now(), removed_by = auth.uid() where id = p_quote;
@@ -380,6 +384,45 @@ begin
 end $$;
 revoke execute on function public.cancel_quote(uuid) from public, anon;
 grant execute on function public.cancel_quote(uuid) to authenticated;
+
+-- ── Revising a declined quote ────────────────────────────────────────────────
+-- quotes_report_dates keeps the first sent date; while revise_quote runs (avx.revise_quote), this
+-- trigger (named to fire after it) clears both dates so the quote starts afresh.
+create or replace function private.quotes_revise_dates() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if coalesce(current_setting('avx.revise_quote', true), '') = 'on' then
+    new.sent_at := null;
+    new.decided_at := null;
+  end if;
+  return new;
+end $$;
+revoke execute on function private.quotes_revise_dates() from public, anon, authenticated;
+create or replace trigger quotes_revise_dates before update of status on public.quotes
+  for each row execute function private.quotes_revise_dates();
+
+-- Anyone who may edit the quote may revise it (the status menu could already do this). Returns the
+-- new edit counter, as cancel_quote does.
+create or replace function public.revise_quote(p_quote uuid) returns integer
+language plpgsql volatile security definer set search_path = '' as $$
+declare v_org uuid; v_status text; v_version integer;
+begin
+  perform private.require_mfa();
+  select q.org_id, q.status into v_org, v_status
+    from public.quotes q where q.id = p_quote and q.removed_at is null for update;
+  if v_org is null or not private.can_quote(v_org) then
+    raise exception 'Not allowed' using errcode = '42501';
+  end if;
+  if v_status <> 'declined' then
+    raise exception 'quote:onlyDeclinedRevises' using errcode = '22023';
+  end if;
+  perform set_config('avx.revise_quote', 'on', true);
+  update public.quotes set status = 'draft' where id = p_quote returning version into v_version;
+  perform set_config('avx.revise_quote', 'off', true);
+  return v_version;
+end $$;
+revoke execute on function public.revise_quote(uuid) from public, anon;
+grant execute on function public.revise_quote(uuid) to authenticated;
 
 -- ── The nightly clean-up ─────────────────────────────────────────────────────
 -- Erases quotes that have been in the bin for more than 15 days. Returns how many.
