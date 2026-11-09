@@ -45,7 +45,7 @@ session regenerates the help screenshots of the guides whose screens it changed,
 | --- | --- | --- |
 | **DR1** Foundations + Home ✅ built (see "How the foundations work") | `Section`, `Stack`, `PageHeader`, `SwipeRow`, `MoreMenu` in `ui.jsx`; CSS variables for the spacing steps; a test that stops new off-scale sizes and gaps (counts may only go down); the modular home with Arrange home, the swipe row, the phone header and the slim First steps | Everything after uses the pieces; the home is the first screen everyone sees |
 | **DR2** Gig ✅ built (see "How the gig page works") | Gig header, Overview (next-event card included), Schedule, Crew, Equipment, Feed/Chat tabs | The most used screen |
-| **DR3** Lists | Quotes, Invoices, Inventory, Contacts, Members, Expenses, Hours, Leave, Jobs, Find crew | Same pattern repeated: header, filters, list rows |
+| **DR3** Lists ✅ built (see "How the list pages work") | Quotes, Invoices, Inventory, Contacts, Members, Expenses, Hours, Leave, Jobs, Find crew | Same pattern repeated: header, filters, list rows |
 | **DR4** Detail and editors | Quote editor (stays compact in the line grid), Inventory item, Reports, Settings and organisation settings dialogs, Import | Denser screens: apply rules 2–5 without losing data |
 | **DR5** Field and crew | My work, Simple home, On-site, Scan and Dispatch, field tools, Messages, Help | Used standing up and on phones |
 | **DR6** Sweep | Everything left, the ratchet test down to zero, all help screenshots refreshed, the design system artifact brought in line | Finishes the refresh |
@@ -106,6 +106,27 @@ with hairlines between them. A row that needs attention (a booking clash, gear s
 
 **Not in DR2**: On-site mode (`OnSiteView.jsx`) and the next-event card on the Simple home (`SimpleHome.jsx`) are
 DR5's; the card's two visible actions were picked here (Call sheet and Chat).
+
+## How the list pages work (DR3, built)
+
+Quotes, Invoices, Inventory (the list), Contacts, Members, Expenses, Hours, Leave, Jobs, Job posts and Find
+crew share one pattern, from `src/components/ListParts.jsx`:
+
+- **The page:** `pageWrap` (960px column, the gutter, 32px from the header to the first section), then
+  `PageHeader` with the title, the ⓘ and one primary button; the other buttons are `secondary` (in ⋯ on a
+  phone). The organisation's name is not repeated above the title.
+- **Filters and tabs:** `FilterTabs` — words in a row, the chosen one `text` + a 2px `accent` bar, scrolling
+  sideways on a narrow phone. `tabs` makes them tabs (`role="tab"`, they switch a panel: Quotes, Inventory,
+  Contacts, Expenses, Jobs); otherwise toggle buttons (`aria-pressed`: Quotes' status, Invoices' views,
+  Inventory's filters).
+- **Rows:** a `<ul style={rowList}>` with `row` (or `rowButton` for a row you open) and `rowName` /
+  `rowMeta` for the two lines: a hairline between rows, 52px tall, no card per row. `JobCard` is such a
+  row. Crew search results stay cards (a person you act on); the cards hold at most two buttons, the rest
+  in ⋯.
+- **Explanations:** the line that used to sit under each title is in the page's ⓘ; notes at the top of a
+  tab (Locations, Movements, Recurring, Crew to pay, Held invitations, Members) are a `Hint` ⓘ.
+- Sections inside a page (Leave, Expenses, the invoicing program) use `Section` or the `avx-section`
+  classes: a 16px heading on the page ground, 40/48px apart.
 
 ## Not changing
 

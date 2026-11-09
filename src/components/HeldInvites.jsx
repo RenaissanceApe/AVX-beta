@@ -7,6 +7,7 @@ import { sendInvite } from '../lib/invites'
 import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
 import { AvxLoader } from './ui'
+import { Hint } from './help/HelpParts'
 
 const ROLES = ['admin', 'member', 'viewer']
 
@@ -75,23 +76,23 @@ export default function HeldInvites({ org, onSent }) {
 
   return (
     <section aria-labelledby="held-title" style={box}>
-      <h3 id="held-title" style={{ fontSize: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <PauseCircle size={15} color="var(--warn)" aria-hidden="true" /> {t('held.title', { count: held.length })}
+      <h3 id="held-title" style={{ fontSize: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
+        <PauseCircle size={16} color="var(--warn)" aria-hidden="true" /> {t('held.title', { count: held.length })}
+        <Hint text={t('held.intro')} label={t('held.title', { count: held.length })} />
       </h3>
-      <p style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5, margin: '4px 0 8px' }}>{t('held.intro')}</p>
-      <label style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', marginBottom: '6px', cursor: 'pointer' }}>
+      <label style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center', fontSize: '13px', marginBottom: 'var(--space-2)', cursor: 'pointer' }}>
         <input type="checkbox" checked={allPicked} onChange={() => setPicked(allPicked ? new Set() : new Set(held.map(h => h.id)))} style={{ accentColor: 'var(--accent)' }} />
         {t('held.selectAll')}
       </label>
-      <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '30vh', overflowY: 'auto' }}>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, borderTop: '1px solid var(--line)', maxHeight: '30vh', overflowY: 'auto' }}>
         {held.map(h => (
           <li key={h.id} style={row}>
             <input type="checkbox" checked={picked.has(h.id)} onChange={() => toggle(h.id)} aria-label={t('held.pick', { name: h.full_name || h.email })} style={{ accentColor: 'var(--accent)', flexShrink: 0 }} />
             <span style={{ flex: '1 1 150px', minWidth: 0 }}>
               <span style={{ display: 'block', fontWeight: 600, fontSize: '13px', overflowWrap: 'anywhere' }}>{h.full_name || h.email}</span>
-              <span style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', overflowWrap: 'anywhere' }}>{[h.full_name && h.email, h.functions].filter(Boolean).join(' · ')}</span>
+              <span style={{ display: 'block', fontSize: '13px', color: 'var(--muted)', overflowWrap: 'anywhere' }}>{[h.full_name && h.email, h.functions].filter(Boolean).join(' · ')}</span>
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', marginLeft: 'auto' }}>
               <select value={h.role} onChange={e => setRole(h, e.target.value)} disabled={!!progress} aria-label={t('org.roleFor', { name: h.full_name || h.email })} style={select}>
                 {ROLES.map(r => <option key={r} value={r}>{t(`orgRole.${r}`)}</option>)}
               </select>
@@ -102,9 +103,9 @@ export default function HeldInvites({ org, onSent }) {
           </li>
         ))}
       </ul>
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', marginTop: 'var(--space-3)', alignItems: 'center' }}>
         <button type="button" onClick={send} disabled={!chosen.length || !!progress} style={sendBtn}>
-          {progress ? <AvxLoader size={14} /> : <Send size={14} />}
+          {progress ? <AvxLoader size={16} /> : <Send size={15} aria-hidden="true" />}
           {progress ? t('held.sending', { done: progress.done, total: progress.total }) : chosen.length ? t('held.send', { count: chosen.length }) : t('held.selectToSend')}
         </button>
         {chosen.length > 1 && !progress && <button type="button" onClick={() => discard(chosen)} style={plainBtn}>{t('held.discardSelected', { count: chosen.length })}</button>}
@@ -113,12 +114,13 @@ export default function HeldInvites({ org, onSent }) {
   )
 }
 
-const box = { border: '1px solid var(--warn)', padding: '12px', marginBottom: '16px' }
-const row = { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', padding: '8px 10px', border: '1px solid var(--line)',  }
-const select = { padding: '6px 8px', background: 'var(--shade)', border: '1px solid var(--line)', color: 'var(--text)', fontSize: '13px', cursor: 'pointer' }
-const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '4px', display: 'flex', flexShrink: 0 }
+const box = { border: '1px solid var(--warn)', padding: 'var(--space-3)', marginBottom: 'var(--space-4)' }
+// Rows with a hairline between them inside the box, not a box each (DESIGN.md rule 2)
+const row = { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-2)', padding: 'var(--space-2) 0', borderBottom: '1px solid var(--line)' }
+const select = { padding: 'var(--space-1) var(--space-2)', background: 'var(--shade)', border: '1px solid var(--line)', color: 'var(--text)', fontSize: '13px', cursor: 'pointer' }
+const iconBtn = { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: 'var(--space-1)', display: 'flex', flexShrink: 0 }
 const sendBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px', border: '1px solid var(--accent)',
+  display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', padding: 'var(--space-2) var(--space-4)', minHeight: '36px', border: '1px solid var(--accent)',
   background: 'var(--selection)', color: 'var(--accent-text)', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }
 const plainBtn = { ...sendBtn, background: 'none', border: '1px solid var(--line)', color: 'var(--soft)' }
