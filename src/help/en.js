@@ -89,6 +89,7 @@ export default {
     alternative: { term: 'Alternative', definition: 'An item that can replace another when it is not available.', example: 'SM57 instead of SM58.', where: 'Inventory → item, gig equipment' },
     'prep-return-days': { term: 'Prep and return days', definition: 'Days before and after a gig when its equipment is still booked, for loading, testing and checking in.', example: '1 prep day: the gear is busy from the day before.', where: 'Organisation settings, gig equipment' },
     'packing-list': { term: 'Packing list', definition: 'What must leave the warehouse for a gig, with quantities.', example: 'Printed for the warehouse team on the day before.', where: 'Gig → Equipment → Packing list' },
+    'e-signature': {"term": "Simple electronic signature", "definition": "A signature drawn on a phone or computer, kept with the signer's typed name, the time and a fingerprint (SHA-256) of the exact document signed. Once saved it can't be changed. It is not a qualified signature (Chave Móvel Digital, Cartão de Cidadão).", "example": "The venue manager signs the delivery note on your phone when the truck is unloaded.", "where": "Packing list → Delivery note: sign; the client's quote page → Accept"},
     'scan-out-in': { term: 'Scan out / scan in', definition: 'Reading QR labels when equipment leaves for a gig and when it comes back.', example: 'Scanning 40 units into the truck.', where: 'Gig → Equipment → Scan' },
     'equipment-steps': { term: 'Equipment steps', definition: 'Where a gig\'s equipment is between the warehouse and back: prepped, out, on site, loaded back, back in, checked in.', example: '60 of 69 prepped, 40 out.', where: 'Gig → Equipment, Scan out / in, packing list' },
     'dmx-universe': { term: 'DMX universe', definition: 'One line of 512 lighting control channels. A fixture takes some of them, from its start address.', example: 'Universe 1 for the moving heads, universe 2 for the LED bars.', where: 'Gig → Tools → DMX patch' },
@@ -176,6 +177,7 @@ export default {
     'return-days': 'Days after a gig when its equipment is still booked, for unloading and checking it back in. Example: 1 = busy until the day after.',
     tracking: 'Counted in bulk: you keep a number per location (cables). By serial number: each unit has its own record and QR label (moving heads). This can’t change once there is stock.',
     'kit-type': 'Set: items always hired together and priced as one (a DJ set). Case: a flight case holding units; scanning the case scans what is inside.',
+    'signature.plain': "A simple electronic signature records who signed (the drawing and the typed name), when, and a fingerprint of the exact document. Nobody can change it afterwards, not even AVX. It is not a qualified signature: for a contract that needs one, use Chave Móvel Digital or Cartão de Cidadão outside AVX.",
     'min-stock': 'When stock falls below this number, the item is shown as low. Example: 10 for spare batteries.',
     'replacement-value': 'What it would cost to buy again today. Used for insurance and for charging lost or broken gear.',
     depreciation: 'Over how many months the purchase price goes down to zero on paper. Example: 60 = five years.',
@@ -1025,6 +1027,34 @@ export default {
         'Removed something by mistake? Most removals show "Undo" for a few seconds before anything is deleted.',
         'AVX warns when something isn\'t planned for the gig or is more than planned. It still records it, so check the warning.',
         'A USB or Bluetooth barcode scanner works too: it types the code and presses Enter for you.',
+      ],
+    },
+    'wh-delivery-note': {
+      title: "Get a delivery note signed on site",
+      intro: "When the gear arrives, the client signs on your phone for what was delivered. AVX keeps the signature with the list and a signed PDF.",
+      steps: [
+        "Open the gig, tap Equipment, then \"Packing list\".",
+        "Tap \"Delivery note: sign\". The list shows what was scanned out (or what is planned, if nothing was scanned).",
+        "Hand the phone to the client: they check the list, type their name (and role or company) and sign in the box with a finger.",
+        "Tap \"Sign and save\". The signed PDF is kept with the signature and copied into the gig's Files. \"Signed PDF\" under the packing list opens it again.",
+      ],
+      mistakes: [
+        "Scan the gear out first: the delivery note lists what was scanned out, so it matches what left the warehouse.",
+        "A signed delivery note can't be changed. If something was wrong, hide it and have the client sign a new one.",
+        "This is a simple electronic signature, not a qualified one.",
+      ],
+    },
+    'of-signed-quote': {
+      title: "A quote accepted with a drawn signature",
+      intro: "When a client accepts a quote from its link, they can also draw their signature next to their typed name.",
+      steps: [
+        "Send the quote to the client as usual.",
+        "On the quote's page the client taps Accept, types their name and can tap \"Add a drawn signature\" to sign with a finger or the mouse.",
+        "In \"Send to client\", the answer shows \"Signed with a drawn signature\". Tap \"Signed PDF\": the signed version of the quote, with the signature at the end, is made and kept. If the quote is on a gig, a copy goes to the gig's Files.",
+      ],
+      mistakes: [
+        "The drawn signature is optional: an acceptance with only a typed name is still an acceptance.",
+        "The signature covers the version the client saw. Changing the quote afterwards doesn't change what was signed.",
       ],
     },
     'wh-steps': {

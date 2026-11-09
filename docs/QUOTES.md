@@ -83,6 +83,9 @@ rest (migrations `20270102000000_quote_cancelled_status.sql`, applied by hand, a
 - **Accept** / **Decline** asks for their name and an optional message (e.g. an order number). The
   answer is final: the quote's status changes, and whoever sent it, whoever wrote the quote and the
   organisation's admins get a notification.
+- When accepting, the client can also **draw a signature** (optional, step 16). It is kept with the
+  version they saw and its SHA-256; **Signed PDF** in this window makes and keeps the signed copy
+  (docs/BUSINESS.md, "How e-signature works").
 - Links last 30 days. Sending again replaces the previous link; the ⊘ button turns a link off.
 - For security only a fingerprint of the link is stored, so the link is shown once, right after
   sending. If it gets lost, send again.

@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Printer } from 'lucide-react'
+import { ArrowLeft, Printer, PenLine } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { activeSteps, lineStep, stepCounts } from '../lib/inventory'
 import { useI18n } from '../i18n'
 import { AvxLoader } from '../components/ui'
+import { useAuth } from '../lib/AuthContext'
+import { DeliveryNoteModal, DeliveryNoteList } from '../components/signatures/DeliveryNotes'
 
 // Printable packing list: what goes to the gig, by category, with packing notes, what's
 // already been scanned out and back, and how far each line has got through the organisation's
-// steps (docs/HELP.md, H5b). Readable by everyone on the gig.
+// steps (docs/HELP.md, H5b). Readable by everyone on the gig. Whoever may scan gear out can have
+// the client sign a delivery note on the phone (step 16); signed notes are listed below.
 //   /gig/:id/packing
 export default function PackingListPage() {
   const { id } = useParams()
@@ -17,6 +20,9 @@ export default function PackingListPage() {
   const { t, fmt } = useI18n()
   const [data, setData] = useState(null)
   const [error, setError] = useState(false)
+  const { user } = useAuth()
+  const [signing, setSigning] = useState(false)
+  const [signedKey, setSignedKey] = useState(0)
 
   useEffect(() => {
     Promise.all([
@@ -24,16 +30,22 @@ export default function PackingListPage() {
       supabase.rpc('gig_dispatch_summary', { p_gig: id }),
       supabase.rpc('gig_units_out', { p_gig: id }),
       supabase.rpc('gig_step_summary', { p_gig: id }),
-    ]).then(([gigRes, sumRes, unitsRes, stepRes]) => {
+      supabase.from('gig_members').select('role').eq('gig_id', id).eq('user_id', user.id).maybeSingle(),
+    ]).then(async ([gigRes, sumRes, unitsRes, stepRes, memberRes]) => {
       if (gigRes.error || !gigRes.data) {
         if (gigRes.error) logger.error('packing', gigRes.error, { gigId: id })
         return setError(true)
       }
       if (sumRes.error) logger.error('packing', sumRes.error, { step: 'summary' })
       if (stepRes.error) logger.error('packing', stepRes.error, { step: 'steps' })
-      setData({ gig: gigRes.data, rows: sumRes.data || [], units: unitsRes.data || [], counts: stepCounts(stepRes.data) })
+      // Who may collect a delivery note: the same people who may scan out (can_dispatch)
+      const { data: orgRow } = gigRes.data.org_id
+        ? await supabase.from('org_members').select('role').eq('org_id', gigRes.data.org_id).eq('user_id', user.id).maybeSingle()
+        : { data: null }
+      const canSign = !!gigRes.data.org_id && (gigRes.data.created_by === user.id || memberRes.data?.role === 'pm' || ['admin', 'member'].includes(orgRow?.role))
+      setData({ gig: gigRes.data, rows: sumRes.data || [], units: unitsRes.data || [], counts: stepCounts(stepRes.data), canSign })
     })
-  }, [id])
+  }, [id, user.id])
 
   if (error) return <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>{t('callsheet.notAvailable')} <button onClick={() => navigate('/dashboard')} style={toolbarBtn}>{t('common.back')}</button></div>
   if (!data) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><AvxLoader size={26} color="#1EC878" /></div>
@@ -60,19 +72,24 @@ export default function PackingListPage() {
         .sheet .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .sheet .muted { color: #666; }
         .sheet .step { white-space: nowrap; font-size: 13px; }
-        .toolbar { max-width: 800px; margin: 0 auto 12px; display: flex; justify-content: space-between; }
+        .signed-notes { margin-top: 24px; }
+        .toolbar { max-width: 800px; margin: 0 auto 12px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
         @media print {
           @page { margin: 12mm; }
           body, .packing-page { background: #fff !important; padding: 0; }
-          .toolbar { display: none; }
+          .toolbar, .signed-notes { display: none; }
           .sheet { padding: 0; max-width: none; }
           tr { break-inside: avoid; }
         }
       `}</style>
       <div className="toolbar">
         <button onClick={() => navigate(`/gig/${id}?tab=equipment`)} style={toolbarBtn}><ArrowLeft size={14} /> {t('callsheet.backToGig')}</button>
-        <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0B7A41', color: '#fff', border: 'none' }}><Printer size={14} /> {t('callsheet.print')}</button>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {data.canSign && <button onClick={() => setSigning(true)} style={toolbarBtn}><PenLine size={14} aria-hidden="true" /> {t('delivery.sign')}</button>}
+          <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0B7A41', color: '#fff', border: 'none' }}><Printer size={14} /> {t('callsheet.print')}</button>
+        </div>
       </div>
+      {signing && <DeliveryNoteModal data={data} onClose={() => setSigning(false)} onSigned={() => { setSigning(false); setSignedKey(k => k + 1) }} />}
       <article className="sheet">
         <header style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
           <div>
@@ -112,6 +129,7 @@ export default function PackingListPage() {
             </section>
           ))}
         <p className="muted" style={{ marginTop: '18px', fontSize: '11px' }}>{t('packing.footer')}</p>
+        <DeliveryNoteList gigId={id} canSign={data.canSign} refreshKey={signedKey} />
       </article>
     </div>
   )

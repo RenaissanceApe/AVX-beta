@@ -201,19 +201,34 @@ against issued invoices, and an invoice is **paid when its payments cover it**. 
 | Connected | Repairs, invoices, Invoices list, gig finance and Contacts (through `invoice_summary`), organisation export (`invoice_payments` file; export function renamed `export_org_part_pre_step12` and wrapped), help (terms "payment" and "repair charged to the client", ⓘ `invoice-payment`, `invoice-repairs`, `repair-charge-client`, guide `office-payments` with two pictures). Client portal (step 26): payments and payment links later |
 | Not built | Payment links (MB Way, Multibanco references through easypay or ifthenpay, or Stripe): left for the client portal (step 26), which gives the client a page to pay on and the webhook that records the payment |
 
+## How e-signature works (step 16)
+
+A **simple electronic signature** (not qualified; the owner's choice, 2026-11-09): a drawing made
+with a finger, pen or mouse, the signer's typed name (and role or company), the time and the SHA-256
+of the exact text that was signed, kept with a signed PDF. No Chave Móvel Digital / Cartão de
+Cidadão: a later integration if a client needs one. Migration `20270105000000_signatures.sql`;
+checks in `supabase/tests/signatures.sql`. No delete statements.
+
+| Piece | How it works |
+|---|---|
+| Table | `signatures`: `kind` (`quote_acceptance`, `delivery_note`, and for later `crew_contract` (step 27) and `rigging_signoff` (RG4)), `org_id`, `gig_id`, `quote_id`, `quote_share_id`, `title`, `signer_name`, `signer_role`, `signed_at`, `document` (the signed text: canonical JSON, keys sorted, no spaces), `document_sha256`, `image_path`, `image_sha256`, `pdf_path`, `pdf_sha256`, `created_by`, `removed_at`/`removed_by` |
+| Can't be changed | `signatures_before_insert` sets the time, `created_by` and the drawing's path, and refuses a hash that doesn't match the document (23514) or a gig or quote of another organisation. `signatures_guard` (before update, the service role included) freezes every signed field (42501). Allowed: the signed PDF once (null → `<org>/<id>/signed.pdf`), marking removed and back (`removed_by` is the user), and `created_by` → null when that account is erased. Signed-in users only have select, insert and update; anonymous users nothing |
+| Who | See: quote acceptances = `can_quote` or the quote's gig managers; delivery notes and rigging sign-offs = everyone on the gig; contracts = the organisation's admins (`private.can_see_signature`). Collect, attach the PDF and hide: delivery notes = `can_dispatch` (who may scan out); rigging = the gig's managers; contracts = admins; quote acceptances: the quoting people may attach the PDF and hide, but a new acceptance only comes from the client's link (`private.can_manage_signature`) |
+| Files | Private bucket `signatures` (PNG and PDF, 5 MB): `<org>/<signature>/signature.png` (only by whoever collected it, within 15 minutes of signing) and `signed.pdf` (once, while the row has none). No update or removal policies, so a file can't be replaced. A copy of each signed PDF goes into the gig's files (`assets`, `gig-assets`) for convenience; the kept copy is the one in `signatures` |
+| Quote acceptance | On the client's page (`QuotePublicPage`), **Accept** offers "Add a drawn signature (optional)" next to the typed name. `quote-public` checks the PNG (≤ 500 KB), stores it and the row with the version's snapshot as the document, and returns the signature; the page shows it with the hash and puts it into the client's PDF. Removed quotes are still "not found"; cancelled ones can't be answered. If the drawing can't be kept the acceptance stands and the client is told. The notification carries `signed: true` |
+| Signed quote PDF | In **Send to client**, an answer with a signature shows "Signed with a drawn signature" and **Signed PDF**: the first time, the app builds the signed version (`buildQuotePdf` with the signature block at the end, from the snapshot kept in the signature), keeps it, and copies it to the quote's gig files (`src/lib/signedQuote.js`) |
+| Delivery notes | Packing list → **Delivery note: sign** (for those who may scan out): what went out (scanned) and what was planned, with unit codes, the client's name, role or company, a note and the drawing. The PDF (`src/lib/deliveryNotePdf.js`) is built from the same document that was hashed, kept and copied to the gig's files. Signed notes are listed under the packing list (not printed) with **Signed PDF**, **Hide** and, for hidden ones, **Show again** |
+| JS | `src/lib/signatures.js`: `canonicalJson`, `sha256Hex`, `saveSignature`, `attachSignedPdf`, `copyToGigFiles`, `downloadSignatureFile`; `SignaturePad.jsx` (3:1 PNG, dark ink on white whatever the theme); `signaturePdf.js` (`drawSignatureBlock`). quote-public has its own copy of `canonicalJson` |
+| Connected | Quotes (client page, Send to client), packing lists, gig files, privacy notice and terms (EN/PT: "Signatures", "Electronic signatures"), data map, help (term `e-signature`, ⓘ `signature.plain`, guides `wh-delivery-note` and `of-signed-quote`) |
+| Kept with the gig | A gig with signatures (hidden ones too) can't be erased: the app checks before removing anything (EditGigModal) and `gigs_keep_signatures` refuses it (`20270105000001_signatures_keep_gig.sql`, run by hand; checks in `supabase/tests/signatures_keep_gig.sql`). Cancel the gig instead. Erasing the whole organisation still takes its signatures with it. Accepted quotes can't reach the quote bin, so quote acceptances are safe from its nightly erase |
+| Later | Crew contracts (step 27) and the rigger's sign-off (RG4) use the same table, pad and PDF block: `kind` and the rules are already there |
+
 ## Planned
 
 Specs for the business steps still to build, in ROADMAP.md order. Each is a starting point: the
 session that builds it reads its spec, checks it against the code, and **asks the owner the
 questions marked "Ask" before outlining the migration**. When built, the spec is replaced by a
 "How … works" section above.
-
-### 16 · E-signature [16]
-
-- A signature pad on the phone, stored as an image with name, time and the document's hash, and a
-  signed PDF kept with the record. Used for: quote acceptance (today a typed name), delivery notes /
-  packing slips on site, crew contracts (step 27) and the rigger's sign-off (RG4).
-- Plain electronic signature (not qualified); the terms say so.
 
 ### 22 · Shareable rider / advance page [28]
 
