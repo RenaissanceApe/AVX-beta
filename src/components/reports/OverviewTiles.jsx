@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ChevronRight, BarChart3 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
 import { retryOnce } from '../../lib/selectAll'
 import { OVERVIEW_TILES, OVERVIEW_SOURCES, moneyLines } from '../../lib/analytics/tiles'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n } from '../../i18n'
-import { card, colors, mono, AvxLoader } from '../ui'
+import { card, colors, mono, AvxLoader, Section, SwipeRow, space } from '../ui'
 
 // The Overview tiles (src/lib/analytics/tiles.js), read from public.report_overview and the
 // functions later steps add next to it (each tile's `source`), merged into one object.
-// Shown on Reports → Overview and, folded or not, as the key numbers on the organisation's Home.
+// Shown on Reports → Overview and as the key numbers on the organisation's Home.
 
 export function useOverview(orgId, enabled = true) {
   const [state, setState] = useState({ data: null, error: null, loading: !!enabled })
@@ -31,9 +30,10 @@ export function useOverview(orgId, enabled = true) {
   return state
 }
 
-function TileValue({ tile, overview }) {
+function TileValue({ tile, overview, big }) {
   const { lang } = useI18n()
   const v = tile.value(overview)
+  if (big) return <BigValue tile={tile} v={v} lang={lang} />
   if (tile.kind === 'money') {
     const lines = moneyLines(v)
     return lines.map((l, i) => (
@@ -45,6 +45,19 @@ function TileValue({ tile, overview }) {
   if (tile.kind === 'pctValue') return <div style={{ ...mono, fontSize: '20px', fontWeight: 700 }}>{v == null ? '—' : `${Number(v).toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB')}%`}</div>
   if (tile.kind === 'pct') return <div style={{ ...mono, fontSize: '20px', fontWeight: 700 }}>{v == null ? '—' : `${Math.round(v * 100)}%`}</div>
   return <div style={{ ...mono, fontSize: '20px', fontWeight: 700 }}>{v}</div>
+}
+
+// The home's tiles (DR1): the number at 24px (DESIGN.md "Typography": a big number), a second currency at 13px
+function BigValue({ tile, v, lang }) {
+  const big = { ...mono, fontSize: '24px', lineHeight: '32px', fontWeight: 700, overflowWrap: 'anywhere' }
+  if (tile.kind === 'money') {
+    return moneyLines(v).map((l, i) => (
+      <div key={l.currency} style={i ? { ...mono, fontSize: '13px', color: colors.muted } : big}>{formatMoney(l.amount, l.currency, lang)}</div>
+    ))
+  }
+  if (tile.kind === 'pctValue') return <div style={big}>{v == null ? '—' : `${Number(v).toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB')}%`}</div>
+  if (tile.kind === 'pct') return <div style={big}>{v == null ? '—' : `${Math.round(v * 100)}%`}</div>
+  return <div style={big}>{v}</div>
 }
 
 // A percentage or an amount in a tile's line, written the reader's way ("29.4" / "29,4", "1 200,00 €")
@@ -76,35 +89,32 @@ export function OverviewTiles({ orgId, overview, compact = false }) {
   )
 }
 
-const FOLD_KEY = 'avx.home.keyNumbers.folded'
-
-// Key numbers on the organisation's Home (admins and members, not in simple mode); can be folded
+// Key numbers on the organisation's Home (admins and members, not in simple mode): a Section with the six
+// tiles in a SwipeRow (a sideways swipe row on phone, three columns on desktop). Hidden or moved with
+// "Arrange home" (src/lib/homeLayout.js).
 export function KeyNumbersStrip({ orgId }) {
-  const { t } = useI18n()
-  const [folded, setFolded] = useState(() => { try { return localStorage.getItem(FOLD_KEY) === '1' } catch { return false } })
-  const { data, loading, error } = useOverview(orgId, !folded)
-  const toggle = () => setFolded(f => {
-    try { localStorage.setItem(FOLD_KEY, f ? '0' : '1') } catch { /* private window */ }
-    return !f
-  })
+  const { t, lang } = useI18n()
+  const { data, loading, error } = useOverview(orgId)
   if (error) return null
+  const base = `/org/${orgId}`
   return (
-    <section aria-labelledby="key-numbers" style={{ marginBottom: '20px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: folded ? 0 : '8px' }}>
-        <h2 id="key-numbers" style={{ fontSize: '15px', fontWeight: 700, margin: 0, flex: '1 1 auto' }}>
-          <button type="button" onClick={toggle} aria-expanded={!folded}
-            style={{ background: 'none', border: 'none', color: 'var(--text)', font: 'inherit', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '4px', textAlign: 'left', whiteSpace: 'nowrap' }}>
-            {folded ? <ChevronRight size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
-            {t('reports.keyNumbers')}
-          </button>
-        </h2>
-        <Link to={`/org/${orgId}/reports`} style={{ fontSize: '13px', color: colors.accentText, display: 'inline-flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
-          <BarChart3 size={14} aria-hidden="true" /> {t('reports.allReports')}
-        </Link>
-      </div>
-      {!folded && (loading || !data
-        ? <AvxLoader size={18} color={colors.accentText} label={t('common.loading')} />
-        : <OverviewTiles orgId={orgId} overview={data} compact />)}
-    </section>
+    <Section id="key-numbers" title={t('reports.keyNumbers')} link={{ to: `${base}/reports`, label: t('reports.allReports') }}>
+      {loading || !data
+        ? <AvxLoader size={20} color={colors.accentText} label={t('common.loading')} />
+        : (
+          <SwipeRow label={t('reports.keyNumbers')} item="64%">
+            {OVERVIEW_TILES.map(tile => {
+              const sub = tile.sub?.(data)
+              return (
+                <Link key={tile.key} to={tile.to(base)} style={{ ...card, padding: space[4], display: 'flex', flexDirection: 'column', gap: space[1], height: '100%', color: 'var(--text)', textDecoration: 'none' }}>
+                  <span style={{ fontSize: '13px', color: colors.muted }}>{t(`reports.tile.${tile.key}`)}</span>
+                  <TileValue tile={tile} overview={data} big />
+                  {sub && <span style={{ fontSize: '13px', color: colors.muted }}>{sub.vars.count == null ? t(sub.key, subVars(sub.vars, lang)) : t(`${sub.key}.${sub.vars.count === 1 ? 'one' : 'other'}`, sub.vars)}</span>}
+                </Link>
+              )
+            })}
+          </SwipeRow>
+        )}
+    </Section>
   )
 }

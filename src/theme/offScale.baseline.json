@@ -5,7 +5,7 @@
   },
   "components/AvailabilityRequests.jsx": {
     "sizes": 2,
-    "gaps": 5
+    "gaps": 3
   },
   "components/AvailabilitySection.jsx": {
     "sizes": 5,
@@ -66,10 +66,6 @@
   "components/expenses/LinkedExpense.jsx": {
     "sizes": 2,
     "gaps": 0
-  },
-  "components/FirstSteps.jsx": {
-    "sizes": 2,
-    "gaps": 2
   },
   "components/gig/ActivityTab.jsx": {
     "sizes": 2,
@@ -279,10 +275,6 @@
     "sizes": 1,
     "gaps": 0
   },
-  "components/mywork/MyNumbersStrip.jsx": {
-    "sizes": 2,
-    "gaps": 2
-  },
   "components/NetworkPicker.jsx": {
     "sizes": 4,
     "gaps": 5
@@ -416,7 +408,7 @@
     "gaps": 2
   },
   "components/reports/OverviewTiles.jsx": {
-    "sizes": 2,
+    "sizes": 1,
     "gaps": 1
   },
   "components/reports/ReportParts.jsx": {
@@ -532,8 +524,8 @@
     "gaps": 8
   },
   "pages/Dashboard.jsx": {
-    "sizes": 8,
-    "gaps": 6
+    "sizes": 1,
+    "gaps": 0
   },
   "pages/DispatchPage.jsx": {
     "sizes": 3,

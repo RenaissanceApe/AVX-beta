@@ -58,11 +58,12 @@ const popStyle = place => ({
   textTransform: 'none', letterSpacing: 'normal', fontWeight: 400, textAlign: 'left', whiteSpace: 'normal',
 })
 
-export function Hint({ id, label }) {
+// text: words of your own instead of a help hint (e.g. what a role may do, next to its chip)
+export function Hint({ id, label, text: own }) {
   const { t } = useI18n()
   const { open, place, toggle, button, panel } = usePopover()
   const popId = useId()
-  const text = hint(id)
+  const text = own || hint(id)
   if (!text) return null
   return (
     <>
