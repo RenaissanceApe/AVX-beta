@@ -72,3 +72,37 @@ svg.lucide-loader-circle > *, svg.lucide-loader > * { display: none; }
 /* Icons: square caps and mitre joins on every lucide icon, set once here (lucide's linecap/linejoin are SVG
    presentation attributes, which CSS overrides). The set itself moves to Signal Pixel later (ICONS.md, P3). */
 svg.lucide { stroke-linecap: square; stroke-linejoin: miter; }
+
+/* Layout pieces (ui.jsx: Section, Stack, PageHeader, SwipeRow, MoreMenu; DESIGN.md "Room to breathe").
+   Spacing only from the steps in index.html (--space-1 … --space-7, --space-section). */
+.avx-section + .avx-section { margin-top: var(--space-section); }
+.avx-section__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); min-width: 0; }
+.avx-section__title { font: 700 16px/24px var(--font-mono); color: var(--text); margin: 0; min-width: 0; display: flex; align-items: center; gap: var(--space-2); }
+.avx-section__link { font-size: 13px; color: var(--accent-text); white-space: nowrap; display: inline-flex; align-items: center; gap: var(--space-1); }
+.avx-section__link:hover { text-decoration: underline; }
+
+.avx-page-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3) var(--space-4); margin-bottom: var(--space-6); }
+.avx-page-head__text { min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.avx-page-head__eyebrow, .avx-page-head__line { font-size: 13px; line-height: 20px; color: var(--muted); margin: 0; }
+.avx-page-head__title { font: 700 28px/34px var(--font-mono); margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); overflow-wrap: anywhere; }
+.avx-page-head__actions { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+@media (max-width: 767px) { .avx-page-head__title { font-size: 22px; line-height: 28px; } }
+
+.avx-swipe { overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter); scroll-padding: 0 var(--gutter); }
+.avx-swipe::-webkit-scrollbar { display: none; }
+.avx-swipe__list { list-style: none; margin: 0; padding: 0; display: flex; gap: var(--space-3); }
+.avx-swipe__list > li { flex: 0 0 var(--swipe-item, 44%); min-width: 0; scroll-snap-align: start; display: flex; }
+.avx-swipe__list > li > * { flex: 1; min-width: 0; }
+@media (min-width: 768px) {
+  .avx-swipe { overflow: visible; margin: 0; padding: 0; }
+  .avx-swipe__list { display: grid; grid-template-columns: repeat(var(--swipe-cols, 3), minmax(0, 1fr)); gap: var(--space-3); }
+}
+
+.avx-more { position: relative; display: inline-flex; }
+.avx-more__menu { position: absolute; right: 0; top: calc(100% + var(--space-1)); z-index: 60; min-width: 200px; max-width: calc(100vw - 32px);
+  background: var(--panel); border: 1px solid var(--line-strong); padding: var(--space-1) 0; list-style: none; margin: 0;
+  animation: fadeIn .25s cubic-bezier(0.16, 1, 0.3, 1); }
+.avx-more__item { width: 100%; display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); background: none; border: none;
+  color: var(--text); font: 400 14px/20px var(--font-ui); text-align: left; cursor: pointer; min-height: 44px; }
+.avx-more__item:hover, .avx-more__item:focus-visible { background: var(--hover); }
+.avx-more__item[aria-disabled="true"] { color: var(--muted); cursor: not-allowed; }

@@ -8,7 +8,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { rangeText } from '../lib/clashes'
 import { useI18n, t } from '../i18n'
-import { btn, btnPrimary, input, colors, label, AvxLoader } from './ui'
+import { btn, btnPrimary, input, colors, label, AvxLoader, Section, space } from './ui'
 
 // My work: "are you available?" requests waiting for an answer. Answering notifies
 // whoever asked; nothing is booked until they add you to the gig.
@@ -42,16 +42,13 @@ export default function AvailabilityRequests({ onAnswered }) {
 
   if (!requests.length) return null
   return (
-    <section id="requests" ref={ref} aria-labelledby="requests-title" style={{ marginBottom: '24px' }}>
-      <h2 id="requests-title" style={{ ...label, color: 'var(--text)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <MessageCircleQuestion size={14} color="var(--warn)" aria-hidden="true" /> {t('requests.title', { count: requests.length })}
-      </h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <Section id="requests-title" sectionRef={ref} title={<><MessageCircleQuestion size={16} color="var(--warn)" aria-hidden="true" /> {t('requests.title', { count: requests.length })}</>}>
+      <div id="requests" style={{ display: 'flex', flexDirection: 'column', gap: space[3] }}>
         {requests.map(r => (
           <RequestCard key={r.id} request={r} onDone={() => { setRequests(list => list.filter(x => x.id !== r.id)); onAnswered?.() }} />
         ))}
       </div>
-    </section>
+    </Section>
   )
 }
 

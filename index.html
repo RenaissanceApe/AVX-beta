@@ -30,6 +30,11 @@
       html, body, #root { height: 100%; }
       /* Colours come from the theme (src/theme/tokens.js); the fallbacks are the dark theme */
       :root { --font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; --font-mono: 'Space Mono', ui-monospace, monospace; }
+      /* Spacing steps (DESIGN.md "Layout", "Room to breathe"): the only gaps, paddings and margins a screen uses.
+         --space-section is the distance between sections: 40px on phone, 48px from 768px up. */
+      :root { --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+        --space-section: 48px; --gutter: 24px; }
+      @media (max-width: 767px) { :root { --space-section: 40px; --gutter: 16px; } }
       :root[data-font="readable"] { --font-ui: 'Atkinson Hyperlegible', system-ui, sans-serif; --font-mono: 'Atkinson Hyperlegible', ui-monospace, monospace; }
       html { background: var(--bg, #021829); }
       body { background: var(--bg, #021829); color: var(--text, #F0F1F3); font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }

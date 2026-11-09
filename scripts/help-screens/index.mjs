@@ -87,7 +87,8 @@ const SCENES = {
     return page.getByText(L('push.title'), { exact: true }).first().locator('xpath=ancestor::div[1]')
   } },
   requests: { persona: 'crew', url: '/me', async run(page, L) {
-    return page.getByText(L('requests.title.one', { count: 1 })).locator('xpath=..')
+    await page.getByText(L('requests.title.one', { count: 1 })).waitFor()
+    return page.locator('section[aria-labelledby="requests-title"]')
   } },
   appearance: { persona: 'crew', url: '/settings/preferences', async run(page, L) {
     return page.getByText(L('appearance.title'), { exact: true }).locator('xpath=..')
