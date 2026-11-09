@@ -377,10 +377,10 @@ function useWide() {
 const SETTINGS_CSS = `
 .settings { max-width: 1040px; margin: 0 auto; padding: var(--space-5) var(--gutter) var(--space-7); display: grid; gap: var(--space-6) var(--space-7); grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 760px) { .settings { grid-template-columns: 240px minmax(0, 1fr); } .settings-nav { position: sticky; top: 76px; align-self: start; } }
-.settings-link { display: flex; align-items: center; gap: 12px; padding: 12px 12px; min-height: 44px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; }
+.settings-link { display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 10px; min-height: 44px; border-left: 2px solid transparent; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; }
 .settings-link:hover { background: color-mix(in srgb, var(--fg) 6%, transparent); }
 /* The open section: text colour with a 2px accent bar, not a wash (DESIGN.md rule 3) */
-.settings-link.on { color: var(--text); box-shadow: inset 2px 0 0 var(--accent); background: color-mix(in srgb, var(--fg) 4%, transparent); }
+.settings-link.on { color: var(--text); border-left-color: var(--accent); background: color-mix(in srgb, var(--fg) 4%, transparent); }
 .settings-link:focus-visible, .settings-back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .settings-badge { color: var(--accent-text); }
 .settings-back { display: inline-flex; align-items: center; gap: 4px; color: var(--accent-text); text-decoration: none; font-size: 14px; font-weight: 600; margin-bottom: 12px; }

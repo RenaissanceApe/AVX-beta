@@ -195,16 +195,8 @@
     "sizes": 5,
     "gaps": 1
   },
-  "components/inventory/ItemMoneyCard.jsx": {
-    "sizes": 1,
-    "gaps": 3
-  },
-  "components/inventory/KitPanels.jsx": {
-    "sizes": 2,
-    "gaps": 2
-  },
   "components/inventory/MaintenancePanels.jsx": {
-    "sizes": 13,
+    "sizes": 12,
     "gaps": 9
   },
   "components/inventory/ReportsTab.jsx": {
@@ -285,43 +277,31 @@
   },
   "components/OrgCrewRatesSettings.jsx": {
     "sizes": 3,
-    "gaps": 9
+    "gaps": 8
   },
   "components/OrgCustomFieldsSettings.jsx": {
     "sizes": 2,
-    "gaps": 5
-  },
-  "components/OrgExportSettings.jsx": {
-    "sizes": 1,
-    "gaps": 2
+    "gaps": 4
   },
   "components/OrgGigLabelsSettings.jsx": {
     "sizes": 1,
-    "gaps": 5
+    "gaps": 4
   },
   "components/OrgMembersModal.jsx": {
     "sizes": 5,
     "gaps": 2
   },
-  "components/OrgMessagesSettings.jsx": {
-    "sizes": 1,
-    "gaps": 2
-  },
-  "components/OrgSettingsModal.jsx": {
+  "components/OrgStepsSettings.jsx": {
     "sizes": 2,
     "gaps": 1
   },
-  "components/OrgStepsSettings.jsx": {
-    "sizes": 2,
-    "gaps": 2
-  },
   "components/OrgToolsSettings.jsx": {
     "sizes": 2,
-    "gaps": 2
+    "gaps": 1
   },
   "components/OrgVerificationSettings.jsx": {
-    "sizes": 1,
-    "gaps": 4
+    "sizes": 0,
+    "gaps": 2
   },
   "components/PlaceFinder.jsx": {
     "sizes": 1,
@@ -339,10 +319,6 @@
     "sizes": 1,
     "gaps": 4
   },
-  "components/quotes/PhaseEditor.jsx": {
-    "sizes": 6,
-    "gaps": 8
-  },
   "components/quotes/PriceList.jsx": {
     "sizes": 5,
     "gaps": 4
@@ -350,10 +326,6 @@
   "components/quotes/QuoteAvailability.jsx": {
     "sizes": 1,
     "gaps": 2
-  },
-  "components/quotes/QuoteDetails.jsx": {
-    "sizes": 3,
-    "gaps": 1
   },
   "components/quotes/QuoteDocument.jsx": {
     "sizes": 5,
@@ -363,16 +335,12 @@
     "sizes": 2,
     "gaps": 2
   },
-  "components/quotes/QuoteSummary.jsx": {
-    "sizes": 6,
-    "gaps": 1
-  },
   "components/ReportModal.jsx": {
     "sizes": 0,
     "gaps": 4
   },
   "components/reports/AccountantLinks.jsx": {
-    "sizes": 6,
+    "sizes": 5,
     "gaps": 2
   },
   "components/reports/CashReport.jsx": {
@@ -394,10 +362,6 @@
   "components/reports/GigMarginsReport.jsx": {
     "sizes": 2,
     "gaps": 1
-  },
-  "components/reports/ManagementPack.jsx": {
-    "sizes": 1,
-    "gaps": 0
   },
   "components/reports/MoneyReport.jsx": {
     "sizes": 3,
@@ -424,7 +388,7 @@
     "gaps": 13
   },
   "components/reports/SavedViews.jsx": {
-    "sizes": 3,
+    "sizes": 2,
     "gaps": 2
   },
   "components/reports/WarehouseReport.jsx": {
@@ -551,17 +515,13 @@
     "sizes": 3,
     "gaps": 3
   },
-  "pages/ImportPage.jsx": {
-    "sizes": 19,
-    "gaps": 15
-  },
   "pages/InputListPage.jsx": {
     "sizes": 1,
     "gaps": 1
   },
   "pages/InventoryItemPage.jsx": {
-    "sizes": 10,
-    "gaps": 11
+    "sizes": 0,
+    "gaps": 1
   },
   "pages/InventoryPage.jsx": {
     "sizes": 8,
@@ -635,10 +595,6 @@
     "sizes": 0,
     "gaps": 1
   },
-  "pages/QuoteEditorPage.jsx": {
-    "sizes": 4,
-    "gaps": 5
-  },
   "pages/QuotePrintPage.jsx": {
     "sizes": 0,
     "gaps": 1
@@ -659,10 +615,6 @@
     "sizes": 5,
     "gaps": 2
   },
-  "pages/ReportsPage.jsx": {
-    "sizes": 2,
-    "gaps": 2
-  },
   "pages/ResetPasswordPage.jsx": {
     "sizes": 1,
     "gaps": 2
@@ -670,10 +622,6 @@
   "pages/ScanPage.jsx": {
     "sizes": 1,
     "gaps": 1
-  },
-  "pages/SettingsPage.jsx": {
-    "sizes": 8,
-    "gaps": 8
   },
   "pages/StagePlotPage.jsx": {
     "sizes": 1,

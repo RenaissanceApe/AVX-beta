@@ -219,7 +219,7 @@ export default function InventoryItemPage() {
                       opacity: u.status === 'lost' || u.status === 'retired' ? 0.6 : 1,
                       // The selection wash marks the unit you came for (scanned), with a bar so it isn't colour alone
                       background: highlight === u.id ? 'var(--selection)' : undefined,
-                      boxShadow: highlight === u.id ? `inset 2px 0 0 ${colors.accent}` : undefined,
+                      borderLeft: highlight === u.id ? `2px solid ${colors.accent}` : undefined,
                     }}>
                       <input type="checkbox" checked={selected.includes(u.id)} onChange={() => toggle(u.id)} aria-label={t('inv.selectUnit', { code: u.code })} style={{ accentColor: colors.accent }} />
                       <span style={{ flex: '1 1 180px', minWidth: 0 }}>
