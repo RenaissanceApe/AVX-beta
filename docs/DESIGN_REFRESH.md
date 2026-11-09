@@ -43,12 +43,44 @@ session regenerates the help screenshots of the guides whose screens it changed,
 
 | Step | Screens | Why this order |
 | --- | --- | --- |
-| **DR1** Foundations + Home | `Section`, `Stack`, `PageHeader`, `SwipeRow`, `MoreMenu` in `ui.jsx`; CSS variables for the spacing steps; a test that stops new off-scale sizes and gaps (counts may only go down); the modular home with Arrange home, the swipe row, the phone header and the slim First steps | Everything after uses the pieces; the home is the first screen everyone sees |
+| **DR1** Foundations + Home ✅ built (see "How the foundations work") | `Section`, `Stack`, `PageHeader`, `SwipeRow`, `MoreMenu` in `ui.jsx`; CSS variables for the spacing steps; a test that stops new off-scale sizes and gaps (counts may only go down); the modular home with Arrange home, the swipe row, the phone header and the slim First steps | Everything after uses the pieces; the home is the first screen everyone sees |
 | **DR2** Gig | Gig header, Overview (next-event card included), Schedule, Crew, Equipment, Feed/Chat tabs | The most used screen |
 | **DR3** Lists | Quotes, Invoices, Inventory, Contacts, Members, Expenses, Hours, Leave, Jobs, Find crew | Same pattern repeated: header, filters, list rows |
 | **DR4** Detail and editors | Quote editor (stays compact in the line grid), Inventory item, Reports, Settings and organisation settings dialogs, Import | Denser screens: apply rules 2–5 without losing data |
 | **DR5** Field and crew | My work, Simple home, On-site, Scan and Dispatch, field tools, Messages, Help | Used standing up and on phones |
 | **DR6** Sweep | Everything left, the ratchet test down to zero, all help screenshots refreshed, the design system artifact brought in line | Finishes the refresh |
+
+## How the foundations work (DR1, built)
+
+**Spacing steps** are CSS variables in `index.html`: `--space-1` … `--space-7` (4 · 8 · 12 · 16 · 24 · 32 · 48 px),
+`--space-section` (40 px phone / 48 px from 768 px) and `--gutter` (16 / 24 px). In JS, `space` from `ui.jsx`
+gives the same values (`space[3]` → `var(--space-3)`, `space.section`). The layout pieces' CSS is in
+`src/theme/brand.css` (`.avx-section`, `.avx-page-head`, `.avx-swipe`, `.avx-more`).
+
+**The pieces** (`src/components/ui.jsx`, each with a usage comment above it):
+
+| Piece | Use it for |
+| --- | --- |
+| `Section` | a page section: 16 px heading (`id` names it for `aria-labelledby`), optional `link={{ to, label }}` or any `aside` on the right, content on the page ground. Sections next to each other are 40/48 px apart by themselves (`.avx-section + .avx-section`), so a module that renders nothing leaves no gap |
+| `Stack` | items with a gap from the steps: `gap` 1–7 or `'section'`, `direction`, `align`, `wrap`, `as` |
+| `PageHeader` | `title`, optional `eyebrow` (small line above), `line` (one short line), `after` (chips), `help` (`<PageHelp>`), `primary` (one element), `secondary` (up to two actions shown on desktop), `more` (the rest). On phone the secondaries move into the ⋯ menu. An action is `{ label, icon?, onClick, disabled? }` |
+| `SwipeRow` | tiles: a scroll-snap row on phone (`item` = tile width, default 44%), a grid of `cols` (default 3) from 768 px; a focusable region named by `label`; ← → scroll it |
+| `MoreMenu` | the ⋯ button ("More actions") with a menu of actions; ↑ ↓ Home End move, Escape or a click outside closes and returns focus. Renders nothing with no items |
+| `usePhone()` | true below 768 px, follows the window |
+
+**The ratchet** (`src/theme/offScale.test.js`, counting with `offScale.js`): text sizes off 11 · 13 · 14 · 16 · 20 ·
+22 · 24 · 28 and gaps off 0 · 4 · 8 · 12 · 16 · 24 · 32 · 40 · 48, per `.jsx` file, against
+`offScale.baseline.json`. A file's count going up fails; going down also fails until the baseline is lowered
+(edit the number, or `UPDATE_OFFSCALE=1 npx vitest run src/theme/offScale.test.js`). Per file, so sessions on
+different screens don't touch the same line. Start (2026-11-09): 644 sizes and 639 gaps in 177 files.
+
+**The home** (`src/pages/Dashboard.jsx`): `PageHeader` (phone: the greeting is the title, no organisation name;
+the role description is the role chip's ⓘ), then the slim First steps row (`FirstSteps.jsx`: one row, opens the
+steps still to do), then the modules in the person's order: `requests` (My work), `numbers` (My numbers / Key
+numbers, in a `SwipeRow`), `events`. "Arrange home" at the end opens `ArrangeHome.jsx`. The order and hidden
+modules are saved in `localStorage` under `avx.home.layout.<user>.<workspace>` by `src/lib/homeLayout.js`
+(standard order = nothing saved; a module the saved order doesn't know joins at its standard place). Key numbers
+are no longer folded with their heading: hiding them is done in Arrange home.
 
 ## Not changing
 

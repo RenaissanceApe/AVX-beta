@@ -320,7 +320,7 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   await sheet.getByRole('switch', { name: 'Show Key numbers' }).click()
   await expect(strip).toHaveCount(0)
   await sheet.getByRole('button', { name: 'Back to the standard' }).click()
-  await sheet.getByRole('button', { name: 'Done' }).click()
+  await sheet.getByRole('button', { name: 'Done', exact: true }).click()
   // Shown again, it reloads the key numbers: let them arrive before Reports loads its own copy
   await expect(strip.getByText('Gigs this month', { exact: true })).toBeVisible({ timeout: 30_000 })
   await strip.getByRole('link', { name: 'All reports' }).click()
