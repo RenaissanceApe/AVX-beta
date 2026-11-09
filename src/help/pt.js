@@ -93,6 +93,7 @@ export default {
     split: { term: 'Split', definition: 'Enviar as mesmas entradas de palco para duas mesas, normalmente a de sala e a de monitores.', example: 'A SB1 tem split para a mesa de monitores.', where: 'Evento → Ferramentas → Patch' },
     haas: { term: 'Efeito Haas', definition: 'Ouvimos o som como vindo de onde nos chega primeiro. Atrasar uma torre de delay uns milissegundos para lá da principal faz o som continuar a parecer vir do palco.', example: 'Torre de delay acertada 10 ms depois do som das principais.', where: 'Evento → Ferramentas → Calculadora de sistema de som' },
     spl: { term: 'SPL', definition: 'Nível de pressão sonora: o volume, em decibéis. Desce cerca de 6 dB cada vez que a distância duplica.', example: '136 dB a 1 m são cerca de 106 dB a 32 m.', where: 'Evento → Ferramentas → Calculadora de sistema de som' },
+    'speaker-specs': { term: 'Especificações de coluna', definition: 'Os valores de uma coluna tirados da ficha técnica do fabricante: sensibilidade, SPL máximo, dispersão, gama de frequências, impedância, peso e os dados de rigging. Os modelos predefinidos preenchem-nos para colunas comuns, nunca com estimativas.', example: 'L-Acoustics X12: 136 dB de SPL máx., 60° × 90°, 59 Hz–20 kHz, 8 Ω, 20 kg.', where: 'Inventário → artigo → Editar → Especificações de coluna' },
     truss: { term: 'Truss', definition: 'Uma estrutura metálica onde se pendura a luz, suspensa sobre o palco ou assente no chão.', example: 'Truss 1 a 7 m com oito spots.', where: 'Evento → Ferramentas → Plano de luz' },
     'power-phase': { term: 'Fase elétrica', definition: 'Um dos condutores com tensão de uma alimentação. Uma alimentação trifásica tem três, cada uma com o seu limite em amperes; a carga deve ser repartida por elas.', example: 'Uma alimentação trifásica de 32 A dá 32 A em cada uma de L1, L2 e L3.', where: 'Evento → Ferramentas → Plano de luz' },
     'stage-plot': { term: 'Stage plot', definition: 'Um desenho do palco visto de cima com o lugar de cada coisa: bateria, microfones, amplificadores, monitores, estrados.', example: 'O plot da banda com o estrado da bateria ao fundo, ao centro.', where: 'Evento → Ferramentas' },
@@ -892,6 +893,7 @@ export default {
       mistakes: [
         'São estimativas sem reflexões, com todas as caixas apontadas de frente para o público: confirme sempre com um sistema de medição.',
         'Frente/fundo é negativo para o lado do público: uma torre de delay a 30 m está em −30.',
+        'As colunas do catálogo com especificações podem ser escolhidas em cada fonte: o SPL máximo e o ângulo vêm da ficha técnica em vez de serem escritos.',
       ],
     },
     'pm-light-plot': {

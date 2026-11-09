@@ -51,7 +51,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
       .eq('org_id', gig.org_id).not('speaker_type', 'is', null).is('archived_at', null).order('name').order('id'))
       .then(({ data, error }) => {
         if (error) logger.warn('system', error, { step: 'speakers' })
-        setSpeakers(data || [])
+        setSpeakers((data || []).filter(x => x.speaker_type))
       })
   }, [canEdit, gig.org_id])
   const speakerOf = id => speakers.find(x => x.id === id)

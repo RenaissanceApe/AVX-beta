@@ -96,6 +96,7 @@ export default {
     split: { term: 'Split', definition: 'Sending the same stage inputs to two desks, usually front of house and monitors.', example: 'SB1 is split to the monitor desk.', where: 'Gig → Tools → Patch' },
     haas: { term: 'Haas effect', definition: 'We hear sound as coming from where it reaches us first. Delaying a delay tower a few milliseconds past the main keeps the sound seeming to come from the stage.', example: 'Delay tower set 10 ms later than the sound from the mains.', where: 'Gig → Tools → Sound system calculator' },
     spl: { term: 'SPL', definition: 'Sound pressure level: how loud, in decibels. It drops about 6 dB each time the distance doubles.', example: '136 dB at 1 m is about 106 dB at 32 m.', where: 'Gig → Tools → Sound system calculator' },
+    'speaker-specs': { term: 'Speaker specs', definition: 'A speaker\'s figures from its manufacturer\'s datasheet: sensitivity, maximum SPL, dispersion, frequency range, impedance, weight, plus its rigging data. Presets fill them for common models, never with estimates.', example: 'L-Acoustics X12: 136 dB max SPL, 60° × 90°, 59 Hz–20 kHz, 8 Ω, 20 kg.', where: 'Inventory → item → Edit → Speaker specs' },
     truss: { term: 'Truss', definition: 'A metal frame that lighting hangs from, flown above the stage or standing on the floor.', example: 'Truss 1 at 7 m with eight spots.', where: 'Gig → Tools → Light plot' },
     'power-phase': { term: 'Power phase', definition: 'One of the live wires of a power supply. A three-phase supply has three, each with its own limit in amps; the load should be shared between them.', example: 'A 32 A three-phase supply gives 32 A on each of L1, L2 and L3.', where: 'Gig → Tools → Light plot' },
     'stage-plot': { term: 'Stage plot', definition: 'A drawing of the stage from above showing where everything goes: drums, mics, amps, monitors, risers.', example: 'The band\'s plot with the drum riser upstage centre.', where: 'Gig → Tools' },
@@ -895,6 +896,7 @@ export default {
       mistakes: [
         'These are estimates without reflections, with every box aimed straight at the audience: always confirm with a measurement system.',
         'Front/back is negative into the audience: a delay tower 30 m out is at −30.',
+        'Speakers in your catalogue with specs can be picked per source: their maximum SPL and angle come from the datasheet instead of being typed.',
       ],
     },
     'pm-light-plot': {

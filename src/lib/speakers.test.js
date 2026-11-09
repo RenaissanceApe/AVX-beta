@@ -125,7 +125,7 @@ describe('the item page', () => {
     const facts = speakerFacts({ speaker_type: 'line_array', dispersion_h: 110, freq_low_hz: 60, freq_high_hz: 18000 }, t)
     expect(facts).toEqual([
       ['spk.type', 'spk.typeOpt.line_array'],
-      ['spk.dispersion', '110° × —°'],
+      ['spk.dispersion', '110° × —'],
       ['spk.freq', '60–18000 Hz'],
     ])
     expect(speakerFacts({ name: 'Cable' }, t)).toEqual([])

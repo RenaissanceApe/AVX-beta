@@ -34,7 +34,7 @@ export default function SpeakerSpecsFields({ form, setForm, onPreset }) {
   }
 
   return (
-    <details open={Boolean(form.speaker_type)} style={{ border: '1px solid var(--border)', padding: '10px 12px' }}>
+    <details open={Boolean(form.speaker_type)} style={{ border: '1px solid var(--line)', padding: '10px 12px' }}>
       <summary style={{ cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>{t('spk.section')}</summary>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px' }}>
         <div style={grid}>

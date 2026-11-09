@@ -137,7 +137,8 @@ export function speakerFacts(item, t) {
   if (!hasSpecs(item)) return []
   const n = v => (v == null ? null : Number(v))
   const range = (a, b, unit) => (a == null && b == null ? '' : `${a ?? '?'}–${b ?? '?'} ${unit}`)
-  const hv = item.dispersion_h != null || item.dispersion_v != null ? `${n(item.dispersion_h) ?? '—'}° × ${n(item.dispersion_v) ?? '—'}°` : ''
+  const deg = v => (v == null ? '—' : `${n(v)}°`)
+  const hv = item.dispersion_h != null || item.dispersion_v != null ? `${deg(item.dispersion_h)} × ${deg(item.dispersion_v)}` : ''
   return [
     [t('spk.type'), item.speaker_type ? t(`spk.typeOpt.${item.speaker_type}`) : ''],
     [t('spk.field.sensitivity_db'), item.sensitivity_db != null ? `${n(item.sensitivity_db)} dB` : ''],

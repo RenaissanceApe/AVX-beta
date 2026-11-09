@@ -119,6 +119,7 @@ Checks: `supabase/tests/light_plot.sql`.
 | Levels | Per listening position and source: −6 dB per doubling of distance from the 1 m rating, +10·log10(boxes), −12 dB outside the box's angle, −20 dB behind it (subs spread all round); the total and the mains' level added as power |
 | Checks | At each position, a delay or fill within 10 dB of its main is checked: arriving before it ("the sound will seem to come from the delay"), or more than 30 ms after it ("heard as an echo") |
 | Coverage | How wide each box covers at the farthest listening position in front of it (not for subs or boxes wider than 160°) |
+| Catalogue speakers (A1) | A source can take its maximum SPL and horizontal angle from a speaker in the catalogue instead of typed numbers; they are copied into the source (`item_id`, `item_name`), so crew get the same results, and "Update from catalogue" appears when the item changes |
 | Estimates | Every screen and the print say they are estimates (straight lines, open air, no reflections, boxes aimed straight at the audience), to plan with and then measure on site |
 | Print | `/gig/:id/system` with the plan, sources and listening positions. Offline copies like the other tools; crew read it |
 
