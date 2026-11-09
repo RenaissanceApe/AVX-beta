@@ -45,6 +45,9 @@ up front. What each release changed is in [CHANGELOG.md](CHANGELOG.md).
 | Step 13: A1 speaker library (speaker specs and rigging data on catalogue items, presets for ten models from the manufacturers' documents, catalogue speakers in the sound system calculator, speaker columns in the import) | 0.79.0 | [docs/INVENTORY.md](docs/INVENTORY.md), "How the speaker library works" |
 | Step 14: MVR/GDTF import and MVR export (fixtures with type, mode, footprint, place and address into the DMX patch and light plot, matched to the catalogue; GDTF modes, weight and power on catalogue items; MVR export with GDTF files; Vectorworks, grandMA3 and Capture styles) | 0.79.0 | [docs/FIELD_TOOLS.md](docs/FIELD_TOOLS.md), "How MVR and GDTF work" |
 | Step 16: e-signature (signature pad, `signatures` table and private bucket, signatures that can't be changed, signed PDFs; quote acceptance and delivery notes; ready for crew contracts and rigger sign-off) | 0.79.0 | [docs/BUSINESS.md](docs/BUSINESS.md), "How e-signature works" |
+| Step 15: P1–P2 power and cables (electrical fields on catalogue items and in the import; supply, distros, outputs, loads from every tool and typed by hand; currents per phase and output, neutral, headroom, balance, generator size; connected statuses; cable runs with voltage drop and capacity by type and laying; cable list → gig equipment and packing list; phase balancing and fill-to-reserve suggestions shown before applying; inrush groups; distro and cable labels; report and PDF in gig files) | 0.80.0 | [docs/FIELD_TOOLS.md](docs/FIELD_TOOLS.md), "How the power tool works" |
+| Step 17a: RG1 rigging weights, points and hoists (truss lines, hang points, a continuous-beam solver, hoist WLL and class check; hoist models; light plot "Rigging: not checked" and Tools tab connected) | 0.80.0 | [docs/TOOLS_PLAN.md](docs/TOOLS_PLAN.md), "How RG1 works" |
+| Step 18: RG3 line arrays (arrays in the rigging tool, bumper limits from the manufacturers' manuals, pick loads from the centre of gravity, the speaker rigging sign-off; connected to the sound system calculator, RG1 truss lines and gig equipment) | 0.80.0 | [docs/TOOLS_PLAN.md](docs/TOOLS_PLAN.md), "How RG3 works" |
 | Truss load tables (data only, waiting for a second check) | 0.60 | [docs/TRUSS_DATA.md](docs/TRUSS_DATA.md) |
 | Privacy and security check: data map, OWASP review, sign-in failure tests | 0.62.1 | [docs/DATA_MAP.md](docs/DATA_MAP.md), [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) |
 
@@ -60,9 +63,7 @@ the data it counts.
 
 | # | What | Needs | Connect | Plan | Prompt |
 |---|---|---|---|---|---|
-| 15 | **P1–P2** power and cables (with the 2026-11-03 additions: loads typed by hand, a connected status, fill-to-reserve) | light plot, 13, 14 | Light plot power estimate, gig equipment (distros, cables), labels (U5: distros and cables) | TOOLS_PLAN.md §4, "Decided (2026-11-03)" | S09, S10 |
-| 17 | **RG1–RG2** weights, points, hoists, trusses, bridles | light plot, catalogue, truss tables | Light plot "rigging not checked", bridle pocket tool, truss-table review screen | TOOLS_PLAN.md §5, TRUSS_DATA.md | S12, S13 |
-| 18 | **RG3** line arrays | 13, F4, RG1 | Sound system calculator | TOOLS_PLAN.md §5 | S14 |
+| 17b | **RG2** trusses, bridles, hardware (RG1 is built) | RG1, truss tables | Bridle pocket tool, truss-table review screen | TOOLS_PLAN.md §5, TRUSS_DATA.md | S13 |
 | 19 | **RG4** rigging plot, report, sign-off, **engineer's pack** and **measured loads** (D33) | RG1–RG3, job board, 16 | Gig files, on-site view, job board prefill, supplier-style link (send to an engineer), QR on the report (U6) | TOOLS_PLAN.md §5, "Decided (2026-11-03)" | S15 |
 | 19b | **TradeShowLoads export** (`.tsle`, D34), if the format can be had openly | 19 | Rigging report, gig files | TOOLS_PLAN.md "Decided (2026-11-03)" | S15b |
 | 20 | **RG5** suggestions; **P3** one-line diagram (with the data chain), move-loads grid and on-site power checklist | RG4, P2 | On-site mode | TOOLS_PLAN.md §4–5, "Decided (2026-11-03)" | S16 |

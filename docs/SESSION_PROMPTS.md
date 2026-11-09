@@ -25,101 +25,12 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77), the design refresh DR1–DR6 (0.78), and steps 13, 14 and 16 (0.79) are built, and their prompts (S01–S08, S11, K1–K9, DR1–DR6) removed. Sessions
-S09–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
+Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77), the design refresh DR1–DR6 (0.78), steps 13, 14 and 16 (0.79), and steps 15, 17a and 18 (0.80) are built, and their prompts (S01–S12, S14, K1–K9, DR1–DR6) removed. Sessions
+S13–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
-
-## S09 · Step 15a: P1 power distribution
-
-```
-Build ROADMAP step 15, first part: P1 power distribution. Read the ROADMAP row and
-docs/TOOLS_PLAN.md §4 (P1, and the LumiStage comparison), then src/lib/lightPlot.js (power
-estimate today), and the speaker specs from A1 and the fixture data from step 14.
-
-Scope (TOOLS_PLAN §4 P1):
-- Electrical fields on catalogue items (watts max and typical, power factor, inrush, connectors;
-  for distros: inputs and outputs with connector, phase, breaker, RCD), also in import presets.
-- A power tool on the gig:
-  - the supply (generator or venue: voltage, phases, amps per phase), distros and outputs;
-  - loads assigned from the light plot, DMX patch, sound system and the gig's equipment;
-  - current per phase and per output, neutral current, breaker headroom (warn at 80 %), phase
-    balance;
-  - a generator size suggestion with a margin;
-  - loads typed by hand with watts and phase (catering, bars, site office), so the whole supply is
-    planned (TOOLS_PLAN "Decided (2026-11-03)");
-  - a status per distro and load: connected, partly, not connected (words and icons, not colour
-    alone);
-  - a printable report labelled as an estimate for a qualified electrician.
-
-Ask me before building: supply defaults for Portugal (230/400 V, 50 Hz), and which connectors
-and distros I own.
-
-Connect: light plot power estimate (now from the tool), gig files (the report), On-site mode
-(read-only view), the import wizard (electrical columns guessed; FIXES entries for new reasons, IM1).
-
-Done when: unit tests for the electrical maths (single and three phase, unbalanced neutral); help
-guide; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-## S10 · Step 15b: P2 cables
-
-```
-Build ROADMAP step 15, second part: P2 cables. Read docs/TOOLS_PLAN.md §4 (P2) and how P1 was
-built (its "How … works" section).
-
-Scope:
-- Cable runs between distros and loads: length, cross-section, type, how it's laid.
-- Voltage drop (warn above 3–5 %) and current capacity.
-- A cable list (power, DMX, speaker, signal) added to the gig's equipment.
-- An automatic phase-balancing suggestion, and a second choice that fills each output up to a
-  reserve (e.g. 80 % of the breaker); every suggestion shown before it is applied.
-- Inrush groups that flag where many fixtures power on at once.
-
-Ask me before building: the cable types and lengths I stock (so the list maps to catalogue items).
-
-Connect: gig equipment and packing list, power report, labels (U5: distro and cable labels).
-
-Done when: unit tests for voltage drop and capacity; help guide; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-## S12 · Step 17a: RG1 weights, points and hoists
-
-```
-Build ROADMAP step 17, first part: RG1. Read the ROADMAP row, docs/TOOLS_PLAN.md §5 ("What it
-must respect", RG1, "Prompting from other tools", Decided Q3 and Q4), src/lib/lightPlot.js
-(weights per position) and docs/PENDING.md D15 (hoist brand).
-
-Scope:
-- A rigging tool on the gig:
-  - truss lines with their load: fixtures from the light plot, truss self-weight, cable allowance
-    per metre, motors, accessories, a dynamic/safety allowance;
-  - hang points along each line;
-  - reactions per hoist for a continuous beam on 2+ supports, with uneven loads and cantilevers (a
-    small structural solver, unit tested against hand calculations);
-  - a hoist WLL check by class (D8, D8+, C1), including whether the class may hang over people.
-- Hoist models: the 0.5, 1 and 2 t models of the brand I confirm in D15, from the manufacturer's
-  data sheets with the source noted; anyone can add another from its data plate.
-- Every result labelled as an aid that a competent rigger must check.
-
-Already decided: WLL only as the manufacturer states it, never derived; sign-off comes in RG4.
-
-Ask me before building: D15 if still open; the default cable allowance and dynamic factor.
-
-Connect: light plot ("Rigging: not checked" on positions with weights, coloured when overloaded),
-Tools tab suggestion when hoists are on the gig.
-
-Done when: solver unit tests (simply supported, continuous, cantilever, point and distributed
-loads); help guide; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
 
 ## S13 · Step 17b: RG2 truss tables, bridles, hardware
 
@@ -145,32 +56,6 @@ Connect: RG1 lines (truss type per line), pocket tools, gig equipment (hardware)
 
 Done when: unit tests for bridle maths and table look-ups (interpolation never extrapolates past
 the table); help guide; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-## S14 · Step 18: RG3 line arrays
-
-```
-Build ROADMAP step 18: RG3 line arrays. Read docs/TOOLS_PLAN.md §5 (RG3), the A1 speaker data
-(rigging fields), src/lib/systemCalc.js (F4) and how RG1 was built.
-
-Scope:
-- An array as a number of elements with splay angles (from the system calculator).
-- Outputs:
-  - total weight;
-  - front and rear point loads and pull-back;
-  - bumper position and tilt;
-  - pass/fail against the manufacturer's bumper limits;
-  - a side-view drawing.
-- The limits always come from the manufacturer's data; where a manufacturer's own tool exists, the
-  report says that tool decides.
-
-Ask me before building: which arrays to support first (the models from A1).
-
-Connect: sound system calculator, RG1 points (the array hangs from them), gig equipment.
-
-Done when: unit tests against a manufacturer's published example; help guide; PR open.
 Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
 ```
