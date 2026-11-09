@@ -8,6 +8,8 @@ import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { STEP_M, stageSize } from '../../lib/stagePlot'
+import PowerFromPlan from '../power/PowerFromPlan'
+import { hasPlan } from '../power/usePowerPlan'
 import RiggingMarker, { useRigging } from './RiggingMarker'
 import { BAR_KINDS, FIXTURE_SYMBOLS, barsOf, supplyOf, newBar, nextBarName, layoutFixtures, snapToBar, clampToArea, viewArea, powerSummary, symbolOf } from '../../lib/lightPlot'
 import { t } from '../../i18n'
@@ -39,7 +41,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
 
   const load = useCallback(async () => {
     const [s, f] = await Promise.all([
-      supabase.from('gig_show').select('stage, lighting').eq('gig_id', gig.id).maybeSingle(),
+      supabase.from('gig_show').select('stage, lighting, power').eq('gig_id', gig.id).maybeSingle(),
       supabase.from('gig_fixtures').select(FIELDS).eq('gig_id', gig.id),
     ])
     if (f.error && isNetworkError(f.error)) {
@@ -50,7 +52,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
       return
     }
     if (f.error) logger.error('lights', f.error, { step: 'load' })
-    const next = { show: { stage: s.data?.stage || {}, lighting: s.data?.lighting || {} }, fixtures: f.data || [] }
+    const next = { show: { stage: s.data?.stage || {}, lighting: s.data?.lighting || {}, power: s.data?.power || {} }, fixtures: f.data || [] }
     setShow(next.show)
     setFixtures(next.fixtures)
     setSavedAt(null)
@@ -403,7 +405,9 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
             </ul>
           </section>
 
-          <PowerPanel power={power} supply={supply} canEdit={canEdit} onSupply={s => saveLighting({ supply: { ...supply, ...s } }, { now: true })} watts={watts} />
+          {/* P1: once the gig has a power plan, the figures come from it */}
+          {hasPlan(show.power) ? <PowerFromPlan gig={gig} power={show.power} fixtures={fixtures} />
+            : <PowerPanel power={power} supply={supply} canEdit={canEdit} onSupply={s => saveLighting({ supply: { ...supply, ...s } }, { now: true })} watts={watts} />}
         </>
       )}
 

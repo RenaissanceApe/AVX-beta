@@ -140,6 +140,22 @@ Checks: `supabase/tests/mvr_gdtf.sql`. Weight and power from GDTF are the manufa
 
 Checks: `supabase/tests/system_calc.sql`.
 
+## How the power tool works (P1, step 15)
+
+| Piece | How it works |
+|---|---|
+| Catalogue | Items have electrical fields (Inventory → item → Edit → Electrical): `power_w` stays the maximum watts; new `power_typical_w`, `power_factor` (0.30–1), `inrush_a`, `current_a` + `current_v` (D77: a datasheet that gives amps, not watts; they count as amps × volts in VA and no watt figure is made up), `connector_in`, `connector_out`, and for distros `distro` (`{ inputs: [{ connector }], outputs: [{ id, label, connector, phase L1/L2/L3/3P, breaker_a, rcd_ma }] }`). Connectors: Schuko 16 A; CEE 16, 32, 63 A single- and three-phase; CEE 125 A; Powerlock; Socapex; powerCON; powerCON TRUE1 (`src/lib/power.js`, `CONNECTORS`) |
+| Import | The items import guesses the columns (typical power, power factor, inrush, amps, voltage, connector in/out); connectors are read as rental lists write them ("CEE 32/3", "CEE 32A 5P", "CEE 16A blue"). Refused here: values outside the limits (`powerRange`), amps without volts (`powerNeedVolts`), typical above max (`powerTypical`); the database's `price_items_power_check` shows as `powerSpec` |
+| Data | `gig_show.power`: the supply (venue or generator, name, volts phase–neutral, 1 or 3 phases, amps per phase, 50/60 Hz; Portugal's 230/400 V 50 Hz by default), the generator margin, distros (from the catalogue or blank; each plugged into the supply, another distro's output or nothing), loads typed by hand (watts each, how many, power factor, three-phase or not), `assign` (load → `{ distro, output }` or `{ phase }` straight on the supply) and `figures`, a copy of the catalogue items' electrical figures refreshed when an editor opens the tool, so crew who can't read the catalogue see the same numbers |
+| Loads | Fixtures from the light plot and DMX patch (`gig_fixtures`), the sound system's sources with a catalogue speaker (× their count), the gig's equipment with electrical figures that isn't already one of those (distros left out), and loads typed by hand. A fixture without a power figure counts as 0 W and is flagged |
+| Maths | Phase currents are added up as they are (the cautious sum): VA ÷ volts on one phase, VA ÷ 3 × volts per phase for a three-phase load. The neutral is the phasor sum of the three phases (120° apart, each lagging by its loads' power factor); harmonics are not included and the report says so. A single-phase distro (fed from one phase) puts all its outputs on that phase. Ratings: an output's breaker (or its connector's rating); a distro's input connector and the breaker feeding it, the smaller; the supply's amps. Warnings at 80% and above 100%; phase balance as (largest − smallest) ÷ largest, flagged above 20% |
+| Generator | Sized from the busiest phase × 3 (× 1 single-phase) × volts, with all loads (those not plugged in spread over the phases), plus the margin (25% by default), rounded up to a common size (10–2000 kVA); above that it says more than one is needed |
+| Status | Each distro and load: Connected (plugged in all the way up to the supply), Partly (plugged into a distro that isn't), Not connected; shown as a word with a square (`StatusBadge`), never colour alone |
+| Screens | Gig → Tools → Power plan (tool id `power`). Report: `/gig/:id/power`, also On-site mode's Power plan tile (read-only), offline from the last copy. "Save to gig files" puts the report as a PDF in the Files tab (`src/lib/powerPdf.js`). The light plot's power section, and its print, show the fixtures' figures from the plan once the gig has one (`fixtureShare`) |
+| Estimates | Every screen, the report and the PDF say these are estimates for a qualified electrician, who checks and connects the supply, distros and cables |
+
+Checks: `supabase/tests/power.sql`; unit tests in `src/lib/power.test.js` (single and three phase, unbalanced neutral, headroom, generator) and `src/lib/importer.power.test.js`. The tool id needs `20270106000001_tool_ids_power_rigging.sql`, run by hand.
+
 ## Open questions
 
 1. **When:** after H5 (field kit) and before switching (S1); started 2026-10-20. **Decided 2026-10-21: all field tools (F1–F4) first, then switching.** Done: F1–F4 built by 0.40.0.
