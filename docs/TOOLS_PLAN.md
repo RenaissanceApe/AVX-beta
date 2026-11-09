@@ -284,6 +284,23 @@ each stage is useful and safe on its own, and so the hard engineering comes last
 | **RG4 · Rigging plot and report** | Top view with points, hoists, bridles and truss lines; per-point table (load, hoist, class, WLL, % used), totals per beam or roof zone against venue capacities; the rigging report as print/PDF with assumptions; catalogue lines (hoists, truss, shackles, steels) offered to the gig's equipment | 1 PR |
 | **RG5 · Suggestions** | When something fails: move a point, add a point, use a bigger hoist, change to a stronger truss type, or spread a bridle; each suggestion re-checked before it's shown. Ground support (towers) later, if asked | 1 PR |
 
+### How RG1 works (step 17a)
+
+| Piece | How it works |
+|---|---|
+| Where | Gig → Tools → Rigging (tool id `rigging`). The rigging is in `gig_show.rigging`: the defaults (`cable_kg_m`, `dynamic_factor`) and the truss lines. Same rights as the rest of the show model: everyone on the gig reads it (also offline), editors change it |
+| Lines | A line comes from a light plot bar (`bar_id`: its length and its fixtures with their weights and places along the bar) or is typed by hand (name, length). Each line adds the truss weight per metre, a cable allowance per metre (the gig's default or its own), accessories (spread evenly), extra loads (at one place, or spread between two) and the motors that climb with the line (the hoist model's own weight at that point) |
+| Solver | `solveBeam` in `src/lib/rigging.js`: the line is a straight continuous beam of even stiffness on two or more rigid points at the same height. Beam elements between every point, load and load edge; Gaussian elimination; the reactions don't depend on the stiffness. Cantilevers and uneven loads included; a negative reaction means the line would lift off that point (flagged). Unit tested against hand calculations (`src/lib/rigging.test.js`: simply supported, two and three equal spans, cantilevers, point and distributed loads, equilibrium on an uneven case) |
+| Check | Each point's reaction × the dynamic factor against the hoist's WLL: ok, near (over 80%), over, lifting, no hoist, no WLL. A D8 hoist over people is flagged (D8+ and C1 may be). WLL values are only ever the manufacturer's; nothing is derived |
+| Hoist models | `hoist_models`: brand, model, class (D8, D8+, C1), WLL, falls, own weight, chain weight per metre, speed, source and its edition, notes, `needs_check`. Rows without an organisation are presets (read-only); an organisation's admins and members add their own from a data plate (removed by marking). Every model is shown as needing a second person's check. A point keeps a copy of its model, so crew outside the organisation see the same check |
+| Presets | Chainmaster D8+ 500, 1000 and 2000 kg from CHAINMASTER's product data sheets (URL and revision on each). CM Lodestar D8+ 0.5, 1 and 2 t ship without values: no D8+ data sheet could be reached on cmco.com when they were added |
+| Light plot | Under each bar with weights: "Rigging: not checked", "Rigging: checked · busiest hoist n%" or "Rigging: overloaded" (words and icon, not colour alone). One tap opens the tool on that line (starting it, and adding the tool to the gig, for editors). "Mark the loads as checked" keeps a fingerprint of the bar's fixtures, weights and places; any change makes it "not checked" again |
+| Tools tab | When the gig's equipment has hoists (by name: hoist, chain motor, Lodestar, Chainmaster, talha, D8…) and the tool isn't on the gig, the Tools tab suggests it |
+| Labels | Every screen says it is an aid that a competent rigger must check; the defaults are labelled as values to check. The "Checked by" sign-off comes in RG4 |
+| Not yet | Truss load tables (RG2), bridles (RG2), line arrays (RG3), the rigging plot, report and sign-off (RG4) |
+
+Checks: `supabase/tests/rigging.sql`; `src/lib/rigging.test.js`.
+
 ### Prompting from other tools
 
 Yes, this is viable, because the data is already connected:
