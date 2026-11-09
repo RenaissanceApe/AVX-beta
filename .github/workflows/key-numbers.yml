@@ -17,6 +17,8 @@ jobs:
   send:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - name: Call send-key-numbers
@@ -28,7 +30,10 @@ jobs:
             echo "DIGEST_SECRET is not set; skipping (see docs/EMAIL.md)."
             exit 0
           fi
-          set -a; . ./.env; set +a
+          if [ -z "$VITE_SUPABASE_URL" ]; then
+            echo "::error::Repository variable SUPABASE_URL is not set (Settings → Secrets and variables → Actions → Variables)."
+            exit 1
+          fi
           url="$VITE_SUPABASE_URL/functions/v1/send-key-numbers"
           [ "$DRY_RUN" = "1" ] && url="$url?dry=1"
           status=$(curl -sS -o response.json -w '%{http_code}' -X POST "$url" \
