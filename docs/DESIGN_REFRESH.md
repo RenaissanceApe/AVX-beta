@@ -180,7 +180,8 @@ Shared rows used by the Inventory list too (`RepairRow`, `DueRow` in `Maintenanc
   in `brand.css`; #126).
 - **Help screenshots:** every guide's pictures were regenerated, since every screen's sizes moved.
 - **Left as they were** (look unchanged, beyond sizes and gaps): `RepairRow` / `DueRow` in `MaintenancePanels.jsx` and
-  the field-tool row cards that show a state with their border; see docs/notes/DR6.md.
+  the field-tool row cards that show a state with their border; whether to restyle them is an open question in
+  [PENDING.md](PENDING.md) section 3. The design system artifact's updated files are in [design-system/](design-system/).
 
 ## Not changing
 

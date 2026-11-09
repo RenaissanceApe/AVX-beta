@@ -41,6 +41,7 @@ up front. What each release changed is in [CHANGELOG.md](CHANGELOG.md).
 | K7: operations and people (Reports → Operations: activity, people, staffing, tasks; gig wrap-up; person page for admins; a "cancelled" gig status; four tiles) | 0.77.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
 | K8: crew numbers (My numbers in My work, year statement per company, fee paid and received, Expenses → Crew to pay, crew fees in the cash position; a tile) | 0.77.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
 | K9: report extras (weekly key-numbers email for admins, saved views pinned to the Overview, monthly management pack PDF, read-only accountant link) | 0.77.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
+| Design refresh DR1–DR6, "room to breathe": layout pieces (Section, Stack, PageHeader, SwipeRow, MoreMenu), Arrange home and the slim First steps, the gig page, lists, detail pages and editors, field and crew screens, every screen on the type and spacing scales (a test fails on any off-scale size or gap), all help screenshots retaken | 0.78.0 | [docs/DESIGN_REFRESH.md](docs/DESIGN_REFRESH.md), [DESIGN.md](DESIGN.md) |
 | Truss load tables (data only, waiting for a second check) | 0.60 | [docs/TRUSS_DATA.md](docs/TRUSS_DATA.md) |
 | Privacy and security check: data map, OWASP review, sign-in failure tests | 0.62.1 | [docs/DATA_MAP.md](docs/DATA_MAP.md), [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) |
 
@@ -112,18 +113,6 @@ a few minutes of setup from you (QA.md, "Build order and when you step in"):
 | IM2 Before and after the check: a sheet picker, the heading row, files saved on Windows, more than 5000 rows, month/day dates, one value for every row, "fix and try again" after the import, left-out rows downloaded with their data, columns going into your custom fields | The same dead ends in the other steps; custom fields can't be imported today | IM2 |
 | IM3 The database part (migration outlined for your yes first): one undo for the import and what it added, picking the exact record when two share a name, restoring archived equipment, fixes remembered with a saved matching, undo saying what's in use, equipment counted in bulk switched to per unit when its units are imported | Finishes "nothing changes until Import, and one undo takes it all back"; ends a known limitation | IM3 |
 | IM4 History import (D26): past jobs as completed gigs, quotes with their accepted or declined status and dates (migration outlined for your yes first) | Year-on-year reports work from the day a company switches | IM4 |
-
-**Design refresh: room to breathe** ([docs/DESIGN_REFRESH.md](docs/DESIGN_REFRESH.md); rules in
-[DESIGN.md](DESIGN.md)), decided 2026-11-06 (D48). DR1 first, then DR2–DR5 (together in a feature set, D50, or in order), then DR6; any gap; no database changes:
-
-| What | Why | Prompt |
-|---|---|---|
-| DR1 Foundations + Home: layout pieces (Section, Stack, PageHeader, SwipeRow, MoreMenu), spacing variables, a test that stops new off-scale sizes and gaps; the modular home (Arrange home), key numbers as a swipe row on phone, no organisation name on the phone home, slim First steps | Every screen is busy; the pieces make the rules easy to follow, and the home is seen first | DR1 |
-| DR2 The gig page | The most used screen | DR2 |
-| DR3 Lists: quotes, invoices, inventory, contacts, members, expenses, hours, leave, jobs, Find crew | One pattern repeated across many screens | DR3 |
-| DR4 Detail pages and editors: quote editor, inventory item, reports, settings, import | Dense screens: fewer boxes and actions without losing data | DR4 |
-| DR5 Field and crew: My work, Simple home, On-site, scan and dispatch, field tools, messages, help | Used standing up, on phones | DR5 |
-| DR6 Sweep: the rest, the test down to zero, all help screenshots, the design system artifact | Finishes the refresh | DR6 |
 
 ## End of the build
 

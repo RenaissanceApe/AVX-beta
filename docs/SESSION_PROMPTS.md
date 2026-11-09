@@ -25,7 +25,7 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76) and K4–K9 (0.77) are built, and their prompts (S01–S06, K1–K9) removed. Sessions
+Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77) and the design refresh DR1–DR6 (0.78) are built, and their prompts (S01–S06, K1–K9, DR1–DR6) removed. Sessions
 S07–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
@@ -1128,122 +1128,6 @@ Finish with the short summary CLAUDE.md asks for.
 ```
 
 ---
-
-## Design refresh (any time, in order)
-
-Plan: [DESIGN_REFRESH.md](DESIGN_REFRESH.md) (decision D48); the rules are in DESIGN.md. Each step
-needs the one before it merged.
-
-### DR1 · Foundations and the home
-
-```
-Design refresh DR1: foundations and the home (docs/DESIGN_REFRESH.md; docs/PENDING.md D48).
-Read DESIGN.md ("Room to breathe", "Typography", "Layout", "Home", "Motion") and docs/DESIGN_REFRESH.md.
-
-Scope:
-- In src/components/ui.jsx: Section (16px heading, optional link on the right, 40/48px between
-  sections), Stack (gap from the spacing steps), PageHeader (title, at most one short line, the ⓘ,
-  one primary + up to two secondary actions, the rest in MoreMenu; on phone the secondaries go into
-  MoreMenu), SwipeRow (scroll-snap row on phone, grid on desktop, a focusable region with a label,
-  arrow keys scroll), MoreMenu (⋯ button with a menu). Spacing steps as CSS variables in index.html.
-- A Vitest test that counts off-scale text sizes and gaps in src/**/*.jsx and fails if a count goes
-  up (a ratchet; the numbers today are its start).
-- The home (src/pages/Dashboard.jsx): modules in the standard order, "Arrange home" (sheet with
-  ↑ / ↓, show/hide, back to the standard; saved per person and workspace on the device), key
-  numbers in a SwipeRow, no organisation name on phone, the role description in the role chip's ⓘ,
-  the slim First steps row (finished steps hidden, no accent border or fill).
-- No database change.
-
-Ask me before building: the look of the slim First steps row and of the Arrange home sheet (show me a 390px screenshot of each first).
-
-Done when: a browser check at 320 and 390 px in both languages and all three themes; axe clean; the help screenshots of every guide whose screen changed regenerated; CHANGELOG and version; DESIGN_REFRESH.md marks the step built; PR open.
-Stop after this step.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-### DR2 · The gig page
-
-```
-Design refresh DR2: the gig page (docs/DESIGN_REFRESH.md; docs/PENDING.md D48).
-Read DESIGN.md ("Room to breathe", "Typography", "Layout") and docs/DESIGN_REFRESH.md.
-
-Scope: the gig header, Overview (including the next-event card: one green fill only, at most two
-visible buttons, the rest in ⋯), Schedule, Crew, Equipment, Feed and Chat tabs, rebuilt with the DR1
-pieces; sections as space + heading instead of cards; the ratchet counts go down. No database change.
-
-Ask me before building: which two actions stay visible on the next-event card.
-
-Done when: a browser check at 320 and 390 px in both languages and all three themes; axe clean; the help screenshots of every guide whose screen changed regenerated; CHANGELOG and version; DESIGN_REFRESH.md marks the step built; PR open.
-Stop after this step.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-### DR3 · Lists
-
-```
-Design refresh DR3: lists (docs/DESIGN_REFRESH.md; docs/PENDING.md D48).
-Read DESIGN.md ("Room to breathe", "Typography", "Layout") and docs/DESIGN_REFRESH.md.
-
-Scope: Quotes, Invoices, Inventory, Contacts, Members, Expenses, Hours, Leave, Jobs and Find crew:
-PageHeader on each, filters as tabs with a 2px bar (no green fill), rows with hairlines instead of a
-card per row, intro paragraphs moved behind ⓘ. No database change.
-
-Ask me before building: anything on these pages I want kept visible that the rules would move into ⋯.
-
-Done when: a browser check at 320 and 390 px in both languages and all three themes; axe clean; the help screenshots of every guide whose screen changed regenerated; CHANGELOG and version; DESIGN_REFRESH.md marks the step built; PR open.
-Stop after this step.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-### DR4 · Detail pages and editors
-
-```
-Design refresh DR4: detail pages and editors (docs/DESIGN_REFRESH.md; docs/PENDING.md D48).
-Read DESIGN.md ("Room to breathe", "Typography", "Layout") and docs/DESIGN_REFRESH.md.
-
-Scope: the quote editor (the line grid stays compact), the inventory item, Reports, the account and
-organisation settings dialogs and the import wizard: one box deep, actions in ⋯ past the visible
-ones, sections spaced. No database change.
-
-Ask me before building: the quote editor's visible actions.
-
-Done when: a browser check at 320 and 390 px in both languages and all three themes; axe clean; the help screenshots of every guide whose screen changed regenerated; CHANGELOG and version; DESIGN_REFRESH.md marks the step built; PR open.
-Stop after this step.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-### DR5 · Field and crew screens
-
-```
-Design refresh DR5: field and crew screens (docs/DESIGN_REFRESH.md; docs/PENDING.md D48).
-Read DESIGN.md ("Room to breathe", "Typography", "Layout") and docs/DESIGN_REFRESH.md.
-
-Scope: My work, the Simple home, On-site mode, Scan and Dispatch, the field tools, Messages and
-Help: the same rules, keeping 44px targets for anything used standing. No database change.
-
-Ask me before building: nothing, unless a screen would lose something used on site.
-
-Done when: a browser check at 320 and 390 px in both languages and all three themes; axe clean; the help screenshots of every guide whose screen changed regenerated; CHANGELOG and version; DESIGN_REFRESH.md marks the step built; PR open.
-Stop after this step.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-### DR6 · Sweep
-
-```
-Design refresh DR6: sweep (docs/DESIGN_REFRESH.md; docs/PENDING.md D48).
-Read DESIGN.md ("Room to breathe", "Typography", "Layout") and docs/DESIGN_REFRESH.md.
-
-Scope: every screen not yet done; the ratchet test brought to zero and changed to fail on any
-off-scale size or gap; every help screenshot regenerated; the design system artifact's tokens and
-component notes brought in line with DESIGN.md. No database change.
-
-Ask me before building: nothing.
-
-Done when: a browser check at 320 and 390 px in both languages and all three themes; axe clean; the help screenshots of every guide whose screen changed regenerated; CHANGELOG and version; DESIGN_REFRESH.md marks the step built; PR open.
-Stop after this step.
-Finish with the short summary CLAUDE.md asks for.
-```
 
 ## End of the build (after S31 and the final test pass)
 
