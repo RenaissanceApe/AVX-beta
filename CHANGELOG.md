@@ -1,5 +1,100 @@
 # Changelog
 
+## 0.79.0 — Tools, part 1: speaker library, MVR and GDTF, and e-signature
+
+### S07: Speaker library (step 13)
+
+#### Added
+- **Speaker specs on catalogue items.** A "Speaker specs" part in the item form: kind of speaker,
+  sensitivity, maximum SPL, dispersion (horizontal × vertical), frequency range, impedance, amplifier
+  channels per cabinet and the datasheet they come from. Weight and power stay where they were. The item
+  page lists them.
+- **Rigging data** (centre of gravity, pickup points, bumper/frame limits, source), copied as printed from
+  the manufacturer. Always shown as "needs a second person's check before use"; the line array tool (RG3)
+  will add that check.
+- **Presets for ten models**, typed from the manufacturers' own documents with the document, version and
+  date: L-Acoustics K2, Kara II, X12, KS28; d&b V8, Y10P, V-SUB; RCF HDL 30-A; Meyer Sound LEOPARD; NEXO
+  GEO M1220. What a document doesn't give stays empty.
+- Help: ⓘ hints on every new field, the "Speaker specs" term, a tip in the sound system calculator guide.
+
+#### Connected
+- **Sound system calculator:** pick a catalogue speaker per source and its maximum SPL and horizontal
+  angle come from the catalogue instead of typed numbers; "Update from catalogue" when the item changes.
+- **Import wizard:** speaker columns are guessed; a "Speaker preset" column (e.g. "L-Acoustics K2") fills
+  the empty cells. New refusals: unknown preset, value outside the limits, highest frequency below the
+  lowest.
+
+#### For developers
+- Migration `20270103000000_speaker_specs.sql` (speaker and rigging columns on `price_items`;
+  `private.import_item_row` takes them). Tests: `supabase/tests/speaker_specs.sql`.
+
+### S08: MVR and GDTF for the light plot and DMX patch (step 14)
+
+#### Added
+- **Import MVR** in the DMX patch and the light plot: an .mvr file from Vectorworks, grandMA3, Capture or
+  another lighting program brings its fixtures in one go, with type, mode, channels, DMX address, fixture
+  number, place and height. You pick the catalogue item for each fixture type (AVX suggests one), type the
+  channels where the file doesn't say, and see what will happen before anything is saved. New hanging
+  positions appear on the light plot; importing the same file again updates the fixtures instead of adding
+  them twice.
+- **Export MVR:** the gig's light plot and DMX patch as an .mvr file for the lighting desk or the drawing
+  program, with the fixture types' GDTF files inside.
+- **GDTF fixture types on catalogue items** (Inventory item → ⋯ → "GDTF fixture-type file"): the modes and
+  their channel counts, and the file's weight and power for the item.
+- A help guide, "Bring a rig in from MVR, and send it back", and the words MVR and GDTF in the glossary.
+
+#### Connected
+- Catalogue: weight and power from GDTF files go on the item, so the light plot's power and weight per
+  position use them (and later power distribution and rigging); matched fixtures take them automatically.
+- DMX patch: picking an item offers its GDTF modes and fills the footprint.
+- Light plot: imported fixtures keep their places; new positions are added; the import adds the DMX patch
+  and light plot to the gig if they're missing.
+- Gig equipment: matched fixtures count for "Add to equipment".
+- Import fix panel (IM1): not connected, because IM1 isn't built yet; the MVR import has its own match step.
+
+#### For developers
+- Migration `20270104000000_mvr_gdtf.sql` (`fixture_types`, MVR fields on `gig_fixtures`, private
+  `fixture-types` bucket). Tests: `supabase/tests/mvr_gdtf.sql`.
+
+### S11: E-signature (step 16)
+
+#### Added
+- **Signatures you can't change.** A signature pad for a finger, a pen or the mouse. Each signature keeps
+  the drawing, the signer's typed name (and role or company), the time and a fingerprint (SHA-256) of the
+  exact document signed, with a signed PDF. Once saved, nobody can change it, not even AVX; it can only be
+  hidden. It is a simple electronic signature, not a qualified one (no Chave Móvel Digital or Cartão de
+  Cidadão), and the terms say so.
+- **Quotes accepted with a drawn signature.** On the quote's page the client can add a drawn signature next
+  to their typed name (optional). In "Send to client" the answer shows it, and **Signed PDF** makes and
+  keeps the signed quote.
+- **Delivery notes signed on site.** Packing list → **Delivery note: sign**: hand the phone to the client,
+  who checks what went out, types their name and signs. The signed PDF is kept and listed under the packing
+  list.
+
+#### Changed
+- A gig with signed delivery notes can't be deleted for good, only cancelled, so the signed proof isn't
+  erased by accident.
+- The privacy notice and terms have a section on signatures (their "last updated" date is now 9 November
+  2026).
+
+#### Connected
+- Quotes (client page and Send to client), packing lists, gig files (each signed PDF is copied there), the
+  privacy notice and terms in both languages, the data map, help (glossary "Simple electronic signature",
+  an ⓘ on the delivery note, guides "Get a delivery note signed on site" and "A quote accepted with a drawn
+  signature").
+
+#### For developers
+- Migrations `20270105000000_signatures.sql` (`signatures` table with a guard that refuses changes,
+  private `signatures` bucket) and `20270105000001_signatures_keep_gig.sql`. Edge Function `quote-public`
+  takes the drawn signature. Tests: `supabase/tests/signatures.sql`, `supabase/tests/signatures_keep_gig.sql`.
+
+### CI: one signed-in test queue per PR (#138)
+
+#### For developers
+- Each PR (or branch) now has its own queue for the signed-in browser tests: a newer push replaces that
+  PR's older run, and different PRs run side by side. Before, one queue for the whole repository held a
+  single waiting run, so parallel PRs kept cancelling each other's.
+
 ## 0.78.0 — Design refresh: room to breathe, and a bin for deleted quotes
 
 ### DR1: Foundations and the home
