@@ -74,6 +74,9 @@ export function sourcesOf(system) {
     angle: Math.min(180, Math.max(1, num(s.angle, 90))),
     count: Math.min(64, Math.max(1, Math.round(num(s.count, 1)))),
     extra_ms: Math.min(500, Math.max(-500, num(s.extra_ms, 0))),
+    // A speaker from the catalogue (A1): its maximum SPL and dispersion are copied into spl and
+    // angle, so crew who can't read the catalogue still get the same results
+    ...(s.item_id ? { item_id: String(s.item_id), item_name: String(s.item_name || '').slice(0, 60) } : {}),
   }))
 }
 export function listenersOf(system) {

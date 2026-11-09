@@ -7,6 +7,8 @@ import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { stageSize } from '../../lib/stagePlot'
+import { selectAll } from '../../lib/selectAll'
+import { sourceSpecs, specsChanged } from '../../lib/speakers'
 import { KINDS, LIMITS, settingsOf, sourcesOf, listenersOf, speedOfSound, delays, listenerReport, coverage, newSource, newListener, nextName } from '../../lib/systemCalc'
 import { t } from '../../i18n'
 import { btn, iconBtn, input, label, card, colors, AvxLoader } from '../ui'
@@ -40,6 +42,20 @@ export default function SystemCalcTool({ gig, canEdit }) {
   }, [gig.id])
   useEffect(() => { load() }, [load])
 
+  // Speakers in the organisation's catalogue (A1): a source can take its maximum SPL and
+  // dispersion from one instead of typed numbers. Only editors who can read the catalogue get them.
+  const [speakers, setSpeakers] = useState([])
+  useEffect(() => {
+    if (!canEdit || !gig.org_id) return
+    selectAll(() => supabase.from('price_items').select('id, name, speaker_type, max_spl_db, dispersion_h')
+      .eq('org_id', gig.org_id).not('speaker_type', 'is', null).is('archived_at', null).order('name').order('id'))
+      .then(({ data, error }) => {
+        if (error) logger.warn('system', error, { step: 'speakers' })
+        setSpeakers(data || [])
+      })
+  }, [canEdit, gig.org_id])
+  const speakerOf = id => speakers.find(x => x.id === id)
+
   const settings = useMemo(() => settingsOf(show?.system), [show])
   const sources = useMemo(() => sourcesOf(show?.system), [show])
   const listeners = useMemo(() => listenersOf(show?.system), [show])
@@ -54,6 +70,11 @@ export default function SystemCalcTool({ gig, canEdit }) {
     if (error) { logger.error('system', error, { step: 'save' }); notify(userMessage(error), 'error'); load() }
   }
   const editSource = (id, patch) => save({ sources: sources.map(s => (s.id === id ? { ...s, ...patch } : s)) })
+  function linkSpeaker(id, itemId) {
+    const item = speakerOf(itemId)
+    editSource(id, item ? sourceSpecs(item) : { item_id: null, item_name: null })
+    if (item) track('system:speaker')
+  }
   const editListener = (id, patch) => save({ listeners: listeners.map(l => (l.id === id ? { ...l, ...patch } : l)) })
 
   function addSource(kind) {
@@ -116,6 +137,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
             {sources.map(s => {
               const d = set[s.id]
               const cov = reach[s.id]
+              const linked = s.item_id ? speakerOf(s.item_id) : null
               return (
                 <li key={s.id} style={{ ...card, padding: '10px 12px' }}>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', flexWrap: 'wrap', marginBottom: canEdit ? '8px' : 0 }}>
@@ -129,6 +151,14 @@ export default function SystemCalcTool({ gig, canEdit }) {
                     {s.extra_ms ? ` ${t('sys.extraIncluded', { ms: s.extra_ms })}` : ''}
                     {cov && ` · ${t('sys.covers', { width: cov.width, d: cov.d })}`}
                   </p>
+                  {s.item_id && (
+                    <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      {t('sys.fromCatalogue', { name: s.item_name || linked?.name || '—' })}
+                      {canEdit && linked && specsChanged(s, linked) && (
+                        <button type="button" onClick={() => linkSpeaker(s.id, linked.id)} style={{ ...btn, padding: '4px 8px', fontSize: '13px' }}>{t('sys.updateFromCatalogue')}</button>
+                      )}
+                    </p>
+                  )}
                   {canEdit && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))', gap: '8px', marginTop: '8px' }}>
                       <TextField id={`src-name-${s.id}`} text={t('sys.name')} value={s.name} onSave={v => editSource(s.id, { name: v })} />
@@ -138,11 +168,20 @@ export default function SystemCalcTool({ gig, canEdit }) {
                           {KINDS.map(k => <option key={k} value={k}>{t(`sys.kind.${k}`)}</option>)}
                         </select>
                       </div>
+                      {speakers.length > 0 && (
+                        <div style={{ gridColumn: 'span 2' }}>
+                          <HintLabel htmlFor={`src-item-${s.id}`} hint="sys-speaker">{t('sys.speaker')}</HintLabel>
+                          <select id={`src-item-${s.id}`} value={s.item_id || ''} onChange={e => linkSpeaker(s.id, e.target.value)} style={{ ...input, appearance: 'auto' }}>
+                            <option value="">{t('sys.speakerTyped')}</option>
+                            {speakers.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
+                          </select>
+                        </div>
+                      )}
                       <NumberField id={`src-x-${s.id}`} text={t('sys.x')} value={s.x} min={LIMITS.x[0]} max={LIMITS.x[1]} step={0.5} onSave={v => editSource(s.id, { x: v })} />
                       <NumberField id={`src-y-${s.id}`} hint="sys-y" text={t('sys.y')} value={s.y} min={LIMITS.y[0]} max={LIMITS.y[1]} step={0.5} onSave={v => editSource(s.id, { y: v })} />
                       <NumberField id={`src-h-${s.id}`} text={t('sys.height')} value={s.height} min={0} max={40} step={0.5} onSave={v => editSource(s.id, { height: v })} />
-                      <NumberField id={`src-spl-${s.id}`} hint="sys-spl" text={t('sys.spl')} value={s.spl} min={60} max={160} step={1} onSave={v => editSource(s.id, { spl: v })} />
-                      <NumberField id={`src-angle-${s.id}`} hint="sys-angle" text={t('sys.angle')} value={s.angle} min={1} max={180} step={5} onSave={v => editSource(s.id, { angle: v })} />
+                      <NumberField id={`src-spl-${s.id}`} hint="sys-spl" text={t('sys.spl')} value={s.spl} min={60} max={160} step={1} disabled={linked?.max_spl_db != null} onSave={v => editSource(s.id, { spl: v })} />
+                      <NumberField id={`src-angle-${s.id}`} hint="sys-angle" text={t('sys.angle')} value={s.angle} min={1} max={180} step={5} disabled={linked?.dispersion_h != null} onSave={v => editSource(s.id, { angle: v })} />
                       <NumberField id={`src-count-${s.id}`} text={t('sys.boxes')} value={s.count} min={1} max={64} step={1} onSave={v => editSource(s.id, { count: Math.round(v) })} />
                       <NumberField id={`src-extra-${s.id}`} text={t('sys.extra')} value={s.extra_ms} min={-500} max={500} step={0.1} onSave={v => editSource(s.id, { extra_ms: v })} />
                     </div>

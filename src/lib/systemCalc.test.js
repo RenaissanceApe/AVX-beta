@@ -34,6 +34,10 @@ describe('sound system calculator', () => {
     expect(s).toMatchObject({ kind: 'main', x: 100, y: -250, spl: 160, angle: 1, count: 1, extra_ms: 0 })
     expect(listenersOf({ listeners: [{ id: 'l', name: 'FOH', x: '5', y: '-20' }] })).toEqual([{ id: 'l', name: 'FOH', x: 5, y: -20 }])
     expect(sourcesOf(null)).toEqual([])
+    // A speaker from the catalogue (A1) keeps its link; an unlinked one has none
+    const [linked, typed] = sourcesOf({ sources: [{ id: 'k', item_id: 'i1', item_name: 'K2', spl: 147 }, { id: 't', item_id: null, item_name: 'old' }] })
+    expect(linked).toMatchObject({ item_id: 'i1', item_name: 'K2', spl: 147 })
+    expect(typed).not.toHaveProperty('item_id')
   })
 
   it('delays a delay tower to its nearest main, plus the Haas offset', () => {
