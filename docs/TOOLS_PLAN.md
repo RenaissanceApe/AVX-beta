@@ -240,7 +240,7 @@ power distribution for the whole gig, from the equipment actually on it.
 
 | Stage | Scope | Size |
 |---|---|---|
-| **P1** | Electrical fields on catalogue items (and import presets), supply, distros and outputs, assigning loads (from all tools and the gig's equipment), per-phase and per-output totals, warnings, report | 1 PR |
+| **P1** | Electrical fields on catalogue items (and import presets), supply, distros and outputs, assigning loads (from all tools and the gig's equipment), per-phase and per-output totals, warnings, report | Built (S09): docs/FIELD_TOOLS.md, "How the power tool works" |
 | **P2** | Cable runs and voltage drop, cable list → equipment, automatic phase balancing suggestion, inrush groups | 1 PR |
 | **P3** | One-line diagram, views per area and department, on-site checklist (what plugs into what, ticked off) | 1 PR |
 
