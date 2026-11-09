@@ -61,6 +61,7 @@ export function describeNotification(n, nameOf) {
     case 'fee_paid':          return t('notif.feePaid', { gig, date: d.paid_on ? fmt(d.paid_on, 'd MMM') : '' })
     case 'expense_drafted':   return t('notif.expenseDrafted', { count: d.count || 1 })
     case 'invoice_overdue':   return t('notif.invoiceOverdue', { number: d.number || '', client: d.client || '', count: Number(d.days) || 1 })
+    case 'held_invites_waiting': return t('notif.heldWaiting', { org: d.org_name || '', count: Number(d.count) || 1 })
     case 'leave_requested':
     case 'leave_sick':
     case 'leave_cancelled':
@@ -91,6 +92,7 @@ export function notificationLink(n) {
   if (n.kind === 'fee_paid' && n.details?.gig_id) return `/gig/${n.details.gig_id}?tab=crew`
   if (n.kind === 'expense_drafted' && n.org_id) return `/org/${n.org_id}/expenses`
   if (n.kind === 'invoice_overdue' && n.org_id) return `/org/${n.org_id}/invoices?view=unpaid`
+  if (n.kind === 'held_invites_waiting' && n.org_id) return `/org/${n.org_id}?panel=members`
   if (n.kind === 'task_assigned') return n.gig_id ? `/gig/${n.gig_id}?tab=tasks` : '/tasks'
   if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `/org/${n.org_id}/inventory?tab=maintenance`

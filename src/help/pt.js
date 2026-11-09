@@ -1360,6 +1360,7 @@ export default {
       mistakes: [
         'Um leitor vê todos os eventos da empresa. Para um freelancer que só contrata de vez em quando, descarte a importação e adicione-o a um evento por e-mail.',
         'Quem já é membro ou já foi convidado fica de fora. Um convite que não pôde ser enviado fica na lista para tentar de novo.',
+        'Convites por enviar: ao fim de 14 dias os administradores da organização recebem um lembrete e, ao fim de 60 dias, ficam marcados como expirados. Nada é apagado: ainda os pode enviar ou descartar.',
       ],
     },
     'ad-verify-company': {

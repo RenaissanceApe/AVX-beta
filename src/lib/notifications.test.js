@@ -23,6 +23,11 @@ describe('notifications', () => {
     expect(notificationLink({ org_id: 'o1', kind: 'hire_request' })).toBe('/org/o1/inventory?tab=subrentals')
     expect(notificationLink({ org_id: 'o1', kind: 'leave_requested' })).toBe('/org/o1/leave')
   })
+  it('reminds about held invitations and opens Members', () => {
+    expect(describeNotification({ kind: 'held_invites_waiting', org_id: 'o1', details: { count: 3, org_name: 'L&P' } }, nameOf))
+      .toBe('3 imported people in L&P are still waiting to be invited or discarded')
+    expect(notificationLink({ kind: 'held_invites_waiting', org_id: 'o1', details: {} })).toBe('/org/o1?panel=members')
+  })
   it('describes maintenance', () => {
     expect(describeNotification({ kind: 'damage_reported', actor_id: 'u1', details: { item_name: 'Speaker', unit_code: 'U-1', gig_name: 'NOS', excerpt: 'Cracked' } }, nameOf))
       .toBe('Ana reported damage to Speaker · U-1 on NOS: “Cracked”')
