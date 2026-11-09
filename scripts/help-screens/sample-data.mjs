@@ -251,7 +251,7 @@ export function sampleData(persona, lang) {
   const units = Array.from({ length: 7 }, (_, i) => ({
     id: `cccc0000-0000-4000-8000-00000000000${i}`, org_id: orgId, item_id: SPK, code: `U-7KQ2M9X${'ABCDEFG'[i]}`, serial: `LA210-0${41 + i}`,
     location_id: i < 6 ? W1 : V1, status: i === 2 ? 'repair' : 'available', purchase_date: '2023-03-15', purchase_cost: 3400, depreciation_months: 72,
-    case_unit_id: null, notes: null, price_items: { name: w.speaker },
+    case_unit_id: null, notes: null, price_items: { name: w.speaker, category: w.sys, kit_type: null },
   }))
   const movements = [
     { id: 3, org_id: orgId, item_id: XLR, kind: 'transfer', quantity: 24, from_location_id: W1, to_location_id: V1, note: null, created_by: ricardo, created_at: ago(30) },

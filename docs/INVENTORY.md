@@ -44,7 +44,7 @@ Inventory menu (admins and members): **Catalogue**, **Locations**, **Stock movem
 | Serial units | `stock_units`: code (QR), serial, location, status (available, in repair, lost, retired), purchase date and cost, write-off period. Book value is straight-line (60 months unless set). Every change of place or status is logged automatically |
 | Stock levels | `stock_levels` view: quantity per item and location (units available or in repair). It reads `stock_totals`, a running total per item and location that the database updates whenever a bulk movement is recorded or a unit is added, moved or changes status (0.63.6), so the ledger isn't added up again on each read. `supabase/tests/stock_totals.sql` compares the totals with the full ledger. The "not enough stock" check locks the item's totals for the locations a movement touches before reading them (0.63.7), so two movements at the same moment can't both take the last items |
 | Import | Paste rows (name; category; code; quantity; price; location): items matched by code then name, new ones created in bulk, quantities added as purchases |
-| QR labels | A4 sheets (3 or 2 across). Each QR opens `/scan/<code>`, which finds the item or unit in your organisations and opens it, so any phone camera works as a scanner |
+| QR labels | Three sizes on a roll, pre-cut A4 sheets or plain A4/Letter, with templates per organisation (U5, see "How labels work" below). Each QR opens `/scan/<code>`, which finds the item or unit in your organisations and opens it, so any phone camera works as a scanner |
 
 Rules live in the database (`20261025000000_inventory_catalogue.sql`, tests in
 `supabase/tests/inventory.sql`): codes unique per organisation, serials unique per item, stock
@@ -152,6 +152,35 @@ organisation; before, the browser worked it out from at most 1000 rows per list.
 Since K5 (0.77.0) Inventory → Reports opens Reports → Equipment; this table is its "Use and
 value" view, beside profit, payback and buy or keep hiring in ([ANALYTICS.md](ANALYTICS.md),
 "How K5 works").
+
+## How labels work (U5)
+
+Decided in docs/PENDING.md D31 (docs/TOOLS_PLAN.md "Decided (2026-11-03)"). One label sheet,
+`src/components/labels/LabelSheet.jsx`, serves Inventory → QR labels (`/org/:orgId/inventory/labels`,
+items, units and cases) and a gig's power labels (`/gig/:id/power/labels`, distros and cables).
+
+- **Sizes** (`src/lib/labels.js`, `LABEL_SIZES`): small 50 × 25 mm, medium 100 × 50 mm, large A6 / 4 × 6 in.
+  Each label is drawn a little inside the smaller of its roll (50 × 25, 100 × 50, 102 × 152 mm) and its
+  pre-cut A4 cell (52.5 × 29.7 mm, 40 a sheet; 105 × 57 mm, 10; 105 × 148 mm, 4): 48 × 23, 97 × 47 and
+  99 × 142 mm. No printer brand is assumed.
+- **Print on**: a roll (the page is the roll's size, one label per page), pre-cut A4 sheets (the cells
+  where the sheets have them, centred on the page), or plain A4 / US Letter (as many as fit inside a
+  5 mm margin, edge to edge, with dashed cut lines: small 48 / 44, medium 12 / 10, large 4 / 2 a page).
+  `pageLayout` and `labelPosition` work out where each label goes; the page is drawn at that size with
+  `@page { margin: 0 }`, so the print window must print at 100 %.
+- **Templates** (`label_templates`, migration `20270112000000`, tests `supabase/tests/label_templates.sql`):
+  per organisation and size, which fields go on the label: name (with its line under it: brand and model,
+  serial, a cable's length and route, a distro's feed and outputs), code, QR, organisation, gig, case
+  contents, department band. Defaults: small = name, code, QR; medium = also organisation and band;
+  large = everything. Everyone in the organisation reads them; admins and members save them. Unticking
+  fields without saving changes only that print.
+- **Department band**: the item's category (power labels: "Power"), printed in the band with a colour
+  family found from the name (sound, lighting, video, power, rigging, staging, other; `src/theme/labels.js`),
+  so the colour is never the only signal.
+- **Gig and contents**: a unit's gig is the one it is scanned out to; power labels carry their gig. A case
+  item lists its contents; a case unit lists the units packed in it plus its item's bulk contents.
+- The size starts from what is printed (cases large, units and distros medium, the rest small) until
+  someone picks one; size and print choice are remembered on the device.
 
 ## How the speaker library works (A1)
 
