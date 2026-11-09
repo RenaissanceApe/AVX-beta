@@ -1,5 +1,5 @@
 import { useI18n } from '../i18n'
-import { colors } from '../components/ui'
+import { PageHeader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import DmxCalculator from '../components/tools/DmxCalculator'
@@ -11,14 +11,8 @@ export default function PocketToolsPage() {
   const { t } = useI18n()
   return (
     <AppShell>
-      <div style={{ maxWidth: '760px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{t('pocket.title')}</h1>
-            <PageHelp page="pocket-tools" />
-          </div>
-          <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginTop: '4px' }}>{t('pocket.intro')}</p>
-        </div>
+      <div style={{ maxWidth: '760px', margin: '0 auto', padding: '24px 16px 48px' }}>
+        <PageHeader title={t('pocket.title')} help={<PageHelp page="pocket-tools" />} line={t('pocket.intro')} />
         <DmxCalculator />
       </div>
     </AppShell>

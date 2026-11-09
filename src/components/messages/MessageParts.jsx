@@ -64,8 +64,8 @@ export function Attachments({ files }) {
   const images = files.filter(isImage)
   const others = files.filter(f => !isImage(f))
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '2px 0 4px' }}>
-      {images.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>{images.map(f => <ImageFile key={f.path} file={f} />)}</div>}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '2px 0 4px' }}>
+      {images.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>{images.map(f => <ImageFile key={f.path} file={f} />)}</div>}
       {others.map(f => <OtherFile key={f.path} file={f} />)}
     </div>
   )
@@ -111,7 +111,7 @@ export function CardView({ card }) {
     return () => { on = false }
   }, [card.type, card.id])
   const Icon = CARD_ICONS[card.type] || FileText
-  const box = { display: 'flex', gap: '10px', alignItems: 'center', padding: '8px 10px', border: `1px solid ${colors.border}`, background: 'var(--shade)', margin: '2px 0 4px', color: 'var(--text)', textDecoration: 'none', minWidth: '200px' }
+  const box = { display: 'flex', gap: '12px', alignItems: 'center', padding: '8px 10px', border: `1px solid ${colors.border}`, background: 'var(--shade)', margin: '2px 0 4px', color: 'var(--text)', textDecoration: 'none', minWidth: '200px' }
   if (info === undefined) return <div style={box}><AvxLoader size={14} /></div>
   if (!info) return <div style={{ ...box, color: colors.muted, fontSize: '13px' }}><Lock size={15} /> {t('chat.card.hidden', { type: t(`chat.card.${card.type}`) })}</div>
   return (
@@ -120,7 +120,7 @@ export function CardView({ card }) {
       <span style={{ minWidth: 0 }}>
         <span style={{ display: 'block', fontSize: '11px', color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t(`chat.card.${card.type}`)}</span>
         <span style={{ display: 'block', fontWeight: 700, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.title}</span>
-        {info.sub && <span style={{ display: 'block', fontSize: '12px', color: colors.soft }}>{info.sub}</span>}
+        {info.sub && <span style={{ display: 'block', fontSize: '13px', color: colors.soft }}>{info.sub}</span>}
       </span>
     </Link>
   )
@@ -188,7 +188,7 @@ export function CardPicker({ gigId, onPick, onClose }) {
         <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('chat.shareSearch')} aria-label={t('chat.shareSearch')} style={{ ...input, paddingLeft: '30px' }} />
       </div>
-      <div style={{ maxHeight: '320px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      <div style={{ maxHeight: '320px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {!rows ? <AvxLoader size={18} color={colors.accentText} style={{ margin: '16px auto' }} />
           : rows.length === 0 ? <p style={{ color: colors.muted, fontSize: '13px', padding: '12px 4px' }}>{t('chat.shareNone')}</p>
             : rows.map(r => (
@@ -196,7 +196,7 @@ export function CardPicker({ gigId, onPick, onClose }) {
                 textAlign: 'left', padding: '8px 10px', border: 'none', background: 'transparent', color: 'var(--text)', font: 'inherit', cursor: 'pointer',
               }}>
                 <span style={{ display: 'block', fontWeight: 600, fontSize: '14px' }}>{r.title}</span>
-                {r.sub && <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{r.sub}</span>}
+                {r.sub && <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>{r.sub}</span>}
               </button>
             ))}
       </div>
@@ -214,7 +214,7 @@ export function ReactionBar({ summary, name, onToggle, alignEnd }) {
           aria-pressed={r.mine} title={r.users.map(name).join(', ')}
           aria-label={t('chat.reactionCount', { emoji: r.emoji, count: r.count })}
           style={{
-            display: 'flex', alignItems: 'center', gap: '4px', padding: '1px 7px', font: 'inherit', fontSize: '12px',
+            display: 'flex', alignItems: 'center', gap: '4px', padding: '1px 7px', font: 'inherit', fontSize: '13px',
             border: `1px solid ${r.mine ? colors.accent : colors.border}`, background: r.mine ? 'var(--selection)' : 'var(--fill)',
             color: 'var(--text)', cursor: onToggle ? 'pointer' : 'default', opacity: 1,
           }}>{r.emoji} <span>{r.count}</span></button>
@@ -234,7 +234,7 @@ export function HistoryModal({ message, onClose }) {
   return (
     <Modal title={t('chat.history')} onClose={onClose}>
       {!rows ? <AvxLoader size={18} color={colors.accentText} /> : (
-        <ol style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <ol style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {rows.map((r, i) => (
             <li key={i} style={{ fontSize: '13px' }}>
               <div style={{ color: colors.muted, fontSize: '11px' }}>{t('chat.replacedAt', { when: fmt(r.replaced_at, 'd MMM, HH:mm') })}</div>
@@ -266,7 +266,7 @@ export function AckStatusModal({ message, onClose }) {
   const row = (r, ok) => (
     <li key={r.user_id} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', padding: '6px 2px', borderBottom: `1px solid ${colors.border}`, fontSize: '14px' }}>
       <span>{r.full_name || t('common.someone')}</span>
-      <span style={{ fontSize: '12px', color: ok ? colors.accentText : colors.muted }}>{ok ? fmt(r.acked_at, 'd MMM, HH:mm') : t('chat.ackWaiting')}</span>
+      <span style={{ fontSize: '13px', color: ok ? colors.accentText : colors.muted }}>{ok ? fmt(r.acked_at, 'd MMM, HH:mm') : t('chat.ackWaiting')}</span>
     </li>
   )
   return (
@@ -356,7 +356,7 @@ export function EventCard({ message: m, mine, actor, answers }) {
         <span style={{ flex: 1 }}>{heading}</span>
         <span style={{ fontSize: '11px', color: colors.muted }}>{fmt(m.created_at, 'HH:mm')}</span>
       </div>
-      <Link to={`/gig/${p.gig_id}`} style={{ display: 'block', color: 'var(--text)', fontWeight: 700, fontSize: '15px', margin: '6px 0 2px', textDecoration: 'none' }}>{p.gig_name}</Link>
+      <Link to={`/gig/${p.gig_id}`} style={{ display: 'block', color: 'var(--text)', fontWeight: 700, fontSize: '16px', margin: '6px 0 2px', textDecoration: 'none' }}>{p.gig_name}</Link>
       {range && <div style={{ fontSize: '13px', color: colors.soft }}>{range}</div>}
       {isCall && p.fee?.rate != null && <div style={{ fontSize: '13px', fontWeight: 600, marginTop: '4px' }}>{t('crewCall.feeLine', { text: callFeeText(p.fee, lang) })}</div>}
       {p.message && <div style={{ fontSize: '13px', marginTop: '6px', whiteSpace: 'pre-wrap' }}>“{p.message}”</div>}
@@ -376,7 +376,7 @@ export function EventCard({ message: m, mine, actor, answers }) {
         </div>
       )}
       {isCall && mine && call && !call.closed_at && (
-        <button type="button" disabled={!!busy} onClick={closeCall} style={{ ...btn, padding: '6px 12px', fontSize: '12px', marginTop: '8px' }}>{t('chat.ev.closeCall')}</button>
+        <button type="button" disabled={!!busy} onClick={closeCall} style={{ ...btn, padding: '6px 12px', fontSize: '13px', marginTop: '8px' }}>{t('chat.ev.closeCall')}</button>
       )}
     </div>
   )
@@ -407,7 +407,7 @@ export function ReportModal({ message, direct, onClose, onBlock }) {
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.5 }}>{t(direct ? 'chat.report.hintDirect' : 'chat.report.hint')}</p>
         <fieldset style={{ border: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <legend style={{ fontSize: '12px', fontWeight: 600, color: colors.muted, marginBottom: '6px' }}>{t('chat.report.why')}</legend>
+          <legend style={{ fontSize: '13px', fontWeight: 600, color: colors.muted, marginBottom: '6px' }}>{t('chat.report.why')}</legend>
           {REPORT_REASONS.map(r => (
             <label key={r} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
               <input type="radio" name="reason" value={r} checked={reason === r} onChange={() => setReason(r)} style={{ accentColor: colors.accent }} />

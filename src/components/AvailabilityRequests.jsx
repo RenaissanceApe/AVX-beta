@@ -80,14 +80,14 @@ function RequestCard({ request: r, onDone }) {
     // The question card (DESIGN.md "AvailabilityAsk"): company eyebrow, the gig in Space Mono, the dates as
     // square day cells, and two 44px answers side by side with "available" on the thumb side
     <div style={{ padding: '16px', background: 'var(--panel)', border: '1px solid var(--line-strong)' }}>
-      <div style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+      <div style={{ ...label, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
         <Building2 size={12} aria-hidden="true" /> {r.company}
       </div>
       <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '16px', lineHeight: '22px', marginBottom: '4px' }}>{r.gig_name}</div>
       <div style={{ fontSize: '13px', color: colors.soft, marginBottom: '8px' }}>
         {t('requests.asks', { name: r.asked_by_name || t('common.someone'), when: ago(r.created_at) })}
       </div>
-      <div style={{ display: 'flex', gap: '4px 14px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--text-2)' }}>
+      <div style={{ display: 'flex', gap: '4px 16px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--text-2)' }}>
         {r.starts_at && <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>{rangeText(r.starts_at, r.ends_at)}</span>}
         {r.venue && <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={13} aria-hidden="true" /> {r.venue}</span>}
       </div>
@@ -116,11 +116,11 @@ function DayStrip({ from, until }) {
   for (let d = new Date(start); d <= end && days.length < 14; d.setDate(d.getDate() + 1)) days.push(new Date(d))
   if (!days.length) return null
   return (
-    <div aria-hidden="true" style={{ display: 'flex', gap: '2px', marginTop: '10px', flexWrap: 'wrap' }}>
+    <div aria-hidden="true" style={{ display: 'flex', gap: '4px', marginTop: '10px', flexWrap: 'wrap' }}>
       {days.map(d => (
         <span key={d.toISOString()} style={{ width: '40px', padding: '4px 0', textAlign: 'center', background: 'var(--fill)', border: '1px solid var(--line-strong)', fontFamily: 'var(--font-mono)' }}>
-          <span style={{ display: 'block', fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.muted }}>{fmt(d, 'EEE')}</span>
-          <span style={{ display: 'block', fontSize: '15px', fontWeight: 700 }}>{fmt(d, 'd')}</span>
+          <span style={{ display: 'block', fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.muted }}>{fmt(d, 'EEE')}</span>
+          <span style={{ display: 'block', fontSize: '16px', fontWeight: 700 }}>{fmt(d, 'd')}</span>
         </span>
       ))}
     </div>

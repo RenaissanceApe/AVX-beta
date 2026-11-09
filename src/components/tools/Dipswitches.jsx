@@ -15,7 +15,7 @@ export default function Dipswitches({ address, layout, onToggle, size = 'normal'
   const describe = summary.length ? t('dip.onList', { list: summary.join(', ') }) : t('dip.allOff')
   return (
     <div role="group" aria-label={t('dip.label', { address, state: describe })}
-      style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: big ? '12px 10px 8px' : '8px 8px 6px', background: '#C8102E', width: '100%', maxWidth: big ? '460px' : '320px', boxSizing: 'border-box' }}>
+      style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: big ? '12px 10px 8px' : '8px 8px 6px', background: '#C8102E', width: '100%', maxWidth: big ? '460px' : '320px', boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', gap: big ? '5px' : '3px' }}>
       {order.map(i => {
         const isOn = on[i]
@@ -30,7 +30,7 @@ export default function Dipswitches({ address, layout, onToggle, size = 'normal'
             <span aria-hidden="true" style={{ fontSize: big ? '13px' : '11px', color: '#fff', fontWeight: 700 }}>{i + 1}</span>
           </>
         )
-        const style = { position: 'relative', flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: onToggle && !fn ? 'pointer' : 'default' }
+        const style = { position: 'relative', flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: onToggle && !fn ? 'pointer' : 'default' }
         return onToggle && !fn ? (
           <button key={i} type="button" onClick={() => onToggle(i)} aria-pressed={isOn} style={style}>
             {body}
@@ -53,12 +53,12 @@ export function DipLayoutForm({ layout, onChange, idPrefix = 'dip' }) {
   const set = patch => onChange({ ...layout, ...patch })
   const select = { padding: '7px 10px', background: 'var(--shade)', color: 'var(--text)', border: `1px solid ${colors.border}`, fontSize: '13px' }
   const field = (id, text, control) => (
-    <label htmlFor={`${idPrefix}-${id}`} style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', color: colors.muted, fontWeight: 600 }}>
+    <label htmlFor={`${idPrefix}-${id}`} style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: colors.muted, fontWeight: 600 }}>
       {text}{control}
     </label>
   )
   return (
-    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
       {field('switches', t('dip.switches'), (
         <select id={`${idPrefix}-switches`} value={layout.switches} onChange={e => set({ switches: Number(e.target.value) })} style={select}>
           <option value={9}>9</option><option value={10}>{t('dip.tenth')}</option>

@@ -86,7 +86,7 @@ export function CameraSync({ session, onUse, onType, onClose }) {
             : state === 'starting' ? t('rehearsal.cameraStarting')
               : live ? t('rehearsal.reading', { tc: live }) : t('rehearsal.cameraLooking')}
       </p>
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '12px' }}>{t('rehearsal.cameraHint')}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '12px' }}>{t('rehearsal.cameraHint')}</p>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         <button type="button" onClick={onType} style={{ ...btn, background: 'transparent' }}><Keyboard size={14} /> {t('rehearsal.typeInstead')}</button>
         {state === 'found' && <button type="button" onClick={again} style={btn}><RotateCcw size={14} /> {t('rehearsal.readAgain')}</button>}
@@ -149,7 +149,7 @@ export function LtcSync({ session, onUse, onClose }) {
   return (
     <Modal title={t('rehearsal.ltcSync')} onClose={onClose}>
       <div style={{ ...card, textAlign: 'center', marginBottom: '12px' }}>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', fontWeight: 700, color: fresh ? 'var(--text)' : colors.muted }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '28px', fontWeight: 700, color: fresh ? 'var(--text)' : colors.muted }}>
           {fresh ? msToTc(latest.ms + (performance.now() - latest.at), session.fps, df) : '--:--:--:--'}
         </div>
         <div aria-hidden="true" style={{ height: '6px', background: 'var(--fill)', marginTop: '10px', overflow: 'hidden' }}>
@@ -162,7 +162,7 @@ export function LtcSync({ session, onUse, onClose }) {
       </p>
       {fpsOff && <p style={{ fontSize: '13px', color: colors.danger, marginBottom: '8px' }}>{t('rehearsal.ltcFpsOff', { ltc: Math.round(latest.fps), session: Number(session.fps) })}</p>}
       {dfOff && <p style={{ fontSize: '13px', color: colors.danger, marginBottom: '8px' }}>{latest.df ? t('rehearsal.ltcIsDf') : t('rehearsal.ltcIsNdf')}</p>}
-      <p style={{ fontSize: '12px', color: colors.muted, lineHeight: 1.5, marginBottom: '12px' }}>{t('rehearsal.ltcHint')}</p>
+      <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '12px' }}>{t('rehearsal.ltcHint')}</p>
       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
         <button type="button" onClick={onClose} style={{ ...btn, background: 'transparent' }}>{t('common.cancel')}</button>
         <button type="button" disabled={!fresh} onClick={() => onUse(now(), 'ltc')} style={btnPrimary}><Check size={14} /> {t('rehearsal.syncNow')}</button>

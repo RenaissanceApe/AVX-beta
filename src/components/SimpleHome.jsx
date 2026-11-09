@@ -4,7 +4,7 @@ import { useI18n } from '../i18n'
 import { localToday } from '../lib/gigs'
 import EmptyState from './EmptyState'
 import ReadAloud from './ReadAloud'
-import { btnPrimary, btn, card, colors } from './ui'
+import { btnPrimary, btn, card, colors, label, space, Stack, Section } from './ui'
 
 const shortTime = v => (v ? String(v).slice(0, 5) : '')
 
@@ -23,57 +23,56 @@ export default function SimpleHome({ gigs, onShowAll }) {
   const [next, ...later] = upcomingGigs(gigs)
 
   const big = { ...btnPrimary, justifyContent: 'center', minHeight: '52px', fontSize: '16px', flex: '1 1 140px' }
-  const action = { ...btn, justifyContent: 'center', minHeight: '52px', fontSize: '15px', flex: '1 1 140px' }
+  const action = { ...btn, justifyContent: 'center', minHeight: '52px', fontSize: '16px', flex: '1 1 140px' }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <Stack gap="section">
       {!next ? (
         <EmptyState icon={<CalendarDays size={28} />} title={t('simple.noneTitle')} body={t('simple.noneBody')} guide="crew-unavailable" />
       ) : (
-        <section aria-labelledby="next-gig" style={{ ...card, padding: '20px', borderColor: 'var(--line-strong)' }}>
-          <p style={{ fontSize: '13px', fontWeight: 700, color: colors.accentText, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('simple.next')}</p>
-          <h2 id="next-gig" style={{ fontSize: '24px', fontWeight: 700, margin: '6px 0 4px', lineHeight: 1.2 }}>{next.name}</h2>
-          <p style={{ fontSize: '16px', color: colors.text, display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <CalendarDays size={16} aria-hidden="true" color={colors.muted} />
-            {next.start_date ? fmt(next.start_date, 'EEEE, d MMMM') : t('callsheet.datesTbc')}
-          </p>
-          {next.venue && <p style={{ fontSize: '15px', color: colors.soft, display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}><MapPin size={15} aria-hidden="true" /> {next.venue}</p>}
+        <section aria-labelledby="next-gig" style={{ ...card, padding: space[5], borderColor: 'var(--line-strong)' }}>
+          <p style={{ ...label, color: colors.accentText, marginBottom: space[2] }}>{t('simple.next')}</p>
+          <h2 id="next-gig" style={{ fontSize: '24px', fontWeight: 700, margin: `0 0 ${space[2]}`, lineHeight: 1.2, overflowWrap: 'anywhere' }}>{next.name}</h2>
+          <Stack gap={1}>
+            <p style={{ fontSize: '16px', color: colors.text, display: 'flex', alignItems: 'center', gap: space[2], flexWrap: 'wrap' }}>
+              <CalendarDays size={16} aria-hidden="true" color={colors.muted} />
+              {next.start_date ? fmt(next.start_date, 'EEEE, d MMMM') : t('callsheet.datesTbc')}
+            </p>
+            {next.venue && <p style={{ fontSize: '16px', color: colors.soft, display: 'flex', alignItems: 'center', gap: space[2] }}><MapPin size={16} aria-hidden="true" /> {next.venue}</p>}
+          </Stack>
           {(next.myCallTime || next.myFunction) && (
-            <div style={{ marginTop: '14px', padding: '12px 14px', background: 'var(--selection)', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ marginTop: space[4], padding: `${space[3]} ${space[4]}`, background: 'var(--selection)', display: 'flex', alignItems: 'center', gap: space[3], flexWrap: 'wrap' }}>
               {next.myCallTime && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '22px', fontWeight: 700, color: colors.accentText }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: space[2], fontFamily: 'var(--font-mono)', fontSize: '24px', fontWeight: 700, color: colors.accentText }}>
                   <Clock size={22} aria-hidden="true" /> {t('crew.call', { time: shortTime(next.myCallTime) })}
                 </span>
               )}
-              {next.myFunction && <span style={{ fontSize: '15px', color: colors.text }}>{next.myFunction}</span>}
+              {next.myFunction && <span style={{ fontSize: '16px', color: colors.text }}>{next.myFunction}</span>}
             </div>
           )}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '16px' }}>
-            <button type="button" onClick={() => navigate(`/gig/${next.id}/callsheet`)} style={big}><FileText size={18} /> {t('schedule.callSheet')}</button>
-            <button type="button" onClick={() => navigate(`/gig/${next.id}?tab=chat`)} style={action}><MessageCircle size={18} /> {t('gig.tab.chat')}</button>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: space[2], marginTop: space[5] }}>
+            <button type="button" onClick={() => navigate(`/gig/${next.id}/callsheet`)} style={{ ...big, gridColumn: '1 / -1' }}><FileText size={18} aria-hidden="true" /> {t('schedule.callSheet')}</button>
+            <button type="button" onClick={() => navigate(`/gig/${next.id}?tab=chat`)} style={action}><MessageCircle size={18} aria-hidden="true" /> {t('gig.tab.chat')}</button>
+            <button type="button" onClick={() => navigate(`/gig/${next.id}`)} style={action}><ChevronRight size={18} aria-hidden="true" /> {t('simple.openGig')}</button>
+            <button type="button" onClick={() => navigate(`/gig/${next.id}?tab=equipment&report=1`)} style={action}><Wrench size={18} aria-hidden="true" /> {t('report.title')}</button>
+            <ReadAloud style={action} text={() => [
+              t('speak.nextGig', { name: next.name }),
+              next.start_date && fmt(next.start_date, 'EEEE, d MMMM') + '.',
+              next.venue && next.venue + '.',
+              next.myCallTime && t('speak.yourCall', { time: shortTime(next.myCallTime) }) + (next.myFunction ? `, ${next.myFunction}` : '') + '.',
+            ].filter(Boolean).join(' ')} />
           </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
-            <button type="button" onClick={() => navigate(`/gig/${next.id}`)} style={action}><ChevronRight size={18} /> {t('simple.openGig')}</button>
-            <button type="button" onClick={() => navigate(`/gig/${next.id}?tab=equipment&report=1`)} style={action}><Wrench size={18} /> {t('report.title')}</button>
-          </div>
-          <ReadAloud style={{ ...action, width: '100%', marginTop: '8px' }} text={() => [
-            t('speak.nextGig', { name: next.name }),
-            next.start_date && fmt(next.start_date, 'EEEE, d MMMM') + '.',
-            next.venue && next.venue + '.',
-            next.myCallTime && t('speak.yourCall', { time: shortTime(next.myCallTime) }) + (next.myFunction ? `, ${next.myFunction}` : '') + '.',
-          ].filter(Boolean).join(' ')} />
         </section>
       )}
 
       {later.length > 0 && (
-        <section aria-labelledby="later-gigs">
-          <h2 id="later-gigs" style={{ fontSize: '14px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>{t('simple.later')}</h2>
-          <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <Section id="later-gigs" title={t('simple.later')}>
+          <ul style={{ listStyle: 'none', padding: 0, borderTop: `1px solid ${colors.line}` }}>
             {later.slice(0, 5).map(g => (
-              <li key={g.id}>
-                <button type="button" onClick={() => navigate(`/gig/${g.id}`)} style={{ ...card, width: '100%', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', color: colors.text, font: 'inherit', minHeight: '56px' }}>
+              <li key={g.id} style={{ borderBottom: `1px solid ${colors.line}` }}>
+                <button type="button" onClick={() => navigate(`/gig/${g.id}`)} style={{ background: 'none', border: 'none', padding: `${space[2]} 0`, width: '100%', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: space[3], color: colors.text, font: 'inherit', minHeight: '56px' }}>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <strong style={{ display: 'block', fontSize: '15px' }}>{g.name}</strong>
+                    <strong style={{ display: 'block', fontSize: '16px' }}>{g.name}</strong>
                     <span style={{ fontSize: '13px', color: colors.muted }}>
                       {[g.start_date && fmt(g.start_date, 'EEE d MMM'), g.myCallTime && t('crew.call', { time: shortTime(g.myCallTime) }), g.venue].filter(Boolean).join(' · ')}
                     </span>
@@ -83,10 +82,10 @@ export default function SimpleHome({ gigs, onShowAll }) {
               </li>
             ))}
           </ul>
-        </section>
+        </Section>
       )}
 
-      <button type="button" onClick={onShowAll} style={{ ...btn, alignSelf: 'flex-start' }}><List size={15} /> {t('simple.allGigs')}</button>
-    </div>
+      <button type="button" onClick={onShowAll} style={{ ...btn, alignSelf: 'flex-start', minHeight: '44px' }}><List size={16} aria-hidden="true" /> {t('simple.allGigs')}</button>
+    </Stack>
   )
 }

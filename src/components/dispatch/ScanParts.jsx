@@ -62,7 +62,7 @@ export function FeedRow({ entry, onUndo }) {
         {!entry.undone && extra.map(x => <span key={x.text} style={{ display: 'block', color: x.warn ? AMBER : colors.soft }}>{x.text}</span>)}
       </span>
       {onUndo && canUndo(entry) && (
-        <button type="button" onClick={() => onUndo(entry)} style={{ ...btn, padding: '4px 10px', fontSize: '12px', flexShrink: 0 }}>
+        <button type="button" onClick={() => onUndo(entry)} style={{ ...btn, padding: '4px 10px', fontSize: '13px', flexShrink: 0 }}>
           <Undo2 size={13} aria-hidden="true" /> {t('common.undo')}<span className="sr-only"> {what}</span>
         </button>
       )}
@@ -163,7 +163,7 @@ export function CameraScanner({ onCode, onClose, tall = false }) {
     <div style={{ marginBottom: '12px' }}>
       {error ? (
         <p role="alert" style={{ fontSize: '13px', color: AMBER, lineHeight: 1.5 }}>
-          {t(`dispatch.camera.${error}`)} <button onClick={onClose} style={{ ...btn, padding: '4px 8px', fontSize: '12px', marginLeft: '6px' }}>{t('common.close')}</button>
+          {t(`dispatch.camera.${error}`)} <button onClick={onClose} style={{ ...btn, padding: '4px 8px', fontSize: '13px', marginLeft: '6px' }}>{t('common.close')}</button>
         </p>
       ) : (
         <div style={{ position: 'relative', overflow: 'hidden', background: '#000', aspectRatio: '4 / 3', maxHeight: tall ? '42vh' : '50vh', margin: '0 auto' }}>
@@ -204,8 +204,8 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
     return () => { document.body.style.overflow = before; window.removeEventListener('keydown', onKey) }
   }, [])
 
-  const big = { minHeight: '56px', fontSize: '17px', fontWeight: 700, justifyContent: 'center' }
-  const toggle = on => ({ ...btn, ...big, flex: '1 1 140px', fontSize: '15px', borderWidth: '2px',
+  const big = { minHeight: '56px', fontSize: '16px', fontWeight: 700, justifyContent: 'center' }
+  const toggle = on => ({ ...btn, ...big, flex: '1 1 140px', fontSize: '16px', borderWidth: '2px',
     borderColor: on ? colors.accent : colors.border, background: on ? 'var(--selection)' : 'transparent', color: on ? 'var(--text)' : colors.muted })
   const qty = Math.max(1, Number(quantity) || 1)
   const { done, total } = progress
@@ -218,8 +218,8 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
       display: 'flex', flexDirection: 'column',
     }}>
       <div style={{ width: '100%', maxWidth: '560px', margin: '0 auto', padding: '12px 16px 20px', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <h1 id="scan-mode-title" ref={titleRef} tabIndex={-1} style={{ flex: 1, minWidth: 0, fontSize: '18px', fontWeight: 700, lineHeight: 1.25, outline: 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <h1 id="scan-mode-title" ref={titleRef} tabIndex={-1} style={{ flex: 1, minWidth: 0, fontSize: '22px', fontWeight: 700, lineHeight: 1.25, outline: 'none' }}>
             {t('scanMode.title')}<span style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{gigName}</span>
           </h1>
           <button type="button" onClick={onClose} style={{ ...btn, ...big, minWidth: '96px' }}>{t('scanMode.done')}</button>
@@ -232,7 +232,7 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
           : <button type="button" onClick={() => setCamera(true)} style={{ ...btn, ...big }}>{t('dispatch.cameraOn')}</button>}
 
         <section aria-live="polite" aria-atomic="true" style={{
-          minHeight: '112px', padding: '14px 16px', display: 'flex', gap: '14px', alignItems: 'center',
+          minHeight: '112px', padding: '14px 16px', display: 'flex', gap: '16px', alignItems: 'center',
           border: `1px solid ${tone ? tone.colour : colors.border}`, borderLeftWidth: tone ? '4px' : '1px', background: 'var(--panel)',
         }}>
           {busy ? <AvxLoader size={40} style={{ flexShrink: 0 }} />
@@ -242,13 +242,13 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
             {said ? (
               <>
                 {said.what && <strong style={{ display: 'block', fontSize: '20px', lineHeight: 1.25, overflowWrap: 'anywhere' }}>{said.what}</strong>}
-                <span style={{ display: 'block', fontSize: '18px', fontWeight: 700, color: 'var(--text)', marginTop: '2px' }}>{said.msg}</span>
-                {!last.undone && said.extra.map(x => <span key={x.text} style={{ display: 'block', fontSize: '15px', color: x.warn ? AMBER : colors.soft, marginTop: '2px' }}>{x.text}</span>)}
+                <span style={{ display: 'block', fontSize: '20px', fontWeight: 700, color: 'var(--text)', marginTop: '2px' }}>{said.msg}</span>
+                {!last.undone && said.extra.map(x => <span key={x.text} style={{ display: 'block', fontSize: '16px', color: x.warn ? AMBER : colors.soft, marginTop: '2px' }}>{x.text}</span>)}
               </>
-            ) : <span style={{ fontSize: '17px', color: colors.muted }}>{t('scanMode.waiting')}</span>}
+            ) : <span style={{ fontSize: '16px', color: colors.muted }}>{t('scanMode.waiting')}</span>}
           </div>
           {canUndo(last) && (
-            <button type="button" onClick={() => onUndo(last)} style={{ ...btn, ...big, minWidth: '88px', fontSize: '15px', alignSelf: 'stretch', flexDirection: 'column', gap: '2px' }}>
+            <button type="button" onClick={() => onUndo(last)} style={{ ...btn, ...big, minWidth: '88px', fontSize: '16px', alignSelf: 'stretch', flexDirection: 'column', gap: '4px' }}>
               <Undo2 size={22} aria-hidden="true" /> {t('common.undo')}
             </button>
           )}
@@ -262,11 +262,11 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
         </div>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch', flexWrap: 'wrap' }}>
-          <div role="group" aria-label={t('dispatch.qty')} style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '1 1 200px' }}>
+          <div role="group" aria-label={t('dispatch.qty')} style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 200px' }}>
             <button type="button" onClick={() => setQuantity(String(Math.max(1, qty - 1)))} disabled={qty <= 1} style={{ ...btn, ...big, width: '56px', padding: 0 }}>
               <Minus size={22} aria-hidden="true" /><span className="sr-only">{t('scanMode.less')}</span>
             </button>
-            <span style={{ flex: 1, textAlign: 'center', fontSize: '15px', color: colors.muted }}>
+            <span style={{ flex: 1, textAlign: 'center', fontSize: '16px', color: colors.muted }}>
               {t('dispatch.qty')} <strong aria-live="polite" style={{ display: 'block', fontSize: '24px', color: 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>{qty}</strong>
             </span>
             <button type="button" onClick={() => setQuantity(String(Math.min(100000, qty + 1)))} style={{ ...btn, ...big, width: '56px', padding: 0 }}>
@@ -284,7 +284,7 @@ export function ScanMode({ gigName, steps, step, setStep, quantity, setQuantity,
         <form onSubmit={e => { e.preventDefault(); if (code.trim()) { onScan(code); setCode('') } }} style={{ display: 'flex', gap: '8px' }}>
           <label htmlFor="scan-mode-code" className="sr-only">{t('dispatch.code')}</label>
           <input id="scan-mode-code" value={code} onChange={e => setCode(e.target.value)} autoComplete="off" autoCapitalize="characters"
-            placeholder={t('scanMode.typeCode')} style={{ ...input, flex: 1, minHeight: '56px', fontSize: '18px', fontFamily: 'var(--font-mono)' }} />
+            placeholder={t('scanMode.typeCode')} style={{ ...input, flex: 1, minHeight: '56px', fontSize: '20px', fontFamily: 'var(--font-mono)' }} />
           <button type="submit" disabled={busy || !code.trim()} style={{ ...btnPrimary, ...big, minWidth: '96px' }}>{t('dispatch.record')}</button>
         </form>
 

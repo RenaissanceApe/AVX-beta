@@ -11,20 +11,20 @@ import { colors } from '../ui'
 export default function GuideView({ id, compact = false }) {
   const { t } = useI18n()
   const g = guide(id)
-  if (!g) return <p style={{ fontSize: '15px' }}>{t('help.guideMissing')}</p>
+  if (!g) return <p style={{ fontSize: '16px' }}>{t('help.guideMissing')}</p>
   const H = compact ? 'h3' : 'h2'
   const imgWidth = compact ? 220 : 280
   return (
     <article aria-labelledby={`guide-${id}`}>
       {compact
-        ? <h2 id={`guide-${id}`} style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>{g.title}</h2>
+        ? <h2 id={`guide-${id}`} style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>{g.title}</h2>
         : <h1 id={`guide-${id}`} style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text)', marginBottom: '8px' }}>{g.title}</h1>}
       <p style={{ fontSize: compact ? '14px' : '15px', lineHeight: 1.6, color: 'var(--text-2)' }}>{g.intro}</p>
 
-      <ol style={{ listStyle: 'none', padding: 0, margin: '18px 0 0', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <ol style={{ listStyle: 'none', padding: 0, margin: '18px 0 0', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {g.steps.map((text, i) => (
-          <li key={i} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+          <li key={i} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
               <span aria-hidden="true" style={{
                 flexShrink: 0, width: '26px', height: '26px', background: colors.accent, color: 'var(--on-accent)',
                 fontWeight: 700, fontSize: '14px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -43,10 +43,10 @@ export default function GuideView({ id, compact = false }) {
 
       {g.mistakes.length > 0 && (
         <section style={{ marginTop: '24px', padding: '14px 16px', background: 'var(--warn-soft)', border: '1px solid var(--warn)' }}>
-          <H style={{ fontSize: '15px', fontWeight: 700, color: 'var(--yellow)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+          <H style={{ fontSize: '16px', fontWeight: 700, color: 'var(--yellow)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <AlertTriangle size={15} aria-hidden="true" /> {t('help.mistakes')}
           </H>
-          <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {g.mistakes.map((m, i) => <li key={i} style={{ fontSize: '14px', lineHeight: 1.55, color: 'var(--text-2)' }}>{m}</li>)}
           </ul>
         </section>
@@ -54,7 +54,7 @@ export default function GuideView({ id, compact = false }) {
 
       {g.terms.length > 0 && (
         <section style={{ marginTop: '20px' }}>
-          <H style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+          <H style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <BookOpen size={15} aria-hidden="true" /> {t('help.wordsUsed')}
           </H>
           <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
