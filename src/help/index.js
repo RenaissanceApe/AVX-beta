@@ -93,7 +93,7 @@ export const GUIDES = {
   'pm-equipment': { role: 'pm', pages: ['gig'], terms: ['catalogue-item', 'prep-return-days', 'subrental', 'alternative'], shots: ['equipment-add', 'equipment-picker', null, null] },
   'wh-import': { role: 'warehouse', pages: ['inventory'], terms: ['catalogue-item', 'bulk-item', 'serial-item', 'location'], shots: [null, 'imp-choose', 'imp-match', 'imp-check'] },
   'wh-locations': { role: 'warehouse', pages: ['inventory'], terms: ['location', 'stock-movement'], shots: ['inv-locations', null, null, null] },
-  'wh-units-labels': { role: 'warehouse', pages: ['inventory-item', 'inventory'], terms: ['serial-item', 'unit', 'depreciation'], shots: ['item-units', null, 'labels'] },
+  'wh-units-labels': { role: 'warehouse', pages: ['inventory-item', 'inventory'], terms: ['serial-item', 'unit', 'label-template', 'depreciation'], shots: ['item-units', null, null, 'labels'] },
   'wh-scan': { role: 'warehouse', pages: ['gig', 'inventory'], terms: ['packing-list', 'scan-out-in', 'scan-mode', 'case', 'unit'], shots: [null, 'dispatch-out', null, 'scan-mode'] },
   'wh-delivery-note': { role: 'warehouse', pages: ['gig'], terms: ['e-signature', 'packing-list', 'scan-out-in'], shots: [null, null, null, null] },
   'of-signed-quote': { role: 'office', pages: ['quote'], terms: ['e-signature', 'client-link', 'quote-version'], shots: [null, null, null] },

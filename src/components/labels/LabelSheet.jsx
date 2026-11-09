@@ -7,6 +7,7 @@ import { useToast } from '../../lib/ToastContext'
 import { useWorkspace } from '../../lib/WorkspaceContext'
 import { useI18n } from '../../i18n'
 import { AvxLoader } from '../ui'
+import { Hint } from '../help/HelpParts'
 import {
   LABEL_SIZES, SIZE_KEYS, PRINT_MODES, LABEL_FIELDS, DEFAULT_FIELDS,
   pageLayout, labelPosition, paginate, normalizeFields, templatesFrom, sameFields,
@@ -132,7 +133,7 @@ export default function LabelSheet({ labels, orgId, orgName, sizeKey, onBack, ba
         </div>
         {editing && (
           <fieldset id="label-fields" style={{ margin: 0, border: 0, borderTop: '1px solid rgba(255,255,255,0.15)', padding: '12px 16px 14px' }}>
-            <legend style={{ float: 'left', width: '100%', padding: 0, marginBottom: '8px', fontSize: '13px', fontWeight: 600 }}>{t('labels.fieldsFor', { size: sizeName })}</legend>
+            <legend style={{ float: 'left', width: '100%', padding: 0, marginBottom: '8px', fontSize: '13px', fontWeight: 600 }}>{t('labels.fieldsFor', { size: sizeName })} <Hint id="label-fields" label={t('labels.fields')} /></legend>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', clear: 'both' }}>
               {LABEL_FIELDS.map(f => (
                 <label key={f} style={{ ...ctl, gap: '8px', minHeight: '32px' }}>
