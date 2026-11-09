@@ -5,7 +5,7 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { useGigLabels } from '../lib/gigLabels'
 import { track } from '../lib/usage'
 import { useI18n } from '../i18n'
-import { btnPrimary, colors, AvxLoader, space, usePhone } from '../components/ui'
+import { btnPrimary, colors, AvxLoader, PageHeader, space, usePhone } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import { PageHelp } from '../components/help/HelpParts'
 import { OverviewTiles, useOverview } from '../components/reports/OverviewTiles'
@@ -67,23 +67,11 @@ export default function ReportsPage() {
       <PrintStyles />
       <style>{TABS_CSS}</style>
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: `${space[5]} var(--gutter) ${space[7]}`, display: 'flex', flexDirection: 'column', gap: space[4] }}>
-        {/* The page header (DESIGN.md rule 4): the title, one short line, the ⓘ. The ⓘ sits next to the
-            heading, not inside it, so the heading's name stays "Reports" */}
-        <header className="avx-page-head" style={{ marginBottom: 0 }}>
-          <div className="avx-page-head__text">
-            <div style={{ display: 'flex', alignItems: 'center', gap: space[2] }}>
-              <h1 className="avx-page-head__title">{title}</h1>
-              <span className="no-print"><PageHelp page="org-reports" /></span>
-            </div>
-            <p className="avx-page-head__line">{phone || !org?.name ? t('reports.intro') : `${org.name} · ${t('reports.intro')}`}</p>
-          </div>
-          {/* K9: save this report with its filters (pinned ones show on the Overview) */}
-          {tab !== 'overview' && (
-            <div className="avx-page-head__actions no-print">
-              <SaveViewButton orgId={orgId} tab={tab} params={params} onSaved={saved.add} />
-            </div>
-          )}
-        </header>
+        {/* The page header (DESIGN.md rule 4): the title, one short line, the ⓘ; K9's Save view on the right */}
+        <PageHeader className="rp-head" title={title}
+          help={<span className="no-print"><PageHelp page="org-reports" /></span>}
+          line={phone || !org?.name ? t('reports.intro') : `${org.name} · ${t('reports.intro')}`}
+          primary={tab !== 'overview' && <span className="no-print"><SaveViewButton orgId={orgId} tab={tab} params={params} onSaved={saved.add} /></span>} />
 
         {/* The report tabs: the chosen one is the text colour with a 2px accent bar, not a fill (rule 3) */}
         <nav className="no-print rp-tabs" aria-label={t('reports.tabs')}>
@@ -130,6 +118,7 @@ const sectionTitle = { font: '700 16px/24px var(--font-mono)', margin: 0 }
 
 // Report tabs: one row that scrolls sideways on a phone, a 2px accent bar under the chosen one
 const TABS_CSS = `
+  .rp-head { margin-bottom: 0; }
   .rp-tabs { display: flex; gap: var(--space-1); overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line);
     margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter); }
   .rp-tabs::-webkit-scrollbar { display: none; }
