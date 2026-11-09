@@ -25,7 +25,7 @@ export default function PrintFooter() {
   }, [link])
 
   return (
-    <footer className="print-footer" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginTop: '16px', fontSize: '11px', breakInside: 'avoid' }}>
+    <footer className="print-footer" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', marginTop: '16px', fontSize: '11px', breakInside: 'avoid' }}>
       <div style={{ textAlign: 'right', lineHeight: 1.4 }}>
         <div>{t('callsheet.printed', { date: fmt(printedAt, 'd MMM yyyy, HH:mm') })}</div>
         {svg && <div style={{ opacity: 0.75 }}>{t('callsheet.qrHint')}</div>}
