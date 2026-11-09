@@ -68,14 +68,15 @@ Deno.serve(async (req) => {
     global: { fetch: fetchWithTimeout }, auth: { persistSession: false },
   })
   const { data: share, error: shareError } = await admin.from('quote_shares')
-    .select('id, quote_id, org_id, status, expires_at, viewed_at, responded_at, responder_name, created_by, quote_versions(snapshot), quotes(number, title, created_by)')
+    .select('id, quote_id, org_id, status, expires_at, viewed_at, responded_at, responder_name, created_by, quote_versions(snapshot), quotes(number, title, created_by, removed_at)')
     .eq('token_hash', await sha256Hex(token)).maybeSingle()
   // Slow, not missing: the page says something went wrong rather than "link not found"
   if (isTimeout(shareError)) {
     console.error(JSON.stringify({ fn: 'quote-public', step: 'load', timeout: true }))
     return json({ error: 'timeout' }, 504, origin)
   }
-  if (!share || share.status === 'revoked') return json({ state: 'not_found' }, 404, origin)
+  // A quote in Recently deleted (quote bin) is not shown; its links work again if it's restored
+  if (!share || share.status === 'revoked' || (share.quotes as { removed_at?: string | null } | null)?.removed_at) return json({ state: 'not_found' }, 404, origin)
 
   const { data: org } = await admin.from('organisations')
     .select('name, legal_name, email, phone, quote_number_prefix').eq('id', share.org_id).maybeSingle()
