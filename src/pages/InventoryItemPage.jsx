@@ -22,6 +22,7 @@ import { MovementList, useNames, LOCATION_ICONS } from './InventoryPage'
 import { btn, btnPrimary, iconBtn, label, colors, StatusBadge, AvxLoader, PageHeader, Section, Stack, MoreMenu, space } from '../components/ui'
 import { PageHelp } from '../components/help/HelpParts'
 import { speakerFacts, riggingOf } from '../lib/speakers'
+import { electricalFacts } from '../lib/power'
 
 const STATUS_TONE = { available: 'ok', repair: 'warn', lost: 'danger', retired: 'off' }
 const ghost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
@@ -97,6 +98,7 @@ export default function InventoryItemPage() {
     [t('inv.minStock'), item.min_stock ?? ''],
     [t('inv.packingNote'), item.packing_note],
     ...speakerFacts(item, t),
+    ...electricalFacts(item, t),
     ...customFields.map(f => {
       const text = displayValue(f, item.custom_values?.[f.id], { yesNo: [t('custom.yes'), t('custom.no')], date: d => fmt(d, 'd MMM yyyy') })
       return [f.label, f.kind === 'link' && text ? <a href={text} target="_blank" rel="noopener noreferrer" style={{ color: colors.accentText }}>{text.replace(/^https?:\/\//i, '')}</a> : text]

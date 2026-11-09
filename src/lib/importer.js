@@ -3,6 +3,7 @@
 // runs in the database (run_import), which checks everything again.
 import { parsePrice } from './quotes'
 import { SPEC_FIELDS, inRange, findPreset, fillFromPreset } from './speakers'
+import { electricalProblems } from './power'
 
 export const KINDS = ['locations', 'items', 'units', 'kits', 'clients', 'suppliers', 'crew', 'gigs', 'gig_equipment', 'quotes']
 // Kinds that go to the contacts directory (S2), not the inventory
@@ -15,6 +16,20 @@ export const MAX_ROWS = 5000
 const CODE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/
 
 // Words people (and Rentman, in Dutch or English) use for each choice
+// The CEE sockets' names: amps with one phase (3 pins, blue) or three (5 pins, red)
+function ceeWords() {
+  const out = {}
+  for (const a of [16, 32, 63, 125]) {
+    for (const [p, pins, kinds] of [[1, 3, ['single phase', 'monofasico', 'monofasica', 'blue', 'azul', '230v']], [3, 5, ['three phase', 'trifasico', 'trifasica', 'red', 'vermelho', 'vermelha', '400v']]]) {
+      if (a === 125 && p === 1) continue
+      const list = [`cee ${a} ${p}`, `cee${a} ${p}`, `cee ${a}a ${p}`, `cee ${a}a ${p}p`, `cee ${a} ${p}p`, `cee ${a}a ${pins}p`, `cee ${a} ${pins}p`, `cee ${a}a ${pins} pin`, `${a}a ${pins}p`, `${a}a ${p}p`]
+      for (const k of kinds) list.push(`cee ${a}a ${k}`, `cee ${a} ${k}`, `cee ${a} a ${k}`)
+      out[`cee${a}_${p}`] = list
+    }
+  }
+  return out
+}
+
 const WORDS = {
   locationKind: {
     warehouse: ['warehouse', 'magazijn', 'armazem', 'depot', 'store', 'storage', 'opslag', 'loja'],
@@ -48,6 +63,15 @@ const WORDS = {
     subwoofer: ['subwoofer', 'sub', 'subs', 'bass', 'grave', 'graves'],
     monitor: ['monitor', 'wedge', 'floor monitor', 'retorno', 'monitor de palco'],
     column: ['column', 'column array', 'steerable column', 'coluna linear'],
+  },
+  // Power connectors (P1): CEE as "CEE 32/3", "CEE 32A 5P", "CEE 32 A three-phase"…
+  connector: {
+    schuko: ['schuko', 'shuko', 'cee 7 4', 'cee7 4', 'tomada schuko', 'schuko 16a'],
+    ...ceeWords(),
+    powerlock: ['powerlock', 'power lock'],
+    socapex: ['socapex', 'soca', 'socapex 19', '19 pin'],
+    powercon: ['powercon', 'powercon blue', 'powercon 20a', 'powercon a'],
+    powercon_true1: ['powercon true1', 'powercon true 1', 'true1', 'true 1', 'true1 top'],
   },
   partKind: {
     content: ['content', 'contents', 'inhoud', 'conteudo', 'in case', 'in set', 'packed', 'case content', 'set content'],
@@ -122,6 +146,14 @@ export const FIELDS = {
     { key: 'location', type: 'text', max: 100, names: ['location', 'warehouse', 'magazijn', 'locatie', 'local', 'armazem', 'stock location'] },
     { key: 'weight_kg', type: 'number', names: ['weight', 'weight kg', 'gewicht', 'peso', 'kg'] },
     { key: 'power_w', type: 'int', max: 1000000, names: ['power', 'power w', 'vermogen', 'potencia', 'watt', 'watts', 'w'] },
+    // Electrical fields (P1): only what the datasheet gives; amps need the voltage they're given at
+    { key: 'power_typical_w', type: 'int', max: 1000000, names: ['typical power', 'power typical', 'typical watts', 'typical w', 'potencia tipica', 'consumo tipico', 'typisch vermogen'] },
+    { key: 'power_factor', type: 'number', names: ['power factor', 'pf', 'cos phi', 'cosphi', 'fator de potencia', 'factor de potencia', 'arbeidsfactor', 'vermogensfactor'] },
+    { key: 'inrush_a', type: 'number', names: ['inrush', 'inrush current', 'inrush a', 'inrush amps', 'corrente de arranque', 'corrente de pico', 'inschakelstroom'] },
+    { key: 'current_a', type: 'number', names: ['current', 'current a', 'amps', 'amperes', 'ampere', 'current draw', 'corrente', 'consumo a', 'stroom'] },
+    { key: 'current_v', type: 'int', max: 480, names: ['current voltage', 'voltage', 'volts', 'tensao', 'voltagem', 'spanning'] },
+    { key: 'connector_in', type: 'enum', words: 'connector', names: ['connector', 'connector in', 'power connector', 'power in', 'input connector', 'ficha', 'ficha de entrada', 'conector', 'connector entrada', 'stekker'] },
+    { key: 'connector_out', type: 'enum', words: 'connector', names: ['connector out', 'power out', 'output connector', 'thru', 'link out', 'ficha de saida', 'conector de saida'] },
     { key: 'dimensions', type: 'text', max: 80, names: ['dimensions', 'size', 'afmetingen', 'dimensoes', 'measurements'] },
     // Speaker specs (A1): a preset fills what the file leaves empty
     { key: 'speaker_preset', type: 'text', max: 120, names: ['speaker preset', 'preset', 'speaker model', 'predefinicao', 'modelo de coluna'] },
@@ -403,6 +435,7 @@ export function buildRows(table, mapping, kind, { headerRow = true, defaultLocat
     if ((kind === 'locations' || CONTACT_KINDS.includes(kind)) && !row.name) row._errors.push({ field: 'name', error: 'missing' })
     if (kind === 'items' && !row.name && !row.code) row._errors.push({ field: 'name', error: 'missing' })
     if (kind === 'items') speakerChecks(row)
+    if (kind === 'items') electricalChecks(row)
     if (kind === 'units' && !row.item && !row.item_code) row._errors.push({ field: 'item', error: 'missing' })
     if (kind === 'kits' && !row.kit && !row.kit_code) row._errors.push({ field: 'kit', error: 'missing' })
     if (kind === 'kits' && !row.item && !row.item_code) row._errors.push({ field: 'item', error: 'missing' })
@@ -426,6 +459,16 @@ function speakerChecks(row) {
     if (row[f.key] !== undefined && row[f.key] !== null && !inRange(f, row[f.key])) row._errors.push({ field: f.key, error: 'speakerRange' })
   }
   if (row.freq_low_hz != null && row.freq_high_hz != null && row.freq_low_hz >= row.freq_high_hz) row._errors.push({ field: 'freq_high_hz', error: 'freqOrder' })
+}
+
+// A catalogue row's electrical fields (P1): values outside the limits the database checks are
+// refused here; datasheet amps need the voltage they're given at; typical can't be above max
+function electricalChecks(row) {
+  const problems = electricalProblems(row)
+  for (const [field, problem] of Object.entries(problems)) {
+    if (row._errors.some(e => e.field === field)) continue
+    row._errors.push({ field, error: problem === 'needVolts' ? 'powerNeedVolts' : problem === 'overMax' ? 'powerTypical' : 'powerRange' })
+  }
 }
 
 // Street, postcode, city and country → the address, on separate lines (after a whole address
@@ -606,6 +649,7 @@ const SERVER = [
   [/violates check constraint "price_items_kit_check"/, 'kitType'],
   [/^Stock tracking can't change/, 'trackingLocked'],
   [/violates check constraint "price_items_speaker_check"/, 'speakerSpec'],
+  [/violates check constraint "price_items_power_check"/, 'powerSpec'],
   [/^Not an e-mail address: (.+)$/, 'email'],
   [/^Several contacts are called (.+?): add their tax numbers/, 'sameContact'],
   [/^The e-mail address is missing/, 'emailMissing'],

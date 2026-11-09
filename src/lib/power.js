@@ -108,7 +108,7 @@ export function outputsOf(list) {
 
 // The item form's fields ↔ the row saved (strings in the form, numbers or null in the row)
 export function electricalForm(item) {
-  const v = k => (item?.[k] ?? '') === null ? '' : String(item?.[k] ?? '')
+  const v = k => (item?.[k] == null ? '' : String(item[k]))
   const spec = distroSpecOf(item?.distro)
   return {
     power_typical_w: v('power_typical_w'), power_factor: v('power_factor'), inrush_a: v('inrush_a'),
@@ -559,4 +559,19 @@ export function fixtureShare(power, fixtures) {
     watts: plan.total.watts, count: loads.length, unknown: plan.total.unknown, unplugged: plan.unplugged.count,
     state: stateOf(Math.max(...plan.supply.amps) / supply.amps),
   }
+}
+
+// An item's electrical fields as [label, value] rows for its page (empty values are left out there)
+export function electricalFacts(item, t) {
+  const n = v => (v == null ? '' : String(Number(v)))
+  const spec = distroSpecOf(item.distro)
+  return [
+    [t('power.field.power_typical_w'), item.power_typical_w != null ? `${item.power_typical_w} W` : ''],
+    [t('power.field.power_factor'), n(item.power_factor)],
+    [t('power.field.inrush_a'), item.inrush_a != null ? `${n(item.inrush_a)} A` : ''],
+    [t('power.datasheetAmps'), item.current_a != null ? t('power.ampsAtVolts', { a: n(item.current_a), v: item.current_v }) : ''],
+    [t('power.field.connector_in'), item.connector_in ? t(`power.conn.${item.connector_in}`) : ''],
+    [t('power.field.connector_out'), item.connector_out ? t(`power.conn.${item.connector_out}`) : ''],
+    [t('power.itemOutputs'), spec ? spec.outputs.map((o, i) => `${o.label || t('power.outputN', { n: i + 1 })}: ${t(`power.conn.${o.connector}`)} ${o.phase}${o.breaker_a ? ` ${o.breaker_a} A` : ''}${o.rcd_ma ? ` RCD ${o.rcd_ma} mA` : ''}`).join(' · ') : ''],
+  ]
 }
