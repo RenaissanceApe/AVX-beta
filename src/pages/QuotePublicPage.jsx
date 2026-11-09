@@ -74,6 +74,17 @@ function Answer({ token, lang, data, onAnswered }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
+  // Cancelled by the company (quote bin, issue 124): shown, but no longer answerable
+  if (data.state === 'cancelled') {
+    return (
+      <div className="no-print" style={{ ...bar, borderColor: '#ccc' }}>
+        <strong style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <X size={16} color="#B91C1C" /> {tr('publicQuote.cancelled', { org: data.org?.name || '' })}
+        </strong>
+      </div>
+    )
+  }
+
   if (data.state === 'accepted' || data.state === 'declined') {
     const accepted = data.state === 'accepted'
     return (
@@ -98,6 +109,7 @@ function Answer({ token, lang, data, onAnswered }) {
     setBusy(false)
     if (res.error) {
       if (res.error === 'already_answered') return setError(tr('publicQuote.alreadyAnswered'))
+      if (res.error === 'cancelled') return onAnswered({ state: 'cancelled' })
       return setError(tr('publicQuote.failed'))
     }
     onAnswered(res)

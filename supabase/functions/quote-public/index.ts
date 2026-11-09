@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
     global: { fetch: fetchWithTimeout }, auth: { persistSession: false },
   })
   const { data: share, error: shareError } = await admin.from('quote_shares')
-    .select('id, quote_id, org_id, status, expires_at, viewed_at, responded_at, responder_name, created_by, quote_versions(snapshot), quotes(number, title, created_by, removed_at)')
+    .select('id, quote_id, org_id, status, expires_at, viewed_at, responded_at, responder_name, created_by, quote_versions(snapshot), quotes(number, title, created_by, removed_at, status)')
     .eq('token_hash', await sha256Hex(token)).maybeSingle()
   // Slow, not missing: the page says something went wrong rather than "link not found"
   if (isTimeout(shareError)) {
@@ -83,15 +83,17 @@ Deno.serve(async (req) => {
   const expired = share.status === 'open' && new Date(share.expires_at).getTime() < Date.now()
   if (expired) return json({ state: 'expired', org: { name: org?.name ?? '', email: org?.email ?? '' } }, 410, origin)
 
-  const quote = share.quotes as { number: number; title: string; created_by: string | null } | null
+  const quote = share.quotes as { number: number; title: string; created_by: string | null; status: string } | null
   const snapshot = (share.quote_versions as { snapshot: Record<string, unknown> } | null)?.snapshot
   if (!quote || !snapshot) return json({ state: 'not_found' }, 404, origin)
+  // A cancelled quote (quote bin, #124) is shown as cancelled and can no longer be answered
+  const cancelled = quote.status === 'cancelled'
 
   if (action === 'view') {
     if (!share.viewed_at) await admin.from('quote_shares').update({ viewed_at: new Date().toISOString() }).eq('id', share.id)
     const { data: branding } = await admin.from('org_branding').select('header_image, brand_color').eq('org_id', share.org_id).maybeSingle()
     return json({
-      state: share.status,
+      state: cancelled ? 'cancelled' : share.status,
       quote: { ...snapshot, number: snapshot.number ?? quote.number },
       org: org ?? {},
       branding: branding ?? {},
@@ -105,6 +107,7 @@ Deno.serve(async (req) => {
   const name = clean(body.name, 200)
   const note = clean(body.note, 1000)
   if (!name) return json({ error: 'name_required' }, 400, origin)
+  if (cancelled) return json({ state: 'cancelled', error: 'cancelled' }, 409, origin)
   if (share.status !== 'open') return json({ state: share.status, error: 'already_answered' }, 409, origin)
 
   const status = action === 'accept' ? 'accepted' : 'declined'

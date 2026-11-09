@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft, Printer, Copy, LayoutTemplate, Trash2, Plus, CalendarPlus, ExternalLink, AlertTriangle, Download,
-  History, Send, ListChecks, Package,
+  History, Send, ListChecks, Package, Ban,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { selectAll } from '../lib/selectAll'
@@ -292,6 +292,23 @@ export default function QuoteEditorPage() {
     navigate(`/org/${quote.org_id}/quotes`, { replace: true })
   }
 
+  // A sent or accepted quote is cancelled instead of deleted (owner's decision on issue 124).
+  // Nothing else changes: its gig, crew, equipment and invoices stay as they are.
+  function cancelQuote() {
+    if (!window.confirm(t('quote.confirmCancel', { number: quoteNumber(quote, prefix), title: quote.title }))) return
+    flushThen(async () => {
+      const { data, error } = await supabase.rpc('cancel_quote', { p_quote: id })
+      if (error) return notify(userMessage(error), 'error')
+      version.current = data
+      setQuote(q => {
+        const next = { ...q, status: 'cancelled', lost_reason: null, lost_note: null }
+        latest.current.quote = next
+        return next
+      })
+      notify(t('quote.cancelledDone'), 'success')
+    })
+  }
+
   async function createGig() {
     const { start, end } = quoteDateRange(body)
     const { data, error } = await supabase.from('gigs').insert({
@@ -334,7 +351,9 @@ export default function QuoteEditorPage() {
     { label: t('quoteVersions.button'), icon: <History size={15} aria-hidden="true" />, onClick: () => setModal({ kind: 'versions' }) },
     { label: t('quote.duplicate'), icon: <Copy size={15} aria-hidden="true" />, onClick: duplicateQuote },
     { label: t('quote.saveAsTemplate'), icon: <LayoutTemplate size={15} aria-hidden="true" />, onClick: () => setModal({ kind: 'saveTemplate', body, name: quote.title }) },
-    ...(canDelete ? [{ label: t('common.delete'), icon: <Trash2 size={15} aria-hidden="true" color={colors.danger} />, onClick: deleteQuote }] : []),
+    // Only a draft is deleted (to Recently deleted); a sent or accepted quote is cancelled
+    ...(canDelete && quote.status === 'draft' ? [{ label: t('common.delete'), icon: <Trash2 size={15} aria-hidden="true" color={colors.danger} />, onClick: deleteQuote }] : []),
+    ...(canDelete && ['sent', 'accepted'].includes(quote.status) ? [{ label: t('quote.cancel'), icon: <Ban size={15} aria-hidden="true" color={colors.danger} />, onClick: cancelQuote }] : []),
   ]
 
   return (
@@ -348,7 +367,8 @@ export default function QuoteEditorPage() {
             <input value={quote.title} onChange={e => updateQuote({ title: e.target.value })} aria-label={t('quotes.quoteTitle')} maxLength={200}
               style={{ ...input, flex: '1 1 220px', fontFamily: 'var(--font-mono)', fontSize: '20px', fontWeight: 700, background: 'transparent', border: '1px solid transparent', padding: '6px 8px' }} />
             <select value={quote.status} onChange={e => changeStatus(e.target.value)} aria-label={t('quotes.status')} style={{ ...input, width: 'auto', padding: '7px 10px', cursor: 'pointer' }}>
-              {QUOTE_STATUSES.map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
+              {/* "Cancelled" is set only by ⋯ → Cancel quote; it shows here only on a cancelled quote */}
+              {QUOTE_STATUSES.filter(s => s !== 'cancelled' || quote.status === 'cancelled').map(s => <option key={s} value={s}>{t(`quoteStatus.${s}`)}</option>)}
             </select>
             {quote.status === 'declined' && (
               <button onClick={() => setModal({ kind: 'lost' })} style={{ ...btnGhost, padding: '7px 10px' }}>

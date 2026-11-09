@@ -1,5 +1,7 @@
--- Quote bin (#124): "Delete" on a quote now moves it to Recently deleted for 15 days instead of
--- erasing it at once. Written without destructive statements; only adds.
+-- Quote bin (#124), part 2 (after 20270102000000_quote_cancelled_status.sql, applied by hand):
+-- "Delete" on a draft quote now moves it to Recently deleted for 15 days instead of erasing it at
+-- once; a sent or accepted quote is cancelled instead (owner's decision, 2026-11-09). Written
+-- without destructive statements; only adds.
 --
 -- - quotes.removed_at / removed_by: when and by whom a quote was put in the bin.
 -- - quotes_select hides quotes in the bin, so every list, search, count and report that runs as
@@ -10,8 +12,11 @@
 --   (quote cards in chat), private.guest_resolve (the client's chat on a quote link) and
 --   public.clients_from_quotes.
 -- - public.remove_quote(id) / public.restore_quote(id): the same people as before (an organisation
---   admin or the quote's author). public.removed_quotes(org): the bin, only the quotes the reader
---   may restore.
+--   admin or the quote's author), drafts only. public.removed_quotes(org): the bin, only the quotes
+--   the reader may restore.
+-- - public.cancel_quote(id): a sent or accepted quote becomes "cancelled" (same people). Nothing else
+--   changes: its gig, crew, equipment and invoices stay. Only this function moves a quote to
+--   cancelled (private.quotes_cancel_guard); the status menu can still move it back.
 -- - private.erase_removed_quotes(): erases for good what has been in the bin for more than
 --   15 days; pg_cron runs it every night. Versions and client links go with the quote (as before);
 --   crew positions, gig equipment and invoices keep their rows without the link.
@@ -289,12 +294,17 @@ grant execute on function private.can_remove_quote(uuid, uuid) to authenticated;
 
 create or replace function public.remove_quote(p_quote uuid) returns void
 language plpgsql volatile security definer set search_path = '' as $$
-declare v_org uuid; v_by uuid;
+declare v_org uuid; v_by uuid; v_status text;
 begin
   perform private.require_mfa();
-  select q.org_id, q.created_by into v_org, v_by from public.quotes q where q.id = p_quote and q.removed_at is null for update;
+  select q.org_id, q.created_by, q.status into v_org, v_by, v_status
+    from public.quotes q where q.id = p_quote and q.removed_at is null for update;
   if v_org is null or not private.can_remove_quote(v_org, v_by) then
     raise exception 'Not allowed' using errcode = '42501';
+  end if;
+  -- Only a draft goes to the bin; a sent or accepted quote is cancelled instead
+  if v_status <> 'draft' then
+    raise exception 'quote:onlyDraftDeletes' using errcode = '22023';
   end if;
   update public.quotes set removed_at = now(), removed_by = auth.uid() where id = p_quote;
 end $$;
@@ -332,6 +342,44 @@ begin
 end $$;
 revoke execute on function public.removed_quotes(uuid) from public, anon;
 grant execute on function public.removed_quotes(uuid) to authenticated;
+
+-- ── Cancelling a sent or accepted quote ──────────────────────────────────────
+-- Only cancel_quote moves a quote to "cancelled" (it sets avx.cancel_quote for its own update);
+-- editing a cancelled quote, or moving it back with the status menu, stays possible.
+create or replace function private.quotes_cancel_guard() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  if new.status = 'cancelled' and (tg_op = 'INSERT' or old.status is distinct from 'cancelled')
+     and coalesce(current_setting('avx.cancel_quote', true), '') <> 'on' then
+    raise exception 'quote:useCancel' using errcode = '42501';
+  end if;
+  return new;
+end $$;
+revoke execute on function private.quotes_cancel_guard() from public, anon, authenticated;
+create or replace trigger quotes_cancel_guard before insert or update of status on public.quotes
+  for each row execute function private.quotes_cancel_guard();
+
+-- Returns the quote's new edit counter, so an open editor keeps saving without a conflict
+create or replace function public.cancel_quote(p_quote uuid) returns integer
+language plpgsql volatile security definer set search_path = '' as $$
+declare v_org uuid; v_by uuid; v_status text; v_version integer;
+begin
+  perform private.require_mfa();
+  select q.org_id, q.created_by, q.status into v_org, v_by, v_status
+    from public.quotes q where q.id = p_quote and q.removed_at is null for update;
+  if v_org is null or not private.can_remove_quote(v_org, v_by) then
+    raise exception 'Not allowed' using errcode = '42501';
+  end if;
+  if v_status not in ('sent', 'accepted') then
+    raise exception 'quote:onlySentCancels' using errcode = '22023';
+  end if;
+  perform set_config('avx.cancel_quote', 'on', true);
+  update public.quotes set status = 'cancelled' where id = p_quote returning version into v_version;
+  perform set_config('avx.cancel_quote', 'off', true);
+  return v_version;
+end $$;
+revoke execute on function public.cancel_quote(uuid) from public, anon;
+grant execute on function public.cancel_quote(uuid) to authenticated;
 
 -- ── The nightly clean-up ─────────────────────────────────────────────────────
 -- Erases quotes that have been in the bin for more than 15 days. Returns how many.

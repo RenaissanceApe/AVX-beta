@@ -184,6 +184,21 @@ test('a deleted quote waits in Recently deleted and can be restored', async ({ p
   await expect(page.getByText('Nothing in Recently deleted')).toBeVisible()
   await page.getByRole('button', { name: 'Back to quotes' }).click()
   await expect(page.getByRole('button', { name: new RegExp(title) })).toBeVisible()
+
+  // Only a draft can be deleted: once sent, the ⋯ menu offers Cancel quote instead of Delete
+  await page.getByRole('button', { name: new RegExp(title) }).click()
+  await expect(page).toHaveURL(/\/quote\/[0-9a-f-]{36}$/, { timeout: 15_000 })
+  await page.getByRole('combobox', { name: 'Status' }).selectOption('sent')
+  await expect(page.getByRole('status').filter({ hasText: /^\s*Saved\s*$/ })).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('button', { name: 'More actions', exact: true }).click()
+  await expect(page.getByRole('menuitem', { name: 'Delete' })).toHaveCount(0)
+  page.once('dialog', d => d.accept())
+  await page.getByRole('menuitem', { name: 'Cancel quote' }).click()
+  await expect(page.getByText('Quote cancelled.')).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Status' })).toHaveValue('cancelled')
+  // It stays in the list, shown as Cancelled
+  await page.getByRole('button', { name: 'Back to quotes' }).click()
+  await expect(page.getByRole('button', { name: new RegExp(title) })).toContainText('Cancelled')
 })
 
 test('a gig opened before stays readable offline', async ({ page, context }) => {

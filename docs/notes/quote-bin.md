@@ -1,64 +1,76 @@
-# quote-bin: Recently deleted for quotes (#124)
+# quote-bin: Recently deleted for quotes, and cancelling sent ones (#124)
 
 ## Changelog
 #### Added
-- **Quotes → Recently deleted:** deleting a quote no longer erases it at once. It moves to Recently
-  deleted (Quotes page, header button or ⋯ menu on a phone) for 15 days, with an **Undo** on the
-  message. While it is there it counts nowhere: not in lists, search, counts, reports, gig finance or
-  chat, and its client link shows "not found". **Restore** brings it back as it was, with its
-  versions, client links and number. After 15 days a nightly clean-up erases it for good.
-- Help: the term "Recently deleted", a ⓘ hint on the bin, and a line in the guide "Build a quote in
-  phases".
+- **Quotes → Recently deleted:** deleting a draft quote no longer erases it at once. It moves to
+  Recently deleted (Quotes page, header button or ⋯ menu on a phone) for 15 days, with an **Undo**
+  on the message. While it is there it counts nowhere: not in lists, search, counts, reports, gig
+  finance or chat, and its client link shows "not found". **Restore** brings it back as it was,
+  with its versions, client links and number. After 15 days a nightly clean-up erases it for good.
+- **Cancel quote:** a sent or accepted quote can't be deleted any more; ⋯ → **Cancel quote**
+  marks it **Cancelled** instead. It stays in the list (with its own filter), stops counting as
+  waiting, in the win rate and in revenue, and the client's link shows it as cancelled with no
+  accept button. Its gig, crew, equipment and invoices stay as they are.
+- Help: the term "Recently deleted", a ⓘ hint on the bin, and two lines in the guide "Build a quote
+  in phases".
 
 #### Changed
 - The delete question on a quote now says where the quote goes ("…goes to Quotes → Recently
   deleted, where you can restore it for 15 days"), and the message after it says "Quote moved to
   Recently deleted."
-- Who may delete a quote is unchanged (an admin, or whoever made it); the same people may restore it.
+- Who may delete or cancel a quote is the same as who could delete one before: an admin, or whoever
+  made it. The same people may restore it.
 
 #### For developers
-- Migration `20270102000000_quote_bin.sql`: `quotes.removed_at` / `removed_by`; `quotes_select`,
+- `20270102000000_quote_cancelled_status.sql` (applied by hand): `quotes.status` gains `cancelled`.
+- `20270102000001_quote_bin.sql`: `quotes.removed_at` / `removed_by`; `quotes_select`,
   `quotes_insert` and `quotes_update` skip or refuse removed quotes; the app's direct delete right on
-  `quotes` is revoked; RPCs `remove_quote`, `restore_quote`, `removed_quotes`; nightly
-  `private.erase_removed_quotes()` (pg_cron `avx-quote-bin`, 03:41 UTC). Readers that don't run as
-  the reader got the filter by hand: `private.report_quote_lines`, `public.gig_finance`,
-  `private.can_see_card`, `private.guest_resolve`, `public.clients_from_quotes`.
-- Edge Function `quote-public` answers "not found" for a quote in the bin.
+  `quotes` is revoked; RPCs `remove_quote` (drafts only), `restore_quote`, `removed_quotes`,
+  `cancel_quote` (sent or accepted); trigger `quotes_cancel_guard` (only `cancel_quote` sets
+  cancelled); nightly `private.erase_removed_quotes()` (pg_cron `avx-quote-bin`, 03:41 UTC).
+  Readers that don't run as the reader got the bin filter by hand: `private.report_quote_lines`,
+  `public.gig_finance`, `private.can_see_card`, `private.guest_resolve`,
+  `public.clients_from_quotes`. Reports needed no change for cancelled: they already count only
+  `sent` (waiting), `accepted` (revenue) and `accepted`/`declined` (win rate).
+- Edge Function `quote-public`: "not found" for a quote in the bin; `state: 'cancelled'` (no
+  answering) for a cancelled one.
+- Errors from the bin and cancel functions come as `quote:<code>` and show `quote.error.<code>`.
 - Test: `supabase/tests/quote_bin.sql`; e2e: "a deleted quote waits in Recently deleted and can be
-  restored".
+  restored" (also: a sent quote has no Delete, and Cancel quote works).
 
 ## Roadmap
-Nothing to mark: a fix from issue #124 (owner's decision: a 15-day bin), not a ROADMAP step.
+Nothing to mark: a fix from issue #124 (owner's decisions: a 15-day bin; only drafts deletable,
+sent and accepted quotes cancelled), not a ROADMAP step.
 
 ## Production steps (in this order, after the owner's yes)
-1. Apply `supabase/migrations/20270102000000_quote_bin.sql` to production (`otmulrlslecgyezpcqxy`).
-   pg_cron is already installed there; `cron.schedule('avx-quote-bin', …)` replaces a job of the same
-   name, so it is safe to run twice.
-2. Compare `md5(prosrc)` on test and production for: `public.gig_finance`, `private.can_see_card`,
+1. **By hand** in the SQL editor: `supabase/migrations/20270102000000_quote_cancelled_status.sql`
+   (it replaces a check constraint, which the connector may not run).
+2. Apply `supabase/migrations/20270102000001_quote_bin.sql`. pg_cron is already installed;
+   `cron.schedule('avx-quote-bin', …)` replaces a job of the same name, so it is safe to run twice.
+3. Compare `md5(prosrc)` on test and production for: `public.gig_finance`, `private.can_see_card`,
    `private.guest_resolve`, `public.clients_from_quotes`, `private.can_remove_quote`,
-   `public.remove_quote`, `public.restore_quote`, `public.removed_quotes`,
-   `private.erase_removed_quotes`.
-3. Deploy the Edge Function `quote-public` (JWT verification stays **off**, as now).
-   Until step 3 is done, a client link to a quote in the bin still opens the quote's page on
-   production (accepting it would set the status of a quote nobody sees); the client chat on it is
-   already closed by step 1.
+   `public.remove_quote`, `public.restore_quote`, `public.removed_quotes`, `public.cancel_quote`,
+   `private.quotes_cancel_guard`, `private.erase_removed_quotes`.
+4. Deploy the Edge Function `quote-public` (JWT verification stays **off**, as now). Until then, a
+   client link to a quote in the bin or a cancelled quote still opens the quote's page on
+   production.
 
 ## Pending: test lines (section 2)
-- Quotes: open a quote → ⋯ → Delete → OK. It leaves the list and the message offers Undo. Quotes →
+- Quotes: open a draft → ⋯ → Delete → OK. It leaves the list and the message offers Undo. Quotes →
   Recently deleted lists it with "Erased for good on <date>" (15 days later). Restore: it is back in
   the list with its versions. As a member, someone else's deleted quote is not in your bin.
-- Send a quote to yourself, delete it, open the client link: "not found". Restore it: the link works
-  again.
-- A gig with an accepted quote: delete the quote, the gig's revenue (Gig → Overview → Gig finance
-  and Reports) drops; restore it, the revenue is back.
+- A sent or accepted quote: ⋯ has no Delete, but Cancel quote. Cancel it: it shows Cancelled in the
+  list, its gig is unchanged, its client link says it was cancelled (no accept button), and it no
+  longer counts in Reports → Sales (waiting, win rate) or in the gig's revenue.
+- A gig with an accepted quote: cancel the quote and the gig's revenue drops; set the status back
+  to Accepted and it returns.
 
 ## Pending: new questions (section 3)
-- **Should sent or accepted quotes be deletable at all?** The Dispatcher suggested only drafts can
-  be deleted, while sent or accepted ones are cancelled instead. Built meanwhile: the bin works for
-  every status, with the old rule about who may delete (admin or author). Restricting it later is a
-  small change in `public.remove_quote` and the ⋯ menu.
-- **Organisation export:** a quote in the bin is still included in Settings → Export data (it is
-  the organisation's data until it is erased). Say if the export should leave it out.
+- **Declined quotes** can be neither deleted nor cancelled (as decided). Say if they should be
+  deletable too.
+- **The status menu still moves any quote to any status but Cancelled.** So an accepted quote can
+  be set back to Draft and then deleted, and a cancelled one can be reopened. Kept on purpose so
+  mistakes can be undone; say if a sent or accepted quote should never go back to Draft.
 
 ## Session prompt
 none (issue #124)

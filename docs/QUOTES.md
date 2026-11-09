@@ -49,8 +49,13 @@ client is saved as a version automatically.
 
 ## Recently deleted (the quote bin)
 
-**Delete** (quote ⋯ menu) moves a quote to **Quotes → Recently deleted** instead of erasing it, with
-an **Undo** on the message. While it waits there it counts nowhere: lists, search, counts, reports,
+Only a **draft** can be deleted. **Delete** (quote ⋯ menu) moves it to **Quotes → Recently deleted**
+instead of erasing it, with an **Undo** on the message. A **sent or accepted** quote is cancelled
+instead (⋯ → **Cancel quote**, `public.cancel_quote`): it stays in the list as Cancelled, counts
+nowhere (not waiting, not in the win rate, not in revenue), its client link shows it as cancelled
+with no answer buttons, and its gig, crew, equipment and invoices stay as they are. Only Cancel
+quote sets that status (`private.quotes_cancel_guard`); the status menu can move it back. A
+declined quote can be neither deleted nor cancelled. While it waits there it counts nowhere: lists, search, counts, reports,
 gig finance, chat cards and the client's link (which shows "not found"). **Restore** brings it back
 as it was, with its versions, client links and number. Fifteen days after it was deleted, a nightly
 clean-up in the database (`private.erase_removed_quotes`, pg_cron job `avx-quote-bin`) erases it for
@@ -60,7 +65,8 @@ without the link.
 Who may delete and restore is unchanged: an admin, or the quote's author. Each person's bin lists
 only the quotes they may restore. Technically: `quotes.removed_at`/`removed_by`, the `quotes_select`
 policy hides removed rows, and the RPCs `remove_quote`, `restore_quote` and `removed_quotes` do the
-rest (migration `20270102000000_quote_bin.sql`, test `supabase/tests/quote_bin.sql`).
+rest (migrations `20270102000000_quote_cancelled_status.sql`, applied by hand, and
+`20270102000001_quote_bin.sql`; test `supabase/tests/quote_bin.sql`).
 
 ## Sending it to the client
 
