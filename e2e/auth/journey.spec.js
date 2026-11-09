@@ -536,6 +536,10 @@ test('the power plan report opens, labelled as an estimate', async ({ page }) =>
   await expect(page.getByText(/for a qualified electrician to check/)).toBeVisible()
   await expect(page.getByRole('heading', { name: 'How these figures are worked out' })).toBeVisible()
   await expectAccessible(page)
+  // P2: the distro and cable labels open, empty while the plan has no cables
+  await page.goto(`${gigUrl}/power/labels`)
+  await expect(page.getByText('No cables in the power plan yet.')).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
 })
 
 test('the logo goes home and the workspace switcher lists My work and the organisation', async ({ page }) => {

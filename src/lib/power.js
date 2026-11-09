@@ -214,7 +214,8 @@ export const figuresMap = power => (power?.figures && typeof power.figures === '
 // ── Loads ─────────────────────────────────────────────────────────────────────
 // Every load the gig has: fixtures (light plot and DMX patch), the sound system's sources, the
 // gig's powered equipment not already counted as a fixture or a source, and loads typed by hand.
-// Each: { key, kind, name, qty, watts (total, null when unknown), va (total), pf, fromAmps, three }
+// Each: { key, kind, name, qty, watts (total, null when unknown), va (total), pf, fromAmps, three,
+//        inrush (total peak amps at switch-on from the datasheet, null when it gives none; P2) }
 export function gatherLoads({ fixtures = [], sources = [], equipment = [], manual = [], figures = {} }) {
   const loads = []
   const used = {} // item id → how many are already loads
@@ -230,6 +231,11 @@ export function gatherLoads({ fixtures = [], sources = [], equipment = [], manua
     }
     return null
   }
+  // P2: the datasheet's inrush (peak amps at switch-on) × how many, or null when it gives none
+  const inrushOf = (itemId, qty) => {
+    const f = itemId ? figures[itemId] : null
+    return f?.in != null ? f.in * qty : null
+  }
   for (const fx of fixtures) {
     if (!fx?.id) continue
     if (fx.item_id) used[fx.item_id] = (used[fx.item_id] || 0) + 1
@@ -242,7 +248,7 @@ export function gatherLoads({ fixtures = [], sources = [], equipment = [], manua
       key: `fx:${fx.id}`, kind: 'fixture', name: fx.name || fx.fixture_type || '—',
       detail: [fx.fixture_type && fx.fixture_type !== fx.name ? fx.fixture_type : '', fx.position].filter(Boolean).join(' · '),
       qty: 1, item_id: fx.item_id || null,
-      ...(base || { watts: null, va: 0, pf: null, fromAmps: false, three: false }), unknown: !base,
+      ...(base || { watts: null, va: 0, pf: null, fromAmps: false, three: false }), unknown: !base, inrush: inrushOf(fx.item_id, 1),
     })
   }
   for (const s of sources) {
@@ -252,7 +258,7 @@ export function gatherLoads({ fixtures = [], sources = [], equipment = [], manua
     const base = fromItem(s.item_id, qty)
     loads.push({
       key: `sp:${s.id}`, kind: 'speaker', name: s.name || '—', detail: s.item_name || '', qty, item_id: s.item_id || null,
-      ...(base || { watts: null, va: 0, pf: null, fromAmps: false, three: false }), unknown: !base,
+      ...(base || { watts: null, va: 0, pf: null, fromAmps: false, three: false }), unknown: !base, inrush: inrushOf(s.item_id, qty),
     })
   }
   for (const line of equipment) {
@@ -263,13 +269,13 @@ export function gatherLoads({ fixtures = [], sources = [], equipment = [], manua
     const base = fromItem(line.item_id, qty)
     loads.push({
       key: `eq:${line.item_id}`, kind: 'equipment', name: line.item_name || f.name || '—', detail: line.category || '', qty, item_id: line.item_id,
-      ...(base || { watts: null, va: 0, pf: null, fromAmps: false, three: false }), unknown: !base,
+      ...(base || { watts: null, va: 0, pf: null, fromAmps: false, three: false }), unknown: !base, inrush: inrushOf(line.item_id, qty),
     })
   }
   for (const m of manual) {
     loads.push({
       key: `m:${m.id}`, kind: 'manual', name: m.name, detail: '', qty: m.qty, item_id: null,
-      watts: m.watts * m.qty, va: (m.watts / (m.pf || 1)) * m.qty, pf: m.pf, fromAmps: false, three: m.three, unknown: false,
+      watts: m.watts * m.qty, va: (m.watts / (m.pf || 1)) * m.qty, pf: m.pf, fromAmps: false, three: m.three, unknown: false, inrush: null,
     })
   }
   return loads

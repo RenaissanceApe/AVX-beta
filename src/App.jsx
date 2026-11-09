@@ -55,6 +55,7 @@ const PatchSheetPage = lazy(() => import('./pages/PatchSheetPage'))
 const LightPlotPage = lazy(() => import('./pages/LightPlotPage'))
 const SystemCalcPage = lazy(() => import('./pages/SystemCalcPage'))
 const PowerPage = lazy(() => import('./pages/PowerPage'))
+const PowerLabelsPage = lazy(() => import('./pages/PowerLabelsPage'))
 const RehearsalReportPage = lazy(() => import('./pages/RehearsalReportPage'))
 const PocketToolsPage = lazy(() => import('./pages/PocketToolsPage'))
 const MyTasksPage = lazy(() => import('./pages/MyTasksPage'))
@@ -154,6 +155,7 @@ function AppRoutes() {
       <Route path="/gig/:id/lights" element={<ProtectedRoute><Suspense fallback={<Spinner />}><LightPlotPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/system" element={<ProtectedRoute><Suspense fallback={<Spinner />}><SystemCalcPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/power" element={<ProtectedRoute><Suspense fallback={<Spinner />}><PowerPage /></Suspense></ProtectedRoute>} />
+      <Route path="/gig/:id/power/labels" element={<ProtectedRoute><Suspense fallback={<Spinner />}><PowerLabelsPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/rehearsal/:session" element={<ProtectedRoute><Suspense fallback={<Spinner />}><RehearsalReportPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/wrapup" element={<ProtectedRoute><Suspense fallback={<Spinner />}><GigWrapupPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/callsheet" element={<ProtectedRoute><CallSheetPage /></ProtectedRoute>} />
