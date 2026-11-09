@@ -273,12 +273,13 @@ export function hoistCheck(kg, m, overPeople, factor) {
 
 // What the light plot shows for a bar: 'none' (nothing with a weight on it), 'notChecked',
 // 'checked', or 'over' (overloaded, whether checked or not), with the highest use of a WLL
-export function barRigging(bar, bars, fixtures, rigging, models) {
+// loadsFor(lineId): extra point loads on a line from elsewhere (line arrays hung from it, RG3)
+export function barRigging(bar, bars, fixtures, rigging, models, loadsFor = () => []) {
   const onBar = fixturesOnBar(bar, bars, fixtures)
   if (!onBar.some(f => f.kg > 0)) return { state: 'none' }
   const line = linesOf(rigging).find(l => l.bar_id === bar.id)
   if (!line) return { state: 'notChecked', lineId: null }
-  const a = analyseLine(line, { bar, onBar, models, settings: settingsOf(rigging) })
+  const a = analyseLine({ ...line, loads: [...line.loads, ...loadsFor(line.id)] }, { bar, onBar, models, settings: settingsOf(rigging) })
   if (a.over) return { state: 'over', lineId: line.id, maxUse: a.maxUse }
   if (!line.checked || line.checked.fingerprint !== fingerprint(bar, onBar)) return { state: 'notChecked', lineId: line.id }
   return { state: 'checked', lineId: line.id, maxUse: a.maxUse }

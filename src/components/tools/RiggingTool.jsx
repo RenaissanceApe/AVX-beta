@@ -7,6 +7,9 @@ import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
 import { barsOf } from '../../lib/lightPlot'
+import { sourcesOf } from '../../lib/systemCalc'
+import { selectAll } from '../../lib/selectAll'
+import { arraysOf, arrayLoadsOnLine } from '../../lib/lineArray'
 import {
   LIMITS, HOIST_CLASSES, OVER_PEOPLE, settingsOf, linesOf, fixturesOnBar, fingerprint, defaultPoints,
   analyseLine, nextLineName, modelsById, hoistCopy,
@@ -15,6 +18,8 @@ import { t, fmt } from '../../i18n'
 import { btn, btnPrimary, iconBtn, input, label, card, colors, AvxLoader, Modal } from '../ui'
 import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
+import { NumberField, TextField, Check } from './RigFields'
+import LineArrays from './LineArrays'
 
 const FIXTURE_FIELDS = 'id, name, position, universe, address, plot_x, plot_y, weight_kg'
 const MODEL_FIELDS = 'id, org_id, brand, model, class, wll_kg, falls, self_weight_kg, chain_kg_m, speed_m_min, source, source_date, notes, needs_check, removed_at'
@@ -28,7 +33,7 @@ const uid = p => `${p}${Date.now().toString(36)}${Math.random().toString(36).sli
 export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
   const { notify } = useToast()
   const [params, setParams] = useSearchParams()
-  const [show, setShow] = useState(null) // { lighting, rigging }
+  const [show, setShow] = useState(null) // { lighting, rigging, system }
   const [fixtures, setFixtures] = useState([])
   const [models, setModels] = useState([])
   const [savedAt, setSavedAt] = useState(null)
@@ -37,13 +42,13 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
 
   const load = useCallback(async () => {
     const [s, f, m] = await Promise.all([
-      supabase.from('gig_show').select('lighting, rigging').eq('gig_id', gig.id).maybeSingle(),
+      supabase.from('gig_show').select('lighting, rigging, system').eq('gig_id', gig.id).maybeSingle(),
       supabase.from('gig_fixtures').select(FIXTURE_FIELDS).eq('gig_id', gig.id),
       supabase.from('hoist_models').select(MODEL_FIELDS).is('removed_at', null).order('brand').order('model'),
     ])
     if (s.error && isNetworkError(s.error)) {
       const snap = loadSnapshot(`rigging.${gig.id}`)
-      setShow(snap?.data?.show || { lighting: {}, rigging: {} })
+      setShow(snap?.data?.show || { lighting: {}, rigging: {}, system: {} })
       setFixtures(snap?.data?.fixtures || [])
       setModels(snap?.data?.models || [])
       setSavedAt(snap?.savedAt || null)
@@ -52,7 +57,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
     if (s.error) logger.error('rigging', s.error, { step: 'load' })
     if (f.error) logger.warn('rigging', f.error, { step: 'fixtures' })
     if (m.error) logger.warn('rigging', m.error, { step: 'models' })
-    const next = { show: { lighting: s.data?.lighting || {}, rigging: s.data?.rigging || {} }, fixtures: f.data || [], models: m.data || [] }
+    const next = { show: { lighting: s.data?.lighting || {}, rigging: s.data?.rigging || {}, system: s.data?.system || {} }, fixtures: f.data || [], models: m.data || [] }
     setShow(next.show)
     setFixtures(next.fixtures)
     setModels(next.models)
@@ -65,6 +70,32 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
   const settings = useMemo(() => settingsOf(show?.rigging), [show])
   const lines = useMemo(() => linesOf(show?.rigging), [show])
   const byId = useMemo(() => modelsById(models), [models])
+  const arrays = useMemo(() => arraysOf(show?.rigging), [show])
+  const sources = useMemo(() => sourcesOf(show?.system), [show])
+  // Speakers in the organisation's catalogue (A1) that can be array elements, with their rigging
+  // data and its check (RG3). Only editors who can read the catalogue get them.
+  const [speakers, setSpeakers] = useState([])
+  useEffect(() => {
+    if (!canEdit || !canPlanEquipment || !gig.org_id) return
+    selectAll(() => supabase.from('price_items').select('id, name, speaker_type, speaker_preset, weight_kg, rigging')
+      .eq('org_id', gig.org_id).in('speaker_type', ['line_array', 'subwoofer']).is('archived_at', null).order('name').order('id'))
+      .then(({ data, error }) => {
+        if (error) logger.warn('rigging', error, { step: 'speakers' })
+        setSpeakers(data || [])
+      })
+  }, [canEdit, canPlanEquipment, gig.org_id])
+  // How many of each item the gig's equipment holds, to compare with an array's element count
+  const [booked, setBooked] = useState({})
+  useEffect(() => {
+    if (!canEdit) return
+    supabase.from('gig_equipment').select('item_id, quantity').eq('gig_id', gig.id).not('item_id', 'is', null).limit(1000)
+      .then(({ data, error }) => {
+        if (error) return logger.warn('rigging', error, { step: 'booked' })
+        const out = {}
+        for (const l of data || []) out[l.item_id] = (out[l.item_id] || 0) + (Number(l.quantity) || 0)
+        setBooked(out)
+      })
+  }, [canEdit, gig.id])
   // Organisation models first, then the presets; only the gig's organisation's own and the presets
   const pickable = useMemo(() => models.filter(m => !m.org_id || m.org_id === gig.org_id), [models, gig.org_id])
 
@@ -173,7 +204,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
               const onBar = bar ? fixturesOnBar(bar, bars, fixtures) : []
               return (
                 <li key={line.id} ref={el => { lineRefs.current[line.id] = el }}>
-                  <LineCard line={line} bar={bar} lost={!!line.bar_id && !bar} onBar={onBar} settings={settings} models={byId} pickable={pickable}
+                  <LineCard line={line} bar={bar} arrayLoads={arrayLoadsOnLine(arrays, line.id, { models: byId, settings, lines })} lost={!!line.bar_id && !bar} onBar={onBar} settings={settings} models={byId} pickable={pickable}
                     canEdit={canEdit && !savedAt} onEdit={patch => editLine(line.id, patch)} onRemove={() => removeLine(line)} />
                 </li>
               )
@@ -181,6 +212,9 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
           </ul>
         )}
       </section>
+
+      <LineArrays rigging={show?.rigging} onSave={save} lines={lines} models={byId} pickable={pickable} settings={settings} speakers={speakers} sources={sources} booked={booked}
+        canEdit={canEdit && !savedAt} canReadCatalogue={canPlanEquipment && !!gig.org_id} />
 
       <section aria-labelledby="rig-models">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
@@ -225,8 +259,9 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
 const STATUS_ICON = { ok: CheckCircle2, near: AlertTriangle, over: AlertTriangle, uplift: AlertTriangle, noHoist: CircleHelp, noWll: CircleHelp, unknown: CircleHelp }
 const statusColour = s => (s === 'over' || s === 'uplift' ? colors.danger : s === 'near' ? colors.warn : s === 'ok' ? colors.accentText : colors.muted)
 
-function LineCard({ line, bar, lost, onBar, settings, models, pickable, canEdit, onEdit, onRemove }) {
-  const a = analyseLine(line, { bar, onBar, models, settings })
+function LineCard({ line, bar, lost, onBar, arrayLoads = [], settings, models, pickable, canEdit, onEdit, onRemove }) {
+  // Line arrays hung from this line (RG3) add their pick loads; they're edited in the array
+  const a = analyseLine({ ...line, loads: [...line.loads, ...arrayLoads] }, { bar, onBar, models, settings })
   const print = fingerprint(bar, onBar)
   const checked = bar && line.checked && line.checked.fingerprint === print
   const editPoint = (id, patch) => onEdit({ points: line.points.map(p => (p.id === id ? { ...p, ...patch } : p)) })
@@ -291,6 +326,12 @@ function LineCard({ line, bar, lost, onBar, settings, models, pickable, canEdit,
         <button type="button" onClick={() => onEdit({ loads: [...line.loads, { id: uid('x'), name: '', kg: 0, at_m: 0, to_m: null }] })} style={{ ...btn, padding: '6px 10px', marginTop: '8px' }}>
           <Plus size={14} /> {t('rig.addLoad')}
         </button>
+      )}
+
+      {arrayLoads.length > 0 && (
+        <ul style={{ listStyle: 'none', padding: 0, marginTop: '8px', fontSize: '13px', color: colors.soft }}>
+          {arrayLoads.map(x => <li key={x.id}>{t('la.onThisLine', { name: x.name, kg: x.kg, m: x.at_m })}</li>)}
+        </ul>
       )}
 
       <h5 style={{ ...label, marginTop: '12px', marginBottom: '4px' }}>{t('rig.points')}</h5>
@@ -380,40 +421,5 @@ function ModelForm({ onClose, onSave }) {
         </div>
       </form>
     </Modal>
-  )
-}
-
-// A number saved when the field is left, within its limits; `empty` lets it be cleared (null)
-function NumberField({ id, text, hint, value, range, step, disabled, placeholder, empty, onSave }) {
-  const [min, max] = range
-  return (
-    <div style={{ minWidth: '96px' }}>
-      {hint ? <HintLabel htmlFor={id} hint={hint}>{text}</HintLabel> : <label style={label} htmlFor={id}>{text}</label>}
-      <input id={id} type="number" min={min} max={max} step={step} defaultValue={value ?? ''} key={`${id}${value}`} disabled={disabled} placeholder={placeholder} style={input}
-        onBlur={e => {
-          if (e.target.value === '') { if (empty && value !== null) onSave(null); return }
-          const v = Math.min(max, Math.max(min, Number(e.target.value)))
-          if (Number.isFinite(v) && v !== value) onSave(v)
-        }} />
-    </div>
-  )
-}
-
-function TextField({ id, text, value, onSave }) {
-  return (
-    <div style={{ gridColumn: 'span 2' }}>
-      <label style={label} htmlFor={id}>{text}</label>
-      <input id={id} maxLength={40} defaultValue={value} key={`${id}${value}`} style={input}
-        onBlur={e => { const v = e.target.value.trim(); if (v !== value) onSave(v) }} />
-    </div>
-  )
-}
-
-function Check({ id, text, hint, checked, onChange }) {
-  return (
-    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', minHeight: '40px' }}>
-      <input id={id} type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
-      {hint ? <HintLabel htmlFor={id} hint={hint}>{text}</HintLabel> : <label htmlFor={id} style={{ fontSize: '13px' }}>{text}</label>}
-    </div>
   )
 }
