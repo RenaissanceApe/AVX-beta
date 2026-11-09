@@ -165,6 +165,17 @@ Checks: `supabase/tests/system_calc.sql`.
 
 Checks: `supabase/tests/power.sql`; unit tests in `src/lib/power.test.js` (single and three phase, unbalanced neutral, headroom, generator), `src/lib/importer.power.test.js`, `src/lib/cables.test.js` (voltage drop, capacity and its factors, the checks on a plan, the cable list) and `src/lib/powerBalance.test.js` (balancing, reserve, inrush). The tool id needs `20270106000001_tool_ids_power_rigging.sql`, run by hand.
 
+## How the print QR works (U6)
+
+Every gig print (call sheet, input list, stage plot, patch and DMX sheets, light plot, system, power
+plan, packing list, rehearsal report) ends with one shared `<PrintFooter />`
+(`src/components/PrintFooter.jsx`): a small QR in the bottom corner and the date and time it was
+printed. The link comes from `printLink()` (`src/lib/printLink.js`): the app's own address for the
+current page, with any query value that looks like a secret dropped, so it needs a sign-in and the
+same access as the page. Later prints (rigging report RG4, work areas 20b) get it by adding
+`<PrintFooter />`. The quote print, the wrap-up and the reports pages have none (D-question in
+docs/PENDING.md).
+
 ## Open questions
 
 1. **When:** after H5 (field kit) and before switching (S1); started 2026-10-20. **Decided 2026-10-21: all field tools (F1–F4) first, then switching.** Done: F1–F4 built by 0.40.0.

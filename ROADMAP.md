@@ -48,6 +48,7 @@ up front. What each release changed is in [CHANGELOG.md](CHANGELOG.md).
 | Step 15: P1–P2 power and cables (electrical fields on catalogue items and in the import; supply, distros, outputs, loads from every tool and typed by hand; currents per phase and output, neutral, headroom, balance, generator size; connected statuses; cable runs with voltage drop and capacity by type and laying; cable list → gig equipment and packing list; phase balancing and fill-to-reserve suggestions shown before applying; inrush groups; distro and cable labels; report and PDF in gig files) | 0.80.0 | [docs/FIELD_TOOLS.md](docs/FIELD_TOOLS.md), "How the power tool works" |
 | Step 17a: RG1 rigging weights, points and hoists (truss lines, hang points, a continuous-beam solver, hoist WLL and class check; hoist models; light plot "Rigging: not checked" and Tools tab connected) | 0.80.0 | [docs/TOOLS_PLAN.md](docs/TOOLS_PLAN.md), "How RG1 works" |
 | Step 18: RG3 line arrays (arrays in the rigging tool, bumper limits from the manufacturers' manuals, pick loads from the centre of gravity, the speaker rigging sign-off; connected to the sound system calculator, RG1 truss lines and gig equipment) | 0.80.0 | [docs/TOOLS_PLAN.md](docs/TOOLS_PLAN.md), "How RG3 works" |
+| Upkeep U1–U3, U5, U6: organisation time zone (D10; bookings, leave, clashes, reports, calendar feed, email summary and reminders on the organisation's clock); React Router 7, Vite 8 and Vitest 5 (no advisories left in what users download); data map open items (crew-search log kept 30 days, read notifications 12 months, held invitations reminded at 14 days and expired at 60); label templates in three standard sizes on rolls or sheets (D31; items, units, cases, distros and cables); a QR and print date on every print (D32) | 0.81.0 | [docs/RESERVATIONS.md](docs/RESERVATIONS.md), "How people get reservations"; [docs/DATA_MAP.md](docs/DATA_MAP.md); [docs/INVENTORY.md](docs/INVENTORY.md), "How labels work"; [docs/FIELD_TOOLS.md](docs/FIELD_TOOLS.md), "How the print QR works"; [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) |
 | Truss load tables (data only, waiting for a second check) | 0.60 | [docs/TRUSS_DATA.md](docs/TRUSS_DATA.md) |
 | Privacy and security check: data map, OWASP review, sign-in failure tests | 0.62.1 | [docs/DATA_MAP.md](docs/DATA_MAP.md), [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) |
 
@@ -88,12 +89,7 @@ the data it counts.
 
 | What | Why | Prompt |
 |---|---|---|
-| Organisation time zone (D10) | Everything is read as Lisbon time; needed before companies abroad join | U1 |
-| React Router 7, current Vite and Vitest | Remaining advisories (docs/SECURITY_REVIEW.md) | U2 |
-| Data map open items: trim the crew-search log and old notifications, held-invitation time limit | docs/DATA_MAP.md | U3 |
 | Truss tables: mark checked or update from the manufacturers' answers (D12, D13) | Needed before RG2 can use them | U4 |
-| Label templates in three standard sizes, on rolls or sheets (D31) | Cases, units and cables labelled for any printer | U5 |
-| A QR and print date on every print (D32) | An old paper copy is easy to spot | U6 |
 
 **QA bot** ([docs/QA.md](docs/QA.md)), decided 2026-11-02. Run these in order, in any gap; each needs
 a few minutes of setup from you (QA.md, "Build order and when you step in"):
@@ -149,6 +145,5 @@ docs/SESSION_PROMPTS.md ("After launch"), plans in [docs/ANALYTICS.md](docs/ANAL
 - Invoices are issued in your own certified program. Moloni, InvoiceXpress and TOConline can send
   drafts and read numbers back once each is switched on; other programs: by hand or the CSV.
 - Availability is checked only for quote lines added from the price list.
-- Gig days are read in Lisbon time (U1).
 - Offline mode is read-only except rehearsal notes and messages, which are sent when back online.
 - The quote PDF uses standard PDF fonts, so it looks slightly plainer than the printed page.

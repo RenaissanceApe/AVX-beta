@@ -1,5 +1,101 @@
 # Changelog
 
+## 0.81.0 — Upkeep
+
+### U1: Organisation time zone
+
+#### Added
+- **Organisation time zone.** Admins choose it in organisation settings (Lisbon stays the default).
+  Gig days, crew bookings, leave, clashes, "today" in reports and maintenance reminders are read on
+  that clock, so a company in London or New York sees its gigs on its own days.
+
+#### Changed
+- Booking times are typed and shown on the organisation's clock, whatever the device's time zone;
+  the dialog says so when the two differ.
+- Changing the time zone moves the crew bookings of current and coming gigs, and the organisation's
+  leave, to the new clock.
+- The calendar feed names the time zone most of your gigs are in, and a call time on another
+  clock names its zone.
+- The email summary and push notifications show booking and availability times on the
+  organisation's clock, naming the zone when it isn't Lisbon.
+- Only real time zone names are accepted.
+
+#### For developers
+- Migration `20270110000000_org_time_zone.sql`. Edge Functions `calendar-feed`, `send-digest` and
+  `send-push` updated.
+
+### U2: Dependency upgrades
+
+#### Changed
+- Updated the tools the app is built and tested with (Vite 8, Vitest 5) and the page router
+  (React Router 7). This closes all the security warnings in what users download. Nothing looks or
+  works differently.
+
+#### For developers
+- Running the unit tests (`npm test`) now needs Node 22.12 or later; `.nvmrc` and CI already use 22.
+- `npm run help:screens` no longer goes over the offline-copy size limit (issue #162).
+
+### U3: Data map open items
+
+#### Added
+- Imported people you haven't invited yet: after 14 days the organisation's admins get a reminder
+  (in the app and in the e-mail summary); after 60 days the invitation is marked **Expired** in
+  Members. Nothing is removed: you can still send or discard it.
+- A nightly clean-up keeps the crew-search log for 30 days and notifications you've read for 12
+  months after reading them. Unread notifications are never removed.
+
+#### Changed
+- Privacy notice: a new paragraph under "How long we keep it" on logs, notifications and unsent
+  invitations (its date is updated once the wording is approved).
+
+#### For developers
+- Migrations `20270111000000_held_invite_expiry.sql` and `20270111000001_retention_cleanup.sql`
+  (a nightly pg_cron job; run by hand). Tests: `supabase/tests/data_retention.sql`.
+
+### U5: Label templates
+
+#### Added
+- **Three label sizes**, not tied to any printer: small 50 × 25 mm, medium 100 × 50 mm and large
+  A6 / 4 × 6 in. Each prints on a **roll** (one label per page), on **pre-cut A4 sheets** (40, 10 or 4 a
+  sheet) or on **plain A4 or US Letter with cut lines**. Each label fits inside both its roll and its
+  sheet, so one design works for both.
+- **Label templates**: tap Fields to choose what goes on each size (name, code, QR, organisation, gig,
+  case contents, a department band with its name printed in it) and save it for the organisation.
+  Defaults: small = name, code, QR; medium = name, code, QR, organisation, department band; large =
+  everything. Admins and members save; everyone else can still untick fields for one print.
+- **Case labels**: a case lists what's packed in it; a unit out on a gig shows the gig.
+
+#### Changed
+- The two old sheet layouts (63.5 × 38.1 mm, 21 a sheet; 99.1 × 67.7 mm, 8 a sheet) are replaced by the
+  three sizes.
+- The page count shows next to the number of labels.
+
+#### Fixed
+- On a phone, the label sheet is no longer cut off on the left: the page shrinks to fit the screen
+  (printing is unchanged).
+
+#### Connected
+- A gig's **power labels** (distros and cables) use the same sizes, print choices and templates, with a
+  red "Power" band and the gig's name.
+- Help: the "Add units and print QR labels" guide (new steps and screenshot), the term "Label template"
+  and an ⓘ on the label fields.
+
+#### For developers
+- Migration `20270112000000_label_templates.sql`.
+
+### U6: A QR and print date on every print
+
+#### Added
+- Every print now has a small QR code in its bottom corner, with the date and time it was printed
+  beside it. Scanning it opens the same page live in AVX, so an old paper copy is easy to spot.
+  The link is AVX's own address: it needs a sign-in and the same access as the page, so a printed
+  sheet never shares anything publicly. On the call sheet, input list, stage plot, patch and DMX
+  sheets, light plot, system, power plan, packing list and rehearsal report.
+
+#### Changed
+- The "Printed <date>" line on those prints moved into the new footer beside the QR (same words).
+
+
 ## 0.80.0 — Tools, part 2: power, cables, rigging and line arrays
 
 ### S09: Power distribution (step 15, first part)
