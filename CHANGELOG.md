@@ -1,5 +1,183 @@
 # Changelog
 
+## 0.78.0 — Design refresh: room to breathe, and a bin for deleted quotes
+
+### DR1: Foundations and the home
+
+#### Changed
+- **Home:** calmer and arranged your way. Sections sit further apart with a plain heading each, no boxes
+  around them. **Arrange home** (at the bottom) moves the availability questions, the numbers and the gigs
+  up or down, hides any of them, or puts them back as they were; it is remembered on this device for each
+  workspace.
+- **Key numbers** (and My numbers) are bigger and, on a phone, a row you swipe sideways (arrow keys work
+  too); on a computer three in a row. They no longer fold from their heading: hide them in Arrange home.
+- **First steps** is now one quiet line ("First steps · 2 of 4 done · next: Add your equipment") that opens
+  the steps still to do; finished steps are no longer listed and it has no green border.
+- **On a phone** the home no longer repeats the organisation's name (the top bar shows it): the greeting is
+  the title. What your role allows moved behind the ⓘ next to the role chip. The "Every gig you're on…"
+  line under My work is gone (the ? explains it).
+- The gig filters on the home mark the chosen one with a green bar instead of a green fill.
+
+#### For developers
+- Layout pieces in `ui.jsx`: `Section`, `Stack`, `PageHeader`, `SwipeRow`, `MoreMenu`, `usePhone`, `space`;
+  spacing steps as CSS variables in `index.html`. A test stops new off-scale text sizes and gaps.
+
+### DR2: The gig page
+
+#### Changed
+- **Gig page:** calmer. The header shows the gig's name, its labels and your call time, one line with the venue,
+  dates and your role, and **Edit gig** (in ⋯ on a phone); Refresh is a small icon next to Back. Your call no
+  longer has a green fill.
+- **Overview** is a column of sections with plain headings and space between them, no boxes: what's coming up
+  first, then the description, details, crew, files, the latest posts and the gig's finances. The wrap-up link is
+  one quiet line.
+- **Every tab** starts the same way: its name, a count where useful, the ⓘ (the explanation that used to sit under
+  the name), one main button and at most one more. The rest is in ⋯: on Crew, **Find crew** and **Post a job**; on
+  Equipment, **Dispatch** and **Report damage** (crew who can't add gear still see Report damage).
+- **Lists are rows**, not a box each: the running order, crew, positions, crew calls, pending invites, labour cost,
+  equipment, files, posts and history. A booking clash or gear that's short keeps its coloured row with a bar on
+  the left.
+- Chat channels, the Updates switch (posts / history) and the Tasks filters mark the chosen one with a green bar
+  under it instead of a green fill.
+
+#### Fixed
+- The labour cost panel spread the rate card's data into its own style by mistake (a name clash); it is a plain
+  section now.
+- The gig finance panel's "Invoiced (incl. VAT)" row no longer has a glossary button whose name didn't match its
+  text.
+
+### DR3: Lists
+
+#### Changed
+- **Quotes, Invoices, Inventory, Contacts, Expenses, Hours, Leave, Jobs, Job posts and Find crew** have
+  the calmer layout: the title with its ⓘ and one green button, then the list. The organisation's name no
+  longer sits above the title (the top bar shows it).
+- **Filters are tabs:** the chosen view or filter is marked with a green bar under its name instead of a
+  green fill (Invoices, Expenses, Inventory's filters, Jobs). On Quotes the status list became tabs too:
+  All, Draft, Sent, Accepted, Declined, To follow up.
+- **Lists are rows with a thin line between them**, not a box around each one (quotes, templates,
+  invoices, equipment, locations, contacts, members, hours, leave, jobs and applications).
+- **Explanations moved behind ⓘ:** the line under the title on Invoices, Expenses, Hours, Leave, Jobs,
+  Job posts, Find crew and Members, and the notes at the top of Inventory → Locations and Movements,
+  Expenses → Recurring and Crew to pay, and Members → Held invitations.
+- **Fewer buttons in view:** on a phone the second buttons in a page's header (Company details, Import,
+  Labels, CSV, Add for someone) are in the ⋯ menu. On Job posts, "Mark filled", "Close" and "Reopen"
+  are in each post's ⋯ and "Decline" in each applicant's ⋯; on Find crew, "Report" is in each person's ⋯.
+- **Invoices:** the invoicing program panel moved below the list.
+- **Jobs:** Apply and Offer are outlined buttons now, so the page has one green thing.
+
+#### For developers
+- `src/components/ListParts.jsx`: `FilterTabs` (filters or tabs with the 2px bar), `pageWrap`, and the
+  row styles `rowList`, `row`, `rowButton`, `rowName`, `rowMeta`.
+- `JobCard` renders an `<li>` row; put it in a `<ul style={rowList}>`.
+
+### DR4: Detail pages and editors
+
+#### Changed
+- **Quote editor:** fewer buttons at the top. **Send to client** is the green one; **Preview & print** and
+  **Create gig** (or **Open gig**) sit next to it on a computer. Everything else (Fill gig from quote,
+  Availability, Versions, Duplicate, Save as template, Delete) is in the **⋯** menu; on a phone, Preview and the
+  gig button are there too. The Details tab has no boxes around Client, Conditions and Texts, just headings
+  with space between them; the Summary lists phases as plain rows; the groups of lines in a phase are no longer
+  boxed. The line grid itself stays compact.
+- **Equipment item page:** a calmer header (Edit and QR labels at the top, Archive in ⋯), the details without a
+  box, and stock, units, bookings and history as plain rows with thin lines between them. Each location row shows
+  Move and Remove; Count is in its ⋯.
+- **Reports:** the report tabs are a row of words with a green line under the chosen one (no green block), and
+  they scroll sideways on a phone. Sections on the Overview have more room between them.
+- **Settings** and **organisation settings:** groups are separated by space instead of lines, sections have
+  clear headings, and the buttons are no longer green.
+- **Import:** the steps at the top are words with a line under the current one; the checklist, the kinds to
+  import, the column matching and earlier imports are plain rows instead of boxes.
+- Help: the guides for versions, sending a quote and quote-to-gig say where the moved buttons are now; their
+  screenshots, and those of Reports, the item page, Import and the settings, are new.
+
+### DR5: Field and crew screens
+
+#### Changed
+- **On-site mode:** today's schedule and your tasks are no longer in boxes; your call time is a highlighted band. Every
+  button and schedule row is at least 44 px, easy to hit with gloves on. The note that on-site mode came on by itself
+  has a plain line above and below it instead of a green border.
+- **Simple home:** the next gig shows two buttons, Call sheet and Chat, with Read aloud below them; Open the gig and
+  Report damage moved under ⋯ on the card. The gigs after it are a plain list. The help guides say where they went.
+- **Scan out and in (Dispatch):** a clearer header. Sound and Scan mode stay in view; Packing list and the warehouse
+  numbers are next to them on a computer and under ⋯ on a phone. Record is now the only green button. The step
+  buttons no longer spill their text on a small phone.
+- **Messages:** the conversation list is a plain list with lines between conversations, no box around it. Search and
+  Saved show which one is open with a green bar. The buttons at the top of a conversation are bigger.
+- **My tasks** and **My numbers:** the usual page header; My numbers' sections are no longer boxes.
+- **Help:** the guides and the glossary are plain lists with more space between them; the word you came to see is
+  highlighted. In a guide the step numbers are no longer green squares.
+- **Field tools and Pocket tools:** text sizes and spacing are the same as everywhere else.
+
+### DR6: The sweep
+
+#### Changed
+- **Every screen, the same few sizes:** the screens the earlier steps didn't reach (organisation menus and pages,
+  reports, inventory panels, invoices, public quote and report pages, the call sheet and more) now use the same seven
+  text sizes and the same spacing steps as the rest of the app. The smallest text grew from 10–12 px to 11–13 px.
+- **The ⋯ "More actions" button** is bigger on a phone (44 × 44 px), so it's easy to hit (#126).
+- **Help:** every guide's pictures were taken again so they show the screens as they are now.
+
+#### For developers
+- The off-scale test now fails on any text size or gap off the scales, in every `.jsx` and `.css` file
+  (`src/theme/offScale.test.js`); the per-file baseline is gone. It also reads the size in a `font:` shorthand, and
+  ignores pt / mm / em sizes (print sheets) and the 1px hairline grid in the menu cards.
+- The design system's updated tokens and component notes are in `docs/design-system/`, ready to publish.
+
+### Quotes: Recently deleted, Cancel quote, Revise and resend (#124)
+
+#### Added
+- **Quotes → Recently deleted:** deleting a **draft** or **declined** quote no longer erases it at once. It
+  moves to Recently deleted (Quotes page, header button or ⋯ menu on a phone) for **15 days**, with an
+  **Undo** on the message. While it is there it counts nowhere: not in lists, search, counts, reports, gig
+  finance or chat, and its client link shows "not found". **Restore** brings it back as it was, with its
+  versions, client links and number. After 15 days a nightly clean-up erases it for good.
+- **Cancel quote:** a **sent** or **accepted** quote can't be deleted; ⋯ → **Cancel quote** marks it
+  **Cancelled** instead. Cancelled is final: it can't be reopened, only duplicated as a new draft. It stays
+  in the list (with its own filter), stops counting as waiting, in the win rate and in revenue, and the
+  client's link shows it as cancelled with no accept button. Its gig, crew, equipment and invoices stay as
+  they are.
+- **Revise and resend:** on a **declined** quote, ⋯ → Revise and resend puts it back to draft to change
+  and send again. The old decline no longer counts in the win rate; once sent again it is waiting (and
+  its follow-up clock starts) from the new send. Its versions and the client's answer stay.
+- Help: the term "Recently deleted", a ⓘ hint on the bin, and lines in the guide "Build a quote in
+  phases" on deleting, cancelling and revising a declined quote.
+
+#### Changed
+- The status menu on a quote no longer offers Draft once it has been sent, and is locked on a
+  cancelled quote.
+- The delete question on a quote now says where the quote goes ("…goes to Quotes → Recently
+  deleted, where you can restore it for 15 days"), and the message after it says "Quote moved to
+  Recently deleted."
+- Who may delete or cancel a quote is the same as who could delete one before: an admin, or whoever
+  made it. The same people may restore it.
+
+#### For developers
+- Migrations `20270102000000_quote_cancelled_status.sql` (`quotes.status` gains `cancelled`; run by
+  hand) and `20270102000001_quote_bin.sql` (`quotes.removed_at` / `removed_by`; the app's direct delete
+  right on `quotes` revoked; RPCs `remove_quote`, `restore_quote`, `removed_quotes`, `cancel_quote`,
+  `revise_quote`; status guard and revise-dates triggers; nightly `private.erase_removed_quotes()`).
+  Readers that don't run as the reader (`private.report_quote_lines`, `public.gig_finance`,
+  `private.can_see_card`, `private.guest_resolve`, `public.clients_from_quotes`) skip quotes in the bin.
+- Edge Function `quote-public`: "not found" for a quote in the bin; `state: 'cancelled'` for a cancelled one.
+- Tests: `supabase/tests/quote_bin.sql`; e2e "a deleted quote waits in Recently deleted and can be restored".
+
+### Setup: `.env` no longer in the repository (#125, #133)
+
+#### For developers
+- `.env` is no longer in the repository and is listed in `.gitignore`. A fresh clone starts from
+  `.env.example` (`cp .env.example .env`) and points it at the **test** Supabase project for local
+  work and e2e. Production builds take `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from
+  Vercel's Environment Variables. The old file stays in git history; the anon key is public by
+  design, so nothing needs rotating.
+- The backup, digest, key-numbers and keep-alive workflows take the production Supabase URL (and,
+  for keep-alive, the anon key) from the repository variables `SUPABASE_URL` and
+  `SUPABASE_ANON_KEY` instead of the committed `.env`. If one is missing, the run fails and says
+  which.
+- CI's `check` and `e2e` jobs take `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` from the
+  repository variables `TEST_SUPABASE_URL` / `TEST_SUPABASE_ANON_KEY` (as `e2e-auth` already did).
+
 ## 0.77.0 — Money reports: sales, equipment, warehouse, operations, crew numbers and extras
 
 ### K4: Sales and clients
