@@ -1116,7 +1116,7 @@ export default {
         'Abra Orçamentos, toque em "Novo orçamento", escreva o título e o cliente e comece em branco ou a partir de um modelo.',
         'Dê nome à primeira fase e defina as datas. Junte secções (Som, Luz, Equipa) e linhas, da tabela de preços ou escritas à mão.',
         'Use o fator para dias ou horas (3 dias = fator 3) e um desconto por linha, por fase ou no total.',
-        'Em Detalhes, confirme o cliente, o IVA e a validade. "Pré-visualizar e imprimir" mostra o que o cliente vai ver.',
+        'Em Detalhes, confirme o cliente, o IVA e a validade. "Pré-visualizar e imprimir" (no menu ⋯ num telemóvel) mostra o que o cliente vai ver.',
       ],
       mistakes: [
         'Uma fase opcional tem preço à parte e fica fora do total. Use-a para extras que o cliente possa querer.',
@@ -1127,7 +1127,7 @@ export default {
       title: 'Guardar versões de um orçamento',
       intro: 'Uma versão é uma cópia fixa do orçamento tal como o cliente o veria. Pode voltar a ela quando quiser.',
       steps: [
-        'Antes de uma grande alteração, abra o orçamento e toque em Versões.',
+        'Antes de uma grande alteração, abra o orçamento, toque em ⋯ (Mais ações) e depois em Versões.',
         'Escreva uma nota (por exemplo "Antes de cortar o ecrã LED") e toque em "Guardar versão". Cada orçamento enviado também fica guardado como versão.',
         'Para voltar atrás, abra uma versão com Ver e depois Repor. O que tem agora é guardado primeiro como nova versão.',
       ],
@@ -1139,7 +1139,7 @@ export default {
       title: 'Enviar um orçamento ao cliente',
       intro: 'O cliente recebe um link privado para o orçamento, onde o pode imprimir e aceitar ou recusar.',
       steps: [
-        'Confirme o orçamento em "Pré-visualizar e imprimir".',
+        'Confirme o orçamento em "Pré-visualizar e imprimir" (num telemóvel, está no menu ⋯).',
         'Toque em "Enviar ao cliente", escreva o email e toque em "Enviar orçamento". Para enviar o link por si, desmarque o email e toque em "Criar link".',
         'É avisado quando o cliente aceita ou recusa. O cliente também lhe pode escrever a partir da página do orçamento.',
         'Se o cliente recusar, ou se marcar o orçamento como Recusado, o AVX pergunta porque se perdeu (opcional). Com o tempo, isto mostra porque se perdem orçamentos.',
@@ -1153,8 +1153,8 @@ export default {
       title: 'Do orçamento aceite ao evento',
       intro: 'Quando o cliente aceita, transforme o orçamento num evento com horário, funções e equipamento.',
       steps: [
-        'Abra o orçamento aceite e toque em "Criar evento". O evento recebe o título do orçamento, as datas e o nome do cliente, e fica ligado ao orçamento.',
-        'O AVX propõe logo preencher o evento (mais tarde: "Preencher evento a partir do orçamento"). Desmarque o que não quer, ou mude títulos e números.',
+        'Abra o orçamento aceite e toque em "Criar evento" (num telemóvel, no menu ⋯). O evento recebe o título do orçamento, as datas e o nome do cliente, e fica ligado ao orçamento.',
+        'O AVX propõe logo preencher o evento (mais tarde: ⋯ → "Preencher evento a partir do orçamento"). Desmarque o que não quer, ou mude títulos e números.',
         'Toque em "Adicionar ao evento": as fases passam a itens do horário, as linhas de equipa a funções por preencher e as linhas do catálogo a equipamento previsto.',
       ],
       mistakes: [

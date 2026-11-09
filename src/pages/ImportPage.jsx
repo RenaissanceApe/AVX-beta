@@ -340,11 +340,11 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
         </p>
       )}
       <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>{t('imp.matchHelp')}</p>
-      {/* One row per column of the file, hairlines between; a matched column has a 2px accent bar */}
+      {/* One row per column of the file, hairlines between (an ignored column's choice reads muted) */}
       <ul aria-label={t('imp.step.match')} style={{ listStyle: 'none', padding: 0, margin: 0, borderTop: `1px solid ${colors.border}` }}>
         {table.headers.map((h, i) => (
-          <li key={h + i} style={{ padding: `${space[3]} ${space[3]}`, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: `${space[2]} ${space[3]}`, alignItems: 'center',
-            borderBottom: `1px solid ${colors.border}`, borderLeft: `2px solid ${mapping[h] ? colors.accent : 'transparent'}` }}>
+          <li key={h + i} style={{ padding: `${space[3]} 0`, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: `${space[2]} ${space[3]}`, alignItems: 'center',
+            borderBottom: `1px solid ${colors.border}` }}>
             <span style={{ minWidth: 0 }}>
               <strong style={{ display: 'block', fontSize: '14px', overflowWrap: 'anywhere' }}>{h}</strong>
               <span style={{ display: 'block', fontSize: '13px', color: colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{samples(i) || '—'}</span>

@@ -46,7 +46,7 @@ session regenerates the help screenshots of the guides whose screens it changed,
 | **DR1** Foundations + Home ✅ built (see "How the foundations work") | `Section`, `Stack`, `PageHeader`, `SwipeRow`, `MoreMenu` in `ui.jsx`; CSS variables for the spacing steps; a test that stops new off-scale sizes and gaps (counts may only go down); the modular home with Arrange home, the swipe row, the phone header and the slim First steps | Everything after uses the pieces; the home is the first screen everyone sees |
 | **DR2** Gig | Gig header, Overview (next-event card included), Schedule, Crew, Equipment, Feed/Chat tabs | The most used screen |
 | **DR3** Lists | Quotes, Invoices, Inventory, Contacts, Members, Expenses, Hours, Leave, Jobs, Find crew | Same pattern repeated: header, filters, list rows |
-| **DR4** Detail and editors | Quote editor (stays compact in the line grid), Inventory item, Reports, Settings and organisation settings dialogs, Import | Denser screens: apply rules 2–5 without losing data |
+| **DR4** Detail and editors ✅ built (see "How the detail pages work") | Quote editor (stays compact in the line grid), Inventory item, Reports, Settings and organisation settings dialogs, Import | Denser screens: apply rules 2–5 without losing data |
 | **DR5** Field and crew | My work, Simple home, On-site, Scan and Dispatch, field tools, Messages, Help | Used standing up and on phones |
 | **DR6** Sweep | Everything left, the ratchet test down to zero, all help screenshots refreshed, the design system artifact brought in line | Finishes the refresh |
 
@@ -81,6 +81,20 @@ numbers, in a `SwipeRow`), `events`. "Arrange home" at the end opens `ArrangeHom
 modules are saved in `localStorage` under `avx.home.layout.<user>.<workspace>` by `src/lib/homeLayout.js`
 (standard order = nothing saved; a module the saved order doesn't know joins at its standard place). Key numbers
 are no longer folded with their heading: hiding them is done in Arrange home.
+
+## How the detail pages work (DR4, built)
+
+The same rules as the home, applied to the denser screens; no new pieces, only those from DR1.
+
+| Screen | What changed |
+| --- | --- |
+| **Quote editor** (`QuoteEditorPage.jsx`) | Its own sticky header (the title is an input, so not `PageHeader`), with **Send to client** as the one green button, **Preview & print** and **Create gig / Open gig** beside it on a computer, and everything else in `MoreMenu`: Fill gig from quote, Availability, Versions, Duplicate, Save as template, Delete. On phone the two secondaries join ⋯. Details (`QuoteDetails.jsx`) keeps its fieldsets for the form semantics but they have no border: a 16px heading and fields, 40/48 px apart. Summary rows are hairline rows. In a phase, sections of lines are no longer panels; the 32px line grid stays compact (8px gaps) |
+| **Inventory item** (`InventoryItemPage.jsx`) | `PageHeader` (category · kind above, code and tracking as the line; Edit and QR labels secondary, Archive / Restore in ⋯), then a `Stack gap="section"` of: the facts as a plain `dl`, the money numbers, Stock (a `Section` with Count and Add stock / Add units on its right), contents, maintenance, messages, bookings and history. Stock rows and unit rows are hairline rows; a location row shows Move and Remove and puts Count in its own ⋯; a scanned unit gets the selection wash and a 2px bar |
+| **Reports** (`ReportsPage.jsx`) | Header built from the `.avx-page-head` classes with the ⓘ beside the heading, not inside it (the heading's name stays "Reports"); the tabs are one row (sideways scroll on phone) with a 2px accent bar under the chosen tab instead of a green fill; Save view sits in the header; the Overview's sections are 40/48 px apart with 16px headings. What loads, and when, is unchanged (#114) |
+| **Settings** (`SettingsPage.jsx`) and **organisation settings** (`OrgSettingsModal.jsx` and its `Org*Settings` parts) | Groups are separated by space (40/48 px) instead of rules; organisation sections have 16px headings instead of small capitals; the settings buttons are plain (no green wash); the open section in the list is marked by a 2px bar |
+| **Import** (`ImportPage.jsx`) | `PageHeader`; the steps are words with a 2px bar under the current one; the switch checklist, the kinds to import, the column matching and Earlier imports are rows with hairlines on the page ground, not boxes; the check step's counts are big numbers without boxes |
+
+Shared rows used by the Inventory list too (`RepairRow`, `DueRow` in `MaintenancePanels.jsx`) were left as they are, for DR6.
 
 ## Not changing
 
