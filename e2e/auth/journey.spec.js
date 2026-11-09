@@ -264,7 +264,7 @@ test('an admin asks for leave, approves it and sees it as approved', async ({ pa
   await page.getByRole('menuitemradio', { name: new RegExp(ORG) }).click()
   await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}$/)
   await page.goto(`${page.url()}/leave`)
-  await expect(page.getByRole('heading', { name: 'Leave', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /^Leave\b/ })).toBeVisible()
   await expectAccessible(page)
   const from = new Date(Date.now() + 40 * 86400e3).toISOString().slice(0, 10)
   await page.getByRole('button', { name: 'Ask for leave' }).first().click()
