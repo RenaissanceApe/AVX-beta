@@ -62,6 +62,7 @@ export default {
   'error.tooLarge': 'That file is too large (max 50 MB).',
   'error.samePassword': "That's your current password — choose a different one.",
   'error.dates': 'End date must be on or after the start date.',
+  'error.gigHasSignatures': "This gig has signed documents (delivery notes), which are kept as proof, so it can't be deleted for good. Set its status to Cancelled instead.",
   'error.textLength': 'That text is too long (or empty).',
   'error.lastAdmin': 'An organisation needs at least one admin. Make someone else admin first.',
   'error.email': 'Invalid email address',

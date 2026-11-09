@@ -61,6 +61,7 @@ export default {
   'error.tooLarge': 'O ficheiro é demasiado grande (máx. 50 MB).',
   'error.samePassword': 'Essa é a sua palavra-passe atual — escolha uma diferente.',
   'error.dates': 'A data de fim tem de ser igual ou posterior à data de início.',
+  'error.gigHasSignatures': "Este evento tem documentos assinados (guias de entrega), que ficam guardados como prova, por isso não pode ser apagado de vez. Mude o estado para Cancelado.",
   'error.textLength': 'Esse texto é demasiado longo (ou está vazio).',
   'error.lastAdmin': 'Uma organização precisa de pelo menos um administrador. Torne outra pessoa administrador primeiro.',
   'error.email': 'Endereço de email inválido',

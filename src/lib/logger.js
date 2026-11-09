@@ -49,6 +49,8 @@ export function userMessage(error, fallback) {
   if (/payload too large|exceeded the maximum allowed size/i.test(msg)) return t('error.tooLarge')
   if (/should be different from the old password/i.test(msg)) return t('error.samePassword')
   if (/gigs_dates_order/.test(msg)) return t('error.dates')
+  // Step 16: a gig with signatures can't be erased (20270105000001_signatures_keep_gig.sql)
+  if (/A gig with signatures can't be erased/i.test(msg)) return t('error.gigHasSignatures')
   if (/_length"?$|_length\b/.test(msg) && /check constraint/i.test(msg)) return t('error.textLength')
   if (/An organisation needs at least one admin/i.test(msg)) return t('error.lastAdmin')
   if (/Only the gig PM or an organisation admin/i.test(msg)) return t('error.permission')
