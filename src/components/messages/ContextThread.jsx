@@ -56,12 +56,12 @@ export default function ContextThread({ type, id, height = '320px', children }) 
         <MessagesSquare size={16} color={colors.accentText} />
         <span style={{ flex: 1 }}>{guest ? t(`chat.guest.title.${type}`) : t('chat.context.title')}</span>
         {busy ? <AvxLoader size={14} />
-          : count > 0 && <span style={{ fontSize: '12px', fontWeight: 400, color: colors.muted }}>{t('chat.context.count', { count })}</span>}
+          : count > 0 && <span style={{ fontSize: '13px', fontWeight: 400, color: colors.muted }}>{t('chat.context.count', { count })}</span>}
       </button>
       {open && (guest || children) && (
         <div style={{ padding: '8px 12px 0' }}>
           {guest && (
-            <p style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', fontSize: '12px', color: 'var(--warn)', lineHeight: 1.5, marginBottom: children ? '8px' : 0 }}>
+            <p style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '13px', color: 'var(--warn)', lineHeight: 1.5, marginBottom: children ? '8px' : 0 }}>
               <Eye size={13} style={{ flexShrink: 0, marginTop: '2px' }} /> {t(`chat.guest.notice.${type}`)}
             </p>
           )}

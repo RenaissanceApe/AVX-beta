@@ -60,10 +60,10 @@ export default function GuestThread({ token, lang, defaultName = '', onData }) {
   const org = data.org?.name || ''
   return (
     <section className="no-print" aria-label={tr('guest.title', { org })} style={box}>
-      <h2 style={{ fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 4px' }}>
+      <h2 style={{ fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 4px' }}>
         <MessageSquare size={16} color="#0FA85A" /> {tr('guest.title', { org })}
       </h2>
-      <p style={{ fontSize: '12px', color: '#666', margin: '0 0 10px' }}>{tr('guest.intro', { org })}</p>
+      <p style={{ fontSize: '13px', color: '#666', margin: '0 0 10px' }}>{tr('guest.intro', { org })}</p>
       <div ref={list} role="log" aria-live="polite" style={{ maxHeight: '340px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', padding: '4px 0' }}>
         {count === 0 && <p style={{ fontSize: '13px', color: '#777', textAlign: 'center', padding: '14px 0' }}>{tr('guest.empty', { org })}</p>}
         {data.messages.map(m => (
@@ -85,7 +85,7 @@ export default function GuestThread({ token, lang, defaultName = '', onData }) {
           <textarea value={text} onChange={e => setText(e.target.value)} maxLength={2000} rows={3} required style={{ ...field, resize: 'vertical' }} />
         </label>
         {error && <p role="alert" style={{ fontSize: '13px', color: '#B91C1C', margin: 0 }}>{error}</p>}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <span style={{ flex: '1 1 200px', fontSize: '11px', color: '#777', lineHeight: 1.5 }}>
             {tr('guest.privacy', { org })} <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#555' }}>{tr('guest.privacyLink')}</a>
           </span>
@@ -105,6 +105,6 @@ const box = {
 const labelStyle = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#333' }
 const field = { padding: '9px 11px', border: '1px solid #ccc', fontSize: '14px', color: '#111', background: '#fff', fontFamily: 'inherit' }
 const sendBtn = {
-  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', border: 'none',
+  display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '9px 16px', border: 'none',
   background: '#0B7A41', color: '#fff', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
 }

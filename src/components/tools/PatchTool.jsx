@@ -86,19 +86,19 @@ export default function PatchTool({ gig, canEdit }) {
 
   return (
     <section aria-labelledby="patch-title">
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
         <div style={{ flex: '1 1 200px' }}>
-          <h2 id="patch-title" style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>{t('tools.name.patch')}</h2>
+          <h2 id="patch-title" style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>{t('tools.name.patch')}</h2>
           <p style={{ color: colors.muted, fontSize: '13px' }}>
             {t('patch.boxCount', { count: boxes.length })} · {t('patch.placed', { done: inputs.length - view.loose.length, total: inputs.length })}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {canEdit && <button type="button" onClick={() => saveBoxes([...boxes, { name: nextBoxName(boxes), inputs: 16, split: false }])} style={btnPrimary}><Plus size={14} /> {t('patch.addBox')}</button>}
           {boxes.length > 0 && <Link to={`/gig/${gig.id}/patch`} style={{ ...btn, textDecoration: 'none' }}><Printer size={14} /> {t('inputs.print')}</Link>}
         </div>
       </div>
-      {savedAt && <p role="status" style={{ fontSize: '12px', color: 'var(--warn)', marginBottom: '10px' }}>{t('patch.offline')}</p>}
+      {savedAt && <p role="status" style={{ fontSize: '13px', color: 'var(--warn)', marginBottom: '10px' }}>{t('patch.offline')}</p>}
 
       {view.clashes.length > 0 && (
         <p role="status" style={{ ...card, borderColor: 'var(--warn)', color: 'var(--warn)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
@@ -112,10 +112,10 @@ export default function PatchTool({ gig, canEdit }) {
         const box = view.boxes[i]
         return (
           <section key={b.name} aria-labelledby={`box-${i}`} style={{ ...card, marginBottom: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', flexWrap: 'wrap', marginBottom: '10px' }}>
               <h3 id={`box-${i}`} style={{ fontSize: '16px', fontWeight: 700, flex: '1 1 120px', display: 'flex', gap: '8px', alignItems: 'baseline' }}>
                 {b.name}
-                <span style={{ fontSize: '12px', fontWeight: 600, color: colors.muted }}>{t('patch.used', { done: box.sockets.filter(s => s.lines.length).length, total: b.inputs })}</span>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: colors.muted }}>{t('patch.used', { done: box.sockets.filter(s => s.lines.length).length, total: b.inputs })}</span>
                 {b.split && <span style={{ fontSize: '11px', fontWeight: 700, color: colors.accentText }}>{t('patch.splitBadge')}</span>}
               </h3>
               {canEdit && (
@@ -130,7 +130,7 @@ export default function PatchTool({ gig, canEdit }) {
                     <input id={`box-inputs-${i}`} type="number" min={1} max={MAX_BOX_INPUTS} defaultValue={b.inputs} key={`i${b.name}${b.inputs}`} style={input}
                       onBlur={e => { const v = Math.min(MAX_BOX_INPUTS, Math.max(1, Math.round(Number(e.target.value) || b.inputs))); if (v !== b.inputs) editBox(i, { inputs: v }) }} />
                   </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', paddingBottom: '10px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', paddingBottom: '10px' }}>
                     <input type="checkbox" checked={b.split} onChange={e => editBox(i, { split: e.target.checked })} style={{ accentColor: 'var(--accent)' }} /> {t('patch.split')}
                   </label>
                   <button type="button" onClick={() => saveBoxes(boxes.filter((_, n) => n !== i))} aria-label={t('patch.removeBox', { name: b.name })} style={{ ...iconBtn, marginBottom: '6px' }}><Trash2 size={14} /></button>
