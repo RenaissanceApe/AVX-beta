@@ -242,27 +242,33 @@ export function analyseLine(line, { bar = null, onBar = [], models = {}, setting
 
   const results = sorted.map((p, i) => {
     const m = models[p.hoist_model_id] || p.hoist || null
-    const kg = reactions ? reactions[i] : null
-    const dyn = kg === null ? null : kg * settings.dynamic_factor
-    const wll = m && m.wll_kg !== null && m.wll_kg !== undefined ? Number(m.wll_kg) : null
-    const use = dyn !== null && wll ? dyn / wll : null
-    const peopleOk = !m || !m.class || !p.over_people ? true : OVER_PEOPLE[m.class] !== false
-    let status = 'ok'
-    if (kg === null) status = 'unknown'
-    else if (kg < -0.05) status = 'uplift'
-    else if (!m) status = 'noHoist'
-    else if (wll === null) status = 'noWll'
-    else if (use > 1) status = 'over'
-    else if (use > WARN_AT) status = 'near'
-    return {
-      id: p.id, at_m: p.at_m, model: m, over_people: p.over_people,
-      kg: kg === null ? null : r1(kg), dynamic_kg: dyn === null ? null : r1(dyn), wll_kg: wll,
-      use: use === null ? null : Math.round(use * 1000) / 1000, status, peopleOk,
-    }
+    return { id: p.id, at_m: p.at_m, ...hoistCheck(reactions ? reactions[i] : null, m, p.over_people, settings.dynamic_factor) }
   })
   const over = results.some(r => r.status === 'over' || r.status === 'uplift' || !r.peopleOk)
   const maxUse = results.reduce((m, r) => (r.use !== null && r.use > m ? r.use : m), 0)
   return { length, cable_kg_m: cable, loads, total, dynamic_total: r1(total * settings.dynamic_factor), unknownWeights, results, problem, over, maxUse }
+}
+
+// One hang point's check: its static load (kg, null when unknown) × the dynamic factor against the
+// hoist's WLL, and whether the hoist's class may hang over people. Also used by line arrays (RG3).
+export function hoistCheck(kg, m, overPeople, factor) {
+  const model = m || null
+  const dyn = kg === null || kg === undefined ? null : kg * factor
+  const wll = model && model.wll_kg !== null && model.wll_kg !== undefined ? Number(model.wll_kg) : null
+  const use = dyn !== null && wll ? dyn / wll : null
+  const peopleOk = !model || !model.class || !overPeople ? true : OVER_PEOPLE[model.class] !== false
+  let status = 'ok'
+  if (dyn === null) status = 'unknown'
+  else if (kg < -0.05) status = 'uplift'
+  else if (!model) status = 'noHoist'
+  else if (wll === null) status = 'noWll'
+  else if (use > 1) status = 'over'
+  else if (use > WARN_AT) status = 'near'
+  return {
+    model, over_people: overPeople,
+    kg: dyn === null ? null : r1(kg), dynamic_kg: dyn === null ? null : r1(dyn), wll_kg: wll,
+    use: use === null ? null : Math.round(use * 1000) / 1000, status, peopleOk,
+  }
 }
 
 // What the light plot shows for a bar: 'none' (nothing with a weight on it), 'notChecked',
