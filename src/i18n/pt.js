@@ -1082,6 +1082,7 @@ export default {
   'inv.mode.remove': "Retirar",
   'inv.mode.move': "Mover",
   'inv.mode.count': "Contar",
+  'inv.moreForLocation': "Mais ações para {name}",
   'inv.reason': "Motivo",
   'inv.kind.purchase': "Comprado / adicionado",
   'inv.kind.found': "Encontrado",

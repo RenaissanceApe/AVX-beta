@@ -18,12 +18,14 @@ import ContextThread from '../components/messages/ContextThread'
 import { ItemMaintenance } from '../components/inventory/MaintenancePanels'
 import ItemMoneyCard from '../components/inventory/ItemMoneyCard'
 import { MovementList, useNames, LOCATION_ICONS } from './InventoryPage'
-import { btn, btnPrimary, iconBtn, card, label, colors, StatusBadge, AvxLoader } from '../components/ui'
+import { btn, btnPrimary, iconBtn, label, colors, StatusBadge, AvxLoader, PageHeader, Section, Stack, MoreMenu, space } from '../components/ui'
 import { PageHelp } from '../components/help/HelpParts'
 
 const STATUS_TONE = { available: 'ok', repair: 'warn', lost: 'danger', retired: 'off' }
 const ghost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
-const small = { ...ghost, padding: '5px 9px', fontSize: '12px' }
+const small = { ...ghost, padding: '4px 8px', fontSize: '13px' }
+// A list row on the page ground with a hairline under it (DESIGN.md "Room to breathe": lists are rows, not a card each)
+const rowStyle = { display: 'flex', alignItems: 'center', gap: space[3], flexWrap: 'wrap', minHeight: '52px', padding: `${space[2]} 0`, borderBottom: `1px solid ${colors.border}` }
 
 // One catalogue item: details, stock per location (bulk) or per unit (serial), history.
 //   /org/:orgId/inventory/:itemId (?unit=<id> highlights a unit, e.g. after scanning)
@@ -110,66 +112,69 @@ export default function InventoryItemPage() {
 
   return (
     <AppShell>
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '20px 16px 60px' }}>
-        <button onClick={() => navigate(`/org/${orgId}/inventory`)} style={{ ...ghost, marginBottom: '14px', padding: '6px 10px' }}><ArrowLeft size={14} /> {t('inv.title')}</button>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: '14px' }}>
-          <div style={{ flex: '1 1 260px', minWidth: 0 }}>
-            <div style={{ fontSize: '12px', color: colors.muted }}>{[item.category, t(`lineKind.${item.kind}`)].filter(Boolean).join(' · ')}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><h1 style={{ fontSize: '24px', fontWeight: 700, overflowWrap: 'anywhere', minWidth: 0 }}>{item.name}</h1><PageHelp page="inventory-item" /></div>
-            <div style={{ fontSize: '13px', color: colors.soft, display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px' }}>
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: `${space[5]} var(--gutter) ${space[7]}` }}>
+        <button onClick={() => navigate(`/org/${orgId}/inventory`)} style={{ ...ghost, marginBottom: space[4], padding: '6px 12px' }}><ArrowLeft size={14} /> {t('inv.title')}</button>
+        <PageHeader
+          eyebrow={[item.category, t(`lineKind.${item.kind}`)].filter(Boolean).join(' · ')}
+          title={item.name}
+          help={<PageHelp page="inventory-item" />}
+          line={(
+            <span style={{ display: 'inline-flex', gap: space[3], flexWrap: 'wrap' }}>
               {item.code && <span style={{ fontFamily: 'var(--font-mono)' }}>{item.code}</span>}
-              {item.kit_type ? <span style={{ color: colors.accentText }}>{t(`kit.typeOpt.${item.kit_type}`)}</span> : null}
+              {item.kit_type ? <span>{t(`kit.typeOpt.${item.kit_type}`)}</span> : null}
               {item.kit_type !== 'set' && <span>{t(`inv.trackingOpt.${item.tracking}`)}</span>}
               {item.archived_at && <span style={{ color: 'var(--warn)' }}>{t('inv.archived')}</span>}
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {item.tracking !== 'none' && <Link to={labelsLink} style={{ ...ghost, textDecoration: 'none' }}><QrCode size={14} /> {selected.length ? t('inv.labelsSelected', { count: selected.length }) : t('inv.labels')}</Link>}
-            <button onClick={() => setEditing(true)} style={ghost}><Pencil size={14} /> {t('common.edit')}</button>
-            <button onClick={() => setArchived(!item.archived_at)} style={ghost} title={item.archived_at ? t('inv.restore') : t('inv.archiveItemHint')}>
-              {item.archived_at ? <ArchiveRestore size={14} /> : <Archive size={14} />} {item.archived_at ? t('inv.restore') : t('inv.archive')}
-            </button>
-          </div>
-        </div>
+            </span>
+          )}
+          secondary={[
+            { label: t('common.edit'), icon: <Pencil size={14} aria-hidden="true" />, onClick: () => setEditing(true) },
+            ...(item.tracking !== 'none' ? [{ label: selected.length ? t('inv.labelsSelected', { count: selected.length }) : t('inv.labels'), icon: <QrCode size={14} aria-hidden="true" />, onClick: () => navigate(labelsLink) }] : []),
+          ]}
+          more={[item.archived_at
+            ? { label: t('inv.restore'), icon: <ArchiveRestore size={15} aria-hidden="true" />, onClick: () => setArchived(false) }
+            : { label: t('inv.archive'), icon: <Archive size={15} aria-hidden="true" />, onClick: () => setArchived(true) }]}
+        />
 
+        <Stack gap="section">
         {facts.length > 0 && (
-          <div style={{ ...card, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px 16px', marginBottom: '18px' }}>
+          <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: space[4], margin: 0 }}>
             {facts.map(([k, v], i) => (
               <div key={i} style={{ minWidth: 0 }}>
-                <div style={{ ...label, marginBottom: '2px' }}>{k}</div>
-                <div style={{ fontSize: '14px', overflowWrap: 'anywhere' }}>{v}</div>
+                <dt style={{ ...label, marginBottom: space[1] }}>{k}</dt>
+                <dd style={{ fontSize: '14px', overflowWrap: 'anywhere', margin: 0 }}>{v}</dd>
               </div>
             ))}
-          </div>
+          </dl>
         )}
 
         {item.kit_type !== 'set' && (item.kind === 'rental' || item.kind === 'sale') && <ItemMoneyCard orgId={orgId} item={item} />}
 
-        <section style={{ marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
-            <h2 style={{ fontSize: '17px', fontWeight: 700, flex: '1 1 auto' }}>
-              {t('inv.stock')}{item.tracking !== 'none' && <span style={{ color: low ? 'var(--warn)' : colors.soft, fontWeight: 600 }}> · {s?.total || 0}</span>}
-              {low && <span style={{ fontSize: '12px', color: 'var(--warn)', marginLeft: '8px' }}><AlertTriangle size={12} style={{ verticalAlign: '-1px' }} /> {t('inv.belowMin', { count: item.min_stock })}</span>}
-            </h2>
-            {item.tracking === 'bulk' && !item.archived_at && (
+        <Section id="item-stock" title={(
+          <>
+            {t('inv.stock')}{item.tracking !== 'none' && <span style={{ color: low ? 'var(--warn)' : colors.soft }}> · {s?.total || 0}</span>}
+            {low && <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 400, fontSize: '13px', color: 'var(--warn)' }}><AlertTriangle size={13} aria-hidden="true" style={{ verticalAlign: '-2px' }} /> {t('inv.belowMin', { count: item.min_stock })}</span>}
+          </>
+        )} aside={!item.archived_at && item.tracking !== 'none' && (
+          <Stack direction="row" gap={2} wrap>
+            {item.tracking === 'bulk' && (
               <>
-                <button onClick={() => setMovement({ mode: 'add' })} disabled={!inv.activeLocations.length} style={btnPrimary}><PackagePlus size={15} /> {t('inv.mode.add')}</button>
                 <button onClick={() => setMovement({ mode: 'count' })} disabled={!inv.activeLocations.length} style={ghost}><ClipboardCheck size={14} /> {t('inv.mode.count')}</button>
+                <button onClick={() => setMovement({ mode: 'add' })} disabled={!inv.activeLocations.length} style={btnPrimary}><PackagePlus size={15} /> {t('inv.mode.add')}</button>
               </>
             )}
-            {item.tracking === 'serial' && !item.archived_at && (
+            {item.tracking === 'serial' && (
               <button onClick={() => setAddingUnits(true)} style={btnPrimary}><Plus size={15} /> {t('inv.addUnits')}</button>
             )}
-          </div>
-
-          {item.kit_type === 'set' && <div style={{ ...card, fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>{t('kit.setNoStock')}</div>}
+          </Stack>
+        )}>
+          {item.kit_type === 'set' && <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6, margin: 0 }}>{t('kit.setNoStock')}</p>}
           {item.tracking === 'none' && item.kit_type !== 'set' && (
-            <div style={{ ...card, fontSize: '13px', color: colors.soft, lineHeight: 1.6 }}>
-              {t('inv.notTracked')} <button onClick={() => setEditing(true)} style={{ ...small, marginLeft: '6px' }}><Pencil size={12} /> {t('inv.startTracking')}</button>
-            </div>
+            <p style={{ fontSize: '13px', color: colors.soft, lineHeight: 1.6, margin: 0 }}>
+              {t('inv.notTracked')} <button onClick={() => setEditing(true)} style={{ ...small, marginLeft: space[2] }}><Pencil size={12} /> {t('inv.startTracking')}</button>
+            </p>
           )}
           {item.tracking !== 'none' && inv.activeLocations.length === 0 && (
-            <p style={{ fontSize: '13px', color: 'var(--warn)', marginBottom: '10px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--warn)', marginBottom: space[3] }}>
               {t('inv.noLocationsYet')} <Link to={`/org/${orgId}/inventory?tab=locations`} style={{ color: colors.accentText }}>{t('inv.addLocation')}</Link>
             </p>
           )}
@@ -178,19 +183,21 @@ export default function InventoryItemPage() {
             Object.keys(s?.byLocation || {}).length === 0 ? (
               <p style={{ fontSize: '13px', color: colors.muted }}>{t('inv.noStockYet')}</p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ borderTop: `1px solid ${colors.border}` }}>
                 {Object.entries(s.byLocation).map(([locId, qty]) => {
                   const loc = inv.locations.find(l => l.id === locId)
                   const Icon = LOCATION_ICONS[loc?.kind] || LOCATION_ICONS.other
                   return (
-                    <div key={locId} style={{ ...card, display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <div key={locId} style={rowStyle}>
                       <Icon size={16} color={colors.soft} />
                       <span style={{ flex: '1 1 140px', fontWeight: 600, fontSize: '14px' }}>{loc?.name || t('inv.noLocation')}{loc?.archived_at && <span style={{ color: colors.muted, fontWeight: 400 }}> · {t('inv.archived')}</span>}</span>
                       <strong style={{ fontSize: '16px', minWidth: '40px', textAlign: 'right' }}>{qty}</strong>
-                      <span style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                      {/* Two buttons in view per row, the rest in its ⋯ (DESIGN.md rule 5) */}
+                      <span style={{ display: 'flex', gap: space[2], flexWrap: 'wrap', alignItems: 'center' }}>
                         <button onClick={() => setMovement({ mode: 'move', locationId: locId })} style={small}><ArrowRightLeft size={12} /> {t('inv.mode.move')}</button>
                         <button onClick={() => setMovement({ mode: 'remove', locationId: locId })} style={small}><PackageMinus size={12} /> {t('inv.mode.remove')}</button>
-                        {!loc?.archived_at && <button onClick={() => setMovement({ mode: 'count', locationId: locId })} style={small}><ClipboardCheck size={12} /> {t('inv.mode.count')}</button>}
+                        {!loc?.archived_at && <MoreMenu label={t('inv.moreForLocation', { name: loc?.name || t('inv.noLocation') })}
+                          items={[{ label: t('inv.mode.count'), icon: <ClipboardCheck size={15} aria-hidden="true" />, onClick: () => setMovement({ mode: 'count', locationId: locId }) }]} />}
                       </span>
                     </div>
                   )
@@ -203,19 +210,21 @@ export default function InventoryItemPage() {
             units.length === 0 ? (
               <p style={{ fontSize: '13px', color: colors.muted }}>{t('inv.noUnitsYet')}</p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ borderTop: `1px solid ${colors.border}` }}>
                 {units.map(u => {
                   const value = bookValue(u)
                   return (
                     <div key={u.id} style={{
-                      ...card, padding: '9px 12px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap',
+                      ...rowStyle, paddingLeft: highlight === u.id ? space[3] : 0, paddingRight: highlight === u.id ? space[2] : 0,
                       opacity: u.status === 'lost' || u.status === 'retired' ? 0.6 : 1,
-                      borderColor: highlight === u.id ? colors.accent : colors.border,
+                      // The selection wash marks the unit you came for (scanned), with a bar so it isn't colour alone
+                      background: highlight === u.id ? 'var(--selection)' : undefined,
+                      boxShadow: highlight === u.id ? `inset 2px 0 0 ${colors.accent}` : undefined,
                     }}>
                       <input type="checkbox" checked={selected.includes(u.id)} onChange={() => toggle(u.id)} aria-label={t('inv.selectUnit', { code: u.code })} style={{ accentColor: colors.accent }} />
                       <span style={{ flex: '1 1 180px', minWidth: 0 }}>
                         <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700 }}>{u.code}</span>
-                        <span style={{ fontSize: '12px', color: colors.muted }}>
+                        <span style={{ fontSize: '13px', color: colors.muted }}>
                           {[u.serial ? `${t('inv.serial')} ${u.serial}` : t('inv.noSerial'), u.case_unit_id && t('kit.inCase', { code: u.in_case?.code || '…' })].filter(Boolean).join(' · ')}
                         </span>
                       </span>
@@ -225,7 +234,7 @@ export default function InventoryItemPage() {
                           : inv.locationName(u.location_id) || t('inv.noLocation')}
                       </span>
                       <StatusBadge small tone={STATUS_TONE[u.status] || 'open'}>{t(`inv.unitStatus.${u.status}`)}</StatusBadge>
-                      {value != null && <span style={{ fontSize: '12px', color: colors.muted, whiteSpace: 'nowrap' }} title={t('inv.bookValueHint')}>{formatMoney(value, 'EUR', lang)}</span>}
+                      {value != null && <span style={{ fontSize: '13px', color: colors.muted, whiteSpace: 'nowrap' }} title={t('inv.bookValueHint')}>{formatMoney(value, 'EUR', lang)}</span>}
                       {item.kit_type === 'case' && (
                         <button onClick={() => setPacking(u)} style={small} title={t('kit.packHint')}><Boxes size={12} /> {t('kit.packed', { count: packedIn[u.id] || 0 })}</button>
                       )}
@@ -236,7 +245,7 @@ export default function InventoryItemPage() {
               </div>
             )
           )}
-        </section>
+        </Section>
 
         <KitPanel orgId={orgId} item={item} kits={kits} />
 
@@ -246,11 +255,11 @@ export default function InventoryItemPage() {
 
         {item.tracking !== 'none' && <Bookings item={item} owned={(s?.total || 0) - (s?.inRepair || 0)} />}
 
-        <section>
-          <h2 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '8px' }}>{t('inv.history')}</h2>
+        <Section id="item-history" title={t('inv.history')}>
           <MovementList rows={history} locationName={id => inv.locationName(id) || '—'} nameOf={nameOf}
             unitCode={id => units.find(u => u.id === id)?.code || ''} />
-        </section>
+        </Section>
+        </Stack>
       </div>
 
       {editing && (
@@ -287,28 +296,27 @@ function Bookings({ item, owned }) {
   const days = dailyAvailability(owned, bookings, startDate, DAYS)
   const tight = days.filter(d => d.free <= 0).length
   return (
-    <section style={{ marginBottom: '24px' }}>
-      <h2 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '4px' }}>{t('inv.bookings')}</h2>
-      <p style={{ fontSize: '12px', color: tight ? 'var(--warn)' : colors.muted, marginBottom: '8px' }}>
+    <Section id="item-bookings" title={t('inv.bookings')}>
+      <p style={{ fontSize: '13px', color: tight ? 'var(--warn)' : colors.muted, margin: `0 0 ${space[3]}` }}>
         {tight ? t('inv.daysFullyBooked', { count: tight, days: DAYS }) : t('inv.freeNextDays', { days: DAYS })}
       </p>
       {/* Square day cells (DESIGN.md "InventoryItem"): line nothing booked, accent-text enough free,
           warn partly booked, danger fully booked. The day's numbers are in each cell's title and the legend says the words. */}
-      <div role="img" aria-label={t('inv.availabilityStrip', { days: DAYS })} style={{ display: 'grid', gridTemplateColumns: `repeat(${DAYS}, 1fr)`, gap: '2px', marginBottom: '4px' }}>
+      <div role="img" aria-label={t('inv.availabilityStrip', { days: DAYS })} style={{ display: 'grid', gridTemplateColumns: `repeat(${DAYS}, 1fr)`, gap: '2px', marginBottom: space[1] }}>
         {days.map(d => (
           <div key={d.day} title={`${fmt(d.day, 'EEE d MMM')}: ${t('inv.freeOn', { free: Math.max(0, d.free), owned })}`} style={{
             height: '16px', background: stripColour(d, owned),
           }} />
         ))}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: '11px', color: colors.muted, marginBottom: '10px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: '11px', color: colors.muted, marginBottom: space[3] }}>
         <span>{fmt(days[0].day, 'd MMM')}</span><span>{fmt(days[days.length - 1].day, 'd MMM')}</span>
       </div>
       {bookings.length === 0 ? <p style={{ fontSize: '13px', color: colors.muted }}>{t('inv.noBookings')}</p> : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <div>
           {bookings.map((b, i) => (
-            <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'baseline', padding: '7px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px', flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: colors.soft, minWidth: '120px' }}>{rangeText(b.starts_at, b.ends_at)}</span>
+            <div key={i} style={{ display: 'flex', gap: space[3], alignItems: 'baseline', padding: `${space[2]} 0`, borderBottom: `1px solid ${colors.border}`, fontSize: '13px', flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: colors.soft, minWidth: '120px' }}>{rangeText(b.starts_at, b.ends_at)}</span>
               <span style={{ flex: '1 1 160px', minWidth: 0 }}>
                 {b.gig_id ? <Link to={`/gig/${b.gig_id}?tab=equipment`} style={{ color: 'var(--text)' }}>{b.gig_name}</Link> : '—'}
                 {b.status === 'hold' && <> <StatusBadge small tone="warn">{t('clash.hold')}</StatusBadge></>}
@@ -318,7 +326,7 @@ function Bookings({ item, owned }) {
           ))}
         </div>
       )}
-    </section>
+    </Section>
   )
 }
 
