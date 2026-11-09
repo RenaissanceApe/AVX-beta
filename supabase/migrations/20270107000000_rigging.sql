@@ -9,8 +9,8 @@
 --    derived. Rows without an organisation are AVX presets from the manufacturers' data sheets
 --    (read-only, source noted); an organisation adds its own from a hoist's data plate. Every
 --    model needs a second person's check before use (shown in the app). Removed by marking.
--- Adding the tool id 'rigging' to the tool lists needs a constraint change: that is in
--- 20270107000001_rigging_tool_checks.sql, run by hand. Written without destructive statements.
+-- The tool id 'rigging' joins the tool lists in S09's hand-run file
+-- 20270106000001_tool_ids_power_rigging.sql (with 'power'). Written without destructive statements.
 
 -- ── The gig's rigging ────────────────────────────────────────────────────────
 alter table public.gig_show add column if not exists rigging jsonb not null default '{}'::jsonb;
