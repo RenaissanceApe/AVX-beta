@@ -345,20 +345,22 @@ export function runsFromPlan({ distros, plan, cables, newId }) {
   return out
 }
 
-// Labels for distros and cables (U5 sizes, docs/TOOLS_PLAN.md D31): [{ key, size, title, lines }]
+// Labels for distros and cables (U5, docs/TOOLS_PLAN.md D31), in the shared label shape of
+// src/lib/labels.js: [{ key, kind, name, sub, department }]. Distros start medium, cables small.
 export function powerLabels({ distros, cables, supply, tr }) {
   const labels = []
+  const department = tr('labels.dept.power')
   for (const d of distros) {
     const feed = d.feed === 'supply' ? tr('power.fromSupply') : d.feed ? linkLabel(`d:${d.id}`, distros, tr) : tr('power.notPlugged')
     labels.push({
-      key: `d:${d.id}`, size: 'medium', title: d.name,
-      lines: [feed, d.outputs.map((o, i) => `${o.label || tr('power.outputN', { n: i + 1 })} ${supply.phases === 1 ? '' : o.phase}${o.breaker_a ? ` ${o.breaker_a} A` : ''}`.trim()).join(' · ')].filter(Boolean),
+      key: `d:${d.id}`, kind: 'distro', name: d.name, department,
+      sub: [feed, d.outputs.map((o, i) => `${o.label || tr('power.outputN', { n: i + 1 })} ${supply.phases === 1 ? '' : o.phase}${o.breaker_a ? ` ${o.breaker_a} A` : ''}`.replace(/\s+/g, ' ').trim()).join(' · ')].filter(Boolean),
     })
   }
   for (const c of cables) {
     for (let n = 1; n <= c.qty; n++) {
       const where = c.kind === 'power' ? (c.link ? linkLabel(c.link, distros, tr) : '') : [c.from, c.to].filter(Boolean).join(' → ')
-      labels.push({ key: `c:${c.id}:${n}`, size: 'small', title: c.label || cableTypeName(c, tr), lines: [tr('cables.metres', { m: c.length }), where].filter(Boolean) })
+      labels.push({ key: `c:${c.id}:${n}`, kind: 'cable', name: c.label || cableTypeName(c, tr), sub: [tr('cables.metres', { m: c.length }), where].filter(Boolean).join(' · '), department })
     }
   }
   return labels
