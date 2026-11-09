@@ -6,7 +6,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { BASE_STATUSES, LABEL_COLOURS, SUGGESTED_STATUSES, labelVar, useGigLabels } from '../lib/gigLabels'
 import { useI18n } from '../i18n'
-import { btn, iconBtn, input, label, colors } from './ui'
+import { btn, iconBtn, input, colors } from './ui'
 
 const select = { ...input, appearance: 'auto', width: 'auto', minWidth: 0 }
 
@@ -18,8 +18,8 @@ export default function OrgGigLabelsSettings({ org }) {
   const labels = useGigLabels(org.id)
   if (!labels.loaded) return null
   return (
-    <section aria-labelledby="org-labels" style={{ marginTop: '20px', paddingTop: '16px', borderTop: `1px solid ${colors.border}` }}>
-      <h3 id="org-labels" style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><Tags size={13} /> {t('labels.title')}</h3>
+    <section aria-labelledby="org-labels" style={{ marginTop: 'var(--space-section)' }}>
+      <h3 id="org-labels" style={{ font: '700 16px/24px var(--font-mono)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 8px' }}><Tags size={16} aria-hidden="true" /> {t('labels.title')}</h3>
       <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>{t('labels.intro')}</p>
       <LabelList org={org} kind="statuses" items={labels.statuses} reload={labels.reload} />
       <LabelList org={org} kind="types" items={labels.types} reload={labels.reload} />

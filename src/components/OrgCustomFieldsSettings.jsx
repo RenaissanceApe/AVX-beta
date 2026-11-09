@@ -6,7 +6,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { FIELD_ENTITIES, FIELD_KINDS, useCustomFields, choicesFromText } from '../lib/customFields'
 import { useI18n } from '../i18n'
-import { btn, iconBtn, input, label, colors } from './ui'
+import { btn, iconBtn, input, colors } from './ui'
 
 const select = { ...input, appearance: 'auto', width: 'auto', minWidth: 0 }
 
@@ -55,8 +55,8 @@ export default function OrgCustomFieldsSettings({ org }) {
 
   const tab = on => ({ ...btn, padding: '6px 12px', background: on ? 'var(--selection)' : 'transparent', color: on ? colors.accentText : colors.soft })
   return (
-    <section aria-labelledby="org-fields" style={{ marginTop: '20px', paddingTop: '16px', borderTop: `1px solid ${colors.border}` }}>
-      <h3 id="org-fields" style={{ ...label, display: 'flex', alignItems: 'center', gap: '6px' }}><SlidersHorizontal size={13} /> {t('custom.title')}</h3>
+    <section aria-labelledby="org-fields" style={{ marginTop: 'var(--space-section)' }}>
+      <h3 id="org-fields" style={{ font: '700 16px/24px var(--font-mono)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 8px' }}><SlidersHorizontal size={16} aria-hidden="true" /> {t('custom.title')}</h3>
       <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.5, marginBottom: '10px' }}>{t('custom.intro')}</p>
       <div role="group" aria-label={t('custom.on')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
         {FIELD_ENTITIES.map(e => <button key={e} type="button" aria-pressed={entity === e} onClick={() => setEntity(e)} style={tab(entity === e)}>{t(`custom.entity.${e}`)}</button>)}
