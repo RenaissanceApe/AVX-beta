@@ -59,7 +59,8 @@ async function loadHeader(src) {
   return { data: canvas.toDataURL('image/png'), format: 'PNG', ratio }
 }
 
-export async function buildQuotePdf({ quote, org = {}, branding = {} }) {
+// signature (optional): a client's drawn acceptance, added at the end as a signature block (step 16)
+export async function buildQuotePdf({ quote, org = {}, branding = {}, signature = null }) {
   const [{ jsPDF }, { default: autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')])
   const q = quote
   const L = q.language === 'en' ? 'en' : 'pt'
@@ -234,6 +235,12 @@ export async function buildQuotePdf({ quote, org = {}, branding = {} }) {
       if (b.type === 'h') { room(10); y += 2; paragraph(b.text, { size: 10, style: 'bold', gap: 1 }) }
       else paragraph(b.text, { size: 9.5, gap: 1.5 })
     }
+  }
+
+  if (signature) {
+    const { drawSignatureBlock } = await import('./signaturePdf')
+    y += 8
+    y = drawSignatureBlock(doc, signature, L, y, TOP)
   }
 
   // Header image and contact line on every page

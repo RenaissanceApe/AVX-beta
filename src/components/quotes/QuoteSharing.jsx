@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { History, Eye, RotateCcw, Save, Send, Copy, Check, Link2, Ban, Mail } from 'lucide-react'
+import { History, Eye, RotateCcw, Save, Send, Copy, Check, Link2, Ban, Mail, PenLine } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
+import { useAuth } from '../../lib/AuthContext'
+import { signatureFileUrl } from '../../lib/signatures'
+import { keepSignedQuotePdf } from '../../lib/signedQuote'
 import { logger, userMessage } from '../../lib/logger'
 import { saveVersion, sendQuote, sendAttempt } from '../../lib/quoteSharing'
 import { quotePdfBase64, quotePdfName } from '../../lib/quotePdf'
@@ -117,6 +120,9 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
   const [result, setResult] = useState(null) // { link, emailed, email_error }
   const [copied, setCopied] = useState(false)
   const [shares, setShares] = useState(null)
+  const [signatures, setSignatures] = useState({}) // by link id: the client's drawn signature (step 16)
+  const [pdfBusy, setPdfBusy] = useState(null)
+  const { user } = useAuth()
   const attempt = useRef(null) // the send in progress, kept for a retry (sendAttempt)
 
   async function loadShares() {
@@ -125,6 +131,25 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
       .eq('quote_id', quoteId).order('created_at', { ascending: false }).limit(20)
     if (error) logger.error('quoteShares', error, { quoteId })
     setShares(data || [])
+    const { data: sigs, error: sigErr } = await supabase.from('signatures')
+      .select('id, org_id, gig_id, quote_share_id, signer_name, signed_at, document, document_sha256, image_path, pdf_path, quotes(number)')
+      .eq('quote_id', quoteId).eq('kind', 'quote_acceptance').is('removed_at', null)
+    if (sigErr) logger.error('quoteShares', sigErr, { step: 'signatures', quoteId })
+    setSignatures(Object.fromEntries((sigs || []).map(sg => [sg.quote_share_id, sg])))
+  }
+
+  // Open the signed PDF; the first time, make it from the signed version and keep it
+  async function openSignedPdf(sig) {
+    setPdfBusy(sig.id)
+    try {
+      const row = sig.pdf_path ? sig : await keepSignedQuotePdf(sig, { quoteNumber: sig.quotes?.number, userId: user.id })
+      window.open(await signatureFileUrl(row.pdf_path), '_blank', 'noopener')
+      if (!sig.pdf_path) loadShares()
+    } catch (err) {
+      logger.error('quoteShares', err, { step: 'signed_pdf', signatureId: sig.id })
+      notify(userMessage(err), 'error')
+    }
+    setPdfBusy(null)
   }
   useEffect(() => { loadShares() }, [quoteId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -267,6 +292,14 @@ export function SendQuoteModal({ quoteId, prepare, defaultEmail, onSent, onClose
                       ].filter(Boolean).join(' · ')}
                     </div>
                     {s.responder_note && <div style={{ fontSize: '13px', color: colors.soft, marginTop: '4px', whiteSpace: 'pre-line' }}>“{s.responder_note}”</div>}
+                    {signatures[s.id] && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                        <span style={{ ...small, display: 'inline-flex', alignItems: 'center', gap: '4px' }}><PenLine size={12} aria-hidden="true" /> {t('send.signed')}</span>
+                        <button type="button" onClick={() => openSignedPdf(signatures[s.id])} disabled={pdfBusy === signatures[s.id].id} style={{ ...btn, padding: '4px 12px' }}>
+                          {pdfBusy === signatures[s.id].id && <AvxLoader size={12} />} {t('send.signedPdf')}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )
               })}

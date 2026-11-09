@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Printer, Check, X, FileDown } from 'lucide-react'
+import { Printer, Check, X, FileDown, PenLine } from 'lucide-react'
 import { loadSharedQuote, answerSharedQuote } from '../lib/quoteSharing'
 import { quoteNumber } from '../lib/quotes'
 import { useI18n, translate, fmtIn } from '../i18n'
@@ -8,6 +8,8 @@ import QuoteDocument, { toolbarBtn } from '../components/quotes/QuoteDocument'
 import { downloadQuotePdf } from '../lib/quotePdf'
 import GuestThread from '../components/messages/GuestThread'
 import { AvxLoader } from '../components/ui'
+import SignaturePad from '../components/signatures/SignaturePad'
+import { blobToDataUrl, shortHash } from '../lib/signatures'
 
 // The page a client opens from a quote link: no account needed. Shows the version
 // that was sent, in the quote's language, with Accept / Decline, and a conversation with the
@@ -57,7 +59,7 @@ export default function QuotePublicPage() {
   return (
     <QuoteDocument quote={data.quote} org={data.org} branding={data.branding} toolbar={<>
       <span style={{ flex: 1, fontSize: '13px', color: '#555' }}>{data.org?.name}</span>
-      <button onClick={() => downloadQuotePdf(data).catch(() => window.print())} style={toolbarBtn}><FileDown size={14} /> PDF</button>
+      <button onClick={() => downloadQuotePdf({ ...data, signature: data.signature?.image ? data.signature : null }).catch(() => window.print())} style={toolbarBtn}><FileDown size={14} /> PDF</button>
       <button onClick={() => window.print()} style={toolbarBtn}><Printer size={14} /> {translate(L, 'publicQuote.print')}</button>
     </>}>
       <GuestThread token={token} lang={L} defaultName={data.responder_name || data.quote.client_name || ''} />
@@ -73,6 +75,9 @@ function Answer({ token, lang, data, onAnswered }) {
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [signing, setSigning] = useState(false) // the optional drawn signature (accept only)
+  const [hasInk, setHasInk] = useState(false)
+  const pad = useRef(null)
 
   // Cancelled by the company (quote bin, issue 124): shown, but no longer answerable
   if (data.state === 'cancelled') {
@@ -96,6 +101,13 @@ function Answer({ token, lang, data, onAnswered }) {
           })}
         </strong>
         <span style={{ color: '#555', fontSize: '13px' }}>{tr('publicQuote.thanks', { org: data.org?.name || '' })}</span>
+        {accepted && data.signature?.image && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', width: '100%' }}>
+            <img src={data.signature.image} alt={tr('signature.imageAlt', { name: data.signature.signer_name })} style={{ height: '48px', border: '1px solid #ddd', background: '#fff' }} />
+            <span style={{ fontSize: '11px', color: '#555', fontFamily: 'monospace' }}>{tr('signature.hashLine', { hash: shortHash(data.signature.document_sha256) })}</span>
+          </div>
+        )}
+        {data.signature_error && <span role="alert" style={{ color: '#B91C1C', fontSize: '13px' }}>{tr('publicQuote.signatureNotKept')}</span>}
       </div>
     )
   }
@@ -105,11 +117,14 @@ function Answer({ token, lang, data, onAnswered }) {
     if (!name.trim()) return
     setBusy(true)
     setError('')
-    const res = await answerSharedQuote(token, choice, name.trim(), note.trim())
+    const png = choice === 'accept' && signing && hasInk ? await pad.current?.png() : null
+    const signature = png ? await blobToDataUrl(png) : null
+    const res = await answerSharedQuote(token, choice, name.trim(), note.trim(), signature)
     setBusy(false)
     if (res.error) {
       if (res.error === 'already_answered') return setError(tr('publicQuote.alreadyAnswered'))
       if (res.error === 'cancelled') return onAnswered({ state: 'cancelled' })
+      if (res.error === 'invalid_signature') return setError(tr('publicQuote.signatureInvalid'))
       return setError(tr('publicQuote.failed'))
     }
     onAnswered(res)
@@ -137,7 +152,16 @@ function Answer({ token, lang, data, onAnswered }) {
             {tr(choice === 'accept' ? 'publicQuote.noteAccept' : 'publicQuote.noteDecline')}
             <textarea value={note} onChange={e => setNote(e.target.value)} maxLength={1000} rows={3} style={{ ...field, resize: 'vertical' }} />
           </label>
+          {choice === 'accept' && (signing ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <SignaturePad ref={pad} onChange={setHasInk} lang={lang} paper label={tr('publicQuote.signLabel')} />
+              <button type="button" onClick={() => { setSigning(false); setHasInk(false) }} style={{ ...toolbarBtn, alignSelf: 'flex-start' }}>{tr('publicQuote.signSkip')}</button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => setSigning(true)} style={{ ...toolbarBtn, alignSelf: 'flex-start' }}><PenLine size={14} aria-hidden="true" /> {tr('publicQuote.signAdd')}</button>
+          ))}
           {choice === 'accept' && <p style={{ fontSize: '13px', color: '#555', lineHeight: 1.5, margin: 0 }}>{tr('publicQuote.acceptLegal', { org: data.org?.legal_name || data.org?.name || '' })}</p>}
+          {choice === 'accept' && signing && <p style={{ fontSize: '11px', color: '#555', lineHeight: 1.5, margin: 0 }}>{tr('signature.plainNotice')}</p>}
           {error && <p role="alert" style={{ fontSize: '13px', color: '#B91C1C', margin: 0 }}>{error}</p>}
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             <button type="button" onClick={() => setChoice(null)} style={toolbarBtn}>{tr('publicQuote.back')}</button>
