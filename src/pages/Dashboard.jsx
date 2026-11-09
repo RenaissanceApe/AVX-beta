@@ -230,14 +230,14 @@ export default function Dashboard() {
           onDeleted={async () => { await refresh(); setWorkspace(MY_WORK); navigate('/me', { replace: true }) }} />
       )}
       {mode === 'org' && org && params.get('new') === 'gig' && canCreateGig && (
-        <NewGigModal orgId={org.id} onClose={() => setParam('new', null)} onCreated={gig => navigate(`/gig/${gig.id}`)} />
+        <NewGigModal orgId={org.id} timeZone={org.time_zone} onClose={() => setParam('new', null)} onCreated={gig => navigate(`/gig/${gig.id}`)} />
       )}
       <style>{`@keyframes fadeIn { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }`}</style>
     </AppShell>
   )
 }
 
-function NewGigModal({ orgId, onClose, onCreated }) {
+function NewGigModal({ orgId, timeZone, onClose, onCreated }) {
   const { user } = useAuth()
   const [form, setForm] = useState({ name: '', venue: '', start_date: '', end_date: '', description: '', status: 'confirmed', custom_status_id: null, gig_type_id: null, client_id: null })
   const [saving, setSaving] = useState(false)
@@ -287,7 +287,7 @@ function NewGigModal({ orgId, onClose, onCreated }) {
             <input type="date" value={form.end_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))} style={modalInput} />
           </FieldLabel>
         </div>
-        <OwnClashWarning startDate={form.start_date} endDate={form.end_date} />
+        <OwnClashWarning startDate={form.start_date} endDate={form.end_date} timeZone={timeZone} />
         <GigClientField orgId={orgId} idPrefix="ng" value={form.client_id} onChange={v => setForm(f => ({ ...f, client_id: v }))} />
         <GigLabelFields idPrefix="ng" labels={labels} value={form} onChange={patch => setForm(f => ({ ...f, ...patch }))} />
         <CustomFieldInputs key={fields.length} fields={fields} values={{}} idPrefix="ng" inputStyle={modalInput} onChange={(id, v) => setCustom(c => ({ ...c, [id]: v }))} />

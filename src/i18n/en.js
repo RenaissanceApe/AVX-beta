@@ -1012,6 +1012,7 @@ export default {
   'shift.from': "From",
   'shift.until': "Until",
   'shift.invalid': "The end must be after the start.",
+  'shift.zone': "Times are in {zone} time (the organisation's time zone).",
   'shift.save': "Save times",
   'shift.clear': "Whole gig days",
   'shift.booked': "Booked {range}",
@@ -1291,6 +1292,8 @@ export default {
   'orgSettings.prepDays': "Prep days",
   'orgSettings.returnDays': "Return days",
   'orgSettings.equipmentDaysHint': "Equipment on a gig is booked from this many days before it until this many days after (for loading, testing and checking it back in). A line can have its own dates.",
+  'orgSettings.timeZone': "Time zone",
+  'orgSettings.timeZoneHint': "Gig days, crew bookings, leave and reports are read on this clock. Lisbon unless you change it.",
   // Inventory I3: warehouse (scanning out and in, packing lists)
   'dispatch.title': "Scan out and in",
   'dispatch.open': "Scan out / in",

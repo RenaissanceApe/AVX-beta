@@ -1011,6 +1011,7 @@ export default {
   'shift.from': "De",
   'shift.until': "Até",
   'shift.invalid': "O fim tem de ser depois do início.",
+  'shift.zone': "As horas estão na hora de {zone} (o fuso horário da organização).",
   'shift.save': "Guardar horas",
   'shift.clear': "Todos os dias do evento",
   'shift.booked': "Marcado {range}",
@@ -1290,6 +1291,8 @@ export default {
   'orgSettings.prepDays': "Dias de preparação",
   'orgSettings.returnDays': "Dias de devolução",
   'orgSettings.equipmentDaysHint': "O equipamento de um evento fica reservado desde estes dias antes até estes dias depois (para carregar, testar e dar entrada). Cada linha pode ter as suas próprias datas.",
+  'orgSettings.timeZone': "Fuso horário",
+  'orgSettings.timeZoneHint': "Os dias dos eventos, as marcações, as ausências e os relatórios leem-se neste relógio. Lisboa, a não ser que o mude.",
   // Inventário I3: armazém (saídas e entradas por leitura, listas de carga)
   'dispatch.title': "Saídas e entradas",
   'dispatch.open': "Saída / entrada",
