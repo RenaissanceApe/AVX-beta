@@ -42,6 +42,9 @@ up front. What each release changed is in [CHANGELOG.md](CHANGELOG.md).
 | K8: crew numbers (My numbers in My work, year statement per company, fee paid and received, Expenses → Crew to pay, crew fees in the cash position; a tile) | 0.77.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
 | K9: report extras (weekly key-numbers email for admins, saved views pinned to the Overview, monthly management pack PDF, read-only accountant link) | 0.77.0 | [docs/ANALYTICS.md](docs/ANALYTICS.md) |
 | Design refresh DR1–DR6, "room to breathe": layout pieces (Section, Stack, PageHeader, SwipeRow, MoreMenu), Arrange home and the slim First steps, the gig page, lists, detail pages and editors, field and crew screens, every screen on the type and spacing scales (a test fails on any off-scale size or gap), all help screenshots retaken | 0.78.0 | [docs/DESIGN_REFRESH.md](docs/DESIGN_REFRESH.md), [DESIGN.md](DESIGN.md) |
+| Step 13: A1 speaker library (speaker specs and rigging data on catalogue items, presets for ten models from the manufacturers' documents, catalogue speakers in the sound system calculator, speaker columns in the import) | 0.79.0 | [docs/INVENTORY.md](docs/INVENTORY.md), "How the speaker library works" |
+| Step 14: MVR/GDTF import and MVR export (fixtures with type, mode, footprint, place and address into the DMX patch and light plot, matched to the catalogue; GDTF modes, weight and power on catalogue items; MVR export with GDTF files; Vectorworks, grandMA3 and Capture styles) | 0.79.0 | [docs/FIELD_TOOLS.md](docs/FIELD_TOOLS.md), "How MVR and GDTF work" |
+| Step 16: e-signature (signature pad, `signatures` table and private bucket, signatures that can't be changed, signed PDFs; quote acceptance and delivery notes; ready for crew contracts and rigger sign-off) | 0.79.0 | [docs/BUSINESS.md](docs/BUSINESS.md), "How e-signature works" |
 | Truss load tables (data only, waiting for a second check) | 0.60 | [docs/TRUSS_DATA.md](docs/TRUSS_DATA.md) |
 | Privacy and security check: data map, OWASP review, sign-in failure tests | 0.62.1 | [docs/DATA_MAP.md](docs/DATA_MAP.md), [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) |
 
@@ -57,10 +60,7 @@ the data it counts.
 
 | # | What | Needs | Connect | Plan | Prompt |
 |---|---|---|---|---|---|
-| 13 | **A1** speaker library | catalogue | F4 sound calculator; later P1 and RG3 | TOOLS_PLAN.md §6 | S07 |
-| 14 | **MVR/GDTF import** [29] and MVR export | light plot, DMX patch | Fixture weights and power for P1 and RG1 | TOOLS_PLAN.md, FIELD_TOOLS.md | S08 |
 | 15 | **P1–P2** power and cables (with the 2026-11-03 additions: loads typed by hand, a connected status, fill-to-reserve) | light plot, 13, 14 | Light plot power estimate, gig equipment (distros, cables), labels (U5: distros and cables) | TOOLS_PLAN.md §4, "Decided (2026-11-03)" | S09, S10 |
-| 16 | **E-signature** [16] | — | Quote acceptance, delivery notes, crew contracts, rigger sign-off | BUSINESS.md | S11 |
 | 17 | **RG1–RG2** weights, points, hoists, trusses, bridles | light plot, catalogue, truss tables | Light plot "rigging not checked", bridle pocket tool, truss-table review screen | TOOLS_PLAN.md §5, TRUSS_DATA.md | S12, S13 |
 | 18 | **RG3** line arrays | 13, F4, RG1 | Sound system calculator | TOOLS_PLAN.md §5 | S14 |
 | 19 | **RG4** rigging plot, report, sign-off, **engineer's pack** and **measured loads** (D33) | RG1–RG3, job board, 16 | Gig files, on-site view, job board prefill, supplier-style link (send to an engineer), QR on the report (U6) | TOOLS_PLAN.md §5, "Decided (2026-11-03)" | S15 |

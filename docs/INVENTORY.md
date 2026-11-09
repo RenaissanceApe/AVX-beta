@@ -70,7 +70,7 @@ Functions: `equipment_availability(org, items, from, until, exclude_gig)`, `gig_
 
 | Piece | How it works |
 |---|---|
-| Packing list | `/gig/:id/packing`, printable, for everyone on the gig: items by category with quantity, packing note, a tick box, and what has been scanned out and back. The packing note is copied onto the gig's line when it is planned |
+| Packing list | `/gig/:id/packing`, printable, for everyone on the gig: items by category with quantity, packing note, a tick box, and what has been scanned out and back. The packing note is copied onto the gig's line when it is planned. **Delivery note: sign** (step 16): the client signs on the phone for what went out; the signed PDF is kept and copied to the gig's files (docs/BUSINESS.md, "How e-signature works") |
 | Scan out / in | `/gig/:id/scan`, for the gig's managers and the organisation's admins/members. Point the phone camera at a QR label (or type the code, or use a hardware scanner that types it). A unit's code moves that unit; an item's code moves a quantity of a bulk item. Returns can be marked damaged, which sends a unit to repair |
 | Warnings, never blocks | More than planned, a unit already out on another gig (it moves to this one), more back than went out, a lost unit turning up (it becomes available again). Scanning the same unit out twice, or in when it isn't out, is refused |
 | Progress | Planned / out / back per item on the scan page and in the Equipment tab; units still out are listed with their codes |
@@ -152,6 +152,22 @@ organisation; before, the browser worked it out from at most 1000 rows per list.
 Since K5 (0.77.0) Inventory → Reports opens Reports → Equipment; this table is its "Use and
 value" view, beside profit, payback and buy or keep hiring in ([ANALYTICS.md](ANALYTICS.md),
 "How K5 works").
+
+## How the speaker library works (A1)
+
+Built in step 13 (docs/TOOLS_PLAN.md §6). Speaker cabinets are ordinary catalogue items with a
+speaker part in the item form.
+
+| Piece | How it works |
+|---|---|
+| Specs | `price_items`: kind of speaker (point source, line array element, subwoofer, stage monitor, column), sensitivity (1 W/1 m), maximum SPL, nominal dispersion horizontal × vertical, lowest and highest frequency, impedance, amplifier channels per cabinet, and the datasheet they come from (`spec_source`). Weight and power draw stay in `weight_kg` and `power_w`. The database checks the limits (`price_items_speaker_check`) and the form shows the same limits |
+| Rigging data | `price_items.rigging` (an object): centre of gravity, pickup points and bumper/frame limits, copied as printed from the manufacturer's rigging manual, and its source. It is safety-relevant: the item form and page say it needs a second person's check before use (the rule in docs/TRUSS_DATA.md). `checked` stays false; RG3 adds the sign-off and reads these fields |
+| Presets | `src/data/speakers.js`: ten models (L-Acoustics K2, Kara II, X12, KS28; d&b V8, Y10P, V-SUB; RCF HDL 30-A; Meyer Sound LEOPARD; NEXO GEO M1220), each typed from the manufacturer's own document, with its address, title, version and the date it was opened, the document's wording for every value and how it was measured. A value the document doesn't give is left empty, never worked out (no power draw in watts and no centre of gravity is printed in any of them). "Fill from a preset" in the item form writes those values, the source and the rigging data (not checked); `speaker_preset` remembers which. A unit test checks every preset has its source, wording and values in range |
+| Sound system calculator (F4) | Editors who can read the catalogue pick a speaker per source: its maximum SPL and horizontal dispersion are copied into the source (so crew who can't read the catalogue get the same results) and those fields lock. "Update from catalogue" appears when the item's specs change; "Typed by hand" unlinks it |
+| Import | The equipment import guesses the speaker columns. A "Speaker preset" column (brand and model, e.g. "L-Acoustics K2") fills the cells the file left empty; an unknown name, a value outside the limits or a highest frequency below the lowest refuses the row (`unknownPreset`, `speakerRange`, `freqOrder`; the database's own refusal reads as `speakerSpec`) |
+| Later | P1 (power) reads `power_w`, RG3 (line arrays) reads `weight_kg` and `rigging` |
+
+Migration `20270103000000_speaker_specs.sql`, checks `supabase/tests/speaker_specs.sql`.
 
 ## How it builds on what exists
 

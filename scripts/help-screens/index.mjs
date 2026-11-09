@@ -249,6 +249,14 @@ const SCENES = {
   'light-power': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=light_plot`, async run(page, L) {
     return page.locator('section[aria-labelledby="light-power"]')
   } },
+  'mvr-match': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=light_plot`, async run(page, L) {
+    // The sample MVR made from the standard (scripts/mvr-samples.mjs)
+    await page.getByRole('button', { name: L('mvr.import') }).click()
+    await page.locator('#mvr-file').setInputFiles(path.join(root, 'docs/samples/mvr/vectorworks-style.mvr'))
+    const match = page.locator('section[aria-labelledby="mvr-match"]')
+    await match.waitFor()
+    return match
+  } },
   'plot-drawing': { persona: 'pm', url: `/gig/${ids.gig}?tab=tools&tool=stage_plot`, async run(page, L) {
     const drawing = page.locator('section[aria-labelledby="stage-plot-title"] svg[role="group"]')
     await drawing.waitFor()

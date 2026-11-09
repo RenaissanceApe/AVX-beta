@@ -54,8 +54,9 @@ export async function loadSharedQuote(token) {
   return data
 }
 
-export async function answerSharedQuote(token, action, name, note) {
-  const { data, error } = await supabase.functions.invoke('quote-public', { body: { t: token, action, name, note } })
+// signature (optional, accept only): the drawn signature as a PNG data URL (step 16)
+export async function answerSharedQuote(token, action, name, note, signature = null) {
+  const { data, error } = await supabase.functions.invoke('quote-public', { body: { t: token, action, name, note, ...(signature ? { signature } : {}) } })
   if (error) {
     const body = await errorBody(error)
     return { error: body.error || 'error', state: body.state }

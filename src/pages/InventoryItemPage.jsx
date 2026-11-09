@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Boxes, Pencil, Archive, ArchiveRestore, PackagePlus, PackageMinus, ArrowRightLeft, ClipboardCheck, Plus, QrCode, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Boxes, Pencil, Archive, ArchiveRestore, PackagePlus, PackageMinus, ArrowRightLeft, ClipboardCheck, Plus, QrCode, AlertTriangle, FileUp } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
@@ -17,9 +17,11 @@ import { KitPanel, CaseContentsModal } from '../components/inventory/KitPanels'
 import ContextThread from '../components/messages/ContextThread'
 import { ItemMaintenance } from '../components/inventory/MaintenancePanels'
 import ItemMoneyCard from '../components/inventory/ItemMoneyCard'
+import FixtureTypeCard from '../components/inventory/FixtureTypeCard'
 import { MovementList, useNames, LOCATION_ICONS } from './InventoryPage'
 import { btn, btnPrimary, iconBtn, label, colors, StatusBadge, AvxLoader, PageHeader, Section, Stack, MoreMenu, space } from '../components/ui'
 import { PageHelp } from '../components/help/HelpParts'
+import { speakerFacts, riggingOf } from '../lib/speakers'
 
 const STATUS_TONE = { available: 'ok', repair: 'warn', lost: 'danger', retired: 'off' }
 const ghost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
@@ -48,6 +50,7 @@ export default function InventoryItemPage() {
   const [selected, setSelected] = useState([])
   const [packedIn, setPackedIn] = useState({}) // case unit id -> units packed in it
   const [packing, setPacking] = useState(null)
+  const [addingGdtf, setAddingGdtf] = useState(false)
   const item = inv.items.find(i => i.id === itemId)
   const nameOf = useNames(history.map(h => h.created_by))
   const highlight = params.get('unit')
@@ -93,6 +96,7 @@ export default function InventoryItemPage() {
     [t('inv.replacementValue'), item.replacement_value != null ? formatMoney(item.replacement_value, 'EUR', lang) : ''],
     [t('inv.minStock'), item.min_stock ?? ''],
     [t('inv.packingNote'), item.packing_note],
+    ...speakerFacts(item, t),
     ...customFields.map(f => {
       const text = displayValue(f, item.custom_values?.[f.id], { yesNo: [t('custom.yes'), t('custom.no')], date: d => fmt(d, 'd MMM yyyy') })
       return [f.label, f.kind === 'link' && text ? <a href={text} target="_blank" rel="noopener noreferrer" style={{ color: colors.accentText }}>{text.replace(/^https?:\/\//i, '')}</a> : text]
@@ -130,7 +134,7 @@ export default function InventoryItemPage() {
             { label: t('common.edit'), icon: <Pencil size={14} aria-hidden="true" />, onClick: () => setEditing(true) },
             ...(item.tracking !== 'none' ? [{ label: selected.length ? t('inv.labelsSelected', { count: selected.length }) : t('inv.labels'), icon: <QrCode size={14} aria-hidden="true" />, onClick: () => navigate(labelsLink) }] : []),
           ]}
-          more={[item.archived_at
+          more={[{ label: t('gdtf.add'), icon: <FileUp size={15} aria-hidden="true" />, onClick: () => setAddingGdtf(true) }, item.archived_at
             ? { label: t('inv.restore'), icon: <ArchiveRestore size={15} aria-hidden="true" />, onClick: () => setArchived(false) }
             : { label: t('inv.archive'), icon: <Archive size={15} aria-hidden="true" />, onClick: () => setArchived(true) }]}
         />
@@ -146,6 +150,7 @@ export default function InventoryItemPage() {
             ))}
           </dl>
         )}
+        {riggingOf(item.rigging) && <RiggingFacts rigging={riggingOf(item.rigging)} />}
 
         {item.kit_type !== 'set' && (item.kind === 'rental' || item.kind === 'sale') && <ItemMoneyCard orgId={orgId} item={item} />}
 
@@ -247,6 +252,8 @@ export default function InventoryItemPage() {
           )}
         </Section>
 
+        <FixtureTypeCard orgId={orgId} item={item} adding={addingGdtf} onCloseAdding={() => setAddingGdtf(false)} onItemChanged={inv.reload} />
+
         <KitPanel orgId={orgId} item={item} kits={kits} />
 
         <ItemMaintenance orgId={orgId} item={item} onChanged={refresh} />
@@ -335,4 +342,26 @@ function stripColour(d, owned) {
   if (d.free <= 0) return 'var(--danger)'
   if (!d.booked) return 'var(--line-strong)'
   return d.free < Math.max(1, owned) / 4 ? 'var(--warn)' : 'var(--accent-text)'
+}
+
+// The manufacturer's rigging data as typed (A1), with the second-person check RG3 will need
+function RiggingFacts({ rigging }) {
+  return (
+    <section aria-labelledby="rigging-title">
+      <h2 id="rigging-title" style={{ ...label, marginBottom: space[2] }}>{t('spk.rigging')}</h2>
+      {!rigging.checked && (
+        <p role="note" style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontSize: '13px', color: 'var(--warn)', lineHeight: 1.5, marginBottom: space[2] }}>
+          <AlertTriangle size={14} aria-hidden="true" style={{ flexShrink: 0, marginTop: '2px' }} /> {t('spk.riggingUnchecked')}
+        </p>
+      )}
+      <dl style={{ display: 'flex', flexDirection: 'column', gap: space[2], margin: 0 }}>
+        {['cog', 'pickup_points', 'frame_limits', 'source'].filter(k => rigging[k]).map(k => (
+          <div key={k}>
+            <dt style={{ ...label, marginBottom: space[1] }}>{t(`spk.rig.${k}`)}</dt>
+            <dd style={{ fontSize: '14px', overflowWrap: 'anywhere', whiteSpace: 'pre-line', margin: 0 }}>{rigging[k]}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
 }

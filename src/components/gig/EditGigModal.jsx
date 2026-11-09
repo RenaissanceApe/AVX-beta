@@ -72,6 +72,11 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
   }
 
   async function deleteGig() {
+    // Signed documents (step 16) are kept as proof: check before anything is removed, as the gig's
+    // files go first. The database refuses it too (gigs_keep_signatures).
+    const { count, error: sigErr } = await supabase.from('signatures').select('id', { count: 'exact', head: true }).eq('gig_id', gig.id)
+    if (sigErr) logger.error('gig', sigErr, { step: 'deleteGig.signatures', gigId: gig.id })
+    if (count > 0) throw new Error(t('error.gigHasSignatures'))
     await removeGigFiles([gig.id])
     const { data, error } = await supabase.from('gigs').delete().eq('id', gig.id).select('id')
     if (error) {
