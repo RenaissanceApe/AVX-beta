@@ -47,6 +47,21 @@ version as the client would see it (printable); **Restore** puts it back into th
 the current state as a new version, so a restore can always be undone. Every quote you send to a
 client is saved as a version automatically.
 
+## Recently deleted (the quote bin)
+
+**Delete** (quote ⋯ menu) moves a quote to **Quotes → Recently deleted** instead of erasing it, with
+an **Undo** on the message. While it waits there it counts nowhere: lists, search, counts, reports,
+gig finance, chat cards and the client's link (which shows "not found"). **Restore** brings it back
+as it was, with its versions, client links and number. Fifteen days after it was deleted, a nightly
+clean-up in the database (`private.erase_removed_quotes`, pg_cron job `avx-quote-bin`) erases it for
+good, with its versions and links; invoices, crew positions and gig equipment keep their rows
+without the link.
+
+Who may delete and restore is unchanged: an admin, or the quote's author. Each person's bin lists
+only the quotes they may restore. Technically: `quotes.removed_at`/`removed_by`, the `quotes_select`
+policy hides removed rows, and the RPCs `remove_quote`, `restore_quote` and `removed_quotes` do the
+rest (migration `20270102000000_quote_bin.sql`, test `supabase/tests/quote_bin.sql`).
+
 ## Sending it to the client
 
 **Send to client** saves a version and creates a private link to an online copy of that version
