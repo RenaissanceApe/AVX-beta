@@ -11,7 +11,8 @@ import { leftToPay, isPartlyPaid, paymentsByInvoice } from '../lib/payments'
 import { downloadInvoicesCsv } from '../lib/invoiceCsv'
 import { useToast } from '../lib/ToastContext'
 import { useI18n, fmt } from '../i18n'
-import { btn, btnPrimary, input, card, colors, Modal, AvxLoader } from '../components/ui'
+import { btnPrimary, input, colors, Modal, AvxLoader, PageHeader, Stack, space } from '../components/ui'
+import { FilterTabs, pageWrap, rowList, rowButton, rowMeta } from '../components/ListParts'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
@@ -19,7 +20,6 @@ import InvoiceModal, { InvoiceBadge, invoiceTitle } from '../components/invoices
 import InvoicingPanel from '../components/invoices/InvoicingPanel'
 
 const VIEWS = ['open', 'unpaid', 'paid', 'all']
-const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
 
 // Invoices (step 11) at /org/:orgId/invoices, for the organisation's admins and members. AVX
 // prepares each invoice; the organisation's own certified invoicing program issues it, and its
@@ -127,78 +127,59 @@ export default function InvoicesPage() {
 
   return (
     <AppShell>
-      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{title}</h1>
-              <PageHelp page="org-invoices" />
-            </div>
-            <p style={{ fontSize: '13px', color: colors.muted, marginTop: '2px' }}>{t('invoice.intro')}</p>
-          </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => downloadInvoicesCsv(shown, list || [], `${t('invoice.csvFile')} ${today}`)} disabled={!shown.length} style={btn}>
-              <Download size={14} /> {t('invoice.csv')}
-            </button>
-            <button type="button" onClick={() => setPicking(true)} style={btnPrimary}><Plus size={14} /> {t('invoice.newFromQuote')}</button>
-          </div>
-        </div>
+      <div style={pageWrap}>
+        <PageHeader title={title} help={<PageHelp page="org-invoices" />}
+          primary={<button type="button" onClick={() => setPicking(true)} style={btnPrimary}><Plus size={16} aria-hidden="true" /> {t('invoice.newFromQuote')}</button>}
+          secondary={[{ label: t('invoice.csv'), icon: <Download size={15} aria-hidden="true" />, disabled: !shown.length,
+            onClick: () => downloadInvoicesCsv(shown, list || [], `${t('invoice.csvFile')} ${today}`) }]} />
 
-        <InvoicingPanel orgId={orgId} status={program} providers={providers} isAdmin={role === 'admin'} onChanged={changed} />
+        <section className="avx-section" aria-label={t(`invoice.view.${view}`)}>
+          {(sums.unpaid || sums.overdue) && (
+            <Stack gap={2} style={{ marginBottom: space[5] }}>
+              <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: `${space[1]} ${space[3]}`, fontSize: '14px', margin: 0 }}>
+                {['overdue', 'unpaid'].filter(k => sums[k]).map(k => (
+                  <FragmentRow key={k} term={t(`invoice.sum.${k}`)} danger={k === 'overdue'}
+                    value={Object.entries(sums[k]).map(([c, v]) => formatMoney(v, c, lang)).join(' · ')} />
+                ))}
+              </dl>
+              {/* K3: overdue by age and the cash position */}
+              <p style={{ margin: 0, fontSize: '13px' }}>
+                <Link to={`/org/${orgId}/reports?tab=money&view=cash`} style={{ color: colors.accentText }}>{t('invoice.byAge')}</Link>
+              </p>
+            </Stack>
+          )}
 
-        {(sums.unpaid || sums.overdue) && (
-          <dl style={{ ...section, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '4px 12px', fontSize: '14px', margin: 0 }}>
-            {['overdue', 'unpaid'].filter(k => sums[k]).map(k => (
-              <FragmentRow key={k} term={t(`invoice.sum.${k}`)} danger={k === 'overdue'}
-                value={Object.entries(sums[k]).map(([c, v]) => formatMoney(v, c, lang)).join(' · ')} />
-            ))}
-          </dl>
-        )}
-        {/* K3: overdue by age and the cash position */}
-        {(sums.unpaid || sums.overdue) && (
-          <p style={{ margin: 0, fontSize: '13px' }}>
-            <Link to={`/org/${orgId}/reports?tab=money&view=cash`} style={{ color: colors.accentText }}>{t('invoice.byAge')}</Link>
-          </p>
-        )}
+          <FilterTabs label={t('invoice.views')} value={view} onChange={setView} style={{ marginBottom: space[3] }}
+            items={VIEWS.map(v => ({ key: v, label: t(`invoice.view.${v}`) }))} />
 
-        <nav aria-label={t('invoice.views')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {VIEWS.map(v => (
-            <button key={v} type="button" onClick={() => setView(v)} aria-current={view === v ? 'page' : undefined}
-              style={{ ...btn, padding: '7px 12px', ...(view === v ? { background: colors.accent, color: colors.onAccent, borderColor: colors.accent } : {}) }}>
-              {t(`invoice.view.${v}`)}
-            </button>
-          ))}
-        </nav>
-
-        <section style={section} aria-label={t(`invoice.view.${view}`)}>
-          <div style={{ position: 'relative' }}>
-            <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} aria-hidden="true" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('invoice.search')} aria-label={t('invoice.search')} style={{ ...input, paddingLeft: '30px' }} />
+          <div style={{ position: 'relative', marginBottom: space[4] }}>
+            <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} aria-hidden="true" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('invoice.search')} aria-label={t('invoice.search')} style={{ ...input, paddingLeft: '32px' }} />
           </div>
           {!list ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}><AvxLoader size={22} color={colors.accentText} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: space[5] }}><AvxLoader size={22} color={colors.accentText} /></div>
           ) : shown.length === 0 ? (
             <EmptyState compact icon={<FileCheck size={26} />} title={t(`invoice.empty.${view}`)} body={t('invoice.emptyBody')} guide="office-invoices"
               action={t('invoice.newFromQuote')} onAction={() => setPicking(true)} />
           ) : (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <ul style={rowList}>
               {shown.map(i => {
                 const late = daysOverdue(i, today)
                 return (
-                  <li key={i.id} style={{ borderTop: `1px solid ${colors.border}` }}>
-                    <button type="button" onClick={() => openInvoice(i)} style={{ all: 'unset', boxSizing: 'border-box', width: '100%', cursor: 'pointer', display: 'flex', gap: '10px', alignItems: 'center', padding: '10px 2px', minHeight: '44px' }}>
+                  <li key={i.id}>
+                    <button type="button" onClick={() => openInvoice(i)} style={rowButton}>
                       <span style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ display: 'flex', gap: space[2], alignItems: 'center', flexWrap: 'wrap' }}>
                           <strong style={{ fontSize: '14px' }}>{invoiceTitle(i, t)}</strong>
                           <InvoiceBadge invoice={i} credits={credits} />
                         </span>
-                        <span style={{ display: 'block', fontSize: '12px', color: colors.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ ...rowMeta, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {[i.client_name, i.quote?.title, i.due_date && i.kind === 'invoice' && i.status !== 'paid' ? t(late ? 'invoice.lateBy' : 'invoice.dueOn', { date: fmt(i.due_date, 'd MMM'), count: late }) : null,
                             isPartlyPaid(i, { credits, payments: payments[i.id] }) ? t('payment.leftShort', { amount: formatMoney(leftToPay(i, { credits, payments: payments[i.id] }), i.currency, lang) }) : null,
                             i.paid_on ? t('invoice.paidOnShort', { date: fmt(i.paid_on, 'd MMM') }) : null].filter(Boolean).join(' · ')}
                         </span>
                       </span>
-                      <span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', color: i.kind === 'credit_note' ? colors.muted : undefined }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', color: i.kind === 'credit_note' ? colors.muted : undefined }}>
                         {i.kind === 'credit_note' ? '−' : ''}{formatMoney(i.total, i.currency, lang)}
                       </span>
                     </button>
@@ -208,6 +189,9 @@ export default function InvoicesPage() {
             </ul>
           )}
         </section>
+
+        {/* The invoicing program is set up once; it sits after the list (DESIGN.md rule 6) */}
+        <InvoicingPanel orgId={orgId} status={program} providers={providers} isAdmin={role === 'admin'} onChanged={changed} />
       </div>
 
       {picking && <QuotePicker orgId={orgId} prefix={org?.quote_number_prefix ?? 'Q'} onClose={() => setPicking(false)} onPick={q => { setPicking(false); setOpen({ quote: q }) }} />}
@@ -243,17 +227,17 @@ function QuotePicker({ orgId, prefix, onClose, onPick }) {
   }
   return (
     <Modal title={t('invoice.pickQuote')} onClose={onClose}>
-      <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('invoice.searchQuotes')} aria-label={t('invoice.searchQuotes')} style={{ ...input, marginBottom: '10px' }} />
+      <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('invoice.searchQuotes')} aria-label={t('invoice.searchQuotes')} style={{ ...input, marginBottom: space[3] }} />
       {!quotes ? <AvxLoader size={20} /> : shown.length === 0 ? (
         <p style={{ fontSize: '13px', color: colors.muted }}>{t('invoice.noAcceptedQuotes')}</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        <ul style={rowList}>
           {shown.map(x => (
-            <li key={x.id} style={{ borderTop: `1px solid ${colors.border}` }}>
-              <button type="button" onClick={() => pick(x)} style={{ all: 'unset', boxSizing: 'border-box', width: '100%', cursor: 'pointer', display: 'flex', gap: '8px', padding: '10px 2px', minHeight: '44px', alignItems: 'center' }}>
+            <li key={x.id}>
+              <button type="button" onClick={() => pick(x)} style={rowButton}>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <strong style={{ fontSize: '14px' }}>{quoteNumber(x, prefix)} · {x.title}</strong>
-                  <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{x.client_company || x.client_name || '—'}</span>
+                  <span style={rowMeta}>{x.client_company || x.client_name || '—'}</span>
                 </span>
                 <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: '13px' }}>{formatMoney(x.total_net, x.currency, lang)}</span>
               </button>

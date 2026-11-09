@@ -418,7 +418,7 @@ export default {
         'Tap "Add expense": the date, supplier (from Contacts or typed), what for, the category and the amount excl. VAT or the total. Add the receipt from the phone camera or a PDF. Link it to a gig, or to the subrental, repair, crew fee or stock purchase it pays for.',
         'Anyone on a gig can claim what they paid themselves: Crew tab → Expenses → "Claim an expense", with a photo of the receipt.',
         'The gig\'s managers approve claims there (or in Expenses → Claims), or send them back with a note. Approved claims show under "Unpaid and due" as to reimburse until you add the date they were paid.',
-        'Add rent, insurance and leasing once under "Recurring": AVX drafts each one on its date for you to confirm. "CSV for the accountant" downloads the confirmed expenses you see.',
+        'Add rent, insurance and leasing once under "Recurring": AVX drafts each one on its date for you to confirm. "CSV for the accountant" (on a phone, under ⋯) downloads the confirmed expenses you see.',
       ],
       mistakes: [
         'A subrental, repair or crew fee can have only one expense: open it from the record to change it.',
@@ -433,7 +433,7 @@ export default {
         'Choose what to invoice: the whole quote, some phases, a deposit % or, after a deposit, the rest. Each line keeps its VAT rate; lines at 0% need a reason.',
         'Check the client and lines, create the invoice in your certified program (Moloni, InvoiceXpress, Vendus…) and tap "Mark as sent to my program". Then add the number it gave and the link to its PDF.',
         'Connected your program (an admin, at the top of Invoices: Invoicing program)? Tap "Send to …" instead: the draft goes there. Finalise it in the program, then tap "Check …" to bring back its number, dates and PDF.',
-        'Invoices lists what is still to send, what is unpaid (overdue first) and what is paid. Overdue invoices also notify you each week. No connector for your program? "CSV" downloads the invoices shown, one row per line, to import there.',
+        'Invoices lists what is still to send, what is unpaid (overdue first) and what is paid. Overdue invoices also notify you each week. No connector for your program? "CSV" (on a phone, under ⋯) downloads the invoices shown, one row per line, to import there.',
         'When the client pays, record the payment under Payments ("Mark as paid" for the whole amount left; part payments too). Overdue? Email the client a reminder. Something to give back? Make a credit note.',
       ],
       mistakes: [
@@ -459,7 +459,7 @@ export default {
       title: 'Approve leave and keep holiday days right',
       intro: 'Decide requests, see who is away, and set each person\'s holiday days and working week.',
       steps: [
-        'In Leave, "requests waiting for you" lists each request with its days. Tap "Approve", or "Refuse" with a reason they will see. "Add for someone" enters leave (a sick call, say) that counts at once.',
+        'In Leave, "requests waiting for you" lists each request with its days. Tap "Approve", or "Refuse" with a reason they will see. "Add for someone" (on a phone, under ⋯) enters leave (a sick call, say) that counts at once.',
         'Under "Holiday days and working weeks", set the organisation\'s days per year (22 to start). "Edit" a person for their own allowance, the days carried over from last year, their working days and hours a day.',
         '"Who is away" shows the month day by day. Approved leave blocks the person for gigs, Find crew and hours; the organisation export has the leave, balances and working weeks.',
       ],
@@ -501,7 +501,7 @@ export default {
       steps: [
         'In a gig\'s Crew tab, "Hours" lists everyone\'s days. Each waiting day shows its split (normal, overtime, night, weekend, holiday) and its cost. Tap "Approve", or "Send back" with a note. You can also log hours for anyone on the gig.',
         'Approved days lock with their split and cost. "Labour cost" now shows the actual cost from approved hours next to the planned one: agreed fees per day or hour, fixed fees once, plus travel and km.',
-        'In the organisation, "Hours" (admins) shows everyone per month with their hours and approved cost. Download a CSV for payroll; the organisation export has the hours too. Set the night window, the rate per km and your own holidays in the organisation\'s settings under "Crew rates".',
+        'In the organisation, "Hours" (admins) shows everyone per month with their hours and approved cost. Download a CSV for payroll (on a phone, under ⋯); the organisation export has the hours too. Set the night window, the rate per km and your own holidays in the organisation\'s settings under "Crew rates".',
       ],
       mistakes: [
         'Changing a rate later never changes an approved day: the cost stays as it was approved.',
@@ -654,7 +654,7 @@ export default {
       ],
       mistakes: [
         'Changing a certificate\'s name or expiry date removes its confirmations and checks: they were for the certificate as it was.',
-        'See a fake profile or a dodgy job? Tap Report under it. You stop seeing it at once and AVX looks into it; nobody is told who reported.',
+        'See a fake profile or a dodgy job? Tap Report under it (on a crew profile, under ⋯). You stop seeing it at once and AVX looks into it; nobody is told who reported.',
       ],
     },
     'crew-profile': {
@@ -944,7 +944,7 @@ export default {
       title: 'Import your equipment from a spreadsheet or another tool',
       intro: 'Bring your locations, catalogue, serial numbers and kits into AVX in one go, from an Excel or CSV export (Rentman, another rental tool or a spreadsheet), instead of typing them in.',
       steps: [
-        'In Inventory, tap Import. Import in this order: locations, then equipment, then units (serial numbers), then kit contents, because each one refers to the ones before.',
+        'In Inventory, tap Import (on a phone, under ⋯). Import in this order: locations, then equipment, then units (serial numbers), then kit contents, because each one refers to the ones before.',
         'Choose what you are importing, then choose the file (Excel .xlsx or CSV; from Excel the first sheet is read) or paste the rows from your spreadsheet (with their headings).',
         'AVX guesses what each column is, also from Dutch or Portuguese headings. Check the guesses and change any that are wrong. Save the matching with a name ("Rentman equipment export") so the next file needs none.',
         'The check shows what will be new, what matches what is already in AVX, and which rows have problems (they are left out). Import, then read the report. Fix the skipped rows in the file and import it again: what is already in AVX is matched, not doubled.',
@@ -1064,7 +1064,7 @@ export default {
       title: 'Set up your company details',
       intro: 'Your details are printed at the top of every quote. Set them once; new quotes use them.',
       steps: [
-        'Open Quotes → Company details (only admins can change them).',
+        'Open Quotes → Company details (on a phone, under ⋯) (only admins can change them).',
         'Fill in the legal name, VAT number, address, phone and website, the default VAT and how long quotes are valid.',
         'Write your default terms and conditions, then save.',
       ],
@@ -1089,7 +1089,7 @@ export default {
       intro: 'Type a client once and pick them on every quote. Suppliers live here too, for subrentals.',
       steps: [
         'Open Contacts (in the Quotes menu). Clients and Suppliers each have a tab. Tap "New client" to add one: the company or name, the contact person, e-mail, phone, tax number and address.',
-        'Moving from another tool or a spreadsheet? Tap Import and bring them in from the export. Already have quotes? "Add them to contacts" turns the clients typed on them into contacts and links those quotes.',
+        'Moving from another tool or a spreadsheet? Tap Import (on a phone, under ⋯) and bring them in from the export. Already have quotes? "Add them to contacts" turns the clients typed on them into contacts and links those quotes.',
         'On a quote, in Details, pick the client from "Client from contacts": their details are filled in. A client typed by hand can be kept with "Save to contacts".',
         'Open a client to see their quotes. Archive the ones you no longer work with: they stay on old quotes but leave the lists.',
       ],

@@ -349,7 +349,7 @@ const SCENES = {
     return dialog.getByRole('button', { name: L('common.invite'), exact: true }).locator('xpath=..')
   } },
   'jobs-board': { persona: 'crew', url: '/jobs', async run(page, L) {
-    const first = page.locator('#jobs-found').locator('xpath=following-sibling::div[1]/div[1]')
+    const first = page.locator('#jobs-found ~ ul > li').first()
     await first.waitFor()
     await first.evaluate(el => { el.scrollIntoView({ block: 'start' }); window.scrollBy(0, -80) })
     return first

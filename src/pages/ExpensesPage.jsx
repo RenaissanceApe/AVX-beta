@@ -10,7 +10,8 @@ import {
   EXPENSE_SELECT, KINDS, monthBounds, byCategory, categoryName, costOf, monthlyShare, isOverdue, toReimburse, downloadExpensesCsv, loadCategories,
 } from '../lib/expenses'
 import { useI18n, fmt } from '../i18n'
-import { btn, btnPrimary, input, label, card, colors, AvxLoader } from '../components/ui'
+import { btnPrimary, input, colors, AvxLoader, PageHeader, Section, Stack, space } from '../components/ui'
+import { FilterTabs, pageWrap } from '../components/ListParts'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
@@ -20,8 +21,6 @@ import { RecurringPanel, CategorySettings } from '../components/expenses/Expense
 import CrewToPay from '../components/expenses/CrewToPay'
 
 const VIEWS = ['month', 'unpaid', 'crew', 'claims', 'recurring', 'categories']
-const section = { ...card, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }
-const h2 = { fontSize: '15px', fontWeight: 700, margin: 0 }
 const DETAILS_KEY = 'avx.expenses.details'
 const readDetails = () => { try { return localStorage.getItem(DETAILS_KEY) === '1' } catch { return false } }
 const writeDetails = v => { try { localStorage.setItem(DETAILS_KEY, v ? '1' : '0') } catch { /* private window */ } }
@@ -134,68 +133,46 @@ export default function ExpensesPage() {
 
   return (
     <AppShell>
-      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{title}</h1>
-              <PageHelp page="org-expenses" />
-            </div>
-            <p style={{ fontSize: '13px', color: colors.muted, marginTop: '2px' }}>{t('expenses.intro')}</p>
-          </div>
-          <button type="button" onClick={() => setEditing('new')} style={btnPrimary}><Plus size={14} /> {t('expenses.add')}</button>
-        </div>
+      <div style={pageWrap}>
+        <PageHeader title={title} help={<PageHelp page="org-expenses" />}
+          primary={<button type="button" onClick={() => setEditing('new')} style={btnPrimary}><Plus size={16} aria-hidden="true" /> {t('expenses.add')}</button>}
+          secondary={view === 'month' || view === 'unpaid' ? [{ label: t('expenses.csv'), icon: <Download size={15} aria-hidden="true" />, onClick: csv, disabled: !confirmed.length }] : []} />
 
-        <nav aria-label={t('expenses.views')} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {VIEWS.filter(v => v !== 'categories' || isAdmin).map(v => (
-            <button key={v} type="button" onClick={() => setView(v)} aria-current={view === v ? 'page' : undefined}
-              style={{ ...btn, padding: '7px 12px', ...(view === v ? { background: colors.accent, color: colors.onAccent, borderColor: colors.accent } : {}) }}>
-              {t(`expenses.view.${v}`)}
-            </button>
-          ))}
-        </nav>
+        <FilterTabs tabs label={t('expenses.views')} value={view} onChange={setView} style={{ marginBottom: space[5] }}
+          items={VIEWS.filter(v => v !== 'categories' || isAdmin).map(v => ({ key: v, label: t(`expenses.view.${v}`) }))} />
 
         {view === 'crew' && <CrewToPay orgId={orgId} isAdmin={isAdmin} />}
         {view === 'recurring' && <RecurringPanel orgId={orgId} categories={categories} version={version} onChanged={changed} />}
         {view === 'categories' && <CategorySettings orgId={orgId} categories={categories} onChanged={changed} />}
 
         {(view === 'month' || view === 'unpaid' || view === 'claims') && (
-          <section style={section} aria-labelledby="exp-list">
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
-              <h2 id="exp-list" style={{ ...h2, flex: '1 1 160px' }}>
-                {view === 'month' ? fmt(`${month}-01`, 'MMMM yyyy') : t(`expenses.view.${view}`)}
-              </h2>
-              {/* K3: unpaid expenses and recurring costs in the cash position */}
-              {view === 'unpaid' && (
-                <Link to={`/org/${orgId}/reports?tab=money&view=cash`} style={{ fontSize: '13px', color: colors.accentText }}>{t('expenses.cashLink')}</Link>
-              )}
-              {view === 'month' && (
-                <div>
-                  <label htmlFor="exp-month" style={label}>{t('hours.month')}</label>
-                  <input id="exp-month" type="month" value={month} onChange={e => e.target.value && setMonth(e.target.value)} style={{ ...input, width: 'auto' }} />
-                </div>
-              )}
-            </div>
-
+          <Section id="exp-list" title={view === 'month' ? fmt(`${month}-01`, 'MMMM yyyy') : t(`expenses.view.${view}`)}
+            aside={view === 'unpaid' ? (
+              /* K3: unpaid expenses and recurring costs in the cash position */
+              <Link to={`/org/${orgId}/reports?tab=money&view=cash`} style={{ fontSize: '13px', color: colors.accentText }}>{t('expenses.cashLink')}</Link>
+            ) : view === 'month' ? (
+              <input id="exp-month" type="month" value={month} onChange={e => e.target.value && setMonth(e.target.value)} aria-label={t('hours.month')} style={{ ...input, width: 'auto' }} />
+            ) : null}>
+          <Stack gap={4}>
             {view === 'month' && list && (
-              <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '4px 12px', fontSize: '14px', margin: 0 }}>
+              <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: `${space[1]} ${space[3]}`, fontSize: '14px', margin: 0 }}>
                 <dt style={{ fontWeight: 700, minWidth: 0 }}>{t('expenses.monthTotal')}</dt>
                 <dd style={{ margin: 0, fontWeight: 700, textAlign: 'right', whiteSpace: 'nowrap' }}><Totals list={confirmed} lang={lang} what="net" /></dd>
                 {kindSums.filter(k => k.count).map(k => (
                   <FragmentRow key={k.kind} term={t(`expenses.kind.${k.kind}`)}
-                    value={<>{formatMoney(k.cost, 'EUR', lang)}{k.kind === 'capital' && <span style={{ display: 'block', fontSize: '12px', color: colors.muted }}>{t('expenses.thisMonthShare', { amount: formatMoney(k.monthCost, 'EUR', lang) })}</span>}</>} />
+                    value={<>{formatMoney(k.cost, 'EUR', lang)}{k.kind === 'capital' && <span style={{ display: 'block', fontSize: '13px', color: colors.muted }}>{t('expenses.thisMonthShare', { amount: formatMoney(k.monthCost, 'EUR', lang) })}</span>}</>} />
                 ))}
                 {details && <FragmentRow term={t('expenses.vatTotal')} value={<Totals list={confirmed} lang={lang} what="vat" />} />}
                 {details && <FragmentRow term={t('expenses.withVat')} value={<Totals list={confirmed} lang={lang} what="total" />} />}
               </dl>
             )}
-            {view === 'month' && uncategorised > 0 && <p style={{ fontSize: '12px', color: 'var(--warn)', margin: 0 }}>{t('expenses.uncategorised', { count: uncategorised })}</p>}
-            {view === 'month' && !recovers && <p style={{ fontSize: '12px', color: colors.muted, margin: 0 }}>{t('expenses.vatCountsAsCost')}</p>}
+            {view === 'month' && uncategorised > 0 && <p style={{ fontSize: '13px', color: colors.warn, margin: 0 }}>{t('expenses.uncategorised', { count: uncategorised })}</p>}
+            {view === 'month' && !recovers && <p style={{ fontSize: '13px', color: colors.muted, margin: 0 }}>{t('expenses.vatCountsAsCost')}</p>}
 
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: space[2], flexWrap: 'wrap', alignItems: 'center' }}>
               <div style={{ position: 'relative', flex: '1 1 100%', minWidth: 0 }}>
-                <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} aria-hidden="true" />
-                <input value={filter.search} onChange={e => setFilter(f => ({ ...f, search: e.target.value }))} placeholder={t('expenses.search')} aria-label={t('expenses.search')} style={{ ...input, paddingLeft: '30px' }} />
+                <Search size={14} color={colors.muted} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} aria-hidden="true" />
+                <input value={filter.search} onChange={e => setFilter(f => ({ ...f, search: e.target.value }))} placeholder={t('expenses.search')} aria-label={t('expenses.search')} style={{ ...input, paddingLeft: '32px' }} />
               </div>
               <select value={filter.kind} onChange={e => setFilter(f => ({ ...f, kind: e.target.value, category: '' }))} aria-label={t('expenses.kindLabel')} style={{ ...input, width: 'auto', minWidth: 0, maxWidth: '100%', flex: '1 1 130px' }}>
                 <option value="">{t('expenses.allKinds')}</option>
@@ -205,21 +182,20 @@ export default function ExpensesPage() {
                 <option value="">{t('expenses.allCategories')}</option>
                 {categories.filter(c => !filter.kind || c.kind === filter.kind).map(c => <option key={c.id} value={c.id}>{categoryName(c, t)}</option>)}
               </select>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: space[2], fontSize: '13px', minHeight: '36px' }}>
                 <input type="checkbox" checked={details} onChange={toggleDetails} /> {t('expenses.showDetails')}
               </label>
-              {view !== 'claims' && <button type="button" onClick={csv} disabled={!confirmed.length} style={btn}><Download size={14} /> {t('expenses.csv')}</button>}
             </div>
 
             {!list ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}><AvxLoader size={22} color={colors.accentText} /></div>
+              <div style={{ display: 'flex', justifyContent: 'center', padding: space[5] }}><AvxLoader size={22} color={colors.accentText} /></div>
             ) : shown.length === 0 ? (
               <EmptyState compact icon={<Receipt size={26} />} title={t(`expenses.empty.${view}`)} body={t(`expenses.emptyBody.${view}`)}
                 guide="office-expenses" {...(view === 'month' ? { action: t('expenses.add'), onAction: () => setEditing('new') } : {})} />
             ) : view === 'unpaid' ? (
               unpaidGroups.filter(([, rows]) => rows.length).map(([key, rows]) => (
                 <div key={key}>
-                  <h3 style={{ fontSize: '13px', fontWeight: 700, margin: '6px 0 2px', display: 'flex', justifyContent: 'space-between', gap: '8px', color: key === 'overdue' ? colors.danger : 'var(--text)' }}>
+                  <h3 style={{ fontSize: '13px', fontWeight: 700, margin: `0 0 ${space[1]}`, display: 'flex', justifyContent: 'space-between', gap: space[2], color: key === 'overdue' ? colors.danger : colors.text }}>
                     <span>{t(`expenses.unpaidGroup.${key}`, { count: rows.length })}</span><Totals list={rows} lang={lang} />
                   </h3>
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -229,7 +205,7 @@ export default function ExpensesPage() {
               ))
             ) : (
               <>
-                {drafts.length > 0 && <p style={{ fontSize: '13px', color: 'var(--warn)', margin: 0 }}>{t('expenses.draftsWaiting', { count: drafts.length })}</p>}
+                {drafts.length > 0 && <p style={{ fontSize: '13px', color: colors.warn, margin: 0 }}>{t('expenses.draftsWaiting', { count: drafts.length })}</p>}
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                   {shown.map(e => (
                     <ExpenseRow key={e.id} e={e} categories={categories} names={names} today={today} details={details || view === 'claims'} onOpen={() => setEditing(e)}>
@@ -241,10 +217,10 @@ export default function ExpensesPage() {
             )}
             {view === 'month' && details && list && confirmed.length > 0 && (
               <div>
-                <h3 style={{ fontSize: '13px', fontWeight: 700, margin: '8px 0 4px' }}>{t('expenses.byCategory')}</h3>
+                <h3 style={{ fontSize: '13px', fontWeight: 700, margin: `0 0 ${space[1]}` }}>{t('expenses.byCategory')}</h3>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                   {byCategory(confirmed, categories).map(g => (
-                    <li key={`${g.id}|${g.currency}`} style={{ display: 'flex', gap: '8px', padding: '5px 0', borderTop: `1px solid ${colors.border}`, fontSize: '13px' }}>
+                    <li key={`${g.id}|${g.currency}`} style={{ display: 'flex', gap: space[2], padding: `${space[2]} 0`, borderTop: `1px solid ${colors.border}`, fontSize: '13px' }}>
                       <span style={{ flex: 1, minWidth: 0 }}>{categoryName(g.category, t)} <span style={{ color: colors.muted }}>· {g.count}</span></span>
                       <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>{formatMoney(g.net, g.currency, lang)}</span>
                     </li>
@@ -252,7 +228,8 @@ export default function ExpensesPage() {
                 </ul>
               </div>
             )}
-          </section>
+          </Stack>
+          </Section>
         )}
       </div>
       {editing && (

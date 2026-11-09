@@ -9,7 +9,8 @@ import { useWorkspace } from '../lib/WorkspaceContext'
 import { HOURS_COLUMNS, HOURS_QUEUE_CHANGED, readQueuedHours, downloadHoursCsv } from '../lib/hours'
 import { totals } from '../lib/timeRegistration'
 import { useI18n, fmt } from '../i18n'
-import { btn, btnPrimary, input, label, card, colors, AvxLoader } from '../components/ui'
+import { btnPrimary, input, label, colors, AvxLoader, PageHeader, Stack, space } from '../components/ui'
+import { pageWrap, rowList, row, rowButton } from '../components/ListParts'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
@@ -93,29 +94,22 @@ export default function HoursPage() {
 
   return (
     <AppShell>
-      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{title}</h1>
-              <PageHelp page={isOrg ? 'org-hours' : 'my-hours'} />
-            </div>
-            <p style={{ fontSize: '13px', color: colors.muted, marginTop: '2px' }}>{isOrg ? t('hours.orgIntro') : t('hours.pageIntro')}</p>
-          </div>
-          <div>
-            <label htmlFor="hours-month" style={label}>{t('hours.month')}</label>
-            <input id="hours-month" type="month" value={month} onChange={e => e.target.value && setMonth(e.target.value)} style={{ ...input, width: 'auto' }} />
-          </div>
-          {entries?.length > 0 && <button type="button" onClick={csv} style={btn}><Download size={14} /> CSV</button>}
+      <div style={pageWrap}>
+        <PageHeader title={title} help={<PageHelp page={isOrg ? 'org-hours' : 'my-hours'} />}
+          secondary={entries?.length > 0 ? [{ label: 'CSV', icon: <Download size={15} aria-hidden="true" />, onClick: csv }] : []} />
+
+        <div style={{ marginBottom: space[5] }}>
+          <label htmlFor="hours-month" style={label}>{t('hours.month')}</label>
+          <input id="hours-month" type="month" value={month} onChange={e => e.target.value && setMonth(e.target.value)} style={{ ...input, width: 'auto' }} />
         </div>
 
         {!entries ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><AvxLoader size={22} color={colors.accentText} /></div>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: space[6] }}><AvxLoader size={22} color={colors.accentText} /></div>
         ) : entries.length === 0 && waitingQueue.length === 0 ? (
           <EmptyState icon={<Clock size={28} />} title={t('hours.monthEmptyTitle')} body={isOrg ? t('hours.orgEmptyBody') : t('hours.myEmptyBody')} guide="crew-hours" />
         ) : (
-          <>
-            <p style={{ ...card, padding: '12px 16px', fontSize: '14px', margin: 0, display: 'flex', gap: '6px 16px', flexWrap: 'wrap' }}>
+          <Stack gap={4}>
+            <p style={{ fontSize: '14px', margin: 0, display: 'flex', gap: `${space[1]} ${space[4]}`, flexWrap: 'wrap' }}>
               <span>{t('hours.total')}: <strong>{hoursText(all.worked, lang)}</strong></span>
               {['overtime', 'night', 'weekend', 'holiday'].filter(b => all[b] > 0).map(b => <span key={b} style={{ color: colors.muted }}>{t(`hours.bucket.${b}`)} {hoursText(all[b], lang)}</span>)}
               {all.travel > 0 && <span style={{ color: colors.muted }}>{t('hours.travel')} {hoursText(all.travel, lang)}</span>}
@@ -123,45 +117,46 @@ export default function HoursPage() {
               {all.cost > 0 && <span>{isOrg ? t('hours.approvedCost') : t('hours.approvedPay')}: <strong>{money(all.cost, lang)}</strong></span>}
             </p>
             {isOrg ? (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <ul style={rowList}>
                 {people.map(p => (
-                  <li key={p.id} style={{ ...card, padding: '10px 14px' }}>
+                  <li key={p.id} style={{ borderBottom: `1px solid ${colors.line}` }}>
                     <button type="button" onClick={() => setOpen(open === p.id ? null : p.id)} aria-expanded={open === p.id}
-                      style={{ all: 'unset', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', width: '100%', flexWrap: 'wrap', fontSize: '14px' }}>
-                      {open === p.id ? <ChevronDown size={15} aria-hidden="true" /> : <ChevronRight size={15} aria-hidden="true" />}
+                      style={{ ...rowButton, borderBottom: 'none', flexWrap: 'wrap', gap: space[2] }}>
+                      {open === p.id ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}
                       <span style={{ fontWeight: 700, flex: '1 1 140px', minWidth: 0 }}>{p.name}</span>
                       <span>{t('hours.daysCount', { count: p.days.length })} · <strong>{hoursText(p.sum.worked, lang)}</strong></span>
                       {p.sum.overtime > 0 && <span style={{ color: colors.muted }}>{t('hours.bucket.overtime')} {hoursText(p.sum.overtime, lang)}</span>}
                       {p.sum.cost > 0 && <strong>{money(p.sum.cost, lang)}</strong>}
-                      {p.waiting > 0 && <span style={{ color: 'var(--warn)', fontSize: '12px', fontWeight: 700 }}>{t('hours.waitingCount', { count: p.waiting })}</span>}
+                      {p.waiting > 0 && <span style={{ color: colors.warn, fontSize: '13px', fontWeight: 700 }}>{t('hours.waitingCount', { count: p.waiting })}</span>}
                     </button>
-                    {open === p.id && <DayList days={p.days} showCost />}
+                    {open === p.id && <div style={{ padding: `0 0 ${space[3]} ${space[6]}` }}><DayList days={p.days} showCost /></div>}
                   </li>
                 ))}
               </ul>
             ) : (
-              <div style={{ ...card, padding: '10px 14px' }}><DayList days={[...waitingQueue.map(q => ({ ...q, status: 'queued' })), ...entries]} showCost /></div>
+              <DayList days={[...waitingQueue.map(q => ({ ...q, status: 'queued' })), ...entries]} showCost rows />
             )}
-          </>
+          </Stack>
         )}
       </div>
     </AppShell>
   )
 }
 
-function DayList({ days, showCost }) {
+// rows: a page list with hairlines; otherwise the days under a person, spaced
+function DayList({ days, showCost, rows }) {
   const { t } = useI18n()
   return (
-    <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <ul style={rows ? rowList : { listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: space[3] }}>
       {days.map(e => (
-        <li key={e.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', fontSize: '14px' }}>
+        <li key={e.id} style={rows ? { ...row, flexWrap: 'wrap', gap: space[2], fontSize: '14px' } : { display: 'flex', gap: space[2], alignItems: 'center', flexWrap: 'wrap', fontSize: '14px' }}>
           <span style={{ flex: '1 1 220px', minWidth: 0 }}>
             <DayLine entry={e} />
-            <span style={{ display: 'block', fontSize: '12px' }}>
+            <span style={{ display: 'block', fontSize: '13px' }}>
               <Link to={`/gig/${e.gig_id}?tab=crew`} style={{ color: colors.accentText }}>{e.gig_name}</Link>
             </span>
             {e.status === 'approved' && <SplitLine split={e.split} cost={showCost ? e.cost : null} />}
-            {e.status === 'returned' && e.review_note && <span style={{ display: 'block', fontSize: '12px', color: colors.danger }}>{t('hours.returnedNote', { note: e.review_note })}</span>}
+            {e.status === 'returned' && e.review_note && <span style={{ display: 'block', fontSize: '13px', color: colors.danger }}>{t('hours.returnedNote', { note: e.review_note })}</span>}
           </span>
           <StatusChip status={e.status} />
         </li>
