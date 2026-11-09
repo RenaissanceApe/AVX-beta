@@ -14,6 +14,7 @@ const ROLES = ['admin', 'member', 'viewer']
 // Crew imported from another tool (docs/SWITCHING.md, S3a), held until an admin sends the
 // invitations: nobody is e-mailed by an import. Each can get its role checked first; sending
 // goes through the normal invitation, one person at a time. Discarding keeps a record.
+// Unsent ones are marked expired after 60 days (U3, docs/DATA_MAP.md) but can still be sent.
 export default function HeldInvites({ org, onSent }) {
   const { notify } = useToast()
   const { t } = useI18n()
@@ -22,7 +23,7 @@ export default function HeldInvites({ org, onSent }) {
   const [progress, setProgress] = useState(null) // { done, total } while sending
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from('held_invites').select('id, email, full_name, phone, functions, role, import_file')
+    const { data, error } = await supabase.from('held_invites').select('id, email, full_name, phone, functions, role, import_file, expired_at')
       .eq('org_id', org.id).eq('status', 'held').order('full_name', { nullsFirst: false })
     if (error) logger.error('org', error, { step: 'heldInvites' })
     setHeld(data || [])
@@ -89,7 +90,11 @@ export default function HeldInvites({ org, onSent }) {
           <li key={h.id} style={row}>
             <input type="checkbox" checked={picked.has(h.id)} onChange={() => toggle(h.id)} aria-label={t('held.pick', { name: h.full_name || h.email })} style={{ accentColor: 'var(--accent)', flexShrink: 0 }} />
             <span style={{ flex: '1 1 150px', minWidth: 0 }}>
-              <span style={{ display: 'block', fontWeight: 600, fontSize: '13px', overflowWrap: 'anywhere' }}>{h.full_name || h.email}</span>
+              <span style={{ display: 'block', fontWeight: 600, fontSize: '13px', overflowWrap: 'anywhere' }}>
+                {h.full_name || h.email}
+                {h.expired_at && ' '}{h.expired_at && <span style={expiredTag}>{t('held.expired')}</span>}
+              </span>
+              {h.expired_at && <span style={{ display: 'block', fontSize: '13px', color: 'var(--muted)' }}>{t('held.expiredHint')}</span>}
               <span style={{ display: 'block', fontSize: '13px', color: 'var(--muted)', overflowWrap: 'anywhere' }}>{[h.full_name && h.email, h.functions].filter(Boolean).join(' · ')}</span>
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', marginLeft: 'auto' }}>
@@ -123,4 +128,6 @@ const sendBtn = {
   display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', padding: 'var(--space-2) var(--space-4)', minHeight: '36px', border: '1px solid var(--accent)',
   background: 'var(--selection)', color: 'var(--accent-text)', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
 }
+// Text, not colour alone, says it expired (the invitation can still be sent)
+const expiredTag = { marginLeft: 'var(--space-2)', padding: '0 var(--space-1)', border: '1px solid var(--line)', color: 'var(--soft)', fontSize: '13px', fontWeight: 600 }
 const plainBtn = { ...sendBtn, background: 'none', border: '1px solid var(--line)', color: 'var(--soft)' }

@@ -1360,6 +1360,7 @@ export default {
       mistakes: [
         'A viewer sees all the company\'s gigs. For a freelancer you only book now and then, discard the import and add them to a gig by e-mail instead.',
         'People who are already members or already invited are left out. An invitation that couldn\'t be sent stays in the list to try again.',
+        'Invitations left unsent: after 14 days the organisation\'s admins get a reminder, and after 60 days they are marked expired. Nothing is removed: you can still send or discard them.',
       ],
     },
     'ad-verify-company': {
