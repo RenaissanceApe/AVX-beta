@@ -151,7 +151,7 @@ function ArrayCard({ arr, booked, needed, source, lines, models, pickable, setti
           </Fact>
           <Fact term={t('la.bumper')}>
             {a.frame ? a.frame.name : t('la.noFrame')}
-            {a.frame && <span style={{ display: 'block', color: colors.soft }}>{t('la.limits', { safe: a.frame.safe ?? '—', max: a.frame.max ?? '—', swl: a.frame.swl_kg ?? '—' })}</span>}
+            {a.frame && <span style={{ display: 'block', color: colors.soft }}>{t('la.limits', { safe: a.frame.safe ?? '—', max: a.frame.max ?? '—' })}{a.frame.swl_kg !== null && t('la.limitsSwl', { swl: a.frame.swl_kg })}</span>}
             <span style={{ display: 'block', color: statusColour(a.bumper.status === 'none' ? 'check' : a.bumper.status) }}>
               {a.bumper.reasons.map(r => t(`la.reason.${r}`, { n: arr.count, safe: a.frame?.safe, max: a.frame?.max, swl: a.frame?.swl_kg, safeKg: a.frame?.safe_kg })).join(' ')}
             </span>

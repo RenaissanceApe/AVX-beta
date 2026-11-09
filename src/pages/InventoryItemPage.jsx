@@ -403,7 +403,7 @@ function RiggingFacts({ item, userId, onChecked }) {
             <dt style={{ ...label, marginBottom: space[1] }}>{t('la.signoff.frames')}</dt>
             {frames.map(f => (
               <dd key={f.id} style={{ fontSize: '14px', margin: `0 0 ${space[1]}` }}>
-                <strong>{f.name}</strong> · {f.kg === null ? t('la.notPrinted') : `${f.kg} kg`} · {t('la.limits', { safe: f.safe ?? '—', max: f.max ?? '—', swl: f.swl_kg ?? '—' })}
+                <strong>{f.name}</strong> · {f.kg === null ? t('la.notPrinted') : `${f.kg} kg`} · {t('la.limits', { safe: f.safe ?? '—', max: f.max ?? '—' })}{f.swl_kg !== null && t('la.limitsSwl', { swl: f.swl_kg })}
                 <span style={{ display: 'block', fontSize: '13px', color: colors.soft }}>“{f.quote}” ({t('la.page', { page: f.page })})</span>
               </dd>
             ))}
