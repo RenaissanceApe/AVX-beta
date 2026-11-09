@@ -481,8 +481,9 @@ test('the logo goes home and the workspace switcher lists My work and the organi
   await page.getByRole('menuitemradio', { name: /My work/ }).click()
   await expect(page).toHaveURL(/\/me$/)
   // The PM created the gig, so it is one of their own gigs, labelled with the company and their role
-  await expect(page.getByText(GIG).first()).toBeVisible()
-  await expect(page.getByText(ORG).first()).toBeVisible()
+  // (15 s like the other home checks: the test project can be slow to answer, #114)
+  await expect(page.getByText(GIG).first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(ORG).first()).toBeVisible({ timeout: 15_000 })
 })
 
 test('the user can delete their account and everything they created', async ({ page }) => {
