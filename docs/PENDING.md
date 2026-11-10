@@ -205,6 +205,8 @@ Use your second email address as a crew member. Each line is a few minutes. New 
 | T156 | **Too old (IM4, 0.82.0):** a job from 11 years ago: listed as too old, not imported | 0.82.0 |
 | T157 | **Decided quotes (IM4, 0.82.0):** import a quotes file with Status (accepted / declined), Sent on, Decided on and Reason columns. Check the quotes' status, and that the K reports count them in the right month and the decline reason shows | 0.82.0 |
 | T158 | **History on a phone (IM4, 0.82.0):** on a phone (320 px), in both languages: the check with "Import as past jobs" | 0.82.0 |
+| T159 | **Client name in the heads-up (0.82.1):** import a jobs file whose client isn't in Contacts: the "client not in Contacts" heads-up names the client (not "{value}") | 0.82.1 |
+| T160 | **Next button on a phone (0.82.1):** on a 320 px phone in Portuguese, import equipment: the "Seguinte: Unidades (números de série)" button at the end fits on screen | 0.82.1 |
 
 ## 3. Decisions still open
 
@@ -344,8 +346,8 @@ Each has a default already built; nothing is blocked. Say "keep" or "change".
 | D129 | **`label_templates` in the organisation export** (U5): not included yet (the row holds who saved it). Add it? | Not included | 0.81.0 |
 | D130 | **Prints without a QR** (U6): the quote print (/quote/:id/print), the wrap-up and the reports pages: the quote goes to clients (who can't open AVX), the others are reports rather than gig sheets. Add `<PrintFooter />` to any of them? | Left out | 0.81.0 |
 | D131 | **Worker test tags** (U6): the sweep script refuses tags shorter than 3 characters, so `npm run e2e:sweep -- u6` fails; worker tags should be 3+ characters (e.g. `u6x`) or the limit lowered (issue #158) | 3+ characters | 0.81.0 |
-| D132 | **Old problem texts in the import check** (IM1): they still say "(import locations first)", "add their codes to the file" and similar next to the new fixes. Shorten them to just the problem? Rewording existing text needs your yes | Unchanged | 0.82.0 |
-| D133 | **Choose-step file hint** (IM2): "Excel (.xlsx, its first sheet)" ("a primeira folha") is no longer true now that a workbook asks which sheet. Proposed: "Excel (.xlsx), CSV or tab-separated, as most tools export." Rewording needs your yes | Unchanged | 0.82.0 |
+| D132 | ✅ (approved 2026-11-10, done in 0.82.1) **Old problem texts in the import check** (IM1): they still say "(import locations first)", "add their codes to the file" and similar next to the new fixes. Shorten them to just the problem? Rewording existing text needs your yes | Shortened (0.82.1) | 0.82.0 |
+| D133 | ✅ (approved 2026-11-10, done in 0.82.1) **Choose-step file hint** (IM2): "Excel (.xlsx, its first sheet)" ("a primeira folha") is no longer true now that a workbook asks which sheet. Proposed: "Excel (.xlsx), CSV or tab-separated, as most tools export." Rewording needs your yes | Reworded as proposed (0.82.1) | 0.82.0 |
 | D134 | **Two downloads on the Done step** (IM2): the old "Download the report" (line, result, message) stays next to the new "Download the rows left out". Remove the old one? | Both kept | 0.82.0 |
 | D135 | **"The headings are on row N"** (IM2) counts the file's non-empty lines, so with empty rows above the headings the number can differ from Excel's row number. OK? (The suggestion is right either way) | Non-empty lines | 0.82.0 |
 | D136 | **Unused key `imp.fix.bulkLimit`** (IM3, "can't switch to per unit here yet") is no longer shown; a new note explains the switch. Remove it from the dictionaries? | Kept | 0.82.0 |
@@ -355,6 +357,7 @@ Each has a default already built; nothing is blocked. Say "keep" or "change".
 | D140 | **The wh-import guide and the check's "Nothing to do: these stay out by design" hint** (IM4) still say past and cancelled jobs are left out with nothing to do (a new hint shows when a group offers a choice). Proposed: "Past and cancelled jobs, people already in AVX and quotes already sent are left out on purpose; past jobs can be brought in with "Import as past jobs"." Rewording needs your yes | Unchanged | 0.82.0 |
 | D141 | **The of-import-jobs guide's intro** (IM4) still says "Past jobs stay in the old tool's export as an archive." Reword it to point to the new history guide? Rewording needs your yes | Unchanged | 0.82.0 |
 | D142 | **Quote statuses in the history import** (IM4): "sent" is accepted (waiting for an answer, sent on its date); "cancelled" isn't offered (the check asks to treat the word as another status). OK? | As described | 0.82.0 |
+| D143 | **Import problem texts kept as they were** (0.82.1): these still carry a hint in brackets, because they don't send the person away to do something the check now does, or a fix isn't always there: `imp.err.unknownPreset` "(use the brand and model, e.g. …)", `imp.err.date` "(use 2024-03-01 or 01-03-2024)", `imp.err.notTracked` "(sets are planned through their contents)", `imp.err.pastJob` "(it stays in your old tool's export)". Shorten any of them too? | Kept as they are | 0.82.1 |
 
 ## 4. Before a public launch (already in the roadmap)
 
