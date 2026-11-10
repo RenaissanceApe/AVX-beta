@@ -299,3 +299,39 @@ Every group also offers "Leave these rows out". **(IM3)** marks a fix that needs
 | **IM2 · Before and after the check** | The Choose, Match and Done tables, except the undo row; columns into custom fields | None expected (outlined first if saving custom values needs one) |
 | **IM3 · The database part** | Additions and restores in the import's own batch (one undo takes it all back); exact picks by id (item, location, gig, client; checked to belong to the organisation), so same-named records without codes can be chosen and "add as a new contact" works; restoring archived items; fixes remembered with a saved matching (`import_presets.fixes`); undo saying what's in use and offering to undo the rest; units for an item counted in bulk can switch it to per unit (the S4 known limitation) | One migration, outlined for the owner's yes first; the undo change is a hand-run file (it removes records). Needs `20261117000001_import_undo.sql` to have been run (T31) |
 | **IM4 · History import** (D26) | Past jobs come in as completed gigs (no booking, no clashes, nobody notified) and quotes with their accepted or declined status and dates, for year-on-year reports | One migration, outlined for the owner's yes first |
+
+## How IM1 works (fix it in the check)
+
+- **The pipeline** is in `src/lib/importer.js`: `checkImport` runs
+  `fixTable → buildRows → dryRun(rows, kind, withPending(existing, fixes)) → groupProblems`.
+  The file itself never changes: `fixTable` works on a copy, adding an empty column when a fix fills
+  a field the file lacks (e.g. the voltage).
+- **The fixes** are a list kept by `ImportPage`, so Back and Next keep them (a new file, kind or
+  heading setting starts afresh). Each is one record: `replace` (every row with that value in a
+  field, matched without capitals or surrounding spaces), `cells` (edited cells by line), `skip`
+  (rows left out), `add` (a location, item or client to add on Import), `restore` (an archived
+  location) or `track` (start counting an item in stock). "Your fixes" lists them, each with
+  **Take back**.
+- **`FIXES`** says which fixes each reason offers; every group also gets "Leave these rows out".
+  `importer.fixes.test.js` reads the importer's own source and the database's reasons (`SERVER`)
+  and fails if any has no entry. Fixes marked `im3` show as not available yet, with the reason;
+  so do picks of a record without a code when others share its name (IM3 picks by id).
+- **New predictions** in `dryRun`: an archived location or item code, gigs sharing a name, a
+  quantity on a new item kept per unit, a unit code on another item, a tracking change on an item
+  with stock (read from `stock_levels`). Heads-ups (`note`): a quantity for an item already in
+  AVX, a job's or quote's client not in Contacts. Left out on purpose (`purpose`): past and
+  cancelled jobs, inactive crew, people already members or invited, quotes already sent.
+- **The Check step** is `src/components/import/CheckStep.jsx`, each group a `FixGroup.jsx`:
+  radio buttons in a labelled group, each with its controls (a picker with the closest name
+  first, cell editors checked with `cleanValue` as you type, a small dialog to add an item or a
+  set or case). Groups nobody decided on are left out, and the Import button's note says how many.
+- **Saved on Import**, in this order, just before the import: restored locations; new locations,
+  then new items, each through `run_import` as its own batch in Earlier imports; items that start
+  being counted; new clients (inserted as the Contacts page does). If any of these fails, nothing
+  is imported. No database change.
+- **Speaker and power refusals** (D80, D93): an unknown preset can be picked from the presets or
+  left empty; out-of-range cells are edited in place; amps without volts can take one voltage for
+  all those rows (230 suggested); an unknown connector is read as one from the connector list.
+- **Tests**: `importer.fixes.test.js` (fixTable, groupProblems, the predictions, closest names,
+  FIXES coverage) and the signed-in `e2e/auth/import.spec.js` (an equipment file with an unknown
+  location → add it from the check → import → the stock is there, axe on the check).

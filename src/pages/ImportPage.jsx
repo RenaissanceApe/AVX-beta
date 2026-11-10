@@ -2,15 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Upload, MapPin, Package, Barcode, Boxes, AlertTriangle, Check, Download, Undo2, Save, FileText, Building2, Truck, Users, CalendarDays, PackageCheck, Receipt } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { selectAll } from '../lib/selectAll'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useWorkspace } from '../lib/WorkspaceContext'
-import { KINDS, CONTACT_KINDS, HELD_KINDS, JOB_KINDS, FIELDS, looksLikeRentman, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, buildRows, dryRun, toPayload, reportCsv, serverMessage } from '../lib/importer'
+import { KINDS, FIELDS, looksLikeRentman, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, reportCsv, serverMessage } from '../lib/importer'
+import CheckStep from '../components/import/CheckStep'
+import { isContacts, isHeld, isJob, unbatched, contactsOff } from '../components/import/kinds'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
-import { Modal, btn, btnPrimary, btnDanger, input, label, card, colors, AvxLoader, PageHeader, space } from '../components/ui'
+import { Modal, btn, btnPrimary, btnDanger, input, label, colors, AvxLoader, PageHeader, space } from '../components/ui'
 
 const STEPS = ['choose', 'match', 'check', 'done']
 const KIND_ICONS = { locations: MapPin, items: Package, units: Barcode, kits: Boxes, clients: Building2, suppliers: Truck, crew: Users, gigs: CalendarDays, gig_equipment: PackageCheck, quotes: Receipt }
@@ -24,12 +25,6 @@ const KIND_GROUPS = [
   { key: 'contacts', kinds: ['clients', 'suppliers'] },
   { key: 'work', kinds: ['crew', 'gigs', 'gig_equipment', 'quotes'], note: 'imp.orderWork' },
 ]
-const isContacts = kind => CONTACT_KINDS.includes(kind)
-// Crew aren't kept in import batches (no presets or history): they become held invitations
-const isHeld = kind => HELD_KINDS.includes(kind)
-// Jobs, their equipment and quotes aren't either: what they add is removed the usual way
-const isJob = kind => JOB_KINDS.includes(kind)
-const unbatched = kind => isHeld(kind) || isJob(kind)
 // Where each kind's records are looked at: [path, label key]
 function homeOf(orgId, kind) {
   if (isHeld(kind)) return [`/org/${orgId}?panel=members`, 'nav.members']
@@ -38,8 +33,6 @@ function homeOf(orgId, kind) {
   if (isContacts(kind)) return [`/org/${orgId}/contacts${kind === 'suppliers' ? '?tab=suppliers' : ''}`, 'contacts.title']
   return [`/org/${orgId}/inventory${kind === 'locations' ? '?tab=locations' : ''}`, 'inv.title']
 }
-// Importing contacts needs the hand-run file (docs/SWITCHING.md, S2); until then the database says so
-const contactsOff = (error, kind) => isContacts(kind) && (error?.code === '0A000' || error?.code === '23514')
 
 // The import wizard (docs/SWITCHING.md, S1): choose what to import and drop a CSV file (or paste
 // from a spreadsheet), match its columns to AVX's fields (saved as presets), check what will
@@ -65,6 +58,9 @@ export default function ImportPage() {
   const [defaultLocation, setDefaultLocation] = useState('')
   const [result, setResult] = useState(null)
   const [historyKey, setHistoryKey] = useState(0)
+  // The fixes made in the check, kept here so Back and Next keep them; a new file or kind starts afresh
+  const [fixes, setFixes] = useState([])
+  useEffect(() => { setFixes([]) }, [source.text, kind, headerRow])
 
   const table = useMemo(() => parseTable(source.text, { headerRow }), [source.text, headerRow])
   const restart = nextKind => { setStep('choose'); setSource({ text: '', fileName: null }); setMapping({}); setPresetName(null); setResult(null); if (nextKind) setKind(nextKind) }
@@ -107,6 +103,7 @@ export default function ImportPage() {
         )}
         {step === 'check' && (
           <CheckStep orgId={orgId} kind={kind} table={table} mapping={mapping} headerRow={headerRow} defaultLocation={defaultLocation} fileName={source.fileName} presetName={presetName}
+            fixes={fixes} setFixes={setFixes}
             onBack={() => setStep('match')} onDone={res => { setResult(res); setStep('done'); setHistoryKey(k => k + 1) }} />
         )}
         {step === 'done' && result && <DoneStep orgId={orgId} kind={kind} result={result} onAgain={restart} />}
@@ -383,126 +380,6 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
         <button type="button" onClick={onBack} style={btn}><ArrowLeft size={14} /> {t('imp.back')}</button>
         <button type="button" onClick={onNext} disabled={missing.length > 0} style={btnPrimary}>{t('imp.next')} <ArrowRight size={14} /></button>
       </div>
-    </div>
-  )
-}
-
-function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fileName, presetName, onBack, onDone }) {
-  const { notify } = useToast()
-  const [existing, setExisting] = useState(null)
-  const [busy, setBusy] = useState(false)
-  const rows = useMemo(() => buildRows(table, mapping, kind, { headerRow, defaultLocation: defaultLocation || null }), [table, mapping, kind, headerRow, defaultLocation])
-
-  useEffect(() => {
-    if (isHeld(kind)) {
-      Promise.all([
-        supabase.rpc('org_member_list', { p_org: orgId }),
-        selectAll(() => supabase.from('org_invites').select('email').eq('org_id', orgId).order('id')),
-        selectAll(() => supabase.from('held_invites').select('email').eq('org_id', orgId).eq('status', 'held').order('id')),
-      ]).then(([m, i, h]) => setExisting({ members: (m.data || []).map(x => x.email), invites: (i.data || []).map(x => x.email), held: (h.data || []).map(x => x.email) }))
-      return
-    }
-    if (isJob(kind)) {
-      Promise.all([
-        selectAll(() => supabase.from('gigs').select('id, name, start_date, import_ref').eq('org_id', orgId).order('id')),
-        kind === 'gig_equipment' ? selectAll(() => supabase.from('price_items').select('id, name, code, tracking, kit_type, archived_at').eq('org_id', orgId).order('id')) : Promise.resolve({ data: [] }),
-        kind === 'gig_equipment' ? selectAll(() => supabase.from('gig_equipment').select('gig_id, item_id').eq('org_id', orgId).order('id')) : Promise.resolve({ data: [] }),
-        kind === 'quotes' ? selectAll(() => supabase.from('quotes').select('import_ref, status').eq('org_id', orgId).not('import_ref', 'is', null).order('id')) : Promise.resolve({ data: [] }),
-      ]).then(([g, i, l, q]) => setExisting({ gigs: g.data || [], items: i.data || [], lines: l.data || [], quotes: q.data || [] }))
-      return
-    }
-    if (isContacts(kind)) {
-      selectAll(() => supabase.from(kind).select('name, email, tax_id, archived_at').eq('org_id', orgId).order('id'))
-        .then(({ data }) => setExisting({ contacts: data || [] }))
-      return
-    }
-    Promise.all([
-      selectAll(() => supabase.from('stock_locations').select('name, archived_at').eq('org_id', orgId).order('id')),
-      selectAll(() => supabase.from('price_items').select('id, name, code, tracking, kit_type, archived_at').eq('org_id', orgId).order('id')),
-      kind === 'units' ? selectAll(() => supabase.from('stock_units').select('code').eq('org_id', orgId).order('id')) : Promise.resolve({ data: [] }),
-      kind === 'kits' ? selectAll(() => supabase.from('item_parts').select('parent_id, child_id, kind').eq('org_id', orgId).order('id')) : Promise.resolve({ data: [] }),
-    ]).then(([l, i, u, p]) => setExisting({ locations: l.data || [], items: i.data || [], units: u.data || [], parts: p.data || [] }))
-  }, [orgId, kind])
-
-  const run = useMemo(() => (existing ? dryRun(rows, kind, existing) : null), [rows, kind, existing])
-  const used = FIELDS[kind].filter(f => Object.values(mapping).includes(f.key))
-  const problems = run ? rows.map((r, i) => ({ row: r._row, p: run.plan[i] })).filter(x => x.p.action === 'skip') : []
-  // The rows the check found nothing wrong with (the database checks them all again)
-  const sendable = run ? toPayload(rows.filter((_, i) => run.plan[i].action !== 'skip')) : []
-
-  async function importNow() {
-    setBusy(true)
-    const { data, error } = isHeld(kind)
-      ? await supabase.rpc('import_crew', { p_org: orgId, p_rows: sendable, p_file: fileName })
-      : isJob(kind) ? await supabase.rpc('import_jobs', { p_org: orgId, p_kind: kind, p_rows: sendable, p_file: fileName })
-      : await supabase.rpc('run_import', { p_org: orgId, p_kind: kind, p_rows: sendable, p_file: fileName, p_preset: presetName })
-    setBusy(false)
-    if (error) { logger.error('import', error, { step: 'run', kind }); return notify(contactsOff(error, kind) ? t('imp.contactsOff') : userMessage(error), 'error') }
-    track(`import:${kind}`)
-    onDone(data)
-  }
-
-  if (!run) return <AvxLoader size={20} color={colors.accentText} />
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: space[5] }}>
-      <div role="status" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: space[4] }}>
-        <Count label={t('imp.willCreate')} value={run.counts.create} />
-        <Count label={t('imp.willMatch')} value={run.counts.match} hint={t('imp.willMatchHint')} />
-        <Count label={t('imp.willSkip')} value={run.counts.skip} warn={run.counts.skip > 0} />
-      </div>
-      {problems.length > 0 && (
-        <section aria-labelledby="imp-problems" style={{ ...card, borderColor: 'var(--warn)' }}>
-          <h2 id="imp-problems" style={{ font: '700 16px/24px var(--font-mono)', marginBottom: space[2] }}>{t('imp.problemsTitle', { count: problems.length })}</h2>
-          <ul style={{ listStyle: 'none', padding: 0, fontSize: '13px', lineHeight: 1.7, maxHeight: '220px', overflowY: 'auto' }} tabIndex={0} aria-label={t('imp.problemsTitle', { count: problems.length })}>
-            {problems.slice(0, 200).map(({ row, p }) => (
-              <li key={row}><strong>{t('imp.line', { n: row })}</strong> · {p.field ? `${t(`imp.field.${kind}.${p.field}`)}: ` : ''}{t(`imp.err.${p.reason}`, { value: p.value })}</li>
-            ))}
-          </ul>
-          <p style={{ fontSize: '13px', color: colors.muted, marginTop: space[2] }}>{t('imp.problemsHint')}</p>
-        </section>
-      )}
-      <div role="region" aria-label={t('imp.preview')} tabIndex={0} style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-          <caption style={{ ...label, display: 'table-caption', captionSide: 'top', textAlign: 'left', paddingBottom: '6px', marginBottom: 0 }}>{t('imp.preview')}</caption>
-          <thead>
-            <tr style={{ textAlign: 'left', color: colors.muted }}>
-              <th style={{ padding: '4px 6px' }}>{t('imp.lineShort')}</th>
-              {used.map(f => <th key={f.key} style={{ padding: '4px 6px', whiteSpace: 'nowrap' }}>{t(`imp.field.${kind}.${f.key}`)}</th>)}
-              <th style={{ padding: '4px 6px' }}>{t('imp.result')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.slice(0, 30).map((r, i) => {
-              const p = run.plan[i]
-              return (
-                <tr key={r._row} style={{ borderTop: `1px solid ${colors.border}`, color: p.action === 'skip' ? 'var(--warn)' : undefined }}>
-                  <td style={{ padding: '4px 6px', fontFamily: 'var(--font-mono)' }}>{r._row}</td>
-                  {used.map(f => <td key={f.key} style={{ padding: '4px 6px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r[f.key] ?? ''}</td>)}
-                  <td style={{ padding: '4px 6px', whiteSpace: 'nowrap', fontWeight: 700 }}>{t(`imp.action.${p.action}`)}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-        {rows.length > 30 && <p style={{ fontSize: '13px', color: colors.muted, marginTop: space[1] }}>{t('imp.andMore', { count: rows.length - 30 })}</p>}
-      </div>
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        <button type="button" onClick={onBack} style={btn}><ArrowLeft size={14} /> {t('imp.back')}</button>
-        <button type="button" onClick={importNow} disabled={busy || !sendable.length} style={btnPrimary}>
-          {busy ? <AvxLoader size={14} /> : <Upload size={14} />} {t('imp.importButton', { count: sendable.length })}
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function Count({ label: text, value, hint, warn }) {
-  return (
-    // A big number and its label on the page ground (a count you don't open isn't a card)
-    <div style={{ minWidth: 0 }}>
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '24px', fontWeight: 700, color: warn ? 'var(--warn)' : 'var(--text)' }}>{value}</div>
-      <div style={{ fontSize: '13px', color: colors.soft }}>{text}</div>
-      {hint && <div style={{ fontSize: '13px', color: colors.muted, marginTop: space[1] }}>{hint}</div>}
     </div>
   )
 }
