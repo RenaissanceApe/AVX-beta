@@ -7,12 +7,12 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useWorkspace } from '../lib/WorkspaceContext'
 import { KINDS, FIELDS, looksLikeRentman, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, reportCsv, serverMessage, suggestHeaderRow, decodeText, guessKind,
-  unusedColumns, openDefaults, fieldsFor, dateOrders as readDateOrders, CUSTOM_ENTITY, refusedRows, leftOutCsv, WORD_VALUES, splitParts } from '../lib/importer'
+  unusedColumns, openDefaults, fieldsFor, dateOrders as readDateOrders, CUSTOM_ENTITY, refusedRows, leftOutCsv, WORD_VALUES, splitParts, withPresetFixes } from '../lib/importer'
 import { useCustomFields } from '../lib/customFields'
 import CheckStep from '../components/import/CheckStep'
 import { Hint } from '../components/help/HelpParts'
 import { choiceLabel } from '../components/import/FixGroup'
-import { isContacts, isHeld, isJob, unbatched, contactsOff } from '../components/import/kinds'
+import { isContacts, isHeld, isJob, unbatched, contactsOff, stored } from '../components/import/kinds'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { Modal, btn, btnPrimary, btnDanger, input, label, colors, AvxLoader, PageHeader, space } from '../components/ui'
@@ -20,7 +20,6 @@ import { Modal, btn, btnPrimary, btnDanger, input, label, colors, AvxLoader, Pag
 const STEPS = ['choose', 'match', 'check', 'done']
 const KIND_ICONS = { locations: MapPin, items: Package, units: Barcode, kits: Boxes, clients: Building2, suppliers: Truck, crew: Users, gigs: CalendarDays, gig_equipment: PackageCheck, quotes: Receipt }
 // Kit contents are kept as equipment imports with subject 'kits' (presets and history too)
-const stored = kind => (kind === 'kits' ? { kind: 'items', subject: 'kits' } : { kind, subject: null })
 const MAX_FILE = 5 * 1024 * 1024
 // The kinds on the first step, in groups. Inventory kinds are numbered in the order they depend on
 // each other, and so are jobs (their equipment needs the jobs and the catalogue first).
@@ -115,7 +114,7 @@ export default function ImportPage() {
           </>
         )}
         {step === 'match' && (
-          <MatchStep orgId={orgId} kind={kind} table={table} mapping={mapping} setMapping={setMapping} presetName={presetName} setPresetName={setPresetName}
+          <MatchStep orgId={orgId} kind={kind} table={table} mapping={mapping} setMapping={setMapping} presetName={presetName} setPresetName={setPresetName} setFixes={setFixes}
             defaults={defaults} setDefaults={setDefaults} orders={orders} setChosenOrders={setChosenOrders} custom={custom}
             onBack={() => setStep('choose')} onNext={() => setStep('check')} />
         )}
@@ -329,7 +328,7 @@ function ChooseStep({ kinds, kind, setKind, source, setSource, headerRow, setHea
   )
 }
 
-function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPresetName, defaults, setDefaults, orders, setChosenOrders, custom, onBack, onNext }) {
+function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPresetName, setFixes, defaults, setDefaults, orders, setChosenOrders, custom, onBack, onNext }) {
   const { notify } = useToast()
   const [presets, setPresets] = useState([])
   const [saveName, setSaveName] = useState('')
@@ -339,7 +338,7 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
   const loadPresets = useCallback(async () => {
     if (unbatched(kind)) return setPresets([])
     const where = stored(kind)
-    let q = supabase.from('import_presets').select('id, name, mapping').eq('org_id', orgId).eq('kind', where.kind)
+    let q = supabase.from('import_presets').select('id, name, mapping, fixes').eq('org_id', orgId).eq('kind', where.kind)
     q = where.subject ? q.eq('subject', where.subject) : q.is('subject', null)
     const { data, error } = await q.order('name')
     if (error) logger.error('import', error, { step: 'presets' })
@@ -406,7 +405,7 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
           <div style={{ minWidth: '220px' }}>
             <label style={label} htmlFor="imp-preset">{t('imp.preset')}</label>
             <select id="imp-preset" value={presets.find(p => p.name === presetName)?.id || ''} style={{ ...input, appearance: 'auto' }}
-              onChange={e => { const p = presets.find(x => x.id === e.target.value); if (p) { setMapping(applyPreset(table.headers, p.mapping)); setPresetName(p.name) } }}>
+              onChange={e => { const p = presets.find(x => x.id === e.target.value); if (p) { setMapping(applyPreset(table.headers, p.mapping)); setPresetName(p.name); setFixes(list => withPresetFixes(list, p.fixes)) } }}>
               <option value="">{t('imp.presetPick')}</option>
               {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
@@ -602,7 +601,7 @@ function History({ orgId }) {
   const [batches, setBatches] = useState(null)
   const [undoing, setUndoing] = useState(null)
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from('import_batches').select('id, kind, subject, file_name, preset, created, updated, unchanged, skipped, created_at, undone_at')
+    const { data, error } = await supabase.from('import_batches').select('id, kind, subject, file_name, preset, created, updated, unchanged, skipped, added, kept, created_at, undone_at')
       .eq('org_id', orgId).order('created_at', { ascending: false }).limit(30)
     if (error) logger.error('import', error, { step: 'history' })
     setBatches(data || [])
@@ -618,11 +617,15 @@ function History({ orgId }) {
             <span style={{ flex: '1 1 240px', minWidth: 0 }}>
               <strong style={{ fontSize: '14px' }}>{t(`imp.kind.${b.subject || b.kind}`)}</strong>
               <span style={{ fontSize: '13px', color: colors.muted }}> · {fmt(b.created_at, 'd MMM yyyy, HH:mm')}{b.file_name ? ` · ${b.file_name}` : ''}{b.preset ? ` · ${b.preset}` : ''}</span>
-              <span style={{ display: 'block', fontSize: '13px', color: colors.soft }}>{t('imp.doneSummary', { created: b.created, updated: b.updated, unchanged: b.unchanged, skipped: b.skipped })}</span>
+              <span style={{ display: 'block', fontSize: '13px', color: colors.soft }}>
+                {t('imp.doneSummary', { created: b.created, updated: b.updated, unchanged: b.unchanged, skipped: b.skipped })}
+                {b.added > 0 && ` · ${t('imp.historyAdded', { count: b.added })}`}
+                {b.undone_at && b.kept?.length > 0 && ` · ${t('imp.historyKept', { count: b.kept.length })}`}
+              </span>
             </span>
             {b.undone_at
               ? <span style={{ fontSize: '13px', fontWeight: 700, color: colors.muted }}>{t('imp.undone')}</span>
-              : (b.created > 0 || b.updated > 0) && <button type="button" onClick={() => setUndoing(b)} style={{ ...btnDanger, padding: '6px 12px', fontSize: '13px' }}><Undo2 size={13} /> {t('imp.undo')}</button>}
+              : (b.created > 0 || b.updated > 0 || b.added > 0) && <button type="button" onClick={() => setUndoing(b)} style={{ ...btnDanger, padding: '6px 12px', fontSize: '13px' }}><Undo2 size={13} /> {t('imp.undo')}</button>}
           </li>
         ))}
       </ul>
@@ -631,38 +634,69 @@ function History({ orgId }) {
   )
 }
 
-// Undoing removes records for good, so it says exactly what happens and asks to confirm
+// Undoing removes records for good, so it says exactly what happens and asks to confirm. When
+// some of what the import added is in use, it says what uses it (the first few, with names) and
+// offers to undo the rest, keeping those records (IM3)
 function UndoModal({ batch, onClose, onDone, onError }) {
   const [sure, setSure] = useState(false)
   const [busy, setBusy] = useState(false)
-  async function undo() {
+  const [inUse, setInUse] = useState(null)
+  async function undo(rest = false) {
     setBusy(true)
-    const { data, error } = await supabase.rpc('undo_import', { p_batch: batch.id })
-    setBusy(false)
+    const { data, error } = await supabase.rpc('undo_import', rest ? { p_batch: batch.id, p_rest: true } : { p_batch: batch.id })
     if (error) {
-      logger.error('import', error, { step: 'undo' })
-      if (error.code === 'PGRST202') return onError(t('imp.undoMissing'))
-      if (error.code === '23503') return onError(t('imp.undoInUse'))
+      logger.error('import', error, { step: rest ? 'undoRest' : 'undo' })
+      if (error.code === 'PGRST202') { setBusy(false); return onError(t(rest ? 'imp.undoRestMissing' : 'imp.undoMissing')) }
+      if (error.code === '23503' && !rest) {
+        const used = await supabase.rpc('import_in_use', { p_batch: batch.id })
+        setBusy(false)
+        if (used.error || !used.data?.count) { if (used.error) logger.error('import', used.error, { step: 'inUse' }); return onError(t('imp.undoInUse')) }
+        return setInUse(used.data)
+      }
+      setBusy(false)
       return onError(userMessage(error))
     }
-    track('import:undo')
-    onDone(t('imp.undoDone', { removed: data.removed, restored: data.restored, kept: data.kept }))
+    setBusy(false)
+    track(rest ? 'import:undoRest' : 'import:undo')
+    onDone(rest && data.in_use
+      ? t('imp.undoRestDone', { removed: data.removed, restored: data.restored, count: data.in_use })
+      : t('imp.undoDone', { removed: data.removed, restored: data.restored, kept: data.kept }))
   }
   return (
     <Modal title={t('imp.undoTitle')} onClose={onClose}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px', lineHeight: 1.6 }}>
         <p style={{ display: 'flex', gap: '8px', color: colors.danger, fontWeight: 700 }}><AlertTriangle size={18} aria-hidden="true" style={{ flexShrink: 0 }} /> {t('imp.undoWarning')}</p>
-        <ul style={{ paddingLeft: '18px', color: colors.soft }}>
-          {batch.created > 0 && <li>{t('imp.undoRemoves', { count: batch.created })}</li>}
-          {batch.updated > 0 && <li>{t('imp.undoRestores', { count: batch.updated })}</li>}
-          <li>{t('imp.undoKeeps')}</li>
-        </ul>
-        <label style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', cursor: 'pointer' }}>
-          <input type="checkbox" checked={sure} onChange={e => setSure(e.target.checked)} style={{ accentColor: 'var(--danger)', marginTop: '4px' }} /> {t('imp.undoSure')}
-        </label>
-        <button type="button" onClick={undo} disabled={!sure || busy} style={{ ...btnDanger, justifyContent: 'center' }}>
-          {busy ? <AvxLoader size={14} /> : <Undo2 size={14} />} {t('imp.undoConfirm')}
-        </button>
+        {inUse ? (
+          <>
+            <p role="status" style={{ margin: 0 }}>{t('imp.inUse.title', { count: inUse.count })}</p>
+            <ul style={{ paddingLeft: '18px', color: colors.soft, margin: 0 }}>
+              {(inUse.items || []).map((u, i) => <li key={i}>{t(`imp.inUse.${u.used_by}`, { name: u.name || '—', what: u.used_name || '—' })}</li>)}
+              {inUse.count > (inUse.items || []).length && <li>{t('imp.andMore', { count: inUse.count - (inUse.items || []).length })}</li>}
+            </ul>
+            <p style={{ margin: 0, color: colors.soft }}>{t('imp.inUse.rest')}</p>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button type="button" onClick={onClose} style={btn}>{t('imp.inUse.cancel')}</button>
+              <button type="button" onClick={() => undo(true)} disabled={busy} style={{ ...btnDanger, justifyContent: 'center' }}>
+                {busy ? <AvxLoader size={14} /> : <Undo2 size={14} />} {t('imp.inUse.undoRest')}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <ul style={{ paddingLeft: '18px', color: colors.soft }}>
+              {batch.created > 0 && <li>{t('imp.undoRemoves', { count: batch.created })}</li>}
+              {batch.added > 0 && <li>{t('imp.undoAdded', { count: batch.added })}</li>}
+              {batch.updated > 0 && <li>{t('imp.undoRestores', { count: batch.updated })}</li>}
+              <li>{t('imp.undoKeeps')}</li>
+            </ul>
+            <label style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', cursor: 'pointer' }}>
+              <input type="checkbox" checked={sure} onChange={e => setSure(e.target.checked)} style={{ accentColor: 'var(--danger)', marginTop: '4px' }} /> {t('imp.undoSure')}
+            </label>
+            <button type="button" onClick={() => undo()} disabled={!sure || busy} style={{ ...btnDanger, justifyContent: 'center' }}>
+              {busy ? <AvxLoader size={14} /> : <Undo2 size={14} />} {t('imp.undoConfirm')}
+            </button>
+          </>
+        )}
       </div>
     </Modal>
   )

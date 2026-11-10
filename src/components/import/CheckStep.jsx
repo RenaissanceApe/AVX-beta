@@ -5,23 +5,28 @@ import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
-import { FIXES, checkImport, withPending, fieldsFor, splitParts, mergeResults } from '../../lib/importer'
+import { FIXES, checkImport, withPending, fieldsFor, splitParts, mergeResults, fixRows, presetFixes, liveFixes } from '../../lib/importer'
 import { t } from '../../i18n'
 import { Hint } from '../help/HelpParts'
 import { btn, btnPrimary, label, colors, AvxLoader, space } from '../ui'
 import FixGroup, { reasonText } from './FixGroup'
-import { isContacts, isHeld, isJob, contactsOff } from './kinds'
+import { isContacts, isHeld, isJob, contactsOff, stored } from './kinds'
 
 // The Check step of the import wizard (docs/SWITCHING.md, "Import overhaul: fix it here"): what
 // the import will do, every problem grouped by cause and value with fixes on the spot, the fixes
 // made so far (each can be taken back), heads-ups and rows left out on purpose. The fixes are
-// kept by the wizard page (Back and Next keep them). What a fix adds is saved only when Import is
-// pressed, just before the import: locations and items through run_import (each its own batch in
-// Earlier imports for now), clients as the Contacts page adds them.
+// kept by the wizard page (Back and Next keep them). What a fix adds, restores or switches is sent
+// with the import itself (fixRows) and saved in its own batch, so if any of it fails nothing is
+// imported and one undo in Earlier imports takes it all back (IM3). With a saved matching, the
+// fixes can be remembered with it.
 export default function CheckStep({ orgId, kind, table, mapping, headerRow, defaults, dateOrders, custom, retry, fileName, presetName, fixes, setFixes, onBack, onDone }) {
   const { notify } = useToast()
   const [existing, setExisting] = useState(null)
   const [busy, setBusy] = useState(false)
+  // Bulk items whose units can switch them to per unit (only while their stock is the opening quantity)
+  const [perUnitOk, setPerUnitOk] = useState([])
+  const [perUnitOff, setPerUnitOff] = useState(false)
+  const [remember, setRemember] = useState(true)
 
   useEffect(() => {
     const all = (q, step) => selectAll(q).then(({ data, error }) => { if (error) logger.error('import', error, { step }); return data || [] })
@@ -59,6 +64,25 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
     ]).then(([locations, items, units, parts, stock]) => setExisting({ locations, items, units, parts, stocked: [...new Set(stock.map(s => s.item_id))] }))
   }, [orgId, kind])
 
+  useEffect(() => {
+    if (kind !== 'units' || !existing?.items) return
+    const bulk = existing.items.filter(i => i.tracking === 'bulk' && !i.archived_at).map(i => i.id)
+    if (!bulk.length) return
+    supabase.rpc('import_per_unit_ok', { p_org: orgId, p_items: bulk }).then(({ data, error }) => {
+      // Until the hand-run file has run, switching isn't switched on (0A000)
+      if (error?.code === '0A000') return setPerUnitOff(true)
+      if (error) logger.error('import', error, { step: 'perUnit' })
+      setPerUnitOk((data || []).map(String))
+    })
+  }, [orgId, kind, existing])
+
+  // Fixes remembered with a saved matching that no longer fit what the organisation has are dropped
+  useEffect(() => {
+    if (!existing) return
+    const kept = liveFixes(fixes, existing)
+    if (kept.length !== fixes.length) setFixes(kept)
+  }, [existing]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const check = useMemo(() => (existing ? checkImport({ table, mapping, kind, headerRow, defaults, dateOrders, custom, only: retry?.lines || null, refused: retry?.refused || null, existing, fixes }) : null),
     [table, mapping, kind, headerRow, defaults, dateOrders, custom, retry, existing, fixes])
   // Every field a column can go to (the organisation's own included), and its name on the page
@@ -76,6 +100,7 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
       dateOrders,
       locations: (ex.locations || []).filter(l => !l.archived_at),
       archivedLocations: (existing.locations || []).filter(l => l.archived_at),
+      archivedItems: (existing.items || []).filter(i => i.archived_at),
       items: (ex.items || []).filter(i => !i.archived_at),
       gigs: existing.gigs || [],
       clients: (ex.clients || []).filter(c => !c.archived_at),
@@ -86,61 +111,51 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
           const item = (ex.items || []).find(i => !i.archived_at && i.name.toLowerCase() === String(group.value).toLowerCase() && i.tracking === 'none')
           return !item || !['rental', 'sale'].includes(item.kind) ? t('imp.fix.notStockKind') : null
         }
+        if (fix === 'perUnit') {
+          const item = (ex.items || []).find(i => !i.archived_at && i.name.toLowerCase() === String(group.value).toLowerCase() && i.tracking === 'bulk')
+          if (perUnitOff) return t('imp.fix.perUnitNotYet')
+          return !item || !perUnitOk.includes(String(item.id)) ? t('imp.fix.perUnitOff') : null
+        }
         return null
       },
     }
-  }, [existing, check, fixes, fields, fieldLabel, dateOrders])
+  }, [existing, check, fixes, fields, fieldLabel, dateOrders, perUnitOk, perUnitOff])
 
-  async function saveAdditions() {
-    const of = type => fixes.filter(f => f.type === type)
-    const adds = what => fixes.filter(f => f.type === 'add' && f.what === what).map(f => f.record)
-    for (const f of of('restore')) {
-      const { error } = await supabase.from('stock_locations').update({ archived_at: null }).eq('id', f.id).eq('org_id', orgId)
-      if (error) throw error
-    }
-    // New locations, then new items: each through run_import as its own batch, so it can be undone
-    for (const [what, rows] of [['locations', adds('location')], ['items', adds('item')]]) {
-      if (!rows.length) continue
-      const { data, error } = await supabase.rpc('run_import', { p_org: orgId, p_kind: what, p_rows: rows.map((r, i) => ({ _row: i + 1, ...Object.fromEntries(Object.entries(r).filter(([, v]) => v != null)) })), p_file: fileName, p_preset: null })
-      if (error) throw error
-      if (data?.skipped) throw new Error(t('imp.addFailed'))
-    }
-    for (const f of of('track')) {
-      const { error } = await supabase.from('price_items').update({ tracking: 'bulk' }).eq('id', f.id).eq('org_id', orgId)
-      if (error) throw error
-    }
-    for (const c of adds('client')) {
-      const { error } = await supabase.from('clients').insert({ name: c.name, org_id: orgId })
-      if (error) throw error
-    }
+  // With a saved matching, the fixes that don't depend on the file's lines are remembered with it
+  async function rememberFixes() {
+    if (!presetName || !remember || isJob(kind) || isHeld(kind)) return
+    const where = stored(kind)
+    let q = supabase.from('import_presets').update({ fixes: presetFixes(fixes), updated_at: new Date().toISOString() })
+      .eq('org_id', orgId).eq('kind', where.kind).eq('name', presetName)
+    q = where.subject ? q.eq('subject', where.subject) : q.is('subject', null)
+    const { error } = await q
+    if (error) logger.error('import', error, { step: 'rememberFixes' })
   }
 
   async function importNow() {
     setBusy(true)
-    try {
-      await saveAdditions()
-    } catch (error) {
-      setBusy(false)
-      logger.error('import', error, { step: 'additions', kind })
-      return notify(error?.message === t('imp.addFailed') ? error.message : userMessage(error), 'error')
-    }
+    // What the fixes add, restore or switch goes ahead of the first part's rows, in the same batch
+    const additions = isHeld(kind) ? [] : fixRows(fixes)
     // More than 5000 rows go in parts, each its own import (a quote's lines stay together)
     const parts = splitParts(check.sendable, kind)
     const results = [], sent = []
     for (const [n, rows] of parts.entries()) {
+      const payload = n === 0 ? [...additions, ...rows] : rows
       const { data, error } = isHeld(kind)
         ? await supabase.rpc('import_crew', { p_org: orgId, p_rows: rows, p_file: fileName })
-        : isJob(kind) ? await supabase.rpc('import_jobs', { p_org: orgId, p_kind: kind, p_rows: rows, p_file: fileName })
-        : await supabase.rpc('run_import', { p_org: orgId, p_kind: kind, p_rows: rows, p_file: fileName, p_preset: presetName })
+        : isJob(kind) ? await supabase.rpc('import_jobs', { p_org: orgId, p_kind: kind, p_rows: payload, p_file: fileName })
+        : await supabase.rpc('run_import', { p_org: orgId, p_kind: kind, p_rows: payload, p_file: fileName, p_preset: presetName })
       if (error) {
         logger.error('import', error, { step: 'run', kind, part: n + 1 })
-        notify(contactsOff(error, kind) ? t('imp.contactsOff') : userMessage(error), 'error')
+        // The first part carries the fixes' additions: if one of them fails, nothing is imported
+        notify(contactsOff(error, kind) ? t('imp.contactsOff') : n === 0 && /^Fix not saved/.test(error.message || '') ? t('imp.addFailed') : userMessage(error), 'error')
         if (!n) return setBusy(false)
         break
       }
       results.push(data)
       sent.push(...rows)
     }
+    await rememberFixes()
     setBusy(false)
     track(`import:${kind}`)
     setFixes([])
@@ -207,7 +222,7 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
                 <li key={i} style={{ display: 'flex', gap: space[3], alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', padding: `${space[2]} 0`, borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
                   <span style={{ display: 'flex', gap: space[2], alignItems: 'baseline', minWidth: 0, overflowWrap: 'anywhere' }}>
                     {f.type === 'add' ? <Plus size={12} aria-hidden="true" style={{ flexShrink: 0 }} /> : <Check size={12} aria-hidden="true" style={{ flexShrink: 0 }} />}
-                    <span>{text}{['add', 'restore', 'track'].includes(f.type) && <strong style={{ color: colors.accentText }}> · {t('imp.willBeAdded')}</strong>}</span>
+                    <span>{text}{['add', 'restore', 'track', 'perUnit'].includes(f.type) && <strong style={{ color: colors.accentText }}> · {t('imp.willBeAdded')}</strong>}</span>
                   </span>
                   <button type="button" onClick={() => setFixes(list => list.filter((_, n) => n !== i))} aria-label={`${t('imp.takeBack')}: ${text}`} style={{ ...btn, padding: '4px 10px', minHeight: '32px' }}>
                     <Undo2 size={12} aria-hidden="true" /> {t('imp.takeBack')}
@@ -275,6 +290,15 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: space[2] }}>
         {counts.problems > 0 && <p id="imp-waiting" role="status" style={{ fontSize: '13px', color: 'var(--warn)', margin: 0 }}>{t('imp.waitingOut', { count: counts.problems })}</p>}
+        {presetName && !isJob(kind) && !isHeld(kind) && presetFixes(fixes).length > 0 && (
+          <div style={{ display: 'flex', gap: space[2], alignItems: 'flex-start' }}>
+            <label style={{ display: 'flex', gap: space[2], alignItems: 'flex-start', fontSize: '14px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} style={{ marginTop: '4px', accentColor: 'var(--accent)' }} />
+              <span>{t('imp.rememberFixes', { name: presetName })}</span>
+            </label>
+            <Hint id="imp-remember" />
+          </div>
+        )}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button type="button" onClick={onBack} style={btn}><ArrowLeft size={14} /> {t('imp.back')}</button>
           <button type="button" onClick={importNow} disabled={busy || !sendable.length} aria-describedby={counts.problems > 0 ? 'imp-waiting' : undefined} style={btnPrimary}>

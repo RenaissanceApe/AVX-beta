@@ -34,7 +34,7 @@ describe('import fixes: every reason has a way forward', () => {
   it('ends problems with "leave these rows out", but not heads-ups', () => {
     expect(fixesFor('unknownLocation').at(-1)).toEqual({ id: 'skip', im3: false })
     expect(fixesFor('clientUnknown').map(f => f.id)).toEqual(['addContact', 'linkContact'])
-    expect(fixesFor('archived')[0]).toEqual({ id: 'restoreItem', im3: true })
+    expect(fixesFor('archived')[0]).toEqual({ id: 'restoreItem', im3: false })
   })
   it('covers the speaker and power refusals (D80, D93)', () => {
     expect(FIXES.unknownPreset.fixes).toEqual(['pickPreset', 'leaveEmpty'])

@@ -378,3 +378,49 @@ Every group also offers "Leave these rows out". **(IM3)** marks a fix that needs
   for every row, date order, custom fields, fix and try again, parts, the left-out file),
   `xlsx.test.js` (sheets), and two signed-in tests in `e2e/auth/import.spec.js` (a title line above
   the headings → suggested → import; a row left out → its download has the columns and the problem).
+
+## How IM3 works (the database part)
+
+- **Fixes go with the import.** `fixRows(fixes)` (`src/lib/importer.js`) turns what the fixes add,
+  restore or switch into rows with `_fix`, sent ahead of the first part's rows: restored locations
+  and items, new locations, new items, new clients, items that start being counted, items switched
+  to per unit. `run_import` and `import_jobs` apply them first, in the same call
+  (`private.import_apply_fix`), and log them in the import's own batch like any row, so the
+  existing undo removes what was added and archives again what was restored. If one fails the whole
+  call fails ("Fix not saved: …") and nothing is imported. They are counted in
+  `import_batches.added`, which Earlier imports shows ("1 added by a fix"). Upcoming jobs, their
+  equipment and quotes still aren't kept as batches: what their fixes add goes in a batch of its
+  own, made in the same call (equipment for equipment on jobs, clients for jobs and quotes).
+- **Exact picks.** A pick sends the record's id with the row (`PICKS`: `_item_id`, `_kit_id`,
+  `_location_id`, `_gig_id`, `_client_id`, `_contact_id`, and `_new` for "add as a new contact").
+  The database checks it belongs to the organisation and isn't archived (`private.import_pick`, the
+  new overloads of `import_item_find`, `import_location_id`, `import_gig_find`, and
+  `import_client_pick`) and uses it before the code and the name. So "Choose which one" works for
+  same-named records without codes, and the check (`dryRun`) honours the picks too.
+- **Restoring an archived item** ("Restore the item" for an archived code) is a fix like restoring a
+  location; undo archives it again.
+- **Remembered fixes.** With a saved matching chosen, the Check step offers "Remember these fixes
+  with …" (on by default). On Import, the fixes that don't depend on the file's lines
+  (`presetFixes`: replacements, picks, additions, restores; not edited cells or rows left out) are
+  saved in `import_presets.fixes` (an array, up to 32 KB). Choosing the matching again brings them
+  back (`withPresetFixes`); the check drops any that no longer fit (`liveFixes`: a picked record
+  gone or archived, something to add that is there already, a switch already made).
+- **Switch to per unit.** In a units import, an item counted in bulk offers "Switch X to per unit"
+  while `import_per_unit_ok` says its only stock is opening quantities an import added (not undone),
+  with no units, nothing moved and not on a gig. On Import those movements are removed (logged as
+  `removed`, with the whole row) and the item is kept per unit; the units bring the stock. Undoing
+  that units import puts the item back to bulk and the movements back with their ids. This ends the
+  S4 known limitation. It needs the hand-run file (below); until then the fix says it isn't
+  available yet.
+- **Undo says what's in use.** When Undo is refused, Earlier imports asks `import_in_use(batch)`
+  (from `private.import_used`: stock moved, a kit, an alternative, a gig, units added later, a case,
+  a quote, a gig's or invoice's client, a subrental) and lists the first five with names
+  ("Shure SM58: on the gig Festival"). **Undo the rest** calls `undo_import(batch, true)`: what's in
+  use stays, with what it needs (a delete the database refuses keeps that record too), everything
+  else is undone, and what stayed is recorded in `import_batches.kept`.
+- **Migrations.** `20270115000000_import_fixes.sql` (add-only: the columns, the helpers, the import
+  functions replaced with the same signatures). `20270115000001_import_fixes_undo.sql` (hand-run:
+  allows the `removed` log entry, replaces the per-unit stub and `undo_import`).
+- **Tests.** `importer.im3.test.js`; `supabase/tests/import_fixes.sql` and the last two blocks of
+  `supabase/tests/import_undo.sql`; the signed-in `e2e/auth/import.spec.js` (the addition is in the
+  import's batch, and one undo takes back both).

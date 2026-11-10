@@ -9,8 +9,9 @@ import { Modal, btn, btnPrimary, input, label, colors, space } from '../ui'
 // One group of rows with the same problem (or heads-up) and the fixes it offers
 // (docs/SWITCHING.md, "Import overhaul: fix it here"). The fixes are radio buttons in a labelled
 // group, each with its own controls; Apply hands the chosen fix to the check as fix records
-// (importer.js, "Fixing it in the check"). Fixes that need the database part (IM3) show as not
-// available yet, with the reason. Nothing is saved here: additions wait for Import.
+// (importer.js, "Fixing it in the check"). A fix that can't be used here shows why. Nothing is
+// saved here: additions wait for Import. A pick sends the record's id too (PICKS), so records that
+// share a name and have no code can be told apart.
 const SHOWN_LINES = 25
 const fieldOf = (kind, key, fields) => (fields || FIELDS[kind] || []).find(f => f.key === key) || { key, type: 'text' }
 const fieldName = (kind, key) => t(`imp.field.${kind}.${key}`)
@@ -68,16 +69,15 @@ export default function FixGroup({ group, kind, ctx, onApply }) {
   const linesOf = list => list.map(l => l.line)
   const allLines = linesOf(lines)
 
-  // An item picked for this group: its code and name in the row's cells. One without a code can
-  // only be picked by name when no other item has that name (IM3 picks by id)
+  // An item picked for this group: its code and name in the row's cells, and its id (an item a fix
+  // adds has no id yet: it is found by its code or name)
   const itemCells = item => {
     const [codeField, nameField] = ITEM_CELLS[field] || ['item_code', 'item']
-    if (kind === 'items') return { code: item.code || '' }
-    return { [codeField]: item.code || '', [nameField]: item.name }
+    const id = item.pending ? {} : { [/^kit/.test(codeField) ? '_kit_id' : '_item_id']: item.id }
+    if (kind === 'items') return { ...(item.code ? { code: item.code } : {}), ...id }
+    return { [codeField]: item.code || '', [nameField]: item.name, ...id }
   }
-  const itemPickable = item => Boolean(item.code) || ctx.items.filter(i => i.name.toLowerCase() === item.name.toLowerCase()).length === 1
-  const gigCells = gig => (kind === 'gigs' ? { ref: gig.import_ref || '' } : { gig_ref: gig.import_ref || '', gig: gig.name })
-  const gigPickable = gig => Boolean(gig.import_ref) || ctx.gigs.filter(g => g.name.toLowerCase() === gig.name.toLowerCase()).length === 1
+  const gigCells = gig => ({ ...(kind === 'gigs' ? { ref: gig.import_ref || '' } : { gig_ref: gig.import_ref || '', gig: gig.name }), _gig_id: gig.id })
   const base = { key: group.key, reason, field, value: value ?? null, count }
   const replace = (fix, setCells, to) => ({ ...base, fix, to, type: 'replace', field, from, set: setCells })
   const cells = (fix, make, to) => ({ ...base, fix, to, type: 'cells', edits: Object.fromEntries(lines.map(l => [l.line, make(l)])) })
@@ -120,6 +120,14 @@ export default function FixGroup({ group, kind, ctx, onApply }) {
         const item = ctx.items.find(i => String(i.id) === values.item)
         return item ? [replace(pick, itemCells(item), item.code ? `${item.name} (${item.code})` : item.name)] : null
       }
+      case 'restoreItem': {
+        const item = ctx.archivedItems.find(i => i.code && i.code.toUpperCase() === String(value).toUpperCase())
+        return item ? [{ ...base, fix: 'restoreItem', type: 'restore', what: 'item', id: item.id, name: item.name, to: item.code ? `${item.name} (${item.code})` : item.name }] : null
+      }
+      case 'perUnit': {
+        const item = ctx.items.find(i => !i.pending && i.name.toLowerCase() === String(value).toLowerCase() && i.tracking === 'bulk')
+        return item ? [{ ...base, fix: 'perUnit', type: 'perUnit', id: item.id, name: item.name, to: item.name }] : null
+      }
       case 'startTracking': {
         const item = ctx.items.find(i => i.name.toLowerCase() === String(value).toLowerCase() && i.tracking === 'none')
         return item ? [{ ...base, fix: 'startTracking', type: 'track', id: item.id, name: item.name, to: item.name }] : null
@@ -131,10 +139,18 @@ export default function FixGroup({ group, kind, ctx, onApply }) {
       }
       case 'chooseContact': {
         const c = sameContacts.find(x => String(x.id) === values.contact)
-        return c ? [replace('chooseContact', { tax_id: c.tax_id }, c.tax_id)] : null
+        if (!c) return null
+        return c.tax_id
+          ? [replace('chooseContact', { tax_id: c.tax_id, _contact_id: c.id }, c.tax_id)]
+          : [{ ...replace('chooseContact', { _contact_id: c.id }, [c.name, c.email].filter(Boolean).join(' · ')), fix: 'chooseContactById' }]
       }
+      case 'newContact': return [replace('newContact', { _new: 'yes' }, value)]
       case 'addContact': return [{ ...base, fix: 'addContact', type: 'add', what: 'client', record: { name: value }, to: value }]
-      case 'linkContact': return values.client ? [replace('linkContact', { client: values.client }, values.client)] : null
+      case 'linkContact': {
+        if (!values.client) return null
+        const c = ctx.clients.find(x => x.id && x.name === values.client)
+        return [replace('linkContact', { client: values.client, ...(c ? { _client_id: c.id } : {}) }, values.client)]
+      }
       case 'countBulk': return [cells('countBulk', () => ({ tracking: 'bulk' }))]
       case 'dropQuantity': return [cells('dropQuantity', () => ({ quantity: '' }))]
       case 'keepTracking': return [cells('keepTracking', () => ({ tracking: '' }))]
@@ -169,18 +185,18 @@ export default function FixGroup({ group, kind, ctx, onApply }) {
         return select('locationKind', WORD_VALUES.locationKind.map(k => <option key={k} value={k}>{choiceLabel('locationKind', k)}</option>), choiceLabel('locationKind', 'warehouse'))
       case 'useItem':
         return items.length
-          ? select('item', items.map(i => <option key={i.id} value={i.id} disabled={!itemPickable(i)}>{itemLabel(i)}{itemPickable(i) ? '' : ` · ${t('imp.fix.im3Short')}`}</option>))
+          ? select('item', items.map(i => <option key={i.id} value={i.id}>{itemLabel(i)}</option>))
           : <p style={muted}>{t('imp.fix.noItems')}</p>
       case 'chooseItem':
-        return select('item', sameItems.map(i => <option key={i.id} value={i.id} disabled={!i.code}>{itemLabel(i)}{i.code ? '' : ` · ${t('imp.fix.im3Short')}`}</option>))
+        return select('item', sameItems.map(i => <option key={i.id} value={i.id}>{itemLabel(i)}</option>))
       case 'useGig':
         return gigs.length
-          ? select('gig', gigs.map(g => <option key={g.id} value={g.id} disabled={!gigPickable(g)}>{g.name}{g.start_date ? ` · ${g.start_date}` : ''}{gigPickable(g) ? '' : ` · ${t('imp.fix.im3Short')}`}</option>))
+          ? select('gig', gigs.map(g => <option key={g.id} value={g.id}>{g.name}{g.start_date ? ` · ${g.start_date}` : ''}{g.import_ref ? ` · ${g.import_ref}` : ''}</option>))
           : <p style={muted}>{t('imp.fix.noGigs')}</p>
       case 'chooseGig':
-        return select('gig', sameGigs.map(g => <option key={g.id} value={g.id} disabled={!g.import_ref}>{g.name}{g.start_date ? ` · ${g.start_date}` : ''}{g.import_ref ? ` · ${g.import_ref}` : ` · ${t('imp.fix.im3Short')}`}</option>))
+        return select('gig', sameGigs.map(g => <option key={g.id} value={g.id}>{g.name}{g.start_date ? ` · ${g.start_date}` : ''}{g.import_ref ? ` · ${g.import_ref}` : ''}</option>))
       case 'chooseContact':
-        return select('contact', sameContacts.map(c => <option key={c.id} value={c.id} disabled={!c.tax_id}>{[c.name, c.email, c.tax_id].filter(Boolean).join(' · ')}{c.tax_id ? '' : ` · ${t('imp.fix.im3Short')}`}</option>))
+        return select('contact', sameContacts.map(c => <option key={c.id} value={c.id}>{[c.name, c.email, c.tax_id].filter(Boolean).join(' · ')}</option>))
       case 'linkContact':
         return contacts.length ? select('client', contacts.map(n => <option key={n} value={n}>{n}</option>)) : <p style={muted}>{t('imp.fix.noContacts')}</p>
       case 'treatAs':
@@ -218,7 +234,7 @@ export default function FixGroup({ group, kind, ctx, onApply }) {
     }
   }
   const itemLabel = i => [i.name, i.code, i.brand, i.category].filter(Boolean).join(' · ') + (i.pending ? ` · ${t('imp.willBeAdded')}` : '')
-  // An option that can't be used here, and why (the database part, IM3, or nothing to pick)
+  // An option that can't be used here, and why
   const unavailable = o => (o.im3 ? t('imp.fix.im3') : ctx.blocked?.(o.id, group) || null)
   const visible = options.filter(o => o.id !== 'stripSpaces' || lines.some(l => /\s/.test(l.raw))).filter(o => o.id !== 'treatEmpty' || repeated.length)
 
@@ -234,7 +250,7 @@ export default function FixGroup({ group, kind, ctx, onApply }) {
       </h3>
       <p style={{ fontSize: '13px', color: colors.soft, margin: `${space[1]} 0 ${space[2]}`, lineHeight: 1.6 }}>
         {reasonText(group)}
-        {reason === 'bulkItem' && ` ${t('imp.fix.bulkLimit')}`}
+        {reason === 'bulkItem' && ` ${t('imp.fix.perUnitNote')}`}
       </p>
       <p style={{ ...muted, marginBottom: space[3] }}>{t('imp.group.lines', { count, lines: allLines.slice(0, 12).join(', ') + (count > 12 ? '…' : '') })}</p>
       <fieldset style={{ border: 0, padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: space[2] }}>

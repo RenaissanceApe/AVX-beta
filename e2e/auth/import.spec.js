@@ -76,8 +76,9 @@ test('an equipment file with an unknown location: add it from the check, import,
   await importButton.click()
 
   await expect(page.getByRole('status').filter({ hasText: '1 added · 0 updated · 0 unchanged · 0 skipped' })).toBeVisible({ timeout: 20_000 })
-  // Two imports in Earlier imports: the location (its own batch for now) and the equipment
-  await expect(page.getByRole('button', { name: /^Undo/ })).toHaveCount(2)
+  // One import in Earlier imports: the location the fix added is in the import's own batch (IM3)
+  await expect(page.getByRole('button', { name: /^Undo/ })).toHaveCount(1)
+  await expect(page.getByText('1 added by a fix')).toBeVisible()
 
   // The location and the stock are there
   await page.goto(`${orgPath}/inventory?tab=locations`)
@@ -132,6 +133,36 @@ test('rows left out in the check download with their data and the problem', asyn
   expect(csv[0]).toBe('Name,Code,Price,Problem')
   expect(csv[1]).toBe(`E2E Stand ${RUN},E2E-S-${RUN},lots,Price: not a number`)
   expect(csv).toHaveLength(2)
+})
+
+// IM3: what a fix adds is in the import's batch, so one undo takes back the import and the addition
+test('one undo takes back an import and the location its fix added', async ({ page }) => {
+  await signIn(page)
+  const store = `E2E Store ${RUN}`
+  await page.goto(`${orgPath}/inventory/import?kind=items`)
+  await page.locator('#imp-paste').fill(`Name\tCode\tQuantity\tLocation\nE2E Crate ${RUN}\tE2E-C-${RUN}\t2\t${store}`)
+  await page.getByRole('button', { name: 'Next' }).click()
+  await page.getByRole('button', { name: 'Next' }).click()
+  const group = page.getByRole('region', { name: new RegExp(`“${store}”$`) })
+  await expect(group).toBeVisible({ timeout: 15_000 })
+  await group.getByRole('button', { name: 'Apply' }).click()
+  await page.getByRole('button', { name: 'Import 1 row · adds 1 location' }).click()
+  await expect(page.getByRole('status').filter({ hasText: '1 added · 0 updated · 0 unchanged · 0 skipped' })).toBeVisible({ timeout: 20_000 })
+
+  // The newest import is first in Earlier imports; undoing it says the fix's addition goes too
+  await page.getByRole('button', { name: /^Undo/ }).first().click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByText('Removes the 1 record a fix added', { exact: false })).toBeVisible()
+  await expectAccessible(page)
+  await dialog.getByRole('checkbox').check()
+  await dialog.getByRole('button', { name: /Undo/ }).click()
+  await expect(page.getByText(/^Import undone/)).toBeVisible({ timeout: 15_000 })
+
+  // Neither the equipment nor the location is there any more
+  await page.goto(`${orgPath}/inventory?tab=locations`)
+  await expect(page.getByText(`E2E Store ${RUN}`)).toHaveCount(0)
+  await page.goto(`${orgPath}/inventory`)
+  await expect(page.getByText(`E2E Crate ${RUN}`)).toHaveCount(0)
 })
 
 test('clean up: the user deletes their account', async ({ page }) => {
