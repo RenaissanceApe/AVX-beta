@@ -951,5 +951,8 @@ export function checkImport({ table, mapping, kind, headerRow = true, defaultLoc
   const sendable = toPayload(rows.filter((_, i) => plan[i].action !== 'skip'))
   const adds = { location: 0, item: 0, client: 0 }
   for (const f of fixes) if (f.type === 'add') adds[f.what] += 1
-  return { rows, plan, groups, counts, sendable, adds, mapping: fixed.mapping }
+  return { rows, plan, groups, counts, sendable, adds, raw, mapping: fixed.mapping }
 }
+
+// The values each choice field takes (for "treat X as …"): { words: [value, …] }
+export const WORD_VALUES = Object.fromEntries(Object.entries(WORDS).map(([k, v]) => [k, Object.keys(v)]))
