@@ -206,6 +206,7 @@ export default {
     'imp-fixes': 'Rows with the same problem are grouped, so one choice fixes them all: add a missing location, use an item you have, treat a word as a status, edit a cell. Each fix is listed under "Your fixes" and can be taken back. What a fix adds is saved only when you press Import. Groups you don\'t decide on are left out.',
     'imp-same': "A field your file doesn't have can take one value for all its rows: the location of all the stock, the item all the units belong to, the job all the equipment is for, or a status. A column always wins over it.",
     'imp-after': "\"Fix and try again\" opens the check with only the rows the database refused, and the same fixes as before. The download has every row that wasn't imported, with your file's own columns and a Problem column: fix them in a spreadsheet and import that small file.",
+    'imp-history': 'Past jobs come in as done gigs (cancelled ones as cancelled, if you choose) with their dates, client and venue, so your reports can compare years. They don\'t book equipment or crew, don\'t clash with anything and nobody is notified. Jobs from more than 10 years ago are left out. Importing the file again finds them by their number, so nothing doubles.',
     'imp-remember': 'Fixes that don\'t depend on the lines of this file (a word read as a status, a location or item chosen for a value, something to add) are saved with the matching. Next time you choose it, they come back in "Your fixes", and any that no longer fit are dropped.',
     'cross-hire-code': 'If your supplier also uses AVX, ask for their code. Requests then go straight to them and they confirm in AVX.',
     factor: 'How many day prices this line costs for the whole phase. Example: 3 days at factor 2.5 costs 2.5 × the day price.',
@@ -1291,6 +1292,20 @@ export default {
       mistakes: [
         'Import the same file again after changes in your old tool: gigs and quotes are matched by their number, so they are updated, not doubled. A quote already sent from AVX is left as it is.',
         'Sets aren\'t planned on a gig directly: plan their contents, as AVX does when you add a set by hand.',
+      ],
+    },
+    'of-import-history': {
+      title: 'Bring over your past jobs and decided quotes',
+      intro: 'Import the jobs you have already done and the quotes your clients accepted or declined, so the reports can compare this year with the years before from day one. Up to 10 years back.',
+      steps: [
+        'In Inventory → Import, choose Upcoming jobs and your old tool\'s jobs export, with the past jobs in it. Match the columns as usual.',
+        'In the check, past jobs are listed under "Left out on purpose". Tap "Import as past jobs" to bring them in as done gigs, with their dates, client and venue. Cancelled past jobs stay out unless you tap "Import as cancelled". Jobs from more than 10 years ago are too old and stay out.',
+        'Past gigs don\'t book equipment or crew, don\'t clash with anything and nobody is notified. Equipment lines for them in an "Equipment on jobs" file are left out on purpose.',
+        'For quotes, choose Open quotes and a file with a status column (accepted, declined, sent) and, if you have them, the dates sent and decided and the reason a quote was declined. The reports count each quote on its own dates. Without a decided date, the sent date is used; without a sent date, the quote\'s date.',
+      ],
+      mistakes: [
+        'Importing the same file again matches gigs and quotes by their old number, so nothing doubles. A gig already in AVX is never turned into a past one, and a quote already sent or decided in AVX is left as it is.',
+        'A decline reason that isn\'t price, competitor, cancelled, unavailable or scope is kept as "Other", with your text as the note.',
       ],
     },
     'of-build-quote': {

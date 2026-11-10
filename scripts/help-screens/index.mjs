@@ -208,6 +208,15 @@ const SCENES = {
     await page.locator('#imp-purpose').waitFor()
     return page.locator('div[role=status]').first().locator('xpath=..')
   } },
+  // The past job left out on purpose, with "Import as past jobs" (IM4)
+  'imp-history': { persona: 'pm', url: `/org/${ids.org}/inventory/import?kind=gigs`, async run(page, L) {
+    await page.locator('#imp-paste').fill(JOBS_SAMPLE)
+    await page.getByRole('button', { name: L('imp.next') }).click()
+    await page.getByRole('button', { name: L('imp.next') }).click()
+    const section = page.locator('section[aria-labelledby="imp-purpose"]')
+    await section.getByRole('button', { name: L('imp.fix.importPast') }).waitFor()
+    return section
+  } },
   'inv-locations': { persona: 'pm', url: `/org/${ids.org}/inventory?tab=locations`, async run(page, L) {
     return page.getByRole('button', { name: L('inv.addLocation') }).first()
   } },

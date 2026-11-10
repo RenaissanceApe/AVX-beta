@@ -25,7 +25,8 @@ describe('import fixes: every reason has a way forward', () => {
   })
   it('offers at least one fix besides leaving the rows out, unless left out on purpose', () => {
     for (const [reason, entry] of Object.entries(FIXES)) {
-      if (entry.purpose) { expect(fixesFor(reason)).toEqual([]); continue }
+      // Left out on purpose is already the default: only a choice like "Import as past jobs" (IM4)
+      if (entry.purpose) { expect(fixesFor(reason).map(f => f.id)).toEqual(entry.fixes || []); continue }
       if (entry.note && !entry.fixes) continue
       const offered = fixesFor(reason).filter(f => f.id !== 'skip' && !f.im3)
       expect(offered.length, reason).toBeGreaterThan(0)

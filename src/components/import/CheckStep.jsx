@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Upload, Plus, Undo2, Info, Check } from 'lucide-react'
+import { ArrowLeft, Upload, Plus, Undo2, Info, Check, History } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
-import { FIXES, checkImport, withPending, fieldsFor, splitParts, mergeResults, fixRows, presetFixes, liveFixes } from '../../lib/importer'
+import { FIXES, historyFix, checkImport, withPending, fieldsFor, splitParts, mergeResults, fixRows, presetFixes, liveFixes } from '../../lib/importer'
 import { t } from '../../i18n'
 import { Hint } from '../help/HelpParts'
 import { btn, btnPrimary, label, colors, AvxLoader, space } from '../ui'
@@ -42,7 +42,7 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
     }
     if (isJob(kind)) {
       Promise.all([
-        all(() => supabase.from('gigs').select('id, name, start_date, import_ref').eq('org_id', orgId).order('id'), 'gigs'),
+        all(() => supabase.from('gigs').select('id, name, start_date, import_ref, from_history').eq('org_id', orgId).order('id'), 'gigs'),
         kind === 'gig_equipment' ? all(() => supabase.from('price_items').select(itemCols).eq('org_id', orgId).order('id'), 'items') : none,
         kind === 'gig_equipment' ? all(() => supabase.from('gig_equipment').select('gig_id, item_id').eq('org_id', orgId).order('id'), 'lines') : none,
         kind === 'quotes' ? all(() => supabase.from('quotes').select('import_ref, status').eq('org_id', orgId).not('import_ref', 'is', null).order('id'), 'quotes') : none,
@@ -249,12 +249,23 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
       {purpose.length > 0 && (
         <section aria-labelledby="imp-purpose">
           <h2 id="imp-purpose" style={{ font: '700 16px/24px var(--font-mono)', marginBottom: space[1] }}>{t('imp.purposeTitle', { count: counts.purpose })}</h2>
-          <p style={{ fontSize: '13px', color: colors.muted, marginBottom: space[2] }}>{t('imp.purposeHint')}</p>
+          <p style={{ fontSize: '13px', color: colors.muted, marginBottom: space[2] }}>{t(purpose.some(g => g.fixes.length) ? 'imp.purposeHintChoice' : 'imp.purposeHint')}</p>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', lineHeight: 1.7 }}>
             {purpose.map(g => (
-              <li key={g.key}>
+              <li key={g.key} style={{ padding: g.fixes.length ? `${space[2]} 0` : 0 }}>
                 <strong>{t(`imp.purpose.${g.reason}`, { count: g.lines.length })}</strong>
                 {g.lines.some(l => l.value) && `: ${g.lines.slice(0, 8).map(l => l.value).filter(Boolean).join(', ')}${g.lines.length > 8 ? '…' : ''}`}
+                {/* Past jobs can come in after all (IM4): as done gigs, or past cancelled ones as cancelled */}
+                {g.fixes.length > 0 && (
+                  <div style={{ display: 'flex', gap: space[2], alignItems: 'center', flexWrap: 'wrap', marginTop: space[1] }}>
+                    {g.fixes.map(f => (
+                      <button key={f.id} type="button" onClick={() => apply([historyFix(g)])} style={{ ...btn, padding: '4px 10px', minHeight: '32px' }}>
+                        <History size={12} aria-hidden="true" /> {t(`imp.fix.${f.id}`)}
+                      </button>
+                    ))}
+                    <Hint id="imp-history" />
+                  </div>
+                )}
               </li>
             ))}
           </ul>
