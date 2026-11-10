@@ -22,7 +22,7 @@ export const choiceLabel = (words, value) => t(`imp.word.${words}.${value}`)
 // said when it refused them (brought back by "fix and try again")
 export function reasonText(group) {
   const { reason, value } = group
-  if (group.note) return t(`imp.note.${reason}`)
+  if (group.note) return t(`imp.note.${reason}`, { value: value ?? '' })
   if (reason === 'refused') return String(value ?? '')
   const key = `imp.err.${reason}`
   const text = t(key, { value: value ?? '' })
