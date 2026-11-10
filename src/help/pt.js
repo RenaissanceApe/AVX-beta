@@ -203,6 +203,7 @@ export default {
     'imp-fixes': 'As linhas com o mesmo problema ficam agrupadas, por isso uma escolha corrige-as todas: adicionar um local em falta, usar um artigo que já tem, tratar uma palavra como um estado, editar uma célula. Cada correção aparece em "As suas correções" e pode ser desfeita. O que uma correção adiciona só é guardado quando carregar em Importar. Os grupos sem decisão ficam de fora.',
     'imp-same': "Um campo que o seu ficheiro não tem pode ter um valor para todas as linhas: o local de todo o stock, o artigo de todas as unidades, o trabalho de todo o equipamento, ou um estado. Uma coluna ganha sempre sobre ele.",
     'imp-after': "\"Corrigir e tentar outra vez\" abre a verificação só com as linhas que a base de dados recusou, e as mesmas correções de antes. O ficheiro descarregado tem todas as linhas que não foram importadas, com as colunas do seu ficheiro e uma coluna Problema: corrija-as numa folha de cálculo e importe esse ficheiro pequeno.",
+    'imp-history': 'Os trabalhos passados entram como gigs concluídos (os cancelados como cancelados, se escolher), com as datas, o cliente e o local, para os relatórios poderem comparar anos. Não reservam equipamento nem equipa, não chocam com nada e ninguém é notificado. Trabalhos de há mais de 10 anos ficam de fora. Importar o ficheiro outra vez encontra-os pelo número, por isso nada fica duplicado.',
     'imp-remember': 'As correções que não dependem das linhas deste ficheiro (uma palavra lida como um estado, um local ou artigo escolhido para um valor, algo a adicionar) ficam guardadas com a correspondência. Da próxima vez que a escolher, voltam em "As suas correções", e as que já não servem são retiradas.',
     'cross-hire-code': 'Se o seu fornecedor também usa o AVX, peça-lhe o código. Os pedidos passam a chegar-lhe diretamente e ele confirma no AVX.',
     factor: 'Quantos preços diários custa esta linha na fase inteira. Exemplo: 3 dias com fator 2,5 custam 2,5 × o preço diário.',
@@ -1288,6 +1289,20 @@ export default {
       mistakes: [
         'Volte a importar o mesmo ficheiro depois de mudanças na ferramenta antiga: eventos e orçamentos correspondem pelo número, por isso são atualizados, não duplicados. Um orçamento já enviado do AVX fica como está.',
         'Os conjuntos não se planeiam diretamente num evento: planeie o conteúdo, como o AVX faz quando adiciona um conjunto à mão.',
+      ],
+    },
+    'of-import-history': {
+      title: 'Trazer os trabalhos passados e os orçamentos decididos',
+      intro: 'Importe os trabalhos que já fez e os orçamentos que os clientes aceitaram ou recusaram, para os relatórios poderem comparar este ano com os anteriores desde o primeiro dia. Até 10 anos para trás.',
+      steps: [
+        'Em Inventário → Importar, escolha Próximos trabalhos e a exportação de trabalhos da ferramenta antiga, com os trabalhos passados. Faça a correspondência das colunas como de costume.',
+        'Na verificação, os trabalhos passados aparecem em "Deixadas de fora de propósito". Toque em "Importar como trabalhos passados" para os trazer como gigs concluídos, com as datas, o cliente e o local. Os trabalhos passados cancelados ficam de fora, a não ser que toque em "Importar como cancelados". Trabalhos de há mais de 10 anos são demasiado antigos e ficam de fora.',
+        'Os gigs passados não reservam equipamento nem equipa, não chocam com nada e ninguém é notificado. As linhas de equipamento para eles num ficheiro de "Equipamento nos trabalhos" ficam de fora de propósito.',
+        'Para orçamentos, escolha Orçamentos em aberto e um ficheiro com uma coluna de estado (aceite, recusado, enviado) e, se as tiver, as datas de envio e de decisão e o motivo da recusa. Os relatórios contam cada orçamento nas suas próprias datas. Sem data de decisão, conta a data de envio; sem data de envio, a data do orçamento.',
+      ],
+      mistakes: [
+        'Importar o mesmo ficheiro outra vez encontra os gigs e os orçamentos pelo número antigo, por isso nada fica duplicado. Um gig que já está no AVX nunca passa a ser um trabalho passado, e um orçamento já enviado ou decidido no AVX fica como está.',
+        'Um motivo de recusa que não seja preço, concorrência, cancelado, indisponível ou âmbito fica como "Outro", com o seu texto como nota.',
       ],
     },
     'of-build-quote': {
