@@ -12,11 +12,21 @@ import { Modal, btn, btnPrimary, input, label, colors, space } from '../ui'
 // (importer.js, "Fixing it in the check"). Fixes that need the database part (IM3) show as not
 // available yet, with the reason. Nothing is saved here: additions wait for Import.
 const SHOWN_LINES = 25
-const fieldOf = (kind, key) => (FIELDS[kind] || []).find(f => f.key === key) || { key, type: 'text' }
+const fieldOf = (kind, key, fields) => (fields || FIELDS[kind] || []).find(f => f.key === key) || { key, type: 'text' }
 const fieldName = (kind, key) => t(`imp.field.${kind}.${key}`)
 // Which cells say "this item" (or kit) in a row: its code and its name
 const ITEM_CELLS = { item: ['item_code', 'item'], item_code: ['item_code', 'item'], kit: ['kit_code', 'kit'], kit_code: ['kit_code', 'kit'], name: ['code', 'name'], code: ['code', 'name'] }
 export const choiceLabel = (words, value) => t(`imp.word.${words}.${value}`)
+// Why a group's rows can't go in, as the page says it: the check's reason, or what the database
+// said when it refused them (brought back by "fix and try again")
+export function reasonText(group) {
+  const { reason, value } = group
+  if (group.note) return t(`imp.note.${reason}`)
+  if (reason === 'refused') return String(value ?? '')
+  const key = `imp.err.${reason}`
+  const text = t(key, { value: value ?? '' })
+  return group.refused || text === key ? t(`imp.srv.${reason}`, { name: value ?? '' }) : text
+}
 
 export default function FixGroup({ group, kind, ctx, onApply }) {
   const id = useId()
@@ -28,7 +38,9 @@ export default function FixGroup({ group, kind, ctx, onApply }) {
   const [edits, setEdits] = useState({})
   const [adding, setAdding] = useState(false)
   const set = (k, v) => setValues(s => ({ ...s, [k]: v }))
-  const def = fieldOf(kind, field)
+  // The field, read with its column's date order when it is a date
+  const def = { ...fieldOf(kind, field, ctx.fields), order: ctx.dateOrders?.[field] }
+  const label_ = key => (ctx.fieldLabel ? ctx.fieldLabel(key) : fieldName(kind, key))
   const value = group.value
   const from = group.from
 
@@ -86,7 +98,7 @@ export default function FixGroup({ group, kind, ctx, onApply }) {
       case 'stripSpaces': return [cells('stripSpaces', l => ({ [field]: l.raw.replace(/\s+/g, '') }))]
       case 'cut': return [cells('cut', l => ({ [field]: l.raw.slice(0, def.max || 200) }), String(def.max || 200))]
       case 'swapDates': return [cells('swapDates', l => ({ start_date: ctx.raw(l.line, 'end_date'), end_date: ctx.raw(l.line, 'start_date') }))]
-      case 'treatAs': return values.word ? [replace('treatAs', { [field]: values.word }, choiceLabel(def.words, values.word))] : null
+      case 'treatAs': return values.word ? [replace('treatAs', { [field]: values.word }, def.choices?.length ? values.word : choiceLabel(def.words, values.word))] : null
       case 'leaveEmpty': return [replace('leaveEmpty', { [field]: '' })]
       case 'pickPreset': {
         const p = PRESETS.find(x => x.id === values.preset)
@@ -172,7 +184,9 @@ export default function FixGroup({ group, kind, ctx, onApply }) {
       case 'linkContact':
         return contacts.length ? select('client', contacts.map(n => <option key={n} value={n}>{n}</option>)) : <p style={muted}>{t('imp.fix.noContacts')}</p>
       case 'treatAs':
-        return select('word', (WORD_VALUES[def.words] || []).map(w => <option key={w} value={w}>{choiceLabel(def.words, w)}</option>))
+        return select('word', def.choices?.length
+          ? def.choices.map(w => <option key={w} value={w}>{w}</option>)
+          : (WORD_VALUES[def.words] || []).map(w => <option key={w} value={w}>{choiceLabel(def.words, w)}</option>))
       case 'pickPreset':
         return select('preset', closest(value || '', PRESETS.map(presetLabel)).map(name => PRESETS.find(p => presetLabel(p) === name)).map(p => <option key={p.id} value={p.id}>{presetLabel(p)}</option>))
       case 'treatEmpty':
@@ -214,12 +228,12 @@ export default function FixGroup({ group, kind, ctx, onApply }) {
         <Icon size={14} aria-hidden="true" style={{ flexShrink: 0, color: group.note ? colors.soft : 'var(--warn)', alignSelf: 'center' }} />
         <span>
           {t('imp.group.rows', { count })}
-          {field && ` · ${fieldName(kind, field)}`}
+          {field && ` · ${label_(field)}`}
           {value != null && value !== '' && ` “${value}”`}
         </span>
       </h3>
       <p style={{ fontSize: '13px', color: colors.soft, margin: `${space[1]} 0 ${space[2]}`, lineHeight: 1.6 }}>
-        {t(group.note ? `imp.note.${reason}` : `imp.err.${reason}`, { value: value ?? '' })}
+        {reasonText(group)}
         {reason === 'bulkItem' && ` ${t('imp.fix.bulkLimit')}`}
       </p>
       <p style={{ ...muted, marginBottom: space[3] }}>{t('imp.group.lines', { count, lines: allLines.slice(0, 12).join(', ') + (count > 12 ? '…' : '') })}</p>

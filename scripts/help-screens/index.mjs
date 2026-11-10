@@ -23,6 +23,9 @@ import pt from '../../src/i18n/pt.js'
 
 // A Rentman-style equipment export (Dutch headings), with two rows that have problems
 const IMPORT_SAMPLE = 'Naam;Code;Categorie;Verhuurprijs;Gewicht;Aantal;Magazijn\nMAC Aura XB;AURA;Licht;80;13,5;;\nRobe Pointe;POINTE;Licht;95;15,2;;\nXLR 10 m;XLR10;Kabels;2,50;0,6;120;\nDMX 5-pin 5 m;DMX5;Kabels;2;0,4;60;Opslag Oost\nShure SM58;SM58;Microfoons;8;0,3;;\nDI Radial J48;J48;Microfoons;6;1,1;;'
+// The same rows with a title line above the headings and a column AVX doesn't import (IM2: the
+// heading row is suggested on Choose, "Not imported" listed on Match)
+const IMPORT_TITLED = `Voorraadlijst maart\n${IMPORT_SAMPLE.split('\n').map((l, i) => `${l};${i ? (i === 1 ? 'Nieuw' : '') : 'Opmerking'}`).join('\n')}`
 // Upcoming jobs as Rentman exports them (dates are made relative to today when the script runs)
 const day = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10) }
 const JOBS_SAMPLE = `Projectnummer;Projectnaam;Startdatum;Einddatum;Locatie;Status;Klant\nP-2101;Festival Lumière;${day(20)};${day(22)};Porto;Bevestigd;Festival Lumière\nP-2102;Gala Sintra;${day(35)};${day(35)};Sintra;Optie;Sintra Town Council\nP-1988;Congress 2025;2025-03-10;2025-03-12;Lisboa;Afgerond;\nP-2103;Product launch;${day(41)};${day(41)};Lisboa;Geannuleerd;`
@@ -174,14 +177,20 @@ const SCENES = {
 
   // Warehouse
   'imp-choose': { persona: 'pm', url: `/org/${ids.org}/inventory/import`, async run(page, L) {
-    await page.locator('#imp-paste').fill(IMPORT_SAMPLE)
+    await page.locator('#imp-paste').fill(IMPORT_TITLED)
+    // The title line is noticed: "The headings are on row 2", suggested
+    await page.locator('#imp-header-hint').waitFor()
     await page.locator('#imp-paste').evaluate(el => el.scrollIntoView({ block: 'center' }))
-    return page.locator('#imp-paste')
+    return page.locator('#imp-header-at')
   } },
   'imp-match': { persona: 'pm', url: `/org/${ids.org}/inventory/import`, async run(page, L) {
-    await page.locator('#imp-paste').fill(IMPORT_SAMPLE)
+    await page.locator('#imp-paste').fill(IMPORT_TITLED)
+    await page.locator('#imp-header-hint').waitFor()
     await page.getByRole('button', { name: L('imp.next') }).click()
-    return page.getByRole('list', { name: L('imp.step.match') })
+    // The columns that won't be imported are listed under the matching
+    const unused = page.getByRole('status').filter({ hasText: L('imp.notImported', { columns: 'Opmerking' }) })
+    await unused.waitFor()
+    return unused
   } },
   'imp-check': { persona: 'pm', url: `/org/${ids.org}/inventory/import`, async run(page, L) {
     await page.locator('#imp-paste').fill(IMPORT_SAMPLE)

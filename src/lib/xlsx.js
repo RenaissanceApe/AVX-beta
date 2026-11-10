@@ -1,5 +1,5 @@
-// Reading an Excel workbook (.xlsx) for the import wizard (docs/SWITCHING.md, S1b): the first
-// sheet's cells as text, so the rest of the import treats it like a CSV file. Only what an
+// Reading an Excel workbook (.xlsx) for the import wizard (docs/SWITCHING.md, S1b; IM2 picks the
+// sheet): a sheet's cells as text, so the rest of the import treats it like a CSV file. Only what an
 // export needs: shared and inline strings, numbers, booleans and dates (by the cell's number
 // format). Formulas give their last calculated value. Loaded only when an Excel file is chosen.
 import { unzipSync, strFromU8 } from 'fflate'
@@ -48,31 +48,35 @@ function dateStyles(stylesXml) {
   return out
 }
 
-function firstSheetPath(files) {
+// The workbook's sheets in their order: [{ name, path }] (a sheet whose file is missing is left out)
+function sheetPaths(files) {
   const wb = files['xl/workbook.xml'] ? strFromU8(files['xl/workbook.xml']) : ''
   const rels = files['xl/_rels/workbook.xml.rels'] ? strFromU8(files['xl/_rels/workbook.xml.rels']) : ''
-  const first = wb.match(/<sheet\s[^>]*>/)?.[0]
-  const rid = first && (attr(first, 'r:id') || first.match(/\sr:id="([^"]*)"/)?.[1])
-  const rel = rid && [...rels.matchAll(/<Relationship\s[^>]*>/g)].map(m => m[0]).find(r => attr(r, 'Id') === rid)
-  const target = rel && attr(rel, 'Target')
-  if (target) {
+  const relList = [...rels.matchAll(/<Relationship\s[^>]*>/g)].map(m => m[0])
+  const out = []
+  for (const m of wb.matchAll(/<sheet\s[^>]*>/g)) {
+    const rid = attr(m[0], 'r:id') || m[0].match(/\sr:id="([^"]*)"/)?.[1]
+    const target = rid && attr(relList.find(r => attr(r, 'Id') === rid) || '', 'Target')
+    if (!target) continue
     const path = target.startsWith('/') ? target.slice(1) : `xl/${target.replace(/^\.\//, '')}`
-    if (files[path]) return { path, name: decode(attr(first, 'name') || '') }
+    if (files[path]) out.push({ name: decode(attr(m[0], 'name') || ''), path })
   }
-  const any = Object.keys(files).filter(f => f.startsWith('xl/worksheets/')).sort()[0]
-  return { path: any, name: '' }
+  if (!out.length) {
+    const any = Object.keys(files).filter(f => f.startsWith('xl/worksheets/')).sort()[0]
+    if (any) out.push({ name: '', path: any })
+  }
+  return out
 }
 
-// The workbook's first sheet → { sheet: name, rows: [[text, …], …] } (rows padded to the same width)
-export function readXlsx(buffer) {
-  let files
+function unzip(buffer) {
   try {
-    files = unzipSync(buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer), { filter: f => WANTED.test(f.name) })
+    return unzipSync(buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer), { filter: f => WANTED.test(f.name) })
   } catch {
     throw new Error('not-xlsx')
   }
-  const { path, name } = firstSheetPath(files)
-  if (!path) throw new Error('not-xlsx')
+}
+
+function readSheet(files, path) {
   const shared = files['xl/sharedStrings.xml']
     ? [...strFromU8(files['xl/sharedStrings.xml']).matchAll(/<si>([\s\S]*?)<\/si>/g)].map(m => texts(m[1]))
     : []
@@ -99,7 +103,21 @@ export function readXlsx(buffer) {
   }
   const filled = Array.from(rows, r => r || [])
   const width = Math.max(0, ...filled.map(r => r.length))
-  return { sheet: name, rows: filled.map(r => [...r, ...Array(width - r.length).fill('')]) }
+  return filled.map(r => [...r, ...Array(width - r.length).fill('')])
+}
+
+const filledRows = rows => rows.filter(r => r.some(v => String(v).trim() !== '')).length
+
+// One sheet of the workbook (the first unless sheet names another) → { sheet: name, rows: [[text, …], …],
+// sheets: [{ name, rows }] } (rows padded to the same width; sheets: every sheet with its number of
+// filled rows, for the sheet picker)
+export function readXlsx(buffer, { sheet } = {}) {
+  const files = unzip(buffer)
+  const paths = sheetPaths(files)
+  if (!paths.length) throw new Error('not-xlsx')
+  const read = new Map(paths.map(p => [p.path, readSheet(files, p.path)]))
+  const chosen = paths.find(p => p.name === sheet) || paths[0]
+  return { sheet: chosen.name, rows: read.get(chosen.path), sheets: paths.map(p => ({ name: p.name, rows: filledRows(read.get(p.path)) })) }
 }
 
 // Rows → tab-separated text the wizard reads like any file (cells with tabs, quotes or line
