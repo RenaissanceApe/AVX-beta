@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
   const since = new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10)
   const [{ data: rows, error }, { data: profile }, { data: hours }, { data: away }] = await Promise.all([
     admin.from('gig_members')
-      .select('role, function_title, call_time, booked_from, booked_until, gigs!inner(id, name, venue, start_date, end_date, status, organisations(name))')
+      .select('role, function_title, call_time, booked_from, booked_until, gigs!inner(id, name, venue, start_date, end_date, status, organisations(name, time_zone))')
       .eq('user_id', feed.user_id)
       .limit(1000),
     admin.from('profiles').select('language').eq('id', feed.user_id).maybeSingle(),
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
   const gigs: FeedGig[] = (rows ?? []).filter((r: any) => (r.gigs.end_date || r.gigs.start_date || since) >= since).map((r: any) => ({
     id: r.gigs.id, name: r.gigs.name, venue: r.gigs.venue, start_date: r.gigs.start_date, end_date: r.gigs.end_date,
     status: r.gigs.status, org: r.gigs.organisations?.name ?? null, role: r.role, function_title: r.function_title,
-    call_time: r.call_time, booked_from: r.booked_from, booked_until: r.booked_until,
+    call_time: r.call_time, booked_from: r.booked_from, booked_until: r.booked_until, time_zone: r.gigs.organisations?.time_zone ?? null,
     // deno-lint-ignore no-explicit-any
     hours: (hours ?? []).filter((h: any) => h.gig_id === r.gigs.id),
   }))

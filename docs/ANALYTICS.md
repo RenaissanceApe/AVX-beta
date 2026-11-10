@@ -76,7 +76,7 @@ without reading its code first.
 | Gigs have no client of their own (only through a linked quote) | `gigs` | K0 adds `gigs.client_id` |
 | Revenue is worked out three ways: I7 (line, phase and quote discounts, dated by issue date), the labour panel (crew lines before the phase discount, one quote only), `quoteTotals().byKind` (gross) | `reports.js`, `crewRates.js`, `quotes.js` | K1 makes one rule |
 | Inventory → Reports asks for up to 20,000 rows per list, but the API returns at most 1000, so big organisations get figures that are too low | `ReportsTab.jsx` | K1 moves it to the database |
-| `organisations.time_zone` exists (Lisbon by default), though most code still reads Lisbon (U1) | `20261024000000_reservations_people.sql` | Reports use the column from day one |
+| `organisations.time_zone` exists (Lisbon by default); since U1 admins set it and bookings, leave, the calendar feed and the email summary read it too | `20261024000000_reservations_people.sql` | Reports use the column from day one |
 | Crew certificates carry an expiry date; inspections have due dates | `crew_profiles`, `20261029000000_maintenance.sql` | A safety report is possible (K10) |
 | No chart package; Home is a gig list; the only report is I7 | `package.json`, `Dashboard.jsx` | K1 builds the parts and the Reports area |
 | Help screenshots answer database functions from `data.rpc` | `scripts/help-screens/sample-data.mjs` | Report screens are easy to screenshot |

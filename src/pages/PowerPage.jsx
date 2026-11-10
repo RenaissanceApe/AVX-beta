@@ -8,6 +8,7 @@ import { placeLabel, ampsLine, figureLabel, supplyLine, generatorLine, cableRows
 import { useI18n } from '../i18n'
 import usePowerPlan from '../components/power/usePowerPlan'
 import { AvxLoader } from '../components/ui'
+import PrintFooter from '../components/PrintFooter'
 
 // Printable power plan (P1, docs/TOOLS_PLAN.md §4): the supply and its totals, the generator
 // suggestion, warnings, each distro with its outputs, and every load with where it's plugged in,
@@ -186,7 +187,7 @@ export default function PowerPage() {
         <h2>{t('power.assumptions')}</h2>
         <ul>{['sum', 'pf', 'harmonics', 'amps', 'unplugged'].map(k => <li key={k}>{t(`power.assume.${k}`)}</li>)}</ul>
         {(runs.length > 0 || surges.length > 0) && <ul>{CABLE_ASSUMPTIONS.map(k => <li key={k}>{t(`cables.assume.${k}`)}</li>)}</ul>}
-        <p className="muted" style={{ marginTop: '12px', fontSize: '11px' }}>{t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}</p>
+        <PrintFooter />
       </article>
     </div>
   )

@@ -25,9 +25,9 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77), the design refresh DR1–DR6 (0.78), steps 13, 14 and 16 (0.79), and steps 15, 17a and 18 (0.80) are built, and their prompts (S01–S12, S14, K1–K9, DR1–DR6) removed. Sessions
+Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77), the design refresh DR1–DR6 (0.78), steps 13, 14 and 16 (0.79), steps 15, 17a and 18 (0.80), and the upkeep sessions U1–U3, U5 and U6 (0.81) are built, and their prompts (S01–S12, S14, K1–K9, DR1–DR6, U1–U3, U5, U6) removed. Sessions
 S13–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
-ROADMAP.md places them; U1–U6 are small upkeep sessions to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
+ROADMAP.md places them; U4 is the small upkeep session left, to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; IM1–IM4 overhaul the import wizard ([SWITCHING.md](SWITCHING.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
@@ -567,64 +567,6 @@ Finish with the short summary CLAUDE.md asks for.
 
 ## Upkeep sessions (any time, small)
 
-### U1 · Organisation time zone
-
-```
-Upkeep U1: an organisation time zone (docs/PENDING.md D10). Today everything is read as Lisbon
-time. Grep for 'Europe/Lisbon' and time_zone in src/ and supabase/.
-
-Scope:
-- Make organisations.time_zone a real setting in organisation settings.
-- Use it everywhere gig days, bookings, clashes, the calendar feed, the email summary and
-  reminders are computed.
-- Keep Lisbon as the default.
-- Report periods (K1) already read organisations.time_zone: add a check with a non-Lisbon
-  organisation.
-
-Ask me before building: confirm the migration outline.
-
-Done when: unit and database tests with a non-Lisbon organisation (e.g. Europe/London,
-America/New_York); PR open.
-Stop after this step.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-### U2 · Dependency upgrades
-
-```
-Upkeep U2: upgrade React Router 6 → 7 and Vite and Vitest to current versions
-(docs/SECURITY_REVIEW.md, A06). Propose the exact versions and wait for my yes.
-
-Scope:
-- Follow each project's migration guide.
-- Change only what the upgrade needs.
-- Run npm audit before and after.
-
-Done when: npm run check and the e2e tests pass; npm audit shows no advisories in shipped
-packages; SECURITY_REVIEW.md updated; PR open.
-Stop after this step.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-### U3 · Data map open items
-
-```
-Upkeep U3: the open items in docs/DATA_MAP.md.
-
-Scope:
-- A nightly clean-up that keeps crew_search_log for 30 days and read notifications for 12 months.
-  Deletion runs from a hand-run or scheduled function, never through the connector (CLAUDE.md).
-- A time limit or reminder for held invitations that were never sent.
-- Update DATA_MAP.md and the privacy notice.
-
-Ask me before building: the retention periods, and approve the migration outline. Rewriting the
-privacy notice needs my yes too.
-
-Done when: tests; DATA_MAP.md open items updated; PR open.
-Stop after this step.
-Finish with the short summary CLAUDE.md asks for.
-```
-
 ### U4 · Truss tables
 
 ```
@@ -640,54 +582,6 @@ Scope:
 - Rebuild with scripts/truss-data/ so the data stays reproducible.
 
 Done when: src/lib/trussTables.test.js passes; TRUSS_DATA.md and PENDING.md updated; PR open.
-Stop after this step.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-### U5 · Label templates
-
-```
-Upkeep U5: label templates (docs/PENDING.md D31). Read docs/TOOLS_PLAN.md "Decided (2026-11-03)"
-(label sizes), docs/INVENTORY.md (QR labels), src/pages/LabelsPage.jsx and the label sizes in
-src/lib/inventory.js.
-
-Scope:
-- Three sizes, not tied to any printer brand:
-  - small 50 × 25 mm (roll 50 × 25 mm; A4 sheet 52.5 × 29.7 mm, 40 per sheet);
-  - medium 100 × 50 mm (roll 100 × 50 mm; A4 sheet 105 × 57 mm, 10 per sheet);
-  - large A6 / 4 × 6 in (roll 102 × 152 mm; A4 sheet 105 × 148 mm, 4 per sheet).
-  Each layout fits inside both its roll and its sheet size.
-- Three ways to print each: a roll (one label per page), pre-cut A4 sheets, or plain A4 / US
-  Letter with cut lines. The two sheet layouts in use today are replaced.
-- What goes on a label, per size, from a short list: name, code, QR, organisation, gig, case
-  contents, a department colour band with its name printed (never colour alone). Saved per
-  organisation as templates.
-- Labels for items, units and cases now; distros and cables once P1–P2 exist.
-
-Ask me before building: the default fields per size, and the migration outline if templates are
-stored in the database.
-
-Done when: unit tests for the layout maths (how many fit, margins, roll pages); a print check at
-each size in both languages; help guide and screenshots updated; PR open.
-Stop after this step.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-### U6 · A QR and print date on every print
-
-```
-Upkeep U6: a QR and print date on every print (docs/PENDING.md D32). Grep for the print routes
-in src/App.jsx (/gig/:id/inputs, /plot, /patch, /dmx, /lights, /system, the call sheet).
-
-Scope:
-- A small QR in a corner of every print that opens the same page live in AVX, with "Printed
-  <date, time>" beside it.
-- Opening the link needs the same access as the page; no public links.
-- One shared print-footer component, so later prints (power plan, rigging report, work areas)
-  get it by using it.
-
-Done when: unit test for the link builder; e2e check that each print shows the QR; help entry;
-PR open.
 Stop after this step.
 Finish with the short summary CLAUDE.md asks for.
 ```

@@ -10,6 +10,7 @@ import { barsOf, supplyOf, layoutFixtures, powerSummary, symbolOf, FIXTURE_SYMBO
 import { useI18n } from '../i18n'
 import LightPlotSvg, { FixtureShape } from '../components/tools/LightPlotSvg'
 import { AvxLoader } from '../components/ui'
+import PrintFooter from '../components/PrintFooter'
 
 // Printable light plot (docs/FIELD_TOOLS.md, F3): the drawing in black on white, a legend of the
 // symbols used, each bar with its fixtures, and the power estimate. Readable by everyone on the
@@ -152,7 +153,7 @@ export default function LightPlotPage() {
         {power.total.unknown > 0 && <p className="muted">{t('light.unknownPower', { count: power.total.unknown })}</p>}
         {(power.over || power.near) && <p style={{ fontWeight: 700 }}>{power.over ? t('light.over') : t('light.near')}</p>}
         </>}
-        <p className="muted" style={{ marginTop: '10px', fontSize: '11px' }}>{t('callsheet.printed', { date: fmt(new Date(), 'd MMM yyyy, HH:mm') })}</p>
+        <PrintFooter />
       </article>
     </div>
   )

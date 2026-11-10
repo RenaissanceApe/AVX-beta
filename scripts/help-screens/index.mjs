@@ -203,7 +203,9 @@ const SCENES = {
   'item-units': { persona: 'pm', url: `/org/${ids.org}/inventory/${ids.speaker}`, async run(page, L) {
     return page.getByRole('button', { name: L('inv.addUnits') }).first()
   } },
-  labels: { persona: 'pm', url: `/org/${ids.org}/inventory/labels`, async run(page, L) {
+  // Four of the speaker's units on medium labels, with the template's fields open (U5)
+  labels: { persona: 'pm', url: `/org/${ids.org}/inventory/labels?units=${[0, 1, 3, 4].map(i => `cccc0000-0000-4000-8000-00000000000${i}`).join(',')}`, async run(page, L) {
+    await page.getByRole('button', { name: L('labels.fields') }).click()
     return page.getByRole('button', { name: L('inv.print') }).first()
   } },
   'dispatch-out': { persona: 'pm', url: `/gig/${ids.gig}/scan`, async run(page, L) {

@@ -8,6 +8,7 @@ import { Modal, btnPrimary, input, label, AvxLoader } from '../ui'
 import GigLabelFields from './GigLabelFields'
 import GigClientField from './GigClientField'
 import { useGigLabels } from '../../lib/gigLabels'
+import { useWorkspace } from '../../lib/WorkspaceContext'
 import { useCustomFields, mergeValues } from '../../lib/customFields'
 import { CustomFieldInputs } from '../CustomFields'
 import { DangerZone, DangerConfirmModal } from '../DangerConfirm'
@@ -33,6 +34,7 @@ async function gigDeletionImpact(gigId, t) {
 
 export default function EditGigModal({ gig, canDelete = false, onClose, onSaved, onDeleted }) {
   const { t } = useI18n()
+  const timeZone = useWorkspace().orgs.find(o => o.id === gig.org_id)?.time_zone
   const { notify } = useToast()
   const [form, setForm] = useState({
     name: gig.name, venue: gig.venue || '', start_date: gig.start_date || '', end_date: gig.end_date || '',
@@ -113,7 +115,7 @@ export default function EditGigModal({ gig, canDelete = false, onClose, onSaved,
             <input id="eg-end" type="date" value={form.end_date} onChange={set('end_date')} style={input} />
           </div>
         </div>
-        <OwnClashWarning startDate={form.start_date} endDate={form.end_date} excludeGig={gig.id} />
+        <OwnClashWarning startDate={form.start_date} endDate={form.end_date} excludeGig={gig.id} timeZone={timeZone} />
         <GigClientField orgId={gig.org_id} idPrefix="eg" value={form.client_id} onChange={v => setForm(f => ({ ...f, client_id: v }))} />
         <GigLabelFields idPrefix="eg" labels={labels} value={form} onChange={patch => setForm(f => ({ ...f, ...patch }))} />
         <CustomFieldInputs key={fields.length} fields={fields} values={gig.custom_values} idPrefix="eg" onChange={(id, v) => setCustom(c => ({ ...c, [id]: v }))} />

@@ -42,6 +42,23 @@ describe('ranges and overlaps', () => {
     // An end before the start is ignored (the form shows its own error)
     expect(dayRange('2026-11-10', '2026-11-01')).toEqual({ from: local(2026, 11, 10), until: local(2026, 11, 11) })
   })
+
+  it('reads gig days in the organisation\'s time zone', () => {
+    expect(dayRange('2027-01-10', '2027-01-11', 'America/New_York'))
+      .toEqual({ from: '2027-01-10T05:00:00.000Z', until: '2027-01-12T05:00:00.000Z' })
+    expect(dayRange('2027-07-10', null, 'Europe/London'))
+      .toEqual({ from: '2027-07-09T23:00:00.000Z', until: '2027-07-10T23:00:00.000Z' })
+    expect(dayRange('2027-01-10', null, 'Europe/Lisbon'))
+      .toEqual({ from: '2027-01-10T00:00:00.000Z', until: '2027-01-11T00:00:00.000Z' })
+  })
+
+  it('shows a New York gig as whole days on the organisation\'s clock, wherever the device is', () => {
+    setCurrentLanguage('en')
+    expect(rangeText('2027-01-10T05:00:00Z', '2027-01-12T05:00:00Z', 'America/New_York')).toBe('10–11 Jan')
+    expect(rangeText('2027-07-10T08:00:00Z', '2027-07-10T17:00:00Z', 'Europe/London')).toBe('10 Jul 09:00–18:00')
+    expect(clashText({ kind: 'unavailable', starts_at: '2027-01-20T05:00:00Z', ends_at: '2027-01-21T05:00:00Z' }, 'America/New_York'))
+      .toBe('Not available 20 Jan')
+  })
   it('treats touching ranges as not overlapping', () => {
     const a = { from: local(2026, 11, 10, 9), until: local(2026, 11, 10, 13) }
     expect(overlaps(a, { from: local(2026, 11, 10, 13), until: local(2026, 11, 10, 18) })).toBe(false)
