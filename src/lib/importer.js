@@ -371,13 +371,17 @@ const RENTMAN_HEADERS = new Set(['displayname', 'rental sales', 'stock managemen
 export const looksLikeRentman = headers => headers.filter(h => RENTMAN_HEADERS.has(normalise(h))).length >= 2
 
 // "This looks like a Units file": the kind whose fields the headings fit best, when it isn't the one
-// chosen. Each heading counts more the fewer kinds claim it ("Serial" is only a unit's); a kind is
-// suggested when the chosen one lacks a required field and the other has them all, or when the
-// other fits clearly better. null when the chosen kind is as good as any.
+// chosen. A heading counts when it is one of a kind's own column names, and more the fewer kinds
+// name it ("Serial number" is only a unit's); a kind is suggested when the chosen one lacks a
+// required field and the other has them all, or when the other fits clearly better. null when the
+// chosen kind is as good as any.
 export function guessKind(headers, current, kinds = KINDS) {
-  const maps = Object.fromEntries(kinds.concat(kinds.includes(current) ? [] : [current]).map(k => [k, guessMapping(headers, k)]))
-  const claims = h => Object.values(maps).filter(m => m[h]).length
-  const score = k => Object.keys(maps[k]).reduce((sum, h) => sum + 1 / claims(h), 0)
+  const all = kinds.concat(kinds.includes(current) ? [] : [current])
+  const maps = Object.fromEntries(all.map(k => [k, guessMapping(headers, k)]))
+  const names = Object.fromEntries(all.map(k => [k, new Set((FIELDS[k] || []).flatMap(f => f.names))]))
+  const exact = (k, h) => names[k].has(normalise(h))
+  const claims = h => all.filter(k => exact(k, h)).length
+  const score = k => headers.filter(h => exact(k, h)).reduce((sum, h) => sum + 1 / claims(h), 0)
   const fits = k => Object.keys(maps[k]).length > 0 && missingFields(maps[k], k).length === 0
   const here = { score: score(current), fits: fits(current) }
   let best = null

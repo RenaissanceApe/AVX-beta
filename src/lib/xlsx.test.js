@@ -59,3 +59,15 @@ describe('reading Excel files', () => {
     expect(() => readXlsx(zipSync({ 'hello.txt': strToU8('hi') }))).toThrow('not-xlsx')
   })
 })
+
+describe('a workbook with several sheets (IM2)', () => {
+  it('lists every sheet with its number of filled rows', () => {
+    const { sheets, sheet } = readXlsx(workbook())
+    expect(sheet).toBe('Equipment')
+    expect(sheets).toEqual([{ name: 'Equipment', rows: 4 }, { name: 'Other', rows: 1 }])
+  })
+  it('reads the sheet asked for, and the first when that name is not there', () => {
+    expect(readXlsx(workbook(), { sheet: 'Other' })).toMatchObject({ sheet: 'Other', rows: [['Wrong sheet']] })
+    expect(readXlsx(workbook(), { sheet: 'Gone' }).sheet).toBe('Equipment')
+  })
+})
