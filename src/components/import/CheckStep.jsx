@@ -5,11 +5,11 @@ import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
-import { FIELDS, checkImport, withPending } from '../../lib/importer'
+import { FIXES, checkImport, withPending, fieldsFor, splitParts, mergeResults } from '../../lib/importer'
 import { t } from '../../i18n'
 import { Hint } from '../help/HelpParts'
 import { btn, btnPrimary, label, colors, AvxLoader, space } from '../ui'
-import FixGroup from './FixGroup'
+import FixGroup, { reasonText } from './FixGroup'
 import { isContacts, isHeld, isJob, contactsOff } from './kinds'
 
 // The Check step of the import wizard (docs/SWITCHING.md, "Import overhaul: fix it here"): what
@@ -18,7 +18,7 @@ import { isContacts, isHeld, isJob, contactsOff } from './kinds'
 // kept by the wizard page (Back and Next keep them). What a fix adds is saved only when Import is
 // pressed, just before the import: locations and items through run_import (each its own batch in
 // Earlier imports for now), clients as the Contacts page adds them.
-export default function CheckStep({ orgId, kind, table, mapping, headerRow, defaultLocation, fileName, presetName, fixes, setFixes, onBack, onDone }) {
+export default function CheckStep({ orgId, kind, table, mapping, headerRow, defaults, dateOrders, custom, retry, fileName, presetName, fixes, setFixes, onBack, onDone }) {
   const { notify } = useToast()
   const [existing, setExisting] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -59,8 +59,11 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
     ]).then(([locations, items, units, parts, stock]) => setExisting({ locations, items, units, parts, stocked: [...new Set(stock.map(s => s.item_id))] }))
   }, [orgId, kind])
 
-  const check = useMemo(() => (existing ? checkImport({ table, mapping, kind, headerRow, defaultLocation: defaultLocation || null, existing, fixes }) : null),
-    [table, mapping, kind, headerRow, defaultLocation, existing, fixes])
+  const check = useMemo(() => (existing ? checkImport({ table, mapping, kind, headerRow, defaults, dateOrders, custom, only: retry?.lines || null, refused: retry?.refused || null, existing, fixes }) : null),
+    [table, mapping, kind, headerRow, defaults, dateOrders, custom, retry, existing, fixes])
+  // Every field a column can go to (the organisation's own included), and its name on the page
+  const fields = useMemo(() => fieldsFor(kind, custom), [kind, custom])
+  const fieldLabel = useMemo(() => key => fields.find(f => f.key === key)?.label || t(`imp.field.${kind}.${key}`), [fields, kind])
 
   // What the pickers offer: what exists plus what the fixes will add
   const ctx = useMemo(() => {
@@ -68,6 +71,9 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
     const ex = withPending(existing, fixes)
     return {
       raw: check.raw,
+      fields,
+      fieldLabel,
+      dateOrders,
       locations: (ex.locations || []).filter(l => !l.archived_at),
       archivedLocations: (existing.locations || []).filter(l => l.archived_at),
       items: (ex.items || []).filter(i => !i.archived_at),
@@ -83,7 +89,7 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
         return null
       },
     }
-  }, [existing, check, fixes])
+  }, [existing, check, fixes, fields, fieldLabel, dateOrders])
 
   async function saveAdditions() {
     const of = type => fixes.filter(f => f.type === type)
@@ -118,16 +124,39 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
       logger.error('import', error, { step: 'additions', kind })
       return notify(error?.message === t('imp.addFailed') ? error.message : userMessage(error), 'error')
     }
-    const rows = check.sendable
-    const { data, error } = isHeld(kind)
-      ? await supabase.rpc('import_crew', { p_org: orgId, p_rows: rows, p_file: fileName })
-      : isJob(kind) ? await supabase.rpc('import_jobs', { p_org: orgId, p_kind: kind, p_rows: rows, p_file: fileName })
-      : await supabase.rpc('run_import', { p_org: orgId, p_kind: kind, p_rows: rows, p_file: fileName, p_preset: presetName })
+    // More than 5000 rows go in parts, each its own import (a quote's lines stay together)
+    const parts = splitParts(check.sendable, kind)
+    const results = [], sent = []
+    for (const [n, rows] of parts.entries()) {
+      const { data, error } = isHeld(kind)
+        ? await supabase.rpc('import_crew', { p_org: orgId, p_rows: rows, p_file: fileName })
+        : isJob(kind) ? await supabase.rpc('import_jobs', { p_org: orgId, p_kind: kind, p_rows: rows, p_file: fileName })
+        : await supabase.rpc('run_import', { p_org: orgId, p_kind: kind, p_rows: rows, p_file: fileName, p_preset: presetName })
+      if (error) {
+        logger.error('import', error, { step: 'run', kind, part: n + 1 })
+        notify(contactsOff(error, kind) ? t('imp.contactsOff') : userMessage(error), 'error')
+        if (!n) return setBusy(false)
+        break
+      }
+      results.push(data)
+      sent.push(...rows)
+    }
     setBusy(false)
-    if (error) { logger.error('import', error, { step: 'run', kind }); return notify(contactsOff(error, kind) ? t('imp.contactsOff') : userMessage(error), 'error') }
     track(`import:${kind}`)
     setFixes([])
-    onDone(data)
+    onDone({ ...mergeResults(results), sent, leftOut: leftOutEntries(), partial: results.length < parts.length ? { done: results.length, total: parts.length } : null })
+  }
+
+  // The rows the check leaves out, each with its problem as the page says it (for the left-out file)
+  function leftOutEntries() {
+    const out = check.groups.filter(g => !g.note).flatMap(g => g.lines.map(l => ({ line: l.line, problem: groupText(g) })))
+    for (const f of fixes) if (f.type === 'skip') for (const line of f.lines) out.push({ line, problem: groupText(f) })
+    return out
+  }
+  const groupText = g => {
+    const what = [g.field ? fieldLabel(g.field) : null, g.value != null && g.value !== '' ? `“${g.value}”` : null].filter(Boolean).join(' ')
+    const why = FIXES[g.reason]?.purpose ? t(`imp.purpose.${g.reason}`, { count: 1 }) : reasonText(g)
+    return what && !g.refused && g.reason !== 'refused' ? `${what}: ${why}` : why
   }
 
   if (!check || !ctx) return <AvxLoader size={20} color={colors.accentText} />
@@ -135,12 +164,17 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
   const problems = groups.filter(g => !g.purpose && !g.note)
   const notes = groups.filter(g => g.note)
   const purpose = groups.filter(g => g.purpose)
-  const used = FIELDS[kind].filter(f => Object.values(check.mapping).includes(f.key))
+  const used = fields.filter(f => Object.values(check.mapping).includes(f.key))
   const addsText = ['location', 'item', 'client'].filter(w => adds[w]).map(w => t(`imp.adds.${w}`, { count: adds[w] }))
   const apply = made => setFixes(list => [...list, ...made])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: space[5] }}>
+      {retry && (
+        <p role="status" style={{ display: 'flex', gap: space[2], alignItems: 'center', fontSize: '14px', margin: 0 }}>
+          <Info size={14} aria-hidden="true" style={{ flexShrink: 0 }} /> {t('imp.retrying', { count: retry.lines.length })}
+        </p>
+      )}
       <div role="status" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: space[4] }}>
         <Count label={t('imp.willCreate')} value={counts.create} />
         <Count label={t('imp.willMatch')} value={counts.match} hint={t('imp.willMatchHint')} />
@@ -168,7 +202,7 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
           <h2 id="imp-fixes" style={{ font: '700 16px/24px var(--font-mono)', marginBottom: space[2] }}>{t('imp.fixesTitle', { count: fixes.length })}</h2>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, borderTop: `1px solid ${colors.border}` }}>
             {fixes.map((f, i) => {
-              const text = fixText(f, kind)
+              const text = fixText(f, fieldLabel)
               return (
                 <li key={i} style={{ display: 'flex', gap: space[3], alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', padding: `${space[2]} 0`, borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
                   <span style={{ display: 'flex', gap: space[2], alignItems: 'baseline', minWidth: 0, overflowWrap: 'anywhere' }}>
@@ -218,7 +252,7 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
           <thead>
             <tr style={{ textAlign: 'left', color: colors.muted }}>
               <th style={{ padding: '4px 6px' }}>{t('imp.lineShort')}</th>
-              {used.map(f => <th key={f.key} style={{ padding: '4px 6px', whiteSpace: 'nowrap' }}>{t(`imp.field.${kind}.${f.key}`)}</th>)}
+              {used.map(f => <th key={f.key} style={{ padding: '4px 6px', whiteSpace: 'nowrap' }}>{fieldLabel(f.key)}</th>)}
               <th style={{ padding: '4px 6px' }}>{t('imp.result')}</th>
             </tr>
           </thead>
@@ -229,7 +263,7 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
               return (
                 <tr key={r._row} style={{ borderTop: `1px solid ${colors.border}`, color: p.action === 'skip' && !out ? 'var(--warn)' : out ? colors.muted : undefined }}>
                   <td style={{ padding: '4px 6px', fontFamily: 'var(--font-mono)' }}>{r._row}</td>
-                  {used.map(f => <td key={f.key} style={{ padding: '4px 6px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r[f.key] ?? ''}</td>)}
+                  {used.map(f => <td key={f.key} style={{ padding: '4px 6px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cellText(f.custom ? r.custom_values?.[f.key.slice(3)] : r[f.key])}</td>)}
                   <td style={{ padding: '4px 6px', whiteSpace: 'nowrap', fontWeight: 700 }}>{t(out ? 'imp.action.out' : `imp.action.${p.action}`)}</td>
                 </tr>
               )
@@ -252,9 +286,12 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
   )
 }
 
+// A value in the preview (a yes/no field's value is true or false)
+const cellText = v => (v === true ? t('imp.word.yesNo.yes') : v === false ? t('imp.word.yesNo.no') : v ?? '')
+
 // One fix as a line in "Your fixes"
-function fixText(f, kind) {
-  const what = [f.field ? t(`imp.field.${kind}.${f.field}`) : null, f.value != null && f.value !== '' ? `“${f.value}”` : null].filter(Boolean).join(' ')
+function fixText(f, fieldLabel) {
+  const what = [f.field ? fieldLabel(f.field) : null, f.value != null && f.value !== '' ? `“${f.value}”` : null].filter(Boolean).join(' ')
   return t(`imp.done.${f.fix}`, { what, to: f.to ?? '', count: f.count ?? f.lines?.length ?? 0 })
 }
 

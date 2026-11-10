@@ -470,6 +470,26 @@ export function dateOrder(values) {
   return dayFirst || open ? 'ask' : null
 }
 
+// The date order of each date column a mapping uses: { orders: { field: 'dmy' | 'mdy' }, columns:
+// [{ header, field, noticed, order }], open: [field] } (open: asked and not answered yet). chosen:
+// what the person picked ({ field: order }), which wins over what was noticed.
+export function dateOrders(table, mapping, kind, custom = [], chosen = {}) {
+  const fields = fieldsFor(kind, custom)
+  const columns = table.headers.map((header, i) => ({ header, i, field: fields.find(f => f.key === mapping[header]) }))
+    .filter(c => c.field?.type === 'date')
+    .map(({ header, i, field }) => {
+      const noticed = dateOrder(table.rows.map(r => r[i]))
+      const order = chosen[field.key] || (noticed === 'dmy' || noticed === 'mdy' ? noticed : null)
+      return { header, field: field.key, noticed, order }
+    })
+    .filter(c => c.noticed)
+  return {
+    orders: Object.fromEntries(columns.filter(c => c.order).map(c => [c.field, c.order])),
+    columns,
+    open: columns.filter(c => !c.order).map(c => c.field),
+  }
+}
+
 export function parseChoice(text, words) {
   const n = normalise(text)
   if (!n) return null

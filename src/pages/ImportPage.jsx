@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Upload, MapPin, Package, Barcode, Boxes, AlertTriangle, Check, Download, Undo2, Save, FileText, Building2, Truck, Users, CalendarDays, PackageCheck, Receipt } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Upload, MapPin, Package, Barcode, Boxes, AlertTriangle, Check, Download, Undo2, Save, FileText, Building2, Truck, Users, CalendarDays, PackageCheck, Receipt, Info, RotateCcw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { useWorkspace } from '../lib/WorkspaceContext'
-import { KINDS, FIELDS, looksLikeRentman, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, reportCsv, serverMessage } from '../lib/importer'
+import { KINDS, FIELDS, looksLikeRentman, MAX_ROWS, parseTable, guessMapping, applyPreset, missingFields, reportCsv, serverMessage, suggestHeaderRow, decodeText, guessKind,
+  unusedColumns, openDefaults, fieldsFor, dateOrders as readDateOrders, CUSTOM_ENTITY, refusedRows, leftOutCsv, WORD_VALUES, splitParts } from '../lib/importer'
+import { useCustomFields } from '../lib/customFields'
 import CheckStep from '../components/import/CheckStep'
-import { isContacts, isHeld, isJob, unbatched, contactsOff } from '../components/import/kinds'
+import { Hint } from '../components/help/HelpParts'
+import { choiceLabel } from '../components/import/FixGroup'
+import { isContacts, isHeld, isJob, unbatched, contactsOff, CUSTOM_VALUES_SAVED } from '../components/import/kinds'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { Modal, btn, btnPrimary, btnDanger, input, label, colors, AvxLoader, PageHeader, space } from '../components/ui'
@@ -51,19 +55,33 @@ export default function ImportPage() {
   const [kind, setKind] = useState(KINDS.includes(params.get('kind')) ? params.get('kind') : 'items')
   useEffect(() => { if (!loading && isHeld(kind) && role !== 'admin') setKind('items') }, [loading, role, kind])
   const [step, setStep] = useState('choose')
+  // The file: its text, and for an Excel workbook its sheets, for a CSV file its bytes and encoding
   const [source, setSource] = useState({ text: '', fileName: null })
   const [headerRow, setHeaderRow] = useState(true)
+  // How many lines (titles) come before the headings: suggested for each new file
+  const [headerAt, setHeaderAt] = useState(0)
+  useEffect(() => { setHeaderAt(suggestHeaderRow(source.text)) }, [source.text])
   const [mapping, setMapping] = useState({})
   const [presetName, setPresetName] = useState(null)
-  const [defaultLocation, setDefaultLocation] = useState('')
+  // "Same for every row" values ({ field: text }) and the date order chosen per date field
+  const [defaults, setDefaults] = useState({})
+  const [chosenOrders, setChosenOrders] = useState({})
+  useEffect(() => { setDefaults({}); setChosenOrders({}) }, [source.text, kind])
   const [result, setResult] = useState(null)
+  // The rows the database refused, tried again ("fix and try again"): { lines, refused }
+  const [retry, setRetry] = useState(null)
   const [historyKey, setHistoryKey] = useState(0)
   // The fixes made in the check, kept here so Back and Next keep them; a new file or kind starts afresh
   const [fixes, setFixes] = useState([])
-  useEffect(() => { setFixes([]) }, [source.text, kind, headerRow])
+  useEffect(() => { setFixes([]) }, [source.text, kind, headerRow, headerAt])
+  // The organisation's own fields for this kind of record (gigs, clients, suppliers, items)
+  const entity = CUSTOM_ENTITY[kind] || null
+  const { fields: customAll } = useCustomFields(entity ? orgId : null, entity)
+  const custom = useMemo(() => (CUSTOM_VALUES_SAVED ? customAll : []), [customAll])
 
-  const table = useMemo(() => parseTable(source.text, { headerRow }), [source.text, headerRow])
-  const restart = nextKind => { setStep('choose'); setSource({ text: '', fileName: null }); setMapping({}); setPresetName(null); setResult(null); if (nextKind) setKind(nextKind) }
+  const table = useMemo(() => parseTable(source.text, { headerRow, headerAt: headerRow ? headerAt : 0 }), [source.text, headerRow, headerAt])
+  const orders = useMemo(() => readDateOrders(table, mapping, kind, custom, chosenOrders), [table, mapping, kind, custom, chosenOrders])
+  const restart = nextKind => { setStep('choose'); setSource({ text: '', fileName: null }); setMapping({}); setPresetName(null); setResult(null); setRetry(null); if (nextKind) setKind(nextKind) }
 
   if (loading) return <AppShell><div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}><AvxLoader size={24} color={colors.accentText} /></div></AppShell>
   if (!canImport) return <AppShell><p style={{ maxWidth: '420px', margin: '80px auto', textAlign: 'center', color: colors.muted, fontSize: '14px', lineHeight: 1.6, padding: '0 16px' }}>{t('inv.noAccess')}</p></AppShell>
@@ -92,21 +110,25 @@ export default function ImportPage() {
         {step === 'choose' && (
           <>
             <SwitchChecklist orgId={orgId} kinds={kinds} kind={kind} onPick={setKind} />
-            <ChooseStep kinds={kinds} kind={kind} setKind={setKind} source={source} setSource={setSource} headerRow={headerRow} setHeaderRow={setHeaderRow} table={table}
+            <ChooseStep kinds={kinds} kind={kind} setKind={setKind} source={source} setSource={setSource} headerRow={headerRow} setHeaderRow={setHeaderRow}
+              headerAt={headerAt} setHeaderAt={setHeaderAt} table={table}
               onNext={() => { setMapping(guessMapping(table.headers, kind)); setPresetName(null); setStep('match') }} />
           </>
         )}
         {step === 'match' && (
           <MatchStep orgId={orgId} kind={kind} table={table} mapping={mapping} setMapping={setMapping} presetName={presetName} setPresetName={setPresetName}
-            defaultLocation={defaultLocation} setDefaultLocation={setDefaultLocation}
+            defaults={defaults} setDefaults={setDefaults} orders={orders} setChosenOrders={setChosenOrders} customAll={customAll}
             onBack={() => setStep('choose')} onNext={() => setStep('check')} />
         )}
         {step === 'check' && (
-          <CheckStep orgId={orgId} kind={kind} table={table} mapping={mapping} headerRow={headerRow} defaultLocation={defaultLocation} fileName={source.fileName} presetName={presetName}
-            fixes={fixes} setFixes={setFixes}
-            onBack={() => setStep('match')} onDone={res => { setResult(res); setStep('done'); setHistoryKey(k => k + 1) }} />
+          <CheckStep orgId={orgId} kind={kind} table={table} mapping={mapping} headerRow={headerRow} defaults={defaults} dateOrders={orders.orders} custom={custom}
+            retry={retry} fileName={source.fileName} presetName={presetName} fixes={fixes} setFixes={setFixes}
+            onBack={() => { setRetry(null); setStep('match') }} onDone={res => { setResult(res); setRetry(null); setStep('done'); setHistoryKey(k => k + 1) }} />
         )}
-        {step === 'done' && result && <DoneStep orgId={orgId} kind={kind} result={result} onAgain={restart} />}
+        {step === 'done' && result && (
+          <DoneStep orgId={orgId} kind={kind} result={result} table={table} headerRow={headerRow} onAgain={restart}
+            onRetry={refused => { setRetry({ lines: Object.keys(refused).map(Number), refused }); setStep('check') }} />
+        )}
 
         <History orgId={orgId} key={historyKey} />
       </div>
@@ -176,31 +198,40 @@ function SwitchChecklist({ orgId, kinds, kind, onPick }) {
   )
 }
 
-function ChooseStep({ kinds, kind, setKind, source, setSource, headerRow, setHeaderRow, table, onNext }) {
+function ChooseStep({ kinds, kind, setKind, source, setSource, headerRow, setHeaderRow, headerAt, setHeaderAt, table, onNext }) {
   const { notify } = useToast()
   const fileRef = useRef(null)
+  // An Excel workbook: the sheet asked for (the first by default), with the list of its sheets
+  async function readSheet(buffer, fileName, sheet) {
+    try {
+      const { readXlsx, rowsToText } = await import('../lib/xlsx')
+      const book = readXlsx(buffer, { sheet })
+      setSource({ text: rowsToText(book.rows), fileName, buffer, sheet: book.sheet, sheets: book.sheets })
+    } catch (error) {
+      logger.error('import', error, { step: 'xlsx' })
+      notify(t('imp.xlsxError'), 'error')
+    }
+  }
   async function readFile(file) {
     if (!file) return
     if (file.size > MAX_FILE) return notify(t('imp.tooBig'), 'error')
-    // Excel workbooks: the first sheet, read here (the reader is only loaded when needed)
-    if (/\.xlsx$/i.test(file.name)) {
-      try {
-        const { readXlsx, rowsToText } = await import('../lib/xlsx')
-        const { rows } = readXlsx(await file.arrayBuffer())
-        setSource({ text: rowsToText(rows), fileName: file.name })
-      } catch (error) {
-        logger.error('import', error, { step: 'xlsx' })
-        notify(t('imp.xlsxError'), 'error')
-      }
-      return
-    }
+    if (/\.xlsx$/i.test(file.name)) return readSheet(await file.arrayBuffer(), file.name)
     if (/\.(xls|xlsm|ods|numbers)$/i.test(file.name)) return notify(t('imp.notCsv'), 'error')
-    const reader = new FileReader()
-    reader.onload = () => setSource({ text: String(reader.result || ''), fileName: file.name })
-    reader.onerror = () => notify(t('imp.readError'), 'error')
-    reader.readAsText(file)
+    try {
+      // Read as bytes, so a file saved by Excel on Windows (Windows-1252) is noticed and read right
+      const bytes = new Uint8Array(await file.arrayBuffer())
+      const read = decodeText(bytes)
+      setSource({ text: read.text, fileName: file.name, bytes, encoding: read.encoding, noticed: read.noticed })
+    } catch (error) {
+      logger.error('import', error, { step: 'read' })
+      notify(t('imp.readError'), 'error')
+    }
   }
-  const tooMany = table.rows.length > MAX_ROWS
+  const reread = encoding => setSource(s => ({ ...s, text: decodeText(s.bytes, encoding).text, encoding }))
+  const parts = table.rows.length > MAX_ROWS ? splitParts(table.rows.map((_, n) => ({ _row: n })), 'items').length : 1
+  const lines = Math.min(20, String(source.text).split(/\r?\n/).filter(l => l.trim()).length)
+  const suggested = useMemo(() => suggestHeaderRow(source.text), [source.text])
+  const looksLike = headerRow && table.rows.length ? guessKind(table.headers, kind, kinds) : null
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: space[6] }}>
       <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
@@ -241,6 +272,25 @@ function ChooseStep({ kinds, kind, setKind, source, setSource, headerRow, setHea
           {source.fileName && <span style={{ fontSize: '13px', display: 'flex', gap: space[2], alignItems: 'center' }}><FileText size={14} aria-hidden="true" /> {source.fileName}</span>}
           <span style={{ fontSize: '13px', color: colors.muted }}>{t('imp.fileHint')}</span>
         </div>
+        {/* A workbook with several sheets: which one to import, each with its number of rows */}
+        {source.sheets?.length > 1 && (
+          <div style={{ maxWidth: '360px', marginBottom: space[3] }}>
+            <label style={label} htmlFor="imp-sheet">{t('imp.sheet')}</label>
+            <select id="imp-sheet" value={source.sheet} onChange={e => readSheet(source.buffer, source.fileName, e.target.value)} style={{ ...input, appearance: 'auto' }}>
+              {source.sheets.map(sh => <option key={sh.name} value={sh.name}>{t('imp.sheetRows', { name: sh.name, count: sh.rows })}</option>)}
+            </select>
+          </div>
+        )}
+        {/* A CSV file that wasn't UTF-8: read as Windows-1252 (Excel on Windows), with a switch */}
+        {source.noticed && (
+          <p role="status" style={{ fontSize: '13px', color: colors.soft, display: 'flex', gap: space[2], alignItems: 'center', flexWrap: 'wrap', margin: `0 0 ${space[3]}` }}>
+            <Info size={14} aria-hidden="true" style={{ flexShrink: 0 }} />
+            <span>{t(source.encoding === 'windows-1252' ? 'imp.encoding.windows' : 'imp.encoding.utf8')}</span>
+            <button type="button" onClick={() => reread(source.encoding === 'windows-1252' ? 'utf-8' : 'windows-1252')} style={{ ...btn, padding: '4px 10px', minHeight: '32px' }}>
+              {t(source.encoding === 'windows-1252' ? 'imp.encoding.readUtf8' : 'imp.encoding.readWindows')}
+            </button>
+          </p>
+        )}
         <label htmlFor="imp-paste" style={{ ...label }}>{t('imp.paste')}</label>
         <textarea id="imp-paste" rows={6} wrap="off" value={source.fileName ? '' : source.text} placeholder={source.fileName ? t('imp.fromFile') : t('imp.pastePlaceholder')}
           onChange={e => setSource({ text: e.target.value, fileName: null })}
@@ -248,26 +298,44 @@ function ChooseStep({ kinds, kind, setKind, source, setSource, headerRow, setHea
         <label style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', marginTop: '8px', cursor: 'pointer' }}>
           <input type="checkbox" checked={headerRow} onChange={e => setHeaderRow(e.target.checked)} style={{ accentColor: 'var(--accent)' }} /> {t('imp.headerRow')}
         </label>
+        {/* Title lines above the headings: which line the headings are on (suggested) */}
+        {headerRow && lines > 1 && (
+          <div style={{ display: 'flex', gap: space[2], alignItems: 'center', flexWrap: 'wrap', marginTop: space[2], fontSize: '13px' }}>
+            <label htmlFor="imp-header-at">{t('imp.headerAt')}</label>
+            <input id="imp-header-at" type="number" min={1} max={lines} value={headerAt + 1} aria-describedby={suggested > 0 ? 'imp-header-hint' : undefined}
+              onChange={e => setHeaderAt(Math.min(lines, Math.max(1, Number(e.target.value) || 1)) - 1)} style={{ ...input, width: '80px', padding: '6px 8px', minHeight: '36px' }} />
+            {suggested > 0 && <span id="imp-header-hint" style={{ color: colors.muted }}>{t(headerAt === suggested ? 'imp.headerAtSuggested' : 'imp.headerAtSuggest', { n: suggested + 1 })}</span>}
+          </div>
+        )}
       </div>
 
       {source.text && (
-        <p role="status" style={{ fontSize: '13px', color: tooMany ? colors.danger : colors.soft }}>
-          {tooMany ? t('imp.tooMany', { max: MAX_ROWS }) : t('imp.read', { rows: table.rows.length, cols: table.headers.length })}
+        <p role="status" style={{ fontSize: '13px', color: colors.soft }}>
+          {t('imp.read', { rows: table.rows.length, cols: table.headers.length })}
+          {parts > 1 && ` ${t('imp.parts', { count: parts, max: MAX_ROWS })}`}
+        </p>
+      )}
+      {/* The headings fit another kind better: say so, with a switch */}
+      {looksLike && (
+        <p role="status" style={{ fontSize: '13px', display: 'flex', gap: space[2], alignItems: 'center', flexWrap: 'wrap', color: 'var(--warn)', margin: 0 }}>
+          <AlertTriangle size={14} aria-hidden="true" style={{ flexShrink: 0 }} />
+          <span>{t('imp.looksLike', { kind: t(`imp.kind.${looksLike}`) })}</span>
+          <button type="button" onClick={() => setKind(looksLike)} style={{ ...btn, padding: '4px 10px', minHeight: '32px' }}>{t('imp.switchTo', { kind: t(`imp.kind.${looksLike}`) })}</button>
         </p>
       )}
       <div>
-        <button type="button" onClick={onNext} disabled={!table.rows.length || tooMany} style={btnPrimary}>{t('imp.next')} <ArrowRight size={14} /></button>
+        <button type="button" onClick={onNext} disabled={!table.rows.length} style={btnPrimary}>{t('imp.next')} <ArrowRight size={14} /></button>
       </div>
     </div>
   )
 }
 
-function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPresetName, defaultLocation, setDefaultLocation, onBack, onNext }) {
+function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPresetName, defaults, setDefaults, orders, setChosenOrders, customAll, onBack, onNext }) {
   const { notify } = useToast()
   const [presets, setPresets] = useState([])
   const [saveName, setSaveName] = useState('')
   const [saving, setSaving] = useState(false)
-  const fields = FIELDS[kind]
+  const fields = fieldsFor(kind, [])
 
   const loadPresets = useCallback(async () => {
     if (unbatched(kind)) return setPresets([])
@@ -280,17 +348,32 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
   }, [orgId, kind])
   useEffect(() => { loadPresets() }, [loadPresets])
 
-  // Quantities without a location column (Rentman's equipment export): one warehouse for them all
+  // "Same for every row": one value for a field the file doesn't have (for equipment, a location
+  // for its quantities). What each can be is loaded from the organisation.
   const used = Object.values(mapping)
-  const needsLocation = kind === 'items' && used.includes('quantity') && !used.includes('location')
-  const [locations, setLocations] = useState([])
+  const open = openDefaults(mapping, kind).filter(() => kind !== 'items' || used.includes('quantity'))
+  const openKey = open.map(k => k.join()).join('|')
+  const [choices, setChoices] = useState({})
   useEffect(() => {
-    if (!needsLocation) return
-    supabase.from('stock_locations').select('name').eq('org_id', orgId).is('archived_at', null).order('name')
-      .then(({ data }) => setLocations(data || []))
-  }, [needsLocation, orgId])
+    const wants = new Set(open.flat())
+    const all = (q, step) => q.then(({ data, error }) => { if (error) logger.error('import', error, { step }); return data || [] })
+    Promise.all([
+      wants.has('location') ? all(supabase.from('stock_locations').select('name').eq('org_id', orgId).is('archived_at', null).order('name'), 'locations') : [],
+      wants.has('item') || wants.has('kit') ? all(supabase.from('price_items').select('name, code, tracking, kit_type').eq('org_id', orgId).is('archived_at', null).order('name'), 'items') : [],
+      wants.has('gig') ? all(supabase.from('gigs').select('name, import_ref, start_date').eq('org_id', orgId).order('start_date', { ascending: false }), 'gigs') : [],
+      wants.has('client') ? all(supabase.from('clients').select('name').eq('org_id', orgId).is('archived_at', null).order('name'), 'clients') : [],
+    ]).then(([locations, items, gigs, clients]) => setChoices({ locations, items, gigs, clients }))
+  }, [openKey, orgId]) // eslint-disable-line react-hooks/exhaustive-deps
+  const setSame = (keys, key, value) => setDefaults(d => {
+    const next = { ...d }
+    for (const k of keys) delete next[k]
+    if (key && value) next[key] = value
+    return next
+  })
 
-  const missing = missingFields(mapping, kind)
+  const missing = missingFields(mapping, kind, defaults)
+  const unused = unusedColumns(table, mapping)
+  const dateCol = Object.fromEntries(orders.columns.map(c => [c.header, c]))
   const samples = i => table.rows.map(r => r[i]).filter(Boolean).slice(0, 3).join(' · ')
   function pick(header, key) {
     setMapping(m => {
@@ -350,19 +433,46 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
               style={{ ...input, appearance: 'auto', padding: '6px 8px', minHeight: '36px', fontSize: '13px', color: mapping[h] ? 'var(--text)' : colors.muted }}>
               <option value="">{t('imp.ignore')}</option>
               {fields.map(f => <option key={f.key} value={f.key}>{t(`imp.field.${kind}.${f.key}`)}{f.required ? ' *' : ''}</option>)}
+              {/* The organisation's own fields (saved once the database part is in: "not yet" until then) */}
+              {customAll.length > 0 && (
+                <optgroup label={t('imp.customFields')}>
+                  {customAll.map(f => <option key={f.id} value={`cf:${f.id}`} disabled={!CUSTOM_VALUES_SAVED}>{f.label}{CUSTOM_VALUES_SAVED ? '' : ` · ${t('imp.notYet')}`}</option>)}
+                </optgroup>
+              )}
             </select>
+            {/* A date column: which comes first, the day or the month (noticed, or asked) */}
+            {dateCol[h] && (
+              <div style={{ gridColumn: '1 / -1', display: 'flex', gap: space[2], alignItems: 'center', flexWrap: 'wrap', fontSize: '13px' }}>
+                <label htmlFor={`imp-order-${i}`} style={{ color: dateCol[h].order ? colors.soft : 'var(--warn)', display: 'flex', gap: space[1], alignItems: 'center' }}>
+                  {!dateCol[h].order && <AlertTriangle size={13} aria-hidden="true" />}
+                  {t(dateCol[h].order ? 'imp.dateOrder.read' : 'imp.dateOrder.ask', { column: h })}
+                </label>
+                <select id={`imp-order-${i}`} value={dateCol[h].order || ''} onChange={e => setChosenOrders(o => ({ ...o, [dateCol[h].field]: e.target.value }))}
+                  style={{ ...input, appearance: 'auto', padding: '4px 8px', minHeight: '32px', fontSize: '13px', width: 'auto' }}>
+                  {!dateCol[h].order && <option value="">{t('imp.fix.choose')}</option>}
+                  <option value="dmy">{t('imp.dateOrder.dmy')}</option>
+                  <option value="mdy">{t('imp.dateOrder.mdy')}</option>
+                </select>
+                {dateCol[h].noticed !== 'ask' && dateCol[h].order === dateCol[h].noticed && <span style={{ color: colors.muted }}>{t('imp.dateOrder.noticed')}</span>}
+              </div>
+            )}
           </li>
         ))}
       </ul>
-      {needsLocation && (
-        <div style={{ maxWidth: '360px' }}>
-          <label style={label} htmlFor="imp-default-loc">{t('imp.defaultLocation')}</label>
-          <select id="imp-default-loc" value={defaultLocation} onChange={e => setDefaultLocation(e.target.value)} style={{ ...input, appearance: 'auto' }}>
-            <option value="">{t('imp.defaultLocationNone')}</option>
-            {locations.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
-          </select>
-          <p style={{ fontSize: '13px', color: colors.muted, marginTop: space[1] }}>{t('imp.defaultLocationHint')}</p>
-        </div>
+      {unused.length > 0 && (
+        <p role="status" style={{ fontSize: '13px', color: colors.soft, display: 'flex', gap: space[2], alignItems: 'baseline', margin: 0 }}>
+          <Info size={13} aria-hidden="true" style={{ flexShrink: 0, alignSelf: 'center' }} /> <span>{t('imp.notImported', { columns: unused.join(', ') })}</span>
+        </p>
+      )}
+      {customAll.length > 0 && !CUSTOM_VALUES_SAVED && <p style={{ fontSize: '13px', color: colors.muted, margin: 0 }}>{t('imp.customNotYet')}</p>}
+      {open.length > 0 && (
+        <section aria-labelledby="imp-same">
+          <h2 id="imp-same" style={{ font: '700 16px/24px var(--font-mono)', margin: `0 0 ${space[1]}`, display: 'flex', gap: space[2], alignItems: 'center' }}>{t('imp.same.title')} <Hint id="imp-same" /></h2>
+          <p style={{ fontSize: '13px', color: colors.muted, margin: `0 0 ${space[3]}` }}>{t(kind === 'items' ? 'imp.same.hintItems' : 'imp.same.hint')}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: space[3] }}>
+            {open.map(keys => <SameForAll key={keys.join()} kind={kind} keys={keys} choices={choices} defaults={defaults} onChange={(key, value) => setSame(keys, key, value)} />)}
+          </div>
+        </section>
       )}
       {missing.length > 0 && (
         <p role="status" style={{ fontSize: '13px', color: 'var(--warn)', display: 'flex', gap: space[2], alignItems: 'center' }}>
@@ -378,25 +488,69 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
       </div>}
       <div style={{ display: 'flex', gap: '8px' }}>
         <button type="button" onClick={onBack} style={btn}><ArrowLeft size={14} /> {t('imp.back')}</button>
-        <button type="button" onClick={onNext} disabled={missing.length > 0} style={btnPrimary}>{t('imp.next')} <ArrowRight size={14} /></button>
+        <button type="button" onClick={onNext} disabled={missing.length > 0 || orders.open.length > 0} aria-describedby={orders.open.length ? 'imp-order-open' : undefined} style={btnPrimary}>{t('imp.next')} <ArrowRight size={14} /></button>
       </div>
+      {orders.open.length > 0 && <p id="imp-order-open" role="status" style={{ fontSize: '13px', color: 'var(--warn)', margin: 0 }}>{t('imp.dateOrder.open')}</p>}
     </div>
   )
 }
 
-function DoneStep({ orgId, kind, result, onAgain }) {
-  const problems = result.problems || []
+// One "same for every row" field: a picker of what the organisation has (a location, an item, a
+// gig, a client) or of the words a choice field takes (a status, a role, a location type). An item
+// or gig goes by its code or job number when it has one, else by its name (one with a name others
+// share and no code can't be told apart until IM3).
+function SameForAll({ kind, keys, choices, defaults, onChange }) {
+  const name = keys.at(-1)
+  const id = `imp-same-${name}`
+  const current = keys.map(k => defaults[k] && `${k}\u0001${defaults[k]}`).find(Boolean) || ''
+  const field = (FIELDS[kind] || []).find(f => f.key === name)
+  const shared = (list, n) => list.filter(x => x.name.toLowerCase() === n.toLowerCase()).length > 1
+  let options = []
+  if (name === 'location') options = (choices.locations || []).map(l => ({ value: `location\u0001${l.name}`, text: l.name }))
+  else if (name === 'client') options = (choices.clients || []).map(c => ({ value: `client\u0001${c.name}`, text: c.name }))
+  else if (name === 'item' || name === 'kit') {
+    const list = (choices.items || []).filter(i => (name === 'kit' || i.tracking === 'serial'))
+    options = list.map(i => ({ value: i.code ? `${keys[0]}\u0001${i.code}` : `${name}\u0001${i.name}`, text: [i.name, i.code].filter(Boolean).join(' · '), off: !i.code && shared(list, i.name) }))
+  } else if (name === 'gig') {
+    const list = choices.gigs || []
+    options = list.map(g => ({ value: g.import_ref ? `gig_ref\u0001${g.import_ref}` : `gig\u0001${g.name}`, text: [g.name, g.start_date, g.import_ref].filter(Boolean).join(' · '), off: !g.import_ref && shared(list, g.name) }))
+  } else if (field?.words) options = (WORD_VALUES[field.words] || []).map(w => ({ value: `${name}\u0001${w}`, text: choiceLabel(field.words, w) }))
+  return (
+    <div style={{ minWidth: 0 }}>
+      <label style={label} htmlFor={id}>{t(`imp.same.${name}`)}</label>
+      <select id={id} value={current} onChange={e => { const [k, v] = e.target.value.split('\u0001'); onChange(k, v) }} style={{ ...input, appearance: 'auto' }}>
+        <option value="">{t('imp.same.none')}</option>
+        {options.map(o => <option key={o.value} value={o.value} disabled={o.off}>{o.text}{o.off ? ` · ${t('imp.fix.im3Short')}` : ''}</option>)}
+      </select>
+    </div>
+  )
+}
+
+// A refusal from the database as the page says it
+const srvText = p => { const s = serverMessage(p.message); return s ? t(`imp.srv.${s.key}`, { name: s.name }) : p.message }
+
+// The import's report. Rows the database refused can go back to the check, alone, with the same
+// fixes ("fix and try again"); every row that wasn't imported (left out in the check, or refused)
+// can be downloaded with the file's own columns and a Problem column, to fix in a spreadsheet.
+function DoneStep({ orgId, kind, result, table, headerRow, onAgain, onRetry }) {
+  const problems = useMemo(() => result.problems || [], [result.problems])
   const next = { locations: 'items', items: 'units', units: 'kits', gigs: 'gig_equipment' }[kind]
-  const message = p => { const s = serverMessage(p.message); return s ? t(`imp.srv.${s.key}`, { name: s.name }) : p.message }
-  function download() {
-    const csv = reportCsv(problems.map(p => ({ ...p, message: message(p) })), { row: t('imp.lineShort'), level: t('imp.result'), message: t('imp.message'), skip: t('imp.action.skip'), note: t('imp.note') })
+  const refused = useMemo(() => refusedRows(problems, result.sent), [problems, result.sent])
+  const refusedCount = Object.keys(refused).length
+  const leftOut = [...(result.leftOut || []), ...problems.filter(p => p.level === 'skip').map(p => ({ line: p.row, problem: srvText(p) }))]
+  const leftOutLines = new Set(leftOut.map(e => Number(e.line))).size
+  function save(csv, name) {
     const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' }))
     const a = document.createElement('a')
     a.href = url
-    a.download = `avx-import-${kind}.csv`
+    a.download = name
     a.click()
     URL.revokeObjectURL(url)
   }
+  function download() {
+    save(reportCsv(problems.map(p => ({ ...p, message: srvText(p) })), { row: t('imp.lineShort'), level: t('imp.result'), message: t('imp.message'), skip: t('imp.action.skip'), note: t('imp.note') }), `avx-import-${kind}.csv`)
+  }
+  const downloadLeftOut = () => save(leftOutCsv(table, leftOut, { headerRow, problem: t('imp.problemColumn') }), `avx-import-${kind}-left-out.csv`)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: space[4] }}>
       <p role="status" style={{ display: 'flex', gap: space[2], alignItems: 'center', fontSize: '16px', fontWeight: 600, margin: 0 }}>
@@ -404,13 +558,31 @@ function DoneStep({ orgId, kind, result, onAgain }) {
       </p>
       {isHeld(kind) && <p style={{ fontSize: '14px', color: colors.soft, lineHeight: 1.6 }}>{t('imp.heldNote')}</p>}
       {isJob(kind) && <p style={{ fontSize: '14px', color: colors.soft, lineHeight: 1.6 }}>{t(`imp.jobNote.${kind}`)}</p>}
+      {result.partial && <p role="status" style={{ fontSize: '14px', color: 'var(--warn)', lineHeight: 1.6, margin: 0 }}>{t('imp.partFailed', { done: result.partial.done, total: result.partial.total })}</p>}
+      {(refusedCount > 0 || leftOutLines > 0) && (
+        <section aria-labelledby="imp-after" style={{ display: 'flex', flexDirection: 'column', gap: space[2] }}>
+          <h2 id="imp-after" style={{ font: '700 16px/24px var(--font-mono)', margin: 0, display: 'flex', gap: space[2], alignItems: 'center' }}>{t('imp.after.title')} <Hint id="imp-after" /></h2>
+          {refusedCount > 0 && (
+            <div style={{ display: 'flex', gap: space[3], alignItems: 'center', flexWrap: 'wrap' }}>
+              <p style={{ fontSize: '14px', color: colors.soft, margin: 0, flex: '1 1 240px' }}>{t('imp.after.refused', { count: refusedCount })}</p>
+              <button type="button" onClick={() => onRetry(refused)} style={btnPrimary}><RotateCcw size={14} /> {t('imp.after.retry', { count: refusedCount })}</button>
+            </div>
+          )}
+          {leftOutLines > 0 && (
+            <div style={{ display: 'flex', gap: space[3], alignItems: 'center', flexWrap: 'wrap' }}>
+              <p style={{ fontSize: '14px', color: colors.soft, margin: 0, flex: '1 1 240px' }}>{t('imp.after.leftOut', { count: leftOutLines })}</p>
+              <button type="button" onClick={downloadLeftOut} style={btn}><Download size={14} /> {t('imp.after.download', { count: leftOutLines })}</button>
+            </div>
+          )}
+        </section>
+      )}
       {problems.length > 0 && (
         <section aria-labelledby="imp-report">
           <h2 id="imp-report" style={{ font: '700 16px/24px var(--font-mono)', marginBottom: space[2] }}>{t('imp.report')}</h2>
           <ul tabIndex={0} aria-label={t('imp.report')} style={{ listStyle: 'none', padding: 0, fontSize: '13px', lineHeight: 1.7, maxHeight: '260px', overflowY: 'auto' }}>
             {problems.map((p, i) => (
               <li key={i} style={{ color: p.level === 'skip' ? 'var(--warn)' : colors.soft }}>
-                <strong>{t('imp.line', { n: p.row })}</strong> · {p.level === 'skip' ? t('imp.action.skip') : t('imp.note')}: {message(p)}
+                <strong>{t('imp.line', { n: p.row })}</strong> · {p.level === 'skip' ? t('imp.action.skip') : t('imp.note')}: {srvText(p)}
               </li>
             ))}
           </ul>
