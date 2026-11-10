@@ -56,6 +56,7 @@
 - A quote's status "sent" is also accepted (it shows as waiting for an answer, sent on its date).
   Quote status "cancelled" isn't offered (the check asks to treat the word as another status).
   (Assumed: fine.)
+- `supabase/tests/report_capture.sql` stops at its "declined → draft" step (quote status guard, older than IM4): issue #174. `quote_bin.sql` wasn't run through the connector (the word TRUNCATE in a privilege list); run it by hand.
 - D26 is built: mark it done.
 
 ## Session prompt
