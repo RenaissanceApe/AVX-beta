@@ -49,6 +49,7 @@ up front. What each release changed is in [CHANGELOG.md](CHANGELOG.md).
 | Step 17a: RG1 rigging weights, points and hoists (truss lines, hang points, a continuous-beam solver, hoist WLL and class check; hoist models; light plot "Rigging: not checked" and Tools tab connected) | 0.80.0 | [docs/TOOLS_PLAN.md](docs/TOOLS_PLAN.md), "How RG1 works" |
 | Step 18: RG3 line arrays (arrays in the rigging tool, bumper limits from the manufacturers' manuals, pick loads from the centre of gravity, the speaker rigging sign-off; connected to the sound system calculator, RG1 truss lines and gig equipment) | 0.80.0 | [docs/TOOLS_PLAN.md](docs/TOOLS_PLAN.md), "How RG3 works" |
 | Upkeep U1–U3, U5, U6: organisation time zone (D10; bookings, leave, clashes, reports, calendar feed, email summary and reminders on the organisation's clock); React Router 7, Vite 8 and Vitest 5 (no advisories left in what users download); data map open items (crew-search log kept 30 days, read notifications 12 months, held invitations reminded at 14 days and expired at 60); label templates in three standard sizes on rolls or sheets (D31; items, units, cases, distros and cables); a QR and print date on every print (D32) | 0.81.0 | [docs/RESERVATIONS.md](docs/RESERVATIONS.md), "How people get reservations"; [docs/DATA_MAP.md](docs/DATA_MAP.md); [docs/INVENTORY.md](docs/INVENTORY.md), "How labels work"; [docs/FIELD_TOOLS.md](docs/FIELD_TOOLS.md), "How the print QR works"; [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) |
+| Import overhaul IM1–IM4, "fix it here" (D38): every problem in the check gets a fix on the spot, grouped so one choice fixes every row, saved only on Import; a sheet picker, the heading row, files saved on Windows, imports in parts of 5000, "same for every row", date order per column, your own fields as targets, "fix and try again" and the left-out rows downloaded; one undo for the import and what its fixes added, exact picks, archived items restored, fixes remembered with a saved matching, undo saying what's in use, bulk items switched to per unit; past jobs as done gigs and quotes with their status and dates (D26) | 0.82.0 | [docs/SWITCHING.md](docs/SWITCHING.md), "How IM1 works" to "How IM4 works" |
 | Truss load tables (data only, waiting for a second check) | 0.60 | [docs/TRUSS_DATA.md](docs/TRUSS_DATA.md) |
 | Privacy and security check: data map, OWASP review, sign-in failure tests | 0.62.1 | [docs/DATA_MAP.md](docs/DATA_MAP.md), [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md) |
 
@@ -100,16 +101,6 @@ a few minutes of setup from you (QA.md, "Build order and when you step in"):
 | QA2 Live checks after each merge, a daily real sign-up, the QA tag that keeps QA accounts out of your numbers | Every merge goes live; this checks the live app straight away | QA2 |
 | QA3 The AI tester on each PR before merge | Tests each change like a person, and writes fixed tests for what it confirms | QA3 |
 | QA4 Catch-up, one area per run (repeat) | Inventory, messaging, crew network, tasks, field tools and import have no browser tests (import: after IM2, only what IM's own tests don't cover) | QA4 |
-
-**Import overhaul** ([docs/SWITCHING.md](docs/SWITCHING.md), "Import overhaul: fix it here"), decided
-2026-11-04 (D38). Run these in order, in any gap:
-
-| What | Why | Prompt |
-|---|---|---|
-| IM1 Fix it in the check: every problem gets a fix on the spot (add the missing location, use one you have, edit the cell, read an unknown word as a known one), grouped so one choice fixes every row; what a fix adds is saved only on Import; the check predicts what the database would refuse | Today every problem's only answer is "fix the file and import it again" | IM1 |
-| IM2 Before and after the check: a sheet picker, the heading row, files saved on Windows, more than 5000 rows, month/day dates, one value for every row, "fix and try again" after the import, left-out rows downloaded with their data, columns going into your custom fields | The same dead ends in the other steps; custom fields can't be imported today | IM2 |
-| IM3 The database part (migration outlined for your yes first): one undo for the import and what it added, picking the exact record when two share a name, restoring archived equipment, fixes remembered with a saved matching, undo saying what's in use, equipment counted in bulk switched to per unit when its units are imported | Finishes "nothing changes until Import, and one undo takes it all back"; ends a known limitation | IM3 |
-| IM4 History import (D26): past jobs as completed gigs, quotes with their accepted or declined status and dates (migration outlined for your yes first) | Year-on-year reports work from the day a company switches | IM4 |
 
 ## End of the build
 
