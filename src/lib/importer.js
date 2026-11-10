@@ -18,6 +18,9 @@ export const MAX_ROWS = 5000
 // and uses before the code and the name; _new makes a contacts row a new contact even when one has
 // its name. They come from fixes, never from a column of the file.
 export const PICKS = ['_item_id', '_kit_id', '_location_id', '_gig_id', '_client_id', '_contact_id', '_new']
+// Hidden fields a fix can fill (sent with the row, never from a column): the picks, and _history
+// (IM4: a past job imported as 'completed' or 'cancelled')
+const HIDDEN = [...PICKS, '_history']
 const CODE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/
 
 // Words people (and Rentman, in Dutch or English) use for each choice
@@ -101,6 +104,12 @@ const WORDS = {
     active: ['active', 'in progress', 'lopend', 'em curso', 'on site'],
     completed: ['completed', 'finished', 'done', 'closed', 'afgerond', 'voltooid', 'gesloten', 'concluido', 'terminado', 'fechado'],
     cancelled: ['cancelled', 'canceled', 'geannuleerd', 'cancelado', 'anulado', 'lost', 'verloren', 'perdido'],
+  },
+  quoteStatus: {
+    draft: ['draft', 'concept', 'rascunho', 'open', 'new', 'nieuw', 'novo'],
+    sent: ['sent', 'verzonden', 'verstuurd', 'enviado', 'enviada', 'pending', 'in afwachting', 'pendente', 'awaiting', 'waiting'],
+    accepted: ['accepted', 'won', 'approved', 'confirmed', 'geaccepteerd', 'akkoord', 'gewonnen', 'goedgekeurd', 'aceite', 'aceito', 'aceitado', 'aprovado', 'aprovada', 'ganho', 'confirmado'],
+    declined: ['declined', 'rejected', 'lost', 'refused', 'afgewezen', 'verloren', 'geweigerd', 'recusado', 'recusada', 'rejeitado', 'rejeitada', 'perdido', 'perdida'],
   },
   unitStatus: {
     available: ['available', 'beschikbaar', 'disponivel', 'ok', 'in stock', 'active', 'actief', 'ativo'],
@@ -232,6 +241,11 @@ export const FIELDS = {
     { key: 'factor', type: 'number', names: ['days', 'dagen', 'dias', 'factor', 'periods', 'periode', 'period', 'periodo'] },
     { key: 'unit_price', type: 'money', names: ['price', 'unit price', 'prijs', 'stukprijs', 'eenheidsprijs', 'preco', 'preco unitario', 'rate', 'tarief'] },
     { key: 'discount_pct', type: 'number', names: ['discount', 'discount pct', 'korting', 'desconto', 'percentage'] },
+    // IM4: a quote's history (its first line gives it), so the reports count it on its own dates
+    { key: 'status', type: 'enum', words: 'quoteStatus', names: ['status', 'state', 'estado', 'quote status', 'offertestatus', 'estado do orcamento'] },
+    { key: 'sent_date', type: 'date', names: ['sent', 'sent date', 'sent on', 'date sent', 'verzonden', 'verzonden op', 'verzenddatum', 'data de envio', 'enviado em', 'enviado'] },
+    { key: 'decided_date', type: 'date', names: ['decided', 'decided on', 'decision date', 'date decided', 'accepted on', 'declined on', 'beslist op', 'besluitdatum', 'data de decisao', 'decidido em'] },
+    { key: 'lost_reason', type: 'text', max: 500, names: ['reason', 'lost reason', 'decline reason', 'reason lost', 'reden', 'reden afwijzing', 'motivo', 'motivo de recusa'] },
   ],
   crew: [
     { key: 'email', type: 'email', required: true, names: ['email', 'e mail', 'mail', 'email address', 'e mailadres', 'emailadres', 'correio electronico', 'correio eletronico'] },
@@ -563,7 +577,7 @@ export const fieldsFor = (kind, custom = []) => [...(FIELDS[kind] || []), ...(CU
 export function buildRows(table, mapping, kind, { headerRow = true, defaultLocation = null, defaults = {}, dateOrders = {}, custom = [], only = null } = {}) {
   const fields = fieldsFor(kind, custom)
   const cols = table.headers.map((h, i) => {
-    const field = fields.find(f => f.key === mapping[h]) || (PICKS.includes(mapping[h]) ? { key: mapping[h], type: 'exact' } : null)
+    const field = fields.find(f => f.key === mapping[h]) || (HIDDEN.includes(mapping[h]) ? { key: mapping[h], type: 'exact' } : null)
     return { i, field: field && field.type === 'date' && dateOrders[field.key] ? { ...field, order: dateOrders[field.key] } : field }
   }).filter(c => c.field)
   const given = new Set(cols.map(c => c.field.key))
@@ -663,9 +677,27 @@ function joinName(row) {
   if (!row.full_name && joined) row.full_name = joined.slice(0, 120)
 }
 
-const today = () => {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const today = () => ymd(new Date())
+// How far back the history import goes (the owner's answer, IM4): dates before this are too old
+export const HISTORY_YEARS = 10
+export const historyFrom = (now = new Date()) => ymd(new Date(now.getFullYear() - HISTORY_YEARS, now.getMonth(), now.getDate()))
+
+// A quote's status and dates, checked as the database checks them (IM4): null when they're fine,
+// otherwise the row's plan. The sent date defaults to the quote's date, the decided date to the
+// sent date; a decided quote from more than HISTORY_YEARS ago is too old.
+export function quoteHistory(row, now = new Date()) {
+  const status = row.status || 'draft'
+  const name = row.quote_ref || row.title
+  if (status === 'draft') return null
+  const sent = row.sent_date || row.issue_date || null
+  const decided = ['accepted', 'declined'].includes(status) ? row.decided_date || sent : null
+  const day = ymd(now)
+  if (row.sent_date && row.sent_date > day) return { action: 'skip', reason: 'futureDate', field: 'sent_date' }
+  if (row.decided_date && row.decided_date > day) return { action: 'skip', reason: 'futureDate', field: 'decided_date' }
+  if (decided && sent && decided < sent) return { action: 'skip', reason: 'decidedFirst', field: row.decided_date ? 'decided_date' : 'sent_date' }
+  if (decided && decided < historyFrom(now)) return { action: 'skip', reason: 'tooOld', value: name, purpose: true }
+  return null
 }
 
 // A gig by its old number, then by name (and start date when given), as the database finds it
@@ -750,9 +782,18 @@ export function dryRun(rows, kind, existing) {
       return found && row.quantity > 0 ? { action, note: 'quantityKept', field: 'quantity', value: found.name } : { action }
     }
     if (kind === 'gigs') {
-      if (row.status === 'cancelled') return { action: 'skip', reason: 'cancelledJob', value: row.name || row.ref, purpose: true }
-      if ((row.end_date || row.start_date) && (row.end_date || row.start_date) < today()) return { action: 'skip', reason: 'pastJob', value: row.name || row.ref, purpose: true }
+      // Past jobs (IM4): left out unless "Import as past jobs" (or, for cancelled ones, "Import as
+      // cancelled") was chosen; more than HISTORY_YEARS ago they are too old either way
+      const end = row.end_date || row.start_date
+      const past = !!end && end < today()
+      const name = row.name || row.ref
+      if (row.status === 'cancelled' && !past) return { action: 'skip', reason: 'cancelledJob', value: name, purpose: true }
+      if (past && end < historyFrom()) return { action: 'skip', reason: 'tooOld', value: name, purpose: true }
+      if (past && row.status === 'cancelled' && row._history !== 'cancelled') return { action: 'skip', reason: 'pastCancelled', value: name, purpose: true }
+      if (past && !row._history) return { action: 'skip', reason: 'pastJob', value: name, purpose: true }
       const found = gigById(row._gig_id) || findGig(existing.gigs, row.ref, row.name, row.start_date)
+      // A gig already in AVX is never turned into a past one: the database leaves it as it is
+      if (past && found && !found.from_history) return { action: 'skip', reason: 'gigThere', value: found.name, purpose: true }
       if (!found && sameGigs(existing.gigs, row.ref, row.name, row.start_date) > 1) return { action: 'skip', reason: 'sameGig', field: 'name', value: row.name }
       if (!found && !row.start_date) return { action: 'skip', reason: 'noStart', field: 'start_date' }
       const key = row.ref ? `#${lower(row.ref)}` : `${lower(row.name)}|${row.start_date}`
@@ -764,6 +805,8 @@ export function dryRun(rows, kind, existing) {
       const gig = gigById(row._gig_id) || findGig(existing.gigs, row.gig_ref, row.gig, null)
       if (!gig && sameGigs(existing.gigs, row.gig_ref, row.gig, null) > 1) return { action: 'skip', reason: 'sameGig', field: 'gig', value: row.gig }
       if (!gig) return { action: 'skip', reason: 'unknownJob', field: row.gig_ref ? 'gig_ref' : 'gig', value: row.gig_ref || row.gig }
+      // A past job brought in from history never books equipment (IM4)
+      if (gig.from_history) return { action: 'skip', reason: 'historyGig', value: gig.name, purpose: true }
       const item = findItem(row.item_code, row.item, row._item_id)
       if (!item) return missingItem(row.item_code, row.item, 'unknownItem', 'item_code', 'item')
       if (item.tracking === 'none') return { action: 'skip', reason: 'notTracked', field: row.item_code ? 'item_code' : 'item', value: item.name }
@@ -776,6 +819,11 @@ export function dryRun(rows, kind, existing) {
       const key = lower(row.quote_ref || row.title)
       const known = row.quote_ref && (existing.quotes || []).find(q => lower(q.import_ref) === lower(row.quote_ref))
       if (known && known.status && known.status !== 'draft') return { action: 'skip', reason: 'quoteSent', value: row.quote_ref, purpose: true }
+      // Its history (IM4): the first line of a quote gives its status and dates, as the database reads them
+      if (!seen.has(key)) {
+        const history = quoteHistory(row)
+        if (history) return history
+      }
       const action = known || seen.has(key) ? 'match' : 'create'
       seen.add(key)
       return clientNote(row, { action })
@@ -878,6 +926,12 @@ const SERVER = [
   [/^Unknown status: (.+)$/, 'unknownStatus'],
   [/^Cancelled job left out: (.+)$/, 'cancelledJob'],
   [/^Past job left out: (.+)$/, 'pastJob'],
+  [/^Too old to import: (.+)$/, 'tooOld'],
+  [/^Already in AVX, left as it is: (.+)$/, 'gigThere'],
+  [/^Past job: equipment isn't planned on it/, 'historyGig'],
+  [/^Unknown quote status: (.+)$/, 'unknownStatus'],
+  [/^A date is after today/, 'futureDate'],
+  [/^The quote is decided before it was sent/, 'decidedFirst'],
   [/^The job ends before it starts/, 'dates'],
   [/^The start date is missing/, 'noStart'],
   [/^Several gigs are called (.+?): add the job numbers/, 'sameGig'],
@@ -963,9 +1017,17 @@ export const FIXES = {
   serialQuantity: { fixes: ['countBulk', 'dropQuantity'] },
   otherItem: { fixes: ['edit'] },
   trackingLocked: { fixes: ['keepTracking'] },
-  // Left out on purpose (IM4 adds "Import as past jobs")
-  pastJob: { purpose: true },
+  // A quote's history (IM4)
+  futureDate: { fixes: ['edit', 'treatEmpty'] },
+  decidedFirst: { fixes: ['edit'] },
+  // Left out on purpose. Past jobs can come in as completed gigs, past cancelled ones as
+  // cancelled gigs (IM4): the fix is a choice on the list, left out until it's made
+  pastJob: { purpose: true, fixes: ['importPast'] },
+  pastCancelled: { purpose: true, fixes: ['importCancelled'] },
   cancelledJob: { purpose: true },
+  tooOld: { purpose: true },
+  gigThere: { purpose: true },
+  historyGig: { purpose: true },
   inactive: { purpose: true },
   alreadyMember: { purpose: true },
   alreadyInvited: { purpose: true },
@@ -1002,9 +1064,20 @@ export const FIXES = {
 // The fixes a group offers, in order, each { id, im3 } (not available until IM3), ending with 'skip'
 export function fixesFor(reason) {
   const entry = FIXES[reason]
-  if (!entry || entry.purpose) return []
+  if (!entry) return []
+  // Left out on purpose is the default: a choice there (IM4's "Import as past jobs") is the only fix
+  if (entry.purpose) return (entry.fixes || []).map(id => ({ id, im3: false }))
   const list = (entry.fixes || []).map(id => ({ id, im3: (entry.im3 || []).includes(id) }))
   return entry.note ? list : [...list, { id: 'skip', im3: false }]
+}
+
+// "Import as past jobs" / "Import as cancelled" (IM4) for a group left out on purpose: its rows
+// get the hidden _history field, so they go in as completed (or cancelled) gigs
+export function historyFix(group) {
+  const fix = group.reason === 'pastCancelled' ? 'importCancelled' : 'importPast'
+  const as = fix === 'importCancelled' ? 'cancelled' : 'completed'
+  return { type: 'cells', key: group.key, fix, reason: group.reason, count: group.lines.length,
+    edits: Object.fromEntries(group.lines.map(l => [l.line, { _history: as }])) }
 }
 
 // Problems answered by changing one value for every row that has it (the rest are grouped by field)
@@ -1251,7 +1324,7 @@ function refusedField(reason, row, kind) {
     unknownItem: kind === 'items' ? 'name' : item, sameName: kind === 'items' ? 'name' : item, archived: kind === 'items' ? 'code' : item,
     bulkItem: item, notTracked: item, partUntracked: item, accessoryUntracked: item, selfKit: item, notKit: row.kit_code ? 'kit_code' : 'kit',
     unknownKit: row.kit_code ? 'kit_code' : 'kit', unknownJob: row.gig_ref ? 'gig_ref' : 'gig', sameGig: row.gig_ref ? 'gig_ref' : 'gig',
-    serialQuantity: 'quantity', trackingLocked: 'tracking', sameContact: 'name',
+    serialQuantity: 'quantity', trackingLocked: 'tracking', sameContact: 'name', decidedFirst: 'decided_date',
   }
   const field = fields[reason] || null
   return field && (FIELDS[kind] || []).some(f => f.key === field) ? field : null
