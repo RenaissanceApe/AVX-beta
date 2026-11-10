@@ -285,7 +285,7 @@ function ChooseStep({ kinds, kind, setKind, source, setSource, headerRow, setHea
         {source.noticed && (
           <p role="status" style={{ fontSize: '13px', color: colors.soft, display: 'flex', gap: space[2], alignItems: 'center', flexWrap: 'wrap', margin: `0 0 ${space[3]}` }}>
             <Info size={14} aria-hidden="true" style={{ flexShrink: 0 }} />
-            <span>{t(source.encoding === 'windows-1252' ? 'imp.encoding.windows' : 'imp.encoding.utf8')}</span>
+            <span style={{ flex: '1 1 200px', minWidth: 0 }}>{t(source.encoding === 'windows-1252' ? 'imp.encoding.windows' : 'imp.encoding.utf8')}</span>
             <button type="button" onClick={() => reread(source.encoding === 'windows-1252' ? 'utf-8' : 'windows-1252')} style={{ ...btn, padding: '4px 10px', minHeight: '32px' }}>
               {t(source.encoding === 'windows-1252' ? 'imp.encoding.readUtf8' : 'imp.encoding.readWindows')}
             </button>
@@ -319,7 +319,7 @@ function ChooseStep({ kinds, kind, setKind, source, setSource, headerRow, setHea
       {looksLike && (
         <p role="status" style={{ fontSize: '13px', display: 'flex', gap: space[2], alignItems: 'center', flexWrap: 'wrap', color: 'var(--warn)', margin: 0 }}>
           <AlertTriangle size={14} aria-hidden="true" style={{ flexShrink: 0 }} />
-          <span>{t('imp.looksLike', { kind: t(`imp.kind.${looksLike}`) })}</span>
+          <span style={{ flex: '1 1 200px', minWidth: 0 }}>{t('imp.looksLike', { kind: t(`imp.kind.${looksLike}`) })}</span>
           <button type="button" onClick={() => setKind(looksLike)} style={{ ...btn, padding: '4px 10px', minHeight: '32px' }}>{t('imp.switchTo', { kind: t(`imp.kind.${looksLike}`) })}</button>
         </p>
       )}
@@ -565,13 +565,13 @@ function DoneStep({ orgId, kind, result, table, headerRow, onAgain, onRetry }) {
           {refusedCount > 0 && (
             <div style={{ display: 'flex', gap: space[3], alignItems: 'center', flexWrap: 'wrap' }}>
               <p style={{ fontSize: '14px', color: colors.soft, margin: 0, flex: '1 1 240px' }}>{t('imp.after.refused', { count: refusedCount })}</p>
-              <button type="button" onClick={() => onRetry(refused)} style={btnPrimary}><RotateCcw size={14} /> {t('imp.after.retry', { count: refusedCount })}</button>
+              <button type="button" onClick={() => onRetry(refused)} style={{ ...btnPrimary, maxWidth: '100%' }}><RotateCcw size={14} /> {t('imp.after.retry', { count: refusedCount })}</button>
             </div>
           )}
           {leftOutLines > 0 && (
             <div style={{ display: 'flex', gap: space[3], alignItems: 'center', flexWrap: 'wrap' }}>
               <p style={{ fontSize: '14px', color: colors.soft, margin: 0, flex: '1 1 240px' }}>{t('imp.after.leftOut', { count: leftOutLines })}</p>
-              <button type="button" onClick={downloadLeftOut} style={btn}><Download size={14} /> {t('imp.after.download', { count: leftOutLines })}</button>
+              <button type="button" onClick={downloadLeftOut} style={{ ...btn, maxWidth: '100%' }}><Download size={14} /> {t('imp.after.download', { count: leftOutLines })}</button>
             </div>
           )}
         </section>
