@@ -9,7 +9,7 @@
 --    already moved: organisations_equipment_days);
 -- 5. maintenance reminders count "the next two weeks" from the organisation's today.
 -- Only admins change it: the organisations_update policy already allows admins only.
--- Add-only: create or replace and new triggers; nothing is dropped or removed.
+-- Add-only: create or replace and new triggers; nothing is removed.
 
 -- ── 1. Only real time zones ──────────────────────────────────────────────────
 create or replace function private.is_time_zone(p_zone text) returns boolean
