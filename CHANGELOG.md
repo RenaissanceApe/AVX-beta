@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.82.2 — Fix-ups: a faster Reports Overview and test repairs
+
+#### Changed
+- **Reports → Overview** loads about twice as fast for small and new organisations. Its money tiles
+  used to run the full results calculation three times; two of those runs only needed the revenue
+  total, so they now read it straight from the accepted quote lines. Every number stays the same
+  (#114).
+
+#### Fixed
+- If one part of the Overview can't be loaded (for example, the database is busy), the other tiles
+  are still shown, and the tiles from the failed part say "Couldn't load this number. Try again in a
+  moment." Before, one failing part blanked the whole Overview and the key numbers on Home (#114).
+- The database checks for report dates (`supabase/tests/report_capture.sql`) run to the end again.
+  They stopped at the "declined → draft" step, which still expected the old behaviour; since the
+  quote bin (0.80), a declined quote goes back to draft only through "Revise", which clears both
+  report dates and the reason (#174).
+- The quote bin's database checks (`supabase/tests/quote_bin.sql`) can now run through the
+  Supabase connector, with the same checks as before.
+- `npm run e2e:sweep` accepts 2-letter worker tags such as `u1` (2 to 40 letters, digits or
+  hyphens) (#158).
+
 ## 0.82.1 — Import check: shorter problem texts and two small fixes
 
 #### Changed
