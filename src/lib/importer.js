@@ -13,6 +13,14 @@ export const HELD_KINDS = ['crew']
 // Upcoming jobs, their equipment and open quotes (S3b): also outside the batches, imported by import_jobs
 export const JOB_KINDS = ['gigs', 'gig_equipment', 'quotes']
 export const MAX_ROWS = 5000
+// Exact picks (IM3): a row can carry the id of the record a fix chose (an item, a set or case, a
+// location, a gig, a client, or the contact a contacts row updates), which the database checks
+// and uses before the code and the name; _new makes a contacts row a new contact even when one has
+// its name. They come from fixes, never from a column of the file.
+export const PICKS = ['_item_id', '_kit_id', '_location_id', '_gig_id', '_client_id', '_contact_id', '_new']
+// Hidden fields a fix can fill (sent with the row, never from a column): the picks, and _history
+// (IM4: a past job imported as 'completed' or 'cancelled')
+const HIDDEN = [...PICKS, '_history']
 const CODE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/
 
 // Words people (and Rentman, in Dutch or English) use for each choice
@@ -96,6 +104,12 @@ const WORDS = {
     active: ['active', 'in progress', 'lopend', 'em curso', 'on site'],
     completed: ['completed', 'finished', 'done', 'closed', 'afgerond', 'voltooid', 'gesloten', 'concluido', 'terminado', 'fechado'],
     cancelled: ['cancelled', 'canceled', 'geannuleerd', 'cancelado', 'anulado', 'lost', 'verloren', 'perdido'],
+  },
+  quoteStatus: {
+    draft: ['draft', 'concept', 'rascunho', 'open', 'new', 'nieuw', 'novo'],
+    sent: ['sent', 'verzonden', 'verstuurd', 'enviado', 'enviada', 'pending', 'in afwachting', 'pendente', 'awaiting', 'waiting'],
+    accepted: ['accepted', 'won', 'approved', 'confirmed', 'geaccepteerd', 'akkoord', 'gewonnen', 'goedgekeurd', 'aceite', 'aceito', 'aceitado', 'aprovado', 'aprovada', 'ganho', 'confirmado'],
+    declined: ['declined', 'rejected', 'lost', 'refused', 'afgewezen', 'verloren', 'geweigerd', 'recusado', 'recusada', 'rejeitado', 'rejeitada', 'perdido', 'perdida'],
   },
   unitStatus: {
     available: ['available', 'beschikbaar', 'disponivel', 'ok', 'in stock', 'active', 'actief', 'ativo'],
@@ -227,6 +241,11 @@ export const FIELDS = {
     { key: 'factor', type: 'number', names: ['days', 'dagen', 'dias', 'factor', 'periods', 'periode', 'period', 'periodo'] },
     { key: 'unit_price', type: 'money', names: ['price', 'unit price', 'prijs', 'stukprijs', 'eenheidsprijs', 'preco', 'preco unitario', 'rate', 'tarief'] },
     { key: 'discount_pct', type: 'number', names: ['discount', 'discount pct', 'korting', 'desconto', 'percentage'] },
+    // IM4: a quote's history (its first line gives it), so the reports count it on its own dates
+    { key: 'status', type: 'enum', words: 'quoteStatus', names: ['status', 'state', 'estado', 'quote status', 'offertestatus', 'estado do orcamento'] },
+    { key: 'sent_date', type: 'date', names: ['sent', 'sent date', 'sent on', 'date sent', 'verzonden', 'verzonden op', 'verzenddatum', 'data de envio', 'enviado em', 'enviado'] },
+    { key: 'decided_date', type: 'date', names: ['decided', 'decided on', 'decision date', 'date decided', 'accepted on', 'declined on', 'beslist op', 'besluitdatum', 'data de decisao', 'decidido em'] },
+    { key: 'lost_reason', type: 'text', max: 500, names: ['reason', 'lost reason', 'decline reason', 'reason lost', 'reden', 'reden afwijzing', 'motivo', 'motivo de recusa'] },
   ],
   crew: [
     { key: 'email', type: 'email', required: true, names: ['email', 'e mail', 'mail', 'email address', 'e mailadres', 'emailadres', 'correio electronico', 'correio eletronico'] },
@@ -289,18 +308,57 @@ function splitLine(line, d) {
 
 // A CSV/TSV file or text pasted from a spreadsheet → { headers, rows } (rows are arrays of
 // strings; quoted cells may hold the separator, quotes and line breaks). headers: the first row,
-// or "Column 1", "Column 2"… when the file has none.
-export function parseTable(text, { headerRow = true, delimiter } = {}) {
+// or "Column 1", "Column 2"… when the file has none. headerAt: how many lines (title lines) come
+// before the headings; they're left out, and `offset` says how many were.
+export function parseTable(text, { headerRow = true, delimiter, headerAt = 0 } = {}) {
   const src = String(text || '').replace(/^\uFEFF/, '')
-  const d = delimiter || detectDelimiter(src)
-  const rows = records(src).map(r => splitLine(r, d))
+  const all = records(src)
+  const offset = Math.min(Math.max(0, Math.floor(Number(headerAt) || 0)), Math.max(0, all.length - 1))
+  const kept = all.slice(offset)
+  const d = delimiter || detectDelimiter(kept.join('\n'))
+  const rows = kept.map(r => splitLine(r, d))
   const width = Math.max(0, ...rows.map(r => r.length))
-  if (!rows.length) return { headers: [], rows: [], delimiter: d }
+  if (!rows.length) return { headers: [], rows: [], delimiter: d, offset: 0 }
   const headers = headerRow
     ? rows[0].map((h, i) => h || `Column ${i + 1}`)
     : Array.from({ length: width }, (_, i) => `Column ${i + 1}`)
   while (headers.length < width) headers.push(`Column ${headers.length + 1}`)
-  return { headers, rows: (headerRow ? rows.slice(1) : rows).map(r => headers.map((_, i) => r[i] ?? '')), delimiter: d }
+  return { headers, rows: (headerRow ? rows.slice(1) : rows).map(r => headers.map((_, i) => r[i] ?? '')), delimiter: d, offset }
+}
+
+// The line of the file a table's first row is on (the lines are the file's non-empty lines)
+export const firstLine = (table, headerRow = true) => (headerRow ? 2 : 1) + (table?.offset || 0)
+
+// Which line holds the headings (0 = the first): title lines above them ("Stock list March") have
+// fewer filled cells than the headings. Suggested on the Choose step, never forced.
+export function suggestHeaderRow(text) {
+  const recs = records(String(text || '').replace(/^\uFEFF/, '')).slice(0, 20)
+  if (recs.length < 2) return 0
+  const filled = (r, d) => splitLine(r, d).filter(Boolean).length
+  let d = '\t', width = 1
+  for (const c of ['\t', ';', ',', '|']) {
+    const w = Math.max(...recs.map(r => filled(r, c)))
+    if (w > width) { d = c; width = w }
+  }
+  if (width < 2) return 0
+  const need = Math.max(2, Math.ceil(width / 2))
+  return Math.max(0, recs.findIndex(r => filled(r, d) >= need))
+}
+
+// A file's bytes as text: UTF-8 when it is valid UTF-8, UTF-16 when it starts with its mark, and
+// otherwise Western (Windows-1252), which is how Excel on Windows saves a CSV file ("Armazém"
+// instead of "Armaz�m"). encoding forces one. noticed: Windows-1252 was chosen because the file
+// wasn't UTF-8, so the page says so and offers a switch.
+export function decodeText(buffer, encoding = null) {
+  const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer)
+  if (encoding) return { text: new TextDecoder(encoding).decode(bytes), encoding, noticed: false }
+  if (bytes[0] === 0xFF && bytes[1] === 0xFE) return { text: new TextDecoder('utf-16le').decode(bytes), encoding: 'utf-16le', noticed: false }
+  if (bytes[0] === 0xFE && bytes[1] === 0xFF) return { text: new TextDecoder('utf-16be').decode(bytes), encoding: 'utf-16be', noticed: false }
+  try {
+    return { text: new TextDecoder('utf-8', { fatal: true }).decode(bytes), encoding: 'utf-8', noticed: false }
+  } catch {
+    return { text: new TextDecoder('windows-1252').decode(bytes), encoding: 'windows-1252', noticed: true }
+  }
 }
 
 // ── Matching columns ─────────────────────────────────────────────────────────
@@ -331,9 +389,56 @@ const RENTMAN_HEADERS = new Set(['displayname', 'rental sales', 'stock managemen
   'planperiod start', 'planperiod end', 'usageperiod start', 'usageperiod end', 'purchasedate', 'purchase costs', 'asset location', 'firstname', 'lastname'])
 export const looksLikeRentman = headers => headers.filter(h => RENTMAN_HEADERS.has(normalise(h))).length >= 2
 
-// Required fields not matched to any column
-export function missingFields(mapping, kind) {
+// "This looks like a Units file": the kind whose fields the headings fit best, when it isn't the one
+// chosen. A heading counts when it is one of a kind's own column names, and more the fewer kinds
+// name it ("Serial number" is only a unit's); a kind is suggested when the chosen one lacks a
+// required field and the other has them all, or when the other fits clearly better. null when the
+// chosen kind is as good as any.
+export function guessKind(headers, current, kinds = KINDS) {
+  const all = kinds.concat(kinds.includes(current) ? [] : [current])
+  const maps = Object.fromEntries(all.map(k => [k, guessMapping(headers, k)]))
+  const names = Object.fromEntries(all.map(k => [k, new Set((FIELDS[k] || []).flatMap(f => f.names))]))
+  const exact = (k, h) => names[k].has(normalise(h))
+  const claims = h => all.filter(k => exact(k, h)).length
+  const score = k => headers.filter(h => exact(k, h)).reduce((sum, h) => sum + 1 / claims(h), 0)
+  const fits = k => Object.keys(maps[k]).length > 0 && missingFields(maps[k], k).length === 0
+  const here = { score: score(current), fits: fits(current) }
+  let best = null
+  for (const k of kinds) {
+    if (k === current || !fits(k)) continue
+    const s = score(k)
+    if (!best || s > best.score + 1e-9) best = { kind: k, score: s }
+  }
+  if (!best) return null
+  return !here.fits || best.score >= here.score + 0.75 ? best.kind : null
+}
+
+// The file's columns with something in them that no field takes ("Not imported: Remarks, Colour")
+export const unusedColumns = (table, mapping) =>
+  table.headers.filter((h, i) => !mapping[h] && table.rows.some(r => String(r[i] ?? '').trim() !== ''))
+
+// "Same for every row": the fields a file may leave out and give one value for all its rows
+// instead, per kind. Each entry lists the fields that say the same thing (an item by its code or
+// its name); the value goes in the first one that the choice fills.
+export const SAME_FOR_ALL = {
+  locations: [['kind']],
+  items: [['location']],
+  units: [['item_code', 'item'], ['location'], ['status']],
+  kits: [['kit_code', 'kit']],
+  gigs: [['status'], ['client']],
+  gig_equipment: [['gig_ref', 'gig']],
+  quotes: [['client']],
+  crew: [['role']],
+}
+// The "same for every row" fields a mapping leaves open (no column gives any of them)
+export function openDefaults(mapping, kind) {
   const used = new Set(Object.values(mapping))
+  return (SAME_FOR_ALL[kind] || []).filter(keys => !keys.some(k => used.has(k)))
+}
+
+// Required fields not matched to any column (a "same for every row" value counts as one)
+export function missingFields(mapping, kind, defaults = {}) {
+  const used = new Set([...Object.values(mapping), ...Object.keys(defaults || {}).filter(k => defaults[k] != null && defaults[k] !== '')])
   if (kind === 'units') return used.has('item') || used.has('item_code') ? [] : ['item']
   if (kind === 'kits') return [...(used.has('kit') || used.has('kit_code') ? [] : ['kit']), ...(used.has('item') || used.has('item_code') ? [] : ['item'])]
   if (kind === 'items') return used.has('name') || used.has('code') ? [] : ['name']
@@ -353,17 +458,55 @@ export function parseNumber(text) {
   return parsePrice(s.replace(/[a-zA-Z€$£]/g, ''))
 }
 
-// 2024-03-01, 01-03-2024, 1/3/2024, 01.03.2024 → '2024-03-01' (day before month), or null
-export function parseDate(text) {
+// 2024-03-01, 01-03-2024, 1/3/2024, 01.03.2024 → '2024-03-01' (day before month, unless order is
+// 'mdy': 3/1/2024), or null
+export function parseDate(text, order = 'dmy') {
   const s = String(text ?? '').trim()
   let y, m, d
   let r = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/)
   if (r) [, y, m, d] = r
-  else if ((r = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/))) [, d, m, y] = r
+  else if ((r = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/))) [, d, m, y] = order === 'mdy' ? [r[0], r[2], r[1], r[3]] : r
   else return null
   const date = new Date(Date.UTC(+y, +m - 1, +d))
   if (date.getUTCFullYear() !== +y || date.getUTCMonth() !== +m - 1 || date.getUTCDate() !== +d) return null
   return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+}
+
+// How a date column writes its days and months, from its values: 'dmy' (a 31/12/2025 tells),
+// 'mdy' (a 12/31/2025 tells), 'ask' when no value tells (or they disagree), or null when there's
+// nothing to decide (dates written year first, or the same day and month)
+export function dateOrder(values) {
+  let dayFirst = false, monthFirst = false, open = false
+  for (const v of values) {
+    const m = String(v ?? '').trim().match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/)
+    if (!m) continue
+    const a = Number(m[1]), b = Number(m[2])
+    if (a > 12 && b <= 12) dayFirst = true
+    else if (b > 12 && a <= 12) monthFirst = true
+    else if (a !== b) open = true
+  }
+  if (dayFirst !== monthFirst) return dayFirst ? 'dmy' : 'mdy'
+  return dayFirst || open ? 'ask' : null
+}
+
+// The date order of each date column a mapping uses: { orders: { field: 'dmy' | 'mdy' }, columns:
+// [{ header, field, noticed, order }], open: [field] } (open: asked and not answered yet). chosen:
+// what the person picked ({ field: order }), which wins over what was noticed.
+export function dateOrders(table, mapping, kind, custom = [], chosen = {}) {
+  const fields = fieldsFor(kind, custom)
+  const columns = table.headers.map((header, i) => ({ header, i, field: fields.find(f => f.key === mapping[header]) }))
+    .filter(c => c.field?.type === 'date')
+    .map(({ header, i, field }) => {
+      const noticed = dateOrder(table.rows.map(r => r[i]))
+      const order = chosen[field.key] || (noticed === 'dmy' || noticed === 'mdy' ? noticed : null)
+      return { header, field: field.key, noticed, order }
+    })
+    .filter(c => c.noticed)
+  return {
+    orders: Object.fromEntries(columns.filter(c => c.order).map(c => [c.field, c.order])),
+    columns,
+    open: columns.filter(c => !c.order).map(c => c.field),
+  }
 }
 
 export function parseChoice(text, words) {
@@ -378,6 +521,7 @@ export function cleanValue(raw, field) {
   const s = String(raw ?? '').trim()
   if (!s) return { value: null }
   switch (field.type) {
+    case 'exact': return { value: s }
     case 'money':
     case 'number': {
       const n = parseNumber(s)
@@ -388,9 +532,23 @@ export function cleanValue(raw, field) {
       return Number.isFinite(n) && Number.isInteger(n) && n >= 0 && n <= (field.max || 1e9) ? { value: n } : { error: 'whole' }
     }
     case 'date': {
-      const d = parseDate(s)
+      const d = parseDate(s, field.order)
       return d ? { value: d } : { error: 'date' }
     }
+    // The organisation's own fields (customFieldDefs): checked as the database checks them
+    case 'anyNumber': {
+      const n = parseNumber(s.replace(/^-/, ''))
+      return Number.isFinite(n) ? { value: s.startsWith('-') ? -n : n } : { error: 'number' }
+    }
+    case 'yesNo': {
+      const v = parseChoice(s, 'yesNo')
+      return v ? { value: v === 'yes' } : { error: 'choice' }
+    }
+    case 'pick': {
+      const v = (field.choices || []).find(c => normalise(c) === normalise(s))
+      return v ? { value: v } : { error: 'choice' }
+    }
+    case 'link': return /^https?:\/\/\S+$/i.test(s) && s.length <= 500 ? { value: s } : { error: 'link' }
     case 'enum': {
       const v = parseChoice(s, field.words)
       return v ? { value: v } : { error: 'choice' }
@@ -401,24 +559,53 @@ export function cleanValue(raw, field) {
   }
 }
 
+// The organisation's own fields (custom_fields, docs/BUSINESS.md) as fields a column can go to:
+// key 'cf:<id>', checked by their kind. Their values go in the row's custom_values.
+const CUSTOM_TYPES = { text: { type: 'text', max: 1000 }, number: { type: 'anyNumber' }, date: { type: 'date' }, yes_no: { type: 'yesNo', words: 'yesNo' }, choice: { type: 'pick' }, link: { type: 'link' } }
+export const CUSTOM_ENTITY = { items: 'item', clients: 'client', suppliers: 'supplier', gigs: 'gig' }
+export const customFieldDefs = custom => (custom || []).map(f => ({ key: `cf:${f.id}`, ...(CUSTOM_TYPES[f.kind] || CUSTOM_TYPES.text), choices: f.choices || [], label: f.label, custom: true, names: [] }))
+export const fieldsFor = (kind, custom = []) => [...(FIELDS[kind] || []), ...(CUSTOM_ENTITY[kind] ? customFieldDefs(custom) : [])]
+
 // The file's rows as AVX rows: [{ _row (line in the file), field: value, …, _errors: [{ field, error }] }].
 // Rows with nothing in the matched columns are left out.
-// defaultLocation: where quantities go when the file has no location column (Rentman's equipment
-// export, a single warehouse)
-export function buildRows(table, mapping, kind, { headerRow = true, defaultLocation = null } = {}) {
-  const fields = FIELDS[kind] || []
-  const cols = table.headers.map((h, i) => ({ i, field: fields.find(f => f.key === mapping[h]) })).filter(c => c.field)
+// Options:
+//   defaults     "same for every row" values ({ field: text }) for fields no column gives; for
+//                equipment the location is where quantities go (Rentman's export, one warehouse)
+//   dateOrders   { field: 'dmy' | 'mdy' } how each date column writes its dates
+//   custom       the organisation's own fields (custom_fields rows) a column can go to
+//   only         the lines to read (the rows the database refused, tried again); the rest are left out
+export function buildRows(table, mapping, kind, { headerRow = true, defaultLocation = null, defaults = {}, dateOrders = {}, custom = [], only = null } = {}) {
+  const fields = fieldsFor(kind, custom)
+  const cols = table.headers.map((h, i) => {
+    const field = fields.find(f => f.key === mapping[h]) || (HIDDEN.includes(mapping[h]) ? { key: mapping[h], type: 'exact' } : null)
+    return { i, field: field && field.type === 'date' && dateOrders[field.key] ? { ...field, order: dateOrders[field.key] } : field }
+  }).filter(c => c.field)
+  const given = new Set(cols.map(c => c.field.key))
+  const sameForAll = Object.entries(defaults || {}).filter(([k, v]) => v != null && v !== '' && !given.has(k) && !(kind === 'items' && k === 'location'))
+  const where = (kind === 'items' && !given.has('location') && defaults?.location) || defaultLocation
+  const lines = only ? new Set(only.map(Number)) : null
+  const first = firstLine(table, headerRow)
   const out = []
   table.rows.forEach((cells, n) => {
-    const row = { _row: n + (headerRow ? 2 : 1), _errors: [] }
+    const row = { _row: n + first, _errors: [] }
+    if (lines && !lines.has(row._row)) return
     let any = false
     for (const { i, field } of cols) {
       const { value, error } = cleanValue(cells[i], field)
       if (error) row._errors.push({ field: field.key, error })
-      if (value !== null && value !== undefined) { row[field.key] = value; any = true }
-      else if (error) any = true
+      if (value !== null && value !== undefined) {
+        if (field.custom) row.custom_values = { ...row.custom_values, [field.key.slice(3)]: value }
+        else row[field.key] = value
+        // A pick only says which record a row means; it doesn't make an empty row count
+        if (field.type !== 'exact') any = true
+      } else if (error) any = true
     }
     if (!any) return
+    for (const [key, text] of sameForAll) {
+      const field = fields.find(f => f.key === key)
+      const { value } = field ? cleanValue(text, field) : { value: null }
+      if (value !== null && value !== undefined) row[key] = value
+    }
     if (CONTACT_KINDS.includes(kind)) joinAddress(row)
     if (kind === 'crew') joinName(row)
     // People marked inactive in the old tool aren't invited
@@ -440,7 +627,7 @@ export function buildRows(table, mapping, kind, { headerRow = true, defaultLocat
     if (kind === 'kits' && !row.kit && !row.kit_code) row._errors.push({ field: 'kit', error: 'missing' })
     if (kind === 'kits' && !row.item && !row.item_code) row._errors.push({ field: 'item', error: 'missing' })
     if (kind === 'kits' && row.quantity === 0) row._errors.push({ field: 'quantity', error: 'whole' })
-    if (kind === 'items' && row.quantity > 0 && !row.location && defaultLocation) row.location = defaultLocation
+    if (kind === 'items' && row.quantity > 0 && !row.location && where) row.location = where
     if (kind === 'items' && row.quantity > 0 && !row.location) row._errors.push({ field: 'location', error: 'needLocation' })
     out.push(row)
   })
@@ -490,9 +677,27 @@ function joinName(row) {
   if (!row.full_name && joined) row.full_name = joined.slice(0, 120)
 }
 
-const today = () => {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const today = () => ymd(new Date())
+// How far back the history import goes (the owner's answer, IM4): dates before this are too old
+export const HISTORY_YEARS = 10
+export const historyFrom = (now = new Date()) => ymd(new Date(now.getFullYear() - HISTORY_YEARS, now.getMonth(), now.getDate()))
+
+// A quote's status and dates, checked as the database checks them (IM4): null when they're fine,
+// otherwise the row's plan. The sent date defaults to the quote's date, the decided date to the
+// sent date; a decided quote from more than HISTORY_YEARS ago is too old.
+export function quoteHistory(row, now = new Date()) {
+  const status = row.status || 'draft'
+  const name = row.quote_ref || row.title
+  if (status === 'draft') return null
+  const sent = row.sent_date || row.issue_date || null
+  const decided = ['accepted', 'declined'].includes(status) ? row.decided_date || sent : null
+  const day = ymd(now)
+  if (row.sent_date && row.sent_date > day) return { action: 'skip', reason: 'futureDate', field: 'sent_date' }
+  if (row.decided_date && row.decided_date > day) return { action: 'skip', reason: 'futureDate', field: 'decided_date' }
+  if (decided && sent && decided < sent) return { action: 'skip', reason: 'decidedFirst', field: row.decided_date ? 'decided_date' : 'sent_date' }
+  if (decided && decided < historyFrom(now)) return { action: 'skip', reason: 'tooOld', value: name, purpose: true }
+  return null
 }
 
 // A gig by its old number, then by name (and start date when given), as the database finds it
@@ -506,24 +711,56 @@ function findGig(gigs = [], ref, name, start) {
   const named = gigs.filter(g => lower(g.name) === lower(name) && (!start || g.start_date === start))
   return named.length === 1 ? named[0] : null
 }
+// Gigs the name (and start date) fits when more than one does: the database refuses those rows
+function sameGigs(gigs = [], ref, name, start) {
+  const lower = s => String(s || '').toLowerCase()
+  if (!name || (ref && gigs.some(g => g.import_ref && lower(g.import_ref) === lower(ref)))) return 0
+  return gigs.filter(g => lower(g.name) === lower(name) && (!start || g.start_date === start)).length
+}
 
 // A tax number compared without spaces, dots, dashes or capitals (as the database does)
 export const taxKey = s => String(s || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase()
 
 // What sending these rows will do, predicted from what exists: each row gets
-// { action: 'create' | 'match' | 'skip', reason } (the database has the final word)
+// { action: 'create' | 'match' | 'skip', reason, field, value } (the database has the final word).
+// A skipped row is either a problem (with fixes, see FIXES) or left out on purpose ({ purpose: true }:
+// past jobs, people already in…); a row that goes in can carry a heads-up ({ note }).
 export function dryRun(rows, kind, existing) {
   const lower = s => String(s || '').toLowerCase()
-  const locations = new Set((existing.locations || []).filter(l => !l.archived_at).map(l => lower(l.name)))
+  const allLocations = existing.locations || []
+  const locations = new Set(allLocations.filter(l => !l.archived_at).map(l => lower(l.name)))
+  const archivedLocations = new Set(allLocations.filter(l => l.archived_at).map(l => lower(l.name)))
   const items = (existing.items || []).filter(i => !i.archived_at)
+  const archivedCodes = new Set((existing.items || []).filter(i => i.archived_at && i.code).map(i => i.code.toUpperCase()))
   const itemByCode = new Map(items.filter(i => i.code).map(i => [i.code.toUpperCase(), i]))
   const itemsByName = new Map()
   for (const i of items) itemsByName.set(lower(i.name), [...(itemsByName.get(lower(i.name)) || []), i])
-  const unitCodes = new Set((existing.units || []).map(u => u.code.toUpperCase()))
+  const unitItem = new Map((existing.units || []).map(u => [u.code.toUpperCase(), u.item_id]))
+  const stocked = new Set(existing.stocked || [])
+  const clients = new Set((existing.clients || []).filter(c => !c.archived_at).map(c => lower(c.name)))
   const seen = new Set()
-  const findItem = (code, name) => (code && itemByCode.get(code.toUpperCase())) || (name && itemsByName.get(lower(name))?.length === 1 ? itemsByName.get(lower(name))[0] : null)
+  const itemById = new Map(items.filter(i => i.id).map(i => [String(i.id), i]))
+  // An exact pick (IM3) wins over the code and the name
+  const findItem = (code, name, id) => (id && itemById.get(String(id))) || (code && itemByCode.get(code.toUpperCase())) || (name && itemsByName.get(lower(name))?.length === 1 ? itemsByName.get(lower(name))[0] : null)
+  const gigById = id => (id && (existing.gigs || []).find(g => String(g.id) === String(id))) || null
+  // Why an item (or kit) wasn't found: its code is archived, or its name is shared, or it isn't there
+  const missingItem = (code, name, reason, codeField, nameField) => {
+    if (code && archivedCodes.has(code.toUpperCase()) && !itemByCode.has(code.toUpperCase())) return { action: 'skip', reason: 'archived', field: codeField, value: code }
+    if (!code && name && (itemsByName.get(lower(name))?.length || 0) > 1) return { action: 'skip', reason: 'sameName', field: nameField, value: name }
+    return { action: 'skip', reason, field: code ? codeField : nameField, value: code || name }
+  }
+  const badLocation = row => {
+    if (!row.location || locations.has(lower(row.location))) return null
+    return archivedLocations.has(lower(row.location))
+      ? { action: 'skip', reason: 'archivedLocation', field: 'location', value: row.location }
+      : { action: 'skip', reason: 'unknownLocation', field: 'location', value: row.location }
+  }
+  const clientNote = (row, result) => (result.action !== 'skip' && row.client && !clients.has(lower(row.client)) ? { ...result, note: 'clientUnknown', field: 'client', value: row.client } : result)
   const plan = rows.map(row => {
-    if (row._errors.length) return { action: 'skip', reason: row._errors[0].error, field: row._errors[0].field }
+    if (row._errors.length) {
+      const e = row._errors[0]
+      return e.error === 'inactive' ? { action: 'skip', reason: 'inactive', field: e.field, purpose: true } : { action: 'skip', reason: e.error, field: e.field }
+    }
     if (kind === 'locations') {
       const key = lower(row.name)
       const action = locations.has(key) || seen.has(key) ? 'match' : 'create'
@@ -531,29 +768,48 @@ export function dryRun(rows, kind, existing) {
       return { action }
     }
     if (kind === 'items') {
-      if (row.location && !locations.has(lower(row.location))) return { action: 'skip', reason: 'unknownLocation', value: row.location }
-      if (!row.code && row.name && (itemsByName.get(lower(row.name))?.length || 0) > 1) return { action: 'skip', reason: 'sameName', value: row.name }
-      const key = row.code ? `#${row.code.toUpperCase()}` : lower(row.name)
-      const action = findItem(row.code, row.name) || seen.has(key) ? 'match' : 'create'
+      const where = badLocation(row)
+      if (where) return where
+      const picked = row._item_id && itemById.get(String(row._item_id))
+      if (!picked && !row.code && row.name && (itemsByName.get(lower(row.name))?.length || 0) > 1) return { action: 'skip', reason: 'sameName', field: 'name', value: row.name }
+      if (!picked && row.code && archivedCodes.has(row.code.toUpperCase()) && !itemByCode.has(row.code.toUpperCase())) return { action: 'skip', reason: 'archived', field: 'code', value: row.code }
+      const key = picked ? `=${picked.id}` : row.code ? `#${row.code.toUpperCase()}` : lower(row.name)
+      const found = picked || findItem(row.code, row.name)
+      if (!found && !seen.has(key) && row.quantity > 0 && row.tracking === 'serial') return { action: 'skip', reason: 'serialQuantity', field: 'quantity', value: row.name || row.code }
+      if (found && row.tracking && row.tracking !== found.tracking && stocked.has(found.id)) return { action: 'skip', reason: 'trackingLocked', field: 'tracking', value: found.name }
+      const action = found || seen.has(key) ? 'match' : 'create'
       seen.add(key)
-      return { action }
+      return found && row.quantity > 0 ? { action, note: 'quantityKept', field: 'quantity', value: found.name } : { action }
     }
     if (kind === 'gigs') {
-      if (row.status === 'cancelled') return { action: 'skip', reason: 'cancelledJob', value: row.name || row.ref }
-      if ((row.end_date || row.start_date) && (row.end_date || row.start_date) < today()) return { action: 'skip', reason: 'pastJob', value: row.name || row.ref }
-      const found = findGig(existing.gigs, row.ref, row.name, row.start_date)
+      // Past jobs (IM4): left out unless "Import as past jobs" (or, for cancelled ones, "Import as
+      // cancelled") was chosen; more than HISTORY_YEARS ago they are too old either way
+      const end = row.end_date || row.start_date
+      const past = !!end && end < today()
+      const name = row.name || row.ref
+      if (row.status === 'cancelled' && !past) return { action: 'skip', reason: 'cancelledJob', value: name, purpose: true }
+      if (past && end < historyFrom()) return { action: 'skip', reason: 'tooOld', value: name, purpose: true }
+      if (past && row.status === 'cancelled' && row._history !== 'cancelled') return { action: 'skip', reason: 'pastCancelled', value: name, purpose: true }
+      if (past && !row._history) return { action: 'skip', reason: 'pastJob', value: name, purpose: true }
+      const found = gigById(row._gig_id) || findGig(existing.gigs, row.ref, row.name, row.start_date)
+      // A gig already in AVX is never turned into a past one: the database leaves it as it is
+      if (past && found && !found.from_history) return { action: 'skip', reason: 'gigThere', value: found.name, purpose: true }
+      if (!found && sameGigs(existing.gigs, row.ref, row.name, row.start_date) > 1) return { action: 'skip', reason: 'sameGig', field: 'name', value: row.name }
       if (!found && !row.start_date) return { action: 'skip', reason: 'noStart', field: 'start_date' }
       const key = row.ref ? `#${lower(row.ref)}` : `${lower(row.name)}|${row.start_date}`
       const action = found || seen.has(key) ? 'match' : 'create'
       seen.add(key)
-      return { action }
+      return clientNote(row, { action })
     }
     if (kind === 'gig_equipment') {
-      const gig = findGig(existing.gigs, row.gig_ref, row.gig, null)
-      if (!gig) return { action: 'skip', reason: 'unknownJob', value: row.gig_ref || row.gig }
-      const item = findItem(row.item_code, row.item)
-      if (!item) return { action: 'skip', reason: 'unknownItem', value: row.item_code || row.item }
-      if (item.tracking === 'none') return { action: 'skip', reason: 'notTracked', value: item.name }
+      const gig = gigById(row._gig_id) || findGig(existing.gigs, row.gig_ref, row.gig, null)
+      if (!gig && sameGigs(existing.gigs, row.gig_ref, row.gig, null) > 1) return { action: 'skip', reason: 'sameGig', field: 'gig', value: row.gig }
+      if (!gig) return { action: 'skip', reason: 'unknownJob', field: row.gig_ref ? 'gig_ref' : 'gig', value: row.gig_ref || row.gig }
+      // A past job brought in from history never books equipment (IM4)
+      if (gig.from_history) return { action: 'skip', reason: 'historyGig', value: gig.name, purpose: true }
+      const item = findItem(row.item_code, row.item, row._item_id)
+      if (!item) return missingItem(row.item_code, row.item, 'unknownItem', 'item_code', 'item')
+      if (item.tracking === 'none') return { action: 'skip', reason: 'notTracked', field: row.item_code ? 'item_code' : 'item', value: item.name }
       const key = `${gig.id}>${item.id}`
       const action = (existing.lines || []).some(l => l.gig_id === gig.id && l.item_id === item.id) || seen.has(key) ? 'match' : 'create'
       seen.add(key)
@@ -561,38 +817,47 @@ export function dryRun(rows, kind, existing) {
     }
     if (kind === 'quotes') {
       const key = lower(row.quote_ref || row.title)
-      const action = (row.quote_ref && (existing.quotes || []).some(q => lower(q.import_ref) === lower(row.quote_ref))) || seen.has(key) ? 'match' : 'create'
+      const known = row.quote_ref && (existing.quotes || []).find(q => lower(q.import_ref) === lower(row.quote_ref))
+      if (known && known.status && known.status !== 'draft') return { action: 'skip', reason: 'quoteSent', value: row.quote_ref, purpose: true }
+      // Its history (IM4): the first line of a quote gives its status and dates, as the database reads them
+      if (!seen.has(key)) {
+        const history = quoteHistory(row)
+        if (history) return history
+      }
+      const action = known || seen.has(key) ? 'match' : 'create'
       seen.add(key)
-      return { action }
+      return clientNote(row, { action })
     }
     if (kind === 'crew') {
       const email = lower(row.email)
-      const known = new Set([...(existing.members || []), ...(existing.invites || []), ...(existing.held || [])].map(lower))
-      const action = known.has(email) || seen.has(email) ? 'match' : 'create'
+      if ((existing.members || []).map(lower).includes(email)) return { action: 'skip', reason: 'alreadyMember', value: row.email, purpose: true }
+      if ((existing.invites || []).map(lower).includes(email)) return { action: 'skip', reason: 'alreadyInvited', value: row.email, purpose: true }
+      const action = (existing.held || []).map(lower).includes(email) || seen.has(email) ? 'match' : 'create'
       seen.add(email)
       return { action }
     }
     if (CONTACT_KINDS.includes(kind)) {
       const contacts = (existing.contacts || [])
       const byTax = row.tax_id && contacts.find(c => taxKey(c.tax_id) && taxKey(c.tax_id) === taxKey(row.tax_id))
-      let match = byTax
-      if (!match) {
+      const picked = row._contact_id && contacts.find(c => !c.archived_at && String(c.id) === String(row._contact_id))
+      let match = row._new ? null : picked || byTax
+      if (!match && !row._new) {
         const named = contacts.filter(c => !c.archived_at && lower(c.name) === lower(row.name))
         const narrowed = named.length > 1 && row.email ? named.filter(c => lower(c.email) === lower(row.email)) : named
-        if (narrowed.length > 1) return { action: 'skip', reason: 'sameContact', value: row.name }
+        if (narrowed.length > 1) return { action: 'skip', reason: 'sameContact', field: 'name', value: row.name }
         match = narrowed[0]
       }
-      const key = row.tax_id ? `#${taxKey(row.tax_id)}` : lower(row.name)
+      const key = match ? `=${match.id}` : row._new ? `+${row._row}` : row.tax_id ? `#${taxKey(row.tax_id)}` : lower(row.name)
       const action = match || seen.has(key) ? 'match' : 'create'
       seen.add(key)
       return { action }
     }
     if (kind === 'kits') {
-      const kit = findItem(row.kit_code, row.kit)
-      if (!kit) return { action: 'skip', reason: 'unknownKit', value: row.kit_code || row.kit }
-      const item = findItem(row.item_code, row.item)
-      if (!item) return { action: 'skip', reason: 'unknownItem', value: row.item_code || row.item }
-      if (kit.id === item.id) return { action: 'skip', reason: 'selfKit', value: kit.name }
+      const kit = findItem(row.kit_code, row.kit, row._kit_id)
+      if (!kit) return missingItem(row.kit_code, row.kit, 'unknownKit', 'kit_code', 'kit')
+      const item = findItem(row.item_code, row.item, row._item_id)
+      if (!item) return missingItem(row.item_code, row.item, 'unknownItem', 'item_code', 'item')
+      if (kit.id === item.id) return { action: 'skip', reason: 'selfKit', field: row.item_code ? 'item_code' : 'item', value: kit.name }
       const partKind = row.part_kind || (!kit.kit_type && kit.tracking !== 'none' && !row.kit_type ? 'accessory' : 'content')
       const key = `${kit.id}>${item.id}>${partKind}`
       const action = (existing.parts || []).some(p => p.parent_id === kit.id && p.child_id === item.id && p.kind === partKind) || seen.has(key) ? 'match' : 'create'
@@ -600,13 +865,15 @@ export function dryRun(rows, kind, existing) {
       return { action }
     }
     // units
-    if (row.location && !locations.has(lower(row.location))) return { action: 'skip', reason: 'unknownLocation', value: row.location }
-    const item = findItem(row.item_code, row.item)
+    const where = badLocation(row)
+    if (where) return where
+    const item = findItem(row.item_code, row.item, row._item_id)
     // An item created by an earlier import in this session isn't known here yet; the database decides
-    if (!item) return { action: 'skip', reason: 'unknownItem', value: row.item_code || row.item }
-    if (item.tracking === 'bulk') return { action: 'skip', reason: 'bulkItem', value: item.name }
+    if (!item) return missingItem(row.item_code, row.item, 'unknownItem', 'item_code', 'item')
+    if (item.tracking === 'bulk') return { action: 'skip', reason: 'bulkItem', field: row.item_code ? 'item_code' : 'item', value: item.name }
     const key = row.code ? row.code.toUpperCase() : null
-    const action = (key && (unitCodes.has(key) || seen.has(key))) ? 'match' : 'create'
+    if (key && unitItem.has(key) && unitItem.get(key) !== item.id) return { action: 'skip', reason: 'otherItem', field: 'code', value: row.code }
+    const action = (key && (unitItem.has(key) || seen.has(key))) ? 'match' : 'create'
     if (key) seen.add(key)
     return { action }
   })
@@ -659,6 +926,12 @@ const SERVER = [
   [/^Unknown status: (.+)$/, 'unknownStatus'],
   [/^Cancelled job left out: (.+)$/, 'cancelledJob'],
   [/^Past job left out: (.+)$/, 'pastJob'],
+  [/^Too old to import: (.+)$/, 'tooOld'],
+  [/^Already in AVX, left as it is: (.+)$/, 'gigThere'],
+  [/^Past job: equipment isn't planned on it/, 'historyGig'],
+  [/^Unknown quote status: (.+)$/, 'unknownStatus'],
+  [/^A date is after today/, 'futureDate'],
+  [/^The quote is decided before it was sent/, 'decidedFirst'],
   [/^The job ends before it starts/, 'dates'],
   [/^The start date is missing/, 'noStart'],
   [/^Several gigs are called (.+?): add the job numbers/, 'sameGig'],
@@ -668,6 +941,9 @@ const SERVER = [
   [/^The quote has no title or number/, 'noTitle'],
   [/^A line has no description or item/, 'noDescription'],
   [/^Quote already sent, left as it is: (.+)$/, 'quoteSent'],
+  // One of the organisation's own fields (custom_values_before)
+  [/^Value does not fit the field/, 'customValue'],
+  [/^Unknown field/, 'customField'],
 ]
 export function serverMessage(message) {
   for (const [re, key] of SERVER) {
@@ -676,3 +952,437 @@ export function serverMessage(message) {
   }
   return null
 }
+// Every key the database's reasons can turn into (for the FIXES coverage test)
+export const SERVER_KEYS = SERVER.map(([, key]) => key)
+
+// ── Fixing it in the check (docs/SWITCHING.md, "Import overhaul: fix it here") ─────────────────
+// The pipeline: table → fixTable(table, mapping, fixes) → buildRows → dryRun(rows, kind,
+// withPending(existing, fixes)) → groupProblems. The fixes are a list kept by the wizard page, so
+// Back and Next keep them; each one can be taken back. A fix is one of:
+//   { type: 'replace', field, from, set }   every row whose cell in `field` is `from` (compared
+//                                           without capitals or spaces around) gets the cells in
+//                                           `set` ({ field: text }); '' empties a cell
+//   { type: 'cells', edits }                edited cells: { [line]: { field: text } }
+//   { type: 'skip', lines }                 rows left out on purpose
+//   { type: 'add', what, record, edits? }   something to add when Import is pressed: a location
+//                                           ({ name, kind }), an item ({ name, code, tracking, kind })
+//                                           or a client ({ name }); edits as for 'cells'
+//   { type: 'restore', id, name, what? }    an archived location (or, with what: 'item', an
+//                                           archived item) brought back when Import is pressed
+//   { type: 'track', id, name }             an item starts being counted in stock when Import is pressed
+//   { type: 'perUnit', id, name }           an item counted in bulk switches to per unit when Import
+//                                           is pressed (its opening quantity goes; the units bring
+//                                           the stock)
+// A 'replace' can also fill PICKS (the exact record a fix chose, by id).
+// What a fix adds, restores or switches is sent with the import itself (fixRows), so it is saved
+// in the import's own batch: if any of it fails nothing is imported, and one undo takes it all back.
+// Each fix also carries `key` (the problem group it answers) and `fix` (which of FIXES it is).
+
+// Which fixes each reason offers. Every group can also be left out ('skip'); fixes listed under
+// im3 would show as not available yet (none since IM3 built the database part). Reasons with purpose: true are
+// left out on purpose (no fix needed), and note: true marks a heads-up, not a problem.
+export const FIXES = {
+  // A bad or missing cell
+  number: { fixes: ['edit', 'treatEmpty'] },
+  whole: { fixes: ['edit', 'treatEmpty'] },
+  date: { fixes: ['edit', 'treatEmpty'] },
+  email: { fixes: ['edit', 'treatEmpty'] },
+  code: { fixes: ['edit', 'stripSpaces', 'treatEmpty'] },
+  long: { fixes: ['edit', 'cut'] },
+  missing: { fixes: ['edit'] },
+  noStart: { fixes: ['edit'] },
+  dates: { fixes: ['swapDates', 'edit'] },
+  choice: { fixes: ['treatAs', 'leaveEmpty'] },
+  needLocation: { fixes: ['putIn'] },
+  // Speaker and power specs (D80, D93)
+  unknownPreset: { fixes: ['pickPreset', 'leaveEmpty'] },
+  speakerRange: { fixes: ['edit'] },
+  freqOrder: { fixes: ['edit'] },
+  powerRange: { fixes: ['edit'] },
+  powerTypical: { fixes: ['edit'] },
+  powerNeedVolts: { fixes: ['fillVolts', 'edit'] },
+  // What the row points at
+  unknownLocation: { fixes: ['addLocation', 'useLocation'] },
+  archivedLocation: { fixes: ['restoreLocation', 'useLocation'] },
+  unknownItem: { fixes: ['useItem', 'addItem'] },
+  unknownKit: { fixes: ['useItem', 'addKit'] },
+  sameName: { fixes: ['chooseItem'] },
+  archived: { fixes: ['restoreItem', 'useItem'] },
+  bulkItem: { fixes: ['perUnit', 'useItem'] },
+  notTracked: { fixes: ['startTracking', 'useItem'] },
+  selfKit: { fixes: ['useItem'] },
+  unknownJob: { fixes: ['useGig'] },
+  sameGig: { fixes: ['chooseGig'] },
+  sameContact: { fixes: ['chooseContact', 'newContact'] },
+  serialQuantity: { fixes: ['countBulk', 'dropQuantity'] },
+  otherItem: { fixes: ['edit'] },
+  trackingLocked: { fixes: ['keepTracking'] },
+  // A quote's history (IM4)
+  futureDate: { fixes: ['edit', 'treatEmpty'] },
+  decidedFirst: { fixes: ['edit'] },
+  // Left out on purpose. Past jobs can come in as completed gigs, past cancelled ones as
+  // cancelled gigs (IM4): the fix is a choice on the list, left out until it's made
+  pastJob: { purpose: true, fixes: ['importPast'] },
+  pastCancelled: { purpose: true, fixes: ['importCancelled'] },
+  cancelledJob: { purpose: true },
+  tooOld: { purpose: true },
+  gigThere: { purpose: true },
+  historyGig: { purpose: true },
+  inactive: { purpose: true },
+  alreadyMember: { purpose: true },
+  alreadyInvited: { purpose: true },
+  quoteSent: { purpose: true },
+  // Heads-ups before importing
+  quantityKept: { note: true },
+  clientUnknown: { note: true, fixes: ['addContact', 'linkContact'] },
+  // Only the database gives these (after the import; IM2 brings them back to the check)
+  nameMissing: { fixes: ['edit'] },
+  emailMissing: { fixes: ['edit'] },
+  noTitle: { fixes: ['edit'] },
+  noDescription: { fixes: ['edit'] },
+  duplicate: { fixes: ['edit'] },
+  notStock: { fixes: ['edit'] },
+  kitQuantity: { fixes: ['edit'] },
+  gigQuantity: { fixes: ['edit'] },
+  kitType: { fixes: ['edit'] },
+  notKit: { fixes: ['useItem'] },
+  accessoryUntracked: { fixes: ['useItem'] },
+  partUntracked: { fixes: ['useItem'] },
+  speakerSpec: { fixes: ['edit'] },
+  powerSpec: { fixes: ['edit'] },
+  unknownRole: { fixes: ['edit'] },
+  unknownStatus: { fixes: ['edit'] },
+  // The organisation's own fields (IM2): a link that isn't one is edited or left empty; what the
+  // database refuses after the import comes back to the check (fix and try again)
+  link: { fixes: ['edit', 'treatEmpty'] },
+  customValue: { fixes: ['edit'] },
+  customField: { fixes: ['edit'] },
+  // Any other refusal brought back from the database: its rows can be edited or left out
+  refused: { fixes: ['edit'] },
+}
+
+// The fixes a group offers, in order, each { id, im3 } (not available until IM3), ending with 'skip'
+export function fixesFor(reason) {
+  const entry = FIXES[reason]
+  if (!entry) return []
+  // Left out on purpose is the default: a choice there (IM4's "Import as past jobs") is the only fix
+  if (entry.purpose) return (entry.fixes || []).map(id => ({ id, im3: false }))
+  const list = (entry.fixes || []).map(id => ({ id, im3: (entry.im3 || []).includes(id) }))
+  return entry.note ? list : [...list, { id: 'skip', im3: false }]
+}
+
+// "Import as past jobs" / "Import as cancelled" (IM4) for a group left out on purpose: its rows
+// get the hidden _history field, so they go in as completed (or cancelled) gigs
+export function historyFix(group) {
+  const fix = group.reason === 'pastCancelled' ? 'importCancelled' : 'importPast'
+  const as = fix === 'importCancelled' ? 'cancelled' : 'completed'
+  return { type: 'cells', key: group.key, fix, reason: group.reason, count: group.lines.length,
+    edits: Object.fromEntries(group.lines.map(l => [l.line, { _history: as }])) }
+}
+
+// Problems answered by changing one value for every row that has it (the rest are grouped by field)
+const BY_VALUE = new Set(['choice', 'unknownPreset', 'unknownLocation', 'archivedLocation', 'unknownItem', 'unknownKit', 'sameName', 'archived',
+  'bulkItem', 'notTracked', 'selfKit', 'unknownJob', 'sameGig', 'sameContact', 'clientUnknown', 'refused'])
+const keyOf = s => String(s ?? '').trim().toLowerCase()
+
+// The column a field comes from, adding an empty one when the file has none (a fix can fill a
+// field the file left out, e.g. the voltage)
+function columnFor(table, mapping, field) {
+  const header = Object.keys(mapping).find(h => mapping[h] === field)
+  if (header !== undefined) return table.headers.indexOf(header)
+  const name = `⁣${field}`
+  table.headers.push(name)
+  for (const r of table.rows) r.push('')
+  mapping[name] = field
+  return table.headers.length - 1
+}
+
+// The table with the fixes applied (a copy: the file itself never changes)
+export function fixTable(table, mapping, fixes = [], { headerRow = true } = {}) {
+  const out = { ...table, headers: [...table.headers], rows: table.rows.map(r => [...r]) }
+  const map = { ...mapping }
+  const first = firstLine(table, headerRow)
+  const editCells = edits => {
+    for (const [line, cells] of Object.entries(edits || {})) {
+      const row = out.rows[Number(line) - first]
+      if (!row) continue
+      for (const [field, text] of Object.entries(cells)) {
+        const col = columnFor(out, map, field)
+        row[col] = String(text ?? '')
+      }
+    }
+  }
+  for (const fix of fixes) {
+    if (fix.type === 'replace') {
+      const col = Object.keys(map).find(h => map[h] === fix.field)
+      if (col === undefined) continue
+      const i = out.headers.indexOf(col)
+      const lines = out.rows.map((r, n) => (keyOf(r[i]) === fix.from ? n : -1)).filter(n => n >= 0)
+      for (const [field, text] of Object.entries(fix.set || {})) {
+        const c = columnFor(out, map, field)
+        for (const n of lines) out.rows[n][c] = String(text ?? '')
+      }
+    }
+    if (fix.type === 'cells' || fix.type === 'add') editCells(fix.edits)
+  }
+  return { table: out, mapping: map }
+}
+
+// What exists, plus what the fixes will add or bring back when Import is pressed
+export function withPending(existing, fixes = []) {
+  if (!existing) return existing
+  const ex = { ...existing, locations: [...(existing.locations || [])], items: [...(existing.items || [])], clients: [...(existing.clients || [])] }
+  fixes.forEach((fix, n) => {
+    if (fix.type === 'add' && fix.what === 'location') ex.locations.push({ name: fix.record.name, pending: true })
+    if (fix.type === 'add' && fix.what === 'item') ex.items.push({ id: `pending-${n}`, name: fix.record.name, code: fix.record.code || null, tracking: fix.record.tracking, pending: true })
+    if (fix.type === 'add' && fix.what === 'client') ex.clients.push({ name: fix.record.name, pending: true })
+    if (fix.type === 'restore' && fix.what !== 'item') ex.locations = ex.locations.map(l => (l.id === fix.id ? { ...l, archived_at: null } : l))
+    if (fix.type === 'restore' && fix.what === 'item') ex.items = ex.items.map(i => (i.id === fix.id ? { ...i, archived_at: null } : i))
+    if (fix.type === 'track') ex.items = ex.items.map(i => (i.id === fix.id ? { ...i, tracking: 'bulk' } : i))
+    if (fix.type === 'perUnit') ex.items = ex.items.map(i => (i.id === fix.id ? { ...i, tracking: 'serial' } : i))
+  })
+  return ex
+}
+
+// What the fixes add, restore or switch, as rows sent ahead of the import's own rows (run_import
+// and import_jobs read rows with _fix first, in this order, in the same batch): restored locations
+// and items, new locations, new items, new clients, items that start being counted, items that
+// switch to per unit
+export function fixRows(fixes = []) {
+  const clean = r => Object.fromEntries(Object.entries(r || {}).filter(([, v]) => v != null && v !== ''))
+  const of = (type, what) => fixes.filter(f => f.type === type && (what === undefined || f.what === what))
+  return [
+    ...of('restore').map(f => ({ _fix: f.what === 'item' ? 'restore_item' : 'restore_location', id: f.id })),
+    ...of('add', 'location').map(f => ({ _fix: 'add_location', ...clean(f.record) })),
+    ...of('add', 'item').map(f => ({ _fix: 'add_item', ...clean(f.record) })),
+    ...of('add', 'client').map(f => ({ _fix: 'add_client', ...clean(f.record) })),
+    ...of('track').map(f => ({ _fix: 'track', id: f.id })),
+    ...of('perUnit').map(f => ({ _fix: 'per_unit', id: f.id })),
+  ]
+}
+
+// Fixes remembered with a saved matching (import_presets.fixes): the ones that don't depend on the
+// file's lines (edited cells and rows left out are left behind), within the size the database takes
+export const PRESET_FIXES_MAX = 30000
+export function presetFixes(fixes = []) {
+  const out = []
+  for (const f of fixes) {
+    if (!['replace', 'add', 'restore', 'track', 'perUnit'].includes(f.type)) continue
+    const { edits, lines, count, ...rest } = f // eslint-disable-line no-unused-vars
+    const next = [...out, rest]
+    if (JSON.stringify(next).length > PRESET_FIXES_MAX) break
+    out.push(rest)
+  }
+  return out
+}
+
+// The fixes made so far plus the ones remembered with a saved matching (a group already answered
+// keeps its own fix)
+export function withPresetFixes(fixes = [], saved = []) {
+  const answered = new Set(fixes.map(f => f.key).filter(Boolean))
+  return [...fixes, ...(Array.isArray(saved) ? saved : []).filter(f => f && f.type && !answered.has(f.key))]
+}
+
+// Remembered fixes that still make sense with what the organisation has now: a pick of a record
+// that's gone or archived, something to add that is there already, a restore of something no
+// longer archived, a switch already made, are dropped
+export function liveFixes(fixes = [], existing = {}) {
+  const lower = s => String(s ?? '').trim().toLowerCase()
+  const items = existing.items || [], locations = existing.locations || [], gigs = existing.gigs || []
+  const contacts = [...(existing.contacts || []), ...(existing.clients || [])]
+  const live = (list, id) => list.some(x => String(x.id) === String(id) && !x.archived_at)
+  const pickOk = set => Object.entries(set || {}).every(([k, v]) => {
+    if (!PICKS.includes(k) || k === '_new' || !v) return true
+    if (k === '_item_id' || k === '_kit_id') return live(items, v)
+    if (k === '_location_id') return live(locations, v)
+    if (k === '_gig_id') return gigs.some(g => String(g.id) === String(v))
+    return live(contacts, v)
+  })
+  return fixes.filter(f => {
+    if (f.type === 'replace') return pickOk(f.set)
+    if (f.type === 'add') {
+      const list = f.what === 'location' ? locations : f.what === 'item' ? items : contacts
+      return !list.some(x => !x.archived_at && lower(x.name) === lower(f.record?.name))
+    }
+    if (f.type === 'restore') return (f.what === 'item' ? items : locations).some(x => String(x.id) === String(f.id) && x.archived_at)
+    if (f.type === 'track') return items.some(i => String(i.id) === String(f.id) && i.tracking === 'none' && !i.archived_at)
+    if (f.type === 'perUnit') return items.some(i => String(i.id) === String(f.id) && i.tracking === 'bulk' && !i.archived_at)
+    return true
+  })
+}
+
+// Which group a row's problem goes in: by reason and field, and for value problems by the cell
+// (what a 'replace' fix looks for)
+const groupKey = (reason, field, cell, value) => `${reason}|${field || ''}|${BY_VALUE.has(reason) ? keyOf(cell || value) : ''}`
+
+// The rows with a problem (or a heads-up, or left out on purpose), grouped by cause and value:
+// [{ key, reason, field, value, from, lines: [{ line, raw, value }], purpose, note, fixes }]. raw(line, field)
+// gives a cell as the file has it (after the fixes), for editing.
+export function groupProblems(rows, plan, kind, raw = () => '') {
+  const groups = new Map()
+  rows.forEach((row, i) => {
+    const p = plan[i]
+    if (p.leftOut) return
+    const reason = p.action === 'skip' ? p.reason : p.note
+    if (!reason) return
+    const cell = p.field ? raw(row._row, p.field) : ''
+    const key = groupKey(reason, p.field, cell, p.value)
+    if (!groups.has(key)) {
+      const entry = FIXES[reason] || {}
+      // A refusal with no field to edit can only be left out
+      const fixes = fixesFor(reason).filter(f => f.id !== 'edit' || p.field)
+      groups.set(key, { key, kind, reason, field: p.field || null, value: BY_VALUE.has(reason) ? (p.value ?? cell) : null, from: BY_VALUE.has(reason) ? keyOf(cell || p.value) : '',
+        lines: [], purpose: !!entry.purpose || !!p.purpose, note: !!entry.note && p.action !== 'skip', refused: !!p.refused, fixes })
+    }
+    groups.get(key).lines.push({ line: row._row, raw: cell, value: p.value ?? null })
+  })
+  return [...groups.values()]
+}
+
+// The names closest to a value first: the same once spaces and accents are ignored, then
+// one inside the other, then the fewest letters apart
+export function closest(value, names) {
+  const v = normalise(value)
+  const distance = (a, b) => {
+    const d = Array.from({ length: b.length + 1 }, (_, j) => j)
+    for (let i = 1; i <= a.length; i++) {
+      let prev = d[0]
+      d[0] = i
+      for (let j = 1; j <= b.length; j++) {
+        const keep = d[j]
+        d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1))
+        prev = keep
+      }
+    }
+    return d[b.length]
+  }
+  const score = name => {
+    const n = normalise(name)
+    if (n === v) return -2
+    if (v && (n.includes(v) || v.includes(n))) return -1
+    return distance(n, v)
+  }
+  return [...names].map((name, i) => ({ name, i, s: score(name) })).sort((a, b) => a.s - b.s || a.i - b.i).map(x => x.name)
+}
+
+// The whole check: the rows as they'll be sent, the plan, the groups and the counts.
+// Groups nobody decided on are left out of the import (the owner's default, principle 6).
+// defaults, dateOrders, custom and only are buildRows's options. refused: the rows the database
+// refused last time ({ [line]: { message, sent } }, see refusedRows); each comes back as a problem
+// until it changes or a fix answers its group.
+export function checkImport({ table, mapping, kind, headerRow = true, defaultLocation = null, defaults = {}, dateOrders = {}, custom = [], only = null, refused = null, existing, fixes = [] }) {
+  const fixed = fixTable(table, mapping, fixes, { headerRow })
+  const rows = buildRows(fixed.table, fixed.mapping, kind, { headerRow, defaultLocation, defaults, dateOrders, custom, only })
+  const { plan } = dryRun(rows, kind, withPending(existing, fixes))
+  const first = firstLine(table, headerRow)
+  const raw = (line, field) => {
+    const header = Object.keys(fixed.mapping).find(h => fixed.mapping[h] === field)
+    const r = fixed.table.rows[line - first]
+    return header === undefined || !r ? '' : String(r[fixed.table.headers.indexOf(header)] ?? '')
+  }
+  if (refused) {
+    const answered = new Set(fixes.filter(f => f.type !== 'skip' && f.key).map(f => f.key))
+    rows.forEach((row, i) => {
+      const r = refused[row._row]
+      if (!r || plan[i].action === 'skip' || JSON.stringify(sent(row)) !== r.sent) return
+      const said = serverMessage(r.message)
+      const reason = said ? said.key : 'refused'
+      const field = refusedField(reason, row, kind)
+      const value = said ? said.name ?? null : r.message
+      if (answered.has(groupKey(reason, field, field ? raw(row._row, field) : '', value))) return
+      plan[i] = { action: 'skip', reason, field, value, refused: true }
+    })
+  }
+  const out = new Set(fixes.filter(f => f.type === 'skip').flatMap(f => f.lines))
+  rows.forEach((row, i) => { if (out.has(row._row)) plan[i] = { action: 'skip', reason: 'leftOut', leftOut: true } })
+  const groups = groupProblems(rows, plan, kind, raw)
+  const counts = { create: 0, match: 0, problems: 0, purpose: 0, leftOut: 0, notes: 0 }
+  plan.forEach(p => {
+    if (p.action !== 'skip') counts[p.action] += 1
+    else if (p.leftOut) counts.leftOut += 1
+    else if (p.purpose) counts.purpose += 1
+    else counts.problems += 1
+    if (p.note) counts.notes += 1
+  })
+  const sendable = toPayload(rows.filter((_, i) => plan[i].action !== 'skip'))
+  const adds = { location: 0, item: 0, client: 0 }
+  for (const f of fixes) if (f.type === 'add') adds[f.what] += 1
+  return { rows, plan, groups, counts, sendable, adds, raw, mapping: fixed.mapping }
+}
+
+// ── After the import (docs/SWITCHING.md, "Done step") ────────────────────────────────────────
+// A row as it was sent, without its line number (to tell whether it changed since)
+const sent = ({ _row, _errors, ...rest }) => rest
+
+// The field a refusal from the database is about, so its rows can be edited (null: none to edit)
+function refusedField(reason, row, kind) {
+  const item = row.item_code ? 'item_code' : 'item'
+  const fields = {
+    nameMissing: 'name', emailMissing: 'email', email: 'email', noTitle: 'title', noDescription: 'description', noStart: 'start_date',
+    dates: 'end_date', unknownRole: 'role', unknownStatus: 'status', kitQuantity: 'quantity', gigQuantity: 'quantity', kitType: 'kit_type',
+    notStock: 'kind', unknownLocation: 'location', needLocation: 'location', otherItem: 'code', duplicate: kind === 'items' || kind === 'units' ? 'code' : 'name',
+    unknownItem: kind === 'items' ? 'name' : item, sameName: kind === 'items' ? 'name' : item, archived: kind === 'items' ? 'code' : item,
+    bulkItem: item, notTracked: item, partUntracked: item, accessoryUntracked: item, selfKit: item, notKit: row.kit_code ? 'kit_code' : 'kit',
+    unknownKit: row.kit_code ? 'kit_code' : 'kit', unknownJob: row.gig_ref ? 'gig_ref' : 'gig', sameGig: row.gig_ref ? 'gig_ref' : 'gig',
+    serialQuantity: 'quantity', trackingLocked: 'tracking', sameContact: 'name', decidedFirst: 'decided_date',
+  }
+  const field = fields[reason] || null
+  return field && (FIELDS[kind] || []).some(f => f.key === field) ? field : null
+}
+
+// The rows the database refused in an import's result, by line: { [line]: { message, sent } },
+// for "fix and try again". Left out on purpose isn't a refusal. sentRows: the rows as sent.
+export function refusedRows(problems, sentRows) {
+  const byLine = new Map((sentRows || []).map(r => [Number(r._row), r]))
+  const out = {}
+  for (const p of problems || []) {
+    if (p.level !== 'skip') continue
+    const said = serverMessage(p.message)
+    if (said && FIXES[said.key]?.purpose) continue
+    const row = byLine.get(Number(p.row))
+    if (row) out[p.row] = { message: p.message, sent: JSON.stringify(sent(row)) }
+  }
+  return out
+}
+
+// More than MAX_ROWS rows go in parts of MAX_ROWS, each its own import (a batch each in Earlier
+// imports). A quote's lines stay together, as the database groups them (by number, else title).
+export function splitParts(rows, kind, size = MAX_ROWS) {
+  if (rows.length <= size) return [rows]
+  const groups = new Map()
+  rows.forEach((r, n) => {
+    const key = kind === 'quotes' ? String(r.quote_ref || r.title || `#${n}`).trim().toLowerCase() : `#${n}`
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(r)
+  })
+  const parts = []
+  let part = []
+  for (const g of groups.values()) {
+    if (part.length && part.length + g.length > size) { parts.push(part); part = [] }
+    part.push(...g)
+  }
+  if (part.length) parts.push(part)
+  return parts
+}
+
+// The results of several parts as one
+export function mergeResults(results) {
+  const sum = k => results.reduce((n, r) => n + (Number(r?.[k]) || 0), 0)
+  return { ...results.at(-1), created: sum('created'), updated: sum('updated'), unchanged: sum('unchanged'), skipped: sum('skipped'), added: sum('added'), problems: results.flatMap(r => r?.problems || []) }
+}
+
+// The rows left out, as a CSV file with the file's own columns and a Problem column, to fix in a
+// spreadsheet and import as a small file. entries: [{ line, problem }] (several for one line are
+// joined); the cells are the file's own, before any fix.
+export function leftOutCsv(table, entries, { headerRow = true, problem = 'Problem' } = {}) {
+  const esc = v => (/[",\n\r;]/.test(String(v ?? '')) ? `"${String(v).replace(/"/g, '""')}"` : String(v ?? ''))
+  const first = firstLine(table, headerRow)
+  const byLine = new Map()
+  for (const e of entries || []) byLine.set(Number(e.line), [...(byLine.get(Number(e.line)) || []), e.problem].filter((p, i, a) => p && a.indexOf(p) === i))
+  const lines = [...byLine.keys()].filter(n => table.rows[n - first]).sort((a, b) => a - b)
+  const out = lines.map(n => [...table.rows[n - first], byLine.get(n).join('; ')].map(esc).join(','))
+  return [...(headerRow ? [[...table.headers, problem].map(esc).join(',')] : []), ...out].join('\n')
+}
+
+// The values each choice field takes (for "treat X as …"): { words: [value, …] }
+export const WORD_VALUES = Object.fromEntries(Object.entries(WORDS).map(([k, v]) => [k, Object.keys(v)]))

@@ -203,6 +203,11 @@ export default {
     depreciation: 'Over how many months the purchase price goes down to zero on paper. Example: 60 = five years.',
     'inspection-interval': 'How often this equipment needs a safety check, such as electrical testing (PAT). You get a reminder when it is due.',
     'unit-status': 'Available: can go to gigs. In repair: not available until fixed. Lost and Retired take the unit out of stock.',
+    'imp-fixes': 'Rows with the same problem are grouped, so one choice fixes them all: add a missing location, use an item you have, treat a word as a status, edit a cell. Each fix is listed under "Your fixes" and can be taken back. What a fix adds is saved only when you press Import. Groups you don\'t decide on are left out.',
+    'imp-same': "A field your file doesn't have can take one value for all its rows: the location of all the stock, the item all the units belong to, the job all the equipment is for, or a status. A column always wins over it.",
+    'imp-after': "\"Fix and try again\" opens the check with only the rows the database refused, and the same fixes as before. The download has every row that wasn't imported, with your file's own columns and a Problem column: fix them in a spreadsheet and import that small file.",
+    'imp-history': 'Past jobs come in as done gigs (cancelled ones as cancelled, if you choose) with their dates, client and venue, so your reports can compare years. They don\'t book equipment or crew, don\'t clash with anything and nobody is notified. Jobs from more than 10 years ago are left out. Importing the file again finds them by their number, so nothing doubles.',
+    'imp-remember': 'Fixes that don\'t depend on the lines of this file (a word read as a status, a location or item chosen for a value, something to add) are saved with the matching. Next time you choose it, they come back in "Your fixes", and any that no longer fit are dropped.',
     'cross-hire-code': 'If your supplier also uses AVX, ask for their code. Requests then go straight to them and they confirm in AVX.',
     factor: 'How many day prices this line costs for the whole phase. Example: 3 days at factor 2.5 costs 2.5 × the day price.',
     discount: 'A percentage taken off this phase’s total, before VAT.',
@@ -1090,11 +1095,13 @@ export default {
       intro: 'Bring your locations, catalogue, serial numbers and kits into AVX in one go, from an Excel or CSV export (Rentman, another rental tool or a spreadsheet), instead of typing them in.',
       steps: [
         'In Inventory, tap Import (on a phone, under ⋯). Import in this order: locations, then equipment, then units (serial numbers), then kit contents, because each one refers to the ones before.',
-        'Choose what you are importing, then choose the file (Excel .xlsx or CSV; from Excel the first sheet is read) or paste the rows from your spreadsheet (with their headings).',
-        'AVX guesses what each column is, also from Dutch or Portuguese headings. Check the guesses and change any that are wrong. Save the matching with a name ("Rentman equipment export") so the next file needs none.',
-        'The check shows what will be new, what matches what is already in AVX, and which rows have problems (they are left out). Import, then read the report. Fix the skipped rows in the file and import it again: what is already in AVX is matched, not doubled.',
+        'Choose what you are importing, then choose the file (Excel .xlsx or CSV) or paste the rows from your spreadsheet (with their headings). A workbook with several sheets asks which one; title lines above the headings are noticed ("The headings are on row 3"); a CSV file saved by Excel on Windows is read with its accents. If the file looks like another kind ("This looks like a file of Units"), switch with one tap. A file of more than 5000 rows is imported in parts.',
+        'AVX guesses what each column is, also from Dutch or Portuguese headings. Check the guesses and change any that are wrong; the columns that won\'t be imported are listed. For a field the file doesn\'t have (no location column, no item column in a units file), choose one value under "Same for every row". When the dates could be day or month first (01/02/2026), say which. Save the matching with a name ("Rentman equipment export") so the next file needs none.',
+        'The check shows what will be new, what matches what is already in AVX, and the rows with a problem, grouped by cause ("12 rows · Location “warehouse”"). Fix each group here: add the missing location, use one you have, edit a cell (it is checked again as you type), or leave the rows out. Your file isn\'t changed.',
+        'Each fix shows under "Your fixes" and can be taken back. What a fix adds (a location, an item, a client) shows as "will be added" and is listed on the Import button; it is saved only when you press Import. Rows nobody decided on are left out, and the button says how many. Import, then read the report: rows the database refused go back to the check with "Fix and try again", and the rows left out can be downloaded with your file\'s columns and a Problem column, to fix in a spreadsheet.',
       ],
       mistakes: [
+        'Past and cancelled jobs, people already in AVX and quotes already sent are left out on purpose: they are listed, with nothing to do.',
         'Old Excel files (.xls) and other spreadsheet formats have to be saved as .xlsx or CSV first, or copy the rows and paste them.',
         'An import can be undone from "Earlier imports" only while nothing has used what it added (a gig, a scan, a kit). Undoing removes what it added for good.',
       ],
@@ -1285,6 +1292,20 @@ export default {
       mistakes: [
         'Import the same file again after changes in your old tool: gigs and quotes are matched by their number, so they are updated, not doubled. A quote already sent from AVX is left as it is.',
         'Sets aren\'t planned on a gig directly: plan their contents, as AVX does when you add a set by hand.',
+      ],
+    },
+    'of-import-history': {
+      title: 'Bring over your past jobs and decided quotes',
+      intro: 'Import the jobs you have already done and the quotes your clients accepted or declined, so the reports can compare this year with the years before from day one. Up to 10 years back.',
+      steps: [
+        'In Inventory → Import, choose Upcoming jobs and your old tool\'s jobs export, with the past jobs in it. Match the columns as usual.',
+        'In the check, past jobs are listed under "Left out on purpose". Tap "Import as past jobs" to bring them in as done gigs, with their dates, client and venue. Cancelled past jobs stay out unless you tap "Import as cancelled". Jobs from more than 10 years ago are too old and stay out.',
+        'Past gigs don\'t book equipment or crew, don\'t clash with anything and nobody is notified. Equipment lines for them in an "Equipment on jobs" file are left out on purpose.',
+        'For quotes, choose Open quotes and a file with a status column (accepted, declined, sent) and, if you have them, the dates sent and decided and the reason a quote was declined. The reports count each quote on its own dates. Without a decided date, the sent date is used; without a sent date, the quote\'s date.',
+      ],
+      mistakes: [
+        'Importing the same file again matches gigs and quotes by their old number, so nothing doubles. A gig already in AVX is never turned into a past one, and a quote already sent or decided in AVX is left as it is.',
+        'A decline reason that isn\'t price, competitor, cancelled, unavailable or scope is kept as "Other", with your text as the note.',
       ],
     },
     'of-build-quote': {

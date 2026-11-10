@@ -118,3 +118,78 @@ begin
   if (outc->0->'VAT exempt')::boolean is not true then raise exception 'CHECK FAILED clients: %', outc; end if;
   raise exception 'ALL CUSTOM EXPORT CHECKS PASSED';
 end $$;
+
+-- Migration 20270114000000 (IM2): the import saves values for the organisation's own fields
+-- (items, clients, suppliers and gigs), merges them over what's there, keeps what an empty cell
+-- doesn't give, refuses a wrong value as a row problem, and Undo puts the old values back.
+--   "ALL CUSTOM IMPORT CHECKS PASSED"  → good
+do $$
+declare
+  a uuid := gen_random_uuid(); x uuid := gen_random_uuid(); org_a uuid; org_x uuid;
+  colour uuid; height uuid; vat uuid; po uuid; rating uuid; theirs uuid; res jsonb; b uuid; cv jsonb;
+begin
+  insert into auth.users (id, email, aud, role) values
+    (a, 'ci-a@avx.invalid', 'authenticated', 'authenticated'), (x, 'ci-x@avx.invalid', 'authenticated', 'authenticated');
+  perform set_config('request.jwt.claims', json_build_object('sub', x, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into organisations (name, created_by) values ('Other Import Co', x) returning id into org_x;
+  insert into custom_fields (org_id, entity, label, kind) values (org_x, 'item', 'Theirs', 'text') returning id into theirs;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into organisations (name, created_by) values ('Import Fields Co', a) returning id into org_a;
+  insert into custom_fields (org_id, entity, label, kind) values (org_a, 'item', 'Colour', 'text') returning id into colour;
+  insert into custom_fields (org_id, entity, label, kind) values (org_a, 'item', 'Height', 'number') returning id into height;
+  insert into custom_fields (org_id, entity, label, kind) values (org_a, 'client', 'VAT exempt', 'yes_no') returning id into vat;
+  insert into custom_fields (org_id, entity, label, kind) values (org_a, 'supplier', 'Rating', 'number') returning id into rating;
+  insert into custom_fields (org_id, entity, label, kind) values (org_a, 'gig', 'PO number', 'text') returning id into po;
+
+  -- A new item gets its values
+  res := run_import(org_a, 'items', jsonb_build_array(jsonb_build_object('_row', 2, 'name', 'CI Lamp', 'code', 'CIL1',
+    'custom_values', jsonb_build_object(colour::text, 'red', height::text, 2))));
+  if (res ->> 'created')::int <> 1 then raise exception 'CHECK FAILED: item created %', res; end if;
+  select custom_values into cv from price_items where org_id = org_a and code = 'CIL1';
+  if cv ->> colour::text <> 'red' or (cv ->> height::text)::numeric <> 2 then raise exception 'CHECK FAILED: item values %', cv; end if;
+  -- No values (or an empty cell) keep what's there
+  res := run_import(org_a, 'items', '[{"_row": 2, "code": "CIL1", "custom_values": {}}]');
+  if (res ->> 'unchanged')::int <> 1 then raise exception 'CHECK FAILED: empty kept %', res; end if;
+  -- A value the file gives is merged over the others; Undo puts the old ones back
+  res := run_import(org_a, 'items', jsonb_build_array(jsonb_build_object('_row', 2, 'code', 'CIL1', 'custom_values', jsonb_build_object(height::text, 3))));
+  if (res ->> 'updated')::int <> 1 then raise exception 'CHECK FAILED: item updated %', res; end if;
+  select custom_values into cv from price_items where org_id = org_a and code = 'CIL1';
+  if cv ->> colour::text <> 'red' or (cv ->> height::text)::numeric <> 3 then raise exception 'CHECK FAILED: merged %', cv; end if;
+  res := undo_import((res ->> 'batch')::uuid);
+  select custom_values into cv from price_items where org_id = org_a and code = 'CIL1';
+  if (cv ->> height::text)::numeric <> 2 or cv ->> colour::text <> 'red' then raise exception 'CHECK FAILED: undo restores %', cv; end if;
+  -- A value of the wrong kind, or another organisation's field, is the row's problem, not an error
+  res := run_import(org_a, 'items', jsonb_build_array(
+    jsonb_build_object('_row', 2, 'name', 'CI Desk', 'custom_values', jsonb_build_object(height::text, 'tall')),
+    jsonb_build_object('_row', 3, 'name', 'CI Stand', 'custom_values', jsonb_build_object(theirs::text, 'x'))));
+  if (res ->> 'skipped')::int <> 2 or res -> 'problems' -> 0 ->> 'message' <> 'Value does not fit the field'
+     or res -> 'problems' -> 1 ->> 'message' <> 'Unknown field' then raise exception 'CHECK FAILED: refused as problems %', res; end if;
+  if exists (select 1 from price_items where org_id = org_a and name in ('CI Desk', 'CI Stand')) then raise exception 'CHECK FAILED: refused rows saved'; end if;
+
+  -- Clients and suppliers, new and existing
+  res := run_import(org_a, 'clients', jsonb_build_array(jsonb_build_object('_row', 2, 'name', 'CI Client', 'custom_values', jsonb_build_object(vat::text, true))));
+  if (res ->> 'created')::int <> 1 or (select (custom_values ->> vat::text)::boolean from clients where org_id = org_a and name = 'CI Client') is not true
+    then raise exception 'CHECK FAILED: client %', res; end if;
+  res := run_import(org_a, 'clients', jsonb_build_array(jsonb_build_object('_row', 2, 'name', 'CI Client', 'custom_values', jsonb_build_object(vat::text, false))));
+  if (res ->> 'updated')::int <> 1 or (select (custom_values ->> vat::text)::boolean from clients where org_id = org_a and name = 'CI Client') is not false
+    then raise exception 'CHECK FAILED: client updated %', res; end if;
+  res := run_import(org_a, 'suppliers', jsonb_build_array(jsonb_build_object('_row', 2, 'name', 'CI Supplier', 'custom_values', jsonb_build_object(rating::text, 4))));
+  if (select (custom_values ->> rating::text)::numeric from suppliers where org_id = org_a and name = 'CI Supplier') <> 4 then raise exception 'CHECK FAILED: supplier %', res; end if;
+  -- A client field on a supplier is refused
+  res := run_import(org_a, 'suppliers', jsonb_build_array(jsonb_build_object('_row', 2, 'name', 'CI Supplier 2', 'custom_values', jsonb_build_object(vat::text, true))));
+  if (res ->> 'skipped')::int <> 1 then raise exception 'CHECK FAILED: field of another kind %', res; end if;
+
+  -- Gigs (upcoming jobs), new and existing
+  res := import_jobs(org_a, 'gigs', jsonb_build_array(jsonb_build_object('_row', 2, 'ref', 'CI-1', 'name', 'CI Gig', 'start_date', current_date + 10,
+    'custom_values', jsonb_build_object(po::text, 'PO-1'))));
+  if (select custom_values ->> po::text from gigs where org_id = org_a and import_ref = 'CI-1') <> 'PO-1' then raise exception 'CHECK FAILED: gig %', res; end if;
+  res := import_jobs(org_a, 'gigs', jsonb_build_array(jsonb_build_object('_row', 2, 'ref', 'CI-1', 'name', 'CI Gig', 'start_date', current_date + 10,
+    'custom_values', jsonb_build_object(po::text, 'PO-2'))));
+  if (select custom_values ->> po::text from gigs where org_id = org_a and import_ref = 'CI-1') <> 'PO-2' then raise exception 'CHECK FAILED: gig updated %', res; end if;
+  reset role;
+
+  raise exception 'ALL CUSTOM IMPORT CHECKS PASSED';
+end $$;

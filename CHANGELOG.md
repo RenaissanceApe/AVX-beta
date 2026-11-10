@@ -1,5 +1,131 @@
 # Changelog
 
+## 0.82.0 — Import overhaul
+
+### IM1: Fix it in the check
+
+#### Added
+- **Fix problems in the import's check.** Rows with the same problem are grouped ("12 rows ·
+  Location “warehouse”") and one choice fixes them all: add the missing location, use one you have,
+  use an item you have or add it to the catalogue, choose which of several same-named items, gigs
+  or contacts, read an unknown word as a known one ("Gepland" as Confirmed), edit a cell (checked
+  again as you type), treat "n/a" as empty, swap a job's dates, and more. Every group can also be
+  left out. Your file isn't changed.
+- **"Your fixes"** lists each fix, and each can be taken back. Back and Next keep them.
+- **Nothing is added until Import.** What a fix adds shows as "will be added" and on the Import
+  button ("Import 130 rows · adds 1 location"). Rows nobody decided on are left out, and the
+  button's note says how many.
+- **The check predicts more of what the database would refuse:** an archived location or item,
+  gigs that share a name, a quantity on a new item kept per unit, a unit code already on another
+  item, a change in how an item with stock is kept.
+- **Heads-ups** (a quantity for an item already in AVX, a client not in Contacts, with "Add to
+  Contacts" and "Link to a contact") and a calm **"left out on purpose"** list (past and cancelled
+  jobs, inactive crew, people already in or invited, quotes already sent).
+- Speaker and power refusals get fixes too: pick a speaker preset, edit an out-of-range cell, fill
+  one voltage for every row with amps but no volts, read an unknown connector as a known one.
+
+#### Changed
+- The check's counts are now: new, matching, waiting for a decision, left out.
+- People already members or invited, and quotes already sent, show as left out on purpose (they
+  showed as "match" before; the database already left them out).
+- The wh-import help guide and its check picture.
+
+#### For developers
+- No migration. New `src/components/import/` (CheckStep, FixGroup, kinds). The pipeline, `FIXES`
+  and its coverage test in `src/lib/importer.js` / `importer.fixes.test.js`. New signed-in browser
+  test `e2e/auth/import.spec.js` (account role `imp`, added to `e2e/auth/accounts.js`).
+
+### IM2: Before and after the check
+
+#### Added
+- **Choose:** a workbook with several sheets asks which one, with each sheet's number of rows.
+  Title lines above the headings are noticed ("The headings are on row 3", suggested; you can
+  change it). A CSV file saved by Excel on Windows is read with its accents (Western,
+  Windows-1252), and the page says so, with a switch back to UTF-8. When the headings fit another
+  kind better, the page says "This looks like a file of Units (serial numbers)" and offers
+  **Switch**. Files of more than 5000 rows no longer stop: they are imported in parts of 5000, each
+  its own import in Earlier imports, and a quote's lines stay together.
+- **Match:** "Same for every row" gives one value to a field the file doesn't have (a location, an
+  item, a set or case, a job, a client, a status, a role, a location type). It replaces "Where is
+  this stock?". Each date column's order is noticed (day or month first). When the dates can't
+  tell, the page asks before going on. The columns that won't be imported are listed ("Not
+  imported: Remarks, Colour"). **Your own fields** on gigs, clients, suppliers and items can now
+  take a column. Their values are checked by the field's kind and saved, and Undo takes them back.
+- **Done:** "Fix and try again" opens the check with only the rows the database refused, with the
+  same fixes. "Download the rows left out" gives every row that wasn't imported, with your file's
+  own columns and a Problem column, to fix in a spreadsheet and import as a small file.
+
+#### Changed
+- The wh-import help guide (steps 2, 3 and 5), two new ⓘ hints, and the imp-choose and imp-match
+  pictures.
+
+#### For developers
+- Migration `20270114000000_import_custom_values.sql`: `private.import_item_row`,
+  `import_contact_row` and `import_gig_row` read `custom_values` (create or replace, same
+  signatures and grants). Checks in the last block of `supabase/tests/custom_fields.sql`.
+- New pure helpers in `src/lib/importer.js` (`decodeText`, `suggestHeaderRow`, `guessKind`,
+  `unusedColumns`, `SAME_FOR_ALL`/`openDefaults`, `dateOrder`/`dateOrders`, `customFieldDefs`/`fieldsFor`,
+  `refusedRows`, `splitParts`, `mergeResults`, `leftOutCsv`). `buildRows` and `checkImport` take
+  `defaults`, `dateOrders`, `custom`, `only` and `refused`. `readXlsx(buffer, { sheet })` returns
+  `sheets`. Tests: `importer.im2.test.js`, `xlsx.test.js`, and two new signed-in tests in
+  `e2e/auth/import.spec.js`.
+
+### IM3: The database part
+
+#### Added
+- **One undo takes it all back.** What a fix adds (a location, an item, a contact), restores or
+  starts counting in stock is now saved with the import itself. If any of it can't be saved,
+  nothing is imported, and one Undo in Earlier imports takes back the import and what it added.
+  Earlier imports says how many records the fixes added.
+- **Choose which one, even without codes.** When two items, gigs or contacts share a name and have
+  no code, "Choose which one" picks the exact record. "Add as a new contact" works too.
+- **Restore an archived item** from the check, when the file names its code.
+- **Fixes remembered with a saved matching.** "Remember these fixes with …" saves the fixes with the
+  matching, and they come back the next time you choose it.
+- **Switch an item counted in bulk to per unit** while importing its units, as long as its stock
+  is still just the quantity an import added. Undo puts it back. This ends a known limitation.
+- **Undo says what's in use.** When an import can't be undone, Earlier imports lists what uses its
+  records ("Shure SM58: on the gig Festival") and offers **Undo the rest**.
+
+#### For developers
+- Migration `20270115000000_import_fixes.sql` (add-only) and hand-run file
+  `20270115000001_import_fixes_undo.sql`. `run_import` and `import_jobs` read `_fix` rows and
+  exact picks (same signatures). New `import_in_use`, `import_per_unit_ok`,
+  `undo_import(batch, rest)`; new columns `import_batches.added`, `.kept`, `import_presets.fixes`.
+- `src/lib/importer.js`: `PICKS`, `fixRows`, `presetFixes`, `withPresetFixes`, `liveFixes`; FIXES
+  no longer marks anything as waiting for IM3. Tests: `importer.im3.test.js`,
+  `supabase/tests/import_fixes.sql`, `import_undo.sql` (last two blocks), `e2e/auth/import.spec.js`.
+
+### IM4: The history import
+
+#### Added
+- **Bring in your past jobs.** In the import's check, past jobs (left out on purpose) now offer
+  **Import as past jobs**: they come in as done gigs with their dates, client and venue, so the
+  reports can compare years from the start. Past cancelled jobs stay out unless you choose
+  **Import as cancelled**. Up to 10 years back: older ones are listed as too old.
+- **Past gigs book nothing.** They don't book equipment or crew, don't clash with anything and
+  nobody is notified. Equipment lines for them in an "Equipment on jobs" file are left out.
+- **Quotes with their history.** A quotes file can give each quote's status (accepted, declined,
+  sent), the dates it was sent and decided, and why it was declined. The reports count it on those
+  dates. Quotes decided more than 10 years ago are left out as too old.
+- Importing the same file again still matches by the old number, so nothing doubles.
+- A new help guide, "Bring over your past jobs and decided quotes", with its picture, and an ⓘ hint.
+
+#### Changed
+- The imp-jobs help picture (the check now shows "Import as past jobs").
+
+#### For developers
+- Migration `20270116000000_import_history.sql` (add-only, no hand-run file): `gigs.from_history`;
+  `handle_new_gig` skips the PM row for it; `quotes_report_dates` keeps the import's dates while
+  `avx.import_history` is on; new `private.import_quote_status`, `private.import_lost_reason`;
+  `import_gig_row`, `import_gig_equipment_row`, `import_quote` replaced from IM3's bodies (same
+  signatures and grants). Checks in the IM4 block of `supabase/tests/import_jobs.sql`.
+- `src/lib/importer.js`: `quoteStatus` words, quote fields `status`, `sent_date`, `decided_date`,
+  `lost_reason`; `HISTORY_YEARS`, `historyFrom`, `quoteHistory`, `historyFix`; new reasons
+  `pastCancelled`, `tooOld`, `gigThere`, `historyGig`, `futureDate`, `decidedFirst`; groups left
+  out on purpose can offer a choice (`fixesFor`). Tests: `importer.im4.test.js`, one signed-in test
+  in `e2e/auth/import.spec.js`.
+
 ## 0.81.0 — Upkeep
 
 ### U1: Organisation time zone

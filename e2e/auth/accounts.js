@@ -9,6 +9,6 @@ export const RUN = (process.env.E2E_RUN || `${Date.now().toString(36)}${Math.ran
 export const PASSWORD = 'e2e-Password-123'
 
 // Members first: an organisation's only admin can't delete their account while others are in it
-export const ROLES = ['tech', 'newbie', 'fail', 'short', 'worker', 'worker2', 'worker3', 'pm']
+export const ROLES = ['tech', 'newbie', 'fail', 'short', 'imp', 'worker', 'worker2', 'worker3', 'pm']
 
 export const testEmail = (role, run = RUN) => `e2e-${role}-${run}@example.com`
