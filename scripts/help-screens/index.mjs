@@ -187,14 +187,16 @@ const SCENES = {
     await page.locator('#imp-paste').fill(IMPORT_SAMPLE)
     await page.getByRole('button', { name: L('imp.next') }).click()
     await page.getByRole('button', { name: L('imp.next') }).click()
-    await page.locator('#imp-problems').waitFor()
-    return page.locator('section[aria-labelledby="imp-problems"]')
+    // The group for the location the file names but AVX doesn't have, with its fixes
+    const group = page.locator('section[aria-labelledby="imp-problems"] section').filter({ hasText: 'Opslag Oost' })
+    await group.waitFor()
+    return group
   } },
   'imp-jobs': { persona: 'pm', url: `/org/${ids.org}/inventory/import?kind=gigs`, async run(page, L) {
     await page.locator('#imp-paste').fill(JOBS_SAMPLE)
     await page.getByRole('button', { name: L('imp.next') }).click()
     await page.getByRole('button', { name: L('imp.next') }).click()
-    await page.locator('#imp-problems').waitFor()
+    await page.locator('#imp-purpose').waitFor()
     return page.locator('div[role=status]').first().locator('xpath=..')
   } },
   'inv-locations': { persona: 'pm', url: `/org/${ids.org}/inventory?tab=locations`, async run(page, L) {

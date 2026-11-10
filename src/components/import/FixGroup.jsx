@@ -222,7 +222,7 @@ export default function FixGroup({ group, kind, ctx, onApply }) {
         {t(group.note ? `imp.note.${reason}` : `imp.err.${reason}`, { value: value ?? '' })}
         {reason === 'bulkItem' && ` ${t('imp.fix.bulkLimit')}`}
       </p>
-      <p style={{ ...muted, marginBottom: space[3] }}>{t('imp.group.lines', { lines: allLines.slice(0, 12).join(', ') + (count > 12 ? '…' : '') })}</p>
+      <p style={{ ...muted, marginBottom: space[3] }}>{t('imp.group.lines', { count, lines: allLines.slice(0, 12).join(', ') + (count > 12 ? '…' : '') })}</p>
       <fieldset style={{ border: 0, padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: space[2] }}>
         <legend style={{ ...label, marginBottom: space[2] }}>{t(group.note ? 'imp.group.whatToDo' : 'imp.group.fix')}</legend>
         {visible.map(o => {
