@@ -63,6 +63,19 @@ async function reportLoaded(page) {
   await expect(page.getByText("The report couldn't be loaded. Try again in a moment.")).toHaveCount(0)
 }
 
+// A report's period changed (issue #114): wait for its database call to answer, then for the page to
+// settle (a retry on a slow database included) and to show no error; only then look at what it shows.
+// A real failure still fails: reportLoaded rejects the error message and a report that never loads.
+async function changePeriod(page, rpc, period) {
+  const answered = page.waitForResponse(r => r.url().includes(`/rest/v1/rpc/${rpc}`), { timeout: 45_000 })
+  await page.locator('#rp-period').selectOption(period)
+  await answered
+  await reportLoaded(page)
+}
+
+// Every Overview tile loaded: one that couldn't (its source failed) says so instead of a number
+const tileFailed = "Couldn't load this number. Try again in a moment."
+
 async function deleteAccount(page) {
   await page.goto('/dashboard')
   // Desktop: the avatar in the top bar. Phones have no avatar (two icons at most, DESIGN.md
@@ -369,6 +382,7 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   // The key numbers on the organisation's Home; hidden and shown again with Arrange home
   const strip = page.locator('section[aria-labelledby="key-numbers"]')
   await expect(strip.getByText('Gigs this month', { exact: true })).toBeVisible({ timeout: 15_000 })
+  await expect(strip.getByText(tileFailed)).toHaveCount(0)
   await page.getByRole('button', { name: 'Arrange home' }).click()
   const sheet = page.getByRole('dialog', { name: 'Arrange home' })
   await expectAccessible(page)
@@ -382,11 +396,12 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   await expect(page).toHaveURL(/\/reports$/)
   await expect(page.getByRole('heading', { name: 'Reports', exact: true })).toBeVisible()
   await expect(page.getByText('Equipment use, last 90 days')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(tileFailed)).toHaveCount(0)
   await expectAccessible(page)
   await page.getByRole('button', { name: 'Revenue', exact: true }).click()
   await expect(page).toHaveURL(/tab=revenue/)
   await reportLoaded(page)
-  await page.locator('#rp-period').selectOption('last_12_months')
+  await changePeriod(page, 'report_revenue_lines', 'last_12_months')
   await expect(page.getByText('Net revenue', { exact: true }).first()).toBeVisible({ timeout: 15_000 })
   await page.getByLabel('Show details').check()
   await expect(page.locator('#rp-group')).toBeVisible()
@@ -401,9 +416,8 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   await page.getByRole('button', { name: 'Money', exact: true }).click()
   await expect(page).toHaveURL(/tab=money/)
   await reportLoaded(page)
-  await page.locator('#rp-period').selectOption('this_year')
+  await changePeriod(page, 'finance_results', 'this_year')
   await expect(page.getByText(/^(Operating result|No money in this period yet)$/).first()).toBeVisible({ timeout: 15_000 })
-  await reportLoaded(page)
   await expectAccessible(page)
   await page.getByRole('button', { name: 'Margins', exact: true }).click()
   await expect(page).toHaveURL(/view=margins/)

@@ -5389,6 +5389,7 @@ export default {
   "reportLink.spending": "Despesas por categoria ({currency})",
   "reportLink.footer": "Feito com o AVX",
   "reports.loadFailed": "Não foi possível carregar o relatório. Tente novamente daqui a pouco.",
+  "reports.tileFailed": "Não foi possível carregar este número. Tente novamente daqui a pouco.",
   "reports.tile.gigsThisMonth": "Eventos este mês",
   "reports.tile.revenueNext30": "Receita confirmada, próximos 30 dias",
   "reports.tile.waitingQuotes": "Orçamentos à espera de resposta",
