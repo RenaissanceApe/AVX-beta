@@ -33,7 +33,12 @@
   `20270115000000_import_fixes.sql` and (b) the hand-run file `20270115000001_import_fixes_undo.sql`,
   as outlined (undo the rest, switch to per unit included).
 - (a) is applied to the **test** project (function bodies checked by md5); production waits for the
-  Dispatcher. (b) is run by hand by the owner on test.
+  Dispatcher. (b) was run by hand by the owner on test on 2026-11-10; `import_undo.sql` then ended
+  with "ALL IMPORT UNDO CHECKS PASSED" and `import_fixes.sql` passed again with its post-(b) cases.
+- Comparing (b)'s bodies: pasted in the SQL editor, they were stored with Windows line endings, so
+  `md5(prosrc)` differs from the file's until the line endings are ignored
+  (`md5(replace(prosrc, E'\r', ''))`); with that the bodies match. Compare test and production the
+  same way.
 
 ## Hand-run steps (for PENDING.md)
 1. Test project: run `20270115000000_import_fixes.sql` (done by IM3), then
