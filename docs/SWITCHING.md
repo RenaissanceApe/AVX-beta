@@ -335,3 +335,46 @@ Every group also offers "Leave these rows out". **(IM3)** marks a fix that needs
 - **Tests**: `importer.fixes.test.js` (fixTable, groupProblems, the predictions, closest names,
   FIXES coverage) and the signed-in `e2e/auth/import.spec.js` (an equipment file with an unknown
   location → add it from the check → import → the stock is there, axe on the check).
+
+## How IM2 works (before and after the check)
+
+- **Choose.** A CSV file is read as bytes (`decodeText`): UTF-8 when it is valid UTF-8, UTF-16 by
+  its mark, otherwise Western (Windows-1252), which is how Excel on Windows saves it. The page says
+  so and offers a switch to the other reading. An Excel workbook lists its sheets with their number
+  of rows (`readXlsx(buffer, { sheet })` in `src/lib/xlsx.js`) and reads the one picked.
+  `suggestHeaderRow` finds title lines above the headings ("Stock list March"); the page sets
+  "The headings are on row N" to it, and `parseTable(text, { headerAt })` leaves those lines out
+  while keeping the file's line numbers (`table.offset`, `firstLine`). `guessKind` says "This looks
+  like a file of Units", with **Switch**, when the headings fit another kind clearly better. A file
+  of more than 5000 rows goes on: Import sends it in parts of 5000 (`splitParts`), each its own
+  batch in Earlier imports, and a quote's lines stay together; the results are added up
+  (`mergeResults`), and if a later part fails the Done step says how many went in.
+- **Match.** "Same for every row" (`SAME_FOR_ALL`, `openDefaults`) gives one value to a field no
+  column has: a location, an item, a set or case, a job, a client, a status, a role or a location
+  type, picked from what the organisation has (an item or job by its code or number when it has
+  one). It replaces "Where is this stock?": for equipment it is the location of the quantities.
+  `buildRows(…, { defaults })` fills it in; a column always wins. Each date column's order is noticed
+  from its values (`dateOrder`: a 31/12 says day first, a 12/31 month first); when no value tells,
+  the page asks and Next waits. Columns with data that no field takes are listed ("Not imported:
+  Remarks, Colour"). The organisation's own fields of gigs, clients, suppliers and items are offered
+  under "Your own fields" (`customFieldDefs`, `fieldsFor`): text (up to 1000), number, date, yes/no
+  (the import's yes/no words), choice (one of the field's choices, without capitals) and link
+  (https://). Their values go in the row's `custom_values`, and a bad one is a problem in the check
+  like any other cell.
+- **Saving custom values** (migration `20270114000000_import_custom_values.sql`): the equipment,
+  contacts and jobs import functions read `custom_values` and save it: a new record gets it, an
+  existing one gets the fields the file gives merged over its own. The existing `custom_values`
+  trigger checks every value; what it refuses comes back as the row's problem ("A value doesn't
+  fit one of your own fields"). On an update the values are part of the import's before/after, so
+  Undo puts them back. Checks in `supabase/tests/custom_fields.sql` (the last block).
+- **Done.** "Fix and try again" takes the rows the database refused (`refusedRows`: each with what
+  was sent) back to the check alone (`checkImport(…, { only, refused })`). Each comes back as a
+  problem with what the database said, grouped like the check's own (an unknown location by its
+  name), and with IM1's fixes where the refusal names a field; it stays a problem until the row
+  changes or a fix answers its group. Rows left out on purpose aren't refusals. "Download the rows
+  left out" (`leftOutCsv`) writes every row that wasn't imported (left out in the check, left out
+  by a choice, or refused) with the file's own columns, before any fix, and a Problem column.
+- **Tests**: `importer.im2.test.js` (heading row, text encoding, other kind, unused columns, same
+  for every row, date order, custom fields, fix and try again, parts, the left-out file),
+  `xlsx.test.js` (sheets), and two signed-in tests in `e2e/auth/import.spec.js` (a title line above
+  the headings → suggested → import; a row left out → its download has the columns and the problem).
