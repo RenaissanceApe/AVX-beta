@@ -588,7 +588,7 @@ function DoneStep({ orgId, kind, result, table, headerRow, onAgain, onRetry }) {
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         {problems.length > 0 && <button type="button" onClick={download} style={btn}><Download size={14} /> {t('imp.download')}</button>}
         <button type="button" onClick={() => onAgain()} style={btn}><Upload size={14} /> {t('imp.another')}</button>
-        {next && <button type="button" onClick={() => onAgain(next)} style={btnPrimary}>{t('imp.nextKind', { kind: t(`imp.kind.${next}`) })} <ArrowRight size={14} /></button>}
+        {next && <button type="button" onClick={() => onAgain(next)} style={{ ...btnPrimary, flexShrink: 1, minWidth: 0, textAlign: 'left' }}>{t('imp.nextKind', { kind: t(`imp.kind.${next}`) })} <ArrowRight size={14} /></button>}
         <Link to={homeOf(orgId, kind)[0]} style={{ ...(isHeld(kind) ? btnPrimary : btn), textDecoration: 'none' }}>{t(isHeld(kind) ? 'imp.reviewHeld' : 'imp.see')}</Link>
       </div>
     </div>
