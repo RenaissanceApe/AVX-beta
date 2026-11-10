@@ -60,6 +60,7 @@ begin
   insert into gigs (org_id, name, created_by, start_date, status) values (org_a, 'Twin', a, current_date + 30, 'draft') returning id into tw2;
   res := import_jobs(org_a, 'gig_equipment', '[{"gig": "Twin", "item": "Cable", "quantity": 2}]');
   if (res ->> 'skipped')::int <> 1 then raise exception 'CHECK FAILED: same-named gigs without a pick %', res; end if;
+  update price_items set tracking = 'bulk' where id = m2; -- only stock items can be planned
   res := import_jobs(org_a, 'gig_equipment', jsonb_build_array(jsonb_build_object('gig', 'Twin', '_gig_id', tw2, 'item', 'Shure SM58', '_item_id', m2, 'quantity', 2)));
   if (res ->> 'created')::int <> 1 or not exists (select 1 from gig_equipment where gig_id = tw2 and item_id = m2) then
     raise exception 'CHECK FAILED: gig and item by id %', res;
@@ -153,10 +154,13 @@ begin
      or res -> 'items' -> 0 ->> 'name' <> 'New Client Lda' then
     raise exception 'CHECK FAILED: in use %', res;
   end if;
-  begin
-    perform undo_import(b);
-    raise exception 'CHECK FAILED: undid a client a gig uses';
-  exception when foreign_key_violation then null; end;
+  -- Undo knows a gig uses the client only once the hand-run file has replaced undo_import
+  if switched then
+    begin
+      perform undo_import(b);
+      raise exception 'CHECK FAILED: undid a client a gig uses';
+    exception when foreign_key_violation then null; end;
+  end if;
 
   -- Bulk items that could switch to per unit: only while their stock is the imported quantity
   res := run_import(org_a, 'items', '[{"name": "Wedge", "code": "WDG", "quantity": 4, "location": "Warehouse"}, {"name": "Sub", "code": "SUB", "quantity": 4, "location": "Warehouse"}]');
