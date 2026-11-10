@@ -3491,6 +3491,7 @@ export default {
   "imp.fix.perUnit": "Switch \"{value}\" to per unit",
   "imp.fix.perUnitNote": "Its quantity counted in bulk can give way to these units while that quantity is still just what an import added.",
   "imp.fix.perUnitOff": "Not possible here: its stock has changed since it was imported, or it is planned on a gig. Choose an item kept per unit.",
+  "imp.fix.perUnitNotYet": "Not available yet: switching to per unit needs a database update that is waiting.",
   "imp.done.perUnit": "{to} switches to per unit (its imported quantity goes)",
   "imp.done.chooseContactById": "{what} → {to}",
   "imp.rememberFixes": "Remember these fixes with \"{name}\"",

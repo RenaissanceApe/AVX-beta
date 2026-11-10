@@ -3490,6 +3490,7 @@ export default {
   "imp.fix.perUnit": "Passar \"{value}\" a ser por unidade",
   "imp.fix.perUnitNote": "A quantidade contada a granel pode dar lugar a estas unidades enquanto for só o que uma importação adicionou.",
   "imp.fix.perUnitOff": "Não é possível aqui: o stock mudou desde que foi importado, ou está planeado numa gig. Escolha um artigo controlado por unidade.",
+  "imp.fix.perUnitNotYet": "Ainda não disponível: passar a ser por unidade precisa de uma atualização da base de dados que está à espera.",
   "imp.done.perUnit": "{to} passa a ser por unidade (a quantidade importada sai)",
   "imp.done.chooseContactById": "{what} → {to}",
   "imp.rememberFixes": "Lembrar estas correções com \"{name}\"",

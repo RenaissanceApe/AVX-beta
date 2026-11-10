@@ -25,6 +25,7 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
   const [busy, setBusy] = useState(false)
   // Bulk items whose units can switch them to per unit (only while their stock is the opening quantity)
   const [perUnitOk, setPerUnitOk] = useState([])
+  const [perUnitOff, setPerUnitOff] = useState(false)
   const [remember, setRemember] = useState(true)
 
   useEffect(() => {
@@ -68,6 +69,8 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
     const bulk = existing.items.filter(i => i.tracking === 'bulk' && !i.archived_at).map(i => i.id)
     if (!bulk.length) return
     supabase.rpc('import_per_unit_ok', { p_org: orgId, p_items: bulk }).then(({ data, error }) => {
+      // Until the hand-run file has run, switching isn't switched on (0A000)
+      if (error?.code === '0A000') return setPerUnitOff(true)
       if (error) logger.error('import', error, { step: 'perUnit' })
       setPerUnitOk((data || []).map(String))
     })
@@ -110,12 +113,13 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
         }
         if (fix === 'perUnit') {
           const item = (ex.items || []).find(i => !i.archived_at && i.name.toLowerCase() === String(group.value).toLowerCase() && i.tracking === 'bulk')
+          if (perUnitOff) return t('imp.fix.perUnitNotYet')
           return !item || !perUnitOk.includes(String(item.id)) ? t('imp.fix.perUnitOff') : null
         }
         return null
       },
     }
-  }, [existing, check, fixes, fields, fieldLabel, dateOrders, perUnitOk])
+  }, [existing, check, fixes, fields, fieldLabel, dateOrders, perUnitOk, perUnitOff])
 
   // With a saved matching, the fixes that don't depend on the file's lines are remembered with it
   async function rememberFixes() {
