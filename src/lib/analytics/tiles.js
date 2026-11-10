@@ -71,6 +71,21 @@ export const OVERVIEW_TILES = [
 // answers are merged into one object (each function uses its own keys)
 export const OVERVIEW_SOURCES = [...new Set(OVERVIEW_TILES.map(t => t.source || 'report_overview'))]
 
+// The function a tile reads
+export const tileSource = tile => tile.source || 'report_overview'
+
+// useOverview's answers, one { error, data } per OVERVIEW_SOURCES entry (same order), merged: the sources
+// that answered are kept, so one slow or failing source no longer blanks every tile. `failed` lists the
+// sources that didn't answer (their tiles show "couldn't load"); `error` is set only when none answered.
+export function mergeOverview(results, sources = OVERVIEW_SOURCES) {
+  const failed = sources.filter((_, i) => !results[i] || results[i].error)
+  if (failed.length === sources.length) {
+    return { data: null, failed, error: results.find(r => r?.error)?.error || new Error('no answer') }
+  }
+  const data = Object.assign({}, ...results.map(r => (r && !r.error && r.data) || {}))
+  return { data, failed, error: null }
+}
+
 // "Worth 1 200,00 €" under the follow-up count, in the biggest currency
 export function followUpSub(o) {
   const lines = moneyLines(o?.follow_up?.totals)

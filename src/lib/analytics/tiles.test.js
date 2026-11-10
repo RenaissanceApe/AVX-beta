@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { OVERVIEW_TILES, OVERVIEW_SOURCES, moneyLines, lastYearSub, next30Link } from './tiles'
+import { OVERVIEW_TILES, OVERVIEW_SOURCES, moneyLines, lastYearSub, next30Link, mergeOverview, tileSource } from './tiles'
 
 const overview = {
   today: '2026-11-05', gigs_this_month: { total: 4, confirmed: 3 }, revenue_next_30: { EUR: 155, USD: 1250 },
@@ -126,5 +126,36 @@ describe('K5 equipment tiles', () => {
   it('say so when there is no item yet', () => {
     expect(by.worstEarnerYear.value({})).toEqual({})
     expect(by.worstEarnerYear.sub({})).toEqual({ key: 'reports.tileSub.noItem', vars: {} })
+  })
+})
+
+describe('mergeOverview (issue #114)', () => {
+  const sources = ['report_overview', 'report_overview_k4', 'report_overview_k8']
+  const timeout = { code: '57014', message: 'canceling statement due to statement timeout' }
+
+  it('merges every answer when all sources answered', () => {
+    const out = mergeOverview([{ data: { a: 1 } }, { data: { b: 2 } }, { data: null }], sources)
+    expect(out).toEqual({ data: { a: 1, b: 2 }, failed: [], error: null })
+  })
+
+  it('keeps the sources that answered when one fails', () => {
+    const out = mergeOverview([{ data: null, error: timeout }, { data: { follow_up: { count: 3 } } }, { data: { crew_to_pay: { EUR: 10 } } }], sources)
+    expect(out.error).toBeNull()
+    expect(out.failed).toEqual(['report_overview'])
+    expect(out.data).toEqual({ follow_up: { count: 3 }, crew_to_pay: { EUR: 10 } })
+  })
+
+  it('reports an error only when no source answered', () => {
+    const out = mergeOverview([{ error: timeout }, { error: { message: 'x' } }, { error: timeout }], sources)
+    expect(out.data).toBeNull()
+    expect(out.failed).toEqual(sources)
+    expect(out.error).toBe(timeout)
+  })
+
+  it('names each tile\'s source, so a failed source marks exactly its tiles', () => {
+    const failed = ['report_overview_k8']
+    const off = OVERVIEW_TILES.filter(t => failed.includes(tileSource(t))).map(t => t.key)
+    expect(off).toEqual(['crewToPay'])
+    expect(OVERVIEW_TILES.every(t => OVERVIEW_SOURCES.includes(tileSource(t)))).toBe(true)
   })
 })

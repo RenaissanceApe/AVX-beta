@@ -91,7 +91,7 @@ export default function ReportsPage() {
                 : (
                   <section aria-labelledby="rp-overview" style={{ display: 'flex', flexDirection: 'column', gap: space[3] }}>
                     <h2 id="rp-overview" style={sectionTitle}>{t('reports.keyNumbers')}</h2>
-                    <OverviewTiles orgId={orgId} overview={overview.data} />
+                    <OverviewTiles orgId={orgId} overview={overview.data} failed={overview.failed} />
                     <p style={{ fontSize: '13px', color: colors.muted, lineHeight: 1.6, margin: 0 }}>{t('reports.overviewNote')}</p>
                   </section>
                 )}

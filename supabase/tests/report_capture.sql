@@ -69,10 +69,11 @@ begin
     raise exception 'CHECK FAILED: unknown lost reason accepted';
   exception when check_violation then null;
   end;
-  -- declined → draft: decision and reason cleared, sent date kept
-  update quotes set status = 'draft' where id = q1;
+  -- declined → draft, only through revise_quote (20270102000001): both dates and the reason cleared
+  perform revise_quote(q1);
   select sent_at, decided_at, lost_reason into ts, ts2, t from quotes where id = q1;
-  if ts <> '2026-01-05 10:00+00' or ts2 is not null or t is not null then raise exception 'CHECK FAILED: declined → draft'; end if;
+  if ts is not null or ts2 is not null or t is not null then raise exception 'CHECK FAILED: declined → draft (% / % / %)', ts, ts2, t; end if;
+  if (select lost_note from quotes where id = q1) is not null then raise exception 'CHECK FAILED: note kept on a revised quote'; end if;
   -- A reason on a quote that isn't declined is not kept
   update quotes set lost_reason = 'scope' where id = q1;
   select lost_reason into t from quotes where id = q1;
@@ -113,6 +114,8 @@ begin
   update quotes set status = 'accepted', sent_at = null, decided_at = null where id = q4;
   update quotes set status = 'declined', sent_at = null, decided_at = null, updated_at = '2026-04-10 12:00+00' where id = q5;
   update quotes set status = 'draft', sent_at = null, decided_at = null where id = q6;
+  -- A quote that already has its dates, to see that the backfill leaves them
+  update quotes set sent_at = '2026-01-05 10:00+00', decided_at = '2026-01-07 10:00+00' where id = q2;
   alter table quotes enable trigger user;
 
   set local role authenticated;
@@ -142,8 +145,10 @@ begin
   if ts <> '2026-04-10 12:00+00' or ts2 <> '2026-04-10 12:00+00' then raise exception 'CHECK FAILED: backfill from updated_at (% / %)', ts, ts2; end if;
   select sent_at, decided_at into ts, ts2 from quotes where id = q6;
   if ts is not null or ts2 is not null then raise exception 'CHECK FAILED: backfill dated a draft'; end if;
-  select sent_at into ts from quotes where id = q1;
-  if ts <> '2026-01-05 10:00+00' then raise exception 'CHECK FAILED: backfill moved a date it already had'; end if;
+  select sent_at, decided_at into ts, ts2 from quotes where id = q2;
+  if ts is distinct from '2026-01-05 10:00+00' or ts2 is distinct from '2026-01-07 10:00+00' then
+    raise exception 'CHECK FAILED: backfill moved a date it already had (% / %)', ts, ts2;
+  end if;
   if (select client_id from gigs where id = g1) is distinct from cl then raise exception 'CHECK FAILED: gig client from the accepted quote'; end if;
   if (select client_id from gigs where id = g2) is distinct from cl2 then raise exception 'CHECK FAILED: gig client from the newest quote'; end if;
   if (select client_id from gigs where id = g3) is not null then raise exception 'CHECK FAILED: gig with no quote got a client'; end if;
