@@ -9,7 +9,3 @@ export const isJob = kind => JOB_KINDS.includes(kind)
 export const unbatched = kind => isHeld(kind) || isJob(kind)
 // Importing contacts needs the hand-run file (docs/SWITCHING.md, S2); until then the database says so
 export const contactsOff = (error, kind) => isContacts(kind) && (error?.code === '0A000' || error?.code === '23514')
-// Values for the organisation's own fields are saved by the import only once the database part is
-// in (docs/notes/IM2.md, the migration outline waiting for the owner's yes); until then the Match
-// step shows them as "not yet"
-export const CUSTOM_VALUES_SAVED = false

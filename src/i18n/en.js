@@ -3218,8 +3218,6 @@ export default {
   "imp.presetPick": "Choose one…",
   "imp.matchHelp": "AVX guessed what each column is. Check the guesses, and set the rest or leave them out. Fields marked * are needed.",
   "imp.customFields": "Your own fields",
-  "imp.notYet": "not yet",
-  "imp.customNotYet": "Your own fields are listed, but can't be imported yet: that comes with an update to the database.",
   "imp.notImported": "Not imported: {columns}",
   "imp.dateOrder.read": "Dates in {column}:",
   "imp.dateOrder.ask": "Dates in {column}: which comes first, the day or the month?",

@@ -3217,8 +3217,6 @@ export default {
   "imp.presetPick": "Escolha uma…",
   "imp.matchHelp": "O AVX adivinhou o que é cada coluna. Confirme e indique as restantes ou deixe-as de fora. Os campos com * são necessários.",
   "imp.customFields": "Os seus campos",
-  "imp.notYet": "ainda não",
-  "imp.customNotYet": "Os seus campos aparecem na lista, mas ainda não podem ser importados: isso chega com uma atualização da base de dados.",
   "imp.notImported": "Não importadas: {columns}",
   "imp.dateOrder.read": "Datas em {column}:",
   "imp.dateOrder.ask": "Datas em {column}: o que vem primeiro, o dia ou o mês?",

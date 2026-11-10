@@ -12,7 +12,7 @@ import { useCustomFields } from '../lib/customFields'
 import CheckStep from '../components/import/CheckStep'
 import { Hint } from '../components/help/HelpParts'
 import { choiceLabel } from '../components/import/FixGroup'
-import { isContacts, isHeld, isJob, unbatched, contactsOff, CUSTOM_VALUES_SAVED } from '../components/import/kinds'
+import { isContacts, isHeld, isJob, unbatched, contactsOff } from '../components/import/kinds'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
 import { Modal, btn, btnPrimary, btnDanger, input, label, colors, AvxLoader, PageHeader, space } from '../components/ui'
@@ -76,8 +76,7 @@ export default function ImportPage() {
   useEffect(() => { setFixes([]) }, [source.text, kind, headerRow, headerAt])
   // The organisation's own fields for this kind of record (gigs, clients, suppliers, items)
   const entity = CUSTOM_ENTITY[kind] || null
-  const { fields: customAll } = useCustomFields(entity ? orgId : null, entity)
-  const custom = useMemo(() => (CUSTOM_VALUES_SAVED ? customAll : []), [customAll])
+  const { fields: custom } = useCustomFields(entity ? orgId : null, entity)
 
   const table = useMemo(() => parseTable(source.text, { headerRow, headerAt: headerRow ? headerAt : 0 }), [source.text, headerRow, headerAt])
   const orders = useMemo(() => readDateOrders(table, mapping, kind, custom, chosenOrders), [table, mapping, kind, custom, chosenOrders])
@@ -117,7 +116,7 @@ export default function ImportPage() {
         )}
         {step === 'match' && (
           <MatchStep orgId={orgId} kind={kind} table={table} mapping={mapping} setMapping={setMapping} presetName={presetName} setPresetName={setPresetName}
-            defaults={defaults} setDefaults={setDefaults} orders={orders} setChosenOrders={setChosenOrders} customAll={customAll}
+            defaults={defaults} setDefaults={setDefaults} orders={orders} setChosenOrders={setChosenOrders} custom={custom}
             onBack={() => setStep('choose')} onNext={() => setStep('check')} />
         )}
         {step === 'check' && (
@@ -330,7 +329,7 @@ function ChooseStep({ kinds, kind, setKind, source, setSource, headerRow, setHea
   )
 }
 
-function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPresetName, defaults, setDefaults, orders, setChosenOrders, customAll, onBack, onNext }) {
+function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPresetName, defaults, setDefaults, orders, setChosenOrders, custom, onBack, onNext }) {
   const { notify } = useToast()
   const [presets, setPresets] = useState([])
   const [saveName, setSaveName] = useState('')
@@ -433,10 +432,10 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
               style={{ ...input, appearance: 'auto', padding: '6px 8px', minHeight: '36px', fontSize: '13px', color: mapping[h] ? 'var(--text)' : colors.muted }}>
               <option value="">{t('imp.ignore')}</option>
               {fields.map(f => <option key={f.key} value={f.key}>{t(`imp.field.${kind}.${f.key}`)}{f.required ? ' *' : ''}</option>)}
-              {/* The organisation's own fields (saved once the database part is in: "not yet" until then) */}
-              {customAll.length > 0 && (
+              {/* The organisation's own fields (gigs, clients, suppliers and items): values checked by their kind */}
+              {custom.length > 0 && (
                 <optgroup label={t('imp.customFields')}>
-                  {customAll.map(f => <option key={f.id} value={`cf:${f.id}`} disabled={!CUSTOM_VALUES_SAVED}>{f.label}{CUSTOM_VALUES_SAVED ? '' : ` · ${t('imp.notYet')}`}</option>)}
+                  {custom.map(f => <option key={f.id} value={`cf:${f.id}`}>{f.label}</option>)}
                 </optgroup>
               )}
             </select>
@@ -464,7 +463,6 @@ function MatchStep({ orgId, kind, table, mapping, setMapping, presetName, setPre
           <Info size={13} aria-hidden="true" style={{ flexShrink: 0, alignSelf: 'center' }} /> <span>{t('imp.notImported', { columns: unused.join(', ') })}</span>
         </p>
       )}
-      {customAll.length > 0 && !CUSTOM_VALUES_SAVED && <p style={{ fontSize: '13px', color: colors.muted, margin: 0 }}>{t('imp.customNotYet')}</p>}
       {open.length > 0 && (
         <section aria-labelledby="imp-same">
           <h2 id="imp-same" style={{ font: '700 16px/24px var(--font-mono)', margin: `0 0 ${space[1]}`, display: 'flex', gap: space[2], alignItems: 'center' }}>{t('imp.same.title')} <Hint id="imp-same" /></h2>
