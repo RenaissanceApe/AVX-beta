@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.82.1 — Import check: shorter problem texts and two small fixes
+
+#### Changed
+- **Import check:** the problem texts now only say what's wrong, because the fixes right beside
+  them do the rest. Gone: "(import locations first)", "(import equipment first)", "(import the jobs
+  first)", "add their codes to the file" and "add their tax numbers or e-mail addresses to the file".
+- **Import, Choose step:** the file hint no longer says Excel files are read from their first
+  sheet; a workbook with several sheets asks which one. It now reads "Excel (.xlsx), CSV or
+  tab-separated, as most tools export."
+
+#### Fixed
+- The "client not in Contacts" heads-up in the import check shows the client's name instead of
+  "{value}" (#173).
+- On a narrow phone in Portuguese, the "Seguinte: Unidades (números de série)" button at the end
+  of an equipment import wraps onto two lines instead of running off the screen (#170).
+
 ## 0.82.0 — Import overhaul
 
 ### IM1: Fix it in the check

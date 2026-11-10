@@ -241,7 +241,7 @@ export default function CheckStep({ orgId, kind, table, mapping, headerRow, defa
             ? <FixGroup key={g.key} group={g} kind={kind} ctx={ctx} onApply={apply} />
             : <p key={g.key} style={{ display: 'flex', gap: space[2], alignItems: 'baseline', fontSize: '13px', color: colors.soft, lineHeight: 1.6, borderTop: `1px solid ${colors.border}`, padding: `${space[3]} 0`, margin: 0 }}>
                 <Info size={13} aria-hidden="true" style={{ flexShrink: 0, alignSelf: 'center' }} />
-                <span><strong style={{ color: 'var(--text)' }}>{t('imp.group.rows', { count: g.lines.length })}</strong> · {t(`imp.note.${g.reason}`)}</span>
+                <span><strong style={{ color: 'var(--text)' }}>{t('imp.group.rows', { count: g.lines.length })}</strong> · {t(`imp.note.${g.reason}`, { value: g.value ?? '' })}</span>
               </p>))}
         </section>
       )}
