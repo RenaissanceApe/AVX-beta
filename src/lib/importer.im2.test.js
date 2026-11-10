@@ -183,7 +183,7 @@ describe('more than 5000 rows', () => {
   })
   it('add up the results of the parts', () => {
     expect(mergeResults([{ batch: 'a', created: 2, updated: 1, unchanged: 0, skipped: 1, problems: [{ row: 3 }] }, { batch: 'b', created: 1, updated: 0, unchanged: 2, skipped: 0, problems: [] }]))
-      .toEqual({ batch: 'b', created: 3, updated: 1, unchanged: 2, skipped: 1, problems: [{ row: 3 }] })
+      .toEqual({ batch: 'b', created: 3, updated: 1, unchanged: 2, skipped: 1, added: 0, problems: [{ row: 3 }] })
   })
 })
 

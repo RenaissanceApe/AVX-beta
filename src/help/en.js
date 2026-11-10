@@ -206,6 +206,7 @@ export default {
     'imp-fixes': 'Rows with the same problem are grouped, so one choice fixes them all: add a missing location, use an item you have, treat a word as a status, edit a cell. Each fix is listed under "Your fixes" and can be taken back. What a fix adds is saved only when you press Import. Groups you don\'t decide on are left out.',
     'imp-same': "A field your file doesn't have can take one value for all its rows: the location of all the stock, the item all the units belong to, the job all the equipment is for, or a status. A column always wins over it.",
     'imp-after': "\"Fix and try again\" opens the check with only the rows the database refused, and the same fixes as before. The download has every row that wasn't imported, with your file's own columns and a Problem column: fix them in a spreadsheet and import that small file.",
+    'imp-remember': 'Fixes that don\'t depend on the lines of this file (a word read as a status, a location or item chosen for a value, something to add) are saved with the matching. Next time you choose it, they come back in "Your fixes", and any that no longer fit are dropped.',
     'cross-hire-code': 'If your supplier also uses AVX, ask for their code. Requests then go straight to them and they confirm in AVX.',
     factor: 'How many day prices this line costs for the whole phase. Example: 3 days at factor 2.5 costs 2.5 × the day price.',
     discount: 'A percentage taken off this phase’s total, before VAT.',

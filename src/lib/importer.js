@@ -13,6 +13,11 @@ export const HELD_KINDS = ['crew']
 // Upcoming jobs, their equipment and open quotes (S3b): also outside the batches, imported by import_jobs
 export const JOB_KINDS = ['gigs', 'gig_equipment', 'quotes']
 export const MAX_ROWS = 5000
+// Exact picks (IM3): a row can carry the id of the record a fix chose (an item, a set or case, a
+// location, a gig, a client, or the contact a contacts row updates), which the database checks
+// and uses before the code and the name; _new makes a contacts row a new contact even when one has
+// its name. They come from fixes, never from a column of the file.
+export const PICKS = ['_item_id', '_kit_id', '_location_id', '_gig_id', '_client_id', '_contact_id', '_new']
 const CODE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/
 
 // Words people (and Rentman, in Dutch or English) use for each choice
@@ -502,6 +507,7 @@ export function cleanValue(raw, field) {
   const s = String(raw ?? '').trim()
   if (!s) return { value: null }
   switch (field.type) {
+    case 'exact': return { value: s }
     case 'money':
     case 'number': {
       const n = parseNumber(s)
@@ -557,7 +563,7 @@ export const fieldsFor = (kind, custom = []) => [...(FIELDS[kind] || []), ...(CU
 export function buildRows(table, mapping, kind, { headerRow = true, defaultLocation = null, defaults = {}, dateOrders = {}, custom = [], only = null } = {}) {
   const fields = fieldsFor(kind, custom)
   const cols = table.headers.map((h, i) => {
-    const field = fields.find(f => f.key === mapping[h])
+    const field = fields.find(f => f.key === mapping[h]) || (PICKS.includes(mapping[h]) ? { key: mapping[h], type: 'exact' } : null)
     return { i, field: field && field.type === 'date' && dateOrders[field.key] ? { ...field, order: dateOrders[field.key] } : field }
   }).filter(c => c.field)
   const given = new Set(cols.map(c => c.field.key))
@@ -576,7 +582,8 @@ export function buildRows(table, mapping, kind, { headerRow = true, defaultLocat
       if (value !== null && value !== undefined) {
         if (field.custom) row.custom_values = { ...row.custom_values, [field.key.slice(3)]: value }
         else row[field.key] = value
-        any = true
+        // A pick only says which record a row means; it doesn't make an empty row count
+        if (field.type !== 'exact') any = true
       } else if (error) any = true
     }
     if (!any) return
@@ -700,7 +707,10 @@ export function dryRun(rows, kind, existing) {
   const stocked = new Set(existing.stocked || [])
   const clients = new Set((existing.clients || []).filter(c => !c.archived_at).map(c => lower(c.name)))
   const seen = new Set()
-  const findItem = (code, name) => (code && itemByCode.get(code.toUpperCase())) || (name && itemsByName.get(lower(name))?.length === 1 ? itemsByName.get(lower(name))[0] : null)
+  const itemById = new Map(items.filter(i => i.id).map(i => [String(i.id), i]))
+  // An exact pick (IM3) wins over the code and the name
+  const findItem = (code, name, id) => (id && itemById.get(String(id))) || (code && itemByCode.get(code.toUpperCase())) || (name && itemsByName.get(lower(name))?.length === 1 ? itemsByName.get(lower(name))[0] : null)
+  const gigById = id => (id && (existing.gigs || []).find(g => String(g.id) === String(id))) || null
   // Why an item (or kit) wasn't found: its code is archived, or its name is shared, or it isn't there
   const missingItem = (code, name, reason, codeField, nameField) => {
     if (code && archivedCodes.has(code.toUpperCase()) && !itemByCode.has(code.toUpperCase())) return { action: 'skip', reason: 'archived', field: codeField, value: code }
@@ -728,10 +738,11 @@ export function dryRun(rows, kind, existing) {
     if (kind === 'items') {
       const where = badLocation(row)
       if (where) return where
-      if (!row.code && row.name && (itemsByName.get(lower(row.name))?.length || 0) > 1) return { action: 'skip', reason: 'sameName', field: 'name', value: row.name }
-      if (row.code && archivedCodes.has(row.code.toUpperCase()) && !itemByCode.has(row.code.toUpperCase())) return { action: 'skip', reason: 'archived', field: 'code', value: row.code }
-      const key = row.code ? `#${row.code.toUpperCase()}` : lower(row.name)
-      const found = findItem(row.code, row.name)
+      const picked = row._item_id && itemById.get(String(row._item_id))
+      if (!picked && !row.code && row.name && (itemsByName.get(lower(row.name))?.length || 0) > 1) return { action: 'skip', reason: 'sameName', field: 'name', value: row.name }
+      if (!picked && row.code && archivedCodes.has(row.code.toUpperCase()) && !itemByCode.has(row.code.toUpperCase())) return { action: 'skip', reason: 'archived', field: 'code', value: row.code }
+      const key = picked ? `=${picked.id}` : row.code ? `#${row.code.toUpperCase()}` : lower(row.name)
+      const found = picked || findItem(row.code, row.name)
       if (!found && !seen.has(key) && row.quantity > 0 && row.tracking === 'serial') return { action: 'skip', reason: 'serialQuantity', field: 'quantity', value: row.name || row.code }
       if (found && row.tracking && row.tracking !== found.tracking && stocked.has(found.id)) return { action: 'skip', reason: 'trackingLocked', field: 'tracking', value: found.name }
       const action = found || seen.has(key) ? 'match' : 'create'
@@ -741,7 +752,7 @@ export function dryRun(rows, kind, existing) {
     if (kind === 'gigs') {
       if (row.status === 'cancelled') return { action: 'skip', reason: 'cancelledJob', value: row.name || row.ref, purpose: true }
       if ((row.end_date || row.start_date) && (row.end_date || row.start_date) < today()) return { action: 'skip', reason: 'pastJob', value: row.name || row.ref, purpose: true }
-      const found = findGig(existing.gigs, row.ref, row.name, row.start_date)
+      const found = gigById(row._gig_id) || findGig(existing.gigs, row.ref, row.name, row.start_date)
       if (!found && sameGigs(existing.gigs, row.ref, row.name, row.start_date) > 1) return { action: 'skip', reason: 'sameGig', field: 'name', value: row.name }
       if (!found && !row.start_date) return { action: 'skip', reason: 'noStart', field: 'start_date' }
       const key = row.ref ? `#${lower(row.ref)}` : `${lower(row.name)}|${row.start_date}`
@@ -750,10 +761,10 @@ export function dryRun(rows, kind, existing) {
       return clientNote(row, { action })
     }
     if (kind === 'gig_equipment') {
-      const gig = findGig(existing.gigs, row.gig_ref, row.gig, null)
+      const gig = gigById(row._gig_id) || findGig(existing.gigs, row.gig_ref, row.gig, null)
       if (!gig && sameGigs(existing.gigs, row.gig_ref, row.gig, null) > 1) return { action: 'skip', reason: 'sameGig', field: 'gig', value: row.gig }
       if (!gig) return { action: 'skip', reason: 'unknownJob', field: row.gig_ref ? 'gig_ref' : 'gig', value: row.gig_ref || row.gig }
-      const item = findItem(row.item_code, row.item)
+      const item = findItem(row.item_code, row.item, row._item_id)
       if (!item) return missingItem(row.item_code, row.item, 'unknownItem', 'item_code', 'item')
       if (item.tracking === 'none') return { action: 'skip', reason: 'notTracked', field: row.item_code ? 'item_code' : 'item', value: item.name }
       const key = `${gig.id}>${item.id}`
@@ -780,22 +791,23 @@ export function dryRun(rows, kind, existing) {
     if (CONTACT_KINDS.includes(kind)) {
       const contacts = (existing.contacts || [])
       const byTax = row.tax_id && contacts.find(c => taxKey(c.tax_id) && taxKey(c.tax_id) === taxKey(row.tax_id))
-      let match = byTax
-      if (!match) {
+      const picked = row._contact_id && contacts.find(c => !c.archived_at && String(c.id) === String(row._contact_id))
+      let match = row._new ? null : picked || byTax
+      if (!match && !row._new) {
         const named = contacts.filter(c => !c.archived_at && lower(c.name) === lower(row.name))
         const narrowed = named.length > 1 && row.email ? named.filter(c => lower(c.email) === lower(row.email)) : named
         if (narrowed.length > 1) return { action: 'skip', reason: 'sameContact', field: 'name', value: row.name }
         match = narrowed[0]
       }
-      const key = row.tax_id ? `#${taxKey(row.tax_id)}` : lower(row.name)
+      const key = match ? `=${match.id}` : row._new ? `+${row._row}` : row.tax_id ? `#${taxKey(row.tax_id)}` : lower(row.name)
       const action = match || seen.has(key) ? 'match' : 'create'
       seen.add(key)
       return { action }
     }
     if (kind === 'kits') {
-      const kit = findItem(row.kit_code, row.kit)
+      const kit = findItem(row.kit_code, row.kit, row._kit_id)
       if (!kit) return missingItem(row.kit_code, row.kit, 'unknownKit', 'kit_code', 'kit')
-      const item = findItem(row.item_code, row.item)
+      const item = findItem(row.item_code, row.item, row._item_id)
       if (!item) return missingItem(row.item_code, row.item, 'unknownItem', 'item_code', 'item')
       if (kit.id === item.id) return { action: 'skip', reason: 'selfKit', field: row.item_code ? 'item_code' : 'item', value: kit.name }
       const partKind = row.part_kind || (!kit.kit_type && kit.tracking !== 'none' && !row.kit_type ? 'accessory' : 'content')
@@ -807,7 +819,7 @@ export function dryRun(rows, kind, existing) {
     // units
     const where = badLocation(row)
     if (where) return where
-    const item = findItem(row.item_code, row.item)
+    const item = findItem(row.item_code, row.item, row._item_id)
     // An item created by an earlier import in this session isn't known here yet; the database decides
     if (!item) return missingItem(row.item_code, row.item, 'unknownItem', 'item_code', 'item')
     if (item.tracking === 'bulk') return { action: 'skip', reason: 'bulkItem', field: row.item_code ? 'item_code' : 'item', value: item.name }
@@ -901,12 +913,19 @@ export const SERVER_KEYS = SERVER.map(([, key]) => key)
 //   { type: 'add', what, record, edits? }   something to add when Import is pressed: a location
 //                                           ({ name, kind }), an item ({ name, code, tracking, kind })
 //                                           or a client ({ name }); edits as for 'cells'
-//   { type: 'restore', id, name }           an archived location brought back when Import is pressed
+//   { type: 'restore', id, name, what? }    an archived location (or, with what: 'item', an
+//                                           archived item) brought back when Import is pressed
 //   { type: 'track', id, name }             an item starts being counted in stock when Import is pressed
+//   { type: 'perUnit', id, name }           an item counted in bulk switches to per unit when Import
+//                                           is pressed (its opening quantity goes; the units bring
+//                                           the stock)
+// A 'replace' can also fill PICKS (the exact record a fix chose, by id).
+// What a fix adds, restores or switches is sent with the import itself (fixRows), so it is saved
+// in the import's own batch: if any of it fails nothing is imported, and one undo takes it all back.
 // Each fix also carries `key` (the problem group it answers) and `fix` (which of FIXES it is).
 
 // Which fixes each reason offers. Every group can also be left out ('skip'); fixes listed under
-// im3 need the database part (IM3) and show as not available yet. Reasons with purpose: true are
+// im3 would show as not available yet (none since IM3 built the database part). Reasons with purpose: true are
 // left out on purpose (no fix needed), and note: true marks a heads-up, not a problem.
 export const FIXES = {
   // A bad or missing cell
@@ -934,13 +953,13 @@ export const FIXES = {
   unknownItem: { fixes: ['useItem', 'addItem'] },
   unknownKit: { fixes: ['useItem', 'addKit'] },
   sameName: { fixes: ['chooseItem'] },
-  archived: { fixes: ['restoreItem', 'useItem'], im3: ['restoreItem'] },
-  bulkItem: { fixes: ['useItem'] },
+  archived: { fixes: ['restoreItem', 'useItem'] },
+  bulkItem: { fixes: ['perUnit', 'useItem'] },
   notTracked: { fixes: ['startTracking', 'useItem'] },
   selfKit: { fixes: ['useItem'] },
   unknownJob: { fixes: ['useGig'] },
   sameGig: { fixes: ['chooseGig'] },
-  sameContact: { fixes: ['chooseContact', 'newContact'], im3: ['newContact'] },
+  sameContact: { fixes: ['chooseContact', 'newContact'] },
   serialQuantity: { fixes: ['countBulk', 'dropQuantity'] },
   otherItem: { fixes: ['edit'] },
   trackingLocked: { fixes: ['keepTracking'] },
@@ -1044,10 +1063,79 @@ export function withPending(existing, fixes = []) {
     if (fix.type === 'add' && fix.what === 'location') ex.locations.push({ name: fix.record.name, pending: true })
     if (fix.type === 'add' && fix.what === 'item') ex.items.push({ id: `pending-${n}`, name: fix.record.name, code: fix.record.code || null, tracking: fix.record.tracking, pending: true })
     if (fix.type === 'add' && fix.what === 'client') ex.clients.push({ name: fix.record.name, pending: true })
-    if (fix.type === 'restore') ex.locations = ex.locations.map(l => (l.id === fix.id ? { ...l, archived_at: null } : l))
+    if (fix.type === 'restore' && fix.what !== 'item') ex.locations = ex.locations.map(l => (l.id === fix.id ? { ...l, archived_at: null } : l))
+    if (fix.type === 'restore' && fix.what === 'item') ex.items = ex.items.map(i => (i.id === fix.id ? { ...i, archived_at: null } : i))
     if (fix.type === 'track') ex.items = ex.items.map(i => (i.id === fix.id ? { ...i, tracking: 'bulk' } : i))
+    if (fix.type === 'perUnit') ex.items = ex.items.map(i => (i.id === fix.id ? { ...i, tracking: 'serial' } : i))
   })
   return ex
+}
+
+// What the fixes add, restore or switch, as rows sent ahead of the import's own rows (run_import
+// and import_jobs read rows with _fix first, in this order, in the same batch): restored locations
+// and items, new locations, new items, new clients, items that start being counted, items that
+// switch to per unit
+export function fixRows(fixes = []) {
+  const clean = r => Object.fromEntries(Object.entries(r || {}).filter(([, v]) => v != null && v !== ''))
+  const of = (type, what) => fixes.filter(f => f.type === type && (what === undefined || f.what === what))
+  return [
+    ...of('restore').map(f => ({ _fix: f.what === 'item' ? 'restore_item' : 'restore_location', id: f.id })),
+    ...of('add', 'location').map(f => ({ _fix: 'add_location', ...clean(f.record) })),
+    ...of('add', 'item').map(f => ({ _fix: 'add_item', ...clean(f.record) })),
+    ...of('add', 'client').map(f => ({ _fix: 'add_client', ...clean(f.record) })),
+    ...of('track').map(f => ({ _fix: 'track', id: f.id })),
+    ...of('perUnit').map(f => ({ _fix: 'per_unit', id: f.id })),
+  ]
+}
+
+// Fixes remembered with a saved matching (import_presets.fixes): the ones that don't depend on the
+// file's lines (edited cells and rows left out are left behind), within the size the database takes
+export const PRESET_FIXES_MAX = 30000
+export function presetFixes(fixes = []) {
+  const out = []
+  for (const f of fixes) {
+    if (!['replace', 'add', 'restore', 'track', 'perUnit'].includes(f.type)) continue
+    const { edits, lines, count, ...rest } = f // eslint-disable-line no-unused-vars
+    const next = [...out, rest]
+    if (JSON.stringify(next).length > PRESET_FIXES_MAX) break
+    out.push(rest)
+  }
+  return out
+}
+
+// The fixes made so far plus the ones remembered with a saved matching (a group already answered
+// keeps its own fix)
+export function withPresetFixes(fixes = [], saved = []) {
+  const answered = new Set(fixes.map(f => f.key).filter(Boolean))
+  return [...fixes, ...(Array.isArray(saved) ? saved : []).filter(f => f && f.type && !answered.has(f.key))]
+}
+
+// Remembered fixes that still make sense with what the organisation has now: a pick of a record
+// that's gone or archived, something to add that is there already, a restore of something no
+// longer archived, a switch already made, are dropped
+export function liveFixes(fixes = [], existing = {}) {
+  const lower = s => String(s ?? '').trim().toLowerCase()
+  const items = existing.items || [], locations = existing.locations || [], gigs = existing.gigs || []
+  const contacts = [...(existing.contacts || []), ...(existing.clients || [])]
+  const live = (list, id) => list.some(x => String(x.id) === String(id) && !x.archived_at)
+  const pickOk = set => Object.entries(set || {}).every(([k, v]) => {
+    if (!PICKS.includes(k) || k === '_new' || !v) return true
+    if (k === '_item_id' || k === '_kit_id') return live(items, v)
+    if (k === '_location_id') return live(locations, v)
+    if (k === '_gig_id') return gigs.some(g => String(g.id) === String(v))
+    return live(contacts, v)
+  })
+  return fixes.filter(f => {
+    if (f.type === 'replace') return pickOk(f.set)
+    if (f.type === 'add') {
+      const list = f.what === 'location' ? locations : f.what === 'item' ? items : contacts
+      return !list.some(x => !x.archived_at && lower(x.name) === lower(f.record?.name))
+    }
+    if (f.type === 'restore') return (f.what === 'item' ? items : locations).some(x => String(x.id) === String(f.id) && x.archived_at)
+    if (f.type === 'track') return items.some(i => String(i.id) === String(f.id) && i.tracking === 'none' && !i.archived_at)
+    if (f.type === 'perUnit') return items.some(i => String(i.id) === String(f.id) && i.tracking === 'bulk' && !i.archived_at)
+    return true
+  })
 }
 
 // Which group a row's problem goes in: by reason and field, and for value problems by the cell
@@ -1207,7 +1295,7 @@ export function splitParts(rows, kind, size = MAX_ROWS) {
 // The results of several parts as one
 export function mergeResults(results) {
   const sum = k => results.reduce((n, r) => n + (Number(r?.[k]) || 0), 0)
-  return { ...results.at(-1), created: sum('created'), updated: sum('updated'), unchanged: sum('unchanged'), skipped: sum('skipped'), problems: results.flatMap(r => r?.problems || []) }
+  return { ...results.at(-1), created: sum('created'), updated: sum('updated'), unchanged: sum('unchanged'), skipped: sum('skipped'), added: sum('added'), problems: results.flatMap(r => r?.problems || []) }
 }
 
 // The rows left out, as a CSV file with the file's own columns and a Problem column, to fix in a
