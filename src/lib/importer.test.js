@@ -120,7 +120,7 @@ describe('import wizard: rows and the dry run', () => {
     const { plan, counts } = dryRun(rows, 'items', existing)
     expect(plan.map(p => p.action)).toEqual(['create', 'match', 'skip', 'skip', 'skip'])
     expect(counts).toEqual({ create: 1, match: 1, skip: 3 })
-    expect(dryRun([{ _row: 2, name: 'A', quantity: 1, location: 'Moon', _errors: [] }], 'items', existing).plan[0]).toEqual({ action: 'skip', reason: 'unknownLocation', value: 'Moon' })
+    expect(dryRun([{ _row: 2, name: 'A', quantity: 1, location: 'Moon', _errors: [] }], 'items', existing).plan[0]).toEqual({ action: 'skip', reason: 'unknownLocation', field: 'location', value: 'Moon' })
   })
 
   it('checks units against their items', () => {
@@ -248,11 +248,12 @@ describe('import wizard: crew', () => {
     expect(rows[2]._errors).toEqual([{ field: 'role', error: 'choice' }])
   })
 
-  it('counts people already in, invited or held as matched', () => {
+  it('leaves people already in or invited out on purpose, and matches people held', () => {
     const existing = { members: ['Ana@example.com'], invites: ['pending@example.com'], held: ['held@example.com'] }
     const rows = ['ana@example.com', 'pending@example.com', 'held@example.com', 'new@example.com', 'NEW@example.com']
       .map((email, i) => ({ _row: i + 2, email, _errors: [] }))
-    expect(dryRun(rows, 'crew', existing).plan.map(p => p.action)).toEqual(['match', 'match', 'match', 'create', 'match'])
+    expect(dryRun(rows, 'crew', existing).plan.map(p => p.action + (p.reason ? `:${p.reason}` : ''))).toEqual(['skip:alreadyMember', 'skip:alreadyInvited', 'match', 'create', 'match'])
+    expect(dryRun(rows, 'crew', existing).plan[0].purpose).toBe(true)
   })
 })
 
