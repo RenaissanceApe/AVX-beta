@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises'
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { RUN, PASSWORD, testEmail } from './accounts.js'
@@ -87,6 +88,50 @@ test('an equipment file with an unknown location: add it from the check, import,
   await row.click()
   await expect(page.getByText('warehouse').first()).toBeVisible({ timeout: 15_000 })
   await expect(page.getByText(/\b12\b/).first()).toBeVisible()
+})
+
+// IM2, a Choose fix: a title line above the headings is noticed, and the headings row suggested
+test('a file with a title line: the headings row is suggested and the rows import', async ({ page }) => {
+  await signIn(page)
+  await page.goto(`${orgPath}/inventory/import?kind=items`)
+  await page.locator('#imp-paste').fill(`Stock list ${RUN}\nName\tCode\tQuantity\tLocation\tColour\nE2E Lamp ${RUN}\tE2E-L-${RUN}\t3\twarehouse\tred`)
+  await expect(page.getByRole('spinbutton', { name: 'The headings are on row' })).toHaveValue('2')
+  await expect(page.getByText('Suggested: the rows above look like titles.')).toBeVisible()
+  await expect(page.getByText('1 rows and 5 columns found.')).toBeVisible()
+  await expectAccessible(page)
+  await page.getByRole('button', { name: 'Next' }).click()
+
+  // The headings are the file's second line, and the column nothing takes is listed
+  await expect(page.getByRole('combobox', { name: /Quantity/ })).toBeVisible()
+  await expect(page.getByText('Not imported: Colour')).toBeVisible()
+  await expectAccessible(page)
+  await page.getByRole('button', { name: 'Next' }).click()
+  const importButton = page.getByRole('button', { name: 'Import 1 row' })
+  await expect(importButton).toBeEnabled({ timeout: 15_000 })
+  await importButton.click()
+  await expect(page.getByRole('status').filter({ hasText: '1 added · 0 updated · 0 unchanged · 0 skipped' })).toBeVisible({ timeout: 20_000 })
+})
+
+// IM2, a Done fix: the rows left out download with the file's own columns and a Problem column
+test('rows left out in the check download with their data and the problem', async ({ page }) => {
+  await signIn(page)
+  await page.goto(`${orgPath}/inventory/import?kind=items`)
+  await page.locator('#imp-paste').fill(`Name\tCode\tPrice\nE2E Desk ${RUN}\tE2E-D-${RUN}\t40\nE2E Stand ${RUN}\tE2E-S-${RUN}\tlots`)
+  await page.getByRole('button', { name: 'Next' }).click()
+  await page.getByRole('button', { name: 'Next' }).click()
+  // Nobody decides on the bad price, so that row is left out
+  await expect(page.getByText('1 row waiting for a decision will be left out.')).toBeVisible({ timeout: 15_000 })
+  await page.getByRole('button', { name: 'Import 1 row' }).click()
+  await expect(page.getByRole('status').filter({ hasText: '1 added · 0 updated · 0 unchanged · 0 skipped' })).toBeVisible({ timeout: 20_000 })
+
+  const button = page.getByRole('button', { name: 'Download the row left out' })
+  await expect(button).toBeVisible()
+  await expectAccessible(page)
+  const [download] = await Promise.all([page.waitForEvent('download'), button.click()])
+  const csv = (await readFile(await download.path(), 'utf8')).replace(/^\uFEFF/, '').split('\n')
+  expect(csv[0]).toBe('Name,Code,Price,Problem')
+  expect(csv[1]).toBe(`E2E Stand ${RUN},E2E-S-${RUN},lots,Price: not a number`)
+  expect(csv).toHaveLength(2)
 })
 
 test('clean up: the user deletes their account', async ({ page }) => {
