@@ -19,8 +19,8 @@ const url = process.env.VITE_SUPABASE_URL
 const key = process.env.VITE_SUPABASE_ANON_KEY
 const tag = (process.argv[2] || '').toLowerCase()
 
-if (!url || !key || !/^[a-z0-9-]{3,40}$/.test(tag)) {
-  console.error('Usage: VITE_SUPABASE_URL=… VITE_SUPABASE_ANON_KEY=… node scripts/e2e-sweep.mjs <tag>  (tag: 3–40 of a-z, 0-9, -)')
+if (!url || !key || !/^[a-z0-9-]{2,40}$/.test(tag)) {
+  console.error('Usage: VITE_SUPABASE_URL=… VITE_SUPABASE_ANON_KEY=… node scripts/e2e-sweep.mjs <tag>  (tag: 2–40 of a-z, 0-9, -)')
   process.exit(2)
 }
 if (url.includes(PRODUCTION_REF)) {
