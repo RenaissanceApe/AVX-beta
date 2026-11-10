@@ -424,3 +424,43 @@ Every group also offers "Leave these rows out". **(IM3)** marks a fix that needs
 - **Tests.** `importer.im3.test.js`; `supabase/tests/import_fixes.sql` and the last two blocks of
   `supabase/tests/import_undo.sql`; the signed-in `e2e/auth/import.spec.js` (the addition is in the
   import's batch, and one undo takes back both).
+
+## How IM4 works (the history import)
+
+- **Past jobs, chosen in the check.** In an Upcoming jobs file, jobs whose end (or start) is before
+  today are left out on purpose, as before, but the "left out on purpose" list now offers **Import
+  as past jobs** (`pastJob`) and, for past cancelled jobs, **Import as cancelled** (`pastCancelled`).
+  The choice is a fix like any other (`historyFix`: a `cells` fix giving each row of the group the
+  hidden field `_history` = `completed` or `cancelled`), listed under "Your fixes" and taken back
+  there. Upcoming cancelled jobs stay out with nothing to choose. Groups nobody decided on are left
+  out, as everywhere.
+- **Up to 10 years back** (the owner's answer, `HISTORY_YEARS`, `historyFrom`): older jobs, and
+  quotes decided more than 10 years ago, are listed as too old (`tooOld`) and never imported.
+- **A past gig books nothing.** `private.import_gig_row` inserts it with status completed (or
+  cancelled) and `gigs.from_history = true`. `handle_new_gig` gives such a gig no production
+  manager, so nobody is booked (no person reservation, nothing in `person_conflicts` or
+  `crew_busy`) and nobody is notified; org members still open it and its creator manages it.
+  Equipment lines for it are refused (`historyGig`, predicted in the check as left out on purpose),
+  so no stock is reserved. A gig already in AVX that isn't from history is never turned into a past
+  one (`gigThere`).
+- **Quotes with their history.** A quotes file can give, on a quote's first line, its status
+  (draft, sent, accepted, declined: `quoteStatus` words / `private.import_quote_status`), the date
+  sent, the date decided and a decline reason. The sent date defaults to the quote's date and the
+  decided date to the sent date; both are stored at noon in the organisation's time zone in
+  `sent_at` / `decided_at`, which the K reports read. `quotes_report_dates` keeps those dates only
+  while `private.import_quote` writes the quote (`avx.import_history`, set for that statement);
+  everywhere else it sets them as before. A reason that matches one of the reports' reasons (price,
+  competitor, cancelled, unavailable, scope; `private.import_lost_reason`) is used; any other text
+  is kept as "other" with the text as the note. The check predicts dates after today
+  (`futureDate`) and a decision before the quote was sent (`decidedFirst`), with cell edits.
+- **Nothing doubles.** Gigs and quotes are still matched by their old number (`import_ref`). A quote
+  already sent or decided in AVX is left as it is; a draft imported earlier gets its lines, status
+  and dates from the file.
+- **Migration** `20270116000000_import_history.sql` (add-only; no hand-run file): `gigs.from_history`,
+  `handle_new_gig`, `quotes_report_dates`, `import_quote_status`, `import_lost_reason`, and
+  `import_gig_row`, `import_gig_equipment_row`, `import_quote` replaced from IM3's bodies (same
+  signatures). `run_import`, `import_jobs` and undo are unchanged; jobs and quotes still aren't in
+  Earlier imports' undo.
+- **Tests.** `importer.im4.test.js`; the IM4 block of `supabase/tests/import_jobs.sql`; the
+  signed-in `e2e/auth/import.spec.js` (a past job imported as done, then the same file again: 2
+  unchanged). Help: the `of-import-history` guide, the `imp-history` hint and screenshot.

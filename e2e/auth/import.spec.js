@@ -165,6 +165,28 @@ test('one undo takes back an import and the location its fix added', async ({ pa
   await expect(page.getByText(`E2E Crate ${RUN}`)).toHaveCount(0)
 })
 
+// IM4: a past job comes in as a done gig when "Import as past jobs" is chosen; importing the file
+// again matches it by its number, so nothing doubles
+test('past jobs come in as done gigs when chosen, and a second import doesn\'t double them', async ({ page }) => {
+  await signIn(page)
+  const day = n => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10)
+  const file = `Number\tName\tStart\tEnd\nE2E-P-${RUN}\tE2E Past ${RUN}\t${day(-40)}\t${day(-39)}\nE2E-U-${RUN}\tE2E Next ${RUN}\t${day(30)}\t${day(31)}`
+  for (const round of [1, 2]) {
+    await page.goto(`${orgPath}/inventory/import?kind=gigs`)
+    await page.locator('#imp-paste').fill(file)
+    await page.getByRole('button', { name: 'Next' }).click()
+    await page.getByRole('button', { name: 'Next' }).click()
+    const purpose = page.locator('section[aria-labelledby="imp-purpose"]')
+    await expect(purpose.getByText('1 past job')).toBeVisible({ timeout: 15_000 })
+    if (round === 1) await expectAccessible(page)
+    await purpose.getByRole('button', { name: 'Import as past jobs' }).click()
+    await expect(page.getByText('1 past job imported as done')).toBeVisible()
+    await page.getByRole('button', { name: 'Import 2 rows' }).click()
+    const result = round === 1 ? '2 added · 0 updated · 0 unchanged · 0 skipped' : '0 added · 0 updated · 2 unchanged · 0 skipped'
+    await expect(page.getByRole('status').filter({ hasText: result })).toBeVisible({ timeout: 20_000 })
+  }
+})
+
 test('clean up: the user deletes their account', async ({ page }) => {
   await signIn(page)
   await page.goto('/settings')
