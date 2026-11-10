@@ -5390,6 +5390,7 @@ export default {
   "reportLink.spending": "Spending by category ({currency})",
   "reportLink.footer": "Made with AVX",
   "reports.loadFailed": "The report couldn't be loaded. Try again in a moment.",
+  "reports.tileFailed": "Couldn't load this number. Try again in a moment.",
   "reports.tile.gigsThisMonth": "Gigs this month",
   "reports.tile.revenueNext30": "Confirmed revenue, next 30 days",
   "reports.tile.waitingQuotes": "Quotes waiting for an answer",
