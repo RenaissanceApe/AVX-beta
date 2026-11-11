@@ -116,7 +116,7 @@ export default function SettingsPage() {
     setExporting(true)
     try {
       const [profileRes, orgsRes, gigsRes, postsRes, assetsRes, messagesRes, savedRes, acksRes, callsRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+        supabase.rpc('my_profile').maybeSingle(),
         supabase.from('org_members').select('role, joined_at, organisations(id, name, created_at)').eq('user_id', user.id),
         supabase.from('gig_members').select('role, function_title, call_time, gigs(id, name, venue, start_date, end_date, status)').eq('user_id', user.id),
         supabase.from('feed_posts').select('id, gig_id, content, is_important, created_at').eq('user_id', user.id),
