@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.82.3 — Privacy fix: who can see your name and phone
+
+#### Fixed
+- **Profiles are private again (#188).** Before, any signed-in account could read every person's
+  name, phone number and notification settings, even with no company or gig in common. Now:
+  - you see a person's name only if you share a company, a gig (crew, guests or the gig company's
+    people) or a conversation with them, or they've sent you a notification (for example, a company
+    contacting you from Find crew);
+  - a phone number is shown only to the person and to people who can open a gig that person is on
+    (the crew list and the call sheet, as before);
+  - your email-summary and weekly-numbers switches are only yours.
+  Nothing changes on screen for normal use. Find crew works as before.
+
 ## 0.82.2 — Fix-ups: a faster Reports Overview and test repairs
 
 #### Changed

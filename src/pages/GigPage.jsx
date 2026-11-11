@@ -178,9 +178,15 @@ export default function GigPage() {
     ].filter(Boolean))]
     let profileMap = {}
     if (uids.length) {
-      const { data: profileData, error } = await supabase.from('profiles').select('id, full_name, phone').in('id', uids)
+      // Phones aren't readable from profiles; gig_crew_phones gives the crew's to people on the gig
+      const [{ data: profileData, error }, { data: phoneData, error: phoneError }] = await Promise.all([
+        supabase.from('profiles').select('id, full_name').in('id', uids),
+        supabase.rpc('gig_crew_phones', { p_gig: id }),
+      ])
       if (error) logger.error('gig', error, { step: 'profiles', gigId: id })
-      profileMap = Object.fromEntries((profileData || []).map(p => [p.id, p]))
+      if (phoneError) logger.error('gig', phoneError, { step: 'phones', gigId: id })
+      const phones = Object.fromEntries((phoneData || []).map(p => [p.user_id, p.phone]))
+      profileMap = Object.fromEntries((profileData || []).map(p => [p.id, { ...p, phone: phones[p.id] || null }]))
       setProfiles(profileMap)
     }
     setData(next)
