@@ -5,7 +5,7 @@ const keys = sections => sections.flatMap(s => s.items.map(i => i.key))
 
 describe('navigation', () => {
   it('My work lists your gigs and organisations', () => {
-    expect(keys(navSections({ workspace: MY_WORK }))).toEqual(['myGigs', 'myCalendar', 'availability', 'myTasks', 'myHours', 'myNumbers', 'jobs', 'pocketTools', 'allOrgs', 'newOrg'])
+    expect(keys(navSections({ workspace: MY_WORK }))).toEqual(['myGigs', 'myCalendar', 'myAppointments', 'availability', 'myTasks', 'myHours', 'myNumbers', 'jobs', 'pocketTools', 'allOrgs', 'newOrg'])
   })
 
   it('shows quotes and settings only to roles that can use them', () => {
@@ -36,6 +36,7 @@ describe('navigation', () => {
     expect(viewer).not.toContain('reportsOperations')
     expect(viewer).toContain('members')
     expect(viewer).toContain('orgTasks')
+    expect(viewer).toContain('appointments')
   })
 
   it('puts minor and overflow items in the side list', () => {

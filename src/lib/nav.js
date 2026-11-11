@@ -19,6 +19,7 @@ export function navSections({ workspace, role }) {
       { key: 'work', icon: 'briefcase', items: [
         { key: 'myGigs', icon: 'list', to: '/me' },
         { key: 'myCalendar', icon: 'calendar', to: '/me?view=calendar' },
+        { key: 'myAppointments', icon: 'calendarClock', to: '/me/appointments' },
         { key: 'availability', icon: 'calendarOff', to: '/settings/availability' },
         { key: 'myTasks', icon: 'listTodo', to: '/tasks' },
         { key: 'myHours', icon: 'clock', to: '/me/hours' },
@@ -37,6 +38,7 @@ export function navSections({ workspace, role }) {
     { key: 'gigs', icon: 'calendar', items: [
       { key: 'orgGigs', icon: 'list', to: base },
       { key: 'orgCalendar', icon: 'calendar', to: `${base}?view=calendar` },
+      { key: 'appointments', icon: 'calendarClock', to: `${base}/appointments` },
       ...(canQuote(role) ? [{ key: 'newGig', icon: 'plus', to: `${base}?new=gig`, minor: true }] : []),
     ] },
   ]
