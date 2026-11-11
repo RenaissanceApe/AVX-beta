@@ -1,5 +1,134 @@
 # Changelog
 
+## 0.83.0 — Vehicles, transport and appointments
+
+### V1: Vehicles and trips
+
+#### Added
+- **Vehicles** (Inventory → Vehicles): your vans and trucks with plate, the driving licence they
+  need, maximum load (kg), load space (m³), running cost per km and per day, and notes. Each shows
+  the trips it's booked for. Removing a vehicle hides it from new trips; old trips keep it.
+- **Trips** on a gig (new **Transport** tab): out, back or one way, with a vehicle, a driver from
+  the gig's crew, an optional co-driver and passengers, when it leaves and arrives, from and to, and
+  the km. "Plan the way back too" adds the return in one go. Everyone on the gig sees the trips; the
+  gig's managers and the organisation's admins and members plan them.
+- **Clashes for vehicles and drivers**: a vehicle or driver already booked at that time shows a
+  warning while planning and on the trip. Nothing is blocked.
+- **Driving licence** (Settings → Profile): tick the categories on your licence. Only you and your
+  organisations' admins see them (admins on the person page). A driver whose licence doesn't include
+  what the vehicle needs, or who hasn't recorded it, gives the planner a warning they can override
+  after checking.
+- **Driving hours**: each logged day has "Driving (minutes)" next to travel, filled in from the
+  gig's trips where you drive. Approval stores it as driving hours, paid like travel at the plain
+  hourly rate; totals and the hours CSV show driving apart.
+- Help: terms "Vehicle", "Trip", "Licence category", "Driving hours"; ⓘ hints on the vehicle form,
+  the trip's driver, the licence and driving minutes; guide "Add a vehicle and plan a trip".
+
+#### Connected
+- Reservations engine: a driver's trip shows where crew bookings already show: other gigs' Crew tab
+  clashes, My work's double bookings, Find crew's "busy".
+- Time registration: driving minutes, driving hours in the approved split, cost, totals and CSV.
+- Gig page: the Transport tab. Inventory: the Vehicles tab. Person page: the licence. Data map:
+  licences and trips.
+
+#### For developers
+- Migration `20270118000000_vehicles_trips.sql`: `vehicles`, `trips`, `driving_licences`,
+  `time_entries.driving_minutes`; reservation kinds `vehicle`/`trip` and `person`/`trip_driver`,
+  `trip_codriver`. Tests: `supabase/tests/vehicles.sql`.
+
+### V2: Appointments
+
+#### Added
+- **Appointments**: site visits, meetings, warehouse days and other calendar items that aren't a
+  gig, with a title, place, a day and times (or whole days), notes, and an optional gig or client.
+  Organisation admins and members add them and invite the organisation's members and its gigs' crew;
+  Organisation → Appointments and My work → Appointments list them.
+- While you choose people, the form shows who is already booked at that time.
+- Help: the "Plan a site visit" guide, the term "Appointment" and two ⓘ hints, in English and
+  Portuguese.
+
+#### Connected
+- Calendars: appointments appear in My work's and the organisation's calendar, with a clock icon.
+- Clashes: people invited are busy for that time, so appointments show in every double-booking
+  warning (with their title to people who may see them, as "booked" to everyone else).
+- Calendar feed: your appointments and the trips you drive or co-drive are in your phone's calendar.
+- Notifications: invited, moved, cancelled or taken off, in the app, by push and in the email
+  summary, as each person has set.
+- The gig's Overview and the client's card list their linked appointments, with "New appointment".
+
+#### For developers
+- Migrations `20270119000000_appointments.sql`, `20270119000001_appointments_select_fix.sql` (a
+  planner can read back the row they just added) and `20270119000002_appointments_leaving_fix.sql`
+  (someone who made or sent an appointment can close their account). Edge Functions
+  `calendar-feed`, `send-push` and `send-digest` updated.
+
+### V3: Packing list per vehicle
+
+#### Added
+- **Packing list per vehicle** (gig → Transport → "Packing list per vehicle", also on the packing
+  list and the scan screen): which cases and items ride in which vehicle on the gig's outward trips.
+  Each vehicle shows its weight and volume against its maximum load and load space, with an "Over
+  capacity" mark and the overload in words. Planners move any number of a line between vehicles, or
+  back to "Not in a vehicle yet".
+- **Suggest a split**: AVX spreads the packing list across the vehicles, heaviest and bulkiest
+  first, each into the vehicle that stays least full, keeping cases whole. You see the split, and
+  any vehicle that ends up over, before applying it.
+- **Unknown, never zero**: items with no weight or no volume are counted and listed apart ("+ 3
+  without weight"), so a missing figure never makes a vehicle look emptier.
+- **Volume on items** (Edit item → Volume (m³)). If it's empty, AVX reads the item's dimensions
+  when they have three numbers and a unit ("60 × 40 × 35 cm").
+- **Scan out per vehicle**: the scan screen has a Vehicle picker; the list then shows only what goes
+  in that vehicle, cases' contents included.
+- Help: term "Packing list per vehicle"; ⓘ hints on the item's volume, the suggested split and
+  unknown figures; guide "Split the packing list across vehicles".
+
+#### Connected
+- Packing list (a "Per vehicle" button), scanning out (the Vehicle picker), the gig Transport tab (a
+  link under the trips), item weights (and the new volume) from Inventory, cases and their contents
+  (kits).
+- Not connected yet: the scan log doesn't record which vehicle a scan was for (counts on the scan
+  screen stay per gig); full-screen scan mode has no vehicle picker yet.
+
+#### For developers
+- Migrations `20270122000000_vehicle_loads.sql` and `20270122000001_vehicle_loads_select_fix.sql`
+  (the select policy uses the new `private.can_see_vehicle_loads`). Tests:
+  `supabase/tests/vehicle_loads.sql`.
+
+### V4: Transport costs and vehicle use
+
+#### Added
+- **Transport cost on each gig**: for every vehicle on a gig's trips, the km × its running cost per
+  km plus the days it drives for the gig × its cost per day. Admins and members see it under the
+  trips on the gig's **Transport** tab, per vehicle, with a warning for trips without km.
+- **Gig finance includes transport**: a new "Transport" line in the gig's finance, so the margin
+  (gig panel, Gig margins report and its CSV, Overview tiles, gig cards, wrap-up) includes it. The
+  company's money results (Reports → Money) are unchanged: they add up real expenses.
+- **Expenses linked to a vehicle**: fuel, tolls or a repair can be linked to a vehicle and, if you
+  like, one of its trips (the trip fills in its gig).
+- **Reports → Vehicle use**: per vehicle and period, trips, gigs, km, days used, load against
+  capacity (the heaviest trip's load from the packing list per vehicle), running cost, linked
+  expenses and the total; with comparison, chart, details table, CSV and print.
+- **Organisation export**: three new files, vehicles, trips and vehicle expenses.
+- Help: term "Transport cost", ⓘ hints on the transport cost and the expense's vehicle, guide "See
+  what your vehicles cost". The vehicle form now says to leave fuel out of the cost per km if you log
+  fuel receipts.
+
+#### Fixed
+- **Vehicles and trips no longer block closing an account** (the 0.82.4 fix, applied to them):
+  someone who added a vehicle, or who made, drove or co-drove a trip (also a removed one), can close
+  their account.
+
+#### Connected
+- Gig finance (step 10); expenses (9b); Reports (tab and menu item); the organisation export; the
+  packing list per vehicle (V3) for the report's load against capacity.
+
+#### For developers
+- Migrations `20270123000000_vehicle_costs.sql` (`public.gig_finance` and
+  `private.export_org_part_unchecked` wrapped, `vehicles_before` / `trips_before` with the
+  account-closing lines) and `20270123000001_vehicle_use_loads.sql` (`public.vehicle_use` reads
+  `vehicle_loads`). `finance_results` deliberately unchanged. Tests:
+  `supabase/tests/vehicle_costs.sql`.
+
 ## 0.82.4 — Fix: closing your account works again
 
 #### Fixed
