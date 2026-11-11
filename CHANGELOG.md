@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.83.1 — Live check
+
+#### Added
+- **Live check** (for the team, not a screen in the app): after each release a GitHub workflow
+  signs two dedicated accounts of the company "AVX TEST CO." in to the live app and checks the main
+  screens: the manager's 16 screens render, the crew member's own screens render, the company's
+  reports, invoices, expenses, crew search and hours stay closed to the crew member, phone numbers
+  and crew rates stay private, and a few screens pass the accessibility check. It is read-only: any
+  request that would write is blocked before it leaves the browser and fails the check. Started by
+  hand (Actions → Live check); never runs on pull requests.
+
+#### Fixed
+- **The browser tests no longer install fonts through Ubuntu's servers (#202).** Before, an outage
+  there could fail the checks on every pull request. (This shipped inside 0.83.0 without a line.)
+
+#### For developers
+- `e2e/live/`, `playwright.live.config.js` and `.github/workflows/live-check.yml`; how it works is
+  in docs/TESTING.md, "Live check". No migrations, no Edge Functions.
+
 ## 0.83.0 — Vehicles, transport and appointments
 
 ### V1: Vehicles and trips
