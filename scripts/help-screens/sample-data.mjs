@@ -617,6 +617,15 @@ export function sampleData(persona, lang) {
         { user_id: ricardo, full_name: 'Ricardo Bedulho', role: 'admin', allowance: 25, own_allowance: 25, carried: 0, used: 14.5, asked: 0, left_days: 10.5, work_days: [1, 2, 3, 4, 5], hours_per_day: 8 },
       ] : [],
       my_clashes: [],
+      // Step 23 (V2): people a planner can invite, and Duarte already booked at the visit's time
+      appointment_invitees: persona === 'pm' ? [
+        { user_id: ana, full_name: 'Ana Costa', is_member: true },
+        { user_id: duarte, full_name: 'Duarte Silva', is_member: true },
+        { user_id: ricardo, full_name: 'Ricardo Bedulho', is_member: true },
+        { user_id: carla, full_name: 'Carla Mendes', is_member: false },
+      ] : [],
+      appointment_clashes: args => (persona === 'pm' && (args.p_users || []).includes(duarte)
+        ? [{ user_id: duarte, kind: 'booked', status: 'confirmed', starts_at: `${day(6)}T00:00:00Z`, ends_at: `${day(7)}T00:00:00Z`, gig_id: null, label: null, company: null, role_label: null }] : []),
       gig_clashes: persona === 'pm' ? [{ user_id: duarte, kind: 'booked', status: 'confirmed', starts_at: `${day(24)}T00:00:00Z`, ends_at: `${day(25)}T00:00:00Z`, gig_id: null, label: null, company: null, role_label: null }] : [],
       email_clashes: [],
       my_inbox: convs,

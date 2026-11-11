@@ -81,7 +81,7 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null, appointment
               </div>
               <div className="cal-dots" aria-hidden>
                 {dayGigs.slice(0, 4).map(g => (
-                  <span key={itemKey(g)} style={{ width: '7px', height: '7px', borderRadius: g.appt ? '50%' : undefined, background: hold(g) ? 'transparent' : square(g), border: `1px ${hold(g) ? 'dashed' : 'solid'} ${square(g)}`, outline: clashes(g) ? `2px solid ${AMBER}` : 'none', outlineOffset: '1px' }} />
+                  <span key={itemKey(g)} style={{ width: '7px', height: '7px', background: hold(g) ? 'transparent' : square(g), border: `1px ${hold(g) ? 'dashed' : 'solid'} ${square(g)}`, outline: clashes(g) ? `2px solid ${AMBER}` : 'none', outlineOffset: '1px' }} />
                 ))}
               </div>
               <div className="cal-chips" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

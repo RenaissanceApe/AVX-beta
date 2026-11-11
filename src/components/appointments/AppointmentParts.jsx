@@ -219,12 +219,12 @@ export function AppointmentForm({ orgId, timeZone, appointment, preset, onSaved,
             <>
               {people.length > 8 && <input value={filter} onChange={e => setFilter(e.target.value)} placeholder={t('appointments.findPerson')}
                 aria-label={t('appointments.findPerson')} style={{ ...input, marginBottom: '6px' }} />}
-              <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px', border: `1px solid ${colors.border}`, padding: '6px 8px' }}>
+              <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', border: `1px solid ${colors.border}`, padding: '6px 8px' }}>
                 {shown.map(p => (
                   <label key={p.user_id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', minHeight: '32px', color: 'var(--text)' }}>
                     <input type="checkbox" checked={chosen.includes(p.user_id)} onChange={() => toggle(p.user_id)} />
                     <span style={{ flex: 1, minWidth: 0 }}>{p.full_name || '—'}</span>
-                    {!p.is_member && <span style={{ fontSize: '12px', color: colors.muted }}>{t('appointments.crew')}</span>}
+                    {!p.is_member && <span style={{ fontSize: '13px', color: colors.muted }}>{t('appointments.crew')}</span>}
                   </label>
                 ))}
               </div>

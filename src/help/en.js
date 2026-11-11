@@ -42,6 +42,7 @@ export default {
     'capital-expense': { term: 'Capital expense', definition: 'Equipment, vehicles or computers the company keeps for years. They are spread over a number of months in the results, not counted as the cost of the month they were bought.', example: 'A €1,890 desk spread over 60 months: €31.50 a month.', where: 'Organisation → Expenses → Categories' },
     leave: { term: 'Leave', definition: 'Days off for an organisation\'s staff (admins and members): holiday, sick, training or other. Holiday, training and other wait for an admin to approve them; sick days count at once. Approved leave makes you busy for gigs, Find crew and hours.', example: 'Holiday from Monday 1 to Friday 5 March: 5 working days.', where: 'Organisation → Leave' },
     'holiday-balance': { term: 'Holiday balance', definition: 'The holiday days a member of staff has left in a year: the allowance plus the days carried over, minus approved holiday. Requests still waiting are shown apart.', example: '22 allowance + 2 carried − 9 taken = 15 left.', where: 'Organisation → Leave' },
+    appointment: { term: 'Appointment', definition: 'Something on the calendar that isn\'t a gig: a site visit, a meeting, a warehouse day or anything else. It has a time (or whole days), a place and the people invited, and can be linked to a gig or a client. The people invited are busy for that time, so it shows in clash warnings.', example: 'Site visit at the Coliseu, Tuesday 10:00–11:30, with the lighting designer and the rigger.', where: 'Organisation → Appointments, My work → Appointments' },
     'working-week': { term: 'Working week', definition: 'The weekdays a member of staff normally works, and their hours a day. Leave only counts working days, and reports use it to count how much of a person\'s time was booked.', example: 'Monday to Thursday, 9 h a day: a week of holiday is 4 days.', where: 'Organisation → Leave → Edit' },
     'hours-split': { term: 'Hours split', definition: 'How a logged day divides into normal, overtime, night, weekend and holiday hours. Each hour counts once, under its highest factor. It is kept as it was when the day was approved.', example: 'Fri 14:00–02:00 with a 1 h break: 7 h normal, 3 h night, 1 h overtime.', where: 'Gig → Crew → Hours, My hours, organisation Hours' },
     'fee-paid': { term: 'Fee paid', definition: 'A crew fee that someone at the company marked paid, with the date. AVX records it as an expense linked to the fee, so it counts once. You see only "paid on" for your own fees, never the company\'s books, and you can mark it received.', example: 'Paid on 7 Nov · received.', where: 'Gig → Crew (your fee), My numbers, labour cost panel, Expenses → Crew to pay' },
@@ -183,6 +184,8 @@ export default {
     'expense-kind': 'Job costs belong to gigs; running the company is overhead; equipment and vehicles are spread over months; taxes and other stay apart.',
     'leave-type': 'Holiday counts against your holiday days. Sick days count at once and the admins are told; holiday, training and other wait for an admin.',
     'leave-half': 'Take only the afternoon of the first day or the morning of the last day. A half day counts 0.5, and you can still log hours on it.',
+    'appointment-kind': 'Site visit, meeting, warehouse day or other. It only changes the label and the colour in the calendar.',
+    'appointment-invite': 'Members of the organisation and anyone who has been crew on its gigs. They get a notification, the appointment goes into their calendar and they show as busy for that time.',
     'leave-allowance': 'Holiday days per year. The organisation\'s number applies to everyone unless a person has their own (leave it empty to use the organisation\'s).',
     'leave-carried': 'Days from last year added to this year\'s allowance. You decide how many: nothing carries over by itself.',
     'leave-hours': 'A normal working day for this person. Reports use it with the working days to count how much of their time was booked.',
@@ -310,6 +313,7 @@ export default {
     'gig-wrapup': { title: 'Gig wrap-up', summary: 'A printable page for a gig after it ends, for its managers and the organisation\'s admins and members: planned against approved hours (each person for managers and admins), the money for those who see it, damage, losses and what isn\'t back, open tasks and notes for next time. Print it or save it as a PDF.' },
     'org-person': { title: 'Person', summary: 'One person\'s days, hours and cost with the organisation for a period, for admins only: the gigs they were on, hours planned and approved, overtime, the cost by the labour rule and, for staff, utilisation and holiday left.' },
     'org-leave': { title: 'Leave', summary: 'Who in the organisation is away each day, your holiday days and your requests. Admins also decide requests, enter leave for someone and set holiday days and working weeks. Approved leave makes the person busy for gigs and hours.' },
+    appointments: { title: 'Appointments', summary: 'Site visits, meetings and warehouse days, with the people invited. Admins and members add and change them; the people invited see the ones they\'re on, get notified and are marked busy for that time.' },
     'my-hours': { title: 'My hours', summary: 'The hours you logged on every gig, at any company, month by month: what is waiting, sent back or approved, and what approved days pay. Download them as a CSV.' },
     'my-numbers': { title: 'My numbers', summary: 'Your work on AVX in a year, at every company: gigs, days and hours (approved and waiting), overtime, what you earned and what is booked, what is not paid yet, travel, your busiest months and functions, job posts and crew calls. Only your own rows; a company shows only its name.' },
     'my-statement': { title: 'Year statement', summary: 'Per company and year: one row per month with the totals, then each gig. Download it as a CSV or print it for your tax return. An aid: check it against your own records.' },
@@ -541,6 +545,20 @@ export default {
       mistakes: [
         'Nothing carries over by itself: type each person\'s carried days at the start of the year.',
         'Other members see a sick day only as "away", without notes.',
+      ],
+    },
+    'pm-site-visit': {
+      title: 'Plan a site visit',
+      intro: 'Book a visit to the venue (or a meeting, or a day in the warehouse) with the people who need to be there, so everyone has it in their calendar and nobody books them elsewhere.',
+      steps: [
+        'Open Appointments in the organisation\'s menu, or the gig\'s Overview, and tap "New appointment". Choose Site visit, give it a title and the place, and pick the day and times (on the organisation\'s clock) or All day.',
+        'Tick the people to invite: the organisation\'s members and its gigs\' crew. If someone is already booked then, the form says so straight away, with what they\'re on when you may see it.',
+        'Link it to the gig or the client if it belongs to one, add notes, and save. The people invited get a notification (and push or email, as they\'ve set), and see it in My work → Appointments, the calendar and their calendar feed.',
+        'To change the time or the place, open it and save: everyone is told. "Cancel appointment" tells them too and frees their time; it stays in the history.',
+      ],
+      mistakes: [
+        'People who aren\'t in the organisation or on one of its gigs can\'t be invited: add them to a gig\'s crew first.',
+        'An appointment makes people busy only for its own times: a two-hour visit doesn\'t block the rest of the day.',
       ],
     },
     'crew-numbers': {
