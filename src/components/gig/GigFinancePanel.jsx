@@ -82,6 +82,11 @@ export default function GigFinancePanel({ gig, members, canManage }) {
     Number(row.labour_estimated) > 0 ? t('finance.fromCard', { amount: money(row.labour_estimated, lang) }) : null,
     row.people_missing > 0 ? t('finance.noRate', { count: row.people_missing }) : null,
   ].filter(Boolean).join(' · ')
+  // Transport (step 23, V4): the gig's trips at each vehicle's cost per km and per day
+  const transportSub = [
+    t('finance.transportSub', { km: Number(row.transport_km || 0).toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB'), count: Number(row.transport_trips) || 0 }),
+    row.transport_km_missing > 0 ? t('finance.transportKmMissing', { count: row.transport_km_missing }) : null,
+  ].filter(Boolean).join(' · ')
   const showSave = completed && canManage && Number(row.labour_estimated) > 0
 
   return (
@@ -99,6 +104,7 @@ export default function GigFinancePanel({ gig, members, canManage }) {
         {line(t('finance.subrentals'), row.subrentals)}
         {line(t('finance.repairs'), row.repairs, Number(row.repairs_charged) > 0 ? t('finance.repairsCharged', { amount: money(row.repairs_charged, lang) }) : null)}
         {line(t('finance.otherCosts'), row.other_costs, t('finance.otherCostsSub'))}
+        {Number(row.transport_trips) > 0 && line(t('finance.transport'), row.transport, transportSub)}
         <dt style={{ fontWeight: 600, paddingTop: '8px', borderTop: `1px solid ${colors.border}` }}>{t('finance.cost')}</dt>
         <dd style={{ ...amount, fontWeight: 600, paddingTop: '8px', borderTop: `1px solid ${colors.border}` }}>{money(row.cost, lang)}</dd>
         <dt style={{ fontWeight: 700 }}>

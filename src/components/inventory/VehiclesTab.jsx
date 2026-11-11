@@ -120,6 +120,7 @@ export function VehicleModal({ orgId, vehicle, onClose, onSaved }) {
             <input id="vehicle-day" inputMode="decimal" value={form.cost_per_day} onChange={set('cost_per_day')} style={input} />
           </div>
         </div>
+        <p style={{ ...small, margin: 0 }}>{t('vehicles.costHint')}</p>
         <div>
           <label htmlFor="vehicle-notes" style={label}>{t('vehicles.notes')}</label>
           <textarea id="vehicle-notes" value={form.notes} onChange={set('notes')} maxLength={2000} rows={3} style={{ ...input, resize: 'vertical' }} />

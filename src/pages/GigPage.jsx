@@ -296,6 +296,7 @@ export default function GigPage() {
         {tab === 'transport' && (
           <TransportTab gig={gig} members={members} nameOf={nameOf} userId={user.id}
             canPlan={isPM || orgRole === 'admin' || orgRole === 'member'} canSeeVehicles={orgRole === 'admin' || orgRole === 'member'}
+            canSeeMoney={!simple && (orgRole === 'admin' || orgRole === 'member')}
             timeZone={orgs.find(o => o.id === gig.org_id)?.time_zone} />
         )}
         {tab === 'chat' && <ChatTab gigId={id} canPost={isPM || ['pm', 'crew'].includes(myMembership?.role)} />}

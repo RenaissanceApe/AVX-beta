@@ -19,6 +19,7 @@ import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import { TabHeader } from './parts'
 import { hoursText } from '../hours/HoursParts'
+import TransportCosts from './TransportCosts'
 
 const AMBER = 'var(--warn)'
 const small = { fontSize: '13px', color: colors.muted, lineHeight: 1.5, margin: 0 }
@@ -298,12 +299,13 @@ function TripRow({ trip, nameOf, userId, timeZone, canPlan, onEdit, onReturn, on
   )
 }
 
-export default function TransportTab({ gig, members, nameOf, canPlan, canSeeVehicles, timeZone, userId }) {
+export default function TransportTab({ gig, members, nameOf, canPlan, canSeeVehicles, canSeeMoney, timeZone, userId }) {
   const { t } = useI18n()
   const { notify } = useToast()
   const [trips, setTrips] = useState(null)
   const [vehicles, setVehicles] = useState([])
   const [editing, setEditing] = useState(null) // trip, {} for new, or { direction: 'back', … } for a return
+  const [version, setVersion] = useState(0)     // tells the cost block the trips changed
 
   const load = useCallback(async () => {
     const [tr, v] = await Promise.all([
@@ -314,6 +316,7 @@ export default function TransportTab({ gig, members, nameOf, canPlan, canSeeVehi
     if (v.error) logger.error('transport', v.error, { step: 'vehicles' })
     setTrips(tr.data || [])
     setVehicles(v.data || [])
+    setVersion(n => n + 1)
   }, [gig.id, canPlan])
   useEffect(() => { load() }, [load])
 
@@ -362,6 +365,7 @@ export default function TransportTab({ gig, members, nameOf, canPlan, canSeeVehi
         </p>
       )}
       {canPlan && trips.length > 0 && <p style={{ ...small, marginTop: '12px' }}>{t('transport.hoursNote')}</p>}
+      {canSeeMoney && trips.length > 0 && <TransportCosts gig={gig} version={version} />}
       {editing && (
         <TripModal gig={gig} trip={editing} members={members} nameOf={nameOf} timeZone={timeZone} vehicles={vehicles}
           onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load() }} />
