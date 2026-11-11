@@ -7,6 +7,7 @@ import { track } from '../../lib/usage'
 import { saveHours } from '../../lib/hours'
 import { prefillTimes, spanMinutes } from '../../lib/timeRegistration'
 import { bookedDays } from '../../lib/crewRates'
+import { drivingMinutes } from '../../lib/transport'
 import { formatMoney } from '../../lib/quotes'
 import { useI18n, fmt } from '../../i18n'
 import { HintLabel } from '../help/HelpParts'
@@ -36,6 +37,7 @@ export function DayLine({ entry }) {
   const parts = [`${String(entry.start_time).slice(0, 5)}–${String(entry.end_time).slice(0, 5)}`]
   if (Number(entry.break_minutes)) parts.push(t('hours.breakShort', { count: Number(entry.break_minutes) }))
   if (Number(entry.travel_minutes)) parts.push(t('hours.travelShort', { count: Number(entry.travel_minutes) }))
+  if (Number(entry.driving_minutes)) parts.push(t('hours.drivingShort', { count: Number(entry.driving_minutes) }))
   if (Number(entry.km)) parts.push(`${Number(entry.km).toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB')} km`)
   return (
     <span style={{ minWidth: 0 }}>
@@ -59,9 +61,11 @@ export function SplitLine({ split, cost }) {
 }
 
 const today = () => fmt(new Date(), 'yyyy-MM-dd')
+const linkBtn = { background: 'none', border: 'none', padding: 0, color: colors.accentText, textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }
 
-// The form for one day. New days start from the person's booking or the gig's schedule.
-export function HoursModal({ gig, member, entry, schedule, userId, takenDays = [], people, onClose, onSaved }) {
+// The form for one day. New days start from the person's booking or the gig's schedule; driving
+// is suggested from the gig's trips (step 23) where the person drives.
+export function HoursModal({ gig, member, entry, schedule, trips, timeZone, userId, takenDays = [], people, onClose, onSaved }) {
   const { t, lang } = useI18n()
   const { notify } = useToast()
   const [who, setWho] = useState(member?.user_id || people?.[0]?.user_id || userId)
@@ -76,6 +80,7 @@ export function HoursModal({ gig, member, entry, schedule, userId, takenDays = [
     start_time: entry ? String(entry.start_time).slice(0, 5) : pre.start_time,
     end_time: entry ? String(entry.end_time).slice(0, 5) : pre.end_time,
     break_minutes: String(entry?.break_minutes ?? 0), travel_minutes: String(entry?.travel_minutes ?? 0),
+    driving_minutes: String(entry ? (entry.driving_minutes ?? 0) : drivingMinutes(trips, who, day, timeZone)),
     km: String(entry?.km ?? 0).replace('.', ','), note: entry?.note || '',
   })
   const [saving, setSaving] = useState(false)
@@ -84,6 +89,7 @@ export function HoursModal({ gig, member, entry, schedule, userId, takenDays = [
     setDay(d)
     if (!entry) { const p = prefillTimes(whoMember, schedule, d); setForm(f => ({ ...f, start_time: p.start_time || f.start_time, end_time: p.end_time || f.end_time })) }
   }
+  const driven = drivingMinutes(trips, who, day, timeZone)
   const span = spanMinutes(form.start_time, form.end_time)
   const brk = Number(form.break_minutes) || 0
   const km = Number(String(form.km).replace(',', '.'))
@@ -144,10 +150,22 @@ export function HoursModal({ gig, member, entry, schedule, userId, takenDays = [
             <input id="hours-travel" type="number" inputMode="numeric" min="0" max="1440" step="5" value={form.travel_minutes} onChange={e => set('travel_minutes', e.target.value)} style={input} />
           </div>
           <div>
+            <HintLabel htmlFor="hours-driving" hint="hours-driving">{t('hours.drivingMinutes')}</HintLabel>
+            <input id="hours-driving" type="number" inputMode="numeric" min="0" max="1440" step="5" value={form.driving_minutes} onChange={e => set('driving_minutes', e.target.value)} style={input} />
+          </div>
+          <div>
             <label htmlFor="hours-km" style={label}>{t('hours.km')}</label>
             <input id="hours-km" inputMode="decimal" value={form.km} onChange={e => set('km', e.target.value)} style={input} />
           </div>
         </div>
+        {driven > 0 && Number(form.driving_minutes) !== driven && (
+          <p style={{ fontSize: '13px', color: colors.muted, margin: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+            {t('hours.fromTrips', { time: hoursText(driven / 60, lang) })}
+            <button type="button" onClick={() => set('driving_minutes', String(driven))} style={linkBtn}>
+              {t('hours.useTrips', { time: hoursText(driven / 60, lang) })}
+            </button>
+          </p>
+        )}
         <div>
           <label htmlFor="hours-note" style={label}>{t('hours.note')}</label>
           <input id="hours-note" value={form.note} maxLength={500} onChange={e => set('note', e.target.value)} style={input} />

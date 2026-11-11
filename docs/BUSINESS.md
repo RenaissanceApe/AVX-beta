@@ -242,6 +242,23 @@ nothing is ever removed: appointments and invitations are marked (`removed_at`).
 | Feed | `calendar-feed` also lists the person's appointments and, from their own reservations, the trips they drive or co-drive (V1's `trip_driver` / `trip_codriver`; the gig's name only for gigs they're on) |
 | Help | Term `appointment`; ⓘ `appointment-kind`, `appointment-invite`; page note `appointments`; guide `pm-site-visit` ("Plan a site visit") |
 
+## How vehicles and trips work (step 23, V1)
+
+Vehicles are bookable like crew and equipment: a trip books its vehicle and its driver in the
+reservations engine (docs/RESERVATIONS.md), so a van or driver used twice at once shows a clash.
+Migration `20270118000000_vehicles_trips.sql` (only adds; the shared `private.gigs_reservations`
+and `private.clashes` are not replaced); checks in `supabase/tests/vehicles.sql`.
+
+| Piece | How it works |
+|---|---|
+| Vehicles | `vehicles`: name, plate, `licence_category` (B, BE, C1, C1E, C, CE, D1, D1E, D, DE or none), `max_load_kg`, `volume_m3`, `cost_per_km`, `cost_per_day` (stored now; gig finance and the vehicle-use report read them later), notes, `removed_at`. Admins and members (`can_quote`) see and manage them in **Inventory → Vehicles**, with each vehicle's coming trips. Removing marks it: it can't be picked for new trips, old trips keep it. Planners who aren't org members pick through `gig_vehicle_choices(gig)` (no costs) |
+| Trips | `trips`: one leg per row, `direction` out / back / one_way, `vehicle_id`, `driver_id`, `co_driver_id`, `passenger_ids` (all on the gig's crew), `departs_at`, `arrives_at` (after it, at most 7 days), places, `km`, note, `licence_override`, `removed_at`. Everyone on the gig sees them (`can_access_gig`); the gig's managers and the organisation's admins and members plan them (`private.can_plan_transport`). The gig's **Transport** tab lists them with times on the organisation's clock; "Plan the way back too" or the return button adds the back leg. `gig_trips(gig)` gives each trip with its vehicle's name, plate, licence and capacity (never the costs) and, for planners only, the licence status and clashes |
+| Bookings | Triggers keep one reservation per role and trip: `vehicle`/`trip`, `person`/`trip_driver`, `person`/`trip_codriver` (source id = the trip), for the trip's times, status from the gig's (draft = hold, archived or cancelled = cancelled), cancelled when the trip is removed or the role emptied. A gig's status change re-syncs its trips (`trips_reservations_sync`, its own trigger on `gigs`); a renamed vehicle relabels them. So a driver's trip shows where crew bookings already show: other gigs' Crew tab clashes, My work's double bookings and Find crew's busy |
+| Clashes | `transport_clashes(gig, trip, vehicle, driver, co_driver, from, until)` for planners while they fill the form, and in `gig_trips`: other non-cancelled reservations of the vehicle and people in that time, without the trip's own rows and the driver's own crew booking on this gig; gig names only where the caller can see the gig. A warning, never a block |
+| Licence | `driving_licences` (one row per person, `categories`), set in **Settings → Profile → Driving licence**. Read by the person and the admins of an organisation they belong to (`private.is_admin_of`; shown on the person page). Planners who aren't admins only get ok / missing / unknown (`driver_licence_check`, `licence_status` in `gig_trips`). The rule (`private.licence_covers`, `licenceCovers` in `src/lib/transport.js`): a category covers itself; C covers C1; CE covers C, C1E and BE; C1E covers BE and C1; D covers D1; DE covers D, D1E and BE; any C or D category means B. Missing or unknown is a warning the planner overrides by ticking "I've checked"; the trip keeps `licence_override` |
+| Driving hours | `time_entries.driving_minutes` (0–1440) next to travel. The day form fills it from the gig's trips where the person drives that day (`drivingMinutes`, split across midnight on the organisation's clock); `review_time_entry` stores `split.driving`. Priced like travel: at the plain hourly rate (`entryCost`). Totals and the hours CSV show driving apart from the hours on site |
+| Later in step 23 | Packing list per vehicle with weight against capacity (V3); transport cost into gig finance, expenses linked to a vehicle and the vehicle-use report (V4) read `max_load_kg`, `volume_m3`, `cost_per_km`, `cost_per_day` and the trips' `km`; appointments (V2) |
+
 ## Planned
 
 Specs for the business steps still to build, in ROADMAP.md order. Each is a starting point: the

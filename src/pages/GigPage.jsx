@@ -17,6 +17,7 @@ import GigFinancePanel from '../components/gig/GigFinancePanel'
 import { LinkedAppointments } from '../components/appointments/AppointmentParts'
 import GigWrapupLink from '../components/gig/GigWrapupLink'
 import EquipmentTab from '../components/gig/EquipmentTab'
+import TransportTab from '../components/gig/TransportTab'
 import UpdatesTab from '../components/gig/UpdatesTab'
 import ToolsTab from '../components/gig/ToolsTab'
 import ChatTab from '../components/gig/ChatTab'
@@ -285,6 +286,11 @@ export default function GigPage() {
         {tab === 'equipment' && (
           <EquipmentTab gig={gig} org={orgs.find(o => o.id === gig.org_id) || {}}
             canEdit={isPM || orgRole === 'admin' || orgRole === 'member'} canAdd={orgRole === 'admin' || orgRole === 'member'} />
+        )}
+        {tab === 'transport' && (
+          <TransportTab gig={gig} members={members} nameOf={nameOf} userId={user.id}
+            canPlan={isPM || orgRole === 'admin' || orgRole === 'member'} canSeeVehicles={orgRole === 'admin' || orgRole === 'member'}
+            timeZone={orgs.find(o => o.id === gig.org_id)?.time_zone} />
         )}
         {tab === 'chat' && <ChatTab gigId={id} canPost={isPM || ['pm', 'crew'].includes(myMembership?.role)} />}
         {tab === 'tools' && (
