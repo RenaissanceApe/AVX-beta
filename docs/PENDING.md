@@ -236,6 +236,8 @@ Use your second email address as a crew member. Each line is a few minutes. New 
 | T183 | **Vehicle expenses (V4, 0.83.0):** add an expense "Diesel", pick the van and the out trip: it gets the gig, shows in the gig's other costs, and in Reports → Vehicle use under the van's expenses | 0.83.0 |
 | T184 | **Vehicle use report (V4, 0.83.0):** Reports → Vehicle use in EN and PT at phone width: tiles, chart, "Show details" table, CSV. Load a van on Gig → Transport → Packing list per vehicle: its Load column shows the % of its max load | 0.83.0 |
 | T185 | **Export and account closing (V4, 0.83.0):** Organisation → Export: the zip has vehicles, trips and vehicle-expenses files. With a test account that added a vehicle and drove a trip in another company, close the account: it closes, and the vehicle and trip stay with the company | 0.83.0 |
+| T186 | **Live check (LC1, 0.83.1):** after the next release, Actions → **Live check** → *Run workflow* (default address). Both tests pass; the run's notes may list `POST /rest/v1/rpc/ensure_expense_categories` as a blocked on-load write the first time (expected, see D159) | 0.83.1 |
+| T187 | **Live check refuses a wrong address (LC1, 0.83.1):** run it once with a wrong `base_url` such as `http://localhost:4173`: the first step refuses it | 0.83.1 |
 
 ## 3. Decisions still open
 
@@ -402,6 +404,8 @@ Each has a default already built; nothing is blocked. Say "keep" or "change".
 | D156 | **Driving licences in the organisation export** (V4): vehicles, trips and vehicle expenses are in it; licences would need another small migration | Not included | 0.83.0 |
 | D157 | **Transport cost uses current rates** (V4): changing a vehicle's rate changes past gigs' margins (as the rate card does for labour until "Save as agreed fees"). Should trips keep the rate they were costed at? | Current rates | 0.83.0 |
 | D158 | **A van used by two gigs on one day** (V4) charges its day rate to both gigs (the Vehicle use report counts that day once) | Charged to both | 0.83.0 |
+| D159 | **Writes the app makes by itself on load** (LC1): opening Expenses calls `ensure_expense_categories`, which adds the starter categories the first time an organisation opens it. The live check blocks it (nothing is written) but doesn't fail on it, or every run would fail. Keep it like that, or open Expenses once by hand as the live manager so the categories exist? | Blocked, not a failure | 0.83.1 |
+| D160 | **Traces on failure** (LC1) hold the screens as the live accounts saw them (their names and emails, and the session, which signing out ends). They're kept 7 days and only people with access to the repository can download them. Keep, or switch traces off for the live check? | Kept 7 days | 0.83.1 |
 
 ## 4. Before a public launch (already in the roadmap)
 
