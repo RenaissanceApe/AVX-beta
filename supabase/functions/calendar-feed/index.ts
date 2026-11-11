@@ -2,12 +2,12 @@
 // (docs/SWITCHING.md, S4). GET ?t=<feed key>. No sign-in: calendar apps can't sign in, so the long
 // random key in the link (calendar_feeds, made by calendar_feed() in the app) is the only key. It
 // shows the gigs the person is on, from 60 days ago onwards: names, dates, venues, role and call
-// time, and their own approved leave and unavailable dates (step 9). JWT verification is off for
-// this function.
+// time, their own approved leave and unavailable dates (step 9), and the appointments they're
+// invited to (step 23, V2). JWT verification is off for this function.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { fetchWithTimeout, isTimeout } from '../_shared/timeout.ts'
-import { buildCalendar, type FeedGig, type FeedLang, type FeedLeave } from '../_shared/ics.ts'
+import { buildCalendar, feedZone, type FeedAppointment, type FeedGig, type FeedLang, type FeedLeave } from '../_shared/ics.ts'
 
 const APP_URL = Deno.env.get('APP_URL') ?? 'https://avx-beta.vercel.app'
 
@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
   if (!feed) return text('Not found', 404)
 
   const since = new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10)
-  const [{ data: rows, error }, { data: profile }, { data: hours }, { data: away }] = await Promise.all([
+  const [{ data: rows, error }, { data: profile }, { data: hours }, { data: away }, { data: invited }] = await Promise.all([
     admin.from('gig_members')
       .select('role, function_title, call_time, booked_from, booked_until, gigs!inner(id, name, venue, start_date, end_date, status, organisations(name, time_zone))')
       .eq('user_id', feed.user_id)
@@ -41,6 +41,10 @@ Deno.serve(async (req) => {
     // Their own approved leave and unavailable dates (step 9)
     admin.from('crew_unavailability').select('id, type, start_date, end_date, start_half, end_half, organisations(name)')
       .eq('user_id', feed.user_id).eq('status', 'approved').is('removed_at', null).gte('end_date', since).order('start_date').limit(1000),
+    // Appointments they're invited to and still on (step 23, V2)
+    admin.from('appointment_people')
+      .select('appointments!inner(id, kind, title, place, all_day, starts_at, ends_at, start_date, end_date, notes, removed_at, organisations(name))')
+      .eq('user_id', feed.user_id).is('removed_at', null).is('appointments.removed_at', null).limit(1000),
   ])
   if (error) {
     console.error(JSON.stringify({ fn: 'calendar-feed', step: 'gigs', timeout: isTimeout(error) }))
@@ -62,7 +66,16 @@ Deno.serve(async (req) => {
     id: l.id, type: l.type, start_date: l.start_date, end_date: l.end_date, start_half: l.start_half, end_half: l.end_half,
     org: l.organisations?.name ?? null,
   }))
-  return new Response(req.method === 'HEAD' ? null : buildCalendar(gigs, lang, APP_URL, new Date(), leave), {
+  // deno-lint-ignore no-explicit-any
+  const appointments: FeedAppointment[] = (invited ?? []).map((r: any) => r.appointments)
+    // deno-lint-ignore no-explicit-any
+    .filter((a: any) => a && (a.end_date || a.ends_at || '') >= since)
+    // deno-lint-ignore no-explicit-any
+    .map((a: any) => ({
+      id: a.id, kind: a.kind, title: a.title, place: a.place, all_day: a.all_day, starts_at: a.starts_at, ends_at: a.ends_at,
+      start_date: a.start_date, end_date: a.end_date, notes: a.notes, org: a.organisations?.name ?? null,
+    }))
+  return new Response(req.method === 'HEAD' ? null : buildCalendar(gigs, lang, APP_URL, new Date(), leave, feedZone(gigs), appointments), {
     status: 200,
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',

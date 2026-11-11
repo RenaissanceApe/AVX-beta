@@ -44,6 +44,10 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     availabilityNo: '{actor} is not available for {gig}',
     bookingChanged: '{actor} set your booking on {gig} to {range}',
     bookingCleared: '{actor} booked you for the whole of {gig} again',
+    appointmentInvited: '{actor} invited you to {title} ({when})',
+    appointmentChanged: '{actor} moved {title} to {when}',
+    appointmentCancelled: '{actor} cancelled {title} ({when})',
+    appointmentTakenOff: '{actor} took you off {title} ({when})',
     damage: '{actor} reported damage to {item} on {gig}: “{excerpt}”',
     inspectionDueOne: '{count} inspection due soon in {org}',
     inspectionDueMany: '{count} inspections due soon in {org}',
@@ -123,6 +127,10 @@ export const STRINGS: Record<Lang, Record<string, string>> = {
     availabilityNo: '{actor} não está disponível para {gig}',
     bookingChanged: '{actor} definiu a sua marcação em {gig} para {range}',
     bookingCleared: '{actor} voltou a marcá-lo para todos os dias de {gig}',
+    appointmentInvited: '{actor} convidou-o para {title} ({when})',
+    appointmentChanged: '{actor} mudou {title} para {when}',
+    appointmentCancelled: '{actor} cancelou {title} ({when})',
+    appointmentTakenOff: '{actor} retirou-o de {title} ({when})',
     damage: '{actor} reportou um dano em {item} no evento {gig}: “{excerpt}”',
     inspectionDueOne: '{count} inspeção a vencer em {org}',
     inspectionDueMany: '{count} inspeções a vencer em {org}',
@@ -183,7 +191,7 @@ export function fill(text: string, vars: Record<string, unknown>) {
 
 export const DEFAULT_ZONE = 'Europe/Lisbon'
 // Kinds whose text shows clock times, so the sender looks up the organisation's time zone
-export const TIMED_KINDS = new Set(['availability_request', 'booking_changed', 'hire_request'])
+export const TIMED_KINDS = new Set(['availability_request', 'booking_changed', 'hire_request', 'appointment_invited', 'appointment_changed', 'appointment_cancelled'])
 
 // Which gigs' and organisations' time zones a batch of notifications needs
 export function zoneIds(items: Pick<Notification, 'kind' | 'gig_id' | 'org_id'>[]) {
@@ -256,6 +264,11 @@ export function describe(n: Notification, lang: Lang, actorName: string | undefi
     case 'booking_changed': return d.booked_from && d.booked_until
       ? fill(s.bookingChanged, { actor, gig, range: rangeText(d.booked_from, d.booked_until, lang, zone) })
       : fill(s.bookingCleared, { actor, gig })
+    case 'appointment_invited': case 'appointment_changed': case 'appointment_cancelled': {
+      const when = d.all_day ? dayText(d.start_date, d.end_date, lang) : rangeText(d.starts_at, d.ends_at, lang, zone)
+      const key = d.why === 'taken_off' ? 'appointmentTakenOff' : n.kind.replace(/_(\w)/g, (_: string, c: string) => c.toUpperCase())
+      return fill(s[key], { actor, title: d.title ?? '', when })
+    }
     case 'damage_reported':
       return fill(s.damage, { actor, item: [d.item_name, d.unit_code].filter(Boolean).join(' · '), gig: gig || '—', excerpt: d.excerpt ?? '' })
     case 'inspection_due':
@@ -315,6 +328,7 @@ export function linkFor(n: Notification, appUrl: string) {
   if (n.kind === 'invoice_overdue' && n.org_id) return `${appUrl}/org/${n.org_id}/invoices?view=unpaid`
   if (n.kind === 'held_invites_waiting' && n.org_id) return `${appUrl}/org/${n.org_id}?panel=members`
   if (n.kind.startsWith('expense_') && n.details?.gig_id) return `${appUrl}/gig/${n.details.gig_id}?tab=crew`
+  if (n.kind.startsWith('appointment_')) return n.details?.appointment_id && n.kind !== 'appointment_cancelled' ? `${appUrl}/me/appointments?a=${n.details.appointment_id}` : `${appUrl}/me/appointments`
   if (n.kind === 'task_assigned') return n.gig_id ? `${appUrl}/gig/${n.gig_id}?tab=tasks` : `${appUrl}/tasks`
   if (n.details?.quote_id) return `${appUrl}/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `${appUrl}/org/${n.org_id}/inventory?tab=maintenance`

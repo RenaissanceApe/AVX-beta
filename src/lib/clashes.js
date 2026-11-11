@@ -28,6 +28,7 @@ export function rangeText(startsAt, endsAt, timeZone) {
 export function clashText(c, timeZone) {
   const range = rangeText(c.starts_at, c.ends_at, timeZone)
   if (c.kind === 'unavailable') return t('clash.unavailable', { range })
+  if (c.kind === 'appointment') return t('clash.appointment', { range, title: [c.label, c.company].filter(Boolean).join(' · ') })
   const where = [c.label, c.company].filter(Boolean).join(' · ')
   const text = where ? t('clash.bookedNamed', { range, gig: where }) : t('clash.booked', { range })
   return c.status === 'hold' ? `${text} ${t('clash.hold')}` : text

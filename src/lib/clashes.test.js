@@ -20,6 +20,7 @@ describe('clash text', () => {
     const base = { starts_at: local(2026, 11, 10), ends_at: local(2026, 11, 11), status: 'confirmed' }
     expect(clashText({ ...base, kind: 'booked' })).toBe('Booked 10 Nov (another gig)')
     expect(clashText({ ...base, kind: 'booked', label: 'Festival', company: 'Other Co' })).toBe('Booked 10 Nov (Festival · Other Co)')
+    expect(clashText({ ...base, kind: 'appointment', label: 'Site visit', company: 'Other Co' })).toBe('Appointment 10 Nov (Site visit · Other Co)')
     expect(clashText({ ...base, kind: 'unavailable' })).toBe('Not available 10 Nov')
     expect(clashText({ ...base, kind: 'booked', status: 'hold' })).toContain('(provisional)')
   })
