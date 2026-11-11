@@ -71,7 +71,10 @@ export function AuthProvider({ children }) {
   async function fetchProfile(userId) {
     // Your own full profile (phone and notification switches included) comes from my_profile():
     // those columns aren't readable from the table (migration 20270120000000)
-    const { data, error } = await supabase.rpc('my_profile').eq('id', userId).maybeSingle()
+    let { data, error } = await supabase.rpc('my_profile').eq('id', userId).maybeSingle()
+    // Until that migration is on the database (PGRST202: no such function), read the table as before.
+    // Remove once 0.82.3's migration is on production.
+    if (error?.code === 'PGRST202') ({ data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle())
     if (error) logger.error('auth', error, { step: 'fetchProfile' })
     setProfile(data ?? null)
     setLoading(false)
