@@ -12,6 +12,10 @@ const AuthContext = createContext({})
 
 export const MIN_PASSWORD_LENGTH = 8
 
+// profiles columns anyone who can see the row may read; phone, email_digest and weekly_numbers are
+// only yours (read them through my_profile())
+const PUBLIC_PROFILE_COLUMNS = 'id, full_name, avatar_url, specialisms, language, findable_by, created_at'
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
@@ -65,9 +69,11 @@ export function AuthProvider({ children }) {
   }
 
   async function fetchProfile(userId) {
-    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+    // Your own full profile (phone and notification switches included) comes from my_profile():
+    // those columns aren't readable from the table (migration 20270120000000)
+    const { data, error } = await supabase.rpc('my_profile').maybeSingle()
     if (error) logger.error('auth', error, { step: 'fetchProfile' })
-    setProfile(data)
+    setProfile(data ?? null)
     setLoading(false)
   }
 
@@ -95,9 +101,11 @@ export function AuthProvider({ children }) {
   }
 
   async function updateProfile(changes) {
-    const { data, error } = await supabase.from('profiles').update(changes).eq('id', user.id).select().single()
-    if (!error) setProfile(data)
-    return { data, error }
+    const { data, error } = await supabase.from('profiles').update(changes).eq('id', user.id).select(PUBLIC_PROFILE_COLUMNS).single()
+    if (error) return { data, error }
+    const next = { ...profile, ...data, ...changes }
+    setProfile(next)
+    return { data: next, error }
   }
 
   return (
