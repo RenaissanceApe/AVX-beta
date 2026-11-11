@@ -49,7 +49,8 @@ create policy mfa_required on public.driving_licences as restrictive for all to 
   using ((select private.mfa_ok())) with check ((select private.mfa_ok()));
 revoke insert, update on public.driving_licences from authenticated;
 grant select on public.driving_licences to authenticated;
-grant insert (user_id, categories), update (categories) on public.driving_licences to authenticated;
+-- user_id is in the update grant only so an upsert works; the policy keeps it your own
+grant insert (user_id, categories), update (user_id, categories) on public.driving_licences to authenticated;
 
 create or replace function private.driving_licences_before() returns trigger
 language plpgsql set search_path = '' as $$

@@ -196,7 +196,13 @@ begin
   reset role;
   perform set_config('request.jwt.claims', json_build_object('sub', k, 'role', 'authenticated')::text, true);
   set local role authenticated;
-  update driving_licences set categories = array['B'] where user_id = k;
+  -- The app saves with an upsert (insert … on conflict do update)
+  insert into driving_licences (user_id, categories) values (k, array['B'])
+  on conflict (user_id) do update set user_id = excluded.user_id, categories = excluded.categories;
+  begin
+    update driving_licences set user_id = k2 where user_id = k;
+    raise exception 'CHECK FAILED: moved a licence to someone else';
+  exception when insufficient_privilege then null; end;
   reset role;
   perform set_config('request.jwt.claims', json_build_object('sub', pm, 'role', 'authenticated')::text, true);
   set local role authenticated;
