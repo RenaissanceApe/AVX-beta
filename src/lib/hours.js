@@ -6,7 +6,7 @@ import { isNetworkError } from './offline'
 import { toCsv } from './orgExport'
 import { csvRows, pricing, entryCost, splitEntry, BUCKETS } from './timeRegistration'
 
-export const HOURS_COLUMNS = 'id, gig_id, user_id, work_date, start_time, end_time, break_minutes, travel_minutes, km, note, status, review_note, reviewed_at, split, fee_unit, fee_rate, cost, removed_at'
+export const HOURS_COLUMNS = 'id, gig_id, user_id, work_date, start_time, end_time, break_minutes, travel_minutes, driving_minutes, km, note, status, review_note, reviewed_at, split, fee_unit, fee_rate, cost, removed_at'
 
 // Hours typed without a connection: kept on this device and sent when it comes back. Each day
 // gets its id here, so sending it twice keeps it once.
@@ -26,7 +26,7 @@ export function clearQueuedHours(userId) {
 
 const rowOf = e => ({
   start_time: e.start_time, end_time: e.end_time, break_minutes: Number(e.break_minutes) || 0,
-  travel_minutes: Number(e.travel_minutes) || 0, km: Number(e.km) || 0, note: e.note?.trim() || null,
+  travel_minutes: Number(e.travel_minutes) || 0, driving_minutes: Number(e.driving_minutes) || 0, km: Number(e.km) || 0, note: e.note?.trim() || null,
 })
 
 async function send(item) {
@@ -101,7 +101,7 @@ export async function reviewHours(entry, approve, note, ctx) {
 // Downloads the days as a semicolon CSV (like the app's other CSV files)
 export function downloadHoursCsv(entries, names, fileName) {
   const rows = csvRows(entries, names)
-  const columns = ['date', 'gig', 'name', 'start', 'end', 'break_minutes', 'travel_minutes', 'km', 'status', ...BUCKETS, 'cost']
+  const columns = ['date', 'gig', 'name', 'start', 'end', 'break_minutes', 'travel_minutes', 'driving_minutes', 'km', 'status', ...BUCKETS, 'cost']
   const blob = new Blob(['﻿' + toCsv(rows, columns)], { type: 'text/csv;charset=utf-8' })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)

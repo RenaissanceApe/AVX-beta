@@ -10,6 +10,7 @@ import AvailabilitySection from '../components/AvailabilitySection'
 import AppearanceSettings from '../components/AppearanceSettings'
 import TwoStepSection from '../components/TwoStepSection'
 import CalendarFeedSection from '../components/CalendarFeedSection'
+import DrivingLicenceSection from '../components/DrivingLicenceSection'
 import { supabase } from '../lib/supabase'
 import { useAuth, MIN_PASSWORD_LENGTH } from '../lib/AuthContext'
 import { useWorkspace } from '../lib/WorkspaceContext'
@@ -215,6 +216,7 @@ export default function SettingsPage() {
         </div>
         <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '6px' }}>{t('account.phoneHint')}</p>
       </form>
+      <DrivingLicenceSection style={section} smallBtn={smallBtn} />
       <div style={section}>
         <span style={label} id="account-crew-profile">{t('crewProfile.title')}</span>
         <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.5, marginBottom: '10px' }}>{t('crewProfile.accountHint')}</p>

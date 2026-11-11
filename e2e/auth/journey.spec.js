@@ -348,6 +348,53 @@ test('an admin asks for leave, approves it and sees it as approved', async ({ pa
   await expect(page.locator('section[aria-labelledby="leave-mine"]').getByText('Approved', { exact: true })).toBeVisible()
 })
 
+test('an admin adds a vehicle, records a licence and plans a trip with the licence warning', async ({ page }) => {
+  await english(page)
+  await signIn(page, pm)
+  // Settings → Profile: licence B only
+  await page.goto('/settings/profile')
+  await page.getByRole('checkbox', { name: 'B', exact: true }).check()
+  await page.getByRole('button', { name: 'Save licence' }).click()
+  await expect(page.getByText('Licence categories saved.')).toBeVisible()
+
+  // Inventory → Vehicles: a truck that needs C1
+  await page.getByTitle(/Workspace:/).click()
+  await page.getByRole('menuitemradio', { name: new RegExp(ORG) }).click()
+  await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}$/)
+  await page.goto(`${page.url()}/inventory?tab=vehicles`)
+  await expect(page.getByText('No vehicles yet')).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
+  await page.getByRole('button', { name: 'Add vehicle' }).first().click()
+  const vehicle = page.getByRole('dialog', { name: 'Add vehicle' })
+  await vehicle.getByLabel('Name').fill('E2E Truck')
+  await vehicle.getByLabel('Plate').fill('12-ab-34')
+  await vehicle.getByLabel('Licence needed', { exact: true }).selectOption('C1')
+  await vehicle.getByLabel('Max load (kg)', { exact: true }).fill('3500')
+  await expectAccessible(page)
+  await vehicle.getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByText('E2E Truck')).toBeVisible()
+  await expect(page.getByText(/12-AB-34/)).toBeVisible()
+
+  // Gig → Transport: the PM drives the truck; the licence warning waits for "I've checked"
+  await page.goto(gigUrl)
+  await page.getByRole('tab', { name: /Transport/ }).click()
+  await expect(page.getByText('No trips yet')).toBeVisible({ timeout: 15_000 })
+  await page.getByRole('button', { name: 'Add trip' }).first().click()
+  const trip = page.getByRole('dialog', { name: 'Add trip' })
+  await trip.getByLabel('Vehicle', { exact: true }).selectOption({ label: 'E2E Truck · 12-AB-34 · C1' })
+  await trip.getByLabel('Driver', { exact: true }).selectOption({ label: pm.name })
+  await trip.getByLabel('From', { exact: true }).fill('Warehouse')
+  await expect(trip.getByText(/licence doesn't include C1/)).toBeVisible({ timeout: 15_000 })
+  await expect(trip.getByRole('button', { name: 'Save trip' })).toBeDisabled()
+  await expectAccessible(page)
+  await trip.getByRole('checkbox', { name: /I've checked/ }).check()
+  await trip.getByRole('button', { name: 'Save trip' }).click()
+  await expect(page.getByText('1 trip')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(/E2E Truck · 12-AB-34/)).toBeVisible()
+  await expect(page.getByText('Licence warning checked by the planner.')).toBeVisible()
+  await expectAccessible(page)
+})
+
 test('crew numbers: My numbers, the year statement and Crew to pay open and are accessible', async ({ page }) => {
   await english(page)
   await signIn(page, pm)

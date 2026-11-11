@@ -71,3 +71,16 @@ per person per gig; managers can withdraw it. Nothing is booked by asking.
    keeps it fast.
 3. Prep/return days (organisation setting) are just a wider `period`; a line can set its own.
 4. Members of the owning organisation see non-person reservations.
+
+## Vehicles and trips (step 23, V1; see docs/BUSINESS.md, "How vehicles and trips work")
+
+1. A trip (`trips`) writes up to three reservations, all with `source_id` = the trip's id:
+   `resource_type = 'vehicle'` with `source_type = 'trip'`, and `resource_type = 'person'` with
+   `source_type = 'trip_driver'` and `'trip_codriver'`. The period is the trip's own times
+   (departs → arrives), not whole days. Status follows the gig; a removed trip cancels them.
+2. Driver rows are ordinary person bookings, so `private.clashes`, `gig_clashes`, `my_clashes`,
+   My work and Find crew count them without any change. A driver's trip and their crew booking on
+   the same gig never clash (same gig).
+3. `private.transport_clashes` checks a vehicle and its people for a time range, leaving out the
+   trip's own rows and the driver's crew booking on the same gig, and calls other trips `trip`.
+

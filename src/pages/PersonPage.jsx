@@ -36,6 +36,7 @@ export default function PersonPage() {
   const range = useMemo(() => periodRange(period, { today, from: custom.from, until: custom.until }), [period, today, custom.from, custom.until])
   const [data, setData] = useState(null)
   const [sort, setSort] = useState({ key: 'start', dir: 1 })
+  const [licence, setLicence] = useState(null) // step 23: admins read their staff's licence categories
   useEffect(() => { setWorkspace(orgId) }, [orgId, setWorkspace])
 
   useEffect(() => {
@@ -50,6 +51,13 @@ export default function PersonPage() {
     track('view:people:person')
     return () => { cancelled = true }
   }, [isAdmin, orgId, userId, range])
+  useEffect(() => {
+    if (!isAdmin) return
+    supabase.from('driving_licences').select('categories').eq('user_id', userId).maybeSingle().then(({ data: l, error }) => {
+      if (error) logger.error('person', error, { orgId, step: 'licence' })
+      setLicence(l?.categories || [])
+    })
+  }, [isAdmin, orgId, userId])
 
   // Several keys in one change: setSearchParams builds each update from the address as it was when
   // the page drew, so two calls in a row would keep only the last
@@ -104,6 +112,11 @@ export default function PersonPage() {
             <p style={{ fontSize: '13px', color: colors.muted, marginTop: '2px' }}>
               {org?.name ? `${org.name} · ` : ''}{p.staff ? t(`person.role.${p.role}`) : t('ops.freelance')}
               {p.first_gig ? ` · ${t('person.since', { date: fmt(p.first_gig, 'MMM yyyy'), count: Number(p.all_gigs) || 0 })}` : ''}
+            </p>
+          )}
+          {p && licence && (licence.length > 0 || p.staff) && (
+            <p style={{ fontSize: '13px', color: colors.muted, marginTop: '2px' }}>
+              {t('licence.title')}: {licence.length ? licence.join(', ') : t('licence.none')}
             </p>
           )}
         </div>
