@@ -71,3 +71,15 @@ per person per gig; managers can withdraw it. Nothing is booked by asking.
    keeps it fast.
 3. Prep/return days (organisation setting) are just a wider `period`; a line can set its own.
 4. Members of the owning organisation see non-person reservations.
+
+## Appointments (step 23, V2; see docs/BUSINESS.md "How appointments work")
+
+1. Each person invited to an appointment has a reservation with `resource_type = 'person'`,
+   `source_type = 'appointment'`, `source_id = '<appointment>:<user>'`, no `gig_id`, the
+   appointment's organisation and its title as `label`.
+2. `private.clashes` returns those rows as kind `appointment` with the title and organisation to
+   people who may see the appointment (`private.can_see_appointment`), and as `booked` otherwise.
+   Other rows are unchanged.
+3. `appointment_clashes(org, users[], from, until, exclude_appointment)`: for the organisation's
+   planners, the chosen people's other bookings while they fill in the form.
+

@@ -224,6 +224,24 @@ checks in `supabase/tests/signatures.sql`. No delete statements.
 | Kept with the gig | A gig with signatures (hidden ones too) can't be erased: the app checks before removing anything (EditGigModal) and `gigs_keep_signatures` refuses it (`20270105000001_signatures_keep_gig.sql`, run by hand; checks in `supabase/tests/signatures_keep_gig.sql`). Cancel the gig instead. Erasing the whole organisation still takes its signatures with it. Accepted quotes can't reach the quote bin, so quote acceptances are safe from its nightly erase |
 | Later | Crew contracts (step 27) and the rigger's sign-off (RG4) use the same table, pad and PDF block: `kind` and the rules are already there |
 
+## How appointments work (step 23, part V2)
+
+Calendar items that aren't a gig: a **site visit**, a **meeting**, a **warehouse day** or **other**.
+Migration `20270119000000_appointments.sql`; checks in `supabase/tests/appointments.sql`. Add-only,
+nothing is ever removed: appointments and invitations are marked (`removed_at`).
+
+| Piece | How it works |
+|---|---|
+| Tables | `appointments`: `org_id`, `kind`, `title`, `place`, `all_day`, `starts_at`/`ends_at` (timed) or `start_date`/`end_date` (all day, on the organisation's calendar), `notes`, optional `gig_id` and `client_id` (same organisation only), `created_by`, `removed_at`. `appointment_people`: (`appointment_id`, `user_id`), `added_by`, `removed_at` |
+| Who | Add and change: the organisation's planners, its admins and members (`can_quote`, the people who create gigs). See: planners, the creator and the people invited while they're on it (`private.can_see_appointment`). Invite: the organisation's members and anyone who has been crew on its gigs (`private.can_invite_to_org`). Viewers don't plan; they see the appointments they're invited to |
+| Time | Typed on the organisation's clock (U1): a day with from/until times (an end before the start runs past midnight), or whole days. All-day appointments move with the organisation's time zone, like gig days |
+| Busy | Each invited person gets a reservation (`person`, source `appointment`, `<appointment>:<user>`, no gig), cancelled when they're taken off or the appointment is cancelled. So appointments show in every clash check: the crew tab's ⚠, the invite warning, the gig form, My work's double-booking mark. `private.clashes` names it (kind `appointment`, its title and organisation) only to people who may see it; to everyone else it's "booked" |
+| Form | `AppointmentForm` (planners): kind, title, place, day and times or all day, people (with their other bookings via `appointment_clashes`, which only checks people who could be invited), gig, client, notes; **Cancel appointment** with a confirm step |
+| Notified | `appointment_invited` (also when invited again), `appointment_changed` (time, days or place), `appointment_cancelled` (the appointment, or `why: taken_off` for one person). Not the person who made the change. Push and the email summary follow each person's settings, like gig notifications; a muted organisation mutes them too |
+| Where | Organisation → **Appointments** (`/org/:id/appointments`), My work → **Appointments** (`/me/appointments`, every organisation), both calendars (a clock icon in the kind's colour), the gig's Overview and the client's card (linked ones, with **New appointment**), the calendar feed (`appointment-<id>`), notifications (`?a=<id>` opens it) |
+| Feed | `calendar-feed` also lists the person's appointments and, from their own reservations, the trips they drive or co-drive (V1's `trip_driver` / `trip_codriver`; the gig's name only for gigs they're on) |
+| Help | Term `appointment`; ⓘ `appointment-kind`, `appointment-invite`; page note `appointments`; guide `pm-site-visit` ("Plan a site visit") |
+
 ## Planned
 
 Specs for the business steps still to build, in ROADMAP.md order. Each is a starting point: the
