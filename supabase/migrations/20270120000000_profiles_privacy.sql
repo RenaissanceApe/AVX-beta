@@ -2,9 +2,10 @@
 -- Until now every signed-in account could read every profile (profiles_select used `true`).
 -- After this migration:
 --   - a profile row is visible only to people who work with that person (private.can_see_profile);
---   - phone, email_digest and weekly_numbers are no longer readable column by column. You read your
+--   - phone, email_digest and weekly_numbers get their own read paths (the columns are closed in
+--     20270120000001_profiles_privacy_columns.sql). You read your
 --     own through public.my_profile(), and gig crew phones come from public.gig_crew_phones(gig).
--- Add-only: create or replace, alter policy and a column revoke.
+-- Add-only: create or replace and alter policy. Safe with the previous app version.
 
 -- ── 1. Who can see whose profile row ──────────────────────────────────────────────────────
 -- Never reads public.profiles itself, so the policy below can use it.
@@ -45,8 +46,8 @@ grant execute on function private.can_see_profile(uuid, uuid) to authenticated;
 alter policy profiles_select on public.profiles using (private.can_see_profile(auth.uid(), id));
 
 -- ── 2. Private columns ────────────────────────────────────────────────────────────────────
--- UPDATE grants stay, so you can still save your own settings (profiles_update limits that to your row).
-revoke select (phone, email_digest, weekly_numbers) on public.profiles from authenticated, anon;
+-- The columns themselves are closed in 20270120000001_profiles_privacy_columns.sql, applied only
+-- after the app that uses these functions is live.
 
 -- Your own full profile. Empty (not an error) before the second sign-in step, as reading the
 -- table was before this change.
