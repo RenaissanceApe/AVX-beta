@@ -140,6 +140,7 @@ export default {
     subrental: { term: 'Aluguer externo', definition: 'Equipamento que aluga a outra empresa para um evento.', example: 'Alugar mais 4 colunas para o festival.', where: 'Inventário → Alugueres externos' },
     vehicle: { term: 'Veículo', definition: 'Uma carrinha ou camião da organização, com a matrícula, quanto leva (kg e m³), a carta de condução que exige e o custo por km e por dia. As viagens reservam-no tal como a equipa é reservada.', example: 'Carrinha 1 · 12-AB-34 · 1200 kg · 12 m³ · carta B.', where: 'Inventário → Veículos' },
     trip: { term: 'Viagem', definition: 'Uma deslocação para um evento: ida, regresso ou só ida, com um veículo, um condutor (e talvez um segundo condutor e passageiros), quando parte e chega, e os km. Reserva o veículo e o condutor, por isso usar um deles duas vezes ao mesmo tempo mostra um conflito.', example: 'Ida: Carrinha 1, condutor Rui, armazém 07:00 → local 10:30, 210 km.', where: 'Evento → Transporte' },
+    'vehicle-load': { term: 'Lista de carga por veículo', definition: 'Que malas e artigos vão em que veículo nas viagens de ida de um evento, com o peso e o volume face ao que cada veículo leva. Uma mala conta inteira, com o conteúdo. Artigos sem peso ou volume contam como desconhecidos, nunca como zero.', example: 'Carrinha 1: 2 racks de amplificadores e 6 colunas, 640 de 1200 kg, 5,1 de 12 m³.', where: 'Evento → Transporte → Lista de carga por veículo' },
     'licence-category': { term: 'Categoria da carta', definition: 'O que uma carta de condução permite conduzir: B (ligeiros até 3,5 t), BE (com reboque pesado), C1 (camiões até 7,5 t), C1E, C e CE (pesados, com reboque), D1, D1E, D e DE (autocarros). Uma categoria superior inclui muitas vezes uma inferior: C inclui C1, CE inclui C, C1E e BE.', example: 'Um camião de 7,5 t exige C1; um condutor com C também o pode conduzir.', where: 'Definições → Perfil; Inventário → Veículos; Evento → Transporte' },
     'driving-hours': { term: 'Horas de condução', definition: 'Tempo que alguém passa a conduzir para um evento, registado à parte das horas no local para que os relatórios as distingam. Pagas como a viagem: ao valor por hora simples, sem fatores de horas extra ou noturnas.', example: 'Um dia com 8 h no local e 3 h de condução: trabalhadas 8 h, condução 3 h.', where: 'Evento → Equipa → Horas, As minhas horas' },
     supplier: { term: 'Fornecedor', definition: 'A empresa a quem aluga o equipamento.', example: 'Uma empresa de aluguer no Porto.', where: 'Contactos → Fornecedores' },
@@ -199,6 +200,9 @@ export default {
     'vehicle-capacity': 'Quanto o veículo pode levar: a carga máxima em kg (dos documentos: peso bruto menos a tara) e o espaço de carga em m³. Serve para comparar o material carregado com o que ele aguenta.',
     'vehicle-costs': 'Quanto lhe custa ter o veículo a trabalhar: por km (combustível, pneus, manutenção) e por dia (seguro, renting, impostos repartidos pelos dias em que trabalha). As finanças do evento vão somar o custo do transporte a partir destes valores e dos km das viagens.',
     'trip-driver': 'Escolha da equipa do evento. O condutor e o segundo condutor ficam reservados para as horas da viagem, e os minutos de condução são preenchidos quando registam as horas desse dia. Se as categorias da carta não incluírem o que o veículo exige, vê um aviso.',
+    'item-volume': 'O espaço que ocupa num veículo, em metros cúbicos (uma mala de 60 × 40 × 35 cm tem 0,084 m³). Se ficar vazio, o AVX lê as dimensões se tiverem três números e uma unidade; caso contrário, o volume é desconhecido.',
+    'load-split': 'O AVX coloca primeiro o mais pesado e volumoso, cada um no veículo que fica menos cheio, e mantém cada mala inteira. Se algo não couber em lado nenhum, vai para onde excede menos e o veículo fica marcado acima da capacidade. Vê a divisão antes de qualquer mudança.',
+    'load-unknown': 'Preencha o peso e o volume do artigo no Inventário e os totais ficam completos. Até lá aparecem à parte, para que um valor em falta nunca faça um veículo parecer mais vazio do que está.',
     'driving-licence': 'As categorias da sua carta de condução. Só você e os administradores das organizações a que pertence as veem; quem planeia e não é administrador só vê se pode conduzir o veículo escolhido.',
     'crew-call-fee': 'O que oferece a todos nesta chamada, sem IVA. Parte da sua tabela (valor por dia × os dias do evento, dias de fim de semana com o fator de fim de semana) e pode alterá-lo. As pessoas chamadas veem-no na oferta; quem aceitar fica com ele como cachê combinado no evento.',
     'quote-crew-margin': 'Cada linha de equipa corresponde à tabela pela descrição (a função) e pela unidade: por dia usa o valor por dia, por hora o valor por hora. Só a sua organização vê isto.',
@@ -1129,6 +1133,22 @@ export default {
       mistakes: [
         'Só a equipa do evento pode conduzir ou ir na viagem: convide primeiro a pessoa para o evento.',
         'Os condutores registam as categorias da carta em Definições → Perfil. Até o fazerem, vê "não registado" em vez de uma verificação.',
+      ],
+    },
+    'pm-vehicle-load': {
+      title: 'Dividir a lista de carga pelos veículos',
+      intro: 'Veja que malas e artigos vão em que carrinha ou camião, com o peso e o volume face ao que cada um leva, e registe a saída um veículo de cada vez.',
+      steps: [
+        'Planeie as viagens de ida com os veículos no separador Transporte do evento e toque em "Lista de carga por veículo" (também na lista de carga e no ecrã de registo).',
+        'Toque em "Sugerir divisão". O AVX mostra como carregaria cada veículo, primeiro o mais pesado e volumoso, com as malas inteiras, e avisa se um veículo fica acima da capacidade. Toque em "Aplicar esta divisão" para a usar.',
+        'Mude coisas entre veículos, ou de volta para "Sem veículo", com "Mudar para…" em cada linha. Cada veículo mostra o peso e o volume face ao máximo, e um aviso por escrito quando passa.',
+        'Os artigos sem peso ou volume são contados e listados como desconhecidos. Preencha-os no artigo no Inventário (Peso e Volume) para completar os totais.',
+        'Ao carregar, abra "Registar saída" e escolha o veículo: a lista mostra só o que vai nele.',
+      ],
+      mistakes: [
+        'Só aparecem as viagens de ida com veículo. Acrescente primeiro o veículo à viagem.',
+        'A carga máxima e o espaço de carga vêm de Inventário → Veículos. Sem eles o AVX não consegue dizer que passa.',
+        'É uma ajuda: confirme a carga real e os limites do veículo.',
       ],
     },
     'wh-import': {

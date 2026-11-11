@@ -143,6 +143,7 @@ export default {
     subrental: { term: 'Subrental', definition: 'Equipment you hire from another company for a gig.', example: 'Renting 4 extra speakers for the festival.', where: 'Inventory → Subrentals' },
     vehicle: { term: 'Vehicle', definition: 'A van or truck of the organisation, with its plate, how much it carries (kg and m³), the driving licence it needs and its running cost per km and per day. Trips book it like crew are booked.', example: 'Van 1 · 12-AB-34 · 1,200 kg · 12 m³ · licence B.', where: 'Inventory → Vehicles' },
     trip: { term: 'Trip', definition: 'One journey for a gig: out, back or one way, with a vehicle, a driver (and maybe a co-driver and passengers), when it leaves and arrives, and the km. It books the vehicle and the driver, so using either twice at once shows a clash.', example: 'Out: Van 1, driver Rui, warehouse 07:00 → venue 10:30, 210 km.', where: 'Gig → Transport' },
+    'vehicle-load': { term: 'Packing list per vehicle', definition: 'Which cases and items ride in which vehicle on a gig\'s outward trips, with their weight and volume against what each vehicle carries. A case counts whole, with its contents. Items without a weight or volume are counted as unknown, never as zero.', example: 'Van 1: 2 amp racks and 6 speakers, 640 of 1,200 kg, 5.1 of 12 m³.', where: 'Gig → Transport → Packing list per vehicle' },
     'licence-category': { term: 'Licence category', definition: 'What a driving licence allows you to drive: B (cars and vans up to 3.5 t), BE (with a heavy trailer), C1 (trucks up to 7.5 t), C1E, C and CE (heavy trucks, with a trailer), D1, D1E, D and DE (buses). A higher category often includes a lower one: C includes C1, CE includes C, C1E and BE.', example: 'A 7.5 t truck needs C1; a driver with C can drive it too.', where: 'Settings → Profile; Inventory → Vehicles; Gig → Transport' },
     'driving-hours': { term: 'Driving hours', definition: 'Time someone spends driving for a gig, logged apart from the hours on site so reports can tell them apart. Paid like travel: at the plain hour rate, without overtime or night factors.', example: 'A day with 8 h on site and 3 h driving: worked 8 h, driving 3 h.', where: 'Gig → Crew → Hours, My hours' },
     supplier: { term: 'Supplier', definition: 'The company you hire equipment from.', example: 'A rental house in Porto.', where: 'Contacts → Suppliers' },
@@ -202,6 +203,9 @@ export default {
     'vehicle-capacity': 'How much the vehicle may carry: the maximum load in kg (from its papers: gross weight minus its own weight) and the load space in m³. Used to check the gear packed in it against what it can take.',
     'vehicle-costs': 'What running the vehicle costs you: per km (fuel, tyres, upkeep) and per day (insurance, leasing, tax spread over the days it works). Gig finance will add the transport cost from these and the trips\' km.',
     'trip-driver': 'Pick from the gig\'s crew. The driver and co-driver are booked for the trip\'s times, and their driving minutes are filled in when they log hours that day. If their licence categories don\'t include what the vehicle needs, you see a warning.',
+    'item-volume': 'The space it takes in a vehicle, in cubic metres (a 60 × 40 × 35 cm case is 0.084 m³). Leave it empty and AVX reads the dimensions if they have three numbers and a unit; otherwise the volume is unknown.',
+    'load-split': 'AVX places the heaviest and bulkiest things first, each into the vehicle that ends up least full, and keeps every case whole. If something can\'t fit anywhere, it goes where it overloads least and the vehicle is marked over capacity. You see the split before anything changes.',
+    'load-unknown': 'Fill in the weight and volume on the item in Inventory and the totals become complete. Until then they\'re listed apart, so a missing figure never makes a vehicle look emptier than it is.',
     'driving-licence': 'The categories on your driving licence. Only you and the admins of organisations you belong to see them; a planner who isn\'t an admin only sees whether you may drive the vehicle picked.',
     'crew-call-fee': 'What you offer everyone in this call, before VAT. It starts from your rate card (day rate × the gig\'s days, weekend days with the weekend factor) and you can change it. The people called see it in the offer; whoever accepts gets it as their agreed fee on the gig.',
     'quote-crew-margin': 'Each crew line is matched to the rate card by its description (the function) and unit: per day uses the day rate, per hour the hour rate. Only your organisation sees this.',
@@ -1132,6 +1136,22 @@ export default {
       mistakes: [
         'Only the gig\'s crew can drive or ride: invite the person to the gig first.',
         'Drivers record their licence categories in Settings → Profile. Until they do, you see "not recorded" instead of a check.',
+      ],
+    },
+    'pm-vehicle-load': {
+      title: 'Split the packing list across vehicles',
+      intro: 'See which cases and items go in which van or truck, with the weight and volume against what each one carries, and scan out one vehicle at a time.',
+      steps: [
+        'Plan the outward trips with their vehicles on the gig\'s Transport tab, then tap "Packing list per vehicle" (also on the packing list and the scan screen).',
+        'Tap "Suggest a split". AVX shows how it would load each vehicle, heaviest and bulkiest first, cases kept whole, and warns if a vehicle ends up over capacity. Tap "Apply this split" to use it.',
+        'Move things between vehicles, or back to "Not in a vehicle", with "Move to…" on each line. Each vehicle shows its weight and volume against its maximum, and a warning in words when it\'s over.',
+        'Items without a weight or volume are counted and listed as unknown. Fill them in on the item in Inventory (Weight and Volume) to complete the totals.',
+        'When loading, open "Scan out" and pick the vehicle: the list shows only what goes in it.',
+      ],
+      mistakes: [
+        'Only outward trips with a vehicle are listed. Add the vehicle to the trip first.',
+        'The vehicle\'s maximum load and load space come from Inventory → Vehicles. Without them AVX can\'t say it\'s over.',
+        'This is an aid: check the real load and the vehicle\'s limits yourself.',
       ],
     },
     'wh-import': {
