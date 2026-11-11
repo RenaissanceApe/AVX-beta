@@ -309,19 +309,6 @@ questions marked "Ask" before outlining the migration**. When built, the spec is
 - From StageKit: start the input list, mixes and stage plot **from the line-up** (band members and
   their instruments), and a **readiness check** before sending (missing inputs, no power plan…).
 
-### 23 · Vehicles and transport [8], appointments [9]
-
-- **Vehicles** as bookable resources in the reservations engine (docs/RESERVATIONS.md): plate,
-  capacity (kg, m³), driver licence needed. **Trips** on a gig (out/back, vehicle, driver, times),
-  the packing list split per vehicle with weight against capacity, clashes when a van or driver is
-  double-booked.
-- **Appointments:** non-gig calendar items (site visit, meeting, warehouse day) with people, shown in
-  calendars, clashes and the calendar feed.
-- **Costs:** running cost per km and per day on each vehicle and km on each trip, so transport cost
-  goes into gig finance; expenses (9b) can link to a vehicle (fuel, tolls, repairs).
-- **Vehicle use** report in the Reports area (trips, km, days used, load against capacity): the
-  vehicle part of the old step 24.
-
 ### 24 · Reports [11]
 
 Covered by the dashboards and analytics pack, K1–K8 in [ANALYTICS.md](ANALYTICS.md): crew days and
