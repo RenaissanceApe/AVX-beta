@@ -79,19 +79,6 @@ language sql immutable set search_path = '' as $$
     else false end, false)
 $$;
 
--- ok | missing | unknown (nothing recorded) | null (no vehicle, no driver or no licence needed)
-create or replace function private.licence_status(p_user uuid, p_vehicle uuid) returns text
-language sql stable security definer set search_path = '' as $$
-  select case
-    when p_user is null or v.licence_category is null then null
-    when l.user_id is null or cardinality(l.categories) = 0 then 'unknown'
-    when private.licence_covers(l.categories, v.licence_category) then 'ok'
-    else 'missing' end
-  from public.vehicles v
-  left join public.driving_licences l on l.user_id = p_user
-  where v.id = p_vehicle
-$$;
-
 -- ── Vehicles ─────────────────────────────────────────────────────────────────
 create table if not exists public.vehicles (
   id uuid primary key default gen_random_uuid(),
@@ -403,6 +390,19 @@ begin
 end $$;
 revoke execute on function public.gig_vehicle_choices(uuid) from public, anon;
 grant execute on function public.gig_vehicle_choices(uuid) to authenticated;
+
+-- ok | missing | unknown (nothing recorded) | null (no vehicle, no driver or no licence needed)
+create or replace function private.licence_status(p_user uuid, p_vehicle uuid) returns text
+language sql stable security definer set search_path = '' as $$
+  select case
+    when p_user is null or v.licence_category is null then null
+    when l.user_id is null or cardinality(l.categories) = 0 then 'unknown'
+    when private.licence_covers(l.categories, v.licence_category) then 'ok'
+    else 'missing' end
+  from public.vehicles v
+  left join public.driving_licences l on l.user_id = p_user
+  where v.id = p_vehicle
+$$;
 
 -- While planning: does this person's licence cover the vehicle? ok | missing | unknown | null
 create or replace function public.driver_licence_check(p_gig uuid, p_user uuid, p_vehicle uuid) returns text
