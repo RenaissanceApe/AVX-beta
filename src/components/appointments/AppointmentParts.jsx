@@ -240,14 +240,14 @@ export function AppointmentForm({ orgId, timeZone, appointment, preset, onSaved,
           )}
         </fieldset>
 
-        <label style={field}>{t('appointments.gig')}
+        <label style={full}>{t('appointments.gig')}
           <select value={form.gigId} onChange={e => set({ gigId: e.target.value })} style={input}>
             <option value="">{t('appointments.noGig')}</option>
             {gigs.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
             {form.gigId && !gigs.some(g => g.id === form.gigId) && <option value={form.gigId}>{t('appointments.linkedGig')}</option>}
           </select>
         </label>
-        <label style={field}>{t('appointments.client')}
+        <label style={full}>{t('appointments.client')}
           <select value={form.clientId} onChange={e => set({ clientId: e.target.value })} style={input}>
             <option value="">{t('appointments.noClient')}</option>
             {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
