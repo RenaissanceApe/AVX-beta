@@ -71,7 +71,7 @@ export function AuthProvider({ children }) {
   async function fetchProfile(userId) {
     // Your own full profile (phone and notification switches included) comes from my_profile():
     // those columns aren't readable from the table (migration 20270120000000)
-    const { data, error } = await supabase.rpc('my_profile').maybeSingle()
+    const { data, error } = await supabase.rpc('my_profile').eq('id', userId).maybeSingle()
     if (error) logger.error('auth', error, { step: 'fetchProfile' })
     setProfile(data ?? null)
     setLoading(false)
