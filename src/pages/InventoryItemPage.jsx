@@ -95,6 +95,7 @@ export default function InventoryItemPage() {
     [t('inv.weight'), item.weight_kg != null ? `${Number(item.weight_kg)} kg` : ''],
     [t('inv.power'), item.power_w != null ? `${item.power_w} W` : ''],
     [t('inv.dimensions'), item.dimensions],
+    [t('inv.volume'), item.volume_m3 != null ? `${Number(item.volume_m3)} m³` : ''],
     [t('inv.replacementValue'), item.replacement_value != null ? formatMoney(item.replacement_value, 'EUR', lang) : ''],
     [t('inv.minStock'), item.min_stock ?? ''],
     [t('inv.packingNote'), item.packing_note],

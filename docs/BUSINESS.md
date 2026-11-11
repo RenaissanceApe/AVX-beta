@@ -276,6 +276,23 @@ renamed and wrapped); checks in `supabase/tests/vehicle_costs.sql` and `account_
 | Account closing | `private.vehicles_before` and `private.trips_before` let a closed account's `created_by`, `driver_id` and `co_driver_id` be emptied (also on a removed trip), as 0.82.4 does for other tables |
 | JS twin | `src/lib/transportCost.js` (`tripDays`, `gigTransport`, `vehicleUse`, `vehicleUseTotals`, `loadShare`); `gigFinanceRow` takes `trips`, `vehicles`, `timeZone`. `src/lib/transportCostFixtures.json` is shared with the database test (a Vitest test keeps the copy equal) |
 | Help | Term "Transport cost", ⓘ `transport-cost` and `expense-vehicle`, the `vehicle-costs` hint now says to leave fuel out when receipts are logged, guide `office-vehicle-costs` (no pictures yet) |
+## How the packing list per vehicle works (step 23, V3)
+
+Which cases and items ride in which vehicle on a gig's outward trips, with weight and volume against
+each vehicle's capacity. Migrations `20270122000000_vehicle_loads.sql` and
+`20270122000001_vehicle_loads_select_fix.sql` (only add); checks in `supabase/tests/vehicle_loads.sql`.
+Logic in `src/lib/vehicleLoads.js` (tested in `vehicleLoads.test.js`).
+
+| Piece | How it works |
+|---|---|
+| Figures | Weight from `price_items.weight_kg`; volume from the new `price_items.volume_m3` (Edit item → Volume), else read from the item's dimensions when they have three numbers and one unit ("60 × 40 × 35 cm"). Anything missing is **unknown**: totals add what's known and count the rest ("+ 3 without weight"), never as zero |
+| Cases | A case on the list travels whole: one case is one unit, weighing its own weight plus its contents' (`item_parts` content), with its own volume. The contents it holds leave the loose part of their lines; the rest of a line can be split freely |
+| Table | `vehicle_loads`: (`trip_id`, `item_id`) → `quantity` (0 = taken off; rows are never removed), `updated_by`, `updated_at`. Seen by everyone on the gig and whoever may scan out (`private.can_see_vehicle_loads`); written only by `set_vehicle_loads(gig, loads)`, which takes the whole plan, checks each trip is an outward trip with a vehicle on this gig, each item is on the list and no item is loaded more than planned, and sets the rest to 0. No trigger, so account closing just empties `updated_by` |
+| Read | `gig_load_plan(gig)`: outward trips (out and one way, not removed) with vehicle name, plate and capacity (no costs), the equipment lines with weight, volume, dimensions and kit type, case contents, the loads, and whether the caller plans transport (`can_plan_transport`) |
+| Page | Gig → Transport → **Packing list per vehicle** (`/gig/:id/loads`; also from the packing list and the scan screen). A card per vehicle with weight and volume bars against its maximum, an "Over capacity" mark and the overload in words, and "Not in a vehicle yet" below. Planners move any number of a line with **Move to…** |
+| Suggestion | **Suggest a split** (`suggestSplit`): heaviest and bulkiest first (as a share of the fleet's capacity), each unit into the vehicle that ends up least full while still within capacity; if none has room, into the least full one, reported over. Cases stay whole. Units with neither figure go where there are fewest so far. Shown in a preview; **Apply this split** saves it |
+| Scan out | The scan screen has a **Vehicle** picker (`?vehicle=<trip>`) once loads exist: the list shows only what goes in that vehicle (cases' contents included) and how many. The counts are still the gig's: the scan log doesn't record a vehicle |
+| Help | Term `vehicle-load`; ⓘ `item-volume`, `load-split`, `load-unknown`; guide `pm-vehicle-load` ("Split the packing list across vehicles") |
 
 ## Planned
 

@@ -359,6 +359,11 @@ export default function TransportTab({ gig, members, nameOf, canPlan, canSeeVehi
           ))}
         </ul>
       )}
+      {trips.some(x => x.vehicle_id && ['out', 'one_way'].includes(x.direction)) && (
+        <p style={{ ...small, marginTop: '12px' }}>
+          <Link to={`/gig/${gig.id}/loads`} style={{ color: colors.accentText }}>{t('transport.loadPlan')}</Link> · {t('transport.loadPlanNote')}
+        </p>
+      )}
       {canPlan && trips.length > 0 && <p style={{ ...small, marginTop: '12px' }}>{t('transport.hoursNote')}</p>}
       {canSeeMoney && trips.length > 0 && <TransportCosts gig={gig} version={version} />}
       {editing && (

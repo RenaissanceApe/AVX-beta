@@ -93,6 +93,7 @@ export const GUIDES = {
   'pm-input-list': { role: 'pm', pages: ['gig'], terms: ['input-list', 'phantom-power', 'stage-box', 'line-check', 'field-tools'], shots: ['tools-add', 'input-form', 'input-list', null] },
   'pm-equipment': { role: 'pm', pages: ['gig'], terms: ['catalogue-item', 'prep-return-days', 'subrental', 'alternative'], shots: ['equipment-add', 'equipment-picker', null, null] },
   'pm-vehicle-trip': { role: 'pm', pages: ['gig', 'inventory'], terms: ['vehicle', 'trip', 'licence-category', 'driving-hours', 'double-booking'], shots: [null, null, null, null, null] },
+  'pm-vehicle-load': { role: 'pm', pages: ['gig'], terms: ['vehicle-load', 'vehicle', 'trip', 'case', 'packing-list'], shots: [null, null, null, null, null] },
   'wh-import': { role: 'warehouse', pages: ['inventory'], terms: ['catalogue-item', 'bulk-item', 'serial-item', 'location'], shots: [null, 'imp-choose', 'imp-match', 'imp-check', null] },
   'wh-locations': { role: 'warehouse', pages: ['inventory'], terms: ['location', 'stock-movement'], shots: ['inv-locations', null, null, null] },
   'wh-units-labels': { role: 'warehouse', pages: ['inventory-item', 'inventory'], terms: ['serial-item', 'unit', 'label-template', 'depreciation'], shots: ['item-units', null, null, 'labels'] },

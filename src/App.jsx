@@ -49,6 +49,7 @@ const TrustAdminPage = lazy(() => import('./pages/TrustAdminPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const ScanPage = lazy(() => import('./pages/ScanPage'))
 const DispatchPage = lazy(() => import('./pages/DispatchPage'))
+const LoadPlanPage = lazy(() => import('./pages/LoadPlanPage'))
 const PackingListPage = lazy(() => import('./pages/PackingListPage'))
 const InputListPage = lazy(() => import('./pages/InputListPage'))
 const StagePlotPage = lazy(() => import('./pages/StagePlotPage'))
@@ -147,6 +148,7 @@ function AppRoutes() {
       <Route path="/gig/:id" element={<ProtectedRoute><GigPage /></ProtectedRoute>} />
       <Route path="/gig/:id/scan" element={<ProtectedRoute><Suspense fallback={<Spinner />}><DispatchPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/packing" element={<ProtectedRoute><Suspense fallback={<Spinner />}><PackingListPage /></Suspense></ProtectedRoute>} />
+      <Route path="/gig/:id/loads" element={<ProtectedRoute><Suspense fallback={<Spinner />}><LoadPlanPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/inputs" element={<ProtectedRoute><Suspense fallback={<Spinner />}><InputListPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/plot" element={<ProtectedRoute><Suspense fallback={<Spinner />}><StagePlotPage /></Suspense></ProtectedRoute>} />
       <Route path="/gig/:id/patch" element={<ProtectedRoute><Suspense fallback={<Spinner />}><PatchSheetPage kind="patch" /></Suspense></ProtectedRoute>} />
