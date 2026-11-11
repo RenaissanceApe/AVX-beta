@@ -5,6 +5,7 @@
 | Lint + unit tests + build | `npm run check` | always (`check` job) |
 | Browser smoke tests (no account needed) | `npm run build && npm run test:e2e` | always (`e2e` job) |
 | Signed-in journeys (test project) | see below | when `E2E_AUTH_ENABLED` is `true` (`e2e-auth` job) |
+| Live check of the production app (read-only) | the **Live check** workflow, started by hand (below) | never on PRs |
 | Accessibility (axe) | part of both browser test runs (`e2e/a11y.spec.js`, and `expectAccessible` in the signed-in journey) | always |
 | Help content (both languages, every id used exists, guides line up with their screenshots) | part of `npm test` (`src/help/help.test.js`) | always |
 | Guide screenshots (sample data, phone, both languages) | `npm run help:screens`, then commit `public/help/shots/` | when a screen a guide shows changes |
@@ -78,3 +79,43 @@ account the sweep can't delete (it says which) can be removed in the test projec
 `supabase/tests/my_gig_companies.sql`, `supabase/tests/reservations_people.sql`, `supabase/tests/inventory.sql`, `supabase/tests/equipment_availability.sql`, `supabase/tests/warehouse.sql`, `supabase/tests/kits.sql`, `supabase/tests/maintenance.sql`, `supabase/tests/subrentals.sql`, `supabase/tests/network.sql`, `supabase/tests/messaging.sql`, `supabase/tests/messaging_m2.sql`, `supabase/tests/messaging_m3.sql`, `supabase/tests/messaging_m4.sql`, `supabase/tests/messaging_m4b.sql`, `supabase/tests/push.sql`, `supabase/tests/messaging_m6a.sql`, `supabase/tests/messaging_m6b.sql` and `supabase/tests/account_deletion.sql`
 check the access rules directly in SQL. Paste each into the **test project's** SQL editor; each runs inside a transaction that is rolled
 back and ends with `ALL … CHECKS PASSED`.
+
+## Live check
+
+A read-only check of the **live** app (https://avx-beta.vercel.app) after a release. The Dispatcher
+starts it once the release is merged: GitHub → Actions → **Live check** → *Run workflow* (the
+`base_url` box defaults to production). It never runs on pull requests or pushes, and
+`playwright.config.js` ignores `e2e/live/`, so PR CI never picks it up.
+
+**What it checks** (`e2e/live/`, `playwright.live.config.js`), with two dedicated accounts of the
+company **AVX TEST CO.** on production:
+
+- **Manager** (admin): signs in through the real form, finds the company in its own list of
+  organisations, then opens the company home, quotes, contacts, crew, jobs, hours, appointments,
+  leave, expenses, invoices, reports, tasks, inventory, Messages, Settings and My work. Each must
+  draw with no error message, no crash and no 5xx answer from Supabase or Vercel.
+- **Crew** (viewer): My work, My hours, My appointments, My profile and Tasks render; the company's
+  reports, invoices, expenses, crew search and everyone's hours show their "only admins and members"
+  message; with the crew's own session, the company's crew rates read as empty, reading
+  `profiles.phone` is refused (column grants, 0.82.3) and `my_profile()` returns only their own row.
+- **Accessibility:** the same axe check as the PR tests on a few of those screens.
+- Each test signs out at the end.
+
+**Read-only.** Every test routes the browser through a guard (`e2e/live/guard.js`) that aborts any
+request that would write before it leaves the browser: changes to database tables, database
+functions that can write (the public functions marked volatile), file uploads, Edge Functions
+(except the invoicing programs list), and auth calls other than signing in and out. The test then
+fails, naming the request by method and path. One write the app makes by itself is blocked without
+failing: Expenses adding its starter categories the first time it opens (listed in the test's notes).
+The tests never click anything that saves, sends, invites, deletes or creates.
+
+**Secrets** (Settings → Secrets and variables → Actions → Secrets): `LIVE_MANAGER_EMAIL`,
+`LIVE_CREW_EMAIL` and `LIVE_PASSWORD` (the same password for both). A missing one fails the run
+instead of skipping it. `LIVE_ORG_NAME` (optional) changes the company name looked for. The output
+names roles, screens and request paths only, never emails, tokens or phone numbers; the traces
+uploaded on a failure (kept 7 days) hold the pages as the accounts saw them.
+
+**Trying it without production:** build against the test project, make two accounts there (a manager
+whose company is named `AVX TEST CO.`, and a crew member invited to it as a viewer), then run
+`LIVE_BASE_URL=http://localhost:4173 LIVE_MANAGER_EMAIL=… LIVE_CREW_EMAIL=… LIVE_PASSWORD=… npx playwright test -c playwright.live.config.js`
+(a local address starts the preview itself). The workflow refuses localhost and the test project.

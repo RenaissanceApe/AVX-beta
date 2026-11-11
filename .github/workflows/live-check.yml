@@ -1,0 +1,58 @@
+name: Live check
+
+# A read-only check of the LIVE app after a release (docs/TESTING.md, "Live check"): two dedicated
+# accounts of the company "AVX TEST CO." sign in and open the main screens. Started by hand (the
+# Dispatcher does it after each release); never runs on pull requests or pushes. The tests block
+# every request that would write (e2e/live/guard.js), so nothing on production is created,
+# changed or deleted.
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Address of the app to check
+        required: true
+        default: https://avx-beta.vercel.app
+
+# One live check at a time; a second one waits instead of overlapping
+concurrency:
+  group: live-check
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LIVE_BASE_URL: ${{ inputs.base_url }}
+      LIVE_MANAGER_EMAIL: ${{ secrets.LIVE_MANAGER_EMAIL }}
+      LIVE_CREW_EMAIL: ${{ secrets.LIVE_CREW_EMAIL }}
+      LIVE_PASSWORD: ${{ secrets.LIVE_PASSWORD }}
+    steps:
+      # The live check is for a deployed app: never the test project, never this machine
+      - name: Refuse the test project and local addresses
+        run: |
+          case "$LIVE_BASE_URL" in
+            https://*) ;;
+            *) echo "base_url must be an https:// address"; exit 1 ;;
+          esac
+          case "$LIVE_BASE_URL" in
+            *idvebeadnrxudfgortzg*|*localhost*|*127.0.0.1*) echo "base_url must be the deployed app, not the test project or localhost"; exit 1 ;;
+          esac
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Browser only, no apt (#202): the runner image already has the libraries Chromium needs
+      - run: npx playwright install chromium
+      - run: npx playwright test -c playwright.live.config.js
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: live-check-traces
+          path: test-results/
+          retention-days: 7
