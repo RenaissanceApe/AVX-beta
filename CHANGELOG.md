@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.82.4 — Fix: closing your account works again
+
+#### Fixed
+- **You can close your account even if you've added things to a company you don't solely own
+  (#195).** Before, Settings → Your data → Delete account failed for anyone who had, in a company
+  where they're a member or one of several admins, added a client, supplier, quote, invoice or
+  payment, a stock unit, a repair, planned equipment, a patch, input or stage plot item, a fixture
+  type or hoist model, sent a crew invitation or asked someone's availability. Now the account
+  closes and those things stay with the company, without a name on them.
+  - Nobody can use this to change or remove who made something: that still only happens when the
+    person's account itself is closed.
+  - An expense claim still waiting for a decision goes back to finance as a draft when the person
+    who claimed it closes their account, so finance can confirm or remove it.
+
 ## 0.82.3 — Privacy fix: who can see your name and phone
 
 #### Fixed
