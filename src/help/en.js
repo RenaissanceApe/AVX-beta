@@ -506,7 +506,7 @@ export default {
       mistakes: [
         'A trip without km counts only its days: fill in the km for a complete cost.',
         'Fuel receipts linked to a gig are added on top of the cost per km. Leave fuel out of the cost per km if you log the receipts.',
-        'Load against capacity shows "not recorded" until the vehicle\'s packing list records its load.',
+        'Load against capacity comes from the packing list per vehicle (the heaviest trip, known weights only); without one it says "not recorded".',
       ],
     },
     'office-gig-finance': {

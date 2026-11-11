@@ -17,6 +17,10 @@ const expenses = fx.expenses.map(e => ({
   kind: categories.get(e.category)?.kind ?? null, cost: costOf(e, categories.get(e.category), fx.recovers_vat),
 }))
 
+const items = fx.items.map(i => ({ id: i.key, weight_kg: i.weight_kg, kit_type: i.case ? 'case' : null }))
+const parts = fx.parts.map(p => ({ case_id: p.case, child_id: p.child, quantity: p.quantity }))
+const loads = fx.loads.map(l => ({ trip_id: l.trip, item_id: l.item, quantity: l.quantity }))
+
 describe('transport costs (shared fixtures)', () => {
   for (const [gigKey, expected] of Object.entries(fx.expect_gigs)) {
     it(`adds the transport line to ${gigKey}'s finance`, () => {
@@ -42,7 +46,7 @@ describe('transport costs (shared fixtures)', () => {
 
   for (const p of fx.periods) {
     it(`reports vehicle use from ${p.from} to ${p.until}`, () => {
-      const rows = vehicleUse({ vehicles, trips, expenses, timeZone: tz, from: p.from, until: p.until })
+      const rows = vehicleUse({ vehicles, trips, expenses, timeZone: tz, from: p.from, until: p.until, items, parts, loads })
       expect(rows.map(r => r.vehicle_id).sort()).toEqual([...p.vehicles].sort())
       for (const [vehicle, expected] of Object.entries(p.expect)) {
         const row = rows.find(r => r.vehicle_id === vehicle)

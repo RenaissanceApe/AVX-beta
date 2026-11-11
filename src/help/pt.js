@@ -503,7 +503,7 @@ export default {
       mistakes: [
         'Uma viagem sem km só conta os dias: preencha os km para um custo completo.',
         'Os talões de combustível ligados a um evento somam-se ao custo por km. Deixe o combustível fora do custo por km se regista os talões.',
-        'A carga face à capacidade mostra "não registada" até a lista de carga do veículo registar a carga.',
+        'A carga face à capacidade vem da lista de carga por veículo (a viagem mais carregada, só pesos conhecidos); sem ela, diz "não registada".',
       ],
     },
     'office-gig-finance': {

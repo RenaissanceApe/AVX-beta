@@ -16,8 +16,8 @@ const load = (orgId, range) => supabase.rpc('vehicle_use', { p_org: orgId, p_fro
 
 // Reports → Vehicle use (step 23, V4): per vehicle and period, its trips, km, days used, load
 // against capacity, running cost (km × cost per km + days × cost per day) and the expenses linked
-// to it, from public.vehicle_use (counted in the database, in euros). Load is "not recorded" until
-// the packing list per vehicle stores loads.
+// to it, from public.vehicle_use (counted in the database, in euros). Load is the heaviest trip's
+// load from the packing list per vehicle (V3); "not recorded" when there is none.
 export default function VehicleUseReport({ orgId, timeZone, params, setParam }) {
   const { t, lang } = useI18n()
   const [details, toggleDetails] = useDetails('vehicles')

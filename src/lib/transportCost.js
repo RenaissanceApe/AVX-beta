@@ -70,9 +70,26 @@ export function gigTransport({ trips, vehicles, timeZone }) {
 // (across gigs, each day once per vehicle), running cost, confirmed expenses spent in it (euros;
 // `cost` as private.expense_costs gives it). Live vehicles always have a row; removed ones only
 // when they were used or had expenses.
-export function vehicleUse({ vehicles, trips, expenses, timeZone, from, until }) {
+// load_kg: the heaviest load of the vehicle's trips in the period (the packing list per vehicle, V3:
+// `loads` [{ trip_id, item_id, quantity }]), each unit at its known weight, a case with its
+// contents' (`parts` [{ case_id, child_id, quantity }]); null when none of those trips has a load.
+export function vehicleUse({ vehicles, trips, expenses, timeZone, from, until, items = [], parts = [], loads = [] }) {
   const inPeriod = live(trips).filter(t => { const d = ymd(wallClock(t.departs_at, timeZone)); return d >= from && d < until })
   const rows = new Map(perVehicle(inPeriod, vehicles, timeZone, from, until).map(r => [r.vehicle_id, r]))
+  const item = new Map(items.map(i => [i.id, i]))
+  const unitKg = id => {
+    const i = item.get(id) || {}
+    const own = num(i.weight_kg)
+    if (i.kit_type !== 'case') return own
+    return own + parts.filter(p => p.case_id === id).reduce((s, p) => s + (Number(p.quantity) || 1) * num(item.get(p.child_id)?.weight_kg), 0)
+  }
+  const peak = new Map()
+  for (const t of inPeriod) {
+    const mine = loads.filter(l => l.trip_id === t.id && Number(l.quantity) > 0)
+    if (!mine.length) continue
+    const kg = Math.round(mine.reduce((s, l) => s + Number(l.quantity) * unitKg(l.item_id), 0) * 10) / 10
+    peak.set(t.vehicle_id, Math.max(peak.get(t.vehicle_id) ?? 0, kg))
+  }
   const spent = new Map()
   const other = new Map()
   for (const e of expenses || []) {
@@ -93,7 +110,7 @@ export function vehicleUse({ vehicles, trips, expenses, timeZone, from, until })
         vehicle_id: v.id, vehicle_name: v.name, plate: v.plate ?? null, removed_at: v.removed_at ?? null,
         max_load_kg: v.max_load_kg ?? null, volume_m3: v.volume_m3 ?? null,
         trips: r.trips, gigs: r.gigs, km: r.km, km_missing: r.km_missing, days: r.days, running: r.running,
-        expenses: exp, total: round2(r.running + exp), load_kg: null, other_currencies: other.get(v.id) || null,
+        expenses: exp, total: round2(r.running + exp), load_kg: peak.get(v.id) ?? null, other_currencies: other.get(v.id) || null,
       }
     })
     .sort((a, b) => (!!a.removed_at - !!b.removed_at) || a.vehicle_name.localeCompare(b.vehicle_name))

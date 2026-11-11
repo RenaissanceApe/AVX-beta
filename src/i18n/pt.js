@@ -5928,7 +5928,7 @@ export default {
   "vehicleUse.noVehiclesBody": "Adicione as carrinhas e camiões em Inventário → Veículos, com o custo por km e por dia, e planeie viagens nos eventos.",
   "vehicleUse.empty": "Sem viagens nem despesas de veículos neste período",
   "vehicleUse.emptyBody": "As viagens planeadas no separador Transporte de um evento, e as despesas ligadas a um veículo, aparecem aqui.",
-  "vehicleUse.how": "Custo de utilização = km × custo por km + dias de uso × custo por dia. Cada dia conta uma vez por veículo, seja qual for o número de viagens. As despesas são as confirmadas ligadas ao veículo, sem o IVA dedutível. A carga aparece quando a lista de carga por veículo a registar.",
+  "vehicleUse.how": "Custo de utilização = km × custo por km + dias de uso × custo por dia. Cada dia conta uma vez por veículo, seja qual for o número de viagens. As despesas são as confirmadas ligadas ao veículo, sem o IVA dedutível. A carga é a da viagem mais carregada, da lista de carga por veículo (só pesos conhecidos), face à carga máxima.",
   "vehicleUse.ratesLink": "Veículos e custos",
   "vehicleUse.csvName": "uso de veiculos",
   "reports.tile.itemsShort30": "Artigos em falta, próximos 30 dias",

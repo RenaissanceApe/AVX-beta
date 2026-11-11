@@ -5929,7 +5929,7 @@ export default {
   "vehicleUse.noVehiclesBody": "Add your vans and trucks in Inventory → Vehicles, with their cost per km and per day, and plan trips on your gigs.",
   "vehicleUse.empty": "No trips or vehicle expenses in this period",
   "vehicleUse.emptyBody": "Trips planned on a gig's Transport tab, and expenses linked to a vehicle, show here.",
-  "vehicleUse.how": "Running cost = km × cost per km + days used × cost per day. A day counts once per vehicle, however many trips. Expenses are the confirmed ones linked to the vehicle, excl. recoverable VAT. Load shows once the packing list per vehicle records it.",
+  "vehicleUse.how": "Running cost = km × cost per km + days used × cost per day. A day counts once per vehicle, however many trips. Expenses are the confirmed ones linked to the vehicle, excl. recoverable VAT. Load is the heaviest trip's load from the packing list per vehicle (known weights only) against the max load.",
   "vehicleUse.ratesLink": "Vehicles and their costs",
   "vehicleUse.csvName": "vehicle use",
   "reports.tile.itemsShort30": "Items short, next 30 days",

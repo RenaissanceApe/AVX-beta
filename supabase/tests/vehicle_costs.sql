@@ -1,4 +1,4 @@
--- Checks for migration 20270123000000_vehicle_costs.sql (step 23, V4: transport costs in gig finance,
+-- Checks for migrations 20270123000000_vehicle_costs.sql and 20270123000001_vehicle_use_loads.sql (step 23, V4: transport costs in gig finance,
 -- expenses linked to a vehicle or trip, the vehicle-use report, vehicles and trips in the export).
 -- Run in the TEST project's SQL editor. Rolls itself back; ends with
 --   "ALL VEHICLE COST CHECKS PASSED (gig_finance … ms)"  → good
@@ -10,72 +10,411 @@
 do $$
 declare
   fx jsonb := $fixtures${
-  "about": "Shared fixtures for transport costs (step 23, V4; docs/BUSINESS.md). Checked by src/lib/transportCost.test.js and, copied verbatim, by supabase/tests/vehicle_costs.sql (a Vitest test keeps the copy equal). Vehicles, gigs, trips and categories are named by keys; the database test gives them real ids. Times are UTC; Lisbon is UTC+0 in March 2027 before the clocks change. Change both twins together.",
+  "about": "Shared fixtures for transport costs (step 23, V4; docs/BUSINESS.md). Checked by src/lib/transportCost.test.js and, copied verbatim, by supabase/tests/vehicle_costs.sql (a Vitest test keeps the copy equal). Vehicles, gigs, trips and categories are named by keys; the database test gives them real ids. Times are UTC; Lisbon is UTC+0 in March 2027 before the clocks change. Loads (V3's vehicle_loads): a case weighs its own weight plus its contents'; load_kg is a vehicle's heaviest trip in the period. Change both twins together.",
   "time_zone": "Europe/Lisbon",
   "recovers_vat": true,
   "categories": [
-    { "key": "fuel", "kind": "direct", "vat_recoverable": true },
-    { "key": "tolls", "kind": "direct", "vat_recoverable": true }
+    {
+      "key": "fuel",
+      "kind": "direct",
+      "vat_recoverable": true
+    },
+    {
+      "key": "tolls",
+      "kind": "direct",
+      "vat_recoverable": true
+    }
   ],
   "vehicles": [
-    { "key": "V1", "name": "Van", "plate": "AA-11-AA", "max_load_kg": 1200, "cost_per_km": 0.35, "cost_per_day": 40 },
-    { "key": "V2", "name": "Truck", "plate": "BB-22-BB", "max_load_kg": 7000, "cost_per_km": 0.9, "cost_per_day": 120 },
-    { "key": "V3", "name": "Old van", "plate": null, "max_load_kg": null, "cost_per_km": 0.2, "cost_per_day": 10, "removed": true },
-    { "key": "V4", "name": "Car", "plate": null, "max_load_kg": null, "cost_per_km": null, "cost_per_day": null }
+    {
+      "key": "V1",
+      "name": "Van",
+      "plate": "AA-11-AA",
+      "max_load_kg": 1200,
+      "cost_per_km": 0.35,
+      "cost_per_day": 40
+    },
+    {
+      "key": "V2",
+      "name": "Truck",
+      "plate": "BB-22-BB",
+      "max_load_kg": 7000,
+      "cost_per_km": 0.9,
+      "cost_per_day": 120
+    },
+    {
+      "key": "V3",
+      "name": "Old van",
+      "plate": null,
+      "max_load_kg": null,
+      "cost_per_km": 0.2,
+      "cost_per_day": 10,
+      "removed": true
+    },
+    {
+      "key": "V4",
+      "name": "Car",
+      "plate": null,
+      "max_load_kg": null,
+      "cost_per_km": null,
+      "cost_per_day": null
+    }
   ],
   "gigs": [
-    { "key": "T1", "name": "Transport festival", "start_date": "2027-03-10", "end_date": "2027-03-12" },
-    { "key": "T2", "name": "Transport one day", "start_date": "2027-03-20", "end_date": "2027-03-20" }
+    {
+      "key": "T1",
+      "name": "Transport festival",
+      "start_date": "2027-03-10",
+      "end_date": "2027-03-12"
+    },
+    {
+      "key": "T2",
+      "name": "Transport one day",
+      "start_date": "2027-03-20",
+      "end_date": "2027-03-20"
+    }
   ],
   "trips": [
-    { "key": "t1", "gig": "T1", "vehicle": "V1", "direction": "out", "departs_at": "2027-03-10T07:00:00Z", "arrives_at": "2027-03-10T10:00:00Z", "km": 120 },
-    { "key": "t2", "gig": "T1", "vehicle": "V1", "direction": "back", "departs_at": "2027-03-12T22:00:00Z", "arrives_at": "2027-03-13T01:30:00Z", "km": 120 },
-    { "key": "t3", "gig": "T1", "vehicle": "V2", "direction": "out", "departs_at": "2027-03-10T06:00:00Z", "arrives_at": "2027-03-10T09:00:00Z", "km": null },
-    { "key": "t4", "gig": "T1", "vehicle": "V1", "direction": "one_way", "departs_at": "2027-03-11T08:00:00Z", "arrives_at": "2027-03-11T18:00:00Z", "km": 500, "removed": true },
-    { "key": "t5", "gig": "T1", "vehicle": null, "direction": "one_way", "departs_at": "2027-03-11T08:00:00Z", "arrives_at": "2027-03-11T09:00:00Z", "km": 50 },
-    { "key": "t6", "gig": "T2", "vehicle": "V1", "direction": "out", "departs_at": "2027-03-20T08:00:00Z", "arrives_at": "2027-03-20T11:00:00Z", "km": 80 },
-    { "key": "t7", "gig": "T2", "vehicle": "V1", "direction": "back", "departs_at": "2027-03-20T20:00:00Z", "arrives_at": "2027-03-21T00:00:00Z", "km": 80 },
-    { "key": "t8", "gig": "T2", "vehicle": "V4", "direction": "out", "departs_at": "2027-03-20T09:00:00Z", "arrives_at": "2027-03-20T10:00:00Z", "km": 30 },
-    { "key": "t9", "gig": "T2", "vehicle": "V3", "direction": "one_way", "departs_at": "2027-02-27T10:00:00Z", "arrives_at": "2027-02-27T12:00:00Z", "km": 10 }
+    {
+      "key": "t1",
+      "gig": "T1",
+      "vehicle": "V1",
+      "direction": "out",
+      "departs_at": "2027-03-10T07:00:00Z",
+      "arrives_at": "2027-03-10T10:00:00Z",
+      "km": 120
+    },
+    {
+      "key": "t2",
+      "gig": "T1",
+      "vehicle": "V1",
+      "direction": "back",
+      "departs_at": "2027-03-12T22:00:00Z",
+      "arrives_at": "2027-03-13T01:30:00Z",
+      "km": 120
+    },
+    {
+      "key": "t3",
+      "gig": "T1",
+      "vehicle": "V2",
+      "direction": "out",
+      "departs_at": "2027-03-10T06:00:00Z",
+      "arrives_at": "2027-03-10T09:00:00Z",
+      "km": null
+    },
+    {
+      "key": "t4",
+      "gig": "T1",
+      "vehicle": "V1",
+      "direction": "one_way",
+      "departs_at": "2027-03-11T08:00:00Z",
+      "arrives_at": "2027-03-11T18:00:00Z",
+      "km": 500,
+      "removed": true
+    },
+    {
+      "key": "t5",
+      "gig": "T1",
+      "vehicle": null,
+      "direction": "one_way",
+      "departs_at": "2027-03-11T08:00:00Z",
+      "arrives_at": "2027-03-11T09:00:00Z",
+      "km": 50
+    },
+    {
+      "key": "t6",
+      "gig": "T2",
+      "vehicle": "V1",
+      "direction": "out",
+      "departs_at": "2027-03-20T08:00:00Z",
+      "arrives_at": "2027-03-20T11:00:00Z",
+      "km": 80
+    },
+    {
+      "key": "t7",
+      "gig": "T2",
+      "vehicle": "V1",
+      "direction": "back",
+      "departs_at": "2027-03-20T20:00:00Z",
+      "arrives_at": "2027-03-21T00:00:00Z",
+      "km": 80
+    },
+    {
+      "key": "t8",
+      "gig": "T2",
+      "vehicle": "V4",
+      "direction": "out",
+      "departs_at": "2027-03-20T09:00:00Z",
+      "arrives_at": "2027-03-20T10:00:00Z",
+      "km": 30
+    },
+    {
+      "key": "t9",
+      "gig": "T2",
+      "vehicle": "V3",
+      "direction": "one_way",
+      "departs_at": "2027-02-27T10:00:00Z",
+      "arrives_at": "2027-02-27T12:00:00Z",
+      "km": 10
+    }
   ],
   "expenses": [
-    { "key": "fuel1", "vehicle": "V1", "trip": "t1", "category": "fuel", "spent_on": "2027-03-10", "amount_net": 50, "vat_rate": 23, "vat_amount": 11.5, "currency": "EUR" },
-    { "key": "toll1", "vehicle": "V1", "category": "tolls", "spent_on": "2027-03-20", "amount_net": 12.5, "vat_rate": 23, "vat_amount": 2.88, "currency": "EUR" },
-    { "key": "gone", "vehicle": "V1", "category": "fuel", "spent_on": "2027-03-15", "amount_net": 99, "vat_rate": 23, "vat_amount": 22.77, "currency": "EUR", "removed": true },
-    { "key": "later", "vehicle": "V1", "category": "fuel", "spent_on": "2027-04-02", "amount_net": 40, "vat_rate": 23, "vat_amount": 9.2, "currency": "EUR" },
-    { "key": "usd", "vehicle": "V2", "category": "tolls", "spent_on": "2027-03-11", "amount_net": 20, "vat_rate": 0, "vat_amount": 0, "currency": "USD" }
+    {
+      "key": "fuel1",
+      "vehicle": "V1",
+      "trip": "t1",
+      "category": "fuel",
+      "spent_on": "2027-03-10",
+      "amount_net": 50,
+      "vat_rate": 23,
+      "vat_amount": 11.5,
+      "currency": "EUR"
+    },
+    {
+      "key": "toll1",
+      "vehicle": "V1",
+      "category": "tolls",
+      "spent_on": "2027-03-20",
+      "amount_net": 12.5,
+      "vat_rate": 23,
+      "vat_amount": 2.88,
+      "currency": "EUR"
+    },
+    {
+      "key": "gone",
+      "vehicle": "V1",
+      "category": "fuel",
+      "spent_on": "2027-03-15",
+      "amount_net": 99,
+      "vat_rate": 23,
+      "vat_amount": 22.77,
+      "currency": "EUR",
+      "removed": true
+    },
+    {
+      "key": "later",
+      "vehicle": "V1",
+      "category": "fuel",
+      "spent_on": "2027-04-02",
+      "amount_net": 40,
+      "vat_rate": 23,
+      "vat_amount": 9.2,
+      "currency": "EUR"
+    },
+    {
+      "key": "usd",
+      "vehicle": "V2",
+      "category": "tolls",
+      "spent_on": "2027-03-11",
+      "amount_net": 20,
+      "vat_rate": 0,
+      "vat_amount": 0,
+      "currency": "USD"
+    }
+  ],
+  "items": [
+    {
+      "key": "I1",
+      "name": "Speaker",
+      "weight_kg": 100
+    },
+    {
+      "key": "I2",
+      "name": "Cable box",
+      "weight_kg": null
+    },
+    {
+      "key": "C1",
+      "name": "Amp case",
+      "weight_kg": 20,
+      "case": true
+    }
+  ],
+  "parts": [
+    {
+      "case": "C1",
+      "child": "I1",
+      "quantity": 2
+    }
+  ],
+  "loads": [
+    {
+      "trip": "t1",
+      "item": "I1",
+      "quantity": 3
+    },
+    {
+      "trip": "t1",
+      "item": "C1",
+      "quantity": 2
+    },
+    {
+      "trip": "t1",
+      "item": "I2",
+      "quantity": 5
+    },
+    {
+      "trip": "t6",
+      "item": "I1",
+      "quantity": 1
+    },
+    {
+      "trip": "t3",
+      "item": "I2",
+      "quantity": 0
+    }
   ],
   "expect_gigs": {
-    "T1": { "transport": 324, "transport_km": 240, "transport_trips": 3, "transport_km_missing": 1, "other_costs": 50, "cost": 374, "margin": -374 },
-    "T2": { "transport": 108, "transport_km": 200, "transport_trips": 4, "transport_km_missing": 0, "other_costs": 0, "cost": 108, "margin": -108 }
+    "T1": {
+      "transport": 324,
+      "transport_km": 240,
+      "transport_trips": 3,
+      "transport_km_missing": 1,
+      "other_costs": 50,
+      "cost": 374,
+      "margin": -374
+    },
+    "T2": {
+      "transport": 108,
+      "transport_km": 200,
+      "transport_trips": 4,
+      "transport_km_missing": 0,
+      "other_costs": 0,
+      "cost": 108,
+      "margin": -108
+    }
   },
   "expect_gig_vehicles": {
-    "T1": { "V1": { "trips": 2, "km": 240, "days": 3, "running": 204 }, "V2": { "trips": 1, "km": 0, "km_missing": 1, "days": 1, "running": 120 } },
-    "T2": { "V1": { "trips": 2, "km": 160, "days": 1, "running": 96 }, "V3": { "trips": 1, "km": 10, "days": 1, "running": 12 }, "V4": { "trips": 1, "km": 30, "days": 1, "running": 0 } }
+    "T1": {
+      "V1": {
+        "trips": 2,
+        "km": 240,
+        "days": 3,
+        "running": 204
+      },
+      "V2": {
+        "trips": 1,
+        "km": 0,
+        "km_missing": 1,
+        "days": 1,
+        "running": 120
+      }
+    },
+    "T2": {
+      "V1": {
+        "trips": 2,
+        "km": 160,
+        "days": 1,
+        "running": 96
+      },
+      "V3": {
+        "trips": 1,
+        "km": 10,
+        "days": 1,
+        "running": 12
+      },
+      "V4": {
+        "trips": 1,
+        "km": 30,
+        "days": 1,
+        "running": 0
+      }
+    }
   },
   "periods": [
     {
-      "from": "2027-03-01", "until": "2027-04-01",
-      "vehicles": ["V1", "V2", "V4"],
+      "from": "2027-03-01",
+      "until": "2027-04-01",
+      "vehicles": [
+        "V1",
+        "V2",
+        "V4"
+      ],
       "expect": {
-        "V1": { "trips": 4, "gigs": 2, "km": 400, "km_missing": 0, "days": 4, "running": 300, "expenses": 62.5, "total": 362.5 },
-        "V2": { "trips": 1, "gigs": 1, "km": 0, "km_missing": 1, "days": 1, "running": 120, "expenses": 0, "total": 120, "other_currencies": { "USD": 20 } },
-        "V4": { "trips": 1, "gigs": 1, "km": 30, "km_missing": 0, "days": 1, "running": 0, "expenses": 0, "total": 0 }
+        "V1": {
+          "trips": 4,
+          "gigs": 2,
+          "km": 400,
+          "km_missing": 0,
+          "days": 4,
+          "running": 300,
+          "expenses": 62.5,
+          "total": 362.5,
+          "load_kg": 740
+        },
+        "V2": {
+          "trips": 1,
+          "gigs": 1,
+          "km": 0,
+          "km_missing": 1,
+          "days": 1,
+          "running": 120,
+          "expenses": 0,
+          "total": 120,
+          "other_currencies": {
+            "USD": 20
+          },
+          "load_kg": null
+        },
+        "V4": {
+          "trips": 1,
+          "gigs": 1,
+          "km": 30,
+          "km_missing": 0,
+          "days": 1,
+          "running": 0,
+          "expenses": 0,
+          "total": 0,
+          "load_kg": null
+        }
       }
     },
     {
-      "from": "2027-03-12", "until": "2027-03-13",
-      "vehicles": ["V1", "V2", "V4"],
+      "from": "2027-03-12",
+      "until": "2027-03-13",
+      "vehicles": [
+        "V1",
+        "V2",
+        "V4"
+      ],
       "expect": {
-        "V1": { "trips": 1, "gigs": 1, "km": 120, "days": 1, "running": 82, "expenses": 0, "total": 82 },
-        "V2": { "trips": 0, "km": 0, "days": 0, "running": 0, "total": 0 }
+        "V1": {
+          "trips": 1,
+          "gigs": 1,
+          "km": 120,
+          "days": 1,
+          "running": 82,
+          "expenses": 0,
+          "total": 82,
+          "load_kg": null
+        },
+        "V2": {
+          "trips": 0,
+          "km": 0,
+          "days": 0,
+          "running": 0,
+          "total": 0
+        }
       }
     },
     {
-      "from": "2027-02-01", "until": "2027-03-01",
-      "vehicles": ["V1", "V2", "V3", "V4"],
+      "from": "2027-02-01",
+      "until": "2027-03-01",
+      "vehicles": [
+        "V1",
+        "V2",
+        "V3",
+        "V4"
+      ],
       "expect": {
-        "V3": { "trips": 1, "gigs": 1, "km": 10, "days": 1, "running": 12, "total": 12 }
+        "V3": {
+          "trips": 1,
+          "gigs": 1,
+          "km": 10,
+          "days": 1,
+          "running": 12,
+          "total": 12
+        }
       }
     }
   ]
@@ -144,6 +483,22 @@ begin
     if (e ->> 'removed')::boolean then update expenses set removed_at = now() where id = new_id; end if;
   end loop;
   -- A trip fills in its gig
+  -- Loads on trips (V3's vehicle_loads): items with weights, a case with its contents
+  for e in select * from jsonb_array_elements(fx -> 'items') loop
+    insert into price_items (org_id, name, kind, tracking, weight_kg, kit_type)
+    values (org_a, e ->> 'name', 'rental', 'bulk', (e ->> 'weight_kg')::numeric, case when (e ->> 'case')::boolean then 'case' end)
+    returning id into new_id;
+    ids := ids || jsonb_build_object('item:' || (e ->> 'key'), new_id);
+  end loop;
+  for e in select * from jsonb_array_elements(fx -> 'parts') loop
+    insert into item_parts (org_id, parent_id, child_id, kind, quantity)
+    values (org_a, (ids ->> ('item:' || (e ->> 'case')))::uuid, (ids ->> ('item:' || (e ->> 'child')))::uuid, 'content', (e ->> 'quantity')::int);
+  end loop;
+  for e in select * from jsonb_array_elements(fx -> 'loads') loop
+    insert into vehicle_loads (gig_id, org_id, trip_id, item_id, quantity)
+    select t.gig_id, t.org_id, t.id, (ids ->> ('item:' || (e ->> 'item')))::uuid, (e ->> 'quantity')::int
+      from trips t where t.id = (ids ->> (e ->> 'trip'))::uuid;
+  end loop;
   select count(*) into n from expenses where org_id = org_a and description = 'fuel1' and gig_id = (ids ->> 'T1')::uuid
      and vehicle_id = (ids ->> 'V1')::uuid;
   if n <> 1 then raise exception 'CHECK FAILED: an expense linked to a trip did not get its gig'; end if;
