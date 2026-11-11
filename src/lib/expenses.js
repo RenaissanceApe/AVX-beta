@@ -181,6 +181,8 @@ export function expenseFromForm(f) {
       category_id: f.category_id || null, invoice_number: f.invoice_number?.trim() || null, due_on: f.due_on || null,
       paid_on: f.paid_on || null, paid_how: f.paid_on ? (f.paid_how || null) : null, notes: f.notes?.trim() || null,
       gig_id: f.gig_id || null, ...linkColumns(f.link_kind, f.link_id),
+      // A vehicle (step 23, V4), and optionally one of its trips: never with another linked record
+      vehicle_id: f.link_kind ? null : (f.vehicle_id || null), trip_id: f.link_kind || !f.vehicle_id ? null : (f.trip_id || null),
     },
   }
 }

@@ -70,6 +70,7 @@ export function navSections({ workspace, role }) {
       { key: 'reportsSales', icon: 'handshake', to: `${base}/reports?tab=sales` },
       { key: 'reportsEquipment', icon: 'package', to: `${base}/reports?tab=equipment` },
       { key: 'reportsWarehouse', icon: 'wrench', to: `${base}/reports?tab=warehouse` },
+      { key: 'reportsVehicles', icon: 'mapPin', to: `${base}/reports?tab=vehicles` },
       { key: 'reportsOperations', icon: 'users', to: `${base}/reports?tab=operations` },
     ] })
   }

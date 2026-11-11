@@ -44,6 +44,10 @@ export const PARTS = [
   { part: 'invoice_lines', columns: ['avx_number', 'legal_number', 'line', 'kind', 'description', 'qty', 'unit_price', 'discount_pct', 'vat_rate', 'vat_exemption', 'net', 'currency'] },
   { part: 'invoicing_connection', columns: ['program', 'account', 'company', 'series', 'connected_at'] },
   { part: 'invoice_payments', columns: ['avx_number', 'legal_number', 'paid_on', 'amount', 'currency', 'method', 'note', 'created_at', 'removed_at'] },
+  // Step 23 (V4): vehicles, trips and the expenses linked to a vehicle
+  { part: 'vehicles', columns: ['name', 'plate', 'licence_category', 'max_load_kg', 'volume_m3', 'cost_per_km', 'cost_per_day', 'notes', 'created_at', 'removed_at'] },
+  { part: 'trips', columns: ['gig_ref', 'gig', 'direction', 'vehicle', 'plate', 'driver', 'co_driver', 'passengers', 'departs_at', 'arrives_at', 'from_place', 'to_place', 'km', 'note', 'licence_override', 'created_at'] },
+  { part: 'vehicle_expenses', columns: ['spent_on', 'vehicle', 'plate', 'gig_ref', 'gig', 'trip_departs_at', 'trip_direction', 'description', 'category', 'amount_net', 'vat_amount', 'total', 'currency', 'status'] },
 ]
 
 export const PAGE_SIZE = 5000
