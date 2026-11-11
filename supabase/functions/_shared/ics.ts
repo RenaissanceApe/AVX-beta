@@ -45,9 +45,21 @@ export type FeedAppointment = {
   org?: string | null
 }
 
+// The person's own driving on a gig (step 23, V1's trips), from their reservations
+export type FeedTrip = {
+  id: string // the reservation's id
+  role: 'driver' | 'codriver'
+  starts_at: string
+  ends_at: string
+  gig_id?: string | null
+  gig?: string | null
+  label?: string | null // what V1 wrote on the reservation (e.g. the vehicle or the leg)
+  status?: string | null // hold | confirmed
+}
+
 const WORDS: Record<FeedLang, Record<string, string>> = {
-  en: { holiday: 'Holiday', sick: 'Sick', training: 'Training', other: 'Unavailable', morning: 'morning', afternoon: 'afternoon', calendar: 'AVX gigs', call: 'Call time', role: 'Role', open: 'Open in AVX', draft: 'Draft (not confirmed yet)', pm: 'Production manager', crew: 'Crew', viewer: 'Viewer', hours: 'Your hours', approved: 'approved', waiting: 'waiting for approval', returned: 'sent back', site_visit: 'Site visit', meeting: 'Meeting', warehouse: 'Warehouse day', appointment: 'Appointment' },
-  pt: { holiday: 'Férias', sick: 'Baixa', training: 'Formação', other: 'Indisponível', morning: 'manhã', afternoon: 'tarde', calendar: 'Eventos AVX', call: 'Hora de chamada', role: 'Papel', open: 'Abrir no AVX', draft: 'Rascunho (ainda não confirmado)', pm: 'Diretor de produção', crew: 'Equipa', viewer: 'Leitor', hours: 'As suas horas', approved: 'aprovadas', waiting: 'a aguardar aprovação', returned: 'devolvidas', site_visit: 'Visita ao local', meeting: 'Reunião', warehouse: 'Dia de armazém', appointment: 'Compromisso' },
+  en: { holiday: 'Holiday', sick: 'Sick', training: 'Training', other: 'Unavailable', morning: 'morning', afternoon: 'afternoon', calendar: 'AVX gigs', call: 'Call time', role: 'Role', open: 'Open in AVX', draft: 'Draft (not confirmed yet)', pm: 'Production manager', crew: 'Crew', viewer: 'Viewer', hours: 'Your hours', approved: 'approved', waiting: 'waiting for approval', returned: 'sent back', site_visit: 'Site visit', meeting: 'Meeting', warehouse: 'Warehouse day', appointment: 'Appointment', driver: 'Driving', codriver: 'Co-driving' },
+  pt: { holiday: 'Férias', sick: 'Baixa', training: 'Formação', other: 'Indisponível', morning: 'manhã', afternoon: 'tarde', calendar: 'Eventos AVX', call: 'Hora de chamada', role: 'Papel', open: 'Abrir no AVX', draft: 'Rascunho (ainda não confirmado)', pm: 'Diretor de produção', crew: 'Equipa', viewer: 'Leitor', hours: 'As suas horas', approved: 'aprovadas', waiting: 'a aguardar aprovação', returned: 'devolvidas', site_visit: 'Visita ao local', meeting: 'Reunião', warehouse: 'Dia de armazém', appointment: 'Compromisso', driver: 'A conduzir', codriver: 'Segundo condutor' },
 }
 
 // Text values: backslash, semicolon, comma and line breaks escaped (RFC 5545 3.3.11)
@@ -146,7 +158,19 @@ export function appointmentEvent(a: FeedAppointment, lang: FeedLang, appUrl: str
   return lines
 }
 
-export function buildCalendar(gigs: FeedGig[], lang: FeedLang, appUrl: string, now = new Date(), leave: FeedLeave[] = [], zone = feedZone(gigs), appointments: FeedAppointment[] = []) {
+// One VEVENT per trip the person drives (or co-drives)
+export function tripEvent(tr: FeedTrip, lang: FeedLang, appUrl: string, now: Date) {
+  const w = WORDS[lang] || WORDS.en
+  if (!tr.starts_at || !tr.ends_at) return []
+  const title = [w[tr.role] || w.driver, tr.gig, tr.label].filter(Boolean).join(' · ')
+  const lines = ['BEGIN:VEVENT', `UID:trip-${tr.id}@avx`, `DTSTAMP:${utcValue(now.toISOString())}`,
+    `DTSTART:${utcValue(tr.starts_at)}`, `DTEND:${utcValue(tr.ends_at)}`, `SUMMARY:${escapeText(title)}`]
+  if (tr.gig_id) lines.push(`DESCRIPTION:${escapeText(`${w.open}: ${appUrl}/gig/${tr.gig_id}`)}`, `URL:${appUrl}/gig/${tr.gig_id}`)
+  lines.push(`STATUS:${tr.status === 'hold' ? 'TENTATIVE' : 'CONFIRMED'}`, 'END:VEVENT')
+  return lines
+}
+
+export function buildCalendar(gigs: FeedGig[], lang: FeedLang, appUrl: string, now = new Date(), leave: FeedLeave[] = [], zone = feedZone(gigs), appointments: FeedAppointment[] = [], trips: FeedTrip[] = []) {
   const w = WORDS[lang] || WORDS.en
   const lines = [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//AVX//Gigs//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
@@ -158,6 +182,7 @@ export function buildCalendar(gigs: FeedGig[], lang: FeedLang, appUrl: string, n
   }
   for (const l of leave) lines.push(...leaveEvent(l, lang, now))
   for (const a of appointments) lines.push(...appointmentEvent(a, lang, appUrl, now))
+  for (const tr of trips) lines.push(...tripEvent(tr, lang, appUrl, now))
   lines.push('END:VCALENDAR')
   return lines.map(fold).join('\r\n') + '\r\n'
 }

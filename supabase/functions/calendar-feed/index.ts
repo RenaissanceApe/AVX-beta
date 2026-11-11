@@ -3,11 +3,11 @@
 // random key in the link (calendar_feeds, made by calendar_feed() in the app) is the only key. It
 // shows the gigs the person is on, from 60 days ago onwards: names, dates, venues, role and call
 // time, their own approved leave and unavailable dates (step 9), and the appointments they're
-// invited to (step 23, V2). JWT verification is off for this function.
+// invited to and the trips they drive (step 23). JWT verification is off for this function.
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { fetchWithTimeout, isTimeout } from '../_shared/timeout.ts'
-import { buildCalendar, feedZone, type FeedAppointment, type FeedGig, type FeedLang, type FeedLeave } from '../_shared/ics.ts'
+import { buildCalendar, feedZone, type FeedAppointment, type FeedGig, type FeedLang, type FeedLeave, type FeedTrip } from '../_shared/ics.ts'
 
 const APP_URL = Deno.env.get('APP_URL') ?? 'https://avx-beta.vercel.app'
 
@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
   if (!feed) return text('Not found', 404)
 
   const since = new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10)
-  const [{ data: rows, error }, { data: profile }, { data: hours }, { data: away }, { data: invited }] = await Promise.all([
+  const [{ data: rows, error }, { data: profile }, { data: hours }, { data: away }, { data: invited }, { data: driving }] = await Promise.all([
     admin.from('gig_members')
       .select('role, function_title, call_time, booked_from, booked_until, gigs!inner(id, name, venue, start_date, end_date, status, organisations(name, time_zone))')
       .eq('user_id', feed.user_id)
@@ -45,6 +45,11 @@ Deno.serve(async (req) => {
     admin.from('appointment_people')
       .select('appointments!inner(id, kind, title, place, all_day, starts_at, ends_at, start_date, end_date, notes, removed_at, organisations(name))')
       .eq('user_id', feed.user_id).is('removed_at', null).is('appointments.removed_at', null).limit(1000),
+    // Trips they drive or co-drive (step 23, V1), read from their own reservations so the feed
+    // doesn't depend on the trip tables; the gig's name only (they're on the trip, so on the gig)
+    admin.from('reservations').select('id, source_type, period, status, label, gig_id, gigs(name)')
+      .eq('resource_type', 'person').eq('resource_id', feed.user_id).in('source_type', ['trip_driver', 'trip_codriver'])
+      .neq('status', 'cancelled').limit(1000),
   ])
   if (error) {
     console.error(JSON.stringify({ fn: 'calendar-feed', step: 'gigs', timeout: isTimeout(error) }))
@@ -75,7 +80,20 @@ Deno.serve(async (req) => {
       id: a.id, kind: a.kind, title: a.title, place: a.place, all_day: a.all_day, starts_at: a.starts_at, ends_at: a.ends_at,
       start_date: a.start_date, end_date: a.end_date, notes: a.notes, org: a.organisations?.name ?? null,
     }))
-  return new Response(req.method === 'HEAD' ? null : buildCalendar(gigs, lang, APP_URL, new Date(), leave, feedZone(gigs), appointments), {
+  // The gig's name and link only for gigs the person is on, as for their other gigs in the feed
+  const onGig = (id: string | null) => !!id && gigs.some(g => g.id === id)
+  const trips: FeedTrip[] = []
+  for (const r of driving ?? []) {
+    // A range as PostgREST returns it: ["2027-01-10 08:00:00+00","2027-01-10 12:00:00+00")
+    const m = /^[[(]"?([^",]+)"?,"?([^",]+)"?[\])]$/.exec(r.period ?? '')
+    if (!m) continue
+    const iso = (x: string) => new Date(x.trim().replace(' ', 'T').replace(/([+-]\d\d)$/, '$1:00')).toISOString()
+    if (iso(m[2]) < `${since}T00:00:00Z`) continue
+    trips.push({ id: r.id, role: r.source_type === 'trip_codriver' ? 'codriver' : 'driver', starts_at: iso(m[1]), ends_at: iso(m[2]),
+      // deno-lint-ignore no-explicit-any
+      gig_id: onGig(r.gig_id) ? r.gig_id : null, gig: onGig(r.gig_id) ? (r as any).gigs?.name ?? null : null, label: r.label, status: r.status })
+  }
+  return new Response(req.method === 'HEAD' ? null : buildCalendar(gigs, lang, APP_URL, new Date(), leave, feedZone(gigs), appointments, trips), {
     status: 200,
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',

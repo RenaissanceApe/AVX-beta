@@ -282,24 +282,30 @@ revoke execute on function private.organisations_appointments_time_zone() from p
 -- ── The clash check names appointments ───────────────────────────────────────
 -- Same as in 20261024000000_reservations_people.sql, plus: an appointment row says
 -- kind 'appointment' and gives its title (label) to people who may see that appointment.
+-- Every other row (gig crew, leave, equipment, V1's trips) comes back exactly as before.
 create or replace function private.clashes(p_type text, p_resource uuid, p_period tstzrange, p_exclude_gig uuid default null)
 returns table(reservation_id uuid, kind text, status text, starts_at timestamptz, ends_at timestamptz,
               gig_id uuid, label text, company text, role_label text)
 language sql stable security definer set search_path = '' as $$
   select r.id,
          case when r.source_type = 'unavailable' then 'unavailable'
-              when r.source_type = 'appointment' and private.can_see_appointment(split_part(r.source_id, ':', 1)::uuid) then 'appointment'
+              when ap.visible then 'appointment'
               else 'booked' end,
          r.status, lower(r.period), upper(r.period),
          case when r.gig_id is not null and private.can_access_gig(r.gig_id) then r.gig_id end,
          case when r.gig_id is not null and private.can_access_gig(r.gig_id) then g.name
-              when r.source_type = 'appointment' and private.can_see_appointment(split_part(r.source_id, ':', 1)::uuid) then r.label end,
+              when ap.visible then r.label end,
          case when r.gig_id is not null and private.can_access_gig(r.gig_id) then o.name
-              when r.source_type = 'appointment' and private.can_see_appointment(split_part(r.source_id, ':', 1)::uuid) then o.name end,
+              when ap.visible then o.name end,
          case when r.gig_id is not null and private.can_access_gig(r.gig_id) then r.label end
   from public.reservations r
   left join public.gigs g on g.id = r.gig_id
   left join public.organisations o on o.id = r.org_id
+  -- Only appointment rows carry an appointment id in source_id; the nested case keeps the cast
+  -- away from every other kind of row (gig crew, leave, equipment, trips)
+  cross join lateral (select case when r.source_type = 'appointment'
+                                  then private.can_see_appointment(split_part(r.source_id, ':', 1)::uuid)
+                                  else false end as visible) ap
   where r.resource_type = p_type and r.resource_id = p_resource and r.status <> 'cancelled'
     and r.period && p_period
     and (p_exclude_gig is null or r.gig_id is distinct from p_exclude_gig)
