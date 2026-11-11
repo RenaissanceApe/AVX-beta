@@ -19,6 +19,7 @@ import { PageHelp } from '../components/help/HelpParts'
 import { QuoteStatusBadge } from '../components/quotes/parts'
 import { SupplierModal } from '../components/inventory/SubrentalPanels'
 import ClientNumbers from '../components/reports/ClientNumbers'
+import { LinkedAppointments } from '../components/appointments/AppointmentParts'
 import { updateIfUnchanged, notifyConflict } from '../lib/staleSave'
 
 const TABS = ['clients', 'suppliers']
@@ -204,6 +205,7 @@ export function ClientModal({ orgId, client, onClose, onSaved }) {
   const [prefix, setPrefix] = useState('Q')
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }))
   const { fields } = useCustomFields(orgId, 'client')
+  const { orgs } = useWorkspace()
   const [custom, setCustom] = useState({})
 
   useEffect(() => {
@@ -274,6 +276,8 @@ export function ClientModal({ orgId, client, onClose, onSaved }) {
             )}
         </section>
       )}
+      {/* Step 23 (V2): appointments with this client */}
+      {client && <LinkedAppointments orgId={orgId} clientId={client.id} timeZone={orgs.find(o => o.id === orgId)?.time_zone} canPlan plain />}
     </Modal>
   )
 }

@@ -14,6 +14,7 @@ import ScheduleTab from '../components/gig/ScheduleTab'
 import AssetsTab from '../components/gig/AssetsTab'
 import CrewTab from '../components/gig/CrewTab'
 import GigFinancePanel from '../components/gig/GigFinancePanel'
+import { LinkedAppointments } from '../components/appointments/AppointmentParts'
 import GigWrapupLink from '../components/gig/GigWrapupLink'
 import EquipmentTab from '../components/gig/EquipmentTab'
 import TransportTab from '../components/gig/TransportTab'
@@ -257,6 +258,10 @@ export default function GigPage() {
               canUpload={canUpload} isPM={isPM} nameOf={nameOf} setTab={setTab} onOpenAsset={setVersionsAsset}
               openUpload={() => { setTab('assets'); setShowUpload(true) }}
               openInvite={() => { setTab('crew'); setShowInvite(true) }} />
+            {gig.org_id && (
+              <LinkedAppointments orgId={gig.org_id} gigId={gig.id} timeZone={orgs.find(o => o.id === gig.org_id)?.time_zone}
+                canPlan={orgRole === 'admin' || orgRole === 'member'} />
+            )}
             {!simple && gig.org_id && (orgRole === 'admin' || orgRole === 'member') && (
               <GigFinancePanel gig={gig} members={members} canManage={isPM} />
             )}

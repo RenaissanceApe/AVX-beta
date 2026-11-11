@@ -463,6 +463,25 @@ const SCENES = {
     await dialog.getByLabel(L('availability.to'), { exact: true }).fill(dayFromNow(44))
     return dialog.getByRole('button', { name: L('leave.send') })
   } },
+  'appointment-new': { persona: 'pm', url: `/org/${ids.org}/appointments`, async run(page, L) {
+    await page.getByRole('button', { name: L('appointments.new') }).first().click()
+    const dialog = page.getByRole('dialog')
+    await dialog.locator('#appt-kind').selectOption('site_visit')
+    await dialog.getByLabel(L('appointments.titleLabel'), { exact: true }).fill(L('appointments.titlePlaceholder').replace(/^(e\.g\.|p\. ex\.) /, ''))
+    await dialog.getByLabel(L('appointments.place'), { exact: true }).fill('Coliseu do Porto')
+    await dialog.getByLabel(L('appointments.day'), { exact: true }).fill(dayFromNow(6))
+    return dialog.locator('form')
+  } },
+  'appointment-invite': { persona: 'pm', url: `/org/${ids.org}/appointments`, async run(page, L) {
+    await page.getByRole('button', { name: L('appointments.new') }).first().click()
+    const dialog = page.getByRole('dialog')
+    await dialog.getByLabel(L('appointments.titleLabel'), { exact: true }).fill('Coliseu')
+    await dialog.getByLabel(L('appointments.day'), { exact: true }).fill(dayFromNow(6))
+    await dialog.getByLabel('Ana Costa').check()
+    await dialog.getByLabel('Duarte Silva').check()
+    await dialog.getByText(L('appointments.clashes')).waitFor()
+    return dialog.locator('fieldset')
+  } },
   'leave-requests': { persona: 'pm', url: `/org/${ids.org}/leave`, async run(page, L) {
     const box = page.locator('section[aria-labelledby="leave-requests"]')
     await box.waitFor()

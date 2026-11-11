@@ -39,6 +39,7 @@ export default {
     'capital-expense': { term: 'Investimento', definition: 'Equipamento, viaturas ou computadores que a empresa mantém durante anos. São repartidos por vários meses nos resultados, não contam como custo do mês em que foram comprados.', example: 'Uma mesa de 1890 € repartida por 60 meses: 31,50 € por mês.', where: 'Organização → Despesas → Categorias' },
     leave: { term: 'Ausência', definition: 'Dias de ausência dos funcionários de uma organização (administradores e membros): férias, baixa, formação ou outro. Férias, formação e outro aguardam a aprovação de um administrador; a baixa conta logo. Uma ausência aprovada deixa-o ocupado para eventos, Procurar equipa e horas.', example: 'Férias de segunda 1 a sexta 5 de março: 5 dias úteis.', where: 'Organização → Ausências' },
     'holiday-balance': { term: 'Saldo de férias', definition: 'Os dias de férias que um funcionário ainda tem num ano: o direito mais os dias transitados, menos as férias aprovadas. Os pedidos a aguardar aparecem à parte.', example: '22 de direito + 2 transitados − 9 gozados = faltam 15.', where: 'Organização → Ausências' },
+    appointment: { term: 'Compromisso', definition: 'Algo no calendário que não é um evento: uma visita ao local, uma reunião, um dia de armazém ou outra coisa. Tem uma hora (ou dias inteiros), um local e as pessoas convidadas, e pode ficar ligado a um evento ou a um cliente. As pessoas convidadas ficam ocupadas nesse período, por isso aparece nos avisos de sobreposição.', example: 'Visita ao Coliseu, terça das 10:00 às 11:30, com o desenhador de luz e o rigger.', where: 'Organização → Compromissos, O meu trabalho → Compromissos' },
     'working-week': { term: 'Semana de trabalho', definition: 'Os dias da semana em que um funcionário trabalha normalmente e as suas horas por dia. As ausências só contam dias úteis, e os relatórios usam-na para contar quanto do tempo da pessoa foi ocupado.', example: 'Segunda a quinta, 9 h por dia: uma semana de férias são 4 dias.', where: 'Organização → Ausências → Editar' },
     'hours-split': { term: 'Divisão de horas', definition: 'Como um dia registado se divide em horas normais, extra, noturnas, de fim de semana e de feriado. Cada hora conta uma vez, com o seu fator mais alto. Fica guardada como estava quando o dia foi aprovado.', example: 'Sex 14:00–02:00 com 1 h de pausa: 7 h normais, 3 h noturnas, 1 h extra.', where: 'Evento → Equipa → Horas, As minhas horas, Horas da organização' },
     'fee-paid': { term: 'Cachê pago', definition: 'Um cachê que alguém da empresa marcou como pago, com a data. O AVX regista-o como uma despesa ligada ao cachê, para contar uma só vez. Vê apenas "pago a" nos seus próprios cachês, nunca as contas da empresa, e pode marcá-lo como recebido.', example: 'Pago a 7 nov · recebido.', where: 'Evento → Equipa (o seu cachê), Os meus números, painel de custo de mão de obra, Despesas → Equipa a pagar' },
@@ -184,6 +185,8 @@ export default {
     'expense-kind': 'Os custos dos trabalhos pertencem aos eventos; o funcionamento da empresa são custos gerais; equipamento e viaturas repartem-se por meses; impostos e outros ficam à parte.',
     'leave-type': 'As férias contam para os seus dias de férias. A baixa conta logo e os administradores são avisados; férias, formação e outro aguardam um administrador.',
     'leave-half': 'Tire só a tarde do primeiro dia ou a manhã do último. Meio dia conta 0,5 e pode registar horas nele.',
+    'appointment-kind': 'Visita ao local, reunião, dia de armazém ou outro. Só muda a etiqueta e a cor no calendário.',
+    'appointment-invite': 'Membros da organização e quem já esteve na equipa dos seus eventos. Recebem uma notificação, o compromisso entra no calendário deles e ficam ocupados nesse período.',
     'leave-allowance': 'Dias de férias por ano. O número da organização aplica-se a todos, a não ser que a pessoa tenha um próprio (deixe vazio para usar o da organização).',
     'leave-carried': 'Dias do ano passado somados ao direito deste ano. Decide quantos: nada transita sozinho.',
     'leave-hours': 'Um dia normal de trabalho desta pessoa. Os relatórios usam-no com os dias de trabalho para contar quanto do seu tempo foi ocupado.',
@@ -318,6 +321,7 @@ export default {
     'gig-wrapup': { title: 'Balanço do evento', summary: 'Uma página para imprimir depois de um evento terminar, para quem o gere e para os administradores e membros da organização: horas previstas e aprovadas (cada pessoa para quem gere e para administradores), o dinheiro para quem o vê, danos, perdas e o que ainda não voltou, tarefas abertas e notas para a próxima vez. Imprima-a ou guarde-a em PDF.' },
     'org-person': { title: 'Pessoa', summary: 'Os dias, horas e custo de uma pessoa com a organização num período, só para administradores: os eventos em que esteve, horas previstas e aprovadas, horas extra, o custo pela regra da mão de obra e, para o quadro, a ocupação e as férias por gozar.' },
     'org-leave': { title: 'Ausências', summary: 'Quem na organização está ausente em cada dia, os seus dias de férias e os seus pedidos. Os administradores também decidem pedidos, registam ausências de alguém e definem os dias de férias e as semanas de trabalho. Uma ausência aprovada deixa a pessoa ocupada para eventos e horas.' },
+    appointments: { title: 'Compromissos', summary: 'Visitas ao local, reuniões e dias de armazém, com as pessoas convidadas. Administradores e membros adicionam-nos e alteram-nos; as pessoas convidadas veem os seus, são avisadas e ficam ocupadas nesse período.' },
     'my-hours': { title: 'As minhas horas', summary: 'As horas que registou em todos os eventos, em qualquer empresa, mês a mês: o que aguarda, foi devolvido ou aprovado, e o que os dias aprovados pagam. Descarregue-as em CSV.' },
     'my-numbers': { title: 'Os meus números', summary: 'O seu trabalho no AVX num ano, em todas as empresas: eventos, dias e horas (aprovadas e à espera), horas extra, o que ganhou e o que está marcado, o que falta receber, viagens, os meses mais ocupados e funções, ofertas de trabalho e chamadas. Só as suas linhas; de cada empresa vê-se apenas o nome.' },
     'my-statement': { title: 'Resumo anual', summary: 'Por empresa e ano: uma linha por mês com os totais e depois cada evento. Descarregue em CSV ou imprima para a sua declaração de impostos. Uma ajuda: confirme com os seus registos.' },
@@ -549,6 +553,20 @@ export default {
       mistakes: [
         'Nada transita sozinho: escreva os dias transitados de cada pessoa no início do ano.',
         'Os outros membros veem um dia de baixa só como "ausente", sem notas.',
+      ],
+    },
+    'pm-site-visit': {
+      title: 'Marcar uma visita ao local',
+      intro: 'Marque uma visita ao recinto (ou uma reunião, ou um dia no armazém) com as pessoas que têm de estar presentes, para que todos a tenham no calendário e ninguém as marque noutro lado.',
+      steps: [
+        'Abra Compromissos no menu da organização, ou a Visão geral do evento, e toque em "Novo compromisso". Escolha Visita ao local, dê-lhe um título e o local, e escolha o dia e as horas (as da organização) ou Dia inteiro.',
+        'Marque as pessoas a convidar: os membros da organização e a equipa dos seus eventos. Se alguém já estiver marcado nesse período, o formulário diz logo, com o que é quando o pode ver.',
+        'Ligue-o ao evento ou ao cliente se pertencer a um, acrescente notas e guarde. As pessoas convidadas recebem uma notificação (e push ou email, conforme o que definiram), e veem-no em O meu trabalho → Compromissos, no calendário e no seu calendário subscrito.',
+        'Para mudar a hora ou o local, abra-o e guarde: todos são avisados. "Cancelar compromisso" também os avisa e liberta o seu tempo; fica no histórico.',
+      ],
+      mistakes: [
+        'Quem não está na organização nem num dos seus eventos não pode ser convidado: adicione-o primeiro à equipa de um evento.',
+        'Um compromisso só ocupa as pessoas nas suas horas: uma visita de duas horas não bloqueia o resto do dia.',
       ],
     },
     'crew-numbers': {

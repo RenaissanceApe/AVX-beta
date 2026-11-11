@@ -52,6 +52,13 @@ export function describeNotification(n, nameOf) {
     case 'booking_changed':   return d.booked_from && d.booked_until
       ? t('notif.bookingChanged', { actor, gig, range: rangeText(d.booked_from, d.booked_until) })
       : t('notif.bookingCleared', { actor, gig })
+    case 'appointment_invited':
+    case 'appointment_changed':
+    case 'appointment_cancelled': {
+      const when = d.all_day ? (d.start_date ? dayRange(d.start_date, d.end_date, fmt) : '—') : (d.starts_at && d.ends_at ? rangeText(d.starts_at, d.ends_at) : '—')
+      const key = d.why === 'taken_off' ? 'notif.appointmentTakenOff' : `notif.${n.kind.replace(/_(\w)/g, (_, c) => c.toUpperCase())}`
+      return t(key, { actor, title: d.title || '', when })
+    }
     case 'hours_submitted':   return t('notif.hoursSubmitted', { actor, gig })
     case 'hours_approved':    return t('notif.hoursApproved', { actor, gig, date: d.work_date ? fmt(d.work_date, 'd MMM') : '' })
     case 'hours_returned':    return t('notif.hoursReturned', { actor, gig, date: d.work_date ? fmt(d.work_date, 'd MMM') : '' }) + (d.note ? `: “${d.note}”` : '')
@@ -93,6 +100,7 @@ export function notificationLink(n) {
   if (n.kind === 'expense_drafted' && n.org_id) return `/org/${n.org_id}/expenses`
   if (n.kind === 'invoice_overdue' && n.org_id) return `/org/${n.org_id}/invoices?view=unpaid`
   if (n.kind === 'held_invites_waiting' && n.org_id) return `/org/${n.org_id}?panel=members`
+  if (n.kind.startsWith('appointment_')) return n.details?.appointment_id && n.kind !== 'appointment_cancelled' ? `/me/appointments?a=${n.details.appointment_id}` : '/me/appointments'
   if (n.kind === 'task_assigned') return n.gig_id ? `/gig/${n.gig_id}?tab=tasks` : '/tasks'
   if (n.details?.quote_id) return `/quote/${n.details.quote_id}`
   if ((n.kind === 'damage_reported' || n.kind === 'inspection_due') && n.org_id) return `/org/${n.org_id}/inventory?tab=maintenance`

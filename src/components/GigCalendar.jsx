@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, AlertTriangle, CalendarClock } from 'lucide-react'
 import { monthMatrix, gigsOnDay, toDateStr } from '../lib/calendar'
 import { colors, iconBtn, btn } from './ui'
 import { useI18n, fmt } from '../i18n'
@@ -11,13 +11,19 @@ const weekdays = () => Array.from({ length: 7 }, (_, i) => fmt(`2026-06-0${i + 1
 const AMBER = 'var(--warn)'
 
 // Month view of gigs. Multi-day gigs appear on every day they run. Gigs in clashIds
-// (double bookings in My work) get an amber outline and a warning sign.
-export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
-  const clashes = g => !!clashIds?.has(g.id)
+// (double bookings in My work) get an amber outline and a warning sign. Appointments (step 23,
+// V2: { id, name, kind, start_date, end_date } on the organisation's calendar) show with a clock
+// icon instead of the square; onOpen gets them with appt: true.
+const APPT_COLOUR = { site_visit: 'sky', meeting: 'purple', warehouse: 'orange', other: 'grey' }
+export default function GigCalendar({ gigs, onOpen, clashIds = null, appointments = [] }) {
+  const clashes = g => !g.appt && !!clashIds?.has(g.id)
   const { t } = useI18n()
   // An event is a panel block with a square in the gig's label colour; a draft (a hold) has a dashed edge
-  const square = g => labelVar(gigStatusLabel(g, t).colour)
-  const hold = g => (g.status || 'draft') === 'draft'
+  const square = g => labelVar(g.appt ? APPT_COLOUR[g.kind] : gigStatusLabel(g, t).colour)
+  const hold = g => !g.appt && (g.status || 'draft') === 'draft'
+  const items = [...gigs, ...appointments.map(a => ({ ...a, appt: true }))]
+  const itemKey = g => `${g.appt ? 'a' : 'g'}-${g.id}`
+  const mark = g => (g.appt ? <CalendarClock size={9} aria-hidden="true" style={{ flexShrink: 0, color: square(g) }} /> : <i aria-hidden="true" />)
   const today = toDateStr(new Date())
   const [selected, setSelected] = useState(null)
   const [cursor, setCursor] = useState(() => {
@@ -32,7 +38,7 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
   }) }
   const undated = gigs.filter(g => !g.start_date).length
 
-  const selectedGigs = selected ? gigsOnDay(gigs, selected) : []
+  const selectedGigs = selected ? gigsOnDay(items, selected) : []
 
   return (
     <div>
@@ -60,7 +66,7 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
           <div key={d} role="columnheader" style={{ fontSize: '11px', fontWeight: 700, color: colors.muted, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.12em', padding: '0 4px 4px' }}>{d}</div>
         ))}
         {weeks.flat().map(day => {
-          const dayGigs = gigsOnDay(gigs, day)
+          const dayGigs = gigsOnDay(items, day)
           const inMonth = day.startsWith(monthPrefix)
           return (
             <div key={day} role="gridcell" className="cal-cell" aria-selected={selected === day}
@@ -75,14 +81,14 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
               </div>
               <div className="cal-dots" aria-hidden>
                 {dayGigs.slice(0, 4).map(g => (
-                  <span key={g.id} style={{ width: '7px', height: '7px', background: hold(g) ? 'transparent' : square(g), border: `1px ${hold(g) ? 'dashed' : 'solid'} ${square(g)}`, outline: clashes(g) ? `2px solid ${AMBER}` : 'none', outlineOffset: '1px' }} />
+                  <span key={itemKey(g)} style={{ width: '7px', height: '7px', background: hold(g) ? 'transparent' : square(g), border: `1px ${hold(g) ? 'dashed' : 'solid'} ${square(g)}`, outline: clashes(g) ? `2px solid ${AMBER}` : 'none', outlineOffset: '1px' }} />
                 ))}
               </div>
               <div className="cal-chips" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {dayGigs.slice(0, 3).map(g => (
-                  <button key={g.id} onClick={e => { e.stopPropagation(); onOpen(g) }} title={clashes(g) ? `${g.name} · ${t('clash.doubleBooking')}` : g.name}
+                  <button key={itemKey(g)} onClick={e => { e.stopPropagation(); onOpen(g) }} title={clashes(g) ? `${g.name} · ${t('clash.doubleBooking')}` : g.appt ? `${g.name} · ${t(`appointments.kind.${g.kind || 'other'}`)}` : g.name}
                     className={`avx-ev${hold(g) ? ' is-hold' : ''}`} style={{ '--c': square(g), width: '100%', textAlign: 'left', cursor: 'pointer', borderColor: clashes(g) ? AMBER : undefined }}>
-                    {clashes(g) ? <AlertTriangle size={9} color={AMBER} aria-hidden="true" style={{ flexShrink: 0 }} /> : <i aria-hidden="true" />}
+                    {clashes(g) ? <AlertTriangle size={9} color={AMBER} aria-hidden="true" style={{ flexShrink: 0 }} /> : mark(g)}
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</span>
                   </button>
                 ))}
@@ -100,13 +106,14 @@ export default function GigCalendar({ gigs, onOpen, clashIds = null }) {
           {selectedGigs.length === 0 ? (
             <p style={{ fontSize: '13px', color: colors.muted }}>{t('calendar.noGigsDay')}</p>
           ) : selectedGigs.map(g => (
-            <button key={g.id} onClick={() => onOpen(g)} style={{
+            <button key={itemKey(g)} onClick={() => onOpen(g)} style={{
               display: 'flex', alignItems: 'center', gap: '8px', width: '100%', textAlign: 'left', cursor: 'pointer',
               padding: '10px 12px', marginBottom: '6px', color: 'var(--text)', fontSize: '14px', fontWeight: 600, minHeight: '44px',
               background: 'var(--panel)', border: `1px ${hold(g) ? 'dashed' : 'solid'} ${colors.border}`,
             }}>
-              <span aria-hidden="true" style={{ width: '8px', height: '8px', background: square(g), flexShrink: 0 }} />
+              {g.appt ? <CalendarClock size={12} aria-hidden="true" style={{ color: square(g), flexShrink: 0 }} /> : <span aria-hidden="true" style={{ width: '8px', height: '8px', background: square(g), flexShrink: 0 }} />}
               <span style={{ flex: 1, minWidth: 0 }}>{g.name}</span>
+              {g.appt && <span style={{ fontSize: '13px', fontWeight: 400, color: colors.muted }}>{t(`appointments.kind.${g.kind || 'other'}`)}</span>}
               {clashes(g) && <span style={{ color: AMBER, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}><AlertTriangle size={12} /> {t('clash.doubleBooking')}</span>}
             </button>
           ))}

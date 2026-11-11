@@ -348,6 +348,48 @@ test('an admin asks for leave, approves it and sees it as approved', async ({ pa
   await expect(page.locator('section[aria-labelledby="leave-mine"]').getByText('Approved', { exact: true })).toBeVisible()
 })
 
+test('an admin plans a site visit, finds it in My work and the calendar, and cancels it', async ({ page }) => {
+  await english(page)
+  await signIn(page, pm)
+  await page.getByTitle(/Workspace:/).click()
+  await page.getByRole('menuitemradio', { name: new RegExp(ORG) }).click()
+  await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}$/)
+  const orgUrl = page.url()
+  await page.goto(`${orgUrl}/appointments`)
+  await expect(page.getByRole('heading', { name: 'Appointments', exact: true })).toBeVisible()
+  await expect(page.getByText('No appointments coming up')).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
+
+  // Today, so it's in this month's calendar (it may already be past: it's listed either way)
+  const day = new Date().toISOString().slice(0, 10)
+  const title = `Venue walk ${run}`
+  await page.getByRole('button', { name: 'New appointment' }).first().click()
+  const dialog = page.getByRole('dialog')
+  await dialog.locator('#appt-kind').selectOption('site_visit')
+  await dialog.getByLabel('Title', { exact: true }).fill(title)
+  await dialog.getByLabel('Place', { exact: true }).fill('Coliseu')
+  await dialog.getByLabel('Day', { exact: true }).fill(day)
+  await dialog.getByLabel('From', { exact: true }).fill('10:00')
+  await dialog.getByLabel('Until', { exact: true }).fill('11:30')
+  await dialog.getByLabel(pm.name).check()
+  await expectAccessible(page)
+  await dialog.getByRole('button', { name: 'Add appointment' }).click()
+  await expect(page.getByRole('button', { name: new RegExp(title) })).toBeVisible({ timeout: 15_000 })
+
+  // Invited, so it's in My work and in the calendar
+  await page.goto('/me/appointments')
+  await expect(page.getByRole('button', { name: new RegExp(title) })).toBeVisible({ timeout: 15_000 })
+  await page.goto(`${orgUrl}?view=calendar`)
+  await expect(page.getByTitle(new RegExp(`${title} · Site visit`)).first()).toBeAttached({ timeout: 15_000 })
+
+  // Cancel it: it leaves the list
+  await page.goto(`${orgUrl}/appointments`)
+  await page.getByRole('button', { name: new RegExp(title) }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel appointment' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Yes, cancel it' }).click()
+  await expect(page.getByText('No appointments coming up')).toBeVisible({ timeout: 15_000 })
+})
+
 test('an admin adds a vehicle, records a licence and plans a trip with the licence warning', async ({ page }) => {
   await english(page)
   await signIn(page, pm)
