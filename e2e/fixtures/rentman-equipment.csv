@@ -1,0 +1,4 @@
+displayname,code,rental sales,stock management,current quantity,critical stock level,list price,internal remark
+E2E Line array,E2E-LA,rental,yes,6,1,120,Made-up row
+E2E Subwoofer,E2E-SUB,rental,yes,4,0,90,Made-up row
+E2E Gaffa tape,E2E-GAF,sales,no,50,10,6.5,Made-up row

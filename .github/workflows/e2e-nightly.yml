@@ -1,0 +1,128 @@
+name: E2E nightly
+
+# Every signed-in browser test (e2e/auth/, all tags) against the Supabase TEST project, every night.
+# Pull requests run only the @smoke set (ci.yml, e2e-auth). docs/TESTING.md, "Automated test suite".
+# The live check of production (e2e/live, playwright.live.config.js) is not part of this.
+#
+# Schedule: 03:07 UTC, which is 03:07 in Lisbon in winter (WET) and 04:07 in summer (WEST);
+# GitHub's schedule is always UTC. Also started by hand: Actions → E2E nightly → Run workflow.
+
+on:
+  schedule:
+    - cron: '7 3 * * *'
+  workflow_dispatch:
+
+# Never two nights at once (a slow night finishes before the next starts)
+concurrency:
+  group: e2e-nightly
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    if: vars.E2E_AUTH_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      E2E_AUTH: '1'
+      # Tags every account this shard creates, so its sweep below deletes only those
+      E2E_RUN: gh${{ github.run_id }}-${{ github.run_attempt }}-s${{ matrix.shard }}
+      VITE_SUPABASE_URL: ${{ vars.TEST_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.TEST_SUPABASE_ANON_KEY }}
+      PLAYWRIGHT_JSON_OUTPUT_FILE: results/shard-${{ matrix.shard }}.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Browser only, no apt (#202): the runner image already has the libraries Chromium needs
+      - run: npx playwright install chromium
+      - name: Refuse to run against production
+        run: |
+          case "$VITE_SUPABASE_URL" in
+            ""|*otmulrlslecgyezpcqxy*) echo "TEST_SUPABASE_URL must point at the test project"; exit 1 ;;
+          esac
+      - run: npm run build
+      # One test at a time inside each shard (playwright.config.js: workers 1 for signed-in runs)
+      - run: npx playwright test --shard=${{ matrix.shard }}/4 --reporter=list,json
+      # Runs even when a test failed: deletes the test accounts this shard created, and only those
+      - name: Sweep this shard's test accounts
+        if: always()
+        run: node scripts/e2e-sweep.mjs "$E2E_RUN"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-shard-${{ matrix.shard }}
+          path: results/
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces-shard-${{ matrix.shard }}
+          path: test-results/
+          retention-days: 7
+
+  # A failed night opens ONE issue (label needs-triage) listing the failing tests, or comments on
+  # the one already open, so failures don't pile up as separate issues
+  report:
+    needs: e2e
+    if: failure() && needs.e2e.result == 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: results-shard-*
+          path: results
+          merge-multiple: true
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+            const path = require('path')
+            const failing = []
+            const walk = (suite, file) => {
+              for (const spec of suite.specs || []) {
+                for (const t of spec.tests || []) {
+                  if (t.status === 'unexpected') failing.push(`- \`${spec.file || file}:${spec.line}\` ${spec.title}`)
+                }
+              }
+              for (const child of suite.suites || []) walk(child, suite.file || file)
+            }
+            let read = 0
+            if (fs.existsSync('results')) {
+              for (const name of fs.readdirSync('results').filter(n => n.endsWith('.json'))) {
+                try {
+                  const report = JSON.parse(fs.readFileSync(path.join('results', name), 'utf8'))
+                  for (const suite of report.suites || []) walk(suite, suite.file)
+                  read++
+                } catch (e) { core.warning(`Could not read ${name}: ${e.message}`) }
+              }
+            }
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            const night = new Date().toISOString().slice(0, 10)
+            const list = failing.length
+              ? failing.join('\n')
+              : `No failing test in the ${read} shard report(s): a set-up step, the build or the sweep failed. See the run.`
+            const body = `**Night of ${night}**: ${failing.length} failing test(s). [Run and traces](${run}) (traces kept 7 days).\n\n${list}\n\n---\n_Opened by the E2E nightly workflow._`
+            const title = 'Nightly e2e tests failing'
+            const { data: open } = await github.rest.issues.listForRepo({ ...context.repo, state: 'open', labels: 'needs-triage', per_page: 100 })
+            const existing = open.find(i => i.title === title && !i.pull_request)
+            if (existing) {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: existing.number, body })
+              core.notice(`Commented on #${existing.number}`)
+            } else {
+              const { data: issue } = await github.rest.issues.create({ ...context.repo, title, labels: ['needs-triage'],
+                body: `The nightly signed-in tests (docs/TESTING.md, "Automated test suite") failed. Each failing night adds a comment here; close this when they pass again.\n\n${body}` })
+              core.notice(`Opened #${issue.number}`)
+            }

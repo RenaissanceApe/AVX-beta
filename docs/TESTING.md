@@ -4,7 +4,8 @@
 |---|---|---|
 | Lint + unit tests + build | `npm run check` | always (`check` job) |
 | Browser smoke tests (no account needed) | `npm run build && npm run test:e2e` | always (`e2e` job) |
-| Signed-in journeys (test project) | see below | when `E2E_AUTH_ENABLED` is `true` (`e2e-auth` job) |
+| Signed-in smoke tests (test project, `@smoke`) | see below | on PRs when `E2E_AUTH_ENABLED` is `true` (`e2e-auth` job) |
+| Every signed-in test (test project, all tags) | see "Automated test suite" | every night (**E2E nightly** workflow) |
 | Live check of the production app (read-only) | the **Live check** workflow, started by hand (below) | never on PRs |
 | Accessibility (axe) | part of both browser test runs (`e2e/a11y.spec.js`, and `expectAccessible` in the signed-in journey) | always |
 | Help content (both languages, every id used exists, guides line up with their screenshots) | part of `npm test` (`src/help/help.test.js`) | always |
@@ -80,6 +81,115 @@ account the sweep can't delete (it says which) can be removed in the test projec
 check the access rules directly in SQL. Paste each into the **test project's** SQL editor; each runs inside a transaction that is rolled
 back and ends with `ALL … CHECKS PASSED`.
 
+## Automated test suite
+
+The owner's manual test list (docs/PENDING.md section 2, T1–T187) is being turned into signed-in
+Playwright tests, one spec file per feature area (`e2e/auth/<area>.spec.js`), so only what needs a
+person or a real device is left to try by hand. Which T-line belongs to which area:
+`docs/notes/AT-map.md` (until the release folds it in).
+
+### When it runs
+
+- **Pull requests** (`e2e-auth` job in `ci.yml`): only the tests tagged `@smoke`: the journey, the
+  import and sign-in checks, and one path per area. A few minutes.
+- **Every night** (`.github/workflows/e2e-nightly.yml`): every signed-in test, at 03:07 UTC (03:07 in
+  Lisbon in winter, 04:07 in summer), split in 4 shards that run side by side, one test at a time
+  inside each. Each shard tags its accounts `gh<run>-<attempt>-s<shard>` and sweeps them afterwards,
+  even when a test failed. A failed night opens one issue, **"Nightly e2e tests failing"** (label
+  `needs-triage`), listing the failing tests with a link to the run and its traces (kept 7 days), or
+  adds a comment to that issue if it's still open. Close it when the nights pass again. Started by
+  hand: Actions → **E2E nightly** → *Run workflow*. It never overlaps itself.
+- The live check of production (`e2e/live/`) is separate and in neither.
+
+### Running it locally
+
+```bash
+export VITE_SUPABASE_URL=https://idvebeadnrxudfgortzg.supabase.co
+export VITE_SUPABASE_ANON_KEY=<test project anon key>
+npm run build
+export E2E_AUTH=1 E2E_RUN=me1                      # your own tag, to sweep afterwards
+npx playwright test --grep @smoke                  # what a PR runs
+npx playwright test gigs.spec.js                   # one area
+npx playwright test --grep @gigs                   # the same, by its tag
+npx playwright test --shard=1/4                    # one shard of the nightly run
+npm run e2e:sweep -- me1                           # remove every account the run made
+npm run e2e:sweep -- me1-gigs                      # …or only one area's
+```
+
+### The pieces (`e2e/auth/`)
+
+| File | What it gives |
+|---|---|
+| `fixtures.js` | `test` with ready-made people, each a page **already signed in** (English, closed after the test): `adminWithOrg`, `member`, `viewer`, `crewOnGig` (on the gig, not in the organisation), `secondCompany` (the admin of another, unrelated company). Each gives `{ page, account, org, world }` (`crewOnGig` also `gig`). |
+| `setup.js` | Makes the data through the database API with the public key and each account's own sign-in, the same calls as the app, so the access rules apply (no service role anywhere): `createAccount`, `addOrg`, `addToOrg`, `addGig`, `addToGig`, `addItem`, `addClient`, `addQuote` (priced with the app's own quote maths), `pageAs` (a page signed in as any account). `world` (one per area) makes the shared organisation, gig and people once and reuses them. |
+| `accounts.js` | Run tag, password, `ROLES` and `AREAS`. Area accounts are `e2e-<role>-<run>-<area>@example.com`. A new role or area must be added here, or the sweep won't find it (the set-up refuses unknown ones). |
+| `helpers.js` | `english`, `signUp`, `signIn` (through the form), `expectAccessible` (axe; serious or critical fails), `reportLoaded`, `changePeriod`, `deleteAccount`, `waitForServiceWorker` (bounded, one reload; #206). |
+| `stubs.js` | Stand-ins for outside calls: `stubTownSearch` / `stubTownSearchDown` (geocode → LocationIQ) and `stubCompanyCheck` (vies-check → VIES). They answer the browser only; the database doesn't change. |
+| `files.js` | `readZip` + `zipText` (zip exports, with fflate), `readPdfText` (unpdf), `parseIcs` (calendar files and feeds), `totpCode` (the current two-step code for a secret, with otpauth). |
+| `testSupport.js` | The test-only database functions (below): `makeAvxAdmin`, `expire`, `runRecurringExpenses`, `runOverdueInvoiceReminders`, `runHeldInviteReminders`, `runMaintenanceReminders`, `emailSummaryCandidates`. |
+| `e2e/fixtures/` | Sample files, made-up data: an xlsx, a Windows-1252 CSV, a Rentman-style CSV, a contacts CSV (its README says how to add one). |
+
+Each signed-in run starts a list, `.e2e-accounts/<run>.txt` (not committed; `global-setup.js`), and
+the set-up writes each account it makes into it; the sweep tries exactly those, plus the older journeys' fixed roles. Without that list (a run from another
+machine) it tries every role in every area, which is slow: the test project limits sign-ins, so it
+waits a minute whenever it reaches the limit. `scripts/e2e-sweep.test.js` checks which addresses it
+tries.
+
+### test_support (test project only)
+
+Some checks need what a person can't do from the app during a run: become an AVX admin, make
+something expire now, or run a daily job (recurring expenses, overdue-invoice reminders,
+held-invitation reminders, inspection reminders, the morning email summary's list) for one
+organisation now. `supabase/tests/support/test_support.sql` adds these as functions in a schema
+`test_support`. They refuse anyone whose email isn't `e2e-…@example.com`, and only touch rows of such
+accounts, or of organisations where the caller is admin and **every** member is a test account.
+
+**Installing it (owner, once, on the TEST project only; never production):** SQL editor → paste
+`supabase/tests/support/test_support.sql` → Run; then Project Settings → Data API → *Exposed schemas*
+→ add `test_support` → Save; then run `supabase/tests/test_support_check.sql`, which must end with
+`ALL TEST SUPPORT CHECKS PASSED`. Until then, the tests that need it skip with "test_support not
+installed". Run the file again whenever it changes (it's safe to re-run). Its daily jobs are copies
+of the real ones limited to one organisation: when a real job changes, change its copy too.
+
+### Writing an area spec (template)
+
+One file per area, `e2e/auth/<area>.spec.js`, with the area in `AREAS` (`accounts.js`). It gets its
+own organisation and accounts, so it never depends on another file or on the order files run in.
+Tag every test with the area; exactly **one** test (the most important path, quick) also gets
+`@smoke`. Above each test, say which T-lines of docs/PENDING.md it covers (`// covers: T12, T13`), so
+the owner can strike them from the manual list. Translations and screens are checked in English
+unless the test is about Portuguese.
+
+```js
+import { test, expect } from './fixtures.js'
+import { expectAccessible } from './helpers.js'
+
+test.use({ area: 'gigs' })
+
+// covers: T3, T8
+test('the admin adds a schedule item and the crew see it', { tag: ['@smoke', '@gigs'] }, async ({ adminWithOrg, crewOnGig }) => {
+  const { page } = adminWithOrg
+  const gig = crewOnGig.gig
+  await page.goto(gig.path)
+  // … click through what the T-line describes …
+  await expectAccessible(page)
+  await crewOnGig.page.goto(gig.path)
+  // … and check what the other person sees
+})
+
+// covers: T23
+test('a viewer can\'t change the gig', { tag: '@gigs' }, async ({ viewer, world }) => {
+  const gig = await world.gig()
+  await viewer.page.goto(gig.path)
+  // …
+})
+```
+
+Data a test only needs to exist (an item, a quote, a client) comes from `setup.js`, not from the
+forms; click through the forms only for what the test is checking. A test that needs test_support
+calls its helper, which skips the test while test_support isn't installed. `e2e/auth/foundation.spec.js`
+is a worked example of each fixture.
+
 ## Live check
 
 A read-only check of the **live** app (https://avx-beta.vercel.app) after a release. The Dispatcher
@@ -94,7 +204,10 @@ company **AVX TEST CO.** on production:
   organisations, then opens the company home, quotes, contacts, crew, jobs, hours, appointments,
   leave, expenses, invoices, reports, tasks, inventory, Messages, Settings and My work. Each must
   draw with no error message, no crash and no 5xx answer from Supabase or Vercel.
-- **Crew** (viewer): My work, My hours, My appointments, My profile and Tasks render; the company's
+- **Crew** (viewer): the crew account **must be a Viewer** of the company (Members → its role), or
+  not a member at all. If it is a Member or Admin, the check stops with "the crew test account is a
+  Member/Admin of the company; make it a Viewer", because those roles may open the screens below.
+  My work, My hours, My appointments, My profile and Tasks render; the company's
   reports, invoices, expenses, crew search and everyone's hours show their "only admins and members"
   message; with the crew's own session, the company's crew rates read as empty, reading
   `profiles.phone` is refused (column grants, 0.82.3) and `my_profile()` returns only their own row.

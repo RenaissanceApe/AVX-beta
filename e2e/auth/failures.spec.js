@@ -14,6 +14,9 @@ const HOME = /\/(me|org\/[0-9a-f-]{36})$/
 
 test.describe.configure({ mode: 'serial' })
 
+// Part of the pull requests' smoke run (@smoke; docs/TESTING.md). Not indented, to keep its history readable.
+test.describe('sign-in failures', { tag: '@smoke' }, () => {
+
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     try { if (!localStorage.getItem('avx.lang')) localStorage.setItem('avx.lang', 'en') } catch { /* ignore */ }
@@ -119,4 +122,6 @@ test.afterAll(async ({ browser }) => {
   await page.getByRole('button', { name: 'Delete account' }).click()
   await expect(page).toHaveURL(/\/auth$/, { timeout: 15_000 })
   await page.close()
+})
+
 })

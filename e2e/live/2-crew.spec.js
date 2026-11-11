@@ -43,6 +43,20 @@ test('the crew member sees their own screens and none of the company\'s private 
   const orgId = (await openOrg(page)) || (existsSync(ORG_ID_FILE) ? readFileSync(ORG_ID_FILE, 'utf8').trim() : null)
   expect(orgId, 'no company to check: the crew isn\'t a member and the manager test found none').toBeTruthy()
 
+  // The closed screens are only closed to a Viewer: a crew account that is a Member or Admin of the
+  // company opens them, which says the account was set up wrong, not that the app leaks
+  await test.step('the crew account is a Viewer of the company', async () => {
+    const session = await sessionOf(page)
+    expect(session?.token, 'no signed-in session found').toBeTruthy()
+    expect(seen.supabase, 'the app made no database request').toBeTruthy()
+    const membership = await read(page, seen.supabase, session.token,
+      `/rest/v1/org_members?select=role&org_id=eq.${orgId}&user_id=eq.${session.userId}`)
+    expect(membership.status).toBe(200)
+    const role = membership.body?.[0]?.role
+    expect(role === 'member' || role === 'admin',
+      `the crew test account is a ${role === 'admin' ? 'Admin' : 'Member'} of the company; make it a Viewer`).toBe(false)
+  })
+
   for (const [screen, message] of Object.entries(CLOSED)) {
     await test.step(`${screen} stays closed`, async () => {
       await expectRenders(page, `/org/${orgId}/${screen}`)

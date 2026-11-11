@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { test, expect } from '@playwright/test'
-import AxeBuilder from '@axe-core/playwright'
-import { RUN, PASSWORD, testEmail } from './accounts.js'
+import { RUN, testEmail } from './accounts.js'
+import { english, signUp, signIn as signInAs, expectAccessible } from './helpers.js'
 
 // The import's Check step fixes problems on the spot (docs/SWITCHING.md, "Import overhaul: fix it
 // here"), against the Supabase TEST project (never production). Run with E2E_AUTH=1 and the test
@@ -9,40 +9,22 @@ import { RUN, PASSWORD, testEmail } from './accounts.js'
 // itself at the end, and CI's sweep step deletes it if a test fails first.
 const who = { name: `E2E Import ${RUN}`, email: testEmail('imp', RUN) }
 const ORG = `E2E Import Org ${RUN}`
-const HOME = /\/(me|org\/[0-9a-f-]{36})$/
 
 test.describe.configure({ mode: 'serial' })
 
+// Part of the pull requests' smoke run (@smoke; docs/TESTING.md). Not indented, to keep its history readable.
+test.describe('import: fix it here', { tag: ['@smoke', '@import'] }, () => {
+
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    try { if (!localStorage.getItem('avx.lang')) localStorage.setItem('avx.lang', 'en') } catch { /* ignore */ }
-  })
+  await english(page)
 })
 
-async function signIn(page) {
-  await page.goto('/auth')
-  await page.getByPlaceholder('you@company.com').fill(who.email)
-  await page.getByPlaceholder('••••••••').fill(PASSWORD)
-  await page.locator('form').getByRole('button', { name: /Sign In/ }).click()
-  await expect(page).toHaveURL(HOME, { timeout: 15_000 })
-}
-
-async function expectAccessible(page) {
-  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
-  expect(results.violations.filter(v => v.impact === 'serious' || v.impact === 'critical')
-    .map(v => `${v.id}: ${v.nodes.slice(0, 3).map(n => n.target.join(' ')).join(' | ')}`)).toEqual([])
-}
+const signIn = page => signInAs(page, who)
 
 let orgPath
 
 test('set up: a user with an organisation and no locations yet', async ({ page }) => {
-  await page.goto('/auth')
-  await page.getByRole('button', { name: 'Create Account' }).first().click()
-  await page.getByPlaceholder('João Silva').fill(who.name)
-  await page.getByPlaceholder('you@company.com').fill(who.email)
-  await page.getByPlaceholder('At least 8 characters').fill(PASSWORD)
-  await page.locator('form').getByRole('button', { name: /Create Account/ }).click()
-  await expect(page).toHaveURL(HOME, { timeout: 15_000 })
+  await signUp(page, who)
   await page.getByRole('button', { name: 'Create Organisation' }).first().click()
   const dialog = page.getByRole('dialog', { name: 'New Organisation' })
   await dialog.getByPlaceholder('e.g. SoundWorks Lisboa').fill(ORG)
@@ -194,4 +176,6 @@ test('clean up: the user deletes their account', async ({ page }) => {
   page.once('dialog', dialog => dialog.accept('DELETE'))
   await page.getByRole('button', { name: 'Delete account' }).click()
   await expect(page).toHaveURL(/\/auth$/, { timeout: 15_000 })
+})
+
 })

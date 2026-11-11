@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { RUN, PASSWORD } from './accounts.js'
-import AxeBuilder from '@axe-core/playwright'
+import { HOME, english, signUp, signIn, expectAccessible, reportLoaded, changePeriod, deleteAccount, waitForServiceWorker } from './helpers.js'
 
 // Signed-in journeys against the Supabase TEST project (never production).
 // Run with E2E_AUTH=1 and the test project's URL/key — see docs/TESTING.md.
@@ -16,83 +16,14 @@ const tech = { name: `E2E Tech ${run}`, email: `e2e-tech-${run}@example.com` }
 const newbie = { name: `E2E Newbie ${run}`, email: `e2e-newbie-${run}@example.com` }
 const ORG = `E2E Org ${run}`
 const GIG = `E2E Gig ${run}`
-// After signing in you land in your workspace: My work, or an organisation
-const HOME = /\/(me|org\/[0-9a-f-]{36})$/
 
 test.describe.configure({ mode: 'serial' })
 
-async function english(page) {
-  await page.addInitScript(() => {
-    try { if (!localStorage.getItem('avx.lang')) localStorage.setItem('avx.lang', 'en') } catch { /* ignore */ }
-  })
-}
-
-async function signUp(page, who) {
-  await page.goto('/auth')
-  await page.getByRole('button', { name: 'Create Account' }).first().click()
-  await page.getByPlaceholder('João Silva').fill(who.name)
-  await page.getByPlaceholder('you@company.com').fill(who.email)
-  await page.getByPlaceholder('At least 8 characters').fill(PASSWORD)
-  await page.locator('form').getByRole('button', { name: /Create Account/ }).click()
-  await expect(page).toHaveURL(HOME, { timeout: 15_000 })
-}
-
-async function signIn(page, who) {
-  await page.goto('/auth')
-  await page.getByPlaceholder('you@company.com').fill(who.email)
-  await page.getByPlaceholder('••••••••').fill(PASSWORD)
-  await page.locator('form').getByRole('button', { name: /Sign In/ }).click()
-  await expect(page).toHaveURL(HOME, { timeout: 15_000 })
-}
-
-// No serious accessibility problems on the page as it is now (docs/HELP.md, H1)
-async function expectAccessible(page) {
-  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
-  expect(results.violations.filter(v => v.impact === 'serious' || v.impact === 'critical')
-    .map(v => `${v.id}: ${v.nodes.slice(0, 3).map(n => n.target.join(' ')).join(' | ')}`)).toEqual([])
-}
-
-// A report view has finished loading: no loading sign left, and no "couldn't be loaded" message.
-// The report functions are heavy for the small test database, so the journey lets each view
-// finish before opening the next instead of stacking their calls (which ran into its 8 s limit).
-// A report that hits a slow moment on the test database tries once more by itself (selectReport
-// in src/lib/selectAll.js), so the wait allows two slow requests; a failure that repeats still
-// shows "couldn't be loaded" and fails the test.
-async function reportLoaded(page) {
-  await expect(page.getByRole('status', { name: 'Loading', exact: true })).toHaveCount(0, { timeout: 45_000 })
-  await expect(page.getByText("The report couldn't be loaded. Try again in a moment.")).toHaveCount(0)
-}
-
-// A report's period changed (issue #114): wait for its database call to answer, then for the page to
-// settle (a retry on a slow database included) and to show no error; only then look at what it shows.
-// A real failure still fails: reportLoaded rejects the error message and a report that never loads.
-async function changePeriod(page, rpc, period) {
-  const answered = page.waitForResponse(r => r.url().includes(`/rest/v1/rpc/${rpc}`), { timeout: 45_000 })
-  await page.locator('#rp-period').selectOption(period)
-  await answered
-  await reportLoaded(page)
-}
+// The journey is the pull requests' smoke run (@smoke; docs/TESTING.md). Not indented, to keep its history readable.
+test.describe('signed-in journey', { tag: '@smoke' }, () => {
 
 // Every Overview tile loaded: one that couldn't (its source failed) says so instead of a number
 const tileFailed = "Couldn't load this number. Try again in a moment."
-
-async function deleteAccount(page) {
-  await page.goto('/dashboard')
-  // Desktop: the avatar in the top bar. Phones have no avatar (two icons at most, DESIGN.md
-  // "PhoneTabBar"): Account is in the More sheet
-  await expect(page.locator('.shell-bar')).toBeVisible({ timeout: 15_000 })
-  const avatar = page.getByRole('button', { name: /— Account$/ })
-  if (await avatar.isVisible()) await avatar.click()
-  else {
-    await page.locator('.shell-tabs').getByRole('button', { name: 'More' }).click()
-    await page.getByRole('dialog', { name: 'More' }).getByRole('button', { name: 'Account' }).click()
-  }
-  await expect(page).toHaveURL(/\/settings/)
-  await page.getByRole('link', { name: 'Your data' }).click()
-  page.once('dialog', dialog => dialog.accept('DELETE'))
-  await page.getByRole('button', { name: 'Delete account' }).click()
-  await expect(page).toHaveURL(/\/auth$/, { timeout: 15_000 })
-}
 
 let gigUrl
 
@@ -219,13 +150,10 @@ test('a gig opened before stays readable offline', async ({ page, context }) => 
   await signIn(page, pm)
   await page.goto(gigUrl)
   await expect(page.getByRole('heading', { name: GIG })).toBeVisible()
-  // The service worker must control the page before the app shell can load offline
-  await page.evaluate(async () => {
-    await navigator.serviceWorker.ready
-    if (!navigator.serviceWorker.controller) {
-      await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }))
-    }
-  })
+  // The service worker must control the page before the app shell can load offline (its own
+  // bounded wait, with one reload if it doesn't take over: #206)
+  await waitForServiceWorker(page)
+  await expect(page.getByRole('heading', { name: GIG })).toBeVisible()
   await context.setOffline(true)
   await page.reload()
   await expect(page.getByRole('status').filter({ hasText: /offline|saved copy/i })).toBeVisible()
@@ -695,4 +623,6 @@ test('the user can delete their account and everything they created', async ({ p
   await page.getByPlaceholder('••••••••').fill(PASSWORD)
   await page.locator('form').getByRole('button', { name: /Sign In/ }).click()
   await expect(page.getByText(/Wrong email or password/)).toBeVisible()
+})
+
 })
