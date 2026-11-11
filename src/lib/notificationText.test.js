@@ -41,7 +41,7 @@ describe('notification times', () => {
     const timed = { ...base, kind: 'appointment_invited', details: { title: 'Site visit', all_day: false, starts_at: '2027-01-10T14:30:00Z', ends_at: '2027-01-10T16:00:00Z' } }
     expect(describeNote(timed, 'en', 'Ana', 'America/New_York')).toBe('Ana invited you to Site visit (10 Jan, 09:30 – 11:00 (America/New_York))')
     const off = { ...base, kind: 'appointment_cancelled', details: { title: 'Prep', all_day: true, start_date: '2027-01-11', end_date: '2027-01-11', why: 'taken_off' } }
-    expect(describeNote(off, 'pt', 'Ana')).toMatch(/^Ana retirou-o de Prep \(11 jan\.?\)$/)
+    expect(describeNote(off, 'pt', 'Ana')).toBe('Ana retirou-o de Prep (11/01)')
     expect(zoneIds([{ kind: 'appointment_changed', gig_id: null, org_id: 'o1' }])).toEqual({ gigIds: [], orgIds: ['o1'] })
   })
 })
