@@ -431,9 +431,20 @@ test('an admin adds a vehicle, records a licence and plans a trip with the licen
   await expectAccessible(page)
   await trip.getByRole('checkbox', { name: /I've checked/ }).check()
   await trip.getByRole('button', { name: 'Save trip' }).click()
-  await expect(page.getByText('1 trip')).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByText(/E2E Truck · 12-AB-34/)).toBeVisible()
+  await expect(page.getByText('1 trip', { exact: true })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(/E2E Truck · 12-AB-34/).first()).toBeVisible()
   await expect(page.getByText('Licence warning checked by the planner.')).toBeVisible()
+  // Step 23 (V4): the admin sees the trip's transport cost under the trips (no km and no rates yet)
+  await expect(page.getByRole('heading', { name: 'Transport cost' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('1 trip has no km yet: only its days count.')).toBeVisible()
+  await expectAccessible(page)
+
+  // Reports → Vehicle use lists the truck
+  const orgId = (await page.getByRole('link', { name: 'Set it in Inventory → Vehicles' }).getAttribute('href')).split('/')[2]
+  await page.goto(`/org/${orgId}/reports?tab=vehicles`)
+  await expect(page.getByText('Vehicle cost')).toBeVisible({ timeout: 15_000 })
+  await page.getByRole('checkbox', { name: 'Show details' }).check()
+  await expect(page.getByRole('cell', { name: /E2E Truck/ })).toBeVisible()
   await expectAccessible(page)
 })
 
