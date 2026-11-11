@@ -227,7 +227,7 @@ checks in `supabase/tests/signatures.sql`. No delete statements.
 ## How appointments work (step 23, part V2)
 
 Calendar items that aren't a gig: a **site visit**, a **meeting**, a **warehouse day** or **other**.
-Migrations `20270119000000_appointments.sql` and `20270119000001_appointments_select_fix.sql`; checks in `supabase/tests/appointments.sql`. Add-only,
+Migrations `20270119000000_appointments.sql`, `20270119000001_appointments_select_fix.sql` and `20270119000002_appointments_leaving_fix.sql`; checks in `supabase/tests/appointments.sql`. Add-only,
 nothing is ever removed: appointments and invitations are marked (`removed_at`).
 
 | Piece | How it works |

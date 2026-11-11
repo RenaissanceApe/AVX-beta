@@ -1,5 +1,5 @@
--- Checks for migrations 20270119000000_appointments.sql and 20270119000001_appointments_select_fix.sql
--- (step 23, V2: appointments).
+-- Checks for migrations 20270119000000_appointments.sql, 20270119000001_appointments_select_fix.sql and
+-- 20270119000002_appointments_leaving_fix.sql (step 23, V2: appointments).
 -- Run in the TEST project's SQL editor. Rolls itself back; ends with
 --   "ALL APPOINTMENTS CHECKS PASSED"  → good
 -- Who: a = admin of Lumen (America/New_York), m = member (a planner), v = viewer of Lumen,
@@ -12,11 +12,13 @@ declare
   c uuid := gen_random_uuid(); x uuid := gen_random_uuid(); b uuid := gen_random_uuid();
   org uuid; org_b uuid; g uuid; g_b uuid; cl uuid; ap uuid; day_ap uuid;
   n integer; p tstzrange; k text; lbl text; ok boolean;
+  z uuid := gen_random_uuid(); org_z uuid; g_z uuid; ap_z uuid; t0 timestamptz;
 begin
   insert into auth.users (id, email, aud, role) values
     (a, 'ap-a@avx.invalid', 'authenticated', 'authenticated'), (m, 'ap-m@avx.invalid', 'authenticated', 'authenticated'),
     (v, 'ap-v@avx.invalid', 'authenticated', 'authenticated'), (c, 'ap-c@avx.invalid', 'authenticated', 'authenticated'),
-    (x, 'ap-x@avx.invalid', 'authenticated', 'authenticated'), (b, 'ap-b@avx.invalid', 'authenticated', 'authenticated');
+    (x, 'ap-x@avx.invalid', 'authenticated', 'authenticated'), (b, 'ap-b@avx.invalid', 'authenticated', 'authenticated'),
+    (z, 'ap-z@avx.invalid', 'authenticated', 'authenticated');
 
   -- ── Setting up ──────────────────────────────────────────────────────────────
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
@@ -53,6 +55,8 @@ begin
     values (org, 'site_visit', '  Venue walk  ', 'Coliseu', '2027-03-12 14:00+00', '2027-03-12 16:00+00', g, cl) returning id into ap;
   if (select title from appointments where id = ap) <> 'Venue walk' then raise exception 'CHECK FAILED: title not trimmed'; end if;
   if (select created_by from appointments where id = ap) <> m then raise exception 'CHECK FAILED: creator not recorded'; end if;
+  update appointments set created_by = a where id = ap;
+  if (select created_by from appointments where id = ap) <> m then raise exception 'CHECK FAILED: the maker was changed'; end if;
   -- A gig from another organisation can't be linked
   begin
     update appointments set gig_id = g_b where id = ap;
@@ -226,6 +230,43 @@ begin
   -- The row is still there (marked, not removed)
   if not exists (select 1 from appointments where id = ap and removed_at is not null) then raise exception 'CHECK FAILED: cancelled row gone'; end if;
 
+  -- ── Leaving AVX with appointments ───────────────────────────────────────────
+  -- z runs a one-person organisation with a gig, its crew and an appointment linked to the gig:
+  -- closing z's account takes the organisation and everything in it, appointments included
+  perform set_config('request.jwt.claims', json_build_object('sub', z, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into organisations (name, created_by) values ('Solo Co', z) returning id into org_z;
+  insert into gigs (org_id, name, status, created_by, start_date, end_date)
+    values (org_z, 'Solo gig', 'confirmed', z, '2027-04-01', '2027-04-01') returning id into g_z;
+  insert into gig_members (gig_id, user_id, role, function_title) values (g_z, c, 'crew', 'A1');
+  insert into appointments (org_id, kind, title, starts_at, ends_at, gig_id)
+    values (org_z, 'site_visit', 'Solo visit', '2027-03-30 09:00+00', '2027-03-30 10:00+00', g_z) returning id into ap_z;
+  insert into appointment_people (appointment_id, user_id) values (ap_z, c), (ap_z, z);
+  t0 := clock_timestamp();
+  perform delete_my_account();
+  reset role;
+  if exists (select 1 from organisations where id = org_z) then raise exception 'CHECK FAILED: the organisation is still there'; end if;
+  if exists (select 1 from appointments where id = ap_z) or exists (select 1 from appointment_people where appointment_id = ap_z) then
+    raise exception 'CHECK FAILED: appointments left after the organisation went';
+  end if;
+  if exists (select 1 from reservations where source_type = 'appointment' and source_id like ap_z::text || ':%') then
+    raise exception 'CHECK FAILED: appointment bookings left after the organisation went';
+  end if;
+  if clock_timestamp() - t0 > interval '4 seconds' then raise exception 'CHECK FAILED: closing the account took %', clock_timestamp() - t0; end if;
+  -- m (a planner who made Lumen's appointments) leaves: the appointments stay, without their maker
+  perform set_config('request.jwt.claims', json_build_object('sub', m, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  perform delete_my_account();
+  reset role;
+  if not exists (select 1 from appointments where id = ap and created_by is null) then raise exception 'CHECK FAILED: appointment lost with its maker'; end if;
+  if exists (select 1 from appointment_people where user_id = m) then raise exception 'CHECK FAILED: the leaver is still invited'; end if;
+  -- c (invited crew) leaves too
+  perform set_config('request.jwt.claims', json_build_object('sub', c, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  perform delete_my_account();
+  reset role;
+  if exists (select 1 from appointment_people where user_id = c) then raise exception 'CHECK FAILED: crew who left are still invited'; end if;
+
   -- ── Functions are not open to everyone ──────────────────────────────────────
   select has_function_privilege('anon', 'public.appointment_clashes(uuid, uuid[], timestamptz, timestamptz, uuid)', 'execute') into ok;
   if ok then raise exception 'CHECK FAILED: anon can run appointment_clashes'; end if;
@@ -234,5 +275,5 @@ begin
   select has_function_privilege('authenticated', 'private.can_invite_to_org(uuid, uuid)', 'execute') into ok;
   if ok then raise exception 'CHECK FAILED: signed-in users can run can_invite_to_org'; end if;
 
-  raise exception 'ALL APPOINTMENTS CHECKS PASSED';
+  raise exception 'ALL APPOINTMENTS CHECKS PASSED (closing an account took %)', clock_timestamp() - t0;
 end $$;
