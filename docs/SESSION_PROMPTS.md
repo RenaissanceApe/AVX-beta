@@ -25,7 +25,7 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77), the design refresh DR1–DR6 (0.78), steps 13, 14 and 16 (0.79), steps 15, 17a and 18 (0.80), the upkeep sessions U1–U3, U5 and U6 (0.81) and the import overhaul IM1–IM4 (0.82) and step 23, vehicles, transport and appointments (0.83), are built, and their prompts (S01–S12, S14, S23, K1–K9, DR1–DR6, U1–U3, U5, U6, IM1–IM4) removed. Sessions
+Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77), the design refresh DR1–DR6 (0.78), steps 13, 14 and 16 (0.79), steps 15, 17a and 18 (0.80), the upkeep sessions U1–U3, U5 and U6 (0.81) and the import overhaul IM1–IM4 (0.82) step 23, vehicles, transport and appointments (0.83), and LC1, the read-only live check (0.83.1, part of QA2, whose prompt stays), are built, and their prompts (S01–S12, S14, S23, K1–K9, DR1–DR6, U1–U3, U5, U6, IM1–IM4) removed. Sessions
 S13–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U4 is the small upkeep session left, to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
@@ -603,10 +603,13 @@ Scope:
 - The QA tag migration and supabase/tests/qa_accounts.sql, as outlined in QA.md; docs/USAGE.md
   queries use the new summary views.
 - vite.config.js writes version.json (version and commit); vercel.json marks it no-cache.
-- playwright.config.js: a LIVE=1 mode (e2e/live, the live URL, no local server).
-- e2e/live/after-deploy.spec.js and e2e/live/daily-signup.spec.js.
-- .github/workflows/live-check.yml: push to main (wait for the merged commit) and daily; environment
-  live-check; on failure one PR comment and one qa-bot + needs-triage issue per failing check.
+- The read-only per-role check is already built (LC1, 0.83.1: e2e/live/, playwright.live.config.js,
+  .github/workflows/live-check.yml, started by hand; docs/TESTING.md, "Live check"). Extend those
+  files; don't add a LIVE=1 mode to playwright.config.js.
+- e2e/live/after-deploy.spec.js and e2e/live/daily-signup.spec.js, next to LC1's specs.
+- .github/workflows/live-check.yml (LC1's workflow): add push to main (wait for the merged commit)
+  and daily; environment live-check; on failure one PR comment and one qa-bot + needs-triage issue
+  per failing check.
 - A step-by-step guide for me to create the live QA account.
 
 Ask me before building: the migration outline; then walk me through Setup B at the right moments.

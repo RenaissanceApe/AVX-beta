@@ -8,7 +8,8 @@ const authRun = !!process.env.E2E_AUTH
 
 export default defineConfig({
   testDir: authRun ? 'e2e/auth' : 'e2e',
-  testIgnore: authRun ? [] : ['auth/**'],
+  // e2e/live is the read-only check of the live app (playwright.live.config.js), never run here
+  testIgnore: authRun ? ['live/**'] : ['auth/**', 'live/**'],
   timeout: authRun ? 90_000 : 30_000,
   retries: process.env.CI && !authRun ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
