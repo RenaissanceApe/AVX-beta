@@ -183,7 +183,7 @@ function TripModal({ gig, trip, members, nameOf, timeZone, vehicles, onClose, on
             <input id="trip-km" inputMode="decimal" value={form.km} onChange={e => set('km', e.target.value)} style={input} />
           </div>
         </div>
-        {crew.length > 0 && (
+        {crew.some(p => p.id !== form.driver_id && p.id !== form.co_driver_id) && (
           <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
             <legend style={label}>{t('transport.passengers')}</legend>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>

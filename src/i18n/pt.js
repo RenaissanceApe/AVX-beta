@@ -123,7 +123,7 @@ export default {
   'account.phone': 'Telemóvel (aparece nas folhas de serviço)',
   'account.phoneHint': 'Visível para quem está nos seus eventos e organizações.',
   "licence.title": "Carta de condução",
-  "licence.hint": "Marque as categorias da sua carta, para quem planeia saber que veículos pode conduzir. Só as veem você e os administradores das suas organizações.",
+  "licence.hint": "Marque as categorias da sua carta, para quem planeia saber que veículos pode conduzir. Só você e os administradores das suas organizações as veem.",
   "licence.save": "Guardar carta",
   "licence.saved": "Categorias da carta guardadas.",
   "licence.none": "não registada",
