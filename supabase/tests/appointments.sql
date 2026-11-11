@@ -1,4 +1,5 @@
--- Checks for migration 20270119000000_appointments.sql (step 23, V2: appointments).
+-- Checks for migrations 20270119000000_appointments.sql and 20270119000001_appointments_select_fix.sql
+-- (step 23, V2: appointments).
 -- Run in the TEST project's SQL editor. Rolls itself back; ends with
 --   "ALL APPOINTMENTS CHECKS PASSED"  → good
 -- Who: a = admin of Lumen (America/New_York), m = member (a planner), v = viewer of Lumen,
