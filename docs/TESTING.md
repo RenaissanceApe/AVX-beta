@@ -129,8 +129,8 @@ npm run e2e:sweep -- me1-gigs                      # …or only one area's
 | `testSupport.js` | The test-only database functions (below): `makeAvxAdmin`, `expire`, `runRecurringExpenses`, `runOverdueInvoiceReminders`, `runHeldInviteReminders`, `runMaintenanceReminders`, `emailSummaryCandidates`. |
 | `e2e/fixtures/` | Sample files, made-up data: an xlsx, a Windows-1252 CSV, a Rentman-style CSV, a contacts CSV (its README says how to add one). |
 
-The set-up writes each account it makes into `.e2e-accounts/<run>.txt` (not committed); the sweep
-tries exactly those, plus the older journeys' fixed roles. Without that list (a run from another
+Each signed-in run starts a list, `.e2e-accounts/<run>.txt` (not committed; `global-setup.js`), and
+the set-up writes each account it makes into it; the sweep tries exactly those, plus the older journeys' fixed roles. Without that list (a run from another
 machine) it tries every role in every area, which is slow: the test project limits sign-ins, so it
 waits a minute whenever it reaches the limit. `scripts/e2e-sweep.test.js` checks which addresses it
 tries.

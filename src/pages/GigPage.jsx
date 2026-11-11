@@ -70,7 +70,7 @@ export default function GigPage() {
   // Back goes where you came from (My work, an organisation, a notification); fresh tabs go home
   const goBack = () => (location.key !== 'default' ? navigate(-1) : navigate('/dashboard'))
 
-  // Each reload takes a number; only the newest one may set what's shown (#193): an older reload
+  // Each reload takes a number; only the newest one may set what's shown (issue 193): an older reload
   // that finishes late (a change's own reload, then a realtime one) must not put back stale data
   const loadSeq = useRef(0)
 

@@ -10,6 +10,8 @@ export default defineConfig({
   testDir: authRun ? 'e2e/auth' : 'e2e',
   // e2e/live is the read-only check of the live app (playwright.live.config.js), never run here
   testIgnore: authRun ? ['live/**'] : ['auth/**', 'live/**'],
+  // Signed-in runs start their list of test accounts for the sweep (e2e/auth/global-setup.js)
+  globalSetup: authRun ? './e2e/auth/global-setup.js' : undefined,
   timeout: authRun ? 90_000 : 30_000,
   retries: process.env.CI && !authRun ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
