@@ -1,17 +1,22 @@
 #!/usr/bin/env node
 // Deletes the test accounts one run created on the Supabase TEST project, and what they own
 // (organisations they're the only member of, their gigs' files), the same way a person deletes
-// their own account in Settings → Your data. It only signs in to e2e-<role>-<tag>@example.com
-// for the roles in e2e/auth/accounts.js, so nothing made by another run or a person is touched.
-// Refuses the production project. Logs roles and counts only, never emails.
+// their own account in Settings → Your data. It only signs in to e2e-<role>-<tag>@example.com and
+// e2e-<role>-<tag>-<area>@example.com for the roles and areas in e2e/auth/accounts.js, so nothing
+// made by another run or a person is touched. Refuses the production project. Logs roles, areas and
+// counts only, never emails.
 //
 //   VITE_SUPABASE_URL=… VITE_SUPABASE_ANON_KEY=… node scripts/e2e-sweep.mjs <tag>
 //
-// CI runs it after the signed-in tests with the run's tag (E2E_RUN). A worker who made accounts
+// <tag> is a run (E2E_RUN: every account it made, in every area), or <run>-<area> for one area
+// only. When the run left its list of accounts (.e2e-accounts/<tag>.txt, written by the set-up),
+// only those are tried; without it every role in every area is (slower: each try is a sign-in).
+// CI runs it after the signed-in tests with the run's (or shard's) tag. A worker who made accounts
 // by hand on the test project (docs/PARALLEL.md) runs it with their own tag before the PR.
 
+import { readFileSync, rmSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
-import { ROLES, PASSWORD, testEmail } from '../e2e/auth/accounts.js'
+import { PASSWORD, manifestPath, sweepTargets } from '../e2e/auth/accounts.js'
 
 const PRODUCTION_REF = 'otmulrlslecgyezpcqxy'
 const BUCKET = 'gig-assets'
@@ -19,8 +24,8 @@ const url = process.env.VITE_SUPABASE_URL
 const key = process.env.VITE_SUPABASE_ANON_KEY
 const tag = (process.argv[2] || '').toLowerCase()
 
-if (!url || !key || !/^[a-z0-9-]{2,40}$/.test(tag)) {
-  console.error('Usage: VITE_SUPABASE_URL=… VITE_SUPABASE_ANON_KEY=… node scripts/e2e-sweep.mjs <tag>  (tag: 2–40 of a-z, 0-9, -)')
+if (!url || !key || !/^[a-z0-9-]{2,60}$/.test(tag)) {
+  console.error('Usage: VITE_SUPABASE_URL=… VITE_SUPABASE_ANON_KEY=… node scripts/e2e-sweep.mjs <tag>  (tag: 2–60 of a-z, 0-9, -)')
   process.exit(2)
 }
 if (url.includes(PRODUCTION_REF)) {
@@ -44,11 +49,25 @@ async function removeGigFiles(supabase, gigIds) {
   }
 }
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+const rateLimited = error => error?.status === 429 || /rate limit|too many/i.test(error?.message || '')
+
+// The test project limits sign-ins per address in a few minutes: wait and try again
+async function signIn(supabase, target) {
+  for (let attempt = 1; ; attempt++) {
+    const { error } = await supabase.auth.signInWithPassword({ email: target.email, password: PASSWORD })
+    if (!error || !rateLimited(error) || attempt >= 6) return error
+    console.log(`Sign-in limit reached; waiting a minute (try ${attempt} of 5).`)
+    await sleep(60_000)
+  }
+}
+
 // 'gone' (no such account), 'deleted', or 'blocked' (still the only admin of an organisation
 // with other members: try again after those members are deleted)
-async function sweep(role) {
+async function sweep(target) {
+  const role = target.area ? `${target.role} (${target.area})` : target.role
   const supabase = client()
-  const { error: signInError } = await supabase.auth.signInWithPassword({ email: testEmail(role, tag), password: PASSWORD })
+  const signInError = await signIn(supabase, target)
   if (signInError) {
     if (/invalid login credentials/i.test(signInError.message)) return 'gone'
     throw new Error(`${role}: signing in failed: ${signInError.message}`)
@@ -66,14 +85,19 @@ async function sweep(role) {
   return 'deleted'
 }
 
-let left = [...ROLES]
+let manifest = null
+try { manifest = readFileSync(manifestPath(tag), 'utf8') } catch { /* no list: try every role and area */ }
+
+const label = t => (t.area ? `${t.role} (${t.area})` : t.role)
+let left = sweepTargets(tag, manifest)
+console.log(`Sweep for run ${tag}: trying ${left.length} address(es)${manifest == null ? ' (no account list from the run)' : ''}.`)
 const deleted = []
 for (let pass = 0; pass < 3 && left.length; pass++) {
   const next = []
-  for (const role of left) {
-    const result = await sweep(role)
-    if (result === 'deleted') deleted.push(role)
-    if (result === 'blocked') next.push(role)
+  for (const target of left) {
+    const result = await sweep(target)
+    if (result === 'deleted') deleted.push(label(target))
+    if (result === 'blocked') next.push(target)
   }
   if (next.length === left.length) break
   left = next
@@ -81,6 +105,7 @@ for (let pass = 0; pass < 3 && left.length; pass++) {
 
 console.log(`Sweep for run ${tag}: ${deleted.length} test account(s) deleted${deleted.length ? ` (${deleted.join(', ')})` : ''}.`)
 if (left.length) {
-  console.error(`Still there, blocked by another member: ${left.join(', ')}. Delete it by hand (docs/TESTING.md).`)
+  console.error(`Still there, blocked by another member: ${left.map(label).join(', ')}. Delete it by hand (docs/TESTING.md).`)
   process.exit(1)
 }
+if (manifest != null) rmSync(manifestPath(tag), { force: true })
