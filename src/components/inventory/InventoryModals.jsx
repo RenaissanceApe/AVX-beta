@@ -42,7 +42,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
   const [form, setForm] = useState({
     name: item?.name || '', kind: item?.kind || 'rental', category: item?.category || '', unit_price: item?.unit_price ?? '',
     unit: item?.unit || 'day', tracking: item?.tracking || 'bulk', code: item?.code || '', brand: item?.brand || '',
-    model: item?.model || '', weight_kg: item?.weight_kg ?? '', power_w: item?.power_w ?? '', dimensions: item?.dimensions || '',
+    model: item?.model || '', weight_kg: item?.weight_kg ?? '', power_w: item?.power_w ?? '', dimensions: item?.dimensions || '', volume_m3: item?.volume_m3 ?? '',
     replacement_value: item?.replacement_value ?? '', min_stock: item?.min_stock ?? '', packing_note: item?.packing_note || '',
     details: item?.details || '', kit_type: item?.kit_type || '',
     inspection_kind: item?.inspection_kind || '', inspection_months: item?.inspection_months ?? '',
@@ -74,7 +74,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
     const row = {
       name: form.name.trim(), kind: form.kind, category: form.category.trim() || null, unit_price: price, unit: form.unit,
       tracking: form.tracking, kit_type: form.kit_type || null, code: form.code.trim() || null, brand: form.brand.trim() || null, model: form.model.trim() || null,
-      weight_kg: numberOrNull(form.weight_kg), power_w: int(form.power_w), dimensions: form.dimensions.trim() || null,
+      weight_kg: numberOrNull(form.weight_kg), power_w: int(form.power_w), dimensions: form.dimensions.trim() || null, volume_m3: numberOrNull(form.volume_m3),
       replacement_value: numberOrNull(form.replacement_value), min_stock: int(form.min_stock),
       cost_price: costPrice, depreciation_months: Math.min(600, Math.max(1, int(form.depreciation_months) || 0)) || null,
       packing_note: form.packing_note.trim() || null, details: form.details.trim() || null, updated_at: new Date().toISOString(),
@@ -155,6 +155,7 @@ export function ItemModal({ orgId, userId, item, hasStock, categories, onClose, 
           <Field id="it-weight" text={t('inv.weight')}><input id="it-weight" inputMode="decimal" value={form.weight_kg} onChange={set('weight_kg')} style={input} /></Field>
           <Field id="it-power" text={t('inv.power')}><input id="it-power" inputMode="numeric" value={form.power_w} onChange={set('power_w')} style={input} /></Field>
           <Field id="it-dim" text={t('inv.dimensions')}><input id="it-dim" value={form.dimensions} onChange={set('dimensions')} maxLength={80} placeholder="60 × 40 × 35 cm" style={input} /></Field>
+          <Field id="it-volume" text={t('inv.volume')} hint="item-volume"><input id="it-volume" inputMode="decimal" value={form.volume_m3} onChange={set('volume_m3')} placeholder="0.084" style={input} /></Field>
           <Field id="it-value" text={t('inv.replacementValue')} hint="replacement-value"><input id="it-value" inputMode="decimal" value={form.replacement_value} onChange={set('replacement_value')} style={input} /></Field>
           <Field id="it-cost" text={t('inv.costPrice')} hint="cost-price"><input id="it-cost" inputMode="decimal" value={form.cost_price} onChange={set('cost_price')} aria-invalid={!costOk} style={input} /></Field>
           <Field id="it-life" text={t('inv.depreciationMonths')} hint="item-depreciation"><input id="it-life" type="number" min={1} max={600} value={form.depreciation_months} onChange={set('depreciation_months')} placeholder="60" style={input} /></Field>
