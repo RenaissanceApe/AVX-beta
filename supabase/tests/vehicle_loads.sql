@@ -145,7 +145,7 @@ begin
   js := public.gig_load_plan(g);
   if jsonb_array_length(js -> 'loads') <> 2 then raise exception 'CHECK FAILED: zero rows not listed: %', js -> 'loads'; end if;
 
-  -- A removed trip's loads drop out of the plan, and it can't be loaded any more
+  -- A removed trip's loads leave the plan, and it can't be loaded any more
   update trips set removed_at = now() where id = t_out;
   if jsonb_array_length(public.gig_load_plan(g) -> 'loads') <> 0 or jsonb_array_length(public.gig_load_plan(g) -> 'trips') <> 1 then
     raise exception 'CHECK FAILED: removed trip still in the plan';
