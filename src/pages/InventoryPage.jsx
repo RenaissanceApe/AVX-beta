@@ -12,18 +12,19 @@ import AppShell from '../components/shell/AppShell'
 import { ItemModal, LocationModal } from '../components/inventory/InventoryModals'
 import { MaintenanceTab } from '../components/inventory/MaintenancePanels'
 import { SubrentalsTab } from '../components/inventory/SubrentalPanels'
+import { VehiclesTab } from '../components/inventory/VehiclesTab'
 import { btn, btnPrimary, iconBtn, input, label, colors, AvxLoader, PageHeader, space } from '../components/ui'
 import { FilterTabs, pageWrap, rowList, row, rowButton, rowName, rowMeta } from '../components/ListParts'
 import EmptyState from '../components/EmptyState'
 import { PageHelp, Hint } from '../components/help/HelpParts'
 
-const TABS = ['catalogue', 'locations', 'movements', 'maintenance', 'subrentals', 'reports']
-const TAB_ICONS = { catalogue: Package, locations: MapPin, movements: History, maintenance: Wrench, subrentals: Handshake, reports: BarChart3 }
+const TABS = ['catalogue', 'locations', 'movements', 'maintenance', 'subrentals', 'vehicles', 'reports']
+const TAB_ICONS = { catalogue: Package, locations: MapPin, movements: History, maintenance: Wrench, subrentals: Handshake, vehicles: Truck, reports: BarChart3 }
 export const LOCATION_ICONS = { warehouse: Warehouse, vehicle: Truck, site: Building2, other: Box }
 const ghost = { ...btn, background: 'transparent', borderColor: 'var(--line-strong)', color: colors.soft }
 
 // Inventory of one organisation: the catalogue with stock, locations and the stock ledger.
-//   /org/:orgId/inventory (?tab=locations|movements|maintenance|subrentals|reports)
+//   /org/:orgId/inventory (?tab=locations|movements|maintenance|subrentals|vehicles|reports)
 export default function InventoryPage() {
   const { orgId } = useParams()
   const [params, setParams] = useSearchParams()
@@ -54,6 +55,7 @@ export default function InventoryPage() {
         {tab === 'movements' && <Movements inv={inv} orgId={orgId} />}
         {tab === 'maintenance' && <MaintenanceTab inv={inv} orgId={orgId} />}
         {tab === 'subrentals' && <SubrentalsTab inv={inv} orgId={orgId} />}
+        {tab === 'vehicles' && <VehiclesTab orgId={orgId} />}
         {/* K5: Inventory → Reports is Reports → Equipment (one screen; I7's table is its "Use and value" view) */}
         {tab === 'reports' && <Navigate to={`/org/${orgId}/reports?tab=equipment`} replace />}
       </div>

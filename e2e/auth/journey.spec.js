@@ -348,6 +348,106 @@ test('an admin asks for leave, approves it and sees it as approved', async ({ pa
   await expect(page.locator('section[aria-labelledby="leave-mine"]').getByText('Approved', { exact: true })).toBeVisible()
 })
 
+test('an admin plans a site visit, finds it in My work and the calendar, and cancels it', async ({ page }) => {
+  await english(page)
+  await signIn(page, pm)
+  await page.getByTitle(/Workspace:/).click()
+  await page.getByRole('menuitemradio', { name: new RegExp(ORG) }).click()
+  await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}$/)
+  const orgUrl = page.url()
+  await page.goto(`${orgUrl}/appointments`)
+  await expect(page.getByRole('heading', { name: 'Appointments', exact: true })).toBeVisible()
+  await expect(page.getByText('No appointments coming up')).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
+
+  // Today, so it's in this month's calendar (it may already be past: it's listed either way)
+  const day = new Date().toISOString().slice(0, 10)
+  const title = `Venue walk ${run}`
+  await page.getByRole('button', { name: 'New appointment' }).first().click()
+  const dialog = page.getByRole('dialog')
+  await dialog.locator('#appt-kind').selectOption('site_visit')
+  await dialog.getByLabel('Title', { exact: true }).fill(title)
+  await dialog.getByLabel('Place', { exact: true }).fill('Coliseu')
+  await dialog.getByLabel('Day', { exact: true }).fill(day)
+  await dialog.getByLabel('From', { exact: true }).fill('10:00')
+  await dialog.getByLabel('Until', { exact: true }).fill('11:30')
+  await dialog.getByLabel(pm.name).check()
+  await expectAccessible(page)
+  await dialog.getByRole('button', { name: 'Add appointment' }).click()
+  await expect(page.getByRole('button', { name: new RegExp(title) })).toBeVisible({ timeout: 15_000 })
+
+  // Invited, so it's in My work and in the calendar
+  await page.goto('/me/appointments')
+  await expect(page.getByRole('button', { name: new RegExp(title) })).toBeVisible({ timeout: 15_000 })
+  await page.goto(`${orgUrl}?view=calendar`)
+  await expect(page.getByTitle(new RegExp(`${title} · Site visit`)).first()).toBeAttached({ timeout: 15_000 })
+
+  // Cancel it: it leaves the list
+  await page.goto(`${orgUrl}/appointments`)
+  await page.getByRole('button', { name: new RegExp(title) }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel appointment' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Yes, cancel it' }).click()
+  await expect(page.getByText('No appointments coming up')).toBeVisible({ timeout: 15_000 })
+})
+
+test('an admin adds a vehicle, records a licence and plans a trip with the licence warning', async ({ page }) => {
+  await english(page)
+  await signIn(page, pm)
+  // Settings → Profile: licence B only
+  await page.goto('/settings/profile')
+  await page.getByRole('checkbox', { name: 'B', exact: true }).check()
+  await page.getByRole('button', { name: 'Save licence' }).click()
+  await expect(page.getByText('Licence categories saved.')).toBeVisible()
+
+  // Inventory → Vehicles: a truck that needs C1
+  await page.getByTitle(/Workspace:/).click()
+  await page.getByRole('menuitemradio', { name: new RegExp(ORG) }).click()
+  await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}$/)
+  await page.goto(`${page.url()}/inventory?tab=vehicles`)
+  await expect(page.getByText('No vehicles yet')).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(page)
+  await page.getByRole('button', { name: 'Add vehicle' }).first().click()
+  const vehicle = page.getByRole('dialog', { name: 'Add vehicle' })
+  await vehicle.getByLabel('Name').fill('E2E Truck')
+  await vehicle.getByLabel('Plate').fill('12-ab-34')
+  await vehicle.getByLabel('Licence needed', { exact: true }).selectOption('C1')
+  await vehicle.getByLabel('Max load (kg)', { exact: true }).fill('3500')
+  await expectAccessible(page)
+  await vehicle.getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByText('E2E Truck')).toBeVisible()
+  await expect(page.getByText(/12-AB-34/)).toBeVisible()
+
+  // Gig → Transport: the PM drives the truck; the licence warning waits for "I've checked"
+  await page.goto(gigUrl)
+  await page.getByRole('tab', { name: /Transport/ }).click()
+  await expect(page.getByText('No trips yet')).toBeVisible({ timeout: 15_000 })
+  await page.getByRole('button', { name: 'Add trip' }).first().click()
+  const trip = page.getByRole('dialog', { name: 'Add trip' })
+  await trip.getByLabel('Vehicle', { exact: true }).selectOption({ label: 'E2E Truck · 12-AB-34 · C1' })
+  await trip.getByLabel('Driver', { exact: true }).selectOption({ label: pm.name })
+  await trip.getByLabel('From', { exact: true }).fill('Warehouse')
+  await expect(trip.getByText(/licence doesn't include C1/)).toBeVisible({ timeout: 15_000 })
+  await expect(trip.getByRole('button', { name: 'Save trip' })).toBeDisabled()
+  await expectAccessible(page)
+  await trip.getByRole('checkbox', { name: /I've checked/ }).check()
+  await trip.getByRole('button', { name: 'Save trip' }).click()
+  await expect(page.getByText('1 trip', { exact: true })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(/E2E Truck · 12-AB-34/).first()).toBeVisible()
+  await expect(page.getByText('Licence warning checked by the planner.')).toBeVisible()
+  // Step 23 (V4): the admin sees the trip's transport cost under the trips (no km and no rates yet)
+  await expect(page.getByRole('heading', { name: 'Transport cost' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('1 trip has no km yet: only its days count.')).toBeVisible()
+  await expectAccessible(page)
+
+  // Reports → Vehicle use lists the truck
+  const orgId = (await page.getByRole('link', { name: 'Set it in Inventory → Vehicles' }).getAttribute('href')).split('/')[2]
+  await page.goto(`/org/${orgId}/reports?tab=vehicles`)
+  await expect(page.getByText('Vehicle cost')).toBeVisible({ timeout: 15_000 })
+  await page.getByRole('checkbox', { name: 'Show details' }).check()
+  await expect(page.getByRole('cell', { name: /E2E Truck/ })).toBeVisible()
+  await expectAccessible(page)
+})
+
 test('crew numbers: My numbers, the year statement and Crew to pay open and are accessible', async ({ page }) => {
   await english(page)
   await signIn(page, pm)

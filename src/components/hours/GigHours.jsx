@@ -11,6 +11,7 @@ import { totals } from '../../lib/timeRegistration'
 import { resolveRate } from '../../lib/crewRates'
 import { useRateCard } from '../../lib/useCrewRates'
 import { useI18n } from '../../i18n'
+import { useWorkspace } from '../../lib/WorkspaceContext'
 import EmptyState from '../EmptyState'
 import { Hint } from '../help/HelpParts'
 import { HoursModal, DayLine, SplitLine, StatusChip, hoursText, money } from './HoursParts'
@@ -22,6 +23,9 @@ export default function GigHours({ gig, members, isPM, userId, nameOf, onReviewe
   const rateCard = useRateCard(isPM ? gig.org_id : null)
   const [entries, setEntries] = useState(null)
   const [schedule, setSchedule] = useState([])
+  const [trips, setTrips] = useState([])
+  const { orgs } = useWorkspace()
+  const timeZone = orgs.find(o => o.id === gig.org_id)?.time_zone
   const [settings, setSettings] = useState(null)
   const [fees, setFees] = useState([])
   const [queued, setQueued] = useState(() => readQueuedHours(userId).filter(q => q.gig_id === gig.id))
@@ -30,12 +34,16 @@ export default function GigHours({ gig, members, isPM, userId, nameOf, onReviewe
   const [busy, setBusy] = useState(null)
 
   const load = useCallback(async () => {
-    const [e, s, set, f] = await Promise.all([
+    const [e, s, set, f, tr] = await Promise.all([
       supabase.from('time_entries').select(HOURS_COLUMNS).eq('gig_id', gig.id).is('removed_at', null).order('work_date').limit(2000),
       supabase.from('gig_schedule').select('day, start_time, end_time').eq('gig_id', gig.id),
       isPM ? supabase.rpc('time_settings', { p_gig: gig.id }) : { data: null },
       isPM ? supabase.from('gig_crew_fees').select('user_id, unit, rate, quantity').eq('gig_id', gig.id) : { data: [] },
+      // Trips (step 23) suggest the driving minutes of a day
+      supabase.from('trips').select('driver_id, co_driver_id, departs_at, arrives_at').eq('gig_id', gig.id).is('removed_at', null),
     ])
+    if (tr.error) logger.error('hours', tr.error, { step: 'trips' })
+    setTrips(tr.data || [])
     if (e.error) logger.error('hours', e.error, { step: 'load' })
     setEntries(e.data || [])
     setSchedule(s.data || [])
@@ -181,12 +189,13 @@ export default function GigHours({ gig, members, isPM, userId, nameOf, onReviewe
           {t('hours.total')}: <strong>{hoursText(total.worked, lang)}</strong>
           {total.overtime > 0 && <span style={{ color: colors.muted }}> · {t('hours.bucket.overtime')} {hoursText(total.overtime, lang)}</span>}
           {total.travel > 0 && <span style={{ color: colors.muted }}> · {t('hours.travel')} {hoursText(total.travel, lang)}</span>}
+          {total.driving > 0 && <span style={{ color: colors.muted }}> · {t('hours.driving')} {hoursText(total.driving, lang)}</span>}
         </p>
       )}
 
       {editing && (
         <HoursModal gig={gig} member={editing.entry ? members.find(m => m.user_id === editing.entry.user_id) : myMember} entry={editing.entry}
-          schedule={schedule} userId={userId} people={editing.new && isPM ? people : null}
+          schedule={schedule} trips={trips} timeZone={timeZone} userId={userId} people={editing.new && isPM ? people : null}
           takenDays={[...entries, ...pendingQueue].map(e => `${e.user_id}:${e.work_date}`)}
           onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load() }} />
       )}

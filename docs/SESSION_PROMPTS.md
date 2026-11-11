@@ -25,7 +25,7 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77), the design refresh DR1–DR6 (0.78), steps 13, 14 and 16 (0.79), steps 15, 17a and 18 (0.80), the upkeep sessions U1–U3, U5 and U6 (0.81) and the import overhaul IM1–IM4 (0.82) are built, and their prompts (S01–S12, S14, K1–K9, DR1–DR6, U1–U3, U5, U6, IM1–IM4) removed. Sessions
+Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77), the design refresh DR1–DR6 (0.78), steps 13, 14 and 16 (0.79), steps 15, 17a and 18 (0.80), the upkeep sessions U1–U3, U5 and U6 (0.81) and the import overhaul IM1–IM4 (0.82) and step 23, vehicles, transport and appointments (0.83), are built, and their prompts (S01–S12, S14, S23, K1–K9, DR1–DR6, U1–U3, U5, U6, IM1–IM4) removed. Sessions
 S13–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U4 is the small upkeep session left, to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
@@ -342,35 +342,6 @@ Scope:
 Connect: gigs, call sheet, power tool, rigging tool, rider page.
 
 Done when: database tests for the chosen sharing model; help guide; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
-
-## S23 · Step 23: vehicles and transport, appointments
-
-```
-Build ROADMAP step 23: vehicles, transport and appointments. Read docs/BUSINESS.md "Planned → 23"
-and docs/RESERVATIONS.md (the reservations engine was built for this).
-
-Scope:
-- Vehicles as bookable resources: plate, capacity (kg, m³), licence needed.
-- Trips on a gig: out and back, vehicle, driver, times.
-- The packing list split per vehicle, with weight against capacity, and a suggestion that splits it
-  across the chosen vehicles by weight and volume (cases kept whole), which the planner can change.
-- Clashes when a vehicle or driver is double-booked.
-- Appointments: non-gig calendar items (site visit, meeting, warehouse day) with people, shown in
-  calendars, clashes and the calendar feed.
-- Costs: running cost per km and per day on each vehicle, and km on each trip, so transport cost
-  goes into gig_finance (step 10); expenses (9b) can link to a vehicle (fuel, tolls, repairs).
-- A vehicle-use report in the Reports area with the K1 parts (trips, km, days used, load against
-  capacity): the vehicle part of the old step 24.
-
-Ask me before building: my vehicles and whether drivers need a licence category check.
-
-Connect: packing lists, scanning out per vehicle, calendars, calendar feed, time registration
-(driving hours), gig finance, expenses, Reports.
-
-Done when: database tests; help guide; PR open.
 Stop after this step; don't start the next one.
 Finish with the short summary CLAUDE.md asks for.
 ```

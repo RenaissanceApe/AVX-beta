@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Camera, CameraOff, ScanLine, Check, X, PackageCheck, ClipboardList, Maximize2, Volume2, VolumeX, BarChart3 } from 'lucide-react'
+import { ArrowLeft, Camera, CameraOff, ScanLine, Check, X, PackageCheck, ClipboardList, Maximize2, Volume2, VolumeX, BarChart3, Truck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useWorkspace } from '../lib/WorkspaceContext'
@@ -9,6 +9,7 @@ import { logger, userMessage } from '../lib/logger'
 import { track } from '../lib/usage'
 import { codeFromScan, DISPATCH_STEP, stepTarget, stepTotals } from '../lib/inventory'
 import { useGigSteps } from '../lib/useSteps'
+import { buildGroups, loadsByTrip, vehicleItems } from '../lib/vehicleLoads'
 import { useFieldKit, beep, buzz, speak } from '../lib/fieldKit'
 import { useI18n, t } from '../i18n'
 import AppShell from '../components/shell/AppShell'
@@ -50,6 +51,17 @@ export default function DispatchPage() {
   const [camera, setCamera] = useState(false)
   const inputRef = useRef(null)
   const last = useRef({ code: '', at: 0 })
+  // Step 23, V3: scan out one vehicle's load (?vehicle=<trip>), from the packing list per vehicle
+  const [loadPlan, setLoadPlan] = useState(null)
+  const vehicle = params.get('vehicle') || ''
+  const vehicleLoad = useMemo(() => {
+    if (!loadPlan || !vehicle) return null
+    const items = Object.fromEntries((loadPlan.parts || []).map(p => [p.child_id, p]))
+    const groups = buildGroups(loadPlan.lines, loadPlan.parts, items)
+    const byTrip = loadsByTrip(loadPlan.loads, groups, loadPlan.trips.map(x => x.id))
+    return byTrip[vehicle] ? vehicleItems(groups, byTrip[vehicle]) : null
+  }, [loadPlan, vehicle])
+  const loadedTrips = (loadPlan?.trips || []).filter(x => (loadPlan.loads || []).some(l => l.trip_id === x.id))
 
   const { steps, lines: summary, counts, reload: reloadSteps } = useGigSteps(id, gig ? gig.org_id : undefined)
   const loadProgress = useCallback(async () => {
@@ -66,6 +78,10 @@ export default function DispatchPage() {
       setAllowed(role === 'admin' || role === 'member' || me?.role === 'pm' || data.created_by === user.id)
     })
     loadProgress()
+    supabase.rpc('gig_load_plan', { p_gig: id }).then(({ data, error }) => {
+      if (error) logger.error('dispatch', error, { step: 'loads' })
+      setLoadPlan(data || null)
+    })
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Every scan is heard and felt as well as seen (docs/HELP.md, H5): a beep, a buzz and,
@@ -158,7 +174,9 @@ export default function DispatchPage() {
     </AppShell>
   )
 
-  const progress = stepTotals(summary.filter(r => r.planned > 0 || STEP_AFTER_OUT(step)), counts, step)
+  const shown = vehicleLoad ? summary.filter(r => vehicleLoad[r.item_id]) : summary
+  const progress = stepTotals(shown.filter(r => r.planned > 0 || STEP_AFTER_OUT(step)), counts, step)
+  const setVehicle = next => setParams(p => { const q = new URLSearchParams(p); if (next) q.set('vehicle', next); else q.delete('vehicle'); return q }, { replace: true })
   // Scan mode takes the whole screen, in place of the page (nothing behind it to tab into)
   if (scanMode) return (
     <>
@@ -174,6 +192,7 @@ export default function DispatchPage() {
         <PageHeader title={t('dispatch.title')}
           secondary={[
             { label: t('dispatch.packingList'), icon: <ClipboardList size={14} aria-hidden="true" />, onClick: () => navigate(`/gig/${id}/packing`) },
+            { label: t('loads.title'), icon: <Truck size={14} aria-hidden="true" />, onClick: () => navigate(`/gig/${id}/loads`) },
             // K6: the organisation's admins and members see the warehouse's dispatch numbers
             ['admin', 'member'].includes(roleIn(gig.org_id)) && { label: t('wh.linkDispatch'), icon: <BarChart3 size={14} aria-hidden="true" />, onClick: () => navigate(`/org/${gig.org_id}/reports?tab=warehouse&view=dispatch`) },
           ].filter(Boolean)}
@@ -225,20 +244,31 @@ export default function DispatchPage() {
           <h2 style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-mono)', marginBottom: space[3], display: 'flex', alignItems: 'center', gap: '8px' }}>
             <PackageCheck size={16} /> {t(`steps.progress.${step}`, progress)}
           </h2>
+          {loadedTrips.length > 0 && (
+            <div style={{ marginBottom: space[3], maxWidth: '320px' }}>
+              <label style={label} htmlFor="scan-vehicle">{t('dispatch.vehicle')}</label>
+              <select id="scan-vehicle" value={vehicleLoad ? vehicle : ''} onChange={e => setVehicle(e.target.value)} style={{ ...input, minHeight: '44px' }}>
+                <option value="">{t('dispatch.allVehicles')}</option>
+                {loadedTrips.map(x => <option key={x.id} value={x.id}>{x.vehicle_name}{x.vehicle_plate ? ` · ${x.vehicle_plate}` : ''}</option>)}
+              </select>
+              {vehicleLoad && <p style={{ fontSize: '13px', color: colors.muted, marginTop: '6px', lineHeight: 1.5 }}>{t('dispatch.vehicleNote')}</p>}
+            </div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '12px', alignItems: 'center', marginBottom: '10px' }}>
             <Segments done={progress.done} total={progress.total} />
             <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{progress.done} / {progress.total}</span>
           </div>
-          {summary.length === 0 ? <p style={{ fontSize: '13px', color: colors.muted }}>{t('dispatch.nothingPlanned')}</p> : (
+          {shown.length === 0 ? <p style={{ fontSize: '13px', color: colors.muted }}>{t('dispatch.nothingPlanned')}</p> : (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {summary.map(r => {
+              {shown.map(r => {
                 const target = stepTarget(step, r, counts[r.item_id])
                 const done = counts[r.item_id]?.[step] || 0
                 const complete = target > 0 && done >= target
                 return (
                   <div key={r.item_id} style={{ display: 'flex', alignItems: 'center', gap: '12px', minHeight: '44px', padding: '8px 4px', borderBottom: `1px solid ${colors.border}`, fontSize: '13px' }}>
                     <span style={{ width: '18px', color: complete ? colors.accentText : done > target && target > 0 ? AMBER : colors.muted }}>{complete ? <Check size={14} /> : null}</span>
-                    <span style={{ flex: 1, minWidth: 0 }}>{r.item_name}{!r.planned && <span style={{ color: AMBER, fontSize: '11px' }}> · {t('dispatch.notPlannedShort')}</span>}</span>
+                    <span style={{ flex: 1, minWidth: 0 }}>{r.item_name}{!r.planned && <span style={{ color: AMBER, fontSize: '11px' }}> · {t('dispatch.notPlannedShort')}</span>}
+                      {vehicleLoad && <span style={{ display: 'block', color: colors.muted, fontSize: '13px' }}>{t('dispatch.inVehicle', { count: vehicleLoad[r.item_id] })}</span>}</span>
                     <strong style={{ fontVariantNumeric: 'tabular-nums', color: done > target && target > 0 ? AMBER : 'var(--text)' }}>{done} / {target}</strong>
                   </div>
                 )

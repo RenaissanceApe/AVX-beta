@@ -93,6 +93,7 @@ export default function GigMarginsReport({ orgId, timeZone, labels, params, setP
     { key: 'subrentals', label: t('finance.subrentals'), value: r => r.subrentals },
     { key: 'repairs', label: t('finance.repairs'), value: r => r.repairs },
     { key: 'other', label: t('finance.otherCosts'), value: r => r.other_costs },
+    { key: 'transport', label: t('finance.transport'), value: r => r.transport ?? 0 },
     { key: 'cost', label: t('finance.cost'), value: r => r.cost },
     { key: 'estimated', label: t('finance.col.estimatedCost'), value: r => r.estimated_cost },
     { key: 'margin', label: t('finance.margin'), value: r => r.margin },

@@ -17,6 +17,7 @@ import GigCalendar from '../components/GigCalendar'
 import AppShell, { RoleChip } from '../components/shell/AppShell'
 import { GIG_FILTERS, filterGigs, countByBucket, myWorkGigs } from '../lib/gigs'
 import { clashingGigIds } from '../lib/clashes'
+import { myAppointments, orgAppointments, calendarItems, addDays } from '../lib/appointments'
 import AvailabilityRequests from '../components/AvailabilityRequests'
 import { useI18n, t, fmt } from '../i18n'
 import OfflineBanner from '../components/OfflineBanner'
@@ -123,6 +124,18 @@ export default function Dashboard() {
   }, [user, mode, orgId])
 
   useEffect(() => { load() }, [load])
+
+  // Appointments in the calendar (step 23, V2): yours in My work, the organisation's otherwise
+  const [appointments, setAppointments] = useState([])
+  useEffect(() => {
+    if (!user || view !== 'calendar' || (mode !== 'me' && !orgId)) { setAppointments([]); return }
+    let live = true
+    const since = addDays(fmt(new Date(), 'yyyy-MM-dd'), -120)
+    ;(mode === 'me' ? myAppointments(user.id, since) : orgAppointments(orgId, since))
+      .then(list => { if (live) setAppointments(calendarItems(list, a => orgs.find(o => o.id === a.org_id)?.time_zone || a.organisations?.time_zone)) })
+      .catch(error => { logger.error('dashboard', error, { step: 'appointments' }); if (live) setAppointments([]) })
+    return () => { live = false }
+  }, [user, view, mode, orgId, orgs])
   useEffect(() => {
     window.addEventListener('online', load)
     return () => window.removeEventListener('online', load)
@@ -170,7 +183,8 @@ export default function Dashboard() {
         mode === 'me' && simple && !showAll ? <SimpleHome gigs={gigs} onShowAll={() => setShowAll(true)} /> :
         <GigList gigs={gigs} view={view} setView={v => setParam('view', v === 'calendar' ? 'calendar' : null)}
           filter={gigFilter} setFilter={setGigFilter} search={gigSearch} setSearch={setGigSearch}
-          showCompany={mode === 'me'} clashIds={mode === 'me' ? clashIds : null} margins={margins} onOpen={gig => navigate(`/gig/${gig.id}`)} />
+          showCompany={mode === 'me'} clashIds={mode === 'me' ? clashIds : null} margins={margins} appointments={appointments}
+          onOpen={gig => navigate(gig.appt ? `${mode === 'me' ? '/me' : `/org/${orgId}`}/appointments?a=${gig.id}` : `/gig/${gig.id}`)} />
       )}
     </Section>
   )
@@ -309,7 +323,7 @@ function NewGigModal({ orgId, timeZone, onClose, onCreated }) {
   )
 }
 
-function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, onOpen, showCompany, clashIds, margins }) {
+function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, onOpen, showCompany, clashIds, margins, appointments }) {
   const [labelFilter, setLabelFilter] = useState({ status: '', type: '' })
   // The organisations' own statuses and types on these gigs, to filter by
   const options = useMemo(() => {
@@ -367,7 +381,7 @@ function GigList({ gigs, view, setView, filter, setFilter, search, setSearch, on
         )}
       </div>
       {view === 'calendar' ? (
-        <GigCalendar gigs={filterGigs(gigs, 'all', search).filter(g => g.status !== 'archived' && g.status !== 'cancelled' && byLabel(g))} clashIds={clashIds} onOpen={onOpen} />
+        <GigCalendar gigs={filterGigs(gigs, 'all', search).filter(g => g.status !== 'archived' && g.status !== 'cancelled' && byLabel(g))} clashIds={clashIds} appointments={appointments} onOpen={onOpen} />
       ) : visible.length === 0 ? (
         <p style={{ color: 'var(--muted)', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>
           {search ? t('dash.noMatch') : t(`dash.noGigs.${filter}`)}

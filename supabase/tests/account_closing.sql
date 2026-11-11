@@ -1,4 +1,4 @@
--- Checks for 20270121000000_account_closing.sql (issue #195): someone who made, asked, claimed,
+-- Checks for 20270121000000_account_closing.sql (issue #195; vehicles and trips: 20270123000000_vehicle_costs.sql): someone who made, asked, claimed,
 -- reported or decided something in an organisation they don't solely own can close their account.
 -- The row stays, its "who" column becomes empty, and a plain update still can't change who it was.
 -- Run in the TEST project's SQL editor. Rolls itself back; ends with
@@ -13,7 +13,7 @@ declare
   v_id text; v_exp text; v_who uuid; i int; n int; failed text := '';
 begin
   insert into auth.users (id, email, aud, role) values (a, 'acx-admin@avx.invalid', 'authenticated', 'authenticated');
-  for i in 1..35 loop
+  for i in 1..39 loop
     u := u || gen_random_uuid();
     insert into auth.users (id, email, aud, role) values (u[i], 'acx-' || i || '@avx.invalid', 'authenticated', 'authenticated');
   end loop;
@@ -198,6 +198,21 @@ begin
   i := 35; perform set_config('request.jwt.claims', json_build_object('sub', u[i], 'role', 'authenticated')::text, true);
   insert into repairs (org_id, item_id, problem, status) values (org, item_bulk, 'Acx done', 'done') returning id::text into v_id;
   k := k || 'closed repair (special)'::text; t := t || 'repairs'::text; c := c || 'reported_by'::text; r := r || v_id; w := w || u[i];
+
+  -- Vehicles and trips (step 23, V1; guarded by 20270123000000_vehicle_costs.sql)
+  i := 36; perform set_config('request.jwt.claims', json_build_object('sub', u[i], 'role', 'authenticated')::text, true);
+  insert into vehicles (org_id, name) values (org, 'Acx van') returning id::text into v_id;
+  k := k || 'vehicle'::text; t := t || 'vehicles'::text; c := c || 'created_by'::text; r := r || v_id; w := w || u[i];
+
+  -- A removed trip: its maker (37), driver (38) and co-driver (39) each close their account
+  insert into gig_members (gig_id, user_id, role) values (gig, u[38], 'crew'), (gig, u[39], 'crew');
+  i := 37; perform set_config('request.jwt.claims', json_build_object('sub', u[i], 'role', 'authenticated')::text, true);
+  insert into trips (gig_id, vehicle_id, driver_id, co_driver_id, departs_at, arrives_at)
+    values (gig, v_id::uuid, u[38], u[39], '2027-03-01T08:00Z', '2027-03-01T10:00Z') returning id::text into v_id;
+  update trips set removed_at = now() where id::text = v_id;
+  k := k || 'removed trip, made (special)'::text || 'removed trip, driver (special)'::text || 'removed trip, co-driver (special)'::text;
+  t := t || 'trips'::text || 'trips'::text || 'trips'::text; c := c || 'created_by'::text || 'driver_id'::text || 'co_driver_id'::text;
+  r := r || v_id || v_id || v_id; w := w || u[37] || u[38] || u[39];
 
   -- Every row says who made it
   for i in 1..array_length(k, 1) loop

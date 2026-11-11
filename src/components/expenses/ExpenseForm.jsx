@@ -70,7 +70,10 @@ export default function ExpenseForm({ orgId, expense = null, preset = {}, claim 
     currency: expense?.currency || 'EUR', invoice_number: expense?.invoice_number || '', due_on: expense?.due_on || '',
     paid_on: expense?.paid_on || '', paid_how: expense?.paid_how || '', notes: expense?.notes || '',
     gig_id: expense?.gig_id || preset.gig_id || '', link_kind: link?.kind || '', link_id: link?.id ? String(link.id) : '', claim: isClaim,
+    vehicle_id: expense?.vehicle_id || preset.vehicle_id || '', trip_id: expense?.trip_id || preset.trip_id || '',
   }))
+  const [vehicles, setVehicles] = useState([])
+  const [vehicleTrips, setVehicleTrips] = useState([])
   const [totalText, setTotalText] = useState('')
   const [file, setFile] = useState(null)
   const [suppliers, setSuppliers] = useState([])
@@ -101,6 +104,30 @@ export default function ExpenseForm({ orgId, expense = null, preset = {}, claim 
     return () => { live = false }
   }, [orgId, isClaim, expense, preset.gigs, preset.category_starter])
 
+  // Vehicles to link (step 23, V4): the organisation's live ones, plus the one already linked
+  useEffect(() => {
+    if (isClaim) return
+    let live = true
+    supabase.from('vehicles').select('id, name, plate, removed_at').eq('org_id', orgId).order('name').limit(500).then(({ data, error }) => {
+      if (error) logger.error('expenses', error, { step: 'vehicles' })
+      if (live) setVehicles((data || []).filter(v => !v.removed_at || v.id === form.vehicle_id))
+    })
+    return () => { live = false }
+  }, [orgId, isClaim]) // eslint-disable-line react-hooks/exhaustive-deps -- the linked vehicle is read once, when the form opens
+  // Its trips, newest first (on the chosen gig when one is chosen)
+  useEffect(() => {
+    if (isClaim || !form.vehicle_id) { setVehicleTrips([]); return }
+    let live = true
+    let q = supabase.from('trips').select('id, gig_id, departs_at, direction, gig:gig_id(name)').eq('vehicle_id', form.vehicle_id)
+      .is('removed_at', null).order('departs_at', { ascending: false }).limit(100)
+    if (form.gig_id) q = q.eq('gig_id', form.gig_id)
+    q.then(({ data, error }) => {
+      if (error) logger.error('expenses', error, { step: 'vehicle-trips' })
+      if (live) setVehicleTrips(data || [])
+    })
+    return () => { live = false }
+  }, [form.vehicle_id, form.gig_id, isClaim])
+
   useEffect(() => {
     if (!form.link_kind || isClaim) { setLinkable([]); return }
     let live = true
@@ -127,7 +154,7 @@ export default function ExpenseForm({ orgId, expense = null, preset = {}, claim 
       if (problem) { notify(t(problem), 'error'); return }
     }
     if (isClaim) { // a claim links only to its gig and its owner can't mark it paid
-      Object.assign(row, { subrental_id: null, repair_id: null, crew_fee_user_id: null, stock_movement_id: null, stock_unit_id: null })
+      Object.assign(row, { subrental_id: null, repair_id: null, crew_fee_user_id: null, stock_movement_id: null, stock_unit_id: null, vehicle_id: null, trip_id: null })
       if (!expense || expense.claimed_by === user.id) { row.paid_on = expense?.paid_on || null; row.paid_how = expense?.paid_how || null }
     }
     setSaving(true)
@@ -256,7 +283,7 @@ export default function ExpenseForm({ orgId, expense = null, preset = {}, claim 
           <div style={{ ...full, display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ minWidth: 0 }}>
               <HintLabel htmlFor="expense-link" hint="expense-link">{t('expenses.linkLabel')}</HintLabel>
-              <select id="expense-link" value={form.link_kind} disabled={locked} onChange={e => set({ link_kind: e.target.value, link_id: '' })} style={input}>
+              <select id="expense-link" value={form.link_kind} disabled={locked} onChange={e => set({ link_kind: e.target.value, link_id: '', ...(e.target.value ? { vehicle_id: '', trip_id: '' } : {}) })} style={input}>
                 <option value="">{t('expenses.link.none')}</option>
                 {LINK_KINDS.map(k => <option key={k} value={k}>{t(`expenses.link.${k}`)}</option>)}
               </select>
@@ -267,6 +294,29 @@ export default function ExpenseForm({ orgId, expense = null, preset = {}, claim 
                   <option value="">{form.link_kind === 'crew_fee' && !form.gig_id ? t('expenses.pickGigFirst') : '—'}</option>
                   {locked && !linkable.some(l => String(l.id) === form.link_id) && <option value={form.link_id}>{preset.link_text || '…'}</option>}
                   {linkable.map(l => <option key={l.id} value={String(l.id)}>{l.text}</option>)}
+                </select>
+              </label>
+            )}
+            {!form.link_kind && vehicles.length > 0 && (
+              <div style={{ minWidth: 0 }}>
+                <HintLabel htmlFor="expense-vehicle" hint="expense-vehicle">{t('expenses.vehicle')}</HintLabel>
+                <select id="expense-vehicle" value={form.vehicle_id} onChange={e => set({ vehicle_id: e.target.value, trip_id: '' })} style={input}>
+                  <option value="">{t('expenses.vehicleNone')}</option>
+                  {vehicles.map(v => <option key={v.id} value={v.id}>{v.name}{v.plate ? ` · ${v.plate}` : ''}</option>)}
+                </select>
+              </div>
+            )}
+            {!form.link_kind && form.vehicle_id && (
+              <label style={field}>{t('expenses.trip')}
+                <select value={form.trip_id} onChange={e => {
+                  const trip = vehicleTrips.find(x => x.id === e.target.value)
+                  set({ trip_id: e.target.value, ...(trip && gigs.some(g => g.id === trip.gig_id) ? { gig_id: trip.gig_id } : {}) })
+                }} style={input}>
+                  <option value="">{t('expenses.tripNone')}</option>
+                  {form.trip_id && !vehicleTrips.some(x => x.id === form.trip_id) && <option value={form.trip_id}>…</option>}
+                  {vehicleTrips.map(x => (
+                    <option key={x.id} value={x.id}>{[fmt(x.departs_at, 'd MMM yyyy'), t(`transport.dir.${x.direction}`), x.gig?.name].filter(Boolean).join(' · ')}</option>
+                  ))}
                 </select>
               </label>
             )}

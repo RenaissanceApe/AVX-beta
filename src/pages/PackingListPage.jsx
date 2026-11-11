@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Printer, PenLine } from 'lucide-react'
+import { ArrowLeft, Printer, PenLine, Truck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
 import { activeSteps, lineStep, stepCounts } from '../lib/inventory'
@@ -86,6 +86,7 @@ export default function PackingListPage() {
       <div className="toolbar">
         <button onClick={() => navigate(`/gig/${id}?tab=equipment`)} style={toolbarBtn}><ArrowLeft size={14} /> {t('callsheet.backToGig')}</button>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <button type="button" onClick={() => navigate(`/gig/${id}/loads`)} style={toolbarBtn}><Truck size={14} aria-hidden="true" /> {t('packing.perVehicle')}</button>
           {data.canSign && <button onClick={() => setSigning(true)} style={toolbarBtn}><PenLine size={14} aria-hidden="true" /> {t('delivery.sign')}</button>}
           <button onClick={() => window.print()} style={{ ...toolbarBtn, background: '#0B7A41', color: '#fff', border: 'none' }}><Printer size={14} /> {t('callsheet.print')}</button>
         </div>

@@ -224,6 +224,76 @@ checks in `supabase/tests/signatures.sql`. No delete statements.
 | Kept with the gig | A gig with signatures (hidden ones too) can't be erased: the app checks before removing anything (EditGigModal) and `gigs_keep_signatures` refuses it (`20270105000001_signatures_keep_gig.sql`, run by hand; checks in `supabase/tests/signatures_keep_gig.sql`). Cancel the gig instead. Erasing the whole organisation still takes its signatures with it. Accepted quotes can't reach the quote bin, so quote acceptances are safe from its nightly erase |
 | Later | Crew contracts (step 27) and the rigger's sign-off (RG4) use the same table, pad and PDF block: `kind` and the rules are already there |
 
+## How appointments work (step 23, part V2)
+
+Calendar items that aren't a gig: a **site visit**, a **meeting**, a **warehouse day** or **other**.
+Migrations `20270119000000_appointments.sql`, `20270119000001_appointments_select_fix.sql` and `20270119000002_appointments_leaving_fix.sql`; checks in `supabase/tests/appointments.sql`. Add-only,
+nothing is ever removed: appointments and invitations are marked (`removed_at`).
+
+| Piece | How it works |
+|---|---|
+| Tables | `appointments`: `org_id`, `kind`, `title`, `place`, `all_day`, `starts_at`/`ends_at` (timed) or `start_date`/`end_date` (all day, on the organisation's calendar), `notes`, optional `gig_id` and `client_id` (same organisation only), `created_by`, `removed_at`. `appointment_people`: (`appointment_id`, `user_id`), `added_by`, `removed_at` |
+| Who | Add and change: the organisation's planners, its admins and members (`can_quote`, the people who create gigs). See: planners, the creator and the people invited while they're on it (`private.can_see_appointment`). Invite: the organisation's members and anyone who has been crew on its gigs (`private.can_invite_to_org`). Viewers don't plan; they see the appointments they're invited to |
+| Time | Typed on the organisation's clock (U1): a day with from/until times (an end before the start runs past midnight), or whole days. All-day appointments move with the organisation's time zone, like gig days |
+| Busy | Each invited person gets a reservation (`person`, source `appointment`, `<appointment>:<user>`, no gig), cancelled when they're taken off or the appointment is cancelled. So appointments show in every clash check: the crew tab's ⚠, the invite warning, the gig form, My work's double-booking mark. `private.clashes` names it (kind `appointment`, its title and organisation) only to people who may see it; to everyone else it's "booked" |
+| Form | `AppointmentForm` (planners): kind, title, place, day and times or all day, people (with their other bookings via `appointment_clashes`, which only checks people who could be invited), gig, client, notes; **Cancel appointment** with a confirm step |
+| Notified | `appointment_invited` (also when invited again), `appointment_changed` (time, days or place), `appointment_cancelled` (the appointment, or `why: taken_off` for one person). Not the person who made the change. Push and the email summary follow each person's settings, like gig notifications; a muted organisation mutes them too |
+| Where | Organisation → **Appointments** (`/org/:id/appointments`), My work → **Appointments** (`/me/appointments`, every organisation), both calendars (a clock icon in the kind's colour), the gig's Overview and the client's card (linked ones, with **New appointment**), the calendar feed (`appointment-<id>`), notifications (`?a=<id>` opens it) |
+| Feed | `calendar-feed` also lists the person's appointments and, from their own reservations, the trips they drive or co-drive (V1's `trip_driver` / `trip_codriver`; the gig's name only for gigs they're on) |
+| Help | Term `appointment`; ⓘ `appointment-kind`, `appointment-invite`; page note `appointments`; guide `pm-site-visit` ("Plan a site visit") |
+
+## How vehicles and trips work (step 23, V1)
+
+Vehicles are bookable like crew and equipment: a trip books its vehicle and its driver in the
+reservations engine (docs/RESERVATIONS.md), so a van or driver used twice at once shows a clash.
+Migration `20270118000000_vehicles_trips.sql` (only adds; the shared `private.gigs_reservations`
+and `private.clashes` are not replaced); checks in `supabase/tests/vehicles.sql`.
+
+| Piece | How it works |
+|---|---|
+| Vehicles | `vehicles`: name, plate, `licence_category` (B, BE, C1, C1E, C, CE, D1, D1E, D, DE or none), `max_load_kg`, `volume_m3`, `cost_per_km`, `cost_per_day` (stored now; gig finance and the vehicle-use report read them later), notes, `removed_at`. Admins and members (`can_quote`) see and manage them in **Inventory → Vehicles**, with each vehicle's coming trips. Removing marks it: it can't be picked for new trips, old trips keep it. Planners who aren't org members pick through `gig_vehicle_choices(gig)` (no costs) |
+| Trips | `trips`: one leg per row, `direction` out / back / one_way, `vehicle_id`, `driver_id`, `co_driver_id`, `passenger_ids` (all on the gig's crew), `departs_at`, `arrives_at` (after it, at most 7 days), places, `km`, note, `licence_override`, `removed_at`. Everyone on the gig sees them (`can_access_gig`); the gig's managers and the organisation's admins and members plan them (`private.can_plan_transport`). The gig's **Transport** tab lists them with times on the organisation's clock; "Plan the way back too" or the return button adds the back leg. `gig_trips(gig)` gives each trip with its vehicle's name, plate, licence and capacity (never the costs) and, for planners only, the licence status and clashes |
+| Bookings | Triggers keep one reservation per role and trip: `vehicle`/`trip`, `person`/`trip_driver`, `person`/`trip_codriver` (source id = the trip), for the trip's times, status from the gig's (draft = hold, archived or cancelled = cancelled), cancelled when the trip is removed or the role emptied. A gig's status change re-syncs its trips (`trips_reservations_sync`, its own trigger on `gigs`); a renamed vehicle relabels them. So a driver's trip shows where crew bookings already show: other gigs' Crew tab clashes, My work's double bookings and Find crew's busy |
+| Clashes | `transport_clashes(gig, trip, vehicle, driver, co_driver, from, until)` for planners while they fill the form, and in `gig_trips`: other non-cancelled reservations of the vehicle and people in that time, without the trip's own rows and the driver's own crew booking on this gig; gig names only where the caller can see the gig. A warning, never a block |
+| Licence | `driving_licences` (one row per person, `categories`), set in **Settings → Profile → Driving licence**. Read by the person and the admins of an organisation they belong to (`private.is_admin_of`; shown on the person page). Planners who aren't admins only get ok / missing / unknown (`driver_licence_check`, `licence_status` in `gig_trips`). The rule (`private.licence_covers`, `licenceCovers` in `src/lib/transport.js`): a category covers itself; C covers C1; CE covers C, C1E and BE; C1E covers BE and C1; D covers D1; DE covers D, D1E and BE; any C or D category means B. Missing or unknown is a warning the planner overrides by ticking "I've checked"; the trip keeps `licence_override` |
+| Driving hours | `time_entries.driving_minutes` (0–1440) next to travel. The day form fills it from the gig's trips where the person drives that day (`drivingMinutes`, split across midnight on the organisation's clock); `review_time_entry` stores `split.driving`. Priced like travel: at the plain hourly rate (`entryCost`). Totals and the hours CSV show driving apart from the hours on site |
+| Later in step 23 | Packing list per vehicle with weight against capacity (V3); transport cost into gig finance, expenses linked to a vehicle and the vehicle-use report (V4) read `max_load_kg`, `volume_m3`, `cost_per_km`, `cost_per_day` and the trips' `km`; appointments (V2) |
+
+## How transport costs work (step 23, V4)
+
+What a gig's trips cost, for those who see money (admins and members, D23; `private.require_finance`).
+Migration `20270123000000_vehicle_costs.sql` (only adds; `gig_finance` and the export function are
+renamed and wrapped); checks in `supabase/tests/vehicle_costs.sql` and `account_closing.sql`.
+
+| Piece | How it works |
+|---|---|
+| The rule | Per vehicle on a gig: km of its live trips × `cost_per_km` + days used × `cost_per_day`. A **day is used** when at least one of the gig's live trips with that vehicle is under way on it, on the organisation's clock: a trip over midnight uses both days, several trips on one day use it once, an arrival at exactly midnight doesn't use the next day (the owner's choice, 2026-11-11: driving days only, not the days parked at the venue). Trips without a vehicle cost nothing; a trip without km counts its days only and is listed as "km missing". The vehicle's current rates are used, as the rate card is for labour |
+| Gig finance | `private.gig_transport(org, gigs)` (security definer, finance check first) gives one row per gig and vehicle. `public.gig_finance` is the step-10 body (`private.gig_finance_pre_v4`, from `20270102000001_quote_bin.sql`) wrapped: the same columns, then `transport`, `transport_km`, `transport_trips`, `transport_km_missing`; `cost`, `margin` and `margin_pct` include transport. So the gig's finance panel, Gig margins (and its CSV), the Overview margin tiles, gig cards, the gig wrap-up and the `gig_finance` export file all include it. `finance_results` (K2, the company's money results) is unchanged: it adds up real expenses, and the running cost is an internal estimate (the owner's choice, 2026-11-11) |
+| Transport tab | `components/gig/TransportCosts.jsx`, its own block under the trips, for admins and members (not in simple mode): per vehicle its trips, km, days used, rates and running cost, the total, "km missing" and a link to set missing rates. `public.gig_transport_cost(gig)` |
+| Expenses | `expenses.vehicle_id` and `trip_id` (optional). A trip gives its vehicle and fills in its gig; another vehicle or gig than the trip's, a removed trip, a trip without a vehicle, or another organisation's vehicle or trip are refused (`private.expense_vehicle_gig`). A vehicle is one more linked record: never with a subrental, repair, crew fee or stock purchase, and never on a claim (trigger `expenses_vehicle_before`, after `expenses_before`). Many expenses per vehicle or trip. Linked to a gig they stay in its **other costs**, on top of the running cost (the owner's choice: leave fuel out of the cost per km if fuel receipts are logged; the vehicle form says so). The expense form shows "Vehicle" and "Trip (optional)" when nothing else is linked |
+| Report | Reports → **Vehicle use** (`components/reports/VehicleUseReport.jsx`, tab `vehicles`, menu Reports → Vehicle use): `public.vehicle_use(org, from, until)` per vehicle: trips departing in the period, gigs, km, km missing, days used inside the period (across gigs, each day once per vehicle), load against capacity, running cost, confirmed expenses linked to it spent in the period (`private.expense_costs`, euros; other currencies apart), total. Live vehicles always have a row; removed ones when used or with expenses. Tiles (vehicle cost, km, days used, with comparison), cost by vehicle chart, details table, CSV, print. Load (`load_kg`, follow-up migration `20270123000001_vehicle_use_loads.sql`) is the heaviest load of the vehicle's trips in the period from V3's `vehicle_loads`: each unit at its known weight, a case with its contents' (as `vehicleLoads.js`), shown as a share of `max_load_kg`; "not recorded" when no trip has a load |
+| Export | Organisation export files `vehicles`, `trips` (live ones, with driver, co-driver and passenger names) and `vehicle_expenses` (export function renamed `export_org_part_pre_v4` and wrapped) |
+| Account closing | `private.vehicles_before` and `private.trips_before` let a closed account's `created_by`, `driver_id` and `co_driver_id` be emptied (also on a removed trip), as 0.82.4 does for other tables |
+| JS twin | `src/lib/transportCost.js` (`tripDays`, `gigTransport`, `vehicleUse`, `vehicleUseTotals`, `loadShare`); `gigFinanceRow` takes `trips`, `vehicles`, `timeZone`. `src/lib/transportCostFixtures.json` is shared with the database test (a Vitest test keeps the copy equal) |
+| Help | Term "Transport cost", ⓘ `transport-cost` and `expense-vehicle`, the `vehicle-costs` hint now says to leave fuel out when receipts are logged, guide `office-vehicle-costs` (no pictures yet) |
+## How the packing list per vehicle works (step 23, V3)
+
+Which cases and items ride in which vehicle on a gig's outward trips, with weight and volume against
+each vehicle's capacity. Migrations `20270122000000_vehicle_loads.sql` and
+`20270122000001_vehicle_loads_select_fix.sql` (only add); checks in `supabase/tests/vehicle_loads.sql`.
+Logic in `src/lib/vehicleLoads.js` (tested in `vehicleLoads.test.js`).
+
+| Piece | How it works |
+|---|---|
+| Figures | Weight from `price_items.weight_kg`; volume from the new `price_items.volume_m3` (Edit item → Volume), else read from the item's dimensions when they have three numbers and one unit ("60 × 40 × 35 cm"). Anything missing is **unknown**: totals add what's known and count the rest ("+ 3 without weight"), never as zero |
+| Cases | A case on the list travels whole: one case is one unit, weighing its own weight plus its contents' (`item_parts` content), with its own volume. The contents it holds leave the loose part of their lines; the rest of a line can be split freely |
+| Table | `vehicle_loads`: (`trip_id`, `item_id`) → `quantity` (0 = taken off; rows are never removed), `updated_by`, `updated_at`. Seen by everyone on the gig and whoever may scan out (`private.can_see_vehicle_loads`); written only by `set_vehicle_loads(gig, loads)`, which takes the whole plan, checks each trip is an outward trip with a vehicle on this gig, each item is on the list and no item is loaded more than planned, and sets the rest to 0. No trigger, so account closing just empties `updated_by` |
+| Read | `gig_load_plan(gig)`: outward trips (out and one way, not removed) with vehicle name, plate and capacity (no costs), the equipment lines with weight, volume, dimensions and kit type, case contents, the loads, and whether the caller plans transport (`can_plan_transport`) |
+| Page | Gig → Transport → **Packing list per vehicle** (`/gig/:id/loads`; also from the packing list and the scan screen). A card per vehicle with weight and volume bars against its maximum, an "Over capacity" mark and the overload in words, and "Not in a vehicle yet" below. Planners move any number of a line with **Move to…** |
+| Suggestion | **Suggest a split** (`suggestSplit`): heaviest and bulkiest first (as a share of the fleet's capacity), each unit into the vehicle that ends up least full while still within capacity; if none has room, into the least full one, reported over. Cases stay whole. Units with neither figure go where there are fewest so far. Shown in a preview; **Apply this split** saves it |
+| Scan out | The scan screen has a **Vehicle** picker (`?vehicle=<trip>`) once loads exist: the list shows only what goes in that vehicle (cases' contents included) and how many. The counts are still the gig's: the scan log doesn't record a vehicle |
+| Help | Term `vehicle-load`; ⓘ `item-volume`, `load-split`, `load-unknown`; guide `pm-vehicle-load` ("Split the packing list across vehicles") |
+
 ## Planned
 
 Specs for the business steps still to build, in ROADMAP.md order. Each is a starting point: the
@@ -238,19 +308,6 @@ questions marked "Ask" before outlining the migration**. When built, the spec is
   the page is read-only and printable.
 - From StageKit: start the input list, mixes and stage plot **from the line-up** (band members and
   their instruments), and a **readiness check** before sending (missing inputs, no power plan…).
-
-### 23 · Vehicles and transport [8], appointments [9]
-
-- **Vehicles** as bookable resources in the reservations engine (docs/RESERVATIONS.md): plate,
-  capacity (kg, m³), driver licence needed. **Trips** on a gig (out/back, vehicle, driver, times),
-  the packing list split per vehicle with weight against capacity, clashes when a van or driver is
-  double-booked.
-- **Appointments:** non-gig calendar items (site visit, meeting, warehouse day) with people, shown in
-  calendars, clashes and the calendar feed.
-- **Costs:** running cost per km and per day on each vehicle and km on each trip, so transport cost
-  goes into gig finance; expenses (9b) can link to a vehicle (fuel, tolls, repairs).
-- **Vehicle use** report in the Reports area (trips, km, days used, load against capacity): the
-  vehicle part of the old step 24.
 
 ### 24 · Reports [11]
 

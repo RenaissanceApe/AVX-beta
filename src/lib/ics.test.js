@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildCalendar, gigEvent, leaveEvent, escapeText, fold, feedZone } from '../../supabase/functions/_shared/ics.ts'
+import { buildCalendar, gigEvent, leaveEvent, appointmentEvent, tripEvent, escapeText, fold, feedZone } from '../../supabase/functions/_shared/ics.ts'
 
 const APP = 'https://avx-beta.vercel.app'
 const NOW = new Date('2026-10-21T12:00:00Z')
@@ -74,5 +74,27 @@ describe('calendar feed', () => {
     expect(cal).toContain('DTSTART;VALUE=DATE:20270110')
     expect(cal).toContain('Call time: 09:30\\n')
     expect(cal).toContain('Call time: 08:00 (Europe/London)')
+  })
+
+  it('adds appointments with real times or whole days', () => {
+    const timed = appointmentEvent({ id: 'a1', kind: 'site_visit', title: 'Venue walk, stage left', place: 'Coliseu', all_day: false,
+      starts_at: '2027-01-10T14:30:00Z', ends_at: '2027-01-10T16:00:00Z', org: 'Lumen' }, 'en', APP, NOW).join('\n')
+    expect(timed).toContain('UID:appointment-a1@avx')
+    expect(timed).toContain('DTSTART:20270110T143000Z')
+    expect(timed).toContain('SUMMARY:Venue walk\\, stage left · Lumen')
+    expect(timed).toContain('LOCATION:Coliseu')
+    expect(timed).toContain('DESCRIPTION:Site visit\\n')
+    const day = { id: 'a2', kind: 'warehouse', title: 'Prep', all_day: true, start_date: '2027-01-11', end_date: '2027-01-12' }
+    expect(appointmentEvent(day, 'pt', APP, NOW).join('\n')).toContain('DTEND;VALUE=DATE:20270113')
+    expect(appointmentEvent({ ...day, start_date: null }, 'en', APP, NOW)).toEqual([])
+    expect(buildCalendar([], 'en', APP, NOW, [], undefined, [day])).toContain('UID:appointment-a2@avx')
+  })
+
+  it('adds the trips the person drives', () => {
+    const ev = tripEvent({ id: 'r1', role: 'codriver', starts_at: '2027-01-10T08:00:00Z', ends_at: '2027-01-10T12:00:00Z', gig_id: 'g1', gig: 'Festival', label: 'Van 1', status: 'hold' }, 'en', APP, NOW).join('\n')
+    expect(ev).toContain('UID:trip-r1@avx')
+    expect(ev).toContain('SUMMARY:Co-driving · Festival · Van 1')
+    expect(ev).toContain('STATUS:TENTATIVE')
+    expect(buildCalendar([], 'pt', APP, NOW, [], undefined, [], [{ id: 'r2', role: 'driver', starts_at: '2027-01-10T08:00:00Z', ends_at: '2027-01-10T09:00:00Z' }])).toContain('SUMMARY:A conduzir')
   })
 })

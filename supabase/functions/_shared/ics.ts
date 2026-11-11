@@ -30,9 +30,36 @@ export type FeedLeave = {
   org?: string | null
 }
 
+// Appointments the person is invited to (step 23, V2): site visits, meetings, warehouse days
+export type FeedAppointment = {
+  id: string
+  kind: string // site_visit | meeting | warehouse | other
+  title: string
+  place?: string | null
+  all_day: boolean
+  starts_at?: string | null // timed
+  ends_at?: string | null
+  start_date?: string | null // all day, on the organisation's calendar
+  end_date?: string | null
+  notes?: string | null
+  org?: string | null
+}
+
+// The person's own driving on a gig (step 23, V1's trips), from their reservations
+export type FeedTrip = {
+  id: string // the reservation's id
+  role: 'driver' | 'codriver'
+  starts_at: string
+  ends_at: string
+  gig_id?: string | null
+  gig?: string | null
+  label?: string | null // what V1 wrote on the reservation (e.g. the vehicle or the leg)
+  status?: string | null // hold | confirmed
+}
+
 const WORDS: Record<FeedLang, Record<string, string>> = {
-  en: { holiday: 'Holiday', sick: 'Sick', training: 'Training', other: 'Unavailable', morning: 'morning', afternoon: 'afternoon', calendar: 'AVX gigs', call: 'Call time', role: 'Role', open: 'Open in AVX', draft: 'Draft (not confirmed yet)', pm: 'Production manager', crew: 'Crew', viewer: 'Viewer', hours: 'Your hours', approved: 'approved', waiting: 'waiting for approval', returned: 'sent back' },
-  pt: { holiday: 'Férias', sick: 'Baixa', training: 'Formação', other: 'Indisponível', morning: 'manhã', afternoon: 'tarde', calendar: 'Eventos AVX', call: 'Hora de chamada', role: 'Papel', open: 'Abrir no AVX', draft: 'Rascunho (ainda não confirmado)', pm: 'Diretor de produção', crew: 'Equipa', viewer: 'Leitor', hours: 'As suas horas', approved: 'aprovadas', waiting: 'a aguardar aprovação', returned: 'devolvidas' },
+  en: { holiday: 'Holiday', sick: 'Sick', training: 'Training', other: 'Unavailable', morning: 'morning', afternoon: 'afternoon', calendar: 'AVX gigs', call: 'Call time', role: 'Role', open: 'Open in AVX', draft: 'Draft (not confirmed yet)', pm: 'Production manager', crew: 'Crew', viewer: 'Viewer', hours: 'Your hours', approved: 'approved', waiting: 'waiting for approval', returned: 'sent back', site_visit: 'Site visit', meeting: 'Meeting', warehouse: 'Warehouse day', appointment: 'Appointment', driver: 'Driving', codriver: 'Co-driving' },
+  pt: { holiday: 'Férias', sick: 'Baixa', training: 'Formação', other: 'Indisponível', morning: 'manhã', afternoon: 'tarde', calendar: 'Eventos AVX', call: 'Hora de chamada', role: 'Papel', open: 'Abrir no AVX', draft: 'Rascunho (ainda não confirmado)', pm: 'Diretor de produção', crew: 'Equipa', viewer: 'Leitor', hours: 'As suas horas', approved: 'aprovadas', waiting: 'a aguardar aprovação', returned: 'devolvidas', site_visit: 'Visita ao local', meeting: 'Reunião', warehouse: 'Dia de armazém', appointment: 'Compromisso', driver: 'A conduzir', codriver: 'Segundo condutor' },
 }
 
 // Text values: backslash, semicolon, comma and line breaks escaped (RFC 5545 3.3.11)
@@ -112,7 +139,38 @@ export function leaveEvent(l: FeedLeave, lang: FeedLang, now: Date) {
   ]
 }
 
-export function buildCalendar(gigs: FeedGig[], lang: FeedLang, appUrl: string, now = new Date(), leave: FeedLeave[] = [], zone = feedZone(gigs)) {
+// One VEVENT per appointment: real times, or whole days when it's all day
+export function appointmentEvent(a: FeedAppointment, lang: FeedLang, appUrl: string, now: Date) {
+  const w = WORDS[lang] || WORDS.en
+  const lines = ['BEGIN:VEVENT', `UID:appointment-${a.id}@avx`, `DTSTAMP:${utcValue(now.toISOString())}`]
+  if (a.all_day && a.start_date) {
+    lines.push(`DTSTART;VALUE=DATE:${dateValue(a.start_date)}`, `DTEND;VALUE=DATE:${dateValue(nextDay(a.end_date || a.start_date))}`)
+  } else if (!a.all_day && a.starts_at && a.ends_at) {
+    lines.push(`DTSTART:${utcValue(a.starts_at)}`, `DTEND:${utcValue(a.ends_at)}`)
+  } else {
+    return []
+  }
+  lines.push(`SUMMARY:${escapeText([a.title, a.org].filter(Boolean).join(' · '))}`)
+  if (a.place) lines.push(`LOCATION:${escapeText(a.place)}`)
+  const url = `${appUrl}/me/appointments?a=${a.id}`
+  const description = [w[a.kind] || w.appointment, a.notes || null, `${w.open}: ${url}`].filter(Boolean).join('\n')
+  lines.push(`DESCRIPTION:${escapeText(description)}`, `URL:${url}`, 'STATUS:CONFIRMED', 'END:VEVENT')
+  return lines
+}
+
+// One VEVENT per trip the person drives (or co-drives)
+export function tripEvent(tr: FeedTrip, lang: FeedLang, appUrl: string, now: Date) {
+  const w = WORDS[lang] || WORDS.en
+  if (!tr.starts_at || !tr.ends_at) return []
+  const title = [w[tr.role] || w.driver, tr.gig, tr.label].filter(Boolean).join(' · ')
+  const lines = ['BEGIN:VEVENT', `UID:trip-${tr.id}@avx`, `DTSTAMP:${utcValue(now.toISOString())}`,
+    `DTSTART:${utcValue(tr.starts_at)}`, `DTEND:${utcValue(tr.ends_at)}`, `SUMMARY:${escapeText(title)}`]
+  if (tr.gig_id) lines.push(`DESCRIPTION:${escapeText(`${w.open}: ${appUrl}/gig/${tr.gig_id}`)}`, `URL:${appUrl}/gig/${tr.gig_id}`)
+  lines.push(`STATUS:${tr.status === 'hold' ? 'TENTATIVE' : 'CONFIRMED'}`, 'END:VEVENT')
+  return lines
+}
+
+export function buildCalendar(gigs: FeedGig[], lang: FeedLang, appUrl: string, now = new Date(), leave: FeedLeave[] = [], zone = feedZone(gigs), appointments: FeedAppointment[] = [], trips: FeedTrip[] = []) {
   const w = WORDS[lang] || WORDS.en
   const lines = [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//AVX//Gigs//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
@@ -123,6 +181,8 @@ export function buildCalendar(gigs: FeedGig[], lang: FeedLang, appUrl: string, n
     lines.push(...gigEvent(g, lang, appUrl, now, zone))
   }
   for (const l of leave) lines.push(...leaveEvent(l, lang, now))
+  for (const a of appointments) lines.push(...appointmentEvent(a, lang, appUrl, now))
+  for (const tr of trips) lines.push(...tripEvent(tr, lang, appUrl, now))
   lines.push('END:VCALENDAR')
   return lines.map(fold).join('\r\n') + '\r\n'
 }

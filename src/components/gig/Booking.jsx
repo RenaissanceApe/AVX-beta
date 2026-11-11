@@ -20,7 +20,7 @@ const smallBtn = { ...btn, padding: '4px 12px', fontSize: '13px' }
 // their time on this gig, with the state of any "are you available?" request.
 export function ClashBox({ name, clashes, request, canAsk, onAsk, onWithdraw, timeZone }) {
   const { ago } = useI18n()
-  const booked = clashes.some(c => c.kind === 'booked')
+  const booked = clashes.some(c => c.kind !== 'unavailable') // a gig or an appointment
   return (
     <div role="status" style={box}>
       <strong style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontWeight: 600 }}>

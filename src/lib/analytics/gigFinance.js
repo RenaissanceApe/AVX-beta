@@ -1,6 +1,7 @@
 import { round2 } from '../quotes'
 import { resolveRate, bookedDays, suggestFee, feeTotal, callFee } from '../crewRates'
 import { quoteRevenueLines } from './revenue'
+import { gigTransport } from '../transportCost'
 
 // Gig finance (step 10, docs/BUSINESS.md). The JS twin of public.gig_finance
 // (supabase/migrations/20261221000000_gig_finance.sql); both are checked against the same fixtures
@@ -16,6 +17,10 @@ import { quoteRevenueLines } from './revenue'
 //   subrentals  confirmed or returned (supplier's price, else the lines); a linked expense replaces it
 //   repairs     on the gig, not charged to the client; a linked expense replaces the cost
 //   other costs confirmed gig expenses not linked to anything above, capital ones left out
+//               (an expense linked to a vehicle or trip counts here too)
+//   transport   the gig's trips: km × cost per km + days used × cost per day, per vehicle (step 23,
+//               V4: src/lib/transportCost.js, the twin of private.gig_transport; wrapped around
+//               this body by 20270123000000_vehicle_costs.sql)
 //   margin      revenue − cost; margin % when there is revenue
 
 const EUR = 'EUR'
@@ -58,7 +63,7 @@ export function gigLabour({ gig, members, fees, rates, factors, entries, invoice
 
 // One gig's finance row, from its records (each list holds only this gig's rows, as the database
 // reads them; expenses carry their category and the organisation's VAT setting through `cost`)
-export function gigFinanceRow({ gig, quotes, members, fees, rates, factors, entries, subrentals, repairs, expenses }) {
+export function gigFinanceRow({ gig, quotes, members, fees, rates, factors, entries, subrentals, repairs, expenses, trips, vehicles, timeZone }) {
   const counted = countedQuotes(quotes)
   const lines = counted.quotes.flatMap(q => quoteRevenueLines(q, gig))
   const revenue = sum(lines.filter(l => l.currency === EUR), l => l.amount)
@@ -96,7 +101,8 @@ export function gigFinanceRow({ gig, quotes, members, fees, rates, factors, entr
   const subTotal = sum(subrentals_)
   const repairTotal = sum(repairsAll.filter(r => !r.charged), r => r.amount)
   const otherTotal = sum(others.filter(e => e.currency === EUR), e => e.cost)
-  const cost = round2(labour.labour + subTotal + repairTotal + otherTotal)
+  const transport = gigTransport({ trips: (trips || []).filter(t => !t.gig_id || t.gig_id === gig.id), vehicles, timeZone })
+  const cost = round2(labour.labour + subTotal + repairTotal + otherTotal + transport.transport)
   const margin = round2(revenue - cost)
   const otherCurrencies = Object.fromEntries(Object.entries(other).filter(([, v]) => Object.keys(v).length))
   return {
@@ -108,6 +114,8 @@ export function gigFinanceRow({ gig, quotes, members, fees, rates, factors, entr
     other_costs: otherTotal, cost, estimated_cost: labour.estimated, margin,
     margin_pct: revenue > 0 ? round1((margin * 100) / revenue) : null,
     other_currencies: Object.keys(otherCurrencies).length ? otherCurrencies : null,
+    transport: transport.transport, transport_km: transport.transport_km, transport_trips: transport.transport_trips,
+    transport_km_missing: transport.transport_km_missing,
   }
 }
 

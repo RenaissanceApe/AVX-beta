@@ -113,6 +113,7 @@ export default function HoursPage() {
               <span>{t('hours.total')}: <strong>{hoursText(all.worked, lang)}</strong></span>
               {['overtime', 'night', 'weekend', 'holiday'].filter(b => all[b] > 0).map(b => <span key={b} style={{ color: colors.muted }}>{t(`hours.bucket.${b}`)} {hoursText(all[b], lang)}</span>)}
               {all.travel > 0 && <span style={{ color: colors.muted }}>{t('hours.travel')} {hoursText(all.travel, lang)}</span>}
+              {all.driving > 0 && <span style={{ color: colors.muted }}>{t('hours.driving')} {hoursText(all.driving, lang)}</span>}
               {all.km > 0 && <span style={{ color: colors.muted }}>{all.km.toLocaleString(lang === 'pt' ? 'pt-PT' : 'en-GB')} km</span>}
               {all.cost > 0 && <span>{isOrg ? t('hours.approvedCost') : t('hours.approvedPay')}: <strong>{money(all.cost, lang)}</strong></span>}
             </p>

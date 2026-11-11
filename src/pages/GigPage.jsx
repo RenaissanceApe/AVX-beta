@@ -14,8 +14,10 @@ import ScheduleTab from '../components/gig/ScheduleTab'
 import AssetsTab from '../components/gig/AssetsTab'
 import CrewTab from '../components/gig/CrewTab'
 import GigFinancePanel from '../components/gig/GigFinancePanel'
+import { LinkedAppointments } from '../components/appointments/AppointmentParts'
 import GigWrapupLink from '../components/gig/GigWrapupLink'
 import EquipmentTab from '../components/gig/EquipmentTab'
+import TransportTab from '../components/gig/TransportTab'
 import UpdatesTab from '../components/gig/UpdatesTab'
 import ToolsTab from '../components/gig/ToolsTab'
 import ChatTab from '../components/gig/ChatTab'
@@ -262,6 +264,10 @@ export default function GigPage() {
               canUpload={canUpload} isPM={isPM} nameOf={nameOf} setTab={setTab} onOpenAsset={setVersionsAsset}
               openUpload={() => { setTab('assets'); setShowUpload(true) }}
               openInvite={() => { setTab('crew'); setShowInvite(true) }} />
+            {gig.org_id && (
+              <LinkedAppointments orgId={gig.org_id} gigId={gig.id} timeZone={orgs.find(o => o.id === gig.org_id)?.time_zone}
+                canPlan={orgRole === 'admin' || orgRole === 'member'} />
+            )}
             {!simple && gig.org_id && (orgRole === 'admin' || orgRole === 'member') && (
               <GigFinancePanel gig={gig} members={members} canManage={isPM} />
             )}
@@ -286,6 +292,12 @@ export default function GigPage() {
         {tab === 'equipment' && (
           <EquipmentTab gig={gig} org={orgs.find(o => o.id === gig.org_id) || {}}
             canEdit={isPM || orgRole === 'admin' || orgRole === 'member'} canAdd={orgRole === 'admin' || orgRole === 'member'} />
+        )}
+        {tab === 'transport' && (
+          <TransportTab gig={gig} members={members} nameOf={nameOf} userId={user.id}
+            canPlan={isPM || orgRole === 'admin' || orgRole === 'member'} canSeeVehicles={orgRole === 'admin' || orgRole === 'member'}
+            canSeeMoney={!simple && (orgRole === 'admin' || orgRole === 'member')}
+            timeZone={orgs.find(o => o.id === gig.org_id)?.time_zone} />
         )}
         {tab === 'chat' && <ChatTab gigId={id} canPost={isPM || ['pm', 'crew'].includes(myMembership?.role)} />}
         {tab === 'tools' && (
