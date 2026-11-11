@@ -29,7 +29,7 @@ export function liveAccount(role) {
     !email && (role === 'manager' ? 'LIVE_MANAGER_EMAIL' : 'LIVE_CREW_EMAIL'),
     !password && 'LIVE_PASSWORD',
   ].filter(Boolean)
-  if (missing.length) throw new Error(`Live check: missing ${missing.join(' and ')} (set them as GitHub Actions secrets)`)
+  if (missing.length) throw new Error(`Live check: missing ${missing.join(' and ')} (GitHub Actions secrets)`)
   return { email, password }
 }
 
