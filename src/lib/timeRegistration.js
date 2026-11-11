@@ -90,7 +90,7 @@ function inNight(minuteOfDay, from, until) {
 const PRIORITY = { holiday: 4, weekend: 3, overtime: 2, night: 1, normal: 0 }
 
 // The split of one logged day, in hours: { normal, overtime, night, weekend, holiday, worked,
-// travel, km }. Null when the times are missing or the break is longer than the shift.
+// travel, driving, km }. Null when the times are missing or the break is longer than the shift.
 export function splitEntry(entry, factors = DEFAULT_FACTORS, orgHolidays = []) {
   const span = spanMinutes(entry?.start_time, entry?.end_time)
   const brk = Math.max(0, Math.round(Number(entry?.break_minutes) || 0))
@@ -133,6 +133,7 @@ export function splitEntry(entry, factors = DEFAULT_FACTORS, orgHolidays = []) {
   const out = Object.fromEntries(BUCKETS.map(b => [b, h(counts[b])]))
   out.worked = h(span - brk)
   out.travel = h(Math.max(0, Number(entry.travel_minutes) || 0))
+  out.driving = h(Math.max(0, Number(entry.driving_minutes) || 0))
   out.km = round2(Math.max(0, Number(entry.km) || 0))
   return out
 }
@@ -165,7 +166,8 @@ export function entryCost(split, price, factors = DEFAULT_FACTORS) {
     cost += split.overtime * hourly * factor('overtime')
     for (const b of ['night', 'weekend', 'holiday']) cost += split[b] * hourly * (factor(b) - 1)
   }
-  cost += split.travel * hourly + km
+  // Travel and driving (step 23) at the plain hourly rate
+  cost += (split.travel + (Number(split.driving) || 0)) * hourly + km
   return { unit: price.unit, rate: price.rate, hourly: round2(hourly), cost: round2(cost) }
 }
 
@@ -181,17 +183,19 @@ export function personActual(entries, fee) {
 
 // Hours totals over a list of entries (approved ones carry their stored split)
 export function totals(entries, factors, orgHolidays) {
-  const out = Object.fromEntries([...BUCKETS, 'worked', 'travel', 'km', 'cost'].map(k => [k, 0]))
-  let travelMinutes = 0
+  const out = Object.fromEntries([...BUCKETS, 'worked', 'travel', 'driving', 'km', 'cost'].map(k => [k, 0]))
+  let travelMinutes = 0, drivingMinutes = 0
   for (const e of entries || []) {
     if (e.removed_at) continue
     const s = e.status === 'approved' && e.split ? e.split : splitEntry(e, factors, orgHolidays)
     if (!s) continue
     for (const k of [...BUCKETS, 'worked', 'km']) out[k] = round2(out[k] + (Number(s[k]) || 0))
     travelMinutes += e.travel_minutes != null ? Number(e.travel_minutes) || 0 : (Number(s.travel) || 0) * 60
+    drivingMinutes += e.driving_minutes != null ? Number(e.driving_minutes) || 0 : (Number(s.driving) || 0) * 60
     if (e.status === 'approved') out.cost = round2(out.cost + (Number(e.cost) || 0))
   }
   out.travel = round2(travelMinutes / 60)
+  out.driving = round2(drivingMinutes / 60)
   return out
 }
 
@@ -222,7 +226,7 @@ export function csvRows(entries, names = {}) {
     return {
       date: e.work_date, gig: e.gig_name ?? '', name: names[e.user_id] ?? '', start: String(e.start_time ?? '').slice(0, 5),
       end: String(e.end_time ?? '').slice(0, 5), break_minutes: e.break_minutes ?? 0, travel_minutes: e.travel_minutes ?? 0,
-      km: e.km ?? 0, status: e.status, normal: s.normal ?? '', overtime: s.overtime ?? '', night: s.night ?? '',
+      driving_minutes: e.driving_minutes ?? 0, km: e.km ?? 0, status: e.status, normal: s.normal ?? '', overtime: s.overtime ?? '', night: s.night ?? '',
       weekend: s.weekend ?? '', holiday: s.holiday ?? '', cost: e.status === 'approved' ? (e.cost ?? '') : '',
     }
   })

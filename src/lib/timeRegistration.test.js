@@ -61,6 +61,8 @@ describe('split', () => {
     expect(splitEntry({ work_date: '2026-12-02', start_time: '09:00', end_time: '10:00', travel_minutes: 90, km: 42.5 }, factors))
       .toMatchObject({ worked: 1, travel: 1.5, km: 42.5 })
     expect(splitEntry({ work_date: '2026-12-02', start_time: '09:00', end_time: '10:00', break_minutes: 60 }, factors)).toBe(null)
+    expect(splitEntry({ work_date: '2026-12-02', start_time: '09:00', end_time: '10:00', driving_minutes: 150 }, factors))
+      .toMatchObject({ worked: 1, driving: 2.5, travel: 0 })
     expect(splitEntry({ work_date: '2026-12-02', start_time: '', end_time: '10:00' }, factors)).toBe(null)
   })
 })
@@ -76,6 +78,10 @@ describe('cost', () => {
   it('hour fee: hours × rate × factor, travel plain, km at the km rate', () => {
     // 7×20 + 3×20×1.25 + 1×20×1.5 + 1×20 + 50×0.36
     expect(entryCost(split, { unit: 'hour', rate: 20 }, factors).cost).toBe(140 + 75 + 30 + 20 + 18)
+  })
+  it('driving hours are priced like travel, at the plain hourly rate', () => {
+    expect(entryCost({ ...split, driving: 2 }, { unit: 'hour', rate: 20 }, factors).cost).toBe(140 + 75 + 30 + 20 + 18 + 40)
+    expect(entryCost({ ...split, driving: 2 }, { unit: 'day', rate: 300 }, factors).cost).toBe(300 + 45 + 22.5 + 30 + 18 + 60)
   })
   it('day fee: the day rate plus extras at the hourly equivalent', () => {
     // 300 + 1×30×1.5 + 3×30×0.25 + 1×30 + 18
@@ -102,6 +108,9 @@ describe('totals, prefill and CSV', () => {
     const two = [{ status: 'submitted', work_date: '2026-12-02', start_time: '09:00', end_time: '10:00', travel_minutes: 40 },
       { status: 'submitted', work_date: '2026-12-03', start_time: '09:00', end_time: '10:00', travel_minutes: 40 }]
     expect(totals(two, factors).travel).toBe(1.33)
+    const driven = [{ status: 'submitted', work_date: '2026-12-02', start_time: '09:00', end_time: '10:00', driving_minutes: 90 },
+      { status: 'approved', split: { normal: 1, worked: 1, driving: 0.5 }, cost: 10 }]
+    expect(totals(driven, factors).driving).toBe(2)
   })
   it('prefills from the schedule for the day', () => {
     const schedule = [{ day: '2026-12-04', start_time: '10:00:00', end_time: '12:00:00' }, { day: '2026-12-04', start_time: '20:00:00', end_time: '23:30:00' }]
