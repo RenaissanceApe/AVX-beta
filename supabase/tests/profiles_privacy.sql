@@ -1,4 +1,4 @@
--- Checks for migration 20270120000000_profiles_privacy.sql (issue #188).
+-- Checks for migrations 20270120000000_profiles_privacy.sql and 20270120000001_profiles_privacy_columns.sql (issue #188).
 -- Run in the TEST project's SQL editor. Rolls itself back; ends with
 --   "ALL PROFILES PRIVACY CHECKS PASSED"  → good
 -- Who: a = admin of Show Co, m = member of Show Co, c = freelance crew on Show Co's gig (not a member),
@@ -32,6 +32,7 @@ begin
   set local role authenticated;
   insert into organisations (name, created_by) values ('Other Co', x) returning id into org_x;
   reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   insert into org_members (org_id, user_id, role) values (org_a, m, 'member');
   insert into gigs (org_id, name, created_by) values (org_a, 'Privacy Gig', a) returning id into gig;
   insert into gig_members (gig_id, user_id, role) values (gig, c, 'crew'), (gig, c2, 'crew');
@@ -87,8 +88,11 @@ begin
   if n <> 3 then raise exception 'FAIL 2.4: crew sees % of co-crew + company, expected 3', n; end if;
   select count(*) into n from profiles where id in (f, x, s);
   if n <> 0 then raise exception 'FAIL 2.5: crew sees % unrelated profiles', n; end if;
-  select count(*) into n from gig_crew_phones(gig);
-  if n <> 1 then raise exception 'FAIL 2.6: crew got % gig phones, expected 1 (only c has one)', n; end if;
+  -- c and a (the gig's creator is on its crew) have phones; nobody outside the gig is listed
+  select count(*) into n from gig_crew_phones(gig) where user_id in (c, a);
+  if n <> 2 then raise exception 'FAIL 2.6: crew got % of the 2 gig phones', n; end if;
+  select count(*) into n from gig_crew_phones(gig) where user_id in (f, s, x);
+  if n <> 0 then raise exception 'FAIL 2.6b: gig phones list people outside the gig'; end if;
   select weekly_numbers into ok from my_profile();
   if ok is not true then raise exception 'FAIL 2.7: my_profile weekly_numbers'; end if;
   reset role;
@@ -118,8 +122,8 @@ begin
   reset role;
 
   -- ── 4. A conversation you're both in ────────────────────────────────────────────────────
-  insert into conversations (kind) values ('direct') returning id into conv;
-  insert into conversation_members (conversation_id, user_id) values (conv, f), (conv, s);
+  insert into conversations (kind, direct_key) values ('direct', least(f::text, s::text) || ':' || greatest(f::text, s::text)) returning id into conv;
+  insert into conversation_members (conversation_id, user_id) values (conv, f), (conv, s) on conflict do nothing;
   perform set_config('request.jwt.claims', json_build_object('sub', s, 'role', 'authenticated')::text, true);
   set local role authenticated;
   select count(*) into n from profiles where id = f;
