@@ -1,15 +1,38 @@
--- 0.82.4 (issue #195): people who made, asked for or reported things in an organisation they don't
--- solely own can close their account.
--- When an account is closed, Postgres empties columns like created_by (their foreign key rule). These
--- sixteen "keep rows honest" triggers put the old value back on every update, so the foreign key
--- refused it and the account couldn't be closed. Now the column can become empty (the person left),
--- but never change to someone else: the same rule as 20270119000002_appointments_leaving_fix.sql.
--- Each function is its newest body (migration named above it) with only that one line changed.
--- Add-only: create or replace of the sixteen trigger functions; their existing revokes are re-stated as they were.
--- From 20261024000000_reservations_people.sql; asked_by can only be cleared (their account was closed), never changed
+-- 0.82.4 (issue #195): people who made, asked for, sent, reported or removed things in an organisation
+-- they don't solely own can close their account.
+-- When an account is closed, Postgres empties the columns that point at it (their foreign key rule:
+-- set null). Sixteen "keep rows honest" triggers put the old value back, or refuse any change to a
+-- sent invite or a removed invoice or payment, so the account couldn't be closed.
+-- Now each of those triggers starts with one guard: when the only change is that columns naming a
+-- person whose account no longer exists became empty, the row is let through as it is. That only
+-- happens while the account itself is being removed, so signed-in people still can't clear or change
+-- who made something. Every other line of each function is its newest body (migration named above it).
+-- Expenses: a claim still waiting for a decision becomes a draft when the person who claimed it leaves
+-- (a waiting claim must have its claimant), so finance can confirm or remove it.
+-- Add-only: one new helper and create or replace of seventeen trigger functions; their existing
+-- revokes are re-stated as they were.
+
+-- True when the only change from p_old to p_new (updated_at aside) is that some of p_cols went from a
+-- user id that no longer exists to empty, i.e. the database is emptying a closed account's columns.
+create or replace function private.account_closing_update(p_old jsonb, p_new jsonb, p_cols text[])
+returns boolean language sql security definer set search_path = '' as $$
+  select exists (
+      select 1 from jsonb_each(p_old) o
+      where o.key = any(p_cols) and o.value <> 'null'::jsonb and p_new -> o.key = 'null'::jsonb)
+    and not exists (
+      select 1 from jsonb_each(p_old) o
+      where o.key <> 'updated_at' and o.value is distinct from p_new -> o.key
+        and not (o.key = any(p_cols) and p_new -> o.key = 'null'::jsonb
+                 and not exists (select 1 from auth.users u where u.id::text = o.value #>> '{}')))
+$$;
+revoke execute on function private.account_closing_update(jsonb, jsonb, text[]) from public, anon, authenticated;
+
+-- From 20261024000000_reservations_people.sql
 create or replace function private.availability_requests_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{asked_by}') then return new; end if;
   if tg_op = 'INSERT' then
     select g.org_id into new.org_id from public.gigs g where g.id = new.gig_id;
     new.asked_by := auth.uid();
@@ -20,19 +43,21 @@ begin
     if new.period is null then new.period := private.gig_period(new.gig_id); end if;
   else
     new.gig_id := old.gig_id; new.org_id := old.org_id; new.person_id := old.person_id;
-    if new.asked_by is not null then new.asked_by := old.asked_by; end if; new.period := old.period; new.message := old.message; new.created_at := old.created_at;
+    new.asked_by := old.asked_by; new.period := old.period; new.message := old.message; new.created_at := old.created_at;
     if auth.uid() is distinct from old.person_id then new.reply_note := old.reply_note; end if;
     if new.status in ('available', 'unavailable') then new.replied_at := now(); end if;
   end if;
   return new;
 end $$;
 
--- From 20261117000000_contacts.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20261117000000_contacts.sql
 create or replace function private.clients_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by}') then return new; end if;
   if tg_op = 'UPDATE' then
-    new.id := old.id; new.org_id := old.org_id; if new.created_by is not null then new.created_by := old.created_by; end if; new.created_at := old.created_at;
+    new.id := old.id; new.org_id := old.org_id; new.created_by := old.created_by; new.created_at := old.created_at;
   else
     new.created_at := now();
     if auth.uid() is not null then new.created_by := auth.uid(); end if;
@@ -43,12 +68,14 @@ begin
 end $$;
 revoke execute on function private.clients_before() from public, anon, authenticated;
 
--- From 20270104000000_mvr_gdtf.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20270104000000_mvr_gdtf.sql
 create or replace function private.fixture_types_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by}') then return new; end if;
   if tg_op = 'UPDATE' then
-    new.id := old.id; if new.created_by is not null then new.created_by := old.created_by; end if; new.created_at := old.created_at;
+    new.id := old.id; new.created_by := old.created_by; new.created_at := old.created_at;
   else
     new.created_by := auth.uid();
     new.created_at := now();
@@ -65,14 +92,16 @@ begin
 end $$;
 revoke execute on function private.fixture_types_before() from public, anon, authenticated;
 
--- From 20261027000000_warehouse.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20261027000000_warehouse.sql
 create or replace function private.gig_equipment_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare v_item record; v_org uuid;
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by}') then return new; end if;
   if tg_op = 'UPDATE' then
     new.id := old.id; new.gig_id := old.gig_id; new.org_id := old.org_id; new.item_id := old.item_id;
-    if new.created_by is not null then new.created_by := old.created_by; end if; new.created_at := old.created_at;
+    new.created_by := old.created_by; new.created_at := old.created_at;
   else
     select g.org_id into v_org from public.gigs g where g.id = new.gig_id;
     select i.org_id, i.name, i.category, i.tracking, i.kind into v_item from public.price_items i where i.id = new.item_id;
@@ -94,12 +123,14 @@ begin
 end $$;
 revoke execute on function private.gig_equipment_before() from public, anon, authenticated;
 
--- From 20261113000000_light_plot.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20261113000000_light_plot.sql
 create or replace function private.gig_fixtures_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by}') then return new; end if;
   if tg_op = 'UPDATE' then
-    new.id := old.id; new.gig_id := old.gig_id; if new.created_by is not null then new.created_by := old.created_by; end if; new.created_at := old.created_at;
+    new.id := old.id; new.gig_id := old.gig_id; new.created_by := old.created_by; new.created_at := old.created_at;
   else
     if (select count(*) from public.gig_fixtures f where f.gig_id = new.gig_id) >= 1000 then
       raise exception 'A DMX patch holds up to 1000 fixtures' using errcode = '54000';
@@ -129,12 +160,14 @@ begin
 end $$;
 revoke execute on function private.gig_fixtures_before() from public, anon, authenticated;
 
--- From 20261110000000_field_tools.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20261110000000_field_tools.sql
 create or replace function private.gig_inputs_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by}') then return new; end if;
   if tg_op = 'UPDATE' then
-    new.id := old.id; new.gig_id := old.gig_id; if new.created_by is not null then new.created_by := old.created_by; end if; new.created_at := old.created_at;
+    new.id := old.id; new.gig_id := old.gig_id; new.created_by := old.created_by; new.created_at := old.created_at;
   else
     new.created_by := auth.uid();
     new.created_at := now();
@@ -150,12 +183,14 @@ begin
 end $$;
 revoke execute on function private.gig_inputs_before() from public, anon, authenticated;
 
--- From 20261111000000_stage_plot.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20261111000000_stage_plot.sql
 create or replace function private.gig_plot_items_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by}') then return new; end if;
   if tg_op = 'UPDATE' then
-    new.id := old.id; new.gig_id := old.gig_id; if new.created_by is not null then new.created_by := old.created_by; end if; new.created_at := old.created_at;
+    new.id := old.id; new.gig_id := old.gig_id; new.created_by := old.created_by; new.created_at := old.created_at;
   else
     if (select count(*) from public.gig_plot_items p where p.gig_id = new.gig_id) >= 300 then
       raise exception 'A stage plot holds up to 300 things' using errcode = '54000';
@@ -174,11 +209,13 @@ begin
 end $$;
 revoke execute on function private.gig_plot_items_before() from public, anon, authenticated;
 
--- From 20270111000000_held_invite_expiry.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20270111000000_held_invite_expiry.sql
 create or replace function private.held_invites_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
-  new.id := old.id; new.org_id := old.org_id; new.email := old.email; if new.created_by is not null then new.created_by := old.created_by; end if;
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by,sent_by}') then return new; end if;
+  new.id := old.id; new.org_id := old.org_id; new.email := old.email; new.created_by := old.created_by;
   new.created_at := old.created_at; new.import_file := old.import_file;
   if coalesce(current_setting('avx.held_upkeep', true), 'off') <> 'on' then
     new.reminded_at := old.reminded_at; new.expired_at := old.expired_at;
@@ -195,12 +232,14 @@ begin
 end $$;
 revoke execute on function private.held_invites_before() from public, anon, authenticated;
 
--- From 20270107000000_rigging.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20270107000000_rigging.sql
 create or replace function private.hoist_models_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by}') then return new; end if;
   if tg_op = 'UPDATE' then
-    new.id := old.id; new.org_id := old.org_id; if new.created_by is not null then new.created_by := old.created_by; end if; new.created_at := old.created_at;
+    new.id := old.id; new.org_id := old.org_id; new.created_by := old.created_by; new.created_at := old.created_at;
     new.needs_check := old.needs_check or new.wll_kg is distinct from old.wll_kg or new.class is distinct from old.class;
   else
     if (select count(*) from public.hoist_models m where m.org_id = new.org_id) >= 200 then
@@ -215,18 +254,20 @@ begin
 end $$;
 revoke execute on function private.hoist_models_before() from public, anon, authenticated;
 
--- From 20261224000000_repair_charges_payments.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20261224000000_repair_charges_payments.sql
 create or replace function private.invoice_payments_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare v_inv public.invoices; v_left numeric;
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by,removed_by}') then return new; end if;
   if tg_op = 'UPDATE' then
     if old.removed_at is not null then
       raise exception 'This payment was removed' using errcode = '55000';
     end if;
     new.id := old.id; new.org_id := old.org_id; new.invoice_id := old.invoice_id; new.paid_on := old.paid_on;
     new.amount := old.amount; new.method := old.method; new.note := old.note;
-    if new.created_by is not null then new.created_by := old.created_by; end if; new.created_at := old.created_at;
+    new.created_by := old.created_by; new.created_at := old.created_at;
     new.removed_by := case when new.removed_at is not null then auth.uid() end;
     return new;
   end if;
@@ -253,11 +294,13 @@ begin
 end $$;
 revoke execute on function private.invoice_payments_before() from public, anon, authenticated;
 
--- From 20261222000000_invoices.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20261222000000_invoices.sql
 create or replace function private.invoices_before_write() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare v_inv public.invoices; v_credited numeric; v_net numeric; v_vat numeric;
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by,updated_by}') then return new; end if;
   if tg_op = 'INSERT' then
     -- One AVX number sequence per organisation (invoices and credit notes); the lock stops two
     -- invoices getting the same number
@@ -271,7 +314,7 @@ begin
   else
     new.id := old.id; new.org_id := old.org_id; new.number := old.number; new.kind := old.kind;
     new.credited_invoice_id := old.credited_invoice_id; new.quote_id := old.quote_id; new.gig_id := old.gig_id;
-    if new.created_by is not null then new.created_by := old.created_by; end if; new.created_at := old.created_at;
+    new.created_by := old.created_by; new.created_at := old.created_at;
     if old.removed_at is not null then
       raise exception 'This invoice was removed' using errcode = '55000';
     end if;
@@ -356,10 +399,12 @@ begin
 end $$;
 revoke execute on function private.invoices_before_write() from public, anon, authenticated;
 
--- From 20261020000000_branding_pricelist_deletion.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20261020000000_branding_pricelist_deletion.sql
 create or replace function private.quotes_before_write() returns trigger
 language plpgsql security definer set search_path = public, private as $$
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by,removed_by,updated_by}') then return new; end if;
   if new.gig_id is not null and not exists (select 1 from gigs where id = new.gig_id and org_id = new.org_id) then
     raise exception 'That gig belongs to another organisation';
   end if;
@@ -376,7 +421,7 @@ begin
   else
     new.org_id := old.org_id;
     new.number := old.number;
-    if new.created_by is not null then new.created_by := old.created_by; end if;
+    new.created_by := old.created_by;
     new.created_at := old.created_at;
     new.updated_by := auth.uid();
     new.updated_at := now();
@@ -386,14 +431,16 @@ begin
 end $$;
 revoke execute on function private.quotes_before_write() from public, anon, authenticated;
 
--- From 20261029000000_maintenance.sql; reported_by can only be cleared (their account was closed), never changed
+-- From 20261029000000_maintenance.sql
 create or replace function private.repairs_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare v_item record; v_unit record;
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{reported_by}') then return new; end if;
   if tg_op = 'UPDATE' then
     new.id := old.id; new.org_id := old.org_id; new.item_id := old.item_id; new.unit_id := old.unit_id;
-    new.gig_id := old.gig_id; if new.reported_by is not null then new.reported_by := old.reported_by; end if; new.created_at := old.created_at;
+    new.gig_id := old.gig_id; new.reported_by := old.reported_by; new.created_at := old.created_at;
     if new.unit_id is not null then new.quantity := 1; end if;
   else
     select i.org_id, i.tracking into v_item from public.price_items i where i.id = new.item_id;
@@ -427,11 +474,13 @@ begin
 end $$;
 revoke execute on function private.repairs_before() from public, anon, authenticated;
 
--- From 20261027000000_warehouse.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20261027000000_warehouse.sql
 create or replace function private.stock_units_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare v_item record;
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by}') then return new; end if;
   if tg_op = 'INSERT' then
     select i.org_id, i.tracking into v_item from public.price_items i where i.id = new.item_id;
     if not found then raise exception 'Unknown item' using errcode = '23503'; end if;
@@ -446,7 +495,7 @@ begin
     perform private.check_location(new.org_id, new.location_id, true);
   else
     new.id := old.id; new.org_id := old.org_id; new.item_id := old.item_id;
-    if new.created_by is not null then new.created_by := old.created_by; end if; new.created_at := old.created_at;
+    new.created_by := old.created_by; new.created_at := old.created_at;
     if coalesce(current_setting('avx.dispatch', true), '') <> 'on' then
       new.out_on_gig := old.out_on_gig; new.out_since := old.out_since;
     end if;
@@ -460,12 +509,14 @@ begin
 end $$;
 revoke execute on function private.stock_units_before() from public, anon, authenticated;
 
--- From 20261030000000_subrentals.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20261030000000_subrentals.sql
 create or replace function private.subrentals_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by}') then return new; end if;
   if tg_op = 'UPDATE' then
-    new.id := old.id; new.org_id := old.org_id; if new.created_by is not null then new.created_by := old.created_by; end if; new.created_at := old.created_at;
+    new.id := old.id; new.org_id := old.org_id; new.created_by := old.created_by; new.created_at := old.created_at;
     if coalesce(current_setting('avx.partner', true), '') <> 'on' then
       new.reply_note := old.reply_note; new.quoted_total := old.quoted_total; new.answered_at := old.answered_at;
     end if;
@@ -485,12 +536,14 @@ begin
 end $$;
 revoke execute on function private.subrentals_before() from public, anon, authenticated;
 
--- From 20261030000000_subrentals.sql; created_by can only be cleared (their account was closed), never changed
+-- From 20261030000000_subrentals.sql
 create or replace function private.suppliers_before() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  -- A closed account's name is being emptied: let only that through
+  if tg_op = 'UPDATE' and private.account_closing_update(to_jsonb(old), to_jsonb(new), '{created_by}') then return new; end if;
   if tg_op = 'UPDATE' then
-    new.id := old.id; new.org_id := old.org_id; if new.created_by is not null then new.created_by := old.created_by; end if; new.created_at := old.created_at;
+    new.id := old.id; new.org_id := old.org_id; new.created_by := old.created_by; new.created_at := old.created_at;
     if new.partner_org_id is not null and new.partner_org_id is distinct from old.partner_org_id
        and coalesce(current_setting('avx.partner', true), '') <> 'on' then
       new.partner_org_id := old.partner_org_id;
@@ -504,3 +557,73 @@ begin
   return new;
 end $$;
 revoke execute on function private.suppliers_before() from public, anon, authenticated;
+
+-- From 20261214000000_expenses.sql
+create or replace function private.expenses_before() returns trigger
+language plpgsql set search_path = '' as $$
+declare v_me uuid := auth.uid(); v_fin boolean;
+begin
+  new.description := trim(new.description);
+  new.supplier_name := nullif(trim(new.supplier_name), '');
+  new.invoice_number := nullif(trim(new.invoice_number), '');
+  new.notes := nullif(trim(new.notes), '');
+  if new.supplier_id is not null then new.supplier_name := null; end if;
+  if new.receipt_path is null then new.receipt_name := null; end if;
+  if new.receipt_path is not null and new.receipt_path not like new.org_id::text || '/' || new.id::text || '/%' then
+    raise exception 'Receipt belongs to another expense' using errcode = '22023';
+  end if;
+  if not private.finance_refs_ok(new.org_id, new.supplier_id, new.category_id) then
+    raise exception 'Supplier or category of another organisation' using errcode = '42501';
+  end if;
+  if tg_op = 'INSERT' or (new.gig_id, new.subrental_id, new.repair_id, new.crew_fee_user_id, new.stock_movement_id, new.stock_unit_id)
+       is distinct from (old.gig_id, old.subrental_id, old.repair_id, old.crew_fee_user_id, old.stock_movement_id, old.stock_unit_id) then
+    new.gig_id := private.expense_links_gig(new.org_id, new.gig_id, new.subrental_id, new.repair_id,
+                                            new.crew_fee_user_id, new.stock_movement_id, new.stock_unit_id);
+  end if;
+  if current_user not in ('authenticated', 'anon') then
+    -- The claimant closed their account: a claim still waiting becomes a draft for finance
+    if tg_op = 'UPDATE' and old.claimed_by is not null and new.claimed_by is null and new.status in ('claimed', 'returned') then new.status := 'draft'; end if;
+    new.updated_at := clock_timestamp();
+    return new;
+  end if;
+  v_fin := private.can_see_finance(new.org_id);
+  if tg_op = 'INSERT' then
+    new.created_by := v_me; new.created_at := now();
+    new.recurrence_id := null; new.recurrence_due := null;
+    new.review_note := null; new.decided_by := null; new.decided_at := null;
+    if new.claimed_by is not null then
+      if new.claimed_by <> v_me then raise exception 'A claim is your own' using errcode = '42501'; end if;
+      new.status := 'claimed';
+    else
+      new.status := 'confirmed';
+    end if;
+  else
+    new.id := old.id; new.org_id := old.org_id; new.claimed_by := old.claimed_by;
+    new.recurrence_id := old.recurrence_id; new.recurrence_due := old.recurrence_due;
+    new.review_note := old.review_note; new.decided_by := old.decided_by; new.decided_at := old.decided_at;
+    new.created_by := old.created_by; new.created_at := old.created_at;
+    if new.removed_at is not null and old.removed_at is null then new.removed_at := now(); end if;
+    -- Only a draft can be confirmed here; a returned claim goes back for approval when its owner edits it
+    if old.status = 'draft' and new.status = 'confirmed' and v_fin then
+      null;
+    elsif old.status = 'returned' and old.claimed_by = v_me and new.removed_at is null then
+      new.status := 'claimed';
+    else
+      new.status := old.status;
+    end if;
+  end if;
+  -- A pending claim links only to its gig; its owner can't mark it paid
+  if new.status in ('claimed', 'returned') then
+    if num_nonnulls(new.subrental_id, new.repair_id, new.crew_fee_user_id, new.stock_movement_id, new.stock_unit_id) > 0 then
+      raise exception 'A claim links only to its gig' using errcode = '22023';
+    end if;
+    if new.gig_id is null then raise exception 'A claim needs a gig' using errcode = '22023'; end if;
+    if not v_fin then new.paid_on := null; new.paid_how := null; end if;
+  end if;
+  if tg_op = 'INSERT' and (select count(*) from public.expenses e where e.org_id = new.org_id and e.created_at > now() - interval '1 day') >= 2000 then
+    raise exception 'Too many expenses today' using errcode = '54000';
+  end if;
+  new.updated_at := clock_timestamp();
+  return new;
+end $$;
+revoke execute on function private.expenses_before() from public, anon, authenticated;

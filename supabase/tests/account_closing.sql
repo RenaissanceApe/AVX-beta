@@ -10,10 +10,10 @@ declare
   u uuid[] := '{}';                          -- one person per kind of row; each closes their account
   k text[] := '{}'; t text[] := '{}'; c text[] := '{}'; r text[] := '{}'; w uuid[] := '{}';
   org uuid; gig uuid; item_bulk uuid; item_serial uuid; sup uuid; inv uuid;
-  v_id text; v_who uuid; i int; n int; failed text := '';
+  v_id text; v_exp text; v_who uuid; i int; n int; failed text := '';
 begin
   insert into auth.users (id, email, aud, role) values (a, 'acx-admin@avx.invalid', 'authenticated', 'authenticated');
-  for i in 1..30 loop
+  for i in 1..35 loop
     u := u || gen_random_uuid();
     insert into auth.users (id, email, aud, role) values (u[i], 'acx-' || i || '@avx.invalid', 'authenticated', 'authenticated');
   end loop;
@@ -73,6 +73,7 @@ begin
   i := 9;  perform set_config('request.jwt.claims', json_build_object('sub', u[i], 'role', 'authenticated')::text, true);
   insert into expenses (org_id, spent_on, description, amount_net, gig_id, status, claimed_by, created_by, decided_by, decided_at)
     values (org, '2027-02-01', 'Acx taxi', 20, gig, 'claimed', u[i], u[i], u[i], now()) returning id::text into v_id;
+  v_exp := v_id;   -- a claim still waiting: it becomes a draft when its claimant leaves
   k := k || 'expense (claimed)'::text || 'expense (made)'::text || 'expense (decided)'::text;
   t := t || 'expenses'::text || 'expenses'::text || 'expenses'::text;
   c := c || 'claimed_by'::text || 'created_by'::text || 'decided_by'::text; r := r || v_id || v_id || v_id; w := w || u[i] || u[i] || u[i];
@@ -163,6 +164,41 @@ begin
   insert into tasks (org_id, title, created_by) values (org, 'Acx task', u[i]) returning id::text into v_id;
   k := k || 'task'::text; t := t || 'tasks'::text; c := c || 'created_by'::text; r := r || v_id; w := w || u[i];
 
+  -- Rows in states whose triggers refuse other changes (marked "special": not used for the update checks)
+  i := 31; perform set_config('request.jwt.claims', json_build_object('sub', u[i], 'role', 'authenticated')::text, true);
+  insert into held_invites (org_id, email) values (org, 'acx-sent@avx.invalid') returning id::text into v_id;
+  update held_invites set status = 'sent' where id::text = v_id;
+  k := k || 'sent invite, made (special)'::text || 'sent invite, sent (special)'::text;
+  t := t || 'held_invites'::text || 'held_invites'::text; c := c || 'created_by'::text || 'sent_by'::text;
+  r := r || v_id || v_id; w := w || u[i] || u[i];
+
+  i := 32; perform set_config('request.jwt.claims', json_build_object('sub', u[i], 'role', 'authenticated')::text, true);
+  insert into invoices (org_id, number) values (org, 9003) returning id::text into v_id;
+  update invoices set removed_at = now() where id::text = v_id;
+  k := k || 'removed invoice, made (special)'::text || 'removed invoice, updated (special)'::text;
+  t := t || 'invoices'::text || 'invoices'::text; c := c || 'created_by'::text || 'updated_by'::text;
+  r := r || v_id || v_id; w := w || u[i] || u[i];
+
+  i := 33; perform set_config('request.jwt.claims', json_build_object('sub', u[i], 'role', 'authenticated')::text, true);
+  insert into invoice_payments (org_id, invoice_id, paid_on, amount) values (org, inv, current_date, 5) returning id::text into v_id;
+  update invoice_payments set removed_at = now() where id::text = v_id;
+  k := k || 'removed payment, made (special)'::text || 'removed payment, removed (special)'::text;
+  t := t || 'invoice_payments'::text || 'invoice_payments'::text; c := c || 'created_by'::text || 'removed_by'::text;
+  r := r || v_id || v_id; w := w || u[i] || u[i];
+
+  i := 34; perform set_config('request.jwt.claims', json_build_object('sub', u[i], 'role', 'authenticated')::text, true);
+  insert into quotes (org_id, number, title) values (org, 9002, 'Acx cancelled quote') returning id::text into v_id;
+  perform set_config('avx.cancel_quote', 'on', true);
+  update quotes set status = 'cancelled' where id::text = v_id;
+  perform set_config('avx.cancel_quote', 'off', true);
+  k := k || 'cancelled quote, made (special)'::text || 'cancelled quote, updated (special)'::text;
+  t := t || 'quotes'::text || 'quotes'::text; c := c || 'created_by'::text || 'updated_by'::text;
+  r := r || v_id || v_id; w := w || u[i] || u[i];
+
+  i := 35; perform set_config('request.jwt.claims', json_build_object('sub', u[i], 'role', 'authenticated')::text, true);
+  insert into repairs (org_id, item_id, problem, status) values (org, item_bulk, 'Acx done', 'done') returning id::text into v_id;
+  k := k || 'closed repair (special)'::text; t := t || 'repairs'::text; c := c || 'reported_by'::text; r := r || v_id; w := w || u[i];
+
   -- Every row says who made it
   for i in 1..array_length(k, 1) loop
     execute format('select count(*) from public.%I where id::text = $1 and %I = $2', t[i], c[i]) into n using r[i], w[i];
@@ -172,7 +208,7 @@ begin
   -- While they're here, the admin can't change who it was with a plain update
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   for i in 1..array_length(k, 1) loop
-    if t[i] in ('gigs', 'price_items', 'tasks') then continue; end if;
+    if t[i] in ('gigs', 'price_items', 'tasks') or k[i] like '%(special)' then continue; end if;
     begin   -- a refusal is fine too: it still can't be changed
       set local role authenticated;
       execute format('update public.%I set %I = $1 where id::text = $2', t[i], c[i]) using a, r[i];
@@ -181,6 +217,14 @@ begin
     end;
     execute format('select count(*) from public.%I where id::text = $1 and %I = $2', t[i], c[i]) into n using r[i], w[i];
     if n <> 1 then failed := failed || k[i] || ' (changed to someone else), '; end if;
+    begin   -- nor clear it while the person still has an account
+      set local role authenticated;
+      execute format('update public.%I set %I = null where id::text = $1', t[i], c[i]) using r[i];
+      reset role;
+    exception when others then null;
+    end;
+    execute format('select count(*) from public.%I where id::text = $1 and %I = $2', t[i], c[i]) into n using r[i], w[i];
+    if n <> 1 then failed := failed || k[i] || ' (cleared while they still have an account), '; end if;
   end loop;
 
   -- Each person closes their account
@@ -208,7 +252,7 @@ begin
   -- An empty "who" can't be filled in with someone else either
   perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   for i in 1..array_length(k, 1) loop
-    if t[i] in ('gigs', 'price_items', 'tasks') then continue; end if;
+    if t[i] in ('gigs', 'price_items', 'tasks') or k[i] like '%(special)' then continue; end if;
     select count(*) into n from auth.users where id = w[i];
     if n <> 0 then continue; end if;   -- already reported above
     begin   -- a refusal is fine too: it still can't be changed
@@ -220,6 +264,10 @@ begin
     execute format('select count(*) from public.%I where id::text = $1 and %I is null', t[i], c[i]) into n using r[i];
     if n <> 1 then failed := failed || k[i] || ' (filled in with someone else), '; end if;
   end loop;
+
+  -- The waiting claim went back to finance as a draft
+  select count(*) into n from expenses where id::text = v_exp and status = 'draft' and claimed_by is null;
+  if n <> 1 then failed := failed || 'waiting claim (not a draft after its claimant left), '; end if;
 
   -- The admin who stayed is untouched
   select count(*) into n from auth.users where id = a;
