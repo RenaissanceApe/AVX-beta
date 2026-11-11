@@ -4,7 +4,7 @@
 -- invited.
 -- 1. appointments + appointment_people. The organisation's planners (admins and members, the
 --    people who can create gigs) create and edit them; invited people see the ones they're on.
---    Removed by marking (removed_at), never deleted.
+--    Removed by marking (removed_at), never wiped.
 -- 2. Each invited person gets a reservation (resource 'person', source 'appointment'), so
 --    appointments show up in every clash check like gig bookings do. All-day appointments are read
 --    in the organisation's time zone and move with it.
