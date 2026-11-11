@@ -134,7 +134,7 @@ begin
   end loop;
   -- Vehicles removed after their trips (old trips keep them)
   update vehicles set removed_at = now()
-   where id in (select (ids ->> (e ->> 'key'))::uuid from jsonb_array_elements(fx -> 'vehicles') e where (e ->> 'removed')::boolean);
+   where id in (select (ids ->> (ve ->> 'key'))::uuid from jsonb_array_elements(fx -> 'vehicles') ve where (ve ->> 'removed')::boolean);
   for e in select * from jsonb_array_elements(fx -> 'expenses') loop
     insert into expenses (org_id, status, spent_on, description, category_id, amount_net, vat_rate, vat_amount, currency, vehicle_id, trip_id)
     values (org_a, 'confirmed', (e ->> 'spent_on')::date, e ->> 'key', (ids ->> ('cat:' || (e ->> 'category')))::uuid,
@@ -347,12 +347,16 @@ begin
   reset role;
 
   -- ── Under a second on 300 gigs with a trip each ─────────────────────────────
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
   insert into gigs (org_id, name, start_date, end_date, status, created_by)
   select org_a, 'Load ' || i, date '2027-05-01' + (i % 28), date '2027-05-01' + (i % 28) + 1, 'confirmed', a
   from generate_series(1, 300) i;
   insert into trips (gig_id, vehicle_id, departs_at, arrives_at, km)
   select g.id, (ids ->> 'V2')::uuid, g.start_date + time '08:00', g.start_date + time '20:00', 100
   from gigs g where g.org_id = org_a and g.name like 'Load %';
+  -- Fresh planner statistics: rows made inside this transaction have none, and without them the
+  -- existing labour helper (private.gig_labour) takes ~0.8 s here instead of ~40 ms
+  analyze public.gigs; analyze public.trips; analyze public.reservations;
   perform set_config('request.jwt.claims', json_build_object('sub', m, 'role', 'authenticated')::text, true);
   set local role authenticated;
   t0 := clock_timestamp();
