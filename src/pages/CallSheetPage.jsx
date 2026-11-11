@@ -58,9 +58,15 @@ export default function CallSheetPage() {
         return setError(true)
       }
       const uids = (membersRes.data || []).map(m => m.user_id)
-      const { data: profiles } = uids.length
-        ? await supabase.from('profiles').select('id, full_name, phone').in('id', uids)
-        : { data: [] }
+      // Phones aren't readable from profiles; gig_crew_phones gives the crew's to people on the gig
+      const [{ data: people }, { data: phoneData }] = uids.length
+        ? await Promise.all([
+          supabase.from('profiles').select('id, full_name').in('id', uids),
+          supabase.rpc('gig_crew_phones', { p_gig: id }),
+        ])
+        : [{ data: [] }, { data: [] }]
+      const phones = Object.fromEntries((phoneData || []).map(p => [p.user_id, p.phone]))
+      const profiles = (people || []).map(p => ({ ...p, phone: phones[p.id] || null }))
       const sheet = {
         gig: gigRes.data,
         schedule: scheduleRes.data || [],
