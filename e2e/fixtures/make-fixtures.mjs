@@ -56,3 +56,46 @@ out('rentman-equipment.csv', [
   'E2E Gaffa tape,E2E-GAF,sales,no,50,10,6.5,Made-up row',
   '',
 ].join('\n'))
+
+// A workbook with two sheets (IM2's sheet picker): the second sheet's rows are its own
+function xlsxBook(sheets) {
+  const col = i => String.fromCharCode(65 + i)
+  const sheetXml = rows => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${rows.map((row, r) => `<row r="${r + 1}">${row.map((v, c) => typeof v === 'number'
+    ? `<c r="${col(c)}${r + 1}"><v>${v}</v></c>`
+    : `<c r="${col(c)}${r + 1}" t="inlineStr"><is><t>${esc(v)}</t></is></c>`).join('')}</row>`).join('')}</sheetData></worksheet>`
+  const files = {
+    '[Content_Types].xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`),
+    '_rels/.rels': strToU8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'),
+    'xl/workbook.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map(([name], i) => `<sheet name="${esc(name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('')}</sheets></workbook>`),
+    'xl/_rels/workbook.xml.rels': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join('')}</Relationships>`),
+  }
+  sheets.forEach(([, rows], i) => { files[`xl/worksheets/sheet${i + 1}.xml`] = strToU8(sheetXml(rows)) })
+  return zipSync(files, { mtime: new Date('2026-01-01T00:00:00Z') })
+}
+
+out('equipment-two-sheets.xlsx', xlsxBook([
+  ['Audio', [
+    ['Name', 'Code', 'Quantity'],
+    ['E2E Mixer', 'E2E-MIX', 2],
+    ['E2E Microphone', 'E2E-MIC', 12],
+  ]],
+  ['Lighting', [
+    ['Name', 'Code', 'Quantity'],
+    ['E2E Fresnel', 'E2E-FRS', 6],
+    ['E2E Dimmer', 'E2E-DIM', 3],
+    ['E2E Hazer', 'E2E-HAZ', 1],
+  ]],
+]))
+
+// Contacts and crew with Rentman's column names (made-up rows, @example.com addresses)
+out('rentman-contacts.csv', [
+  'displayname,email 1,phone 1,visit street,visit number,visit postalcode,visit city,vat code',
+  'E2E Rentman Client,e2e-rentman-client@example.com,+351 900 000 101,Rua Inventada,12,1000-001,Lisboa,PT999999990',
+  '',
+].join('\n'))
+out('rentman-crew.csv', [
+  'firstname,lastname,email,function,type',
+  'E2E,Rigger,e2e-rentman-rigger@example.com,Rigger,freelancer',
+  'E2E,Planner,e2e-rentman-planner@example.com,Planner,employee',
+  '',
+].join('\n'))
