@@ -4,7 +4,7 @@
 import { test, expect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
 import { RUN } from './accounts.js'
-import { addToGig } from './setup.js'
+import { addGig, addItem, addToGig } from './setup.js'
 
 test.use({ area: 'messages' })
 
@@ -328,4 +328,170 @@ test('the menu of the first message in a short conversation can be clicked', { t
   // A click a person can make: nothing else is on top of the item
   await menu.getByRole('menuitem', { name: 'React with 👍' }).click({ trial: true, timeout: 5_000 })
   await menu.getByRole('menuitem', { name: 'Copy link' }).click({ trial: true, timeout: 5_000 })
+})
+
+// A second gig in the organisation (a test that changes who is on a gig keeps the shared one as it is)
+async function anotherGig(adminWithOrg, fields = {}) {
+  const gig = await adminWithOrg.world.gig()
+  return addGig(adminWithOrg.account, adminWithOrg.org.id, { name: words('E2E Gig'), start_date: gig.start_date, end_date: gig.end_date, ...fields })
+}
+
+// The direct conversation with someone, from Messages
+async function openDirect(page, name) {
+  await page.goto('/messages')
+  await page.getByRole('navigation', { name: 'Messages' }).getByRole('link', { name: new RegExp(name) }).first().click()
+  await expect(page.getByRole('region', { name })).toBeVisible({ timeout: 15_000 })
+}
+
+// covers: T14
+test('asking crew with a clash if they are available, answered from their Messages', { tag: '@messages' }, async ({ adminWithOrg, crewOnGig }) => {
+  const { page, account } = adminWithOrg
+  // The crew member is on the shared gig; a second gig on the same days clashes with it
+  const gig2 = await anotherGig(adminWithOrg)
+  await addToGig(account, gig2.id, crewOnGig.account)
+  await page.goto(`${gig2.path}?tab=crew`)
+  const clash = page.getByRole('status').filter({ hasText: `${crewOnGig.account.name} is already booked for this time.` })
+  await expect(clash).toBeVisible({ timeout: 15_000 })
+  await clash.getByRole('button', { name: 'Ask availability' }).click()
+  const ask = page.getByRole('dialog', { name: `Ask ${crewOnGig.account.name}` })
+  const question = words('Can you do both days?')
+  await ask.getByLabel('Message (optional)').fill(question)
+  await expectAccessible(page)
+  await ask.getByRole('button', { name: 'Send question' }).click()
+  await expect(page.getByText(`Asked ${crewOnGig.account.name}. You’ll get a notification when they answer.`)).toBeVisible()
+
+  // The question is a card in their direct conversation; they answer there
+  const crew = crewOnGig.page
+  await openDirect(crew, adminWithOrg.account.name)
+  const card = crew.getByRole('log').locator('div', { hasText: `“${question}”` }).filter({ has: crew.getByRole('button', { name: 'Available', exact: true }) }).last()
+  await expect(card).toBeVisible({ timeout: 15_000 })
+  await expect(card).toContainText(`${adminWithOrg.account.name} asks if you’re available`)
+  await expectAccessible(crew)
+  await card.getByRole('button', { name: 'Available', exact: true }).click()
+  // Answered: the buttons go and the answer is posted under the question
+  await expect(crew.getByRole('log').getByRole('button', { name: 'Available', exact: true })).toHaveCount(0, { timeout: 15_000 })
+
+  // The manager sees the answer on the Crew tab, and in the conversation
+  await page.reload()
+  await expect(page.getByText(/Said they’re available/)).toBeVisible({ timeout: 15_000 })
+  await openDirect(page, crewOnGig.account.name)
+  await expect(page.getByRole('log').getByText(`${crewOnGig.account.name} is available`).last()).toBeVisible({ timeout: 15_000 })
+})
+
+// covers: T14
+test('a crew call for a position, accepted from Messages: they join the gig', { tag: '@messages' }, async ({ adminWithOrg, member }) => {
+  const { page } = adminWithOrg
+  const gig2 = await anotherGig(adminWithOrg)
+  await page.goto(`${gig2.path}?tab=crew`)
+  await page.getByRole('button', { name: 'Crew call' }).click()
+  const call = page.getByRole('dialog', { name: 'Crew call' })
+  await call.getByLabel('Function *').fill('Rigger')
+  await call.getByRole('textbox', { name: 'Search' }).fill(member.account.name)
+  await call.getByRole('button', { name: new RegExp(member.account.name) }).first().click()
+  await expect(call.getByText('1 person picked')).toBeVisible()
+  await expectAccessible(page)
+  await call.getByRole('button', { name: 'Send to 1 person' }).click()
+  await expect(page.getByText('Crew call sent to 1 person.')).toBeVisible({ timeout: 15_000 })
+
+  const other = member.page
+  await openDirect(other, adminWithOrg.account.name)
+  const offer = other.getByRole('log').locator('div', { hasText: `${adminWithOrg.account.name} offers you a place: Rigger` })
+    .filter({ hasText: gig2.name }).filter({ has: other.getByRole('button', { name: 'Accept' }) }).last()
+  await expect(offer).toBeVisible({ timeout: 15_000 })
+  await offer.getByRole('button', { name: 'Accept' }).click()
+  await expect(other.getByText('You accepted · you’re on the gig')).toBeVisible({ timeout: 15_000 })
+  await other.goto(gig2.path)
+  await expect(other.getByRole('heading', { name: gig2.name })).toBeVisible({ timeout: 15_000 })
+  // The manager's Crew tab has them as Rigger
+  await page.reload()
+  await expect(page.getByText('1 of 1 places filled').first()).toBeVisible({ timeout: 15_000 })
+})
+
+// covers: T14
+test('the call sheet is sent to the crew, who confirm it in the chat', { tag: '@messages' }, async ({ adminWithOrg, crewOnGig }) => {
+  const { page } = adminWithOrg
+  const gig = crewOnGig.gig
+  await page.goto(`${gig.path}/callsheet`)
+  page.once('dialog', dialog => dialog.accept())
+  await page.getByRole('button', { name: 'Send to the crew' }).click()
+  await expect(page.getByText('Call sheet sent. You can see who confirmed in the gig’s chat.')).toBeVisible({ timeout: 15_000 })
+
+  const crew = crewOnGig.page
+  await crew.goto(`${gig.path}?tab=chat`)
+  const posted = chatRow(crew, `The call sheet for ${gig.name} is ready`).last()
+  await expect(posted).toBeVisible({ timeout: 15_000 })
+  await expect(posted.getByRole('link', { name: /Call sheet/ })).toBeVisible()
+  await posted.getByRole('button', { name: "I've read this" }).click()
+  await expect(posted).toContainText('Confirmed')
+})
+
+// covers: T14
+test('two schedule items make one note in the gig chat', { tag: '@messages' }, async ({ adminWithOrg }) => {
+  const { page, account } = adminWithOrg
+  const gig2 = await anotherGig(adminWithOrg, { status: 'confirmed' })
+  // The chat exists once someone opens it
+  await page.goto(`${gig2.path}?tab=chat`)
+  await expect(page.getByText('Everyone on this gig can talk here.', { exact: false })).toBeVisible({ timeout: 15_000 })
+  const first = words('Get-in')
+  const second = words('Doors')
+  for (const [title, at] of [[first, '09:00'], [second, '19:00']]) {
+    const { error } = await account.client.from('gig_schedule').insert({ gig_id: gig2.id, day: gig2.start_date, start_time: at, title, created_by: account.id })
+    expect(error).toBeNull()
+  }
+  await page.reload()
+  // (the author reads "You made…")
+  const notes = page.getByRole('log').getByText('You made 2 schedule changes:', { exact: false })
+  await expect(notes).toHaveCount(1, { timeout: 15_000 })
+  await expect(notes).toContainText(first)
+  await expect(notes).toContainText(second)
+})
+
+// covers: T14
+test('a team conversation on an equipment item, a repair and a subrental', { tag: '@messages' }, async ({ adminWithOrg, member }) => {
+  const { page, account, org } = adminWithOrg
+  const item = await addItem(account, org.id, { name: words('E2E Moving head') })
+  const problem = words('Fan noise')
+  const repair = await account.client.from('repairs').insert({ org_id: org.id, item_id: item.id, problem }).select().single()
+  expect(repair.error).toBeNull()
+  const supplier = await account.client.from('suppliers').insert({ org_id: org.id, name: words('E2E Supplier') }).select().single()
+  expect(supplier.error).toBeNull()
+  const reference = words('PO')
+  const start = new Date(Date.now() + 10 * 86400e3)
+  const sub = await account.client.from('subrentals').insert({ org_id: org.id, supplier_id: supplier.data.id, reference, starts_at: start.toISOString(), ends_at: new Date(start.getTime() + 86400e3).toISOString() }).select().single()
+  expect(sub.error).toBeNull()
+
+  // A thread opens under its toggle; returns the composer's page section
+  async function talk(where, text) {
+    await where.getByRole('button', { name: /^Team conversation/ }).click()
+    await expect(composer(page)).toBeVisible({ timeout: 15_000 })
+    await send(page, text)
+  }
+
+  await page.goto(`${org.path}/inventory/${item.id}`)
+  const aboutItem = words('One clamp is loose')
+  await talk(page, aboutItem)
+  await expectAccessible(page)
+
+  await page.goto(`${org.path}/inventory?tab=maintenance`)
+  await page.getByRole('button', { name: new RegExp(problem) }).click()
+  const repairWindow = page.getByRole('dialog')
+  const aboutRepair = words('Repairer says Tuesday')
+  await talk(repairWindow, aboutRepair)
+
+  await page.goto(`${org.path}/inventory?tab=subrentals`)
+  await page.getByRole('button', { name: new RegExp(reference) }).click()
+  const subWindow = page.getByRole('dialog', { name: 'Subrental' })
+  const aboutSub = words('Pick-up at the back door')
+  await talk(subWindow, aboutSub)
+  await expectAccessible(page)
+
+  // A member finds the three in Messages, each linking back to its thing
+  const other = member.page
+  await other.goto('/messages')
+  const list = other.getByRole('navigation', { name: 'Messages' })
+  await list.getByRole('link', { name: new RegExp(aboutItem) }).click()
+  await expect(chatRow(other, aboutItem)).toBeVisible({ timeout: 15_000 })
+  await expect(other.getByRole('link', { name: 'Open the item' })).toBeVisible()
+  await expect(list.getByRole('link', { name: new RegExp(aboutRepair) })).toBeVisible()
+  await expect(list.getByRole('link', { name: new RegExp(aboutSub) })).toBeVisible()
 })
