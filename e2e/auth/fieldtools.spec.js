@@ -289,7 +289,7 @@ test('patch: two stage boxes, sockets chosen and the rest filled, printed', { ta
   await expect(sb1).toContainText('0 of 16 used', LOAD)
   await sb1.getByRole('checkbox', { name: 'Split to monitors' }).check()
   await expect(sb1).toContainText('SPLIT')
-  // Each change saved before the next (two a moment apart can be saved out of order, issue LOST_UPDATE)
+  // Each change saved before the next (two a moment apart can be saved out of order, issue #229)
   await expect.poll(boxes, LOAD).toEqual([{ name: 'SB1', inputs: 16, split: true }])
   // SB2 with 8 inputs
   await patch.getByRole('button', { name: 'Add stage box' }).first().click()
@@ -411,7 +411,7 @@ test('light plot: a truss and a pipe dragged into place with phases, fixtures ad
 
   // A phase each: the truss on L1, the pipe on L2
   const positions = page.getByRole('region', { name: 'Positions' })
-  // (each saved before the next: two changes a moment apart can be saved out of order, issue LOST_UPDATE)
+  // (each saved before the next: two changes a moment apart can be saved out of order, issue #229)
   for (const [name, phase] of [['Truss 1', 1], ['Pipe 1', 2]]) {
     await positions.getByRole('button', { name: new RegExp(`^${name} `) }).click()
     await page.getByRole('group', { name: `Selected: ${name}` }).getByRole('combobox', { name: 'Phase' }).selectOption(`L${phase}`)
@@ -476,4 +476,128 @@ test('light plot: a truss and a pipe dragged into place with phases, fixtures ad
   await expect(page.getByRole('img', { name: `Light plot for ${gig.name}` })).toBeVisible(LOAD)
   await expect(page.getByRole('main').or(page.locator('body')).first()).toContainText('Truss 1')
   await expectAccessible(page)
+})
+
+// One source or listening position in the sound system calculator, by its name
+const sysRow = (page, name) => page.locator('li').filter({ has: page.locator('strong', { hasText: new RegExp(`^${name}$`) }) })
+// Types a number in a field and leaves it (the calculator saves on leaving)
+async function typeNumber(field, value) {
+  await field.fill(String(value))
+  await field.blur()
+}
+
+// covers: T30
+test('sound system calculator: mains, subs, two delays, FOH and the back of the room; delay times, temperature and an echo; printed', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(180_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'System', ['system_calc'])
+  await readBell(account)
+  const system = async () => ok('Reading the system', await account.client.from('gig_show').select('system').eq('gig_id', gig.id).maybeSingle())?.system || {}
+  const count = async key => (await system())[key]?.length || 0
+
+  await openTool(page, gig, 'system_calc')
+  const sources = page.getByRole('region', { name: 'Sources' })
+  // Two mains, subs, two delays; each saved before the next (issue #229)
+  for (const [kind, n] of [['Main', 1], ['Main', 2], ['Subs', 3], ['Delay', 4], ['Delay', 5]]) {
+    await sources.getByRole('button', { name: kind, exact: true }).click()
+    await expect.poll(() => count('sources'), LOAD).toBe(n)
+  }
+  // FOH, then the back of the room (moved to 45 m out)
+  const positions = page.getByRole('region', { name: 'Listening positions' })
+  await positions.getByRole('button', { name: 'Add a position' }).click()
+  await expect.poll(() => count('listeners'), LOAD).toBe(1)
+  await positions.getByRole('button', { name: 'Add a position' }).click()
+  await expect.poll(() => count('listeners'), LOAD).toBe(2)
+  const back = sysRow(page, 'Position 1')
+  await typeNumber(back.getByRole('spinbutton', { name: 'Front/back (m)' }), -45)
+  await expect.poll(async () => (await system()).listeners[1].y, LOAD).toBe(-45)
+  await expect(sysRow(page, 'FOH')).toContainText('REFERENCE')
+
+  // Delay 1 30 m out (front/back −30). From Main 1 (1 m left of the stage, 6 m up) to Delay 1
+  // (2.5 m across, 5 m up) is √(3.5² + 30² + 1²) = 30.22 m; at 20 °C sound does 343.4 m/s:
+  // 88.0 ms, plus the 10 ms Haas offset = 98 ms
+  const delay1 = sysRow(page, 'Delay 1')
+  await typeNumber(delay1.getByRole('spinbutton', { name: 'Front/back (m)' }), -30)
+  await expect(delay1).toContainText('98 ms', LOAD)
+  await expect(delay1).toContainText('Follows Main 1: the time sound takes from it, plus 10 ms so Main 1 is still heard first.')
+  // Delay 2 stays 25 m out: √(3.5² + 25² + 1²) = 25.26 m from Main 2 → 73.6 + 10 = 83.6 ms
+  await expect(sysRow(page, 'Delay 2')).toContainText('83.6 ms')
+  await expect(page.getByText('Sound travels at 343.4 m/s')).toBeVisible()
+  // At the back of the room Delay 1 arrives 10.7 ms after Main 1: fine
+  await expect(back).toContainText('Delay 1 arrives 10.7 ms after Main 1: fine.')
+  await expectAccessible(page)
+
+  // 30 °C: sound is faster (349.5 m/s), so the delays are shorter
+  await typeNumber(page.getByRole('spinbutton', { name: 'Air temperature (°C)' }), 30)
+  await expect(page.getByText('Sound travels at 349.5 m/s')).toBeVisible(LOAD)
+  await expect(delay1).toContainText('96.5 ms')
+  await expect(sysRow(page, 'Delay 2')).toContainText('82.3 ms')
+
+  // 25 ms typed on Delay 1: 121.5 ms, and at the back of the room it's an echo (more than 30 ms late)
+  await expect.poll(async () => (await system()).temp_c, LOAD).toBe(30)
+  await typeNumber(delay1.getByRole('spinbutton', { name: 'Extra delay (ms)' }), 25)
+  await expect(delay1).toContainText('121.5 ms', LOAD)
+  await expect(delay1).toContainText('Includes 25 ms typed by hand.')
+  await expect(back).toContainText('Delay 1 arrives 35.8 ms after Main 1: heard as an echo here.')
+  await expect(back).toContainText('Delay 2 arrives 10.4 ms after Main 2: fine.')
+  await expect.poll(async () => (await system()).sources.find(s => s.name === 'Delay 1'), LOAD).toMatchObject({ y: -30, extra_ms: 25 })
+
+  // Print: the same figures on paper
+  await page.getByRole('link', { name: 'Print' }).click()
+  await expect(page).toHaveURL(new RegExp(`/gig/${gig.id}/system$`))
+  await expect(page.locator('body')).toContainText('121.5 ms', LOAD)
+  await expect(page.locator('body')).toContainText('heard as an echo here')
+  await expectAccessible(page)
+})
+
+// covers: T97
+test('sound system calculator: a catalogue speaker locks its max SPL and angle; typed by hand unlocks them; crew read the same', { tag: TAG }, async ({ adminWithOrg, browser, baseURL }) => {
+  test.setTimeout(150_000)
+  const { page, world, account, org } = adminWithOrg
+  const { gig } = await toolGig(world, 'Speaker', ['system_calc'])
+  const crew = await world.account('crew')
+  await addToGig(account, gig.id, crew)
+  const v8 = await addItem(account, org.id, { name: `E2E V8 ${uniq()}`, category: 'Speakers', speaker_type: 'line_array', max_spl_db: 142, dispersion_h: 80 })
+  await readBell(account, crew)
+  const system = async () => ok('Reading the system', await account.client.from('gig_show').select('system').eq('gig_id', gig.id).maybeSingle())?.system || {}
+
+  await openTool(page, gig, 'system_calc')
+  await page.getByRole('region', { name: 'Sources' }).getByRole('button', { name: 'Main', exact: true }).click()
+  await expect.poll(async () => (await system()).sources?.length, LOAD).toBe(1)
+  const main = sysRow(page, 'Main 1')
+  const spl = main.getByRole('spinbutton', { name: 'Max SPL at 1 m (dB)' })
+  const angle = main.getByRole('spinbutton', { name: 'Horizontal angle (°)' })
+  await expect(spl).toHaveValue('136')
+  await expect(spl).toBeEnabled()
+  await main.getByRole('combobox', { name: 'Speaker' }).selectOption({ label: v8.name })
+  await expect(spl).toHaveValue('142', LOAD)
+  await expect(angle).toHaveValue('80')
+  await expect(spl).toBeDisabled()
+  await expect(angle).toBeDisabled()
+  await expect(main).toContainText(`Max SPL and angle from the catalogue: ${v8.name}`)
+  await expect.poll(async () => (await system()).sources[0], LOAD).toMatchObject({ item_id: v8.id, spl: 142, angle: 80 })
+  await expectAccessible(page)
+
+  // Crew: the same numbers, read-only
+  const crewPage = await pageAs(browser, crew, { baseURL })
+  try {
+    await openTool(crewPage, gig, 'system_calc')
+    await expect(sysRow(crewPage, 'Main 1')).toContainText('142 dB · 80°', LOAD)
+    // Only the conditions show as fields, all locked; the source has none
+    await expect(crewPage.getByRole('spinbutton')).toHaveCount(3)
+    for (const field of await crewPage.getByRole('spinbutton').all()) await expect(field).toBeDisabled()
+    await expect(sysRow(crewPage, 'Main 1').getByRole('spinbutton')).toHaveCount(0)
+    await expect(crewPage.getByRole('button', { name: 'Main', exact: true })).toHaveCount(0)
+    await expectAccessible(crewPage)
+  } finally {
+    await crewPage.context().close()
+  }
+
+  // Typed by hand: both fields can be changed again
+  await main.getByRole('combobox', { name: 'Speaker' }).selectOption({ label: 'Typed by hand' })
+  await expect(spl).toBeEnabled(LOAD)
+  await expect(angle).toBeEnabled()
+  await expect.poll(async () => (await system()).sources[0].item_id ?? null, LOAD).toBeNull()
+  await typeNumber(spl, 139)
+  await expect.poll(async () => (await system()).sources[0].spl, LOAD).toBe(139)
 })
