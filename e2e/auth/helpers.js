@@ -104,8 +104,18 @@ export async function deleteAccount(page) {
   }
   await expect(page).toHaveURL(/\/settings/)
   await page.getByRole('link', { name: 'Your data' }).click()
-  page.once('dialog', dialog => dialog.accept('DELETE'))
-  await page.getByRole('button', { name: 'Delete account' }).click()
+  // A busy shared test database can cancel the deletion at its 8 s limit; the page then says so
+  // ("…statement timeout"), and a person would press Delete again. Only that error is tried once
+  // more; any other error, or a second timeout, fails the test (#194).
+  const timedOut = page.getByRole('alert').filter({ hasText: /statement timeout/i })
+  for (let attempt = 1; ; attempt++) {
+    page.once('dialog', dialog => dialog.accept('DELETE'))
+    await page.getByRole('button', { name: 'Delete account' }).click()
+    await expect(page.getByRole('alert').filter({ hasText: /statement timeout/i }).or(page.getByPlaceholder('you@company.com')).first())
+      .toBeVisible({ timeout: 20_000 })
+    if (attempt === 1 && await timedOut.count()) continue
+    break
+  }
   await expect(page).toHaveURL(/\/auth$/, { timeout: 15_000 })
 }
 
