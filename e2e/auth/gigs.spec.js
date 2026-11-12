@@ -42,8 +42,9 @@ async function readNotifications(account) {
   expect(error).toBeNull()
 }
 
-// The app's save of a task (PATCH /rest/v1/tasks) has answered
-const taskSaved = page => page.waitForResponse(r => r.url().includes('/rest/v1/tasks') && r.request().method() === 'PATCH' && r.ok())
+// The app's save of one checklist tick (the set_task_checklist_item call, issue 236) has answered
+const TICK_URL = '/rest/v1/rpc/set_task_checklist_item'
+const tickSaved = page => page.waitForResponse(r => r.url().includes(TICK_URL) && r.ok())
 
 // covers: T50
 test('the PM gives the crew a task with a checklist; the crew tick it and the PM sees it done live', { tag: ['@smoke', '@gigs'] }, async ({ adminWithOrg, crewOnGig }) => {
@@ -87,10 +88,9 @@ test('the PM gives the crew a task with a checklist; the crew tick it and the PM
   await crew.goto(`${gig.path}?tab=tasks`)
   const crewRow = crew.getByRole('listitem').filter({ has: crew.getByRole('button', { name: title }) })
   await crewRow.getByRole('button', { name: title }).click()
-  // Each tick is saved before the next, at a person's pace (two ticks in flight at once can lose
-  // one: see the test "two quick checklist ticks are both kept" below)
+  // Each tick is saved for its item only (see "two quick checklist ticks are both kept" below)
   for (const [item, progress] of [['Fly the speakers', '1/3'], ['Run the cables', '2/3']]) {
-    const saved = taskSaved(crew)
+    const saved = tickSaved(crew)
     await crewRow.getByRole('checkbox', { name: item }).check()
     await saved
     await expect(crewRow).toContainText(progress)
@@ -153,36 +153,40 @@ test('a rehearsal note makes one task, and the Tasks tab reads in Portuguese', {
 })
 
 // covers: T50 (found while automating it: two ticks saved at once must both be kept)
-test('two quick checklist ticks are both kept', { tag: '@gigs' }, async ({ adminWithOrg, crewOnGig }) => {
-  // Each tick sends the whole checklist; the first save is held back (a slow phone network) while
-  // the second tick is made. Saves of one task go out one after another (#214, src/lib/saveQueue.js),
-  // so the older list can't land last and both ticks are kept.
+test('two quick checklist ticks are both kept, and so is a tick made on another phone', { tag: '@gigs' }, async ({ adminWithOrg, crewOnGig }) => {
+  // Each tick is saved on the server for its item only (issue 236). The crew's first tick is held
+  // back (a slow phone network) while the second is made, and meanwhile the PM, on another phone,
+  // ticks the third item: the crew's page still shows it unticked, yet all three ticks are kept.
   const { account: pm } = adminWithOrg
   const crew = crewOnGig.page
   const gig = crewOnGig.gig
   const title = `Check the batteries ${stamp()}`
   const { data: task, error } = await pm.client.from('tasks').insert({
     gig_id: gig.id, title, assignee_id: crewOnGig.account.id,
-    checklist: [{ id: 'a1', text: 'Radio mics', done: false }, { id: 'b2', text: 'In-ears', done: false }],
+    checklist: [{ id: 'a1', text: 'Radio mics', done: false }, { id: 'b2', text: 'In-ears', done: false }, { id: 'c3', text: 'Torches', done: false }],
   }).select('id').single()
   expect(error).toBeNull()
 
   let first = true
-  await crew.route('**/rest/v1/tasks?*', async route => {
-    if (route.request().method() === 'PATCH' && first) { first = false; await new Promise(r => setTimeout(r, 1500)) }
+  await crew.route(`**${TICK_URL}*`, async route => {
+    if (first) { first = false; await new Promise(r => setTimeout(r, 1500)) }
     await route.continue()
   })
-  await crew.goto(`${gig.path}?tab=tasks`)
+  // My tasks (no live updates), so the page keeps the list it loaded
+  await crew.goto('/tasks')
   const row = crew.getByRole('listitem').filter({ has: crew.getByRole('button', { name: title }) })
-  await row.getByRole('button', { name: title }).click()
+  await row.getByRole('button', { name: title }).click({ timeout: LOAD })
+  const ticked = await pm.client.rpc('set_task_checklist_item', { p_task_id: task.id, p_item_id: 'c3', p_done: true })
+  expect(ticked.error).toBeNull()
   let answered = 0
-  crew.on('response', r => { if (r.url().includes('/rest/v1/tasks') && r.request().method() === 'PATCH') answered++ })
+  crew.on('response', r => { if (r.url().includes(TICK_URL) && r.ok()) answered++ })
   await row.getByRole('checkbox', { name: 'Radio mics' }).check()
   await row.getByRole('checkbox', { name: 'In-ears' }).check()
-  await expect(row).toContainText('2/2')
   await expect.poll(() => answered, { timeout: LOAD }).toBe(2)
+  // The page now shows the list as saved, with the PM's tick too
+  await expect(row).toContainText('3/3')
   const { data } = await pm.client.from('tasks').select('checklist').eq('id', task.id).single()
-  expect(data.checklist.map(i => i.done)).toEqual([true, true])
+  expect(data.checklist.map(i => i.done)).toEqual([true, true, true])
 })
 
 // covers: T3

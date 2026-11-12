@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { dueState, sortTasks, filterTasks, checklistProgress, checklistFromText, toggleItem, taskFromNote, itemsFromText, taskPlace, taskFromRepair } from './tasks'
+import { dueState, sortTasks, filterTasks, checklistProgress, checklistFromText, toggleItem, setItemDone, taskFromNote, itemsFromText, taskPlace, taskFromRepair } from './tasks'
 
 describe('tasks', () => {
   it('says how urgent a task is', () => {
@@ -35,6 +35,19 @@ describe('tasks', () => {
     // Editing the text keeps the ticks of lines that stay
     expect(checklistFromText('Stage left\nDrum riser', ticked).map(i => [i.text, i.done])).toEqual([['Stage left', true], ['Drum riser', false]])
     expect(checklistFromText('x\n'.repeat(80)).length).toBe(50)
+  })
+  it('gives every checklist item its own id, kept through edits (ticks are saved by id)', () => {
+    const before = [{ id: 'a', text: 'Mic', done: true }, { id: 'b', text: 'Mic', done: false }, { text: 'Old', done: true }]
+    const after = checklistFromText('Mic\nMic\nMic\nOld', before)
+    expect(after.slice(0, 2)).toEqual(before.slice(0, 2))
+    expect(new Set(after.map(i => i.id)).size).toBe(4)
+    expect(after[3]).toMatchObject({ text: 'Old', done: true })
+    expect(after[3].id).toBeTruthy()
+    // two old items sharing an id: the second gets a new one
+    const twins = checklistFromText('A\nB', [{ id: 'z', text: 'A', done: false }, { id: 'z', text: 'B', done: true }])
+    expect(twins[0].id).toBe('z')
+    expect(twins[1].id).not.toBe('z')
+    expect(setItemDone(after, 'b', true)[1].done).toBe(true)
   })
   it('makes a task from a rehearsal note', () => {
     const t = taskFromNote({ id: 'n', gig_id: 'g', cue: 'Q12', body: 'Spot late', assignee_id: 'u' })

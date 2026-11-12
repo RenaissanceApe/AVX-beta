@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Pencil, Trash2, CalendarClock, ListChecks, Flag } from 'lucide-react'
-import { dueState, checklistProgress, checklistFromText, toggleItem } from '../../lib/tasks'
+import { dueState, checklistProgress, checklistFromText, setItemDone } from '../../lib/tasks'
+import { tickChecklistItem } from '../../lib/queuedSaves'
+import { userMessage } from '../../lib/logger'
 import { t, fmt } from '../../i18n'
 import { Modal, btn, btnPrimary, iconBtn, input, label, card, colors } from '../ui'
 
 const DUE_COLOUR = { overdue: 'var(--danger)', today: 'var(--warn)', soon: 'var(--accent-text)' }
 
 // One task in a list: tick it, tick its checklist, open it to edit (docs/TOOLS_PLAN.md step 5)
-export function TaskRow({ task, today, nameOf, canTick, canManage, onToggle, onChecklist, onEdit, onRemove, gigLink }) {
+export function TaskRow({ task, today, nameOf, canTick, canManage, onToggle, onTick, onEdit, onRemove, gigLink }) {
   const [open, setOpen] = useState(false)
   const done = task.status === 'done'
   const state = dueState(task, today)
@@ -42,7 +44,7 @@ export function TaskRow({ task, today, nameOf, canTick, canManage, onToggle, onC
                 {task.checklist.map(i => (
                   <li key={i.id}>
                     <label style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '14px', cursor: canTick ? 'pointer' : 'default' }}>
-                      <input type="checkbox" checked={!!i.done} disabled={!canTick} onChange={() => onChecklist(toggleItem(task.checklist, i.id))} />
+                      <input type="checkbox" checked={!!i.done} disabled={!canTick} onChange={() => onTick(i)} />
                       <span style={{ textDecoration: i.done ? 'line-through' : 'none', color: i.done ? colors.muted : 'var(--text)' }}>{i.text}</span>
                     </label>
                   </li>
@@ -60,6 +62,23 @@ export function TaskRow({ task, today, nameOf, canTick, canManage, onToggle, onC
       </div>
     </li>
   )
+}
+
+// Ticks or unticks one checklist item (issue 236): shown at once, saved on the server for that item
+// only, so someone else's ticks on the same task are kept. When the task's last tick is back, the
+// list (with everyone's ticks) and its updated_at come from the server.
+export async function tickTaskItem(task, item, { setTasks, notify, reload }) {
+  const done = !item.done
+  const put = fn => setTasks(list => (list || []).map(x => (x.id === task.id ? fn(x) : x)))
+  put(x => ({ ...x, checklist: setItemDone(x.checklist, item.id, done) }))
+  const { data, error, last } = await tickChecklistItem(task.id, item.id, done)
+  if (error) {
+    notify(error.code === 'P0002' ? t('error.recordGone') : userMessage(error), 'error')
+    reload()
+    return false
+  }
+  if (data && last) put(x => ({ ...x, checklist: data.checklist, updated_at: data.updated_at }))
+  return true
 }
 
 // New or edit: title, who, by when, notes, checklist (one item per line)

@@ -12,7 +12,7 @@ import { useI18n } from '../i18n'
 import { btn, colors, AvxLoader, PageHeader, Stack, space } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
-import { TaskRow, GigLink } from '../components/tasks/TaskParts'
+import { TaskRow, GigLink, tickTaskItem } from '../components/tasks/TaskParts'
 
 // My tasks (docs/TOOLS_PLAN.md step 5): every task given to me, on any gig or organisation, most
 // urgent first. Tick them here; edit them on their gig.
@@ -63,7 +63,7 @@ export default function MyTasksPage() {
                 {shown.map(task => (
                   <TaskRow key={task.id} task={task} today={today} nameOf={nameOf} canTick canManage={false}
                     onToggle={() => patch(task, { status: task.status === 'open' ? 'done' : 'open' })}
-                    onChecklist={list => patch(task, { checklist: list })}
+                    onTick={item => tickTaskItem(task, item, { setTasks, notify, reload: load })}
                     gigLink={task.gigs ? <GigLink gig={task.gigs} /> : task.organisations ? <span>{task.organisations.name}</span> : null} />
                 ))}
               </ul>

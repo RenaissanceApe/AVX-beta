@@ -285,6 +285,37 @@ test('patch: two stage boxes, sockets chosen and the rest filled, printed', { ta
   await expectAccessible(page)
 })
 
+// covers: T28 (issue 236: two people changing the patch at once)
+test("patch: a change made on another phone isn't overwritten; the screen offers a reload", { tag: TAG }, async ({ adminWithOrg }) => {
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Patch conflict', ['input_list', 'patch'])
+  await readBell(account)
+  const boxes = async () => ok('Reading the boxes', await account.client.from('gig_show').select('audio').eq('gig_id', gig.id).maybeSingle())?.audio?.boxes
+
+  await openTool(page, gig, 'patch')
+  const patch = page.getByRole('region', { name: 'Patch' })
+  await patch.getByRole('button', { name: 'Add stage box' }).first().click()
+  await expect.poll(boxes, LOAD).toEqual([{ name: 'SB1', inputs: 16, split: false }])
+  // This device's own second save goes through (its copy moved on with the first)
+  await patch.getByRole('region', { name: /^SB1/ }).getByRole('checkbox', { name: 'Split to monitors' }).check()
+  await expect.poll(boxes, LOAD).toEqual([{ name: 'SB1', inputs: 16, split: true }])
+
+  // Someone else renames the box on their phone; this page still shows the old patch
+  ok('Changing the patch elsewhere', await account.client.from('gig_show')
+    .update({ audio: { boxes: [{ name: 'Stage left', inputs: 16, split: true }] } }).eq('gig_id', gig.id).select('gig_id'))
+  await patch.getByRole('button', { name: 'Add stage box' }).first().click()
+  const toast = page.getByText('Someone else changed this — reload to see their changes.', { exact: false })
+  await expect(toast).toBeVisible(LOAD)
+  await expect(page.getByRole('button', { name: 'Reload' })).toBeVisible()
+  expect(await boxes()).toEqual([{ name: 'Stage left', inputs: 16, split: true }])
+
+  // Reloading shows their change, and saving works again
+  await page.getByRole('button', { name: 'Reload' }).click()
+  await expect(page.getByRole('region', { name: /^Stage left/ })).toBeVisible(LOAD)
+  await page.getByRole('region', { name: 'Patch' }).getByRole('button', { name: 'Add stage box' }).first().click()
+  await expect.poll(async () => (await boxes())?.length, LOAD).toBe(2)
+})
+
 // covers: T28
 test('DMX patch: 8 spots and 4 LED pars addressed one after another, an overlap warned, printed', { tag: TAG }, async ({ adminWithOrg }) => {
   test.setTimeout(150_000)

@@ -4,6 +4,7 @@ import { Printer, Plus, Trash2, AlertTriangle, Info, Plug, FileDown, Scale } fro
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { useToast } from '../../lib/ToastContext'
+import { notifyConflict } from '../../lib/staleSave'
 import { logger, userMessage } from '../../lib/logger'
 import { buildPowerPdf, powerPdfName } from '../../lib/powerPdf'
 import { track } from '../../lib/usage'
@@ -65,8 +66,9 @@ export default function PowerTool({ gig, canEdit }) {
   const edit = canEdit && !p.savedAt
 
   async function save(patch) {
-    const error = await p.save(patch)
-    if (error) notify(userMessage(error), 'error')
+    const { error, conflict } = await p.save(patch)
+    if (conflict) notifyConflict(conflict, notify, t)
+    else if (error) notify(userMessage(error), 'error')
   }
   const saveDistros = list => save({ distros: list })
   const editDistro = (id, patch) => saveDistros(distros.map(d => (d.id === id ? { ...d, ...patch } : d)))

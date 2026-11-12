@@ -13,7 +13,7 @@ import { t } from '../../i18n'
 import { btn, btnPrimary, colors } from '../ui'
 import EmptyState from '../EmptyState'
 import { TabHeader } from './parts'
-import { TaskRow, TaskForm } from '../tasks/TaskParts'
+import { TaskRow, TaskForm, tickTaskItem } from '../tasks/TaskParts'
 
 // A gig's tasks (docs/TOOLS_PLAN.md build order step 5): managers add and edit them; anyone who
 // writes on the gig, or the person a task is for, ticks it and its checklist. Live and offline.
@@ -99,7 +99,7 @@ export default function TasksTab({ gig, members, nameOf, userId, canManage, canN
             <TaskRow key={task.id} task={task} today={today} nameOf={nameOf}
               canTick={!offline && (canNote || task.assignee_id === userId)} canManage={canManage && !offline}
               onToggle={() => patch(task, { status: task.status === 'open' ? 'done' : 'open' })}
-              onChecklist={list => patch(task, { checklist: list })}
+              onTick={item => tickTaskItem(task, item, { setTasks, notify, reload: load }).then(ok => ok && onChanged?.())}
               onEdit={() => setEditing(task)} onRemove={() => remove(task)} />
           ))}
         </ul>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { saveShow } from '../../lib/queuedSaves'
+import { saveShow, noteShowLoaded } from '../../lib/queuedSaves'
 import { logger } from '../../lib/logger'
 import { selectAll } from '../../lib/selectAll'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
@@ -26,7 +26,7 @@ export default function usePowerPlan(gig, { canEdit = false } = {}) {
 
   const load = useCallback(async () => {
     const [showRes, fxRes, eqRes] = await Promise.all([
-      supabase.from('gig_show').select('power, system').eq('gig_id', gig.id).maybeSingle(),
+      supabase.from('gig_show').select('power, system, updated_at').eq('gig_id', gig.id).maybeSingle(),
       supabase.from('gig_fixtures').select('id, name, fixture_type, position, power_w, item_id').eq('gig_id', gig.id).order('name').order('id'),
       supabase.from('gig_equipment').select('item_id, item_name, quantity, category').eq('gig_id', gig.id),
     ])
@@ -37,6 +37,7 @@ export default function usePowerPlan(gig, { canEdit = false } = {}) {
       return
     }
     for (const [step, r] of [['show', showRes], ['fixtures', fxRes], ['equipment', eqRes]]) if (r.error) logger.error('power', r.error, { step })
+    noteShowLoaded(gig.id, showRes)
     const next = { power: showRes.data?.power || {}, system: showRes.data?.system || {}, fixtures: fxRes.data || [], equipment: eqRes.data || [] }
     setData(next)
     setSavedAt(null)
@@ -47,9 +48,12 @@ export default function usePowerPlan(gig, { canEdit = false } = {}) {
   async function save(patch) {
     const power = { ...(data?.power || {}), ...patch }
     setData(d => ({ ...d, power }))
-    const { error } = await saveShow(gig.id, { power })
+    // A conflict (someone else changed the show model) leaves the screen as it is: the caller
+    // offers a reload, so nothing typed here is thrown away without the person seeing why
+    const { error, conflict } = await saveShow(gig.id, { power })
+    if (conflict) logger.warn('power', 'save refused', { step: 'save', conflict })
     if (error) { logger.error('power', error, { step: 'save' }); load() }
-    return error
+    return { error, conflict }
   }
 
   // Editors: the catalogue's figures for the items this gig uses, and the catalogue's distros

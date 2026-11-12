@@ -49,6 +49,13 @@ describe('updateIfUnchanged', () => {
     expect(calls[0].columns).toBe('*')
   })
 
+  it('finds the record by another key column when asked (gig_show uses gig_id)', async () => {
+    const row = { gig_id: 'g1', audio: {}, updated_at: 'T1' }
+    const { client, calls } = fakeClient(row)
+    expect((await updateIfUnchanged(client, 'gig_show', 'g1', { audio: { boxes: [] } }, 'T1', 'updated_at', 'gig_id')).updatedAt).toBe('T2')
+    expect(calls[0].filters).toEqual({ gig_id: 'g1', updated_at: 'T1' })
+  })
+
   it('refuses a stale save and leaves the record alone', async () => {
     const row = { id: 'g1', name: 'Theirs', updated_at: 'T2' }
     const { client } = fakeClient(row)
