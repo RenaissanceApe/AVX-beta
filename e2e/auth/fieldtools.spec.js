@@ -263,3 +263,115 @@ test('stage plot: stage size, a band dragged into place, named mics, rotated wed
     await crewPage.context().close()
   }
 })
+
+// An input list made through the API: channels 1… with these sources (index 0 with 48V)
+async function addInputs(account, gig, sources) {
+  ok('Adding inputs', await account.client.from('gig_inputs').insert(sources.map((source, i) => ({ gig_id: gig.id, channel: i + 1, source, phantom: i === 0 }))))
+}
+
+// covers: T28
+test('patch: two stage boxes, sockets chosen and the rest filled, printed', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(150_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Patch', ['input_list', 'patch'])
+  await addInputs(account, gig, ['Kick', 'Snare', 'Hi-hat', 'Tom', 'Floor tom', 'OH L', 'OH R', 'Vocal', 'Bass DI', 'Guitar'])
+  await readBell(account)
+  const lines = async () => Object.fromEntries(ok('Reading inputs', await account.client.from('gig_inputs').select('source, stage_box').eq('gig_id', gig.id)).map(r => [r.source, r.stage_box]))
+  const boxes = async () => ok('Reading the boxes', await account.client.from('gig_show').select('audio').eq('gig_id', gig.id).maybeSingle())?.audio?.boxes
+
+  await openTool(page, gig, 'patch')
+  const patch = page.getByRole('region', { name: 'Patch' })
+  await expect(patch).toContainText('0 of 10 lines patched', LOAD)
+  // SB1, 16 inputs, split to monitors
+  await patch.getByRole('button', { name: 'Add stage box' }).first().click()
+  const sb1 = patch.getByRole('region', { name: /^SB1/ })
+  await expect(sb1).toContainText('0 of 16 used', LOAD)
+  await sb1.getByRole('checkbox', { name: 'Split to monitors' }).check()
+  await expect(sb1).toContainText('SPLIT')
+  await expect.poll(boxes, LOAD).toEqual([{ name: 'SB1', inputs: 16, split: true }])
+  // SB2 with 8 inputs
+  await patch.getByRole('button', { name: 'Add stage box' }).first().click()
+  const sb2 = patch.getByRole('region', { name: /^SB2/ })
+  await expect.poll(boxes, LOAD).toEqual([{ name: 'SB1', inputs: 16, split: true }, { name: 'SB2', inputs: 16, split: false }])
+  await sb2.getByLabel('Inputs').fill('8')
+  await sb2.getByLabel('Inputs').blur()
+  await expect(sb2).toContainText('0 of 8 used', LOAD)
+  await expect.poll(boxes, LOAD).toEqual([{ name: 'SB1', inputs: 16, split: true }, { name: 'SB2', inputs: 8, split: false }])
+
+  // A few sockets by hand: the vocal in SB2-01, the kick in SB1-01
+  await sb2.getByRole('combobox', { name: 'Line in socket SB2-01' }).selectOption({ label: '8 · Vocal' })
+  await sb1.getByRole('combobox', { name: 'Line in socket SB1-01' }).selectOption({ label: '1 · Kick' })
+  await expect(patch).toContainText('2 of 10 lines patched', LOAD)
+  await expect(sb1.getByText('48V')).toBeVisible()
+  await expectAccessible(page)
+
+  // Fill the free sockets: the other eight go in order into SB1-02…
+  await patch.getByRole('button', { name: 'Fill the free sockets' }).click()
+  await expect(page.getByText('8 lines placed in free sockets.')).toBeVisible(LOAD)
+  await expect(patch).toContainText('10 of 10 lines patched')
+  await expect.poll(lines, LOAD).toEqual({
+    Kick: 'SB1-01', Snare: 'SB1-02', 'Hi-hat': 'SB1-03', Tom: 'SB1-04', 'Floor tom': 'SB1-05', 'OH L': 'SB1-06', 'OH R': 'SB1-07',
+    Vocal: 'SB2-01', 'Bass DI': 'SB1-08', Guitar: 'SB1-09',
+  })
+
+  // Print: each box, socket by socket
+  await patch.getByRole('link', { name: 'Print' }).click()
+  await expect(page).toHaveURL(new RegExp(`/gig/${gig.id}/patch$`))
+  await expect(page.getByRole('heading', { name: 'SB1 · 16 inputs · SPLIT' })).toBeVisible(LOAD)
+  await expect(page.getByRole('heading', { name: 'SB2 · 8 inputs' })).toBeVisible()
+  await expect(page.getByRole('row').filter({ hasText: 'Bass DI' })).toContainText('08')
+  await expectAccessible(page)
+})
+
+// covers: T28
+test('DMX patch: 8 spots and 4 LED pars addressed one after another, an overlap warned, printed', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(150_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'DMX', ['dmx_patch'])
+  await readBell(account)
+  const fixtures = async () => ok('Reading fixtures', await account.client.from('gig_fixtures').select('name, universe, address, footprint').eq('gig_id', gig.id).order('address'))
+
+  await openTool(page, gig, 'dmx_patch')
+  const dmx = page.getByRole('region', { name: 'DMX patch' })
+  async function addFixtures({ count, type, footprint, name }) {
+    await dmx.getByRole('button', { name: 'Add fixtures' }).first().click()
+    const form = page.getByRole('dialog', { name: 'Add fixtures' })
+    await form.getByLabel('Fixture type').fill(type)
+    await form.getByRole('spinbutton', { name: 'Channels' }).fill(String(footprint))
+    await form.getByLabel('How many').fill(String(count))
+    await form.getByLabel(/^Name/).fill(name)
+    await form.getByRole('button', { name: `Add ${count} fixtures` }).click()
+    await expect(form).toBeHidden(LOAD)
+  }
+  await addFixtures({ count: 8, type: 'MAC Aura', footprint: 14, name: 'Spot' })
+  await addFixtures({ count: 4, type: 'LED Par', footprint: 7, name: 'Par' })
+  await expect(dmx).toContainText('12 fixtures · 1 universe', LOAD)
+  const universe = dmx.getByRole('region', { name: 'Universe 1' })
+  await expect(universe).toContainText('140 of 512 channels')
+  const rows = await fixtures()
+  expect(rows.map(f => `${f.name} ${f.address}`)).toEqual([
+    'Spot 1 1', 'Spot 2 15', 'Spot 3 29', 'Spot 4 43', 'Spot 5 57', 'Spot 6 71', 'Spot 7 85', 'Spot 8 99',
+    'Par 1 113', 'Par 2 120', 'Par 3 127', 'Par 4 134',
+  ])
+  await expect(universe.getByRole('listitem').filter({ hasText: 'Par 4' })).toContainText('134–140')
+  await expect(page.getByText(/overlap/)).toHaveCount(0)
+  await expectAccessible(page)
+
+  // Spot 2 moved to address 10: it and Spot 1 overlap, and the page says so
+  await universe.getByRole('button', { name: 'Edit Spot 2' }).click()
+  const edit = page.getByRole('dialog', { name: 'Spot 2' })
+  await edit.getByLabel('Address', { exact: true }).fill('10')
+  await edit.getByRole('button', { name: 'Save' }).click()
+  await expect(edit).toBeHidden(LOAD)
+  await expect(dmx.getByRole('status')).toContainText('2 fixtures overlap each other\'s channels.', LOAD)
+  for (const name of ['Spot 1', 'Spot 2']) await expect(universe.getByRole('listitem').filter({ hasText: name })).toContainText('Overlaps another fixture\'s channels')
+  await expect(universe.getByRole('listitem').filter({ hasText: 'Spot 3' })).not.toContainText('Overlaps')
+  await expect(universe.getByRole('listitem').filter({ hasText: 'Spot 2' })).toContainText('10–23')
+
+  // Print: the universe, fixture by fixture
+  await dmx.getByRole('link', { name: 'Print' }).click()
+  await expect(page).toHaveURL(new RegExp(`/gig/${gig.id}/dmx$`))
+  await expect(page.getByRole('heading', { name: 'Universe 1 · 140 of 512 channels' })).toBeVisible(LOAD)
+  await expect(page.getByRole('row').filter({ hasText: 'Par 1' })).toContainText('LED Par (7 ch)')
+  await expectAccessible(page)
+})
