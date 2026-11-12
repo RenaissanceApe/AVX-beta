@@ -334,3 +334,71 @@ test('cable list: made in the catalogue, added to the gig\'s equipment and packi
   await expect(page.locator('.ls-pages')).toContainText('Dimmer city')
   await expectAccessible(page)
 })
+
+// covers: T109, T113 (the report and its PDF show the cables, the cable list and inrush)
+test('power report: from the on-site tile, also offline; saved to the gig files as a PDF; the light plot shows the plan\'s figures', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(180_000)
+  const { page, world, account, org } = adminWithOrg
+  const { gig } = await toolGig(world, 'Report', ['dmx_patch', 'light_plot', 'power'])
+  const batten = await addItem(account, org.id, { name: `E2E Batten ${uniq()}`, category: 'Lighting', power_w: 150, inrush_a: 20 })
+  const fixtures = ok('Adding battens', await account.client.from('gig_fixtures').insert([1, 2].map(n => ({
+    gig_id: gig.id, name: `Batten ${n}`, fixture_type: 'LED Batten', footprint: 8, universe: 1, address: 1 + (n - 1) * 8, item_id: batten.id, power_w: 150,
+  }))).select('id'))
+  // The plan: the heater on A, both battens on B, and a 25 m Schuko 2.5 mm² from A
+  ok('Saving the plan', await savePlan(account, gig, {
+    ...PLAN,
+    assign: { ...PLAN.assign, ...Object.fromEntries(fixtures.map(f => [`fx:${f.id}`, { distro: 'd1', output: 'o2' }])) },
+    cables: [{ id: 'c1', kind: 'power', type: 'schuko_25', length: 25, link: 'o:d1/o1' }],
+  }))
+  await readBell(account)
+  // Opening the plan copies the catalogue's figures into it (so crew and the report see them)
+  await openTool(page, gig, 'power')
+  await expect.poll(async () => (await powerOf(account, gig)).figures?.[batten.id], LOAD).toMatchObject({ w: 150, in: 20 })
+
+  // The light plot's power section takes the plan's figures: 2 × 150 W on L2 = 1.3 A
+  await openTool(page, gig, 'light_plot')
+  const lightPower = page.getByRole('region', { name: 'Power (estimate)' })
+  await expect(lightPower).toContainText("From the gig's power plan", LOAD)
+  await expect(lightPower).toContainText('300 W for 2 fixtures')
+  await expect(lightPower.getByRole('listitem').filter({ hasText: 'L2' })).toContainText('1.3 A of 63 A (2%)')
+
+  // On-site mode → the Power plan tile opens the report
+  await page.goto(gig.path)
+  await page.getByRole('button', { name: 'On-site mode' }).click()
+  await page.getByRole('link', { name: 'Power plan' }).click()
+  await expect(page).toHaveURL(new RegExp(`/gig/${gig.id}/power$`))
+  const report = page.locator('body')
+  await expect(report).toContainText(ESTIMATE, LOAD)
+  await expect(page.getByRole('region', { name: 'Loads' })).toContainText('Heater')
+  await expect(page.getByRole('region', { name: 'Inrush at switch-on' })).toContainText('40 A')
+  await expect(page.getByRole('region', { name: 'Cables' })).toContainText('Schuko (3G2.5)')
+  await expect(page.getByRole('region', { name: 'Cable list' })).toContainText('Schuko (3G2.5)')
+  await expectAccessible(page)
+  // Offline: the report opens from this device's copy
+  await waitForServiceWorker(page)
+  await page.context().setOffline(true)
+  try {
+    await page.reload()
+    await expect(page.getByRole('status').filter({ hasText: "You're offline: this is the last copy saved on this device." })).toBeVisible(LOAD)
+    await expect(page.getByRole('region', { name: 'Loads' })).toContainText('Heater')
+  } finally {
+    await page.context().setOffline(false)
+  }
+  // Leave on-site mode for the rest
+  await page.goto(gig.path)
+  const leave = page.getByRole('button', { name: 'Full gig view' })
+  if (await leave.isVisible({ timeout: 15_000 }).catch(() => false)) await leave.click()
+
+  // Save to gig files: a PDF in the gig's files with the cables, the cable list and inrush
+  await openTool(page, gig, 'power')
+  await page.getByRole('region', { name: 'Power plan' }).getByRole('button', { name: 'Save to gig files' }).click()
+  await expect(page.getByText("Report saved in the gig's files")).toBeVisible(LOAD)
+  const asset = ok('Reading the files', await account.client.from('assets').select('name, file_url, type').eq('gig_id', gig.id)).find(a => a.name === `Power plan · ${gig.name}`)
+  expect(asset).toMatchObject({ type: 'document' })
+  const { data: blob, error } = await account.client.storage.from('gig-assets').download(asset.file_url)
+  if (error) throw new Error(`Downloading the PDF failed: ${error.message}`)
+  const { text } = await readPdfText(new Uint8Array(await blob.arrayBuffer()))
+  for (const words of ['Heater', 'Dimmer city', 'Inrush', 'Cable list', 'Schuko (3G2.5)']) expect(text, `The PDF has "${words}"`).toContain(words)
+  await page.goto(`${gig.path}?tab=assets`)
+  await expect(page.getByRole('main')).toContainText(`Power plan · ${gig.name}`, LOAD)
+})
