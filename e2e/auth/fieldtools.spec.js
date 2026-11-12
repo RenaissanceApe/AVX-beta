@@ -5,7 +5,7 @@
 // for known inputs. What stays manual (camera, timecode between two phones, printing on paper,
 // opening an MVR in Vectorworks) is in docs/notes/AT10.md.
 import { test, expect } from './fixtures.js'
-import { expectAccessible } from './helpers.js'
+import { expectAccessible, waitForServiceWorker } from './helpers.js'
 import { addGig, addItem, addToGig, pageAs } from './setup.js'
 import { RUN } from './accounts.js'
 import { readZip, zipText, bytesOf } from './files.js'
@@ -754,4 +754,115 @@ test('rehearsal notes in Portuguese: crew mark a note and tick it done', { tag: 
   } finally {
     await crewPage.context().close()
   }
+})
+
+// covers: T48
+test('DMX calculator in Pocket tools, offline: address to switches and back, the switch layout, a row of fixtures', { tag: TAG }, async ({ crewOnGig }) => {
+  test.setTimeout(150_000)
+  const { page, account } = crewOnGig
+  await readBell(account)
+  // My work → Pocket tools
+  await page.goto('/me')
+  const menu = page.getByRole('navigation', { name: 'Main menu' })
+  await menu.getByRole('button').first().click()
+  await page.getByRole('link', { name: /^Pocket tools/ }).click()
+  await expect(page).toHaveURL(/\/tools$/)
+  await expect(page.getByRole('heading', { name: 'Pocket tools', level: 1 })).toBeVisible(LOAD)
+  // With the connection off: the page still opens
+  await waitForServiceWorker(page)
+  await page.context().setOffline(true)
+  try {
+    await page.reload()
+    const calc = page.getByRole('region', { name: 'DMX address and dipswitches' })
+    await expect(calc).toBeVisible(LOAD)
+    // Address 161 = 128 + 32 + 1: switches 1, 6 and 8 ON
+    await calc.getByRole('spinbutton', { name: 'Address' }).fill('161')
+    await expect(calc.getByText('Switches ON: 1, 6, 8')).toBeVisible()
+    const switches = calc.getByRole('group', { name: /^Dipswitches for address 161/ })
+    for (const n of [1, 6, 8]) await expect(switches.getByRole('button', { name: new RegExp(`^Switch ${n},`) })).toHaveAttribute('aria-pressed', 'true')
+    await expect(switches.getByRole('button', { name: 'Switch 2, worth 2' })).toHaveAttribute('aria-pressed', 'false')
+    // Tapping switch 2 (worth 2) makes it 163
+    await switches.getByRole('button', { name: 'Switch 2, worth 2' }).click()
+    await expect(calc.getByRole('spinbutton', { name: 'Address' })).toHaveValue('163')
+    await expect(calc.getByText('Switches ON: 1, 2, 6, 8')).toBeVisible()
+    await expectAccessible(page)
+
+    // A fixture labelled the other way: switch 1 worth 256, on the right, ON down
+    await calc.getByText('How my fixtures show the switches').click()
+    await calc.getByLabel('Switch 1 is worth').selectOption('msb')
+    await calc.getByLabel('Switch 1 is on the').selectOption('right')
+    await calc.getByLabel('ON is').selectOption('down')
+    // 163 = 128 + 32 + 2 + 1: now switches 2, 4, 8 and 9
+    await expect(calc.getByText('Switches ON: 2, 4, 8, 9')).toBeVisible()
+    const turned = calc.getByRole('group', { name: /^Dipswitches for address 163/ })
+    // Drawn from the right: switch 9 comes first
+    await expect(turned.getByRole('button').first()).toHaveAccessibleName('Switch 9, worth 1')
+    await turned.getByRole('button', { name: 'Switch 1, worth 256' }).click()
+    await expect(calc.getByRole('spinbutton', { name: 'Address' })).toHaveValue('419')
+    // The choice is kept on this phone
+    await page.reload()
+    await expect(page.getByRole('region', { name: 'DMX address and dipswitches' }).getByLabel('Switch 1 is worth')).toHaveValue('msb', LOAD)
+
+    // Address a row: 6 fixtures of 40 channels from 401 run into the next universe
+    const row = page.getByRole('region', { name: 'Address a row of fixtures' }).first()
+    await row.getByRole('spinbutton', { name: 'Fixtures' }).fill('6')
+    await row.getByRole('spinbutton', { name: 'Channels each' }).fill('40')
+    await row.getByRole('spinbutton', { name: 'Start address' }).fill('401')
+    const rows = row.getByRole('row')
+    await expect(rows).toHaveCount(7)
+    // 401–440 = 256 + 128 + 16 + 1: with switch 1 worth 256 that's switches 1, 2, 5 and 9
+    await expect(rows.nth(1).getByRole('cell')).toHaveText(['1', '1', '401–440', '1 2 5 9'])
+    await expect(rows.nth(2).getByRole('cell').nth(2)).toHaveText('441–480')
+    // The third (481–520) would run past 512: it starts universe 2 at 1
+    await expect(rows.nth(3).getByRole('cell').nth(0)).toHaveText('3')
+    await expect(rows.nth(3).getByRole('cell').nth(1)).toContainText('2')
+    await expect(rows.nth(3).getByRole('cell').nth(2)).toHaveText('1–40')
+    await expect(rows.nth(6).getByRole('cell').nth(2)).toHaveText('121–160')
+    await expectAccessible(page)
+  } finally {
+    await page.context().setOffline(false)
+  }
+})
+
+// covers: T48 (the DMX patch's Dipswitches and Walk the rig)
+test('DMX patch: Dipswitches per fixture and Walk the rig, position by position', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(120_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Walk', ['dmx_patch'])
+  ok('Adding fixtures', await account.client.from('gig_fixtures').insert([
+    { gig_id: gig.id, name: 'Spot A', fixture_type: 'MAC Aura', footprint: 14, universe: 1, address: 1, position: 'FOH truss' },
+    { gig_id: gig.id, name: 'Spot B', fixture_type: 'MAC Aura', footprint: 14, universe: 1, address: 15, position: 'FOH truss' },
+    { gig_id: gig.id, name: 'Floor par', fixture_type: 'LED Par', footprint: 7, universe: 1, address: 30, position: 'Floor' },
+  ]))
+  await readBell(account)
+
+  await openTool(page, gig, 'dmx_patch')
+  const dmx = page.getByRole('region', { name: 'DMX patch' })
+  await expect(dmx).toContainText('3 fixtures', LOAD)
+  await dmx.getByRole('button', { name: 'Dipswitches' }).click()
+  await expect(dmx.getByRole('button', { name: 'Dipswitches' })).toHaveAttribute('aria-pressed', 'true')
+  // 15 = 8 + 4 + 2 + 1; 30 = 16 + 8 + 4 + 2
+  await expect(dmx.getByRole('listitem').filter({ hasText: 'Spot A' })).toContainText('ON 1')
+  await expect(dmx.getByRole('listitem').filter({ hasText: 'Spot B' })).toContainText('ON 1 2 3 4')
+  await expect(dmx.getByRole('listitem').filter({ hasText: 'Floor par' })).toContainText('ON 2 3 4 5')
+  await expectAccessible(page)
+
+  // Walk the rig: by position (Floor, then FOH truss), then by address
+  await dmx.getByRole('link', { name: 'Walk the rig' }).click()
+  await expect(page).toHaveURL(new RegExp(`/gig/${gig.id}/dmx/walk`))
+  const where = page.getByRole('heading', { level: 1 })
+  await expect(where).toHaveText('Fixture 1 of 3 · Floor', LOAD)
+  await expect(page.getByRole('main').or(page.locator('body')).first()).toContainText('Floor par')
+  await expect(page.getByText('Switches ON: 2, 3, 4, 5')).toBeVisible()
+  await expectAccessible(page)
+  await page.getByRole('button', { name: /^Next fixture/ }).click()
+  await expect(where).toHaveText('Fixture 2 of 3 · FOH truss')
+  await expect(page.getByText('Channels 1–14')).toBeVisible()
+  await expect(page.getByText('Switches ON: 1', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: /^Next fixture/ }).click()
+  await expect(where).toHaveText('Fixture 3 of 3 · FOH truss')
+  await expect(page.getByText('Switches ON: 1, 2, 3, 4')).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Next fixture/ })).toBeDisabled()
+  await page.getByRole('button', { name: /^Previous/ }).click()
+  await expect(where).toHaveText('Fixture 2 of 3 · FOH truss')
 })
