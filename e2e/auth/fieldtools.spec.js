@@ -8,6 +8,7 @@ import { test, expect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
 import { addGig, addItem, addToGig, pageAs } from './setup.js'
 import { RUN } from './accounts.js'
+import { barsOf, layoutFixtures, viewArea } from '../../src/lib/lightPlot.js'
 
 test.use({ area: 'fieldtools' })
 
@@ -288,6 +289,7 @@ test('patch: two stage boxes, sockets chosen and the rest filled, printed', { ta
   await expect(sb1).toContainText('0 of 16 used', LOAD)
   await sb1.getByRole('checkbox', { name: 'Split to monitors' }).check()
   await expect(sb1).toContainText('SPLIT')
+  // Each change saved before the next (two a moment apart can be saved out of order, issue LOST_UPDATE)
   await expect.poll(boxes, LOAD).toEqual([{ name: 'SB1', inputs: 16, split: true }])
   // SB2 with 8 inputs
   await patch.getByRole('button', { name: 'Add stage box' }).first().click()
@@ -373,5 +375,105 @@ test('DMX patch: 8 spots and 4 LED pars addressed one after another, an overlap 
   await expect(page).toHaveURL(new RegExp(`/gig/${gig.id}/dmx$`))
   await expect(page.getByRole('heading', { name: 'Universe 1 · 140 of 512 channels' })).toBeVisible(LOAD)
   await expect(page.getByRole('row').filter({ hasText: 'Par 1' })).toContainText('LED Par (7 ch)')
+  await expectAccessible(page)
+})
+
+// covers: T29
+test('light plot: a truss and a pipe dragged into place with phases, fixtures added and hung, one dragged across, power per phase, printed', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(180_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Lights', ['dmx_patch', 'light_plot'])
+  await readBell(account)
+  const show = async () => ok('Reading the show', await account.client.from('gig_show').select('stage, lighting').eq('gig_id', gig.id).maybeSingle())
+  const fixtures = async () => ok('Reading fixtures', await account.client.from('gig_fixtures').select('id, name, position, plot_x, plot_y, power_w, weight_kg').eq('gig_id', gig.id).order('name'))
+  const bars = async () => barsOf((await show())?.lighting)
+  // A point on the plot (metres; y from the front of the stage) on the screen, the way the drawing places it
+  async function at(x, y) {
+    const s = await show()
+    const area = viewArea(s?.stage, barsOf(s?.lighting), layoutFixtures(barsOf(s?.lighting), await fixtures()))
+    return screenPoint(drawing, (x - area.x0) * 100, (area.y1 - y) * 100)
+  }
+
+  await page.setViewportSize({ width: 1280, height: 1600 })
+  await openTool(page, gig, 'light_plot')
+  const drawing = page.getByRole('group', { name: `Light plot for ${gig.name}` })
+  // A truss and a pipe: both start across the stage, 1 m from the back (5 m from the front)
+  await page.getByRole('button', { name: 'Truss', exact: true }).click()
+  await expect.poll(async () => (await bars()).length, LOAD).toBe(1)
+  await page.getByRole('button', { name: 'Pipe', exact: true }).click()
+  await expect.poll(async () => (await bars()).map(b => [b.name, b.kind, b.x, b.y]), LOAD).toEqual([['Truss 1', 'truss', 5, 5], ['Pipe 1', 'pipe', 5, 5]])
+  // Drag the pipe (drawn on top) to 2 m from the front, then the truss to 4.5 m
+  await drag(page, await at(5, 5), await at(5, 2))
+  await expect.poll(async () => (await bars()).map(b => [b.name, b.y]), LOAD).toEqual([['Truss 1', 5], ['Pipe 1', 2]])
+  await drag(page, await at(3, 5), await at(3, 4.5))
+  await expect.poll(async () => (await bars()).map(b => [b.name, b.x, b.y]), LOAD).toEqual([['Truss 1', 5, 4.5], ['Pipe 1', 5, 2]])
+  await expect(drawing.getByRole('button', { name: 'Truss 1, Truss, 10 m' })).toBeAttached()
+
+  // A phase each: the truss on L1, the pipe on L2
+  const positions = page.getByRole('region', { name: 'Positions' })
+  // (each saved before the next: two changes a moment apart can be saved out of order, issue LOST_UPDATE)
+  for (const [name, phase] of [['Truss 1', 1], ['Pipe 1', 2]]) {
+    await positions.getByRole('button', { name: new RegExp(`^${name} `) }).click()
+    await page.getByRole('group', { name: `Selected: ${name}` }).getByRole('combobox', { name: 'Phase' }).selectOption(`L${phase}`)
+    await expect.poll(async () => (await bars()).find(b => b.name === name).phase, LOAD).toBe(phase)
+  }
+  await expect(positions).toContainText('Truss · 10 m · L1')
+
+  // The truss → Add fixtures here: 6 spots
+  await positions.getByRole('button', { name: /^Truss 1 / }).click()
+  await page.getByRole('group', { name: 'Selected: Truss 1' }).getByRole('button', { name: 'Add fixtures here' }).click()
+  const form = page.getByRole('dialog', { name: 'Add fixtures' })
+  await form.getByLabel('Fixture type').fill('Spot')
+  await form.getByRole('spinbutton', { name: 'Channels' }).fill('14')
+  await form.getByLabel('How many').fill('6')
+  await form.getByLabel(/^Name/).fill('Spot')
+  await form.getByRole('button', { name: 'Add 6 fixtures' }).click()
+  await expect(form).toBeHidden(LOAD)
+  await expect.poll(async () => (await fixtures()).map(f => f.position), LOAD).toEqual(Array(6).fill('Truss 1'))
+  // Their power and weight (500 W, 20 kg each), and four washes already in the DMX patch, not on the plot yet
+  ok('Setting power', await account.client.from('gig_fixtures').update({ power_w: 500, weight_kg: 20 }).eq('gig_id', gig.id))
+  ok('Adding washes', await account.client.from('gig_fixtures').insert([1, 2, 3, 4].map(n => ({
+    gig_id: gig.id, name: `Wash ${n}`, fixture_type: 'LED Wash', footprint: 7, universe: 1, address: 84 + (n - 1) * 7, power_w: 250, weight_kg: 8,
+  }))))
+  await page.reload()
+  const loose = page.getByRole('region', { name: /not on the plot$/ })
+  await expect(loose).toHaveAccessibleName('4 fixtures not on the plot', LOAD)
+  await expectAccessible(page)
+  for (const n of [1, 2, 3, 4]) {
+    await loose.getByRole('combobox', { name: `Hang Wash ${n} on` }).selectOption('Pipe 1')
+    await expect.poll(async () => (await fixtures()).find(f => f.name === `Wash ${n}`).position, LOAD).toBe('Pipe 1')
+  }
+  await expect(loose).toHaveCount(0, LOAD)
+
+  // Drag Wash 1 from the pipe onto the truss: it hangs there now
+  const wash = drawing.getByRole('button', { name: /^Wash 1, / })
+  const box = await wash.boundingBox()
+  await drag(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 }, await at(1, 4.6))
+  await expect.poll(async () => (await fixtures()).find(f => f.name === 'Wash 1'), LOAD).toMatchObject({ position: 'Truss 1', plot_y: 4.5 })
+  await expect(positions.getByRole('button', { name: /^Truss 1 / })).toContainText('7 fixtures · 3.3 kW · 14.1 A · 128 kg')
+  await expect(positions.getByRole('button', { name: /^Pipe 1 / })).toContainText('3 fixtures · 750 W · 3.3 A · 24 kg')
+
+  // The supply: three phase, 16 A first (L1 is above 80%), then 32 A
+  const power = page.getByRole('region', { name: 'Power (estimate)' })
+  await expect(power.getByRole('combobox', { name: 'Supply' })).toHaveValue('3')
+  await power.getByLabel('Amps per phase', { exact: true }).fill('16')
+  await power.getByLabel('Amps per phase', { exact: true }).blur()
+  await expect(power.getByRole('listitem').filter({ hasText: 'L1' })).toContainText('3.3 kW · 14.1 A of 16 A', LOAD)
+  await expect(power.getByRole('status')).toContainText('Above 80% of the supply on at least one phase.')
+  await power.getByLabel('Amps per phase', { exact: true }).fill('32')
+  await power.getByLabel('Amps per phase', { exact: true }).blur()
+  await expect(power.getByRole('listitem').filter({ hasText: 'L1' })).toContainText('3.3 kW · 14.1 A of 32 A', LOAD)
+  await expect(power.getByRole('listitem').filter({ hasText: 'L2' })).toContainText('750 W · 3.3 A of 32 A')
+  await expect(power.getByRole('listitem').filter({ hasText: 'L3' })).toContainText('0 W · 0 A of 32 A')
+  await expect(power).toContainText('In all: 4 kW, 17.4 A, 152 kg hanging.')
+  await expect(power.getByRole('status')).toHaveCount(0)
+  await expect.poll(async () => (await show()).lighting?.supply, LOAD).toMatchObject({ phases: 3, amps: 32, volts: 230 })
+  await expectAccessible(page)
+
+  // Print: the plot on paper with the power figures
+  await page.getByRole('link', { name: 'Print' }).click()
+  await expect(page).toHaveURL(new RegExp(`/gig/${gig.id}/lights$`))
+  await expect(page.getByRole('img', { name: `Light plot for ${gig.name}` })).toBeVisible(LOAD)
+  await expect(page.getByRole('main').or(page.locator('body')).first()).toContainText('Truss 1')
   await expectAccessible(page)
 })
