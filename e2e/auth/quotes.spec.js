@@ -12,6 +12,14 @@ import { quoteInvoiceLines } from '../../src/lib/invoices.js'
 
 test.use({ area: 'quotes' })
 
+// The admin collects notifications as the file runs (quotes accepted or declined through the link,
+// overdue invoices), and a page with 10 or more unread fails the accessibility check (app bug #209,
+// documented in e2e/auth/hours.spec.js). Each test starts with them read.
+test.beforeEach(async ({ world }) => {
+  const admin = await world.admin()
+  must('Reading notifications', await admin.client.from('notifications').update({ read_at: new Date().toISOString() }).eq('user_id', admin.id).is('read_at', null))
+})
+
 const AREA = '@quotes'
 const stamp = () => Date.now().toString(36)
 const localDate = (days = 0) => {
