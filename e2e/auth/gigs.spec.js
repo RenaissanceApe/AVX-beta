@@ -2,12 +2,12 @@
 // (docs/PENDING.md section 2), as signed-in journeys on the TEST project. docs/TESTING.md,
 // "Automated test suite". Data a test only needs to exist is made through setup.js; the UI is
 // clicked only for what the T-line checks.
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { test, expect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
 import { emailSummaryCandidates } from './testSupport.js'
 import { readZip, zipText } from './files.js'
-import { addClient, addGig, addItem, addOrg, addToGig, pageAs } from './setup.js'
+import { addClient, addGig, addItem, addOrg, addToGig, addToOrg, pageAs } from './setup.js'
 
 test.use({ area: 'gigs' })
 
@@ -18,7 +18,7 @@ const localDate = (days = 0) => {
 }
 
 // Marks the account's notifications read, so the bell shows a single-digit count (or none) before an
-// accessibility check: with more than 9 unread it fails axe (see "the bell with more than 9 unread …")
+// accessibility check: with more than 9 unread it fails axe (#209, documented in hours.spec.js)
 async function readNotifications(account) {
   const { error } = await account.client.from('notifications').update({ read_at: new Date().toISOString() }).eq('user_id', account.id).is('read_at', null)
   expect(error).toBeNull()
@@ -96,9 +96,47 @@ test('the PM gives the crew a task with a checklist; the crew tick it and the PM
   await expect(pm.getByRole('button', { name: title })).toHaveCount(0)
 })
 
+// covers: T50 (a task from a rehearsal note, once; the Portuguese wording)
+test('a rehearsal note makes one task, and the Tasks tab reads in Portuguese', { tag: '@gigs' }, async ({ adminWithOrg, browser, baseURL }) => {
+  const { page, account: admin, org } = adminWithOrg
+  const s = stamp()
+  const gig = await addGig(admin, org.id, { name: `E2E Rehearsal ${s}` })
+  const session = await admin.client.from('rehearsal_sessions').insert({ gig_id: gig.id, name: `Tech run ${s}`, clock: 'stopwatch', running: false }).select('id').single()
+  expect(session.error).toBeNull()
+  const body = `Spot 3 flickers ${s}`
+  const note = await admin.client.from('rehearsal_notes').insert({ session_id: session.data.id, gig_id: gig.id, client_id: randomUUID(), tc_ms: 61_000, body }).select('id').single()
+  expect(note.error).toBeNull()
+
+  await page.goto(`${gig.path}?tab=tools&tool=rehearsal`)
+  await page.getByRole('button', { name: new RegExp(`Tech run ${s}`) }).click({ timeout: 15_000 })
+  const makeTask = page.getByRole('button', { name: 'Make a task from this note' })
+  await makeTask.click({ timeout: 15_000 })
+  await expect(page.getByText("Task made: it's in the gig's Tasks")).toBeVisible({ timeout: 15_000 })
+  await makeTask.click()
+  await expect(page.getByText('This note already has a task')).toBeVisible({ timeout: 15_000 })
+  const { count } = await admin.client.from('tasks').select('id', { count: 'exact', head: true }).eq('gig_id', gig.id).is('removed_at', null)
+  expect(count).toBe(1)
+
+  // The gig's Tasks tab, in Portuguese
+  const pt = await pageAs(browser, admin, { baseURL, lang: 'pt' })
+  try {
+    await pt.goto(`${gig.path}?tab=tasks`)
+    await expect(pt.getByRole('tab', { name: /^Tarefas/, selected: true })).toBeVisible({ timeout: 15_000 })
+    const row = pt.getByRole('listitem').filter({ has: pt.getByRole('button', { name: new RegExp(body) }) })
+    await expect(row).toContainText('de uma nota de ensaio')
+    await pt.getByRole('button', { name: 'Nova tarefa' }).first().click()
+    const form = pt.getByRole('dialog', { name: 'Nova tarefa' })
+    await expect(form.getByLabel('O quê')).toBeVisible()
+    await expect(form.getByRole('button', { name: 'Guardar tarefa' })).toBeVisible()
+    await expectAccessible(pt)
+  } finally {
+    await pt.context().close()
+  }
+})
+
 // covers: T50 (found while automating it: two ticks saved at once must both be kept)
 test('two quick checklist ticks are both kept', { tag: '@gigs' }, async ({ adminWithOrg, crewOnGig }) => {
-  // BUG (#ISSUE): each tick sends the whole checklist, so when the first save reaches the database
+  // BUG (#214): each tick sends the whole checklist, so when the first save reaches the database
   // after the second (a slow phone network), it writes the older list back and the second tick is
   // lost, though the screen showed it. The first save is held back here to make that order certain.
   test.fail()
@@ -490,7 +528,7 @@ test('On-site mode in Portuguese', { tag: '@gigs' }, async ({ browser, baseURL, 
 
 // covers: T49 (found while automating it)
 test('the On-site "Crew and phones" button opens the crew list in simple mode', { tag: '@gigs' }, async ({ crewOnGig, world }) => {
-  // BUG (#ISSUE_CREW): a crew-only person is in simple mode, whose gig tabs leave out Crew, so the
+  // BUG (#215): a crew-only person is in simple mode, whose gig tabs leave out Crew, so the
   // button switches to the Crew tab and the page switches straight back to the overview: nothing happens.
   test.fail()
   const { page } = crewOnGig
@@ -499,28 +537,6 @@ test('the On-site "Crew and phones" button opens the crew list in simple mode', 
   const onSite = page.locator('section[aria-labelledby="onsite-title"]')
   await onSite.getByRole('button', { name: 'Crew and phones', exact: true }).click()
   await expect(page.getByRole('tab', { name: /^Crew/, selected: true })).toBeVisible()
-})
-
-// covers: none (found while automating T49: the gigs' notifications)
-test('the bell with more than 9 unread notifications passes the accessibility check', { tag: '@gigs' }, async ({ browser, baseURL, adminWithOrg }) => {
-  // BUG (#ISSUE_BELL): over 9 unread, the bell shows "9+" but is named "11 unread notifications", so
-  // its visible text isn't in its accessible name (axe: label-content-name-mismatch, serious).
-  test.fail()
-  const { account: admin, org, world } = adminWithOrg
-  const person = await world.account('bell')
-  const { count } = await person.client.from('notifications').select('id', { count: 'exact', head: true }).is('read_at', null)
-  for (let i = count || 0; i < 10; i++) {
-    const gig = await addGig(admin, org.id, { name: `E2E Bell ${i} ${stamp()}` })
-    await addToGig(admin, gig.id, person)
-  }
-  const page = await pageAs(browser, person, { baseURL })
-  try {
-    await page.goto('/me')
-    await expect(page.getByRole('button', { name: /unread notifications/ })).toContainText('9+', { timeout: 20_000 })
-    await expectAccessible(page)
-  } finally {
-    await page.context().close()
-  }
 })
 
 // covers: T1 (the invite and the bell; the email itself is checked by hand)
@@ -751,7 +767,7 @@ test('gig statuses and types: set up, used on a gig, filtered, re-meant, removed
 
 // covers: T52 ("Choose Invoiced: does the gig move to the past gigs?")
 test('a gig marked "Invoiced" (it means done) moves to the past gigs', { tag: '@gigs' }, async ({ adminWithOrg }) => {
-  // BUG? (#ISSUE_DONE, needs the owner's decision): the gigs list sorts gigs into Upcoming and Past by
+  // BUG? (#217, needs the owner's decision): the gigs list sorts gigs into Upcoming and Past by
   // their dates only (src/lib/gigs.js gigBucket); a done status doesn't move a gig whose dates are
   // still ahead, so it stays under Upcoming. Remove test.fail() if the list changes, or this test if
   // the dates are meant to decide.
@@ -894,7 +910,7 @@ test('custom fields: one of each kind on a gig, shown, searched, renamed, reorde
 
 // covers: T53 ("remove one and check its value is … still in the organisation export")
 test('a removed custom field\'s values still come out in the organisation export', { tag: '@gigs' }, async ({ adminWithOrg }) => {
-  // BUG (#ISSUE_EXPORT): the settings say "values already filled in are kept and still come out in
+  // BUG (#216): the settings say "values already filled in are kept and still come out in
   // the export", but the export's custom columns (private.custom_columns) only take fields that
   // aren't removed, so a removed field's column and values are left out.
   test.fail()
@@ -909,4 +925,105 @@ test('a removed custom field\'s values still come out in the organisation export
   const files = await downloadExport(page, org)
   const gigs = csvRows(Object.entries(files).find(([name]) => name.endsWith('-gigs.csv'))[1])
   expect(gigs.find(g => g.name === gig.name)).toMatchObject({ 'Rider version': 'v3' })
+})
+
+// covers: T23 (crew-only home, Simple mode, empty screens; the first-steps card's steps are done through
+// the set-up after checking where each one leads)
+test('a crew-only account gets the simple home; Simple mode switches; first steps and empty screens guide', { tag: '@gigs' }, async ({ adminWithOrg, browser, baseURL, world }) => {
+  test.setTimeout(150_000) // a long journey; nightly only
+  const { page, account: admin, org } = adminWithOrg
+  const s = stamp()
+  // A new crew-only account, put on a gig
+  const crew = await world.account('crew2')
+  const gig = await addGig(admin, org.id, { name: `E2E Next Gig ${s}`, start_date: localDate(5), end_date: localDate(5) })
+  await addToGig(admin, gig.id, crew, { functionTitle: 'LX tech', callTime: '09:15' })
+  // Equipment on it, so "Report damage" has something to report (it opens the form only then)
+  const fixture = await addItem(admin, org.id, { name: `E2E Spot ${s}` })
+  expect((await admin.client.from('gig_equipment').insert({ gig_id: gig.id, item_id: fixture.id, quantity: 4 })).error).toBeNull()
+  await readNotifications(crew)
+
+  const theirs = await pageAs(browser, crew, { baseURL })
+  try {
+    // The simple home: the next gig with the call time
+    await theirs.goto('/me')
+    const next = theirs.locator('section[aria-labelledby="next-gig"]')
+    await expect(next.getByRole('heading', { name: gig.name })).toBeVisible({ timeout: 20_000 })
+    await expect(next).toContainText('Call: 09:15')
+    await expectAccessible(theirs)
+    // Call sheet, Chat and Report damage
+    await next.getByRole('button', { name: 'Call sheet' }).click()
+    await expect(theirs).toHaveURL(new RegExp(`${gig.path}/callsheet$`))
+    await expect(theirs.getByRole('heading', { name: gig.name })).toBeVisible({ timeout: 15_000 })
+    await theirs.goto('/me')
+    await next.getByRole('button', { name: 'Chat' }).click()
+    await expect(theirs.getByRole('tab', { name: /^Chat/, selected: true })).toBeVisible({ timeout: 15_000 })
+    await theirs.goto('/me')
+    await next.getByRole('button', { name: 'More actions' }).click()
+    await theirs.getByRole('menuitem', { name: 'Report damage' }).click()
+    await expect(theirs.getByRole('dialog', { name: 'Report damage' })).toBeVisible({ timeout: 15_000 })
+    await expectAccessible(theirs)
+
+    // Account → Appearance: Simple mode Off, then On
+    const simpleMode = async choice => {
+      await theirs.goto('/settings/preferences')
+      const group = theirs.getByRole('radiogroup', { name: 'Simple mode' })
+      await group.getByRole('radio', { name: choice }).click()
+      await expect(group.getByRole('radio', { name: choice })).toHaveAttribute('aria-checked', 'true')
+      await theirs.goto('/me')
+    }
+    await simpleMode('Off')
+    await expect(theirs.getByText(gig.name).first()).toBeVisible({ timeout: 15_000 })
+    await expect(next).toHaveCount(0)
+    await simpleMode('On')
+    await expect(next.getByRole('heading', { name: gig.name })).toBeVisible({ timeout: 15_000 })
+  } finally {
+    await theirs.context().close()
+  }
+
+  // As admin of a new organisation: the first-steps card, each step's link, then each step done
+  const fresh = await addOrg(admin, { name: `E2E First Steps ${s}` })
+  const steps = page.locator('section[aria-labelledby="first-steps-title"]')
+  const openCard = async progress => {
+    await page.goto(fresh.path)
+    await expect(steps.getByRole('button', { name: new RegExp(`First steps · ${progress}`) })).toBeVisible({ timeout: 20_000 })
+    if (await steps.getByRole('button', { name: /First steps/ }).getAttribute('aria-expanded') !== 'true') await steps.getByRole('button', { name: /First steps/ }).click()
+  }
+  await openCard('0 of 4 done · next: Add your company details')
+  await expectAccessible(page)
+  for (const [step, url] of [
+    ['Add your company details', `${fresh.path}/quotes?company=1`], ['Add your equipment', `${fresh.path}/inventory`],
+    ['Invite your team', `${fresh.path}?panel=members`], ['Create your first gig', `${fresh.path}?new=gig`],
+  ]) {
+    await openCard('0 of 4 done')
+    await steps.getByRole('button', { name: step, exact: true }).click()
+    await expect(page).toHaveURL(new RegExp(`${url.replace(/[?]/g, '\\?')}$`))
+  }
+
+  // The empty catalogue says what to do
+  await page.goto(`${fresh.path}/inventory`)
+  await expect(page.getByText(/^No equipment yet\. Add items one by one/)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('button', { name: 'Import' }).first()).toBeVisible()
+
+  const done = async (what, result) => expect(result.error, what).toBeNull()
+  await done('company', await admin.client.from('organisations').update({ legal_name: `E2E First Steps ${s} Lda` }).eq('id', fresh.id))
+  await openCard('1 of 4 done · next: Add your equipment')
+  await addItem(admin, fresh.id, { name: `E2E Mixer ${s}` })
+  await openCard('2 of 4 done · next: Invite your team')
+  await addToOrg(admin, fresh.id, await world.account('extra'), 'member')
+  await openCard('3 of 4 done · next: Create your first gig')
+  const empty = await addGig(admin, fresh.id, { name: `E2E Empty Gig ${s}` })
+  await page.goto(fresh.path)
+  await expect(page.locator('.gig-card').filter({ hasText: empty.name })).toBeVisible({ timeout: 15_000 })
+  await expect(steps).toHaveCount(0)
+
+  // An empty gig's tabs each say what to do
+  for (const [tab, text] of [
+    ['Schedule', 'No schedule yet.'], ['Tasks', 'No tasks yet'], ['Assets', 'No assets uploaded yet'],
+    ['Equipment', /^No equipment planned yet\./], ['Transport', 'No trips yet'], ['Tools', 'No tools on this gig yet'],
+    ['Updates', 'No updates yet. Be the first to post.'],
+  ]) {
+    await page.goto(`${empty.path}?tab=${tab.toLowerCase()}`)
+    await expect(page.getByText(text).first()).toBeVisible({ timeout: 15_000 })
+  }
+  await expectAccessible(page)
 })
