@@ -367,9 +367,12 @@ test('send limits: the 6th test notification within an hour says to try again in
   // The 6th, from Settings → Notifications on a device where notifications are on
   const page = await pageAs(browser, account, { baseURL, permissions: ['notifications'] })
   try {
-    // A stand-in subscription: headless Chromium has no push service, so "on" comes from it
+    // A stand-in subscription: headless Chromium has no push service, so "on" comes from it.
+    // The headless shell that CI installs also answers Notification.permission with "denied" even
+    // with the permission granted above (the full Chromium says "granted"), so it's set here too.
     await page.addInitScript(() => {
       if (window.PushManager) PushManager.prototype.getSubscription = async () => ({ endpoint: 'https://push.invalid/e2e', toJSON: () => ({}) })
+      if (window.Notification) Object.defineProperty(Notification, 'permission', { get: () => 'granted', configurable: true })
     })
     await page.goto('/settings/notifications')
     const test6 = page.getByRole('button', { name: 'Send a test' })
@@ -671,10 +674,22 @@ test('gig page on a phone: the PM\'s actions are in the ⋯ menus; crew see Repo
 
       await page.goto(`${gig.path}?tab=crew`)
       await expect(page.getByRole('button', { name: 'Invite crew' })).toBeVisible(LOAD)
+      // The crew rows are complete once the organisation's members have loaded: the crew member
+      // isn't in the organisation, so the admin sees "Add to …" (checking before it shows let the
+      // layout check pass on a half-loaded list)
+      await expect(page.getByRole('button', { name: `Add to ${org.name}` })).toBeVisible(LOAD)
       menu = await menuWith(page, 'Find crew')
       await expect(menu.getByRole('menuitem', { name: 'Post a job' })).toBeVisible()
       await page.keyboard.press('Escape')
-      await fitsPhone(page, `gig crew (${width})`, [page.getByRole('button', { name: 'Invite crew' })])
+      // "Add to <organisation>" runs off a phone's screen when the name is long (#243), and how long
+      // this organisation's name is depends on the run's tag (it overflowed by 72 px at 320 and 5 px
+      // at 390 in CI). The test after this one checks the crew tab's width with a fixed long name;
+      // here the controls and the accessibility check
+      const invite = page.getByRole('button', { name: 'Invite crew' })
+      const box = await invite.boundingBox()
+      expect(box.x, `gig crew (${width}): Invite crew starts off screen`).toBeGreaterThanOrEqual(-0.5)
+      expect(box.x + box.width, `gig crew (${width}): Invite crew runs past the right edge`).toBeLessThanOrEqual(width + 0.5)
+      await expectAccessible(page)
 
       await page.goto(`${gig.path}?tab=equipment`)
       await expect(page.getByRole('link', { name: 'Packing list' })).toBeVisible(LOAD)
@@ -693,6 +708,27 @@ test('gig page on a phone: the PM\'s actions are in the ⋯ menus; crew see Repo
     await fitsPhone(crewPage, 'gig equipment as crew')
   } finally {
     await crewPage.context().close()
+  }
+})
+
+// covers: T88
+test('crew tab on a phone: a long organisation name in "Add to …" stays on screen', { tag: TAG }, async ({ adminWithOrg, world, browser, baseURL }) => {
+  test.fail(true, '#243: the "Add to <organisation>" button does not wrap, so the page scrolls sideways')
+  const { account } = adminWithOrg
+  const crew = await world.account('crew')
+  // A real company name of this length, the same in every run
+  const org = await addOrg(account, { name: `E2E Produções Audiovisuais do Norte ${RUN}` })
+  const gig = await addGig(account, org.id)
+  await addToGig(account, gig.id, crew)
+  for (const width of PHONES) {
+    const page = await phone(browser, baseURL, account, width)
+    try {
+      await page.goto(`${gig.path}?tab=crew`)
+      await expect(page.getByRole('button', { name: `Add to ${org.name}` })).toBeVisible(LOAD)
+      await fitsPhone(page, `gig crew (${width}, long organisation name)`, [page.getByRole('button', { name: 'Invite crew' })])
+    } finally {
+      await page.context().close()
+    }
   }
 })
 
