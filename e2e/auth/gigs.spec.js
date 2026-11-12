@@ -15,6 +15,13 @@ const localDate = (days = 0) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+// Marks the account's notifications read, so the bell shows a single-digit count (or none) before an
+// accessibility check: with more than 9 unread it fails axe (see "the bell with more than 9 unread …")
+async function readNotifications(account) {
+  const { error } = await account.client.from('notifications').update({ read_at: new Date().toISOString() }).eq('user_id', account.id).is('read_at', null)
+  expect(error).toBeNull()
+}
+
 // The app's save of a task (PATCH /rest/v1/tasks) has answered
 const taskSaved = page => page.waitForResponse(r => r.url().includes('/rest/v1/tasks') && r.request().method() === 'PATCH' && r.ok())
 
@@ -49,6 +56,7 @@ test('the PM gives the crew a task with a checklist; the crew tick it and the PM
   await expect(crew.getByRole('button', { name: title })).toBeVisible({ timeout: 15_000 })
 
   // …and it's under My work → My tasks
+  await readNotifications(crewOnGig.account)
   await crew.goto('/tasks')
   await expect(crew.getByRole('heading', { name: 'My tasks' })).toBeVisible({ timeout: 15_000 })
   await expectAccessible(crew)
@@ -148,6 +156,7 @@ test('double booking: the PM is warned, asks availability, and the person answer
   await expect(page.getByText(`Asked ${person.email}.`)).toBeVisible({ timeout: 15_000 })
 
   // The person answers from their home
+  await readNotifications(person)
   const theirs = await pageAs(browser, person, { baseURL })
   try {
     await theirs.goto('/me')
@@ -380,5 +389,134 @@ test('two people saving the same gig: the second is told to reload, saving twice
     expect(data.venue).toBe('MEO Arena')
   } finally {
     await second.context().close()
+  }
+})
+
+// A gig today with the crew member on it (call 08:30, Sound), a schedule item today and a task for them
+async function gigToday(world, name) {
+  const [admin, org, crew] = await Promise.all([world.admin(), world.org(), world.crew()])
+  const gig = await addGig(admin, org.id, { name, start_date: localDate(0), end_date: localDate(0), venue: 'E2E Arena' })
+  await addToGig(admin, gig.id, crew, { functionTitle: 'Sound', callTime: '08:30' })
+  const schedule = await admin.client.from('gig_schedule').insert({ gig_id: gig.id, day: localDate(0), start_time: '23:58', title: 'Line check', created_by: admin.id })
+  expect(schedule.error).toBeNull()
+  const task = await admin.client.from('tasks').insert({ gig_id: gig.id, title: `Patch the stage box ${stamp()}`, assignee_id: crew.id }).select('title').single()
+  expect(task.error).toBeNull()
+  return { gig, taskTitle: task.data.title }
+}
+
+// covers: T49, T51 (On-site mode shows your tasks)
+test('on a gig day the gig opens in On-site mode, and it can be switched off and on', { tag: '@gigs' }, async ({ crewOnGig, world }) => {
+  const { page } = crewOnGig
+  const s = stamp()
+  const { gig, taskTitle } = await gigToday(world, `E2E On Site ${s}`)
+  await readNotifications(crewOnGig.account)
+
+  // Opens on "On site today", with a note saying why, the call time, today's schedule and my task
+  await page.goto(gig.path)
+  const onSite = page.locator('section[aria-labelledby="onsite-title"]')
+  await expect(onSite.getByRole('heading', { name: 'On site today' })).toBeVisible({ timeout: 15_000 })
+  await expect(onSite.getByRole('note')).toContainText('On-site mode came on because today is a gig day.')
+  await expect(onSite).toContainText('Your call time · Sound')
+  await expect(onSite).toContainText('08:30')
+  await expect(onSite).toContainText('Line check')
+  await expect(onSite.getByRole('heading', { name: 'Your task' })).toBeVisible()
+  await expect(onSite).toContainText(taskTitle)
+  await expectAccessible(page)
+
+  // Each big button: the links go to the day's tools, the others open the gig's tab
+  await expect(onSite.getByRole('link', { name: 'Call sheet' })).toHaveAttribute('href', `${gig.path}/callsheet`)
+  await expect(onSite.getByRole('link', { name: 'Rehearsal notes' })).toHaveAttribute('href', `${gig.path}?tab=tools&tool=rehearsal`)
+  // ("Crew and phones" is checked on its own below: it does nothing in simple mode)
+  for (const [tile, tab] of [['Tasks', 'Tasks'], ['Files', 'Assets'], ['Chat', 'Chat']]) {
+    await page.goto(gig.path)
+    await onSite.getByRole('button', { name: tile, exact: true }).click()
+    await expect(page.getByRole('tab', { name: new RegExp(`^${tab}`), selected: true })).toBeVisible()
+  }
+  await page.goto(gig.path)
+  await onSite.getByRole('link', { name: 'Call sheet' }).click()
+  await expect(page).toHaveURL(new RegExp(`${gig.path}/callsheet$`))
+
+  // Full gig view: stays off for the rest of the day
+  await page.goto(gig.path)
+  await onSite.getByRole('button', { name: 'Full gig view' }).click()
+  await expect(page.getByRole('button', { name: 'On-site mode' })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('button', { name: 'On-site mode' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('heading', { name: 'On site today' })).toHaveCount(0)
+
+  // On another gig (not today), switched on by hand: no note, since it isn't automatic
+  await page.goto(crewOnGig.gig.path)
+  await page.getByRole('button', { name: 'On-site mode' }).click()
+  await expect(page.getByRole('heading', { name: 'On site today' })).toBeVisible()
+  await expect(page.getByRole('note').filter({ hasText: 'On-site mode came on' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Full gig view' }).click()
+
+  // Settings → Language and appearance: switched off, a gig day opens on the normal overview
+  await page.goto('/settings/preferences')
+  const auto = page.getByRole('checkbox', { name: /Switch to On-site mode on gig days/ })
+  await auto.uncheck()
+  await expectAccessible(page)
+  const another = await gigToday(world, `E2E Not On Site ${s}`)
+  await page.goto(another.gig.path)
+  await expect(page.getByRole('button', { name: 'On-site mode' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('heading', { name: 'On site today' })).toHaveCount(0)
+  await page.goto('/settings/preferences')
+  await auto.check()
+})
+
+// covers: T49 (Portuguese wording)
+test('On-site mode in Portuguese', { tag: '@gigs' }, async ({ browser, baseURL, world }) => {
+  const crew = await world.crew()
+  const { gig, taskTitle } = await gigToday(world, `E2E No Local ${stamp()}`)
+  await readNotifications(crew)
+  const page = await pageAs(browser, crew, { baseURL, lang: 'pt' })
+  try {
+    await page.goto(gig.path)
+    const onSite = page.locator('section[aria-labelledby="onsite-title"]')
+    await expect(onSite.getByRole('heading', { name: 'No local hoje' })).toBeVisible({ timeout: 15_000 })
+    await expect(onSite.getByRole('note')).toContainText('O modo no local ligou-se porque hoje é dia de evento.')
+    await expect(onSite).toContainText('A sua hora de chamada')
+    await expect(onSite.getByRole('heading', { name: 'A sua tarefa' })).toBeVisible()
+    await expect(onSite).toContainText(taskTitle)
+    await expectAccessible(page)
+    await onSite.getByRole('button', { name: 'Vista completa do evento' }).click()
+    await expect(page.getByRole('button', { name: 'Modo no local' })).toBeVisible()
+  } finally {
+    await page.context().close()
+  }
+})
+
+// covers: T49 (found while automating it)
+test('the On-site "Crew and phones" button opens the crew list in simple mode', { tag: '@gigs' }, async ({ crewOnGig, world }) => {
+  // BUG (#ISSUE_CREW): a crew-only person is in simple mode, whose gig tabs leave out Crew, so the
+  // button switches to the Crew tab and the page switches straight back to the overview: nothing happens.
+  test.fail()
+  const { page } = crewOnGig
+  const { gig } = await gigToday(world, `E2E Crew Tile ${stamp()}`)
+  await page.goto(gig.path)
+  const onSite = page.locator('section[aria-labelledby="onsite-title"]')
+  await onSite.getByRole('button', { name: 'Crew and phones', exact: true }).click()
+  await expect(page.getByRole('tab', { name: /^Crew/, selected: true })).toBeVisible()
+})
+
+// covers: none (found while automating T49: the gigs' notifications)
+test('the bell with more than 9 unread notifications passes the accessibility check', { tag: '@gigs' }, async ({ browser, baseURL, adminWithOrg }) => {
+  // BUG (#ISSUE_BELL): over 9 unread, the bell shows "9+" but is named "11 unread notifications", so
+  // its visible text isn't in its accessible name (axe: label-content-name-mismatch, serious).
+  test.fail()
+  const { account: admin, org, world } = adminWithOrg
+  const person = await world.account('bell')
+  const { count } = await person.client.from('notifications').select('id', { count: 'exact', head: true }).is('read_at', null)
+  for (let i = count || 0; i < 10; i++) {
+    const gig = await addGig(admin, org.id, { name: `E2E Bell ${i} ${stamp()}` })
+    await addToGig(admin, gig.id, person)
+  }
+  const page = await pageAs(browser, person, { baseURL })
+  try {
+    await page.goto('/me')
+    await expect(page.getByRole('button', { name: /unread notifications/ })).toContainText('9+', { timeout: 20_000 })
+    await expectAccessible(page)
+  } finally {
+    await page.context().close()
   }
 })

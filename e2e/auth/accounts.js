@@ -15,7 +15,7 @@ export const PASSWORD = 'e2e-Password-123'
 // Members first: an organisation's only admin can't delete their account while others are in it.
 // The set-up's roles (member … extra2, admin) come after the older journeys' own roles.
 export const ROLES = ['tech', 'newbie', 'fail', 'short', 'imp', 'worker', 'worker2', 'worker3',
-  'member', 'viewer', 'crew', 'extra', 'extra2', 'other', 'pm', 'admin']
+  'member', 'viewer', 'crew', 'extra', 'extra2', 'bell', 'other', 'pm', 'admin']
 
 // One per spec file that uses the set-up (e2e/auth/<area>.spec.js). A new area goes here first, so
 // the sweep knows its accounts. Lower case letters only.
