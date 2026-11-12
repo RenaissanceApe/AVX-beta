@@ -313,7 +313,10 @@ export default function SettingsPage() {
     reviews: <div style={section}>
       <span style={label} id="account-trust">{t('trust.admin.title')}</span>
       <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.5, marginBottom: '10px' }}>{t('trust.admin.accountHint', { count: queue ?? 0 })}</p>
-      <button type="button" aria-describedby="account-trust" onClick={() => navigate('/admin/trust')} style={smallBtn}><ShieldCheck size={14} /> {t('trust.admin.open')}</button>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <button type="button" aria-describedby="account-trust" onClick={() => navigate('/admin/trust')} style={smallBtn}><ShieldCheck size={14} /> {t('trust.admin.open')}</button>
+        <button type="button" onClick={() => navigate('/admin/truss')} style={smallBtn}><ShieldCheck size={14} /> {t('trussReview.open')}</button>
+      </div>
     </div>,
   }
 

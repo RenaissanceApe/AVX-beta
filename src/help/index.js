@@ -13,9 +13,10 @@ export const page = id => content().pages[id] || en.pages[id] || null
 
 // Terms worth reading for each page (shown under the page note)
 export const PAGE_TERMS = {
-  'pocket-tools': ['dmx-universe', 'dmx-address'],
+  'pocket-tools': ['dmx-universe', 'dmx-address', 'bridle', 'wll'],
+  'truss-review': ['load-table', 'truss', 'deflection'],
   home: ['gig', 'gig-status', 'workspace', 'my-work', 'double-booking', 'offline-copy'],
-  gig: ['pm', 'crew', 'viewer', 'call-time', 'booking-times', 'call-sheet', 'schedule', 'feed', 'files', 'availability-request', 'crew-call', 'field-tools', 'input-list', 'stage-plot', 'dmx-universe', 'truss', 'timecode', 'distro', 'breaker-headroom', 'neutral-current', 'trip'],
+  gig: ['pm', 'crew', 'viewer', 'call-time', 'booking-times', 'call-sheet', 'schedule', 'feed', 'files', 'availability-request', 'crew-call', 'field-tools', 'input-list', 'stage-plot', 'dmx-universe', 'truss', 'load-table', 'bridle', 'timecode', 'distro', 'breaker-headroom', 'neutral-current', 'trip'],
   messages: ['chat', 'direct-message', 'announcement', 'mute', 'report', 'block', 'push-notifications', 'email-summary', 'weekly-key-numbers'],
   inventory: ['catalogue-item', 'bulk-item', 'serial-item', 'location', 'stock-movement', 'subrental', 'inspection', 'repair', 'charged-repair', 'vehicle'],
   'inventory-item': ['unit', 'set', 'case', 'accessory', 'alternative', 'replacement-value', 'depreciation', 'inspection', 'write-off', 'payback', 'speaker-specs', 'power-factor'],
@@ -87,6 +88,8 @@ export const GUIDES = {
   'pm-power': { role: 'pm', pages: ['gig'], terms: ['distro', 'power-phase', 'breaker-headroom', 'neutral-current', 'power-factor'], shots: [null, null, null, null] },
   'pm-cables': { role: 'pm', pages: ['gig'], terms: ['voltage-drop', 'cable-capacity', 'inrush-current', 'distro', 'breaker-headroom'], shots: [null, null, null, null] },
   'pm-rigging': { role: 'pm', pages: ['gig'], terms: ['wll', 'hoist-class', 'dynamic-factor', 'hang-point', 'truss'], shots: [null, null, null, null] },
+  'pm-truss-tables': { role: 'pm', pages: ['gig', 'truss-review'], terms: ['load-table', 'truss', 'deflection', 'hang-point'], shots: [null, null, null, null] },
+  'pm-bridles': { role: 'pm', pages: ['gig', 'pocket-tools'], terms: ['bridle', 'wll', 'hang-point'], shots: [null, null, null, null] },
   'pm-line-arrays': { role: 'pm', pages: ['gig'], terms: ['line-array', 'bumper-limit', 'centre-of-gravity', 'splay-angle', 'wll'], shots: [null, null, null, null] },
   'pm-mvr': { role: 'pm', pages: ['gig', 'inventory-item'], terms: ['mvr', 'gdtf', 'dmx-address', 'field-tools'], shots: [null, 'mvr-match', null, null] },
   'pm-stage-plot': { role: 'pm', pages: ['gig'], terms: ['stage-plot', 'input-list', 'field-tools'], shots: [null, 'plot-drawing', 'plot-list', 'plot-to-inputs'] },
