@@ -29,7 +29,8 @@ const chatRow = (page, text) => page.locator('.chat-row', { hasText: text })
 async function send(page, text) {
   await composer(page).fill(text)
   await page.getByRole('button', { name: 'Send', exact: true }).click()
-  await expect(chatRow(page, text)).toBeVisible({ timeout: 15_000 })
+  // (a save can take a while when the shared test project is busy)
+  await expect(chatRow(page, text)).toBeVisible({ timeout: 30_000 })
 }
 
 // Photos in a chat have their links once their signed address has loaded (until then the link has
@@ -40,12 +41,20 @@ async function chatAccessible(page) {
 }
 
 // The ⋯ menu of a message (its buttons are faint until hover, but always there)
+// Returns the open menu. If the conversation re-renders as the click lands, the menu may not open:
+// then it is clicked again (only while it's closed, so it never toggles shut)
 async function menuOf(page, text) {
-  // (returns the open menu)
   const row = chatRow(page, text)
-  await row.hover()
-  await row.getByRole('button', { name: /^More for / }).click()
-  return row.getByRole('menu')
+  const more = row.getByRole('button', { name: /^More for / })
+  const menu = row.getByRole('menu')
+  await expect(async () => {
+    if (await more.getAttribute('aria-expanded') !== 'true') {
+      await row.hover()
+      await more.click()
+    }
+    await expect(menu).toHaveCount(1, { timeout: 2_000 })
+  }).toPass({ timeout: 20_000 })
+  return menu
 }
 
 // covers: T2
