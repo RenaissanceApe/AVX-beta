@@ -110,3 +110,68 @@ test('power plan: a 63 A three-phase generator, a catalogue distro plugged in, f
   await expect(supply).toContainText('15 kVA suggested (9.3 kVA on the busiest phase × 3, plus 25%).')
   await expectAccessible(page)
 })
+
+// Inventory → item → Edit → Electrical: types the fields given ({ 'Datasheet amps (A)': '4', … }) and saves
+async function editElectrical(page, org, item, fields) {
+  await page.goto(`${org.path}/inventory/${item.id}`)
+  await page.getByRole('button', { name: 'Edit', exact: true }).click()
+  const dialog = page.getByRole('dialog').filter({ has: page.getByText('Electrical', { exact: true }) })
+  await dialog.getByText('Electrical', { exact: true }).click()
+  for (const [name, value] of Object.entries(fields)) await dialog.getByLabel(name, { exact: true }).fill(value)
+  await dialog.getByRole('button', { name: 'Save' }).click()
+  await expect(dialog).toBeHidden(LOAD)
+}
+
+// covers: T107
+test('power plan: an amp rack whose datasheet gives amps only counts as VA from those amps', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(150_000)
+  const { page, world, account, org } = adminWithOrg
+  const { gig } = await toolGig(world, 'Amps', ['power'])
+  const rack = await addItem(account, org.id, { name: `E2E Amp rack ${uniq()}`, category: 'Sound' })
+  await readBell(account)
+  // Catalogue: the datasheet says 4 A at 230 V (no watts)
+  await editElectrical(page, org, rack, { 'Datasheet amps (A)': '4', 'At volts (V)': '230' })
+  await expect.poll(async () => ok('Reading the item', await account.client.from('price_items').select('power_w, current_a, current_v').eq('id', rack.id).single()), LOAD)
+    .toEqual({ power_w: null, current_a: 4, current_v: 230 })
+  // Two of them in the gig's equipment: 4 A × 230 V × 2 = 1840 VA
+  ok('Planning the racks', await account.client.from('gig_equipment').insert({ gig_id: gig.id, item_id: rack.id, quantity: 2 }))
+  await openTool(page, gig, 'power')
+  const tool = page.getByRole('region', { name: 'Power plan' })
+  await expect(loadRow(tool, rack.name)).toContainText(`${rack.name} × 2`, LOAD)
+  await expect(loadRow(tool, rack.name)).toContainText("Gig equipment · Sound · 1840 VA from the datasheet's amps")
+  await expectAccessible(page)
+})
+
+// covers: T112
+test('inrush: a fixture item given an inrush figure; four on one output add up and warn', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(150_000)
+  const { page, world, account, org } = adminWithOrg
+  const { gig } = await toolGig(world, 'Inrush', ['dmx_patch', 'power'])
+  const batten = await addItem(account, org.id, { name: `E2E LED Batten ${uniq()}`, category: 'Lighting', power_w: 150 })
+  const distro = await addDistroItem(account, org)
+  await readBell(account)
+  // Inventory → item → Edit → Electrical: inrush 20 A
+  await editElectrical(page, org, batten, { 'Inrush (A)': '20' })
+  await expect.poll(async () => ok('Reading the item', await account.client.from('price_items').select('inrush_a').eq('id', batten.id).single()).inrush_a, LOAD).toBe(20)
+  ok('Adding battens', await account.client.from('gig_fixtures').insert([1, 2, 3, 4].map(n => ({
+    gig_id: gig.id, name: `Batten ${n}`, fixture_type: 'LED Batten', footprint: 8, universe: 1, address: 1 + (n - 1) * 8, item_id: batten.id, power_w: 150,
+  }))))
+
+  await openTool(page, gig, 'power')
+  const tool = page.getByRole('region', { name: 'Power plan' })
+  await tool.getByRole('button', { name: 'Add a distro' }).first().click()
+  await page.getByRole('dialog', { name: 'Add a distro' }).getByRole('button', { name: new RegExp(`^${distro.name}`) }).click()
+  await expect.poll(async () => (await powerOf(account, gig)).distros?.length, LOAD).toBe(1)
+  // All four into output A (16 A breaker)
+  for (const n of [1, 2, 3, 4]) await loadRow(tool, `Batten ${n}`).getByRole('checkbox').check()
+  await tool.getByRole('combobox', { name: 'Plug the 4 selected into' }).selectOption({ label: `${distro.name} · A (L1)` })
+  await expect.poll(async () => Object.keys((await powerOf(account, gig)).assign || {}).length, LOAD).toBe(4)
+
+  // 4 × 20 A = 80 A peak, 5 × the 16 A breaker: above 3 × (B curve), not above 5 × (C curve)
+  const inrush = tool.getByRole('region', { name: 'Inrush at switch-on' })
+  await expect(inrush).toContainText('about 80 A peak from 4 loads', LOAD)
+  await expect(inrush).toContainText('5 × the 16 A breaker')
+  await expect(inrush).toContainText('May trip (B)')
+  await expect(tool.getByRole('region', { name: 'Warnings' })).toContainText('4 loads switching on together peak at about 80 A (5 × the breaker): it may trip a B-curve breaker.')
+  await expectAccessible(page)
+})
