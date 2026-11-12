@@ -87,6 +87,17 @@ describe('import fixes: the new predictions', () => {
     expect(plan.map(p => p.reason || p.note)).toEqual(['serialQuantity', 'trackingLocked', 'quantityKept'])
     expect(plan[2].action).toBe('match')
   })
+  it('predicts a quantity on a new item not kept in stock (#227)', () => {
+    const existing = { locations: [{ name: 'Main' }], items: [] }
+    const rows = [
+      { _row: 2, name: 'Gaffa tape', tracking: 'none', quantity: 50, location: 'Main', _errors: [] },
+      { _row: 3, name: 'Cable ties', tracking: 'none', _errors: [] },
+    ]
+    const { plan } = dryRun(rows, 'items', existing)
+    expect(plan[0]).toMatchObject({ action: 'skip', reason: 'untrackedQuantity', field: 'quantity' })
+    expect(plan[1].action).toBe('create')
+    expect(fixesFor('untrackedQuantity').map(f => f.id)).toEqual(['countBulk', 'dropStock', 'skip'])
+  })
   it('predicts a unit code already on another item', () => {
     const existing = { locations: [], items: [{ id: 'a', name: 'A', code: 'A', tracking: 'serial' }, { id: 'b', name: 'B', code: 'B', tracking: 'serial' }], units: [{ code: 'u-1', item_id: 'b' }] }
     expect(dryRun([{ _row: 2, item_code: 'A', code: 'U-1', _errors: [] }], 'units', existing).plan[0]).toMatchObject({ reason: 'otherItem', field: 'code' })

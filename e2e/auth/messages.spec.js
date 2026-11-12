@@ -646,8 +646,8 @@ test('the pages a client or supplier opens from a link pass the accessibility ch
   await context.close()
 })
 
-// covers: T17. The reported messages are written by other people on the gig: the database doesn't
-// tell a manager about reports on their own messages (report_message), see docs/notes/AT2.md.
+// covers: T17. A report on the manager's own message is told to the manager too (#221, the owner's
+// decision: every manager of the conversation hears about every report in it).
 test('a reported message: the gig\'s manager keeps one and removes another', { tag: '@messages' }, async ({ adminWithOrg, crewOnGig, browser, baseURL }) => {
   const { page, account, world } = adminWithOrg
   const gig = crewOnGig.gig
@@ -704,6 +704,23 @@ test('a reported message: the gig\'s manager keeps one and removes another', { t
   await openNotification(crew, new RegExp(`A moderator removed your message in .*${second}`))
   await expect(crew.locator(`#${secondId}`)).toContainText('Removed by a moderator', { timeout: 15_000 })
   await expect(crew.getByRole('log').getByText(second)).toHaveCount(0)
+
+  // The crew member reports the manager's own message: the manager is told all the same (#221)
+  const own = words('Load-in moves to seven')
+  await page.goto(`${gig.path}?tab=chat`)
+  await send(page, own)
+  await crew.goto(`${gig.path}?tab=chat`)
+  await expect(chatRow(crew, own)).toBeVisible({ timeout: 20_000 })
+  await (await menuOf(crew, own)).getByRole('menuitem', { name: 'Report' }).click()
+  await crew.getByRole('dialog', { name: 'Report this message' }).getByRole('radio', { name: 'Something else' }).check()
+  await crew.getByRole('button', { name: 'Send report' }).click()
+  await expect(crew.getByText('Thanks. The report was sent.')).toBeVisible()
+  await page.goto('/me')
+  await openNotification(page, /was reported \(Something else\)\. Remove it or keep it/)
+  const ownNote = chatRow(page, own).getByRole('note')
+  await expect(ownNote).toContainText('Reported (1): Something else', { timeout: 15_000 })
+  await ownNote.getByRole('button', { name: 'Keep it' }).click()
+  await expect(page.getByText('Report closed; the message stays.')).toBeVisible()
 })
 
 // covers: T17

@@ -548,9 +548,8 @@ test('On-site mode in Portuguese', { tag: '@gigs' }, async ({ browser, baseURL, 
 
 // covers: T49 (found while automating it)
 test('the On-site "Crew and phones" button opens the crew list in simple mode', { tag: '@gigs' }, async ({ crewOnGig, world }) => {
-  // BUG (#215): a crew-only person is in simple mode, whose gig tabs leave out Crew, so the
-  // button switches to the Crew tab and the page switches straight back to the overview: nothing happens.
-  test.fail()
+  // Bug #215 (fixed): a crew-only person is in simple mode, whose gig tabs leave out Crew; the button
+  // used to switch to the Crew tab and straight back to the overview
   const { page } = crewOnGig
   const { gig } = await gigToday(world, `E2E Crew Tile ${stamp()}`)
   await page.goto(gig.path)
@@ -932,12 +931,9 @@ test('custom fields: one of each kind on a gig, shown, searched, renamed, reorde
   expect(clientFields).toEqual([])
 })
 
-// covers: T53 ("remove one and check its value is … still in the organisation export")
-test('a removed custom field\'s values still come out in the organisation export', { tag: '@gigs' }, async ({ adminWithOrg }) => {
-  // BUG (#216): the settings say "values already filled in are kept and still come out in
-  // the export", but the export's custom columns (private.custom_columns) only take fields that
-  // aren't removed, so a removed field's column and values are left out.
-  test.fail()
+// covers: T53 (#216, the owner's decision: a removed field's values are kept in the database but
+// left out of the organisation export, and the settings say so)
+test('a removed custom field is left out of the organisation export', { tag: '@gigs' }, async ({ adminWithOrg }) => {
   const { page, account: admin } = adminWithOrg
   const s = stamp()
   const org = await addOrg(admin, { name: `E2E Removed Field ${s}` })
@@ -948,7 +944,9 @@ test('a removed custom field\'s values still come out in the organisation export
   expect(removed.error).toBeNull()
   const files = await downloadExport(page, org)
   const gigs = csvRows(Object.entries(files).find(([name]) => name.endsWith('-gigs.csv'))[1])
-  expect(gigs.find(g => g.name === gig.name)).toMatchObject({ 'Rider version': 'v3' })
+  const row = gigs.find(g => g.name === gig.name)
+  expect(row).toBeTruthy()
+  expect(row).not.toHaveProperty('Rider version')
 })
 
 // covers: T23 (crew-only home, Simple mode, empty screens; the first-steps card's steps are done through

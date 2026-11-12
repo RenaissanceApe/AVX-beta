@@ -776,6 +776,8 @@ export function dryRun(rows, kind, existing) {
       const key = picked ? `=${picked.id}` : row.code ? `#${row.code.toUpperCase()}` : lower(row.name)
       const found = picked || findItem(row.code, row.name)
       if (!found && !seen.has(key) && row.quantity > 0 && row.tracking === 'serial') return { action: 'skip', reason: 'serialQuantity', field: 'quantity', value: row.name || row.code }
+      // Not kept in stock (e.g. a consumable) but with a quantity: the database would refuse it (issue 227)
+      if (!found && !seen.has(key) && row.quantity > 0 && row.tracking === 'none') return { action: 'skip', reason: 'untrackedQuantity', field: 'quantity', value: row.name || row.code }
       if (found && row.tracking && row.tracking !== found.tracking && stocked.has(found.id)) return { action: 'skip', reason: 'trackingLocked', field: 'tracking', value: found.name }
       const action = found || seen.has(key) ? 'match' : 'create'
       seen.add(key)
@@ -903,6 +905,7 @@ const SERVER = [
   [/^Item (.+) is archived/, 'archived'],
   [/^Code (.+) belongs to a unit of another item/, 'otherItem'],
   [/^Serial-numbered items get their stock/, 'serialQuantity'],
+  [/^Stock for this item is kept per unit/, 'untrackedQuantity'],
   [/^A quantity needs a location/, 'needLocation'],
   [/^Quantity not added/, 'quantityKept'],
   [/^duplicate key value/, 'duplicate'],
@@ -1015,6 +1018,7 @@ export const FIXES = {
   sameGig: { fixes: ['chooseGig'] },
   sameContact: { fixes: ['chooseContact', 'newContact'] },
   serialQuantity: { fixes: ['countBulk', 'dropQuantity'] },
+  untrackedQuantity: { fixes: ['countBulk', 'dropStock'] },
   otherItem: { fixes: ['edit'] },
   trackingLocked: { fixes: ['keepTracking'] },
   // A quote's history (IM4)
@@ -1324,7 +1328,7 @@ function refusedField(reason, row, kind) {
     unknownItem: kind === 'items' ? 'name' : item, sameName: kind === 'items' ? 'name' : item, archived: kind === 'items' ? 'code' : item,
     bulkItem: item, notTracked: item, partUntracked: item, accessoryUntracked: item, selfKit: item, notKit: row.kit_code ? 'kit_code' : 'kit',
     unknownKit: row.kit_code ? 'kit_code' : 'kit', unknownJob: row.gig_ref ? 'gig_ref' : 'gig', sameGig: row.gig_ref ? 'gig_ref' : 'gig',
-    serialQuantity: 'quantity', trackingLocked: 'tracking', sameContact: 'name', decidedFirst: 'decided_date',
+    serialQuantity: 'quantity', untrackedQuantity: 'quantity', trackingLocked: 'tracking', sameContact: 'name', decidedFirst: 'decided_date',
   }
   const field = fields[reason] || null
   return field && (FIELDS[kind] || []).some(f => f.key === field) ? field : null

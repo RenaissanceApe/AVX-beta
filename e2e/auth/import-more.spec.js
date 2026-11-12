@@ -755,8 +755,12 @@ test('Rentman exports: recognised, every column matched, equipment asks for a lo
   const sales = group(page, 'sales')
   await sales.getByRole('combobox', { name: 'Treat "sales" in every row as' }).selectOption({ label: 'Sale' })
   await sales.getByRole('button', { name: 'Apply' }).click()
-  // The gaffa tape (not kept in stock, with a quantity) is refused after the check: bug #227, its own test below
-  await importAndWait(page, 'Import 3 rows', /\d added · /)
+  // The gaffa tape (not kept in stock, with a quantity) is caught in the check (#227): counted in bulk instead
+  const gaffa = page.getByRole('region', { name: '1 row · Quantity in stock', exact: true })
+  await expect(gaffa).toContainText('an item not kept in stock can\'t have a quantity')
+  await gaffa.getByRole('radio', { name: 'Count it in bulk instead' }).check()
+  await gaffa.getByRole('button', { name: 'Apply' }).click()
+  await importAndWait(page, 'Import 3 rows', / 0 skipped$/)
   for (const code of ['E2E-LA', 'E2E-SUB']) expect(await itemByCode(account, org.id, code), code).not.toBeNull()
 
   // Serial numbers: recognised and matched (not imported: the items are counted in bulk)
@@ -797,11 +801,8 @@ test('Rentman exports: recognised, every column matched, equipment asks for a lo
   await expect(checklist.getByRole('button', { name: /^Units \(serial numbers\) not yet$/ })).toBeVisible()
 })
 
-// covers: T37 (bug #227)
-test('an item not kept in stock but with a quantity is caught in the check (bug)', { tag: TAG }, async ({ adminWithOrg }) => {
-  // Bug #227: the check lets it through and the database then refuses the row ("Stock for this item is
-  // kept per unit"). Expected: the check holds it back with a fix, so nothing is refused afterwards.
-  test.fail()
+// covers: T37 (bug #227: the check used to let it through and the database then refused the row)
+test('an item not kept in stock but with a quantity is caught in the check', { tag: TAG }, async ({ adminWithOrg }) => {
   const { page, org, account } = adminWithOrg
   const u = uniq()
   const shelf = `E2E Tape shelf ${u}`
@@ -810,12 +811,15 @@ test('an item not kept in stock but with a quantity is caught in the check (bug)
   await pasteAndMatch(page, [['Name', 'Code', 'Kind', 'Stock management', 'Quantity', 'Location'], [`E2E Tape ${u}`, `TAPE-${u}`, 'sale', 'no', '50', shelf]])
   await expect(column(page, 'Stock management')).toHaveValue('tracking')
   await toCheck(page)
-  if (await page.getByText('No problems: every row can go in.').isVisible()) {
-    await importAndWait(page, 'Import 1 row', / added · /)
-    await expect(page.getByRole('status').filter({ hasText: / 0 skipped$/ })).toBeVisible()
-  } else {
-    await expect(page.getByText('1 row waiting for a decision will be left out.')).toBeVisible()
-  }
+  const tape = page.getByRole('region', { name: '1 row · Quantity in stock', exact: true })
+  await expect(tape).toContainText('an item not kept in stock can\'t have a quantity')
+  await expect(page.getByText('1 row waiting for a decision will be left out.')).toBeVisible()
+  // Fixed here: the quantity is left out and the item goes in, not kept in stock
+  await tape.getByRole('radio', { name: 'Leave the quantity out (not kept in stock)' }).check()
+  await tape.getByRole('button', { name: 'Apply' }).click()
+  await importAndWait(page, 'Import 1 row', summary(1))
+  const [tapeItem] = ok('Finding the tape', await account.client.from('price_items').select('tracking').eq('org_id', org.id).eq('name', `E2E Tape ${u}`))
+  expect(tapeItem).toMatchObject({ tracking: 'none' })
 })
 
 // covers: T143
