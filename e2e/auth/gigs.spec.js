@@ -3,18 +3,36 @@
 // "Automated test suite". Data a test only needs to exist is made through setup.js; the UI is
 // clicked only for what the T-line checks.
 import { createHash, randomUUID } from 'node:crypto'
-import { test, expect } from './fixtures.js'
+import { test, expect as baseExpect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
 import { emailSummaryCandidates } from './testSupport.js'
 import { readZip, zipText } from './files.js'
 import { addClient, addGig, addItem, addOrg, addToGig, addToOrg, pageAs } from './setup.js'
 
 test.use({ area: 'gigs' })
+// Several of these are long journeys, and the test project is shared with the other areas' runs, so
+// each test may take up to 150 s (the smoke test takes about 15 s)
+test.describe.configure({ timeout: 150_000 })
+
+// How long to wait for the app to load or save something: the test project is shared with the
+// other areas' runs and has been seen taking over 20 s to answer when busy
+const LOAD = 45_000
+// …and for everything else, longer than Playwright's 5 s (a check passes as soon as it holds)
+const expect = baseExpect.configure({ timeout: 20_000 })
 
 const stamp = () => Date.now().toString(36)
 const localDate = (days = 0) => {
   const d = new Date(Date.now() + days * 86400e3)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// No serious accessibility problems, checked once the page's fade-in animations have finished (axe
+// measuring a button half-way through fading in reports a colour contrast it doesn't really have)
+async function accessible(page) {
+  await page.evaluate(() => Promise.all(document.getAnimations()
+    .filter(a => a.effect?.getComputedTiming().iterations !== Infinity) // spinners never finish
+    .map(a => a.finished.catch(() => {}))))
+  await expectAccessible(page)
 }
 
 // Marks the account's notifications read, so the bell shows a single-digit count (or none) before an
@@ -42,7 +60,7 @@ test('the PM gives the crew a task with a checklist; the crew tick it and the PM
   await form.getByLabel('For').selectOption(crewOnGig.account.id)
   await form.getByLabel('Due').fill(localDate(1))
   await form.getByLabel('Checklist').fill('Fly the speakers\nRun the cables\nLine check')
-  await expectAccessible(pm)
+  await accessible(pm)
   await form.getByRole('button', { name: 'Save task' }).click()
   await expect(form).toHaveCount(0)
   const pmRow = pm.getByRole('listitem').filter({ has: pm.getByRole('button', { name: title }) })
@@ -51,17 +69,17 @@ test('the PM gives the crew a task with a checklist; the crew tick it and the PM
   // The crew member gets a notification that opens the gig's Tasks tab
   await crew.goto('/tasks')
   const bell = crew.getByRole('button', { name: /unread notification/ })
-  await expect(bell).toBeVisible({ timeout: 20_000 })
+  await expect(bell).toBeVisible({ timeout: LOAD })
   await bell.click()
   await crew.getByRole('dialog', { name: 'Notifications' }).getByRole('button', { name: new RegExp(`gave you a task on ${gig.name}: ${title}`) }).click()
   await expect(crew).toHaveURL(new RegExp(`${gig.path}\\?tab=tasks`))
-  await expect(crew.getByRole('button', { name: title })).toBeVisible({ timeout: 15_000 })
+  await expect(crew.getByRole('button', { name: title })).toBeVisible({ timeout: LOAD })
 
   // …and it's under My work → My tasks
   await readNotifications(crewOnGig.account)
   await crew.goto('/tasks')
-  await expect(crew.getByRole('heading', { name: 'My tasks' })).toBeVisible({ timeout: 15_000 })
-  await expectAccessible(crew)
+  await expect(crew.getByRole('heading', { name: 'My tasks' })).toBeVisible({ timeout: LOAD })
+  await accessible(crew)
   const myRow = crew.getByRole('listitem').filter({ has: crew.getByRole('button', { name: title }) })
   await expect(myRow).toBeVisible()
 
@@ -84,9 +102,9 @@ test('the PM gives the crew a task with a checklist; the crew tick it and the PM
   await expect(crew.getByRole('button', { name: title })).toHaveCount(0)
 
   // The PM's page updates without reloading, with who did it
-  await expect(pm.getByRole('button', { name: title })).toHaveCount(0, { timeout: 20_000 })
+  await expect(pm.getByRole('button', { name: title })).toHaveCount(0, { timeout: LOAD })
   await pm.getByRole('button', { name: 'Open', pressed: true }).click()
-  await expect(pmRow).toContainText(`done by ${crewOnGig.account.name}`, { timeout: 20_000 })
+  await expect(pmRow).toContainText(`done by ${crewOnGig.account.name}`, { timeout: LOAD })
   await expect(pmRow).toContainText('2/3')
 
   // The PM removes it; it asks first
@@ -108,12 +126,12 @@ test('a rehearsal note makes one task, and the Tasks tab reads in Portuguese', {
   expect(note.error).toBeNull()
 
   await page.goto(`${gig.path}?tab=tools&tool=rehearsal`)
-  await page.getByRole('button', { name: new RegExp(`Tech run ${s}`) }).click({ timeout: 15_000 })
+  await page.getByRole('button', { name: new RegExp(`Tech run ${s}`) }).click({ timeout: LOAD })
   const makeTask = page.getByRole('button', { name: 'Make a task from this note' })
-  await makeTask.click({ timeout: 15_000 })
-  await expect(page.getByText("Task made: it's in the gig's Tasks")).toBeVisible({ timeout: 15_000 })
+  await makeTask.click({ timeout: LOAD })
+  await expect(page.getByText("Task made: it's in the gig's Tasks")).toBeVisible({ timeout: LOAD })
   await makeTask.click()
-  await expect(page.getByText('This note already has a task')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('This note already has a task')).toBeVisible({ timeout: LOAD })
   const { count } = await admin.client.from('tasks').select('id', { count: 'exact', head: true }).eq('gig_id', gig.id).is('removed_at', null)
   expect(count).toBe(1)
 
@@ -121,14 +139,14 @@ test('a rehearsal note makes one task, and the Tasks tab reads in Portuguese', {
   const pt = await pageAs(browser, admin, { baseURL, lang: 'pt' })
   try {
     await pt.goto(`${gig.path}?tab=tasks`)
-    await expect(pt.getByRole('tab', { name: /^Tarefas/, selected: true })).toBeVisible({ timeout: 15_000 })
+    await expect(pt.getByRole('tab', { name: /^Tarefas/, selected: true })).toBeVisible({ timeout: LOAD })
     const row = pt.getByRole('listitem').filter({ has: pt.getByRole('button', { name: new RegExp(body) }) })
     await expect(row).toContainText('de uma nota de ensaio')
     await pt.getByRole('button', { name: 'Nova tarefa' }).first().click()
     const form = pt.getByRole('dialog', { name: 'Nova tarefa' })
     await expect(form.getByLabel('O quê')).toBeVisible()
     await expect(form.getByRole('button', { name: 'Guardar tarefa' })).toBeVisible()
-    await expectAccessible(pt)
+    await accessible(pt)
   } finally {
     await pt.context().close()
   }
@@ -163,7 +181,7 @@ test('two quick checklist ticks are both kept', { tag: '@gigs' }, async ({ admin
   await row.getByRole('checkbox', { name: 'Radio mics' }).check()
   await row.getByRole('checkbox', { name: 'In-ears' }).check()
   await expect(row).toContainText('2/2')
-  await expect.poll(() => answered, { timeout: 15_000 }).toBe(2)
+  await expect.poll(() => answered, { timeout: LOAD }).toBe(2)
   const { data } = await pm.client.from('tasks').select('checklist').eq('id', task.id).single()
   expect(data.checklist.map(i => i.done)).toEqual([true, true])
 })
@@ -184,29 +202,29 @@ test('double booking: the PM is warned, asks availability, and the person answer
   await invite.getByPlaceholder('technician@company.com').fill(person.email)
   await invite.getByPlaceholder('technician@company.com').blur()
   const warning = invite.getByRole('status')
-  await expect(warning).toContainText(`${person.email} is already booked for this time`, { timeout: 15_000 })
+  await expect(warning).toContainText(`${person.email} is already booked for this time`, { timeout: LOAD })
   await expect(warning).toContainText(booked.name)
-  await expectAccessible(page)
+  await accessible(page)
 
   // Ask availability first
   await warning.getByRole('button', { name: 'Ask availability first' }).click()
   const ask = page.getByRole('dialog', { name: `Ask ${person.email}` })
   await ask.getByLabel('Message (optional)').fill('Load-in at 08:00. Can you make it?')
   await ask.getByRole('button', { name: 'Send question' }).click()
-  await expect(page.getByText(`Asked ${person.email}.`)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(`Asked ${person.email}.`)).toBeVisible({ timeout: LOAD })
 
   // The person answers from their home
   await readNotifications(person)
   const theirs = await pageAs(browser, person, { baseURL })
   try {
     await theirs.goto('/me')
-    await expect(theirs.getByRole('region', { name: /questions? for you/ })).toBeVisible({ timeout: 20_000 })
+    await expect(theirs.getByRole('region', { name: /questions? for you/ })).toBeVisible({ timeout: LOAD })
     const question = theirs.locator('#requests > div').filter({ hasText: gig.name })
     await expect(question).toContainText('asks if you’re available')
     await expect(question).toContainText('Load-in at 08:00. Can you make it?')
-    await expectAccessible(theirs)
+    await accessible(theirs)
     await question.getByRole('button', { name: 'Available', exact: true }).click()
-    await expect(question).toHaveCount(0, { timeout: 15_000 })
+    await expect(question).toHaveCount(0, { timeout: LOAD })
   } finally {
     await theirs.context().close()
   }
@@ -217,7 +235,7 @@ test('double booking: the PM is warned, asks availability, and the person answer
   await invite.getByPlaceholder('technician@company.com').fill(person.email)
   await invite.getByRole('button', { name: 'Add to gig' }).click()
   const row = page.locator('li.crew-row').filter({ hasText: person.name })
-  await expect(row.getByText('Clash', { exact: true })).toBeVisible({ timeout: 15_000 })
+  await expect(row.getByText('Clash', { exact: true })).toBeVisible({ timeout: LOAD })
   await expect(row).toContainText('Said they’re available')
   await expect(row).toContainText(booked.name)
 })
@@ -236,13 +254,13 @@ test('your network: someone who shared a gig with you is found by name in Invite
   const invite = page.getByRole('dialog', { name: 'Invite crew member' })
   await invite.getByRole('textbox', { name: "Search people you've worked with" }).fill('Extra2')
   const found = invite.getByRole('button', { name: new RegExp(person.name) })
-  await expect(found).toBeVisible({ timeout: 15_000 })
+  await expect(found).toBeVisible({ timeout: LOAD })
   await expect(found).toContainText('Rigger')
-  await expectAccessible(page)
+  await accessible(page)
   await found.click()
   await expect(invite.getByRole('button', { name: 'Choose someone else' })).toBeVisible()
   await invite.getByRole('button', { name: 'Add to gig' }).click()
-  await expect(page.locator('li.crew-row').filter({ hasText: person.name })).toBeVisible({ timeout: 15_000 })
+  await expect(page.locator('li.crew-row').filter({ hasText: person.name })).toBeVisible({ timeout: LOAD })
 })
 
 // covers: T120
@@ -257,11 +275,14 @@ test('booking times are read in the organisation\'s time zone, whatever the devi
   const page = await pageAs(browser, admin, { baseURL, timezoneId: 'America/New_York' })
   try {
     await page.goto(`${org.path}?panel=settings`)
+    await page.waitForLoadState('networkidle') // the organisation loads in fully before the form is used
     const settings = page.getByRole('dialog', { name: `${org.name} — settings` })
     await settings.getByLabel('Time zone', { exact: true }).selectOption('Europe/London')
-    await expectAccessible(page)
+    await accessible(page)
+    // The form took the change (once, in a slow run, nothing was saved and no message came)
+    await expect(settings.getByRole('button', { name: 'Save changes' })).toBeEnabled()
     await settings.getByRole('button', { name: 'Save changes' }).click()
-    await expect(page.getByText('Settings saved.')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByText('Settings saved.')).toBeVisible({ timeout: LOAD })
 
     await page.goto(`${gig.path}?tab=crew`)
     const row = page.locator('li.crew-row').filter({ hasText: admin.name })
@@ -271,7 +292,7 @@ test('booking times are read in the organisation\'s time zone, whatever the devi
     await times.getByLabel('From').fill(`${day}T09:00`)
     await times.getByLabel('Until').fill(`${day}T18:00`)
     await times.getByRole('button', { name: 'Save times' }).click()
-    await expect(row).toContainText('09:00', { timeout: 15_000 })
+    await expect(row).toContainText('09:00', { timeout: LOAD })
     await expect(row).toContainText('18:00')
   } finally {
     await page.context().close()
@@ -302,17 +323,17 @@ test('clashes across time zones only where the days overlap in real time', { tag
   const rowOn = async gig => {
     await page.goto(`${gig.path}?tab=crew`)
     const row = page.locator('li.crew-row').filter({ hasText: person.name })
-    await expect(row).toBeVisible({ timeout: 15_000 })
+    await expect(row).toBeVisible({ timeout: LOAD })
     return row
   }
   const onLisbon = await rowOn(lisbon)
-  await expect(onLisbon.getByText('Clash', { exact: true })).toBeVisible({ timeout: 15_000 })
+  await expect(onLisbon.getByText('Clash', { exact: true })).toBeVisible({ timeout: LOAD })
   await expect(onLisbon).toContainText(after.name)
   await expect(onLisbon).not.toContainText(before.name)
-  await expectAccessible(page)
+  await accessible(page)
 
   const onAfter = await rowOn(after)
-  await expect(onAfter.getByText('Clash', { exact: true })).toBeVisible({ timeout: 15_000 })
+  await expect(onAfter.getByText('Clash', { exact: true })).toBeVisible({ timeout: LOAD })
   await expect(onAfter).toContainText(lisbon.name)
 
   // Checked by name: the person may have other gigs from an earlier run with the same tag
@@ -353,12 +374,12 @@ test('a gig with equipment and messages is deleted for good after the two-step w
   await set('chat message', await admin.client.from('messages').insert({ conversation_id: conversation, body: 'See you at load-in' }))
 
   const confirm = await startDeleting(page, gig, async step1 => {
-    await expect(step1).toContainText('1 update in the feed', { timeout: 15_000 })
+    await expect(step1).toContainText('1 update in the feed', { timeout: LOAD })
     await expect(step1).toContainText('Access for 2 people on the crew')
-    await expectAccessible(page)
+    await accessible(page)
   })
-  await confirm.getByRole('button', { name: 'Delete permanently' }).click({ timeout: 15_000 })
-  await expect(page.getByText(`Deleted the gig "${gig.name}".`)).toBeVisible({ timeout: 15_000 })
+  await confirm.getByRole('button', { name: 'Delete permanently' }).click({ timeout: LOAD })
+  await expect(page.getByText(`Deleted the gig "${gig.name}".`)).toBeVisible({ timeout: LOAD })
   await expect(page).not.toHaveURL(new RegExp(gig.id))
   const { data: left } = await admin.client.from('gigs').select('id').eq('id', gig.id)
   expect(left).toEqual([])
@@ -379,10 +400,10 @@ test('a gig with a signed delivery note can\'t be deleted for good', { tag: '@gi
   expect(error).toBeNull()
 
   const confirm = await startDeleting(page, gig)
-  await confirm.getByRole('button', { name: 'Delete permanently' }).click({ timeout: 15_000 })
+  await confirm.getByRole('button', { name: 'Delete permanently' }).click({ timeout: LOAD })
   await expect(confirm.getByRole('alert').filter({ hasText: 'signed documents' }))
     .toContainText("This gig has signed documents (delivery notes), which are kept as proof, so it can't be deleted for good. Set its status to Cancelled instead.")
-  await expectAccessible(page)
+  await accessible(page)
 
   // Nothing was removed: the gig and its signature are still there, and the database refuses too
   const { data: still } = await admin.client.from('gigs').select('id').eq('id', gig.id)
@@ -407,22 +428,22 @@ test('two people saving the same gig: the second is told to reload, saving twice
     const [one, two] = [await open(first), await open(second)]
     await one.getByLabel('Venue').fill('Coliseu')
     await one.getByRole('button', { name: 'Save changes' }).click()
-    await expect(one).toHaveCount(0, { timeout: 15_000 })
+    await expect(one).toHaveCount(0, { timeout: LOAD })
 
     await two.getByLabel('Venue').fill('Campo Pequeno')
     await two.getByRole('button', { name: 'Save changes' }).click()
-    await expect(second.getByText('Someone else changed this — reload to see their changes.')).toBeVisible({ timeout: 15_000 })
+    await expect(second.getByText('Someone else changed this — reload to see their changes.')).toBeVisible({ timeout: LOAD })
     await expect(two).toBeVisible() // the form stays open, so nothing typed is lost
-    await expectAccessible(second)
+    await accessible(second)
     await second.getByRole('button', { name: 'Reload' }).click()
-    await expect(second.getByText('Coliseu').first()).toBeVisible({ timeout: 15_000 })
+    await expect(second.getByText('Coliseu').first()).toBeVisible({ timeout: LOAD })
 
     // Saving twice in a row alone never shows the message
     for (const venue of ['Altice Arena', 'MEO Arena']) {
       const form = await open(first)
       await form.getByLabel('Venue').fill(venue)
       await form.getByRole('button', { name: 'Save changes' }).click()
-      await expect(form).toHaveCount(0, { timeout: 15_000 })
+      await expect(form).toHaveCount(0, { timeout: LOAD })
     }
     await expect(first.getByText('Someone else changed this')).toHaveCount(0)
     const { data } = await admin.client.from('gigs').select('venue').eq('id', gig.id).single()
@@ -454,14 +475,14 @@ test('on a gig day the gig opens in On-site mode, and it can be switched off and
   // Opens on "On site today", with a note saying why, the call time, today's schedule and my task
   await page.goto(gig.path)
   const onSite = page.locator('section[aria-labelledby="onsite-title"]')
-  await expect(onSite.getByRole('heading', { name: 'On site today' })).toBeVisible({ timeout: 15_000 })
+  await expect(onSite.getByRole('heading', { name: 'On site today' })).toBeVisible({ timeout: LOAD })
   await expect(onSite.getByRole('note')).toContainText('On-site mode came on because today is a gig day.')
   await expect(onSite).toContainText('Your call time · Sound')
   await expect(onSite).toContainText('08:30')
   await expect(onSite).toContainText('Line check')
   await expect(onSite.getByRole('heading', { name: 'Your task' })).toBeVisible()
   await expect(onSite).toContainText(taskTitle)
-  await expectAccessible(page)
+  await accessible(page)
 
   // Each big button: the links go to the day's tools, the others open the gig's tab
   await expect(onSite.getByRole('link', { name: 'Call sheet' })).toHaveAttribute('href', `${gig.path}/callsheet`)
@@ -481,7 +502,7 @@ test('on a gig day the gig opens in On-site mode, and it can be switched off and
   await onSite.getByRole('button', { name: 'Full gig view' }).click()
   await expect(page.getByRole('button', { name: 'On-site mode' })).toBeVisible()
   await page.reload()
-  await expect(page.getByRole('button', { name: 'On-site mode' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('button', { name: 'On-site mode' })).toBeVisible({ timeout: LOAD })
   await expect(page.getByRole('heading', { name: 'On site today' })).toHaveCount(0)
 
   // On another gig (not today), switched on by hand: no note, since it isn't automatic
@@ -495,10 +516,10 @@ test('on a gig day the gig opens in On-site mode, and it can be switched off and
   await page.goto('/settings/preferences')
   const auto = page.getByRole('checkbox', { name: /Switch to On-site mode on gig days/ })
   await auto.uncheck()
-  await expectAccessible(page)
+  await accessible(page)
   const another = await gigToday(world, `E2E Not On Site ${s}`)
   await page.goto(another.gig.path)
-  await expect(page.getByRole('button', { name: 'On-site mode' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('button', { name: 'On-site mode' })).toBeVisible({ timeout: LOAD })
   await expect(page.getByRole('heading', { name: 'On site today' })).toHaveCount(0)
   await page.goto('/settings/preferences')
   await auto.check()
@@ -513,12 +534,12 @@ test('On-site mode in Portuguese', { tag: '@gigs' }, async ({ browser, baseURL, 
   try {
     await page.goto(gig.path)
     const onSite = page.locator('section[aria-labelledby="onsite-title"]')
-    await expect(onSite.getByRole('heading', { name: 'No local hoje' })).toBeVisible({ timeout: 15_000 })
+    await expect(onSite.getByRole('heading', { name: 'No local hoje' })).toBeVisible({ timeout: LOAD })
     await expect(onSite.getByRole('note')).toContainText('O modo no local ligou-se porque hoje é dia de evento.')
     await expect(onSite).toContainText('A sua hora de chamada')
     await expect(onSite.getByRole('heading', { name: 'A sua tarefa' })).toBeVisible()
     await expect(onSite).toContainText(taskTitle)
-    await expectAccessible(page)
+    await accessible(page)
     await onSite.getByRole('button', { name: 'Vista completa do evento' }).click()
     await expect(page.getByRole('button', { name: 'Modo no local' })).toBeVisible()
   } finally {
@@ -550,18 +571,18 @@ test('adding someone to a gig from the Crew tab puts it in their bell', { tag: '
   const invite = page.getByRole('dialog', { name: 'Invite crew member' })
   await invite.getByPlaceholder('technician@company.com').fill(member.account.email)
   await invite.getByLabel('Function / role on gig').fill('Monitor engineer')
-  await expectAccessible(page)
+  await accessible(page)
   await invite.getByRole('button', { name: 'Add to gig' }).click()
-  await expect(page.locator('li.crew-row').filter({ hasText: member.account.name })).toContainText('Monitor engineer', { timeout: 15_000 })
+  await expect(page.locator('li.crew-row').filter({ hasText: member.account.name })).toContainText('Monitor engineer', { timeout: LOAD })
 
   const theirs = member.page
   await theirs.goto('/me')
   const bell = theirs.getByRole('button', { name: '1 unread notification' })
-  await expect(bell).toBeVisible({ timeout: 20_000 })
+  await expect(bell).toBeVisible({ timeout: LOAD })
   await bell.click()
   await theirs.getByRole('dialog', { name: 'Notifications' }).getByRole('button', { name: new RegExp(`added you to ${gig.name}`) }).click()
   await expect(theirs).toHaveURL(new RegExp(gig.path))
-  await expect(theirs.getByRole('heading', { name: gig.name })).toBeVisible({ timeout: 15_000 })
+  await expect(theirs.getByRole('heading', { name: gig.name })).toBeVisible({ timeout: LOAD })
 })
 
 // covers: T1 (the next morning's email summary would include it). Skips until test_support is installed.
@@ -586,15 +607,15 @@ test('checklist templates, organisation tasks for a member, the filters and a ta
 
   // Organisation → Tasks → Checklist templates: a "Van check" with four lines
   await page.goto(`${org.path}/tasks?tab=templates`)
-  await expect(page.getByRole('tab', { name: 'Checklist templates', selected: true })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('tab', { name: 'Checklist templates', selected: true })).toBeVisible({ timeout: LOAD })
   await page.getByRole('button', { name: 'New template' }).first().click()
   const tplForm = page.getByRole('dialog', { name: 'New template' })
   await tplForm.getByLabel('Name').fill(tplName)
   await tplForm.getByLabel('Checklist').fill('Tyres\nLights\nFuel\nStraps')
   await tplForm.getByRole('button', { name: 'Save template' }).click()
-  await expect(page.getByText(tplName)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(tplName)).toBeVisible({ timeout: LOAD })
   await expect(page.getByText('4 items · Tyres, Lights, Fuel…')).toBeVisible()
-  await expectAccessible(page)
+  await accessible(page)
 
   // A gig's Tasks tab: New task → Start from a template fills the title and the checklist
   await page.goto(`${gig.path}?tab=tasks`)
@@ -615,7 +636,7 @@ test('checklist templates, organisation tasks for a member, the filters and a ta
   await orgForm.getByLabel('What').fill(orgTask)
   await orgForm.getByLabel('For').selectOption(member.account.id)
   await orgForm.getByRole('button', { name: 'Save task' }).click()
-  await expect(page.getByRole('button', { name: orgTask })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('button', { name: orgTask })).toBeVisible({ timeout: LOAD })
 
   // The filters: Organisation shows its own tasks, On gigs the gigs' ones
   const filters = page.getByRole('group', { name: 'Show tasks' })
@@ -625,26 +646,26 @@ test('checklist templates, organisation tasks for a member, the filters and a ta
   await filters.getByRole('button', { name: 'On gigs' }).click()
   await expect(page.getByRole('button', { name: tplName }).first()).toBeVisible()
   await expect(page.getByRole('button', { name: orgTask })).toHaveCount(0)
-  await expectAccessible(page)
+  await accessible(page)
 
   // The member gets a notification that opens My tasks, with the task in it
   const theirs = member.page
   await theirs.goto('/me')
-  await theirs.getByRole('button', { name: '1 unread notification' }).click({ timeout: 20_000 })
+  await theirs.getByRole('button', { name: '1 unread notification' }).click({ timeout: LOAD })
   await theirs.getByRole('dialog', { name: 'Notifications' }).getByRole('button', { name: new RegExp(`gave you a task: ${orgTask}`) }).click()
   await expect(theirs).toHaveURL(/\/tasks$/)
-  await expect(theirs.getByRole('button', { name: orgTask })).toBeVisible({ timeout: 15_000 })
+  await expect(theirs.getByRole('button', { name: orgTask })).toBeVisible({ timeout: LOAD })
 
   // Inventory → Maintenance: a repair makes a task once; the second time it says it already has one
   const item = await addItem(admin, org.id, { name: `E2E Moving Head ${s}` })
   const repair = await admin.client.from('repairs').insert({ org_id: org.id, item_id: item.id, quantity: 1, problem: `Fan noise ${s}` }).select('id').single()
   expect(repair.error).toBeNull()
   await page.goto(`${org.path}/inventory?tab=maintenance`)
-  await page.getByRole('button', { name: new RegExp(`Fan noise ${s}`) }).click({ timeout: 15_000 })
+  await page.getByRole('button', { name: new RegExp(`Fan noise ${s}`) }).click({ timeout: LOAD })
   await page.getByRole('button', { name: 'Make a task' }).click()
-  await expect(page.getByText('Task made. Give it to someone on the Tasks page.')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Task made. Give it to someone on the Tasks page.')).toBeVisible({ timeout: LOAD })
   await page.getByRole('button', { name: 'Make a task' }).click()
-  await expect(page.getByText('This repair already has a task.')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('This repair already has a task.')).toBeVisible({ timeout: LOAD })
 })
 
 // The organisation export from its settings, as { 'file.csv': text }
@@ -682,25 +703,25 @@ test('gig statuses and types: set up, used on a gig, filtered, re-meant, removed
   const section = page.locator('section[aria-labelledby="org-labels"]')
   await section.getByRole('button', { name: 'Start with a common set' }).click()
   const statuses = section.getByRole('textbox', { name: 'Name', exact: true })
-  await expect(statuses).toHaveCount(6, { timeout: 15_000 })
+  await expect(statuses).toHaveCount(6, { timeout: LOAD })
   await expect(statuses.nth(0)).toHaveValue('Option')
   // Rename one, change a colour, move one up
   await statuses.nth(0).fill('Pencilled')
   await statuses.nth(0).blur()
-  await expect(section.getByRole('button', { name: 'Move Pencilled down' })).toBeVisible({ timeout: 15_000 })
+  await expect(section.getByRole('button', { name: 'Move Pencilled down' })).toBeVisible({ timeout: LOAD })
   const firstColour = section.getByRole('combobox', { name: 'Colour', exact: true }).first()
   await firstColour.selectOption('pink')
   await expect(firstColour).toHaveValue('pink')
   await section.getByRole('button', { name: 'Move Confirmed up' }).click()
-  await expect(statuses.nth(0)).toHaveValue('Confirmed', { timeout: 15_000 })
+  await expect(statuses.nth(0)).toHaveValue('Confirmed', { timeout: LOAD })
   await expect(statuses.nth(1)).toHaveValue('Pencilled')
   // Two gig types
   for (const type of ['Festival', 'Corporate']) {
     await section.getByRole('textbox', { name: 'New gig type' }).fill(type)
     await section.getByRole('textbox', { name: 'New gig type' }).press('Enter')
-    await expect(section.getByRole('button', { name: `Remove ${type}` })).toBeVisible({ timeout: 15_000 })
+    await expect(section.getByRole('button', { name: `Remove ${type}` })).toBeVisible({ timeout: LOAD })
   }
-  await expectAccessible(page)
+  await accessible(page)
 
   // Edit gig: the organisation's statuses and types are there
   const editGig = async (gig, status, type) => {
@@ -714,14 +735,14 @@ test('gig statuses and types: set up, used on a gig, filtered, re-meant, removed
     await form.getByLabel('Status', { exact: true }).selectOption({ label: status })
     await form.getByLabel('Gig type').selectOption({ label: type })
     await form.getByRole('button', { name: 'Save changes' }).click()
-    await expect(form).toHaveCount(0, { timeout: 15_000 })
+    await expect(form).toHaveCount(0, { timeout: LOAD })
   }
   await editGig(one, 'Pencilled', 'Festival')
   await editGig(two, 'Confirmed', 'Corporate')
 
   // The gigs list: filter by status and by type, in the list and in the calendar
   await page.goto(org.path)
-  await expect(gigCard(page, one)).toBeVisible({ timeout: 15_000 })
+  await expect(gigCard(page, one)).toBeVisible({ timeout: LOAD })
   await page.getByRole('combobox', { name: 'Filter by status' }).selectOption({ label: 'Pencilled' })
   await expect(gigCard(page, one)).toBeVisible()
   await expect(gigCard(page, two)).toHaveCount(0)
@@ -730,7 +751,7 @@ test('gig statuses and types: set up, used on a gig, filtered, re-meant, removed
   await expect(gigCard(page, two)).toBeVisible()
   await expect(gigCard(page, one)).toHaveCount(0)
   await page.getByRole('button', { name: 'Calendar view' }).click()
-  await expect(page.getByText(two.name).first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(two.name).first()).toBeVisible({ timeout: LOAD })
   await expect(page.getByText(one.name)).toHaveCount(0)
   await page.getByRole('combobox', { name: 'Filter by gig type' }).selectOption({ label: 'Festival' })
   await expect(page.getByText(one.name).first()).toBeVisible()
@@ -742,15 +763,15 @@ test('gig statuses and types: set up, used on a gig, filtered, re-meant, removed
   await page.goto(`${org.path}?panel=settings`)
   const confirmedMeans = section.getByRole('listitem').filter({ has: page.locator('input[value="Confirmed"]') }).getByRole('combobox', { name: 'Means' })
   await confirmedMeans.selectOption('archived')
-  await expect(confirmedMeans).toHaveValue('archived', { timeout: 15_000 })
+  await expect(confirmedMeans).toHaveValue('archived', { timeout: LOAD })
   // Remove a type: its gigs show none
   page.once('dialog', d => d.accept())
   await section.getByRole('button', { name: 'Remove Festival' }).click()
-  await expect(section.getByRole('button', { name: 'Remove Festival' })).toHaveCount(0, { timeout: 15_000 })
+  await expect(section.getByRole('button', { name: 'Remove Festival' })).toHaveCount(0, { timeout: LOAD })
 
   await page.goto(org.path)
   await page.getByRole('tab', { name: /^Archived/ }).click()
-  await expect(gigCard(page, two)).toBeVisible({ timeout: 15_000 })
+  await expect(gigCard(page, two)).toBeVisible({ timeout: LOAD })
   await page.getByRole('tab', { name: /^Upcoming/ }).click()
   await expect(gigCard(page, one)).toBeVisible()
   await expect(gigCard(page, two)).toHaveCount(0)
@@ -783,10 +804,10 @@ test('a gig marked "Invoiced" (it means done) moves to the past gigs', { tag: '@
   const form = page.getByRole('dialog', { name: 'Edit gig' })
   await form.getByLabel('Status', { exact: true }).selectOption({ label: 'Invoiced' })
   await form.getByRole('button', { name: 'Save changes' }).click()
-  await expect(form).toHaveCount(0, { timeout: 15_000 })
+  await expect(form).toHaveCount(0, { timeout: LOAD })
   await page.goto(org.path)
   await page.getByRole('tab', { name: /^Past/ }).click()
-  await expect(gigCard(page, gig)).toBeVisible({ timeout: 15_000 })
+  await expect(gigCard(page, gig)).toBeVisible({ timeout: LOAD })
 })
 
 // Organisation settings → Custom fields: adds a field of a kind ('text', 'number', 'date', 'yes_no',
@@ -796,7 +817,7 @@ async function addField(section, label, kind, choices) {
   await section.getByRole('combobox', { name: 'Kind of field' }).selectOption(kind)
   if (choices) await section.getByRole('textbox', { name: 'Choices', exact: true }).fill(choices)
   await section.getByRole('button', { name: 'Add', exact: true }).click()
-  await expect(section.getByRole('button', { name: `Remove ${label}` })).toBeVisible({ timeout: 15_000 })
+  await expect(section.getByRole('button', { name: `Remove ${label}` })).toBeVisible({ timeout: LOAD })
   // The form empties itself just after the field shows: wait, or the next name typed is wiped
   await expect(section.getByRole('textbox', { name: 'New field name' })).toHaveValue('')
 }
@@ -810,7 +831,7 @@ async function fieldId(account, orgId, entity, label) {
 // covers: T53 (client, supplier and item values are set through the API here; their forms are the
 // same CustomFieldInputs as the gig form, filled in by the UI below)
 test('custom fields: one of each kind on a gig, shown, searched, renamed, reordered, removed and exported', { tag: '@gigs' }, async ({ adminWithOrg, browser, baseURL, world }) => {
-  test.setTimeout(180_000) // a long journey; nightly only
+  test.setTimeout(180_000) // the longest journey; nightly only
   const { page, account: admin } = adminWithOrg
   const s = stamp()
   const org = await addOrg(admin, { name: `E2E Fields ${s}` })
@@ -818,14 +839,14 @@ test('custom fields: one of each kind on a gig, shown, searched, renamed, reorde
 
   await page.goto(`${org.path}?panel=settings`)
   const section = page.locator('section[aria-labelledby="org-fields"]')
-  await expect(section.getByRole('button', { name: 'Gigs', pressed: true })).toBeVisible({ timeout: 15_000 })
+  await expect(section.getByRole('button', { name: 'Gigs', pressed: true })).toBeVisible({ timeout: LOAD })
   await addField(section, 'PO number', 'text')
   await addField(section, 'Stage depth', 'number')
   await addField(section, 'Load-in day', 'date')
   await addField(section, 'Insurance checked', 'yes_no')
   await addField(section, 'Stage', 'choice', 'Indoor\nOutdoor')
   await addField(section, 'Venue map', 'link')
-  await expectAccessible(page)
+  await accessible(page)
 
   // Edit gig: fill them in (a number with a comma)
   await page.goto(gig.path)
@@ -838,22 +859,22 @@ test('custom fields: one of each kind on a gig, shown, searched, renamed, reorde
   await form.getByLabel('Stage', { exact: true }).selectOption('Outdoor')
   await form.getByLabel('Venue map').fill('https://example.com/map')
   await form.getByRole('button', { name: 'Save changes' }).click()
-  await expect(form).toHaveCount(0, { timeout: 15_000 })
+  await expect(form).toHaveCount(0, { timeout: LOAD })
 
   // The overview shows them under "More details", with the link opening
   const details = page.locator('section').filter({ has: page.getByRole('heading', { name: 'More details' }) }).last()
-  await expect(details).toContainText(`PO numberPO-${s}`, { timeout: 15_000 })
+  await expect(details).toContainText(`PO numberPO-${s}`, { timeout: LOAD })
   await expect(details).toContainText('Stage depth12,5')
   await expect(details).toContainText('Load-in day4 Mar 2027')
   await expect(details).toContainText('Insurance checkedYes')
   await expect(details).toContainText('StageOutdoor')
   await expect(details.getByRole('link', { name: 'example.com/map' })).toHaveAttribute('href', 'https://example.com/map')
-  await expectAccessible(page)
+  await accessible(page)
 
   // The gigs list finds it by the text
   await page.goto(org.path)
   await page.getByRole('textbox', { name: 'Search gigs, venues…' }).fill(`PO-${s}`)
-  await expect(gigCard(page, gig)).toBeVisible({ timeout: 15_000 })
+  await expect(gigCard(page, gig)).toBeVisible({ timeout: LOAD })
 
   // A client, a supplier and a catalogue item field, each filled in
   await page.goto(`${org.path}?panel=settings`)
@@ -873,14 +894,14 @@ test('custom fields: one of each kind on a gig, shown, searched, renamed, reorde
   await expect(poName).toHaveValue('PO number')
   await poName.fill('Purchase order')
   await poName.blur()
-  await expect(section.getByRole('button', { name: 'Remove Purchase order' })).toBeVisible({ timeout: 15_000 })
+  await expect(section.getByRole('button', { name: 'Remove Purchase order' })).toBeVisible({ timeout: LOAD })
   await section.getByRole('button', { name: 'Move Venue map up' }).click()
-  await expect(section.getByRole('textbox', { name: 'Field name' }).nth(4)).toHaveValue('Venue map', { timeout: 15_000 })
+  await expect(section.getByRole('textbox', { name: 'Field name' }).nth(4)).toHaveValue('Venue map', { timeout: LOAD })
   page.once('dialog', d => d.accept())
   await section.getByRole('button', { name: 'Remove Stage', exact: true }).click()
-  await expect(section.getByRole('button', { name: 'Remove Stage', exact: true })).toHaveCount(0, { timeout: 15_000 })
+  await expect(section.getByRole('button', { name: 'Remove Stage', exact: true })).toHaveCount(0, { timeout: LOAD })
   await page.goto(gig.path)
-  await expect(details).toContainText(`Purchase orderPO-${s}`, { timeout: 15_000 })
+  await expect(details).toContainText(`Purchase orderPO-${s}`, { timeout: LOAD })
   await expect(details).not.toContainText('Outdoor')
 
   // The export: one column per field, headed with its label
@@ -900,7 +921,7 @@ test('custom fields: one of each kind on a gig, shown, searched, renamed, reorde
   try {
     await theirs.goto(gig.path)
     const crewDetails = theirs.locator('section').filter({ has: theirs.getByRole('heading', { name: 'More details' }) }).last()
-    await expect(crewDetails).toContainText(`Purchase orderPO-${s}`, { timeout: 15_000 })
+    await expect(crewDetails).toContainText(`Purchase orderPO-${s}`, { timeout: LOAD })
   } finally {
     await theirs.context().close()
   }
@@ -930,7 +951,6 @@ test('a removed custom field\'s values still come out in the organisation export
 // covers: T23 (crew-only home, Simple mode, empty screens; the first-steps card's steps are done through
 // the set-up after checking where each one leads)
 test('a crew-only account gets the simple home; Simple mode switches; first steps and empty screens guide', { tag: '@gigs' }, async ({ adminWithOrg, browser, baseURL, world }) => {
-  test.setTimeout(150_000) // a long journey; nightly only
   const { page, account: admin, org } = adminWithOrg
   const s = stamp()
   // A new crew-only account, put on a gig
@@ -947,21 +967,23 @@ test('a crew-only account gets the simple home; Simple mode switches; first step
     // The simple home: the next gig with the call time
     await theirs.goto('/me')
     const next = theirs.locator('section[aria-labelledby="next-gig"]')
-    await expect(next.getByRole('heading', { name: gig.name })).toBeVisible({ timeout: 20_000 })
+    await expect(next.getByRole('heading', { name: gig.name })).toBeVisible({ timeout: LOAD })
     await expect(next).toContainText('Call: 09:15')
-    await expectAccessible(theirs)
+    await accessible(theirs)
     // Call sheet, Chat and Report damage
     await next.getByRole('button', { name: 'Call sheet' }).click()
     await expect(theirs).toHaveURL(new RegExp(`${gig.path}/callsheet$`))
-    await expect(theirs.getByRole('heading', { name: gig.name })).toBeVisible({ timeout: 15_000 })
+    await expect(theirs.getByRole('heading', { name: gig.name })).toBeVisible({ timeout: LOAD })
     await theirs.goto('/me')
     await next.getByRole('button', { name: 'Chat' }).click()
-    await expect(theirs.getByRole('tab', { name: /^Chat/, selected: true })).toBeVisible({ timeout: 15_000 })
+    await expect(theirs.getByRole('tab', { name: /^Chat/, selected: true })).toBeVisible({ timeout: LOAD })
     await theirs.goto('/me')
     await next.getByRole('button', { name: 'More actions' }).click()
+    await expect(next.getByRole('menu', { name: 'More actions' })).toBeVisible()
     await theirs.getByRole('menuitem', { name: 'Report damage' }).click()
-    await expect(theirs.getByRole('dialog', { name: 'Report damage' })).toBeVisible({ timeout: 15_000 })
-    await expectAccessible(theirs)
+    await expect(theirs).toHaveURL(new RegExp(`${gig.path}\\?tab=equipment`))
+    await expect(theirs.getByRole('dialog', { name: 'Report damage' })).toBeVisible({ timeout: LOAD })
+    await accessible(theirs)
 
     // Account → Appearance: Simple mode Off, then On
     const simpleMode = async choice => {
@@ -972,10 +994,10 @@ test('a crew-only account gets the simple home; Simple mode switches; first step
       await theirs.goto('/me')
     }
     await simpleMode('Off')
-    await expect(theirs.getByText(gig.name).first()).toBeVisible({ timeout: 15_000 })
+    await expect(theirs.getByText(gig.name).first()).toBeVisible({ timeout: LOAD })
     await expect(next).toHaveCount(0)
     await simpleMode('On')
-    await expect(next.getByRole('heading', { name: gig.name })).toBeVisible({ timeout: 15_000 })
+    await expect(next.getByRole('heading', { name: gig.name })).toBeVisible({ timeout: LOAD })
   } finally {
     await theirs.context().close()
   }
@@ -985,11 +1007,11 @@ test('a crew-only account gets the simple home; Simple mode switches; first step
   const steps = page.locator('section[aria-labelledby="first-steps-title"]')
   const openCard = async progress => {
     await page.goto(fresh.path)
-    await expect(steps.getByRole('button', { name: new RegExp(`First steps · ${progress}`) })).toBeVisible({ timeout: 20_000 })
+    await expect(steps.getByRole('button', { name: new RegExp(`First steps · ${progress}`) })).toBeVisible({ timeout: LOAD })
     if (await steps.getByRole('button', { name: /First steps/ }).getAttribute('aria-expanded') !== 'true') await steps.getByRole('button', { name: /First steps/ }).click()
   }
   await openCard('0 of 4 done · next: Add your company details')
-  await expectAccessible(page)
+  await accessible(page)
   for (const [step, url] of [
     ['Add your company details', `${fresh.path}/quotes?company=1`], ['Add your equipment', `${fresh.path}/inventory`],
     ['Invite your team', `${fresh.path}?panel=members`], ['Create your first gig', `${fresh.path}?new=gig`],
@@ -1001,7 +1023,7 @@ test('a crew-only account gets the simple home; Simple mode switches; first step
 
   // The empty catalogue says what to do
   await page.goto(`${fresh.path}/inventory`)
-  await expect(page.getByText(/^No equipment yet\. Add items one by one/)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(/^No equipment yet\. Add items one by one/)).toBeVisible({ timeout: LOAD })
   await expect(page.getByRole('button', { name: 'Import' }).first()).toBeVisible()
 
   const done = async (what, result) => expect(result.error, what).toBeNull()
@@ -1013,7 +1035,7 @@ test('a crew-only account gets the simple home; Simple mode switches; first step
   await openCard('3 of 4 done · next: Create your first gig')
   const empty = await addGig(admin, fresh.id, { name: `E2E Empty Gig ${s}` })
   await page.goto(fresh.path)
-  await expect(page.locator('.gig-card').filter({ hasText: empty.name })).toBeVisible({ timeout: 15_000 })
+  await expect(page.locator('.gig-card').filter({ hasText: empty.name })).toBeVisible({ timeout: LOAD })
   await expect(steps).toHaveCount(0)
 
   // An empty gig's tabs each say what to do
@@ -1022,8 +1044,9 @@ test('a crew-only account gets the simple home; Simple mode switches; first step
     ['Equipment', /^No equipment planned yet\./], ['Transport', 'No trips yet'], ['Tools', 'No tools on this gig yet'],
     ['Updates', 'No updates yet. Be the first to post.'],
   ]) {
-    await page.goto(`${empty.path}?tab=${tab.toLowerCase()}`)
-    await expect(page.getByText(text).first()).toBeVisible({ timeout: 15_000 })
+    if (!page.url().includes(empty.id)) await page.goto(empty.path)
+    await page.getByRole('tab', { name: new RegExp(`^${tab}`) }).click({ timeout: LOAD })
+    await expect(page.getByText(text).first()).toBeVisible({ timeout: LOAD })
   }
-  await expectAccessible(page)
+  await accessible(page)
 })
