@@ -379,7 +379,6 @@ test('the menu of the first message in a short conversation can be clicked', { t
 
 // covers: T13
 test('an admin who opens a channel by its link while their organisations are still loading can post in it', { tag: '@messages' }, async ({ adminWithOrg }) => {
-  test.fail(true, '#245: the channel decides "can post" before the organisation roles have loaded, and never looks again')
   const { page, account, org } = adminWithOrg
   const { data: channelId, error } = await account.client.rpc('save_org_channel', { p_id: null, p_org: org.id, p_title: words('Linked channel'), p_audience: 'everyone', p_admins_post: false, p_archived: null })
   expect(error).toBeNull()

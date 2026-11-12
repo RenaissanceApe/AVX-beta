@@ -19,7 +19,7 @@ const pickColour = s => (s === 'over' || s === 'uplift' ? colors.danger : s === 
 // Line arrays (RG3, docs/TOOLS_PLAN.md §5) inside the rigging tool: elements with splay angles on
 // the manufacturer's bumper, checked against its limits; the point loads, pick position and tilt
 // come from the manufacturer's software, which decides. Arrays live in gig_show.rigging.arrays.
-export default function LineArrays({ rigging, onSave, lines, models, pickable, settings, speakers, sources, booked = {}, canEdit, canReadCatalogue }) {
+export default function LineArrays({ rigging, onSave, lines, models, pickable, settings, speakers, speakersLoading = false, sources, booked = {}, canEdit, canReadCatalogue }) {
   const arrays = arraysOf(rigging)
   const saveArrays = list => onSave({ arrays: list })
   const edit = (id, patch) => saveArrays(arrays.map(a => (a.id === id ? { ...a, ...patch } : a)))
@@ -31,6 +31,8 @@ export default function LineArrays({ rigging, onSave, lines, models, pickable, s
 
   function add(source) {
     if (arrays.length >= LIMITS.arrays) return
+    // An array from the sound system copies its speaker's data: never save it before the speakers have loaded
+    if (source?.item_id && speakersLoading) return
     const base = { id: uid('a'), name: t('la.newName', { n: arrays.length + 1 }), count: 8, splays: [], picks: 2, mode: 'cog' }
     const from = fromSource(source)
     const item = from.item_id ? speakers.find(s => s.id === from.item_id) : null
@@ -48,8 +50,8 @@ export default function LineArrays({ rigging, onSave, lines, models, pickable, s
           {freeSources.length > 0 && (
             <div style={{ flex: '1 1 200px' }}>
               <HintLabel htmlFor="la-from-system" hint="la-from-system">{t('la.fromSystem')}</HintLabel>
-              <select id="la-from-system" value="" onChange={e => { const s = sources.find(x => x.id === e.target.value); if (s) add(s) }} style={{ ...input, appearance: 'auto' }}>
-                <option value="">{t('la.pickSource')}</option>
+              <select id="la-from-system" value="" disabled={speakersLoading} aria-busy={speakersLoading || undefined} onChange={e => { const s = sources.find(x => x.id === e.target.value); if (s) add(s) }} style={{ ...input, appearance: 'auto' }}>
+                <option value="">{speakersLoading ? t('la.loadingSpeakers') : t('la.pickSource')}</option>
                 {freeSources.map(s => <option key={s.id} value={s.id}>{s.name} · {t('la.elements', { count: s.count })}</option>)}
               </select>
             </div>
@@ -63,7 +65,7 @@ export default function LineArrays({ rigging, onSave, lines, models, pickable, s
         <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {arrays.map(arr => (
             <li key={arr.id}>
-              <ArrayCard arr={arr} booked={arr.item_id ? booked[arr.item_id] ?? 0 : null} needed={arr.item_id ? needed[arr.item_id] : null} lines={lines} models={models} pickable={pickable} settings={settings} speakers={speakers} canReadCatalogue={canReadCatalogue}
+              <ArrayCard arr={arr} booked={arr.item_id ? booked[arr.item_id] ?? 0 : null} needed={arr.item_id ? needed[arr.item_id] : null} lines={lines} models={models} pickable={pickable} settings={settings} speakers={speakers} speakersLoading={speakersLoading} canReadCatalogue={canReadCatalogue}
                 source={arr.source_id ? sources.find(s => s.id === arr.source_id) || null : null}
                 canEdit={canEdit} onEdit={patch => edit(arr.id, patch)} onRemove={() => remove(arr)} />
             </li>
@@ -83,7 +85,7 @@ function elementFrom(item) {
   }
 }
 
-function ArrayCard({ arr, booked, needed, source, lines, models, pickable, settings, speakers, canReadCatalogue, canEdit, onEdit, onRemove }) {
+function ArrayCard({ arr, booked, needed, source, lines, models, pickable, settings, speakers, speakersLoading, canReadCatalogue, canEdit, onEdit, onRemove }) {
   const a = analyseArray(arr, { models, settings, lines })
   const frames = framesFor(arr.preset)
   const doc = sourceFor(arr.preset)
@@ -126,7 +128,7 @@ function ArrayCard({ arr, booked, needed, source, lines, models, pickable, setti
         <p style={{ fontSize: '13px', color: colors.warn, display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '4px' }}>
           {t('la.sourceChanged', { name: source.name, n: source.count })}
           {canEdit && (
-            <button type="button" style={{ ...btn, padding: '4px 8px' }} onClick={() => {
+            <button type="button" style={{ ...btn, padding: '4px 8px' }} disabled={speakersLoading} aria-busy={speakersLoading || undefined} onClick={() => {
               const from = fromSource(source)
               const it = from.item_id ? speakers.find(s => s.id === from.item_id) : null
               onEdit({ ...from, ...(it ? elementFrom(it) : {}) })
