@@ -142,7 +142,8 @@ npm run e2e:sweep -- me1-gigs                      # …or only one area's
 
 Each signed-in run starts a list, `.e2e-accounts/<run>.txt` (not committed; `global-setup.js`), and
 the set-up writes each account it makes into it (the older journeys' accounts too); the sweep tries
-exactly those. Without that list (a run from another
+exactly those, and an account the busy database couldn't delete (statement timeout) is tried again
+on a later pass, 20 s on. Without that list (a run from another
 machine) it tries every role in every area, which is slow: the test project limits sign-ins, so it
 waits a minute whenever it reaches the limit. `scripts/e2e-sweep.test.js` checks which addresses it
 tries.
