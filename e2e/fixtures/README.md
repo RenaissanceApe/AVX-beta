@@ -9,6 +9,9 @@ Made-up data only: no real people, companies, emails or phone numbers. Email add
 | `equipment-windows-1252.csv` | CSV saved the way Excel on Windows does (Windows-1252, `;`, CRLF), Portuguese headings and accents ("Armazém") | `make-fixtures.mjs` |
 | `rentman-equipment.csv` | Equipment export with Rentman's column names (recognised as a Rentman export) | `make-fixtures.mjs` |
 | `contacts.csv` | Two clients for the Contacts import | typed |
+| `equipment-two-sheets.xlsx` | Excel workbook with two sheets, "Audio" (2 rows) and "Lighting" (3 rows): Name, Code, Quantity (the sheet picker) | `make-fixtures.mjs` |
+| `rentman-contacts.csv` | A client with Rentman's contact column names (displayname, email 1, visit street…) | `make-fixtures.mjs` |
+| `rentman-crew.csv` | Two crew with Rentman's crew column names (firstname, lastname…) | `make-fixtures.mjs` |
 
 Use one in a test with `setInputFiles`:
 
