@@ -681,9 +681,15 @@ test('gig page on a phone: the PM\'s actions are in the ⋯ menus; crew see Repo
       menu = await menuWith(page, 'Find crew')
       await expect(menu.getByRole('menuitem', { name: 'Post a job' })).toBeVisible()
       await page.keyboard.press('Escape')
-      // At 320 px "Add to <organisation>" runs off screen when the name is long (#243), and how long
-      // this organisation's name is depends on the run's tag; the test after this one checks it
-      if (width > 320) await fitsPhone(page, `gig crew (${width})`, [page.getByRole('button', { name: 'Invite crew' })])
+      // "Add to <organisation>" runs off a phone's screen when the name is long (#243), and how long
+      // this organisation's name is depends on the run's tag (it overflowed by 72 px at 320 and 5 px
+      // at 390 in CI). The test after this one checks the crew tab's width with a fixed long name;
+      // here the controls and the accessibility check
+      const invite = page.getByRole('button', { name: 'Invite crew' })
+      const box = await invite.boundingBox()
+      expect(box.x, `gig crew (${width}): Invite crew starts off screen`).toBeGreaterThanOrEqual(-0.5)
+      expect(box.x + box.width, `gig crew (${width}): Invite crew runs past the right edge`).toBeLessThanOrEqual(width + 0.5)
+      await expectAccessible(page)
 
       await page.goto(`${gig.path}?tab=equipment`)
       await expect(page.getByRole('link', { name: 'Packing list' })).toBeVisible(LOAD)
@@ -706,21 +712,23 @@ test('gig page on a phone: the PM\'s actions are in the ⋯ menus; crew see Repo
 })
 
 // covers: T88
-test('crew tab on a 320 px phone: a long organisation name in "Add to …" stays on screen', { tag: TAG }, async ({ adminWithOrg, world, browser, baseURL }) => {
-  test.fail(true, '#243: the "Add to <organisation>" button does not wrap, so the page scrolls sideways at 320 px')
+test('crew tab on a phone: a long organisation name in "Add to …" stays on screen', { tag: TAG }, async ({ adminWithOrg, world, browser, baseURL }) => {
+  test.fail(true, '#243: the "Add to <organisation>" button does not wrap, so the page scrolls sideways')
   const { account } = adminWithOrg
   const crew = await world.account('crew')
   // A real company name of this length, the same in every run
   const org = await addOrg(account, { name: `E2E Produções Audiovisuais do Norte ${RUN}` })
   const gig = await addGig(account, org.id)
   await addToGig(account, gig.id, crew)
-  const page = await phone(browser, baseURL, account, 320)
-  try {
-    await page.goto(`${gig.path}?tab=crew`)
-    await expect(page.getByRole('button', { name: `Add to ${org.name}` })).toBeVisible(LOAD)
-    await fitsPhone(page, 'gig crew (320, long organisation name)', [page.getByRole('button', { name: 'Invite crew' })])
-  } finally {
-    await page.context().close()
+  for (const width of PHONES) {
+    const page = await phone(browser, baseURL, account, width)
+    try {
+      await page.goto(`${gig.path}?tab=crew`)
+      await expect(page.getByRole('button', { name: `Add to ${org.name}` })).toBeVisible(LOAD)
+      await fitsPhone(page, `gig crew (${width}, long organisation name)`, [page.getByRole('button', { name: 'Invite crew' })])
+    } finally {
+      await page.context().close()
+    }
   }
 })
 

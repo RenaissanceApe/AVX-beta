@@ -365,12 +365,33 @@ test('the menu of the first message in a short conversation can be clicked', { t
   const only = words('The only message here')
   const sent = await account.client.from('messages').insert({ conversation_id: channelId, body: only, attachments: [], mentions: [] })
   expect(sent.error).toBeNull()
-  await page.goto(`/messages/${channelId}`)
+  // Opened from the list, as a person does: opened by its link, the channel can show as read-only
+  // while the organisations are still loading (#245, its own test below)
+  await page.goto('/messages')
+  await page.getByRole('navigation', { name: 'Messages' }).getByRole('link', { name: new RegExp(title) }).click()
+  await expect(composer(page)).toBeVisible({ timeout: 15_000 })
   await expect(chatRow(page, only)).toBeVisible({ timeout: 15_000 })
   const menu = await menuOf(page, only)
   // A click a person can make: nothing else is on top of the item
   await menu.getByRole('menuitem', { name: 'React with 👍' }).click({ trial: true, timeout: 5_000 })
   await menu.getByRole('menuitem', { name: 'Copy link' }).click({ trial: true, timeout: 5_000 })
+})
+
+// covers: T13
+test('an admin who opens a channel by its link while their organisations are still loading can post in it', { tag: '@messages' }, async ({ adminWithOrg }) => {
+  test.fail(true, '#245: the channel decides "can post" before the organisation roles have loaded, and never looks again')
+  const { page, account, org } = adminWithOrg
+  const { data: channelId, error } = await account.client.rpc('save_org_channel', { p_id: null, p_org: org.id, p_title: words('Linked channel'), p_audience: 'everyone', p_admins_post: false, p_archived: null })
+  expect(error).toBeNull()
+  // The person's organisations (the workspace) arrive 3 s late, after the channel's details:
+  // the order a slow connection or a busy server gives, made the same every time
+  await page.route(url => url.pathname.endsWith('/rest/v1/org_members') && url.searchParams.get('select')?.includes('organisations'), async route => {
+    await new Promise(resolve => setTimeout(resolve, 3_000))
+    await route.continue()
+  })
+  await page.goto(`/messages/${channelId}`)
+  await expect(composer(page)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText("You can read this channel but not post in it (viewers can't).")).toHaveCount(0)
 })
 
 // A second gig in the organisation (a test that changes who is on a gig keeps the shared one as it is)
