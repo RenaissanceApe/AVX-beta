@@ -9,6 +9,8 @@ Made-up data only: no real people, companies, emails or phone numbers. Email add
 | `equipment-windows-1252.csv` | CSV saved the way Excel on Windows does (Windows-1252, `;`, CRLF), Portuguese headings and accents ("Armazém") | `make-fixtures.mjs` |
 | `rentman-equipment.csv` | Equipment export with Rentman's column names (recognised as a Rentman export) | `make-fixtures.mjs` |
 | `contacts.csv` | Two clients for the Contacts import | typed |
+| `rig-vectorworks-style.mvr` | A small MVR in the Vectorworks style: 4 spots on LX1, 2 pixel washes on FOH, made-up fixture types with their GDTF files (field tools, T99) | copy of `docs/samples/mvr/vectorworks-style.mvr` (`scripts/mvr-samples.mjs`) |
+| `sample-spot-300.gdtf` | A made-up GDTF fixture type: modes Standard (18 ch) and Basic (12 ch), 21.5 kg, 450 W (field tools, T101) | copy of `docs/samples/mvr/Sample@Spot 300.gdtf` (`scripts/mvr-samples.mjs`) |
 | `equipment-two-sheets.xlsx` | Excel workbook with two sheets, "Audio" (2 rows) and "Lighting" (3 rows): Name, Code, Quantity (the sheet picker) | `make-fixtures.mjs` |
 | `rentman-contacts.csv` | A client with Rentman's contact column names (displayname, email 1, visit street…) | `make-fixtures.mjs` |
 | `rentman-crew.csv` | Two crew with Rentman's crew column names (firstname, lastname…) | `make-fixtures.mjs` |
