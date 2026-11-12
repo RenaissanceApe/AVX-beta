@@ -20,7 +20,7 @@ export async function signUp(page, who) {
   await page.getByPlaceholder('João Silva').fill(who.name)
   await page.getByPlaceholder('you@company.com').fill(who.email)
   await page.getByPlaceholder('At least 8 characters').fill(PASSWORD)
-  await page.locator('form').getByRole('button', { name: /Create Account/ }).click()
+  await submitAuth(page, /\/auth\/v1\/signup/, /Create Account/)
   await expect(page).toHaveURL(HOME, { timeout: 15_000 })
 }
 
@@ -30,8 +30,22 @@ export async function signIn(page, who) {
   await page.goto('/auth')
   await page.getByPlaceholder('you@company.com').fill(typeof who === 'string' ? who : who.email)
   await page.getByPlaceholder('••••••••').fill(PASSWORD)
-  await page.locator('form').getByRole('button', { name: /Sign In/ }).click()
+  await submitAuth(page, /\/auth\/v1\/token/, /Sign In/)
   await expect(page).toHaveURL(HOME, { timeout: 15_000 })
+}
+
+// Sends the sign-up or sign-in form. When the test project answers 429 (its sign-in limit, reached
+// when several runs use it at once) it waits 2, 4, 8 s and sends it again; any other answer is left
+// for the test to check, so a real failure still fails.
+async function submitAuth(page, endpoint, button) {
+  for (let attempt = 0; ; attempt++) {
+    const answered = page.waitForResponse(r => endpoint.test(r.url()) && r.request().method() === 'POST', { timeout: 20_000 })
+    await page.locator('form').getByRole('button', { name: button }).click()
+    const response = await answered
+    if (response.status() !== 429) return
+    expect(attempt, "The test project's sign-in limit was still reached after 4 tries (HTTP 429)").toBeLessThan(3)
+    await page.waitForTimeout(2000 * 2 ** attempt)
+  }
 }
 
 // No serious accessibility problems on the page as it is now (docs/HELP.md, H1)
@@ -47,19 +61,29 @@ export async function expectAccessible(page) {
 // A report that hits a slow moment on the test database tries once more by itself (selectReport
 // in src/lib/selectAll.js), so the wait allows two slow requests; a failure that repeats still
 // shows "couldn't be loaded" and fails the test.
-export async function reportLoaded(page) {
-  await expect(page.getByRole('status', { name: 'Loading', exact: true })).toHaveCount(0, { timeout: 45_000 })
-  await expect(page.getByText("The report couldn't be loaded. Try again in a moment.")).toHaveCount(0)
+// `ready` (a locator): what the view shows once its data is in. Pass it when there is one: just
+// after a tab is clicked the new view may not have put up its loading sign yet, so "no loading
+// sign" alone can pass too early (a margins check then timed out on its own 15 s, #194).
+export const REPORT_FAILED = "The report couldn't be loaded. Try again in a moment."
+export async function reportLoaded(page, ready, { timeout = 45_000 } = {}) {
+  const failed = page.getByText(REPORT_FAILED)
+  const secs = Math.round(timeout / 1000)
+  if (ready) {
+    await expect(ready.or(failed).first(), `The report view didn't show its data or an error within ${secs} s: the test database is slow or the report is stuck loading`)
+      .toBeVisible({ timeout })
+  }
+  await expect(page.getByRole('status', { name: 'Loading', exact: true }), `The report view was still loading after ${secs} s`).toHaveCount(0, { timeout })
+  await expect(failed, 'The report view says it couldn\'t be loaded (its database call failed twice)').toHaveCount(0)
 }
 
 // A report's period changed (issue #114): wait for its database call to answer, then for the page to
 // settle (a retry on a slow database included) and to show no error; only then look at what it shows.
 // A real failure still fails: reportLoaded rejects the error message and a report that never loads.
-export async function changePeriod(page, rpc, period) {
+export async function changePeriod(page, rpc, period, ready) {
   const answered = page.waitForResponse(r => r.url().includes(`/rest/v1/rpc/${rpc}`), { timeout: 45_000 })
   await page.locator('#rp-period').selectOption(period)
   await answered
-  await reportLoaded(page)
+  await reportLoaded(page, ready)
 }
 
 // Delete the signed-in account through Settings → Your data, as a person does

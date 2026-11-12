@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { RUN, PASSWORD } from './accounts.js'
+import { journeyAccount, signInPage, pageAs } from './setup.js'
+import { deleteAccount } from './helpers.js'
 
 // Signing in when things go wrong, against the Supabase TEST project (never production).
 // Run with E2E_AUTH=1 and the test project's URL/key — see docs/TESTING.md.
@@ -8,14 +10,16 @@ import { RUN, PASSWORD } from './accounts.js'
 
 // The run tag and password are shared with the sweep step (accounts.js, scripts/e2e-sweep.mjs)
 const run = RUN
-const user = { name: `E2E Fail ${run}`, email: `e2e-fail-${run}@example.com` }
+const user = { role: 'fail', name: `E2E Fail ${run}`, email: `e2e-fail-${run}@example.com` }
 const nobody = `e2e-nobody-${run}@example.com`
 const HOME = /\/(me|org\/[0-9a-f-]{36})$/
 
 test.describe.configure({ mode: 'serial' })
 
-// Part of the pull requests' smoke run (@smoke; docs/TESTING.md). Not indented, to keep its history readable.
-test.describe('sign-in failures', { tag: '@smoke' }, () => {
+// The broken-session check is in the pull requests' smoke run (@smoke); all of it runs every night
+// (docs/TESTING.md). The five wrong passwords stay out of the smoke run: each is a sign-in, and the
+// test project limits them. Not indented, to keep its history readable.
+test.describe('sign-in failures', () => {
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -32,17 +36,13 @@ async function trySignIn(page, email, password) {
 
 const alertText = page => page.getByRole('alert').first().textContent()
 
-test('set up: a user to try things against', async ({ page }) => {
-  await page.goto('/auth')
-  await page.getByRole('button', { name: 'Create Account' }).first().click()
-  await page.getByPlaceholder('João Silva').fill(user.name)
-  await page.getByPlaceholder('you@company.com').fill(user.email)
-  await page.getByPlaceholder('At least 8 characters').fill(PASSWORD)
-  await page.locator('form').getByRole('button', { name: /Create Account/ }).click()
-  await expect(page).toHaveURL(HOME, { timeout: 15_000 })
-})
+// The user to try things against: made through the API on first use, so any one test can run on
+// its own (the smoke run picks one)
+let made = false
+const account = () => { made = true; return journeyAccount(user, { create: true }) }
 
 test('a wrong password and an unknown email get the same answer, five times over', async ({ page }) => {
+  await account()
   const answers = []
   for (let i = 0; i < 5; i++) {
     await trySignIn(page, user.email, `wrong-${i}-password`)
@@ -95,8 +95,8 @@ test('sign-up refuses a short password and a malformed email before sending anyt
   await expect(page).toHaveURL(/\/auth/)
 })
 
-test('an expired or broken session goes back to sign-in', async ({ page }) => {
-  await trySignIn(page, user.email, PASSWORD)
+test('an expired or broken session goes back to sign-in', { tag: '@smoke' }, async ({ page }) => {
+  await signInPage(page, await account())
   await expect(page).toHaveURL(HOME, { timeout: 15_000 })
   // Break the saved session as if it had expired and its refresh token were no longer valid
   await page.evaluate(() => {
@@ -109,19 +109,12 @@ test('an expired or broken session goes back to sign-in', async ({ page }) => {
   await expect(page.getByPlaceholder('you@company.com')).toBeVisible()
 })
 
-// Runs even when a test above fails, so the test project doesn't keep the user
-test.afterAll(async ({ browser }) => {
-  const page = await browser.newPage()
-  await trySignIn(page, user.email, PASSWORD)
-  await expect(page).toHaveURL(HOME, { timeout: 15_000 })
-  await page.goto('/dashboard')
-  await page.getByRole('button', { name: /— Account$/ }).click()
-  await expect(page).toHaveURL(/\/settings/)
-  await page.getByRole('link', { name: 'Your data' }).click()
-  page.once('dialog', dialog => dialog.accept('DELETE'))
-  await page.getByRole('button', { name: 'Delete account' }).click()
-  await expect(page).toHaveURL(/\/auth$/, { timeout: 15_000 })
-  await page.close()
+// Runs even when a test above fails (the sweep is the backstop), and only if the user was made
+test.afterAll(async ({ browser, baseURL }) => {
+  if (!made) return
+  const page = await pageAs(browser, await account(), { baseURL })
+  await deleteAccount(page)
+  await page.context().close()
 })
 
 })

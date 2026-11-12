@@ -90,8 +90,17 @@ person or a real device is left to try by hand. Which T-line belongs to which ar
 
 ### When it runs
 
-- **Pull requests** (`e2e-auth` job in `ci.yml`): only the tests tagged `@smoke`: the journey, the
-  import and sign-in checks, and one path per area. A few minutes.
+- **Pull requests** (`e2e-auth` job in `ci.yml`): only the tests tagged `@smoke`, about 2 minutes of
+  tests: three steps of the journey (the form sign-up with an organisation and a gig, adding crew to
+  the gig, and the form sign-in that deletes the account), one import check, the broken-session
+  check, and exactly one path per area file. Everything else (the reports, the five wrong
+  passwords, the rest of the journey and the import) runs every night. A new area file tags one
+  test `@smoke`, no more: several PRs run against the same test project at once, and a long smoke
+  run made them slow each other down until reports hit the database's 8 s limit (#194).
+  Only two tests go through the sign-in form; every other test signs in once through the API and
+  reuses that session (`pageAs`, `signInPage`). When the test project still answers 429 (its
+  sign-in limit), the sign-up and sign-in helpers wait 2, 4, 8 (and 16) s and try again; only a 429
+  is retried, never a failed test. The job has no Playwright retries, so a real failure stays red.
 - **Every night** (`.github/workflows/e2e-nightly.yml`): every signed-in test, at 03:07 UTC (03:07 in
   Lisbon in winter, 04:07 in summer), split in 4 shards that run side by side, one test at a time
   inside each. Each shard tags its accounts `gh<run>-<attempt>-s<shard>` and sweeps them afterwards,
@@ -121,16 +130,17 @@ npm run e2e:sweep -- me1-gigs                      # …or only one area's
 | File | What it gives |
 |---|---|
 | `fixtures.js` | `test` with ready-made people, each a page **already signed in** (English, closed after the test): `adminWithOrg`, `member`, `viewer`, `crewOnGig` (on the gig, not in the organisation), `secondCompany` (the admin of another, unrelated company). Each gives `{ page, account, org, world }` (`crewOnGig` also `gig`). |
-| `setup.js` | Makes the data through the database API with the public key and each account's own sign-in, the same calls as the app, so the access rules apply (no service role anywhere): `createAccount`, `addOrg`, `addToOrg`, `addGig`, `addToGig`, `addItem`, `addClient`, `addQuote` (priced with the app's own quote maths), `pageAs` (a page signed in as any account). `world` (one per area) makes the shared organisation, gig and people once and reuses them. |
+| `setup.js` | Makes the data through the database API with the public key and each account's own sign-in, the same calls as the app, so the access rules apply (no service role anywhere): `createAccount`, `journeyAccount` (the older journeys' accounts, one sign-in per account), `signInPage` (signs the test's own `page` in with that session), `addOrg`, `addToOrg`, `addGig`, `addToGig`, `addItem`, `addClient`, `addQuote` (priced with the app's own quote maths), `pageAs` (a page signed in as any account). `world` (one per area) makes the shared organisation, gig and people once and reuses them. |
 | `accounts.js` | Run tag, password, `ROLES` and `AREAS`. Area accounts are `e2e-<role>-<run>-<area>@example.com`. A new role or area must be added here, or the sweep won't find it (the set-up refuses unknown ones). |
-| `helpers.js` | `english`, `signUp`, `signIn` (through the form), `expectAccessible` (axe; serious or critical fails), `reportLoaded`, `changePeriod`, `deleteAccount`, `waitForServiceWorker` (bounded, one reload; #206). |
+| `helpers.js` | `english`, `signUp`, `signIn` (through the form), `expectAccessible` (axe; serious or critical fails), `reportLoaded` (pass what the view shows once loaded: the wait then can't pass before the view starts loading), `changePeriod`, `deleteAccount`, `waitForServiceWorker` (bounded, one reload; #206). |
 | `stubs.js` | Stand-ins for outside calls: `stubTownSearch` / `stubTownSearchDown` (geocode → LocationIQ) and `stubCompanyCheck` (vies-check → VIES). They answer the browser only; the database doesn't change. |
 | `files.js` | `readZip` + `zipText` (zip exports, with fflate), `readPdfText` (unpdf), `parseIcs` (calendar files and feeds), `totpCode` (the current two-step code for a secret, with otpauth). |
 | `testSupport.js` | The test-only database functions (below): `makeAvxAdmin`, `expire`, `runRecurringExpenses`, `runOverdueInvoiceReminders`, `runHeldInviteReminders`, `runMaintenanceReminders`, `emailSummaryCandidates`. |
 | `e2e/fixtures/` | Sample files, made-up data: an xlsx, a Windows-1252 CSV, a Rentman-style CSV, a contacts CSV (its README says how to add one). |
 
 Each signed-in run starts a list, `.e2e-accounts/<run>.txt` (not committed; `global-setup.js`), and
-the set-up writes each account it makes into it; the sweep tries exactly those, plus the older journeys' fixed roles. Without that list (a run from another
+the set-up writes each account it makes into it (the older journeys' accounts too); the sweep tries
+exactly those. Without that list (a run from another
 machine) it tries every role in every area, which is slow: the test project limits sign-ins, so it
 waits a minute whenever it reaches the limit. `scripts/e2e-sweep.test.js` checks which addresses it
 tries.

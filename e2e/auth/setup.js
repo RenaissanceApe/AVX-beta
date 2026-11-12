@@ -35,6 +35,21 @@ const localDate = (days = 0) => {
 }
 const title = area => area.charAt(0).toUpperCase() + area.slice(1)
 
+// The test project limits sign-ups and sign-ins (HTTP 429) when several runs use it at once. Only
+// that answer is tried again, after 2, 4, 8 and 16 s; any other error is returned at once.
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+export const rateLimited = error => error?.status === 429 || /rate limit|too many requests/i.test(error?.message || '')
+export async function authCall(what, call) {
+  for (let attempt = 0; ; attempt++) {
+    const result = await call()
+    if (!rateLimited(result.error) || attempt >= 4) {
+      if (rateLimited(result.error)) result.error.message = `${what}: the test project's sign-in limit was still reached after 5 tries (${result.error.message})`
+      return result
+    }
+    await sleep(2000 * 2 ** attempt)
+  }
+}
+
 // A new account (sign-up with the anon key; the test project doesn't ask to confirm the email).
 // If it already exists (the same E2E_RUN run again locally) it signs in instead.
 // Returns { role, area, email, name, id, client } — client is signed in as that account.
@@ -45,14 +60,66 @@ export async function createAccount(role, area, { name } = {}) {
   const fullName = name || `E2E ${title(role)} ${title(area)} ${RUN}`
   const client = apiClient()
   recordAccount(role, area)
-  const { data, error } = await client.auth.signUp({ email, password: PASSWORD, options: { data: { full_name: fullName } } })
+  const id = await signUpOrIn(client, { email, name: fullName }, role)
+  return { role, area, email, name: fullName, id, client }
+}
+
+// Signs the client up (or in, if the address already has an account); returns the user's id
+async function signUpOrIn(client, { email, name }, role) {
+  const { data, error } = await authCall(`Signing up the ${role} account`,
+    () => client.auth.signUp({ email, password: PASSWORD, options: { data: { full_name: name } } }))
   if (error && !/already registered|already exists/i.test(error.message)) throw new Error(`Signing up the ${role} account failed: ${error.message}`)
   if (error || !data.session) {
     if (!error && !data.session) throw new Error('Sign-up gave no session: turn off "Confirm email" on the test project (docs/TESTING.md, One-time setup)')
-    check(`Signing in the ${role} account`, await client.auth.signInWithPassword({ email, password: PASSWORD }))
+    check(`Signing in the ${role} account`, await authCall(`Signing in the ${role} account`,
+      () => client.auth.signInWithPassword({ email, password: PASSWORD })))
   }
   const { data: { session } } = await client.auth.getSession()
-  return { role, area, email, name: fullName, id: session.user.id, client }
+  return session.user.id
+}
+
+// The older journeys' accounts (journey, import, failures: e2e-<role>-<run>@example.com, no area).
+// `who` is { role, name, email }. create: sign up through the API (signs in if it already exists);
+// otherwise sign in to an account made earlier (e.g. through the form). One sign-in per account and
+// test worker: the tests reuse its session (signInPage, pageAs) instead of the sign-in form.
+const known = new Map()
+export function journeyAccount(who, { create = false } = {}) {
+  if (!ROLES.includes(who.role)) throw new Error(`Unknown test role "${who.role}": add it to ROLES in e2e/auth/accounts.js so the sweep removes it`)
+  if (!known.has(who.email)) {
+    const p = (async () => {
+      const client = apiClient()
+      let id
+      if (create) {
+        recordAccount(who.role)
+        id = await signUpOrIn(client, who, who.role)
+      } else {
+        const { data } = check(`Signing in the ${who.role} account`, await authCall(`Signing in the ${who.role} account`,
+          () => client.auth.signInWithPassword({ email: who.email, password: PASSWORD })))
+        id = data.user.id
+      }
+      return { ...who, id, client }
+    })()
+    p.catch(() => known.delete(who.email))
+    known.set(who.email, p)
+  }
+  return known.get(who.email)
+}
+
+// Opens the app in an existing page already signed in as the account (for tests that use the
+// `page` fixture; pageAs opens a new window instead). The session is put in once per tab, so a
+// later sign-out or account deletion in the same tab stays signed out.
+export async function signInPage(page, account) {
+  const { data: { session } } = await account.client.auth.getSession()
+  if (!session) throw new Error(`The ${account.role} account has no session`)
+  await page.addInitScript(([key, value]) => {
+    try {
+      if (sessionStorage.getItem('e2e.session')) return
+      sessionStorage.setItem('e2e.session', '1')
+      localStorage.setItem(key, value)
+    } catch { /* not the app's page */ }
+  }, [authStorageKey(), JSON.stringify(session)])
+  await page.goto('/auth')
+  await page.waitForURL(/\/(me|org\/[0-9a-f-]{36})$/, { timeout: 15_000 })
 }
 
 // The browser's stored sign-in for an account, plus the language, for browser.newContext({ storageState })
