@@ -13,6 +13,10 @@ export default defineConfig({
   // Signed-in runs start their list of test accounts for the sweep (e2e/auth/global-setup.js)
   globalSetup: authRun ? './e2e/auth/global-setup.js' : undefined,
   timeout: authRun ? 90_000 : 30_000,
+  // Signed-in runs share the test project with other runs: a save there can take up to the
+  // database's 8 s statement limit and still succeed, so a check waits 10 s instead of 5 (#194).
+  // A save that fails still shows its error and fails the test; there are no retries.
+  expect: { timeout: authRun ? 10_000 : 5_000 },
   retries: process.env.CI && !authRun ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: {

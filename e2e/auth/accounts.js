@@ -15,7 +15,7 @@ export const PASSWORD = 'e2e-Password-123'
 // Members first: an organisation's only admin can't delete their account while others are in it.
 // The set-up's roles (member … extra2, admin) come after the older journeys' own roles.
 export const ROLES = ['tech', 'newbie', 'fail', 'short', 'imp', 'worker', 'worker2', 'worker3',
-  'member', 'viewer', 'crew', 'extra', 'extra2', 'other', 'pm', 'admin']
+  'member', 'viewer', 'crew', 'crew2', 'extra', 'extra2', 'other', 'pm', 'admin']
 
 // One per spec file that uses the set-up (e2e/auth/<area>.spec.js). A new area goes here first, so
 // the sweep knows its accounts. Lower case letters only.
@@ -25,8 +25,8 @@ export const AREAS = ['foundation', 'gigs', 'messages', 'quotes', 'inventory', '
 export const testEmail = (role, run = RUN) => `e2e-${role}-${run}@example.com`
 export const areaEmail = (role, area, run = RUN) => testEmail(role, `${run}-${area}`)
 
-// Each account the set-up creates is written down here before it's made, one "role area" per line,
-// so the sweep tries exactly those instead of every role in every area (each try is a sign-in, and
+// Each account a run creates is written down here before it's made, one "role area" per line (no
+// area for the older journeys' accounts), so the sweep tries exactly those instead of every role in every area (each try is a sign-in, and
 // the test project limits sign-ins per address). Not committed (.gitignore).
 export const MANIFEST_DIR = '.e2e-accounts'
 export const manifestPath = (run = RUN) => join(MANIFEST_DIR, `${run}.txt`)
@@ -49,9 +49,11 @@ export function sweepTargets(tag, manifest) {
     const email = area ? areaEmail(role, area, tag) : testEmail(role, tag)
     if (!seen.has(email)) { seen.add(email); targets.push({ role, area, email }) }
   }
-  // The older journeys (journey, import, failures) and workers' hand-made accounts: no area
-  for (const role of ROLES) add(role, '')
+  // With the run's list, exactly the accounts on it: every account a run makes is written down first
+  // (the area set-up and the older journeys' journeyAccount, the journey's form sign-up). Without
+  // one (an older run, or a worker's hand-made accounts) every role is tried with no area too.
   const namesArea = AREAS.some(a => tag.endsWith(`-${a}`))
+  if (manifest == null) for (const role of ROLES) add(role, '')
   if (manifest != null) {
     for (const line of manifest.split('\n')) {
       const [role, area = ''] = line.trim().split(/\s+/)
