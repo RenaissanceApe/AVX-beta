@@ -5,7 +5,8 @@
 // each screen says so, and the tests check it does. Truss and hoist data come only from the
 // manufacturers' tables already in the repo.
 import { test, expect } from './fixtures.js'
-import { expectAccessible } from './helpers.js'
+import { expectAccessible, waitForServiceWorker } from './helpers.js'
+import { readPdfText } from './files.js'
 import { addItem, addToGig, pageAs } from './setup.js'
 import { TAG, LOAD, uniq, ok, readBell, toolGig, openTool } from './fieldtoolsSupport.js'
 
@@ -173,5 +174,163 @@ test('inrush: a fixture item given an inrush figure; four on one output add up a
   await expect(inrush).toContainText('5 × the 16 A breaker')
   await expect(inrush).toContainText('May trip (B)')
   await expect(tool.getByRole('region', { name: 'Warnings' })).toContainText('4 loads switching on together peak at about 80 A (5 × the breaker): it may trip a B-curve breaker.')
+  await expectAccessible(page)
+})
+
+// A power plan made through the API: the venue's 63 A three-phase supply, the distro "Dimmer city"
+// (32 A three-phase in, Schuko A/B/C on L1/L2/L3 with 16 A breakers) on the supply, and a 3680 W
+// heater (16 A at 230 V) on A
+const PLAN = {
+  supply: { kind: 'venue', phases: 3, amps: 63, volts: 230, hz: 50 },
+  distros: [{ id: 'd1', name: 'Dimmer city', feed: 'supply', input: 'cee32_3', outputs: ['A', 'B', 'C'].map((label, i) => ({ id: `o${i + 1}`, label, connector: 'schuko', phase: `L${i + 1}`, breaker_a: 16 })) }],
+  manual: [{ id: 'm1', name: 'Heater', watts: 3680, qty: 1 }],
+  assign: { 'm:m1': { distro: 'd1', output: 'o1' } },
+}
+const savePlan = (account, gig, power = PLAN) => account.client.from('gig_show').upsert({ gig_id: gig.id, power })
+const cableRow = (tool, name) => tool.getByRole('region', { name: 'Cables' }).getByRole('listitem').filter({ has: tool.page().getByRole('button', { name: new RegExp(`^Remove ${name}`) }) })
+
+// covers: T110
+test('cable runs: added from the plan; length, size and a drum change the drop, the capacity and the warnings', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(150_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Cables', ['power'])
+  ok('Saving the plan', await savePlan(account, gig))
+  await readBell(account)
+  const cables = async () => (await powerOf(account, gig)).cables || []
+
+  await openTool(page, gig, 'power')
+  const tool = page.getByRole('region', { name: 'Power plan' })
+  await tool.getByRole('button', { name: 'Add cables from the plan' }).click()
+  await expect(page.getByText('2 cables added: check their lengths.')).toBeVisible(LOAD)
+  await expect.poll(async () => (await cables()).length, LOAD).toBe(2)
+  // The feed: 25 m of CEE 32 A (5G6): 3.30 Ω/km at 20 °C, 3.82 mΩ/m at 60 °C × 25 m × 16 A = 1.53 V (0.66%);
+  // the 63 A supply breaker in front is bigger than the 38 A the cable carries
+  const feed = cableRow(tool, 'CEE 32 A three-phase')
+  await expect(feed).toContainText('Carries 16 A · may carry 38 A · drop 1.53 V (0.66%) · 0.66% from the supply', LOAD)
+  await expect(feed).toContainText('The 63 A breaker in front is larger than the cable carries (38 A).')
+  // Output A: 10 m of Schuko 1.5 mm² (13.3 Ω/km): 15.4 mΩ/m × 2 × 10 m × 16 A = 4.93 V (2.14%)
+  const outA = cableRow(tool, 'Schuko')
+  await expect(outA).toContainText('Carries 16 A · may carry 16 A · drop 4.93 V (2.14%) · 2.8% from the supply')
+  await expectAccessible(page)
+
+  // 25 m of Schuko 2.5 mm² (7.98 Ω/km): 9.23 mΩ/m × 2 × 25 m × 16 A = 7.39 V (3.21%, "about 3.2%");
+  // the drop from the supply adds the feed's: 0.66 + 3.21 = 3.87%,
+  // with the feed, above the 3% warning
+  await outA.getByRole('combobox', { name: 'Cable' }).selectOption({ label: 'Schuko (3G2.5)' })
+  // (link "o:<distro>/<output>": the cable from output A; each change saved before the next, issue #229)
+  const runA = async () => (await cables()).find(c => c.link === 'o:d1/o1')
+  await expect.poll(async () => (await runA())?.type, LOAD).toBe('schuko_25')
+  await expect(outA).toContainText('may carry 25 A', LOAD)
+  await outA.getByRole('spinbutton', { name: 'Length (m)' }).fill('25')
+  await outA.getByRole('spinbutton', { name: 'Length (m)' }).blur()
+  await expect.poll(async () => (await runA())?.length, LOAD).toBe(25)
+  await expect(outA).toContainText('Carries 16 A · may carry 25 A · drop 7.39 V (3.21%)', LOAD)
+  await expect(outA).toContainText('3.87% from the supply')
+  await expect(outA).toContainText('Check')
+  await expect(tool.getByRole('region', { name: 'Warnings' })).toContainText('voltage drop 3.87% from the supply, above 3%.')
+
+  // Left on a drum: one layer carries 25 A × 0.80 = 20 A; two layers 25 A × 0.61 = 15.3 A, less than the 16 A
+  await outA.getByRole('combobox', { name: 'Laid' }).selectOption('Left on a drum')
+  await expect.poll(async () => (await runA())?.laying, LOAD).toBe('drum')
+  await expect(outA).toContainText('may carry 20 A', LOAD)
+  await outA.getByRole('combobox', { name: 'Layers on the drum' }).selectOption('2')
+  await expect(outA).toContainText('may carry 15.3 A', LOAD)
+  await expect(outA).toContainText('Over')
+  await expect(tool.getByRole('region', { name: 'Warnings' })).toContainText('16 A, more than the cable carries laid like this (15.3 A).')
+  await expect.poll(runA, LOAD).toMatchObject({ type: 'schuko_25', length: 25, laying: 'drum', group: 2 })
+  await expect(tool).toContainText(ESTIMATE)
+})
+
+// covers: T111
+test('suggest where to plug in: balance or fill to a reserve; nothing changes until Apply, and Undo puts it back', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(150_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Balance', ['dmx_patch', 'power'])
+  ok('Saving the plan', await savePlan(account, gig))
+  ok('Adding washes', await addWashes(account, gig, 3))
+  await readBell(account)
+  const assigned = async () => Object.keys((await powerOf(account, gig)).assign || {}).length
+
+  await openTool(page, gig, 'power')
+  const tool = page.getByRole('region', { name: 'Power plan' })
+  await expect(loadRow(tool, 'Wash 1')).toContainText('Not connected', LOAD)
+  await tool.getByRole('button', { name: 'Suggest where to plug in' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Suggest where to plug in' })
+  const result = dialog.getByRole('region', { name: 'The suggestion' })
+  // Balance (the default): each 300 W wash (1.3 A) goes to the lightest phase: L2, L3, then L2
+  await expect(dialog.getByRole('radio', { name: /^Balance the phases/ })).toBeChecked()
+  await expect(result).toContainText('Now: L1 16 A · L2 0 A · L3 0 A · phases 100% apart')
+  await expect(result).toContainText('After: L1 16 A · L2 2.6 A · L3 1.3 A · phases 92% apart')
+  await expect(result.getByRole('list', { name: '3 changes' })).toContainText('Wash 1: Not plugged in → Dimmer city · B (L2)')
+  await expect(dialog).toContainText(ESTIMATE)
+  await expectAccessible(page)
+
+  // Fill each output up to 80% (12.8 A): A is already full, so all three go on B
+  await dialog.getByRole('radio', { name: /^Fill each output up to a reserve/ }).check()
+  await expect(result).toContainText('After: L1 16 A · L2 3.9 A · L3 0 A')
+  // A 20% reserve (3.2 A): two washes (2.6 A) on B, the third on C
+  await dialog.getByRole('spinbutton', { name: 'Reserve (% of breaker)' }).fill('20')
+  await expect(result).toContainText('After: L1 16 A · L2 2.6 A · L3 1.3 A', LOAD)
+  // Nothing saved yet
+  expect(await assigned()).toBe(1)
+  await expect(loadRow(tool, 'Wash 1')).toContainText('Not connected')
+
+  // Apply: the washes are plugged in; Undo puts the plan back
+  await dialog.getByRole('button', { name: 'Apply 3 changes' }).click()
+  await expect(dialog).toBeHidden(LOAD)
+  await expect.poll(assigned, LOAD).toBe(4)
+  await expect(loadRow(tool, 'Wash 1')).toContainText('Connected')
+  await page.getByText('Loads moved as suggested.').locator('..').getByRole('button', { name: 'Undo' }).click()
+  await expect.poll(assigned, LOAD).toBe(1)
+  await expect(loadRow(tool, 'Wash 1')).toContainText('Not connected', LOAD)
+})
+
+// covers: T113
+test('cable list: made in the catalogue, added to the gig\'s equipment and packing list; cable and distro labels', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(180_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Cable list', ['power'])
+  ok('Saving the plan', await savePlan(account, gig))
+  await readBell(account)
+
+  await openTool(page, gig, 'power')
+  const tool = page.getByRole('region', { name: 'Power plan' })
+  await tool.getByRole('button', { name: 'Add cables from the plan' }).click()
+  await expect(page.getByText('2 cables added: check their lengths.')).toBeVisible(LOAD)
+  const list = tool.getByRole('region', { name: 'Cable list' })
+  const feedLine = list.getByRole('listitem').filter({ hasText: '1 × CEE 32 A three-phase (5G6) · 25 m' })
+  const outLine = list.getByRole('listitem').filter({ hasText: '1 × Schuko (3G1.5) · 10 m' })
+  await expect(feedLine).toContainText('not in the catalogue', LOAD)
+  await expect(list.getByRole('button', { name: "Add to the gig's equipment" })).toBeDisabled()
+  // Create both in the catalogue (one at a time: each saves the plan, issue #229)
+  await feedLine.getByRole('button', { name: 'Create in the catalogue' }).click()
+  await expect(page.getByText('CEE 32 A three-phase (5G6) · 25 m added to the catalogue.')).toBeVisible(LOAD)
+  await expect.poll(async () => Object.keys((await powerOf(account, gig)).cableItems || {}).length, LOAD).toBe(1)
+  await outLine.getByRole('button', { name: 'Create in the catalogue' }).click()
+  await expect(page.getByText('Schuko (3G1.5) · 10 m added to the catalogue.')).toBeVisible(LOAD)
+  await expect.poll(async () => Object.keys((await powerOf(account, gig)).cableItems || {}).length, LOAD).toBe(2)
+  await list.getByRole('button', { name: "Add to the gig's equipment" }).click()
+  await expect(page.getByText("2 more planned on the gig's equipment.")).toBeVisible(LOAD)
+  const items = ok('Reading the cables', await account.client.from('price_items').select('id, name, category').eq('org_id', gig.org_id).in('name', ['CEE 32 A three-phase (5G6) · 25 m', 'Schuko (3G1.5) · 10 m']))
+  expect(items.map(i => i.category)).toEqual(['Cables', 'Cables'])
+  expect(ok('Reading equipment', await account.client.from('gig_equipment').select('item_id, quantity').eq('gig_id', gig.id)).map(l => l.quantity)).toEqual([1, 1])
+  // The Equipment tab and the packing list
+  await page.goto(`${gig.path}?tab=equipment`)
+  await expect(page.getByRole('main')).toContainText('Schuko (3G1.5) · 10 m', LOAD)
+  await page.goto(`${gig.path}/packing`)
+  await expect(page.locator('body')).toContainText('CEE 32 A three-phase (5G6) · 25 m', LOAD)
+
+  // Labels: the cables (two), then the distro, on a roll
+  await openTool(page, gig, 'power')
+  await tool.getByRole('link', { name: 'Labels' }).click()
+  await expect(page).toHaveURL(new RegExp(`/gig/${gig.id}/power/labels$`))
+  const header = page.locator('strong').filter({ hasText: /\d+ labels?\b/ })
+  await page.locator('label').filter({ hasText: /^Print on/ }).locator('select').selectOption('roll')
+  await expect(header).toHaveText('2 labels · 2 pages', LOAD)
+  await page.locator('label').filter({ hasText: /^Labels for/ }).locator('select').selectOption('distros')
+  await expect(header).toHaveText('1 label · 1 page', LOAD)
+  await expect(page.locator('.ls-pages')).toContainText('Dimmer city')
+  await page.locator('label').filter({ hasText: /^Print on/ }).locator('select').selectOption({ index: 0 })
+  await expect(page.locator('.ls-pages')).toContainText('Dimmer city')
   await expectAccessible(page)
 })
