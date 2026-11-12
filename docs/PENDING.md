@@ -77,6 +77,8 @@ here, grouped by when to do it. Each points to its line; the full line says what
   that the words read well.
 - The 0.84.1 fixes the robot can't feel: two quick changes on a slow phone (T192), the message menu on a
   real phone (T193), quote headers in a light and a dark brand colour, on screen and printed (T194).
+- The 0.84.2 fixes on a slow connection and a real phone: line arrays (T201), a channel by its link
+  (T202), the Crew tab with a long organisation name (T203).
 - The parts left by hand on partly automated lines ("by hand still: …" on each line), the biggest
   being T61, T67, T69–T71, T75, T77 and T83–T85.
 
@@ -295,6 +297,10 @@ here, grouped by when to do it. Each points to its line; the full line says what
 | T197 | **Vehicle use, future period (BF3, 0.84.1):** Reports → Vehicle use with a custom period next week: the report loads | 0.84.1 |
 | T198 | **Import, not kept in stock (BF3, 0.84.1):** import equipment with a row "stock management: no" and a quantity: the Check step holds it back with "Count it in bulk instead" / "Leave the quantity out (not kept in stock)" | 0.84.1 |
 | T199 | **Report on a manager's message (BF3, 0.84.1, after F24 on production):** as crew, report a message the gig's manager wrote: the manager's bell shows the report | 0.84.1 |
+| T200 | **Nightly tests trustworthy (NT1, 0.84.2):** the morning after the next nightly, the issue "Nightly e2e tests failing" gets no new comment, or only lists tests marked as known bugs | 0.84.2 |
+| T201 | **Line arrays on a slow connection (BF4, 0.84.2):** pick "Add an array from the sound system" straight after opening the rigging tool: it shows "Loading the speakers…" and the array arrives with its weight and bumper | 0.84.2 |
+| T202 | **Channel by its link (BF4, 0.84.2):** as an admin, open an organisation channel by its link right after signing in: the message box is there without reloading | 0.84.2 |
+| T203 | **Crew tab on a phone (BF4, 0.84.2):** on a phone, a gig's Crew tab in an organisation with a long name: "Add to …" wraps onto two lines, no sideways scroll | 0.84.2 |
 
 ## 3. Decisions still open
 
@@ -464,11 +470,12 @@ Each has a default already built; nothing is blocked. Say "keep" or "change".
 | D159 | **Writes the app makes by itself on load** (LC1): opening Expenses calls `ensure_expense_categories`, which adds the starter categories the first time an organisation opens it. The live check blocks it (nothing is written) but doesn't fail on it, or every run would fail. Keep it like that, or open Expenses once by hand as the live manager so the categories exist? | Blocked, not a failure | 0.83.1 |
 | D160 | **Traces on failure** (LC1) hold the screens as the live accounts saw them (their names and emails, and the session, which signing out ends). They're kept 7 days and only people with access to the repository can download them. Keep, or switch traces off for the live check? | Kept 7 days | 0.83.1 |
 | D161 | ✅ (decided 2026-11-12: the middle point; T115 reworded) **T115's wording (AT10):** the line says "the far point says it would be pulled up", but with the heavy load on the overhang past the last of three points, the app (and the beam maths) lifts the **middle** point (−1295.5 kg in the test) while the far end point is pressed down. Reword T115 to "the middle point", or say which set-up you meant | The test checks what the app shows (middle point) | 0.84.0 |
-| D162 | ✅ (decided 2026-11-12: wait and watch the nightly runs before changing size) **Test project compute size (#194, AT0b):** report and save calls there average 0.1–0.3 s but peak at 6–8 s (the 8 s limit) when several runs overlap. Move the test project to a larger compute size, or first queue the signed-in runs one at a time (#194, option a)? | Small size; pull requests now run only the short smoke set, the full set nightly | 0.84.0 |
+| D162 | ✅ (decided 2026-11-12: wait and watch the nightly runs before changing size) **Test project compute size (#194, AT0b):** report and save calls there average 0.1–0.3 s but peak at 6–8 s (the 8 s limit) when several runs overlap. Move the test project to a larger compute size, or first queue the signed-in runs one at a time (#194, option a)?  **New evidence (NT1, 0.84.2):** on 12 Nov four nightly browsers at once (2,600–4,400 requests a minute) made the test project's database restart at 06:51 after a run of 8 s timeouts; the nightly now runs two at a time. Is the test project on a smaller compute size than production? If production is the same size, a very busy day could do the same there: worth comparing the two | Small size; pull requests now run only the short smoke set, the full set nightly; nightly two groups at a time (0.84.2) | 0.84.0 |
 | D163 | **Two-step sign-in on test accounts (AT6, AT12):** posting jobs needs two-step sign-in, so the marketplace and settings tests switch it on for their company accounts and off again at the end. If a run is killed in between, those accounts keep it and the clean-up (password only) can't delete them: they then need removing by hand (test project → Authentication → Users). Teach the clean-up script to use the saved code file instead? | Removed by hand when it happens | 0.84.0 |
 | D164 | **Rentman's "rental sales" value (AT5):** AVX knows the word `sale`; the test files write `sales`. Check what the real Rentman export writes there; if it's `sales`, AVX should accept it too | Only `sale` known | 0.84.0 |
 | D165 | ✅ (decided 2026-11-12: keep the readable choice) **Quote header text colour (BF2, #146):** the organisation's name on the quote's brand-coloured header (client page, supplier page, and the printed/PDF quote without a header image) is now dark or white, whichever reads better on that colour, instead of always white. Or keep white always and pick a darker default green instead? | Follows the brand colour (the readable choice) | 0.84.1 |
 | D166 | **Follow-ups filed in 0.84.1** (no decision needed unless you want them sooner): #236, two people editing the same checklist or plot at once can still overwrite each other (BF1 only orders one person's saves); #237, the "suggest where to plug in" test is flaky | Open issues | 0.84.1 |
+| D167 | **Follow-ups for 0.84.2** (no decision needed unless you want them sooner): #236, two people editing the same checklist or plot at once can still overwrite each other (still open); #248, the "lists on a phone" test can find two "New invoice from a quote" buttons when the empty invoice list loads first (test only) | Open issues | 0.84.2 |
 
 ## 4. Before a public launch (already in the roadmap)
 

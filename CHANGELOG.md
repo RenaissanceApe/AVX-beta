@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.84.2 — Nightly tests and three fixes
+
+The nightly browser tests are green and trustworthy again, and the three app bugs they found on the
+way are fixed.
+
+#### Fixed
+- **Line arrays** (BF4): an array added from the sound system while the speakers were still loading
+  was saved without its element weight, preset and bumper ("0 kg"). The picker (and "Update from
+  the sound system") now waits, showing "Loading the speakers…", until the speakers are in (#246).
+- **Messages** (BF4): an admin who opened an organisation channel by its link right after signing in
+  could not post in it until they reloaded. The right to post is now worked out again once their
+  organisations have loaded (#245).
+- **Gig → Crew on a phone** (BF4): a long organisation name in "Add to <organisation>" made the
+  page scroll sideways. The button now wraps (#243).
+
+#### Changed
+- **Nightly browser tests** (NT1): the night now runs two groups of tests at a time instead of four.
+  Four at once overloaded the test database until it restarted, which failed tests that had nothing
+  wrong with them. The night takes about 27 minutes instead of 16.
+- **Four tests fixed** (NT1, BF4) that failed for reasons other than the app: equal lights placed in
+  random order (#237), the CI browser's notification setting, a phone check that ran before the
+  list had loaded, and the crew "fee paid" check, which failed when the run's tag happened to
+  contain "300".
+
+#### For developers
+- The clean-up of test accounts (`scripts/e2e-sweep.mjs`) treats a sign-in that fails while the
+  database is restarting (5xx/52x, an empty answer or none) as "busy" and tries again on its next
+  pass.
+- `.github/workflows/e2e-nightly.yml`: `max-parallel: 2`. No migrations, no Edge Functions.
+- Follow-ups: #236 (two people editing the same checklist or plot at once, still open), #248 (the
+  "lists on a phone" test can find two "New invoice from a quote" buttons).
+
 ## 0.84.1 — Bug fixes
 
 The bugs the new automated tests found in 0.84.0 are fixed, and their tests now check the right
