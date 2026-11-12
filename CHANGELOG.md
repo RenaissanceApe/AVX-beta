@@ -1,5 +1,62 @@
 # Changelog
 
+## 0.85.0 — Truss tables, bridles and rigging hardware
+
+The rigging tool now checks each truss line against the manufacturers' load tables (once an AVX
+admin has checked the table), works out bridles and keeps a list of rigging hardware with its WLLs.
+Two people changing the same checklist or field tool no longer overwrite each other.
+
+### Truss tables, bridles and hardware (RG2)
+
+#### Added
+- **Truss type on each rigging line** (RG2): choose the truss model from the manufacturers' load
+  tables (Fantek, Global Truss, Prolyte). Each span between hang points gets a pass/fail for UDL,
+  CPL, TPL and QPL and an estimated deflection (with an optional deflection limit), and the report
+  names the table, its edition and who checked it. Only a table an AVX admin has checked for that
+  exact edition gives a pass/fail; until then the line says plainly that no table is checked yet
+  and links to the review. Spans between two table rows use the next longer row, and a span longer
+  than the table gets no pass/fail: values are never interpolated upwards or extrapolated.
+  Overhangs and lines on three or more points are flagged for a structural check.
+- **Truss table review** (`/admin/truss`, RG2): every table with its source document, edition,
+  SHA-256, the manufacturer's conditions and all its rows. An AVX admin (two-step sign-in) ticks
+  each row against the document and marks the table checked, or blocks it with a reason; a mark
+  can be taken back (with a reason) but never edited, and a new edition needs a new check. The
+  marks are kept in the database for every organisation. Everyone signed in can read them.
+- **Bridles** (RG2): in Gig → Tools → Rigging and in My work → Tools. Two legs from two beam
+  points to a pick point, set by the leg lengths or by where it should hang (beams at different
+  heights too): leg lengths, angles, the angle between the legs with a warning above 120°, the
+  tension in each leg and the sideways pull on the beams.
+- **Hardware list** (RG2): shackles, slings, steels and spansets per gig, each with the WLL from
+  its tag (never filled in for you), how many and where the value came from. Each bridle leg picks
+  its weakest piece and is checked against its WLL; the list warns when the bridles use more
+  pieces than it holds.
+
+#### Connected
+- RG1 truss lines: truss type per line; "Use its weight" copies the weight per metre from the
+  table; line-array picks hung from a line count as point loads in its truss check.
+- Pocket tools: the bridle calculator.
+- Gig equipment: "Add from the equipment" brings the gig's shackles, slings, steels and spansets
+  (English and Portuguese names) into the hardware list with their quantities.
+- Settings → AVX reviews (AVX admins only): a button to the truss table review.
+
+### Two people editing the same thing (BF5)
+
+#### Fixed
+- **Task checklists** (BF5): ticking or unticking an item now saves only that item, on the server.
+  Two crew ticking items on the same task from two phones a moment apart used to lose one of the
+  ticks; now both are kept, and the list then shows everyone's ticks (#236).
+- **Field tools** (BF5): the patch, light plot (and MVR import), stage plot, power plan, sound
+  system calculator, rigging and line arrays no longer save over someone else's change. If another
+  person changed the gig's show model since this screen loaded it, nothing is written and the app
+  says "Someone else changed this — reload to see their changes", with a **Reload** button. Quick
+  changes on one device still save in order without tripping over each other (#236).
+
+### For developers
+- Migrations: `20270125000000_task_checklist_item.sql` (`public.set_task_checklist_item`, BF5)
+  and `20270126000000_truss_table_checks.sql` (truss table marks, RG2). No Edge Functions.
+- How it works: docs/TOOLS_PLAN.md, "How RG2 works"; docs/FIELD_TOOLS.md, "Saving when two
+  people edit".
+
 ## 0.84.2 — Nightly tests and three fixes
 
 The nightly browser tests are green and trustworthy again, and the three app bugs they found on the

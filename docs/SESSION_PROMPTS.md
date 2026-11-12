@@ -25,40 +25,12 @@ plan in the doc it names, in the same commit.
 step 6), so this file only holds prompts still to run. The ROADMAP's "Built" table records what
 they built.
 
-Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77), the design refresh DR1–DR6 (0.78), steps 13, 14 and 16 (0.79), steps 15, 17a and 18 (0.80), the upkeep sessions U1–U3, U5 and U6 (0.81) and the import overhaul IM1–IM4 (0.82) step 23, vehicles, transport and appointments (0.83), LC1, the read-only live check (0.83.1, part of QA2, whose prompt stays), and the Automated tests set AT0–AT12 (0.84.0, given by the Dispatcher, no prompt here; most of QA4's catch-up) are built, and their prompts (S01–S12, S14, S23, K1–K9, DR1–DR6, U1–U3, U5, U6, IM1–IM4) removed. Sessions
-S13–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
+Steps 1–12 (0.54–0.74), K0 (0.64), K1 (0.69), K2 (0.75), K3 (0.76), K4–K9 (0.77), the design refresh DR1–DR6 (0.78), steps 13, 14 and 16 (0.79), steps 15, 17a and 18 (0.80), the upkeep sessions U1–U3, U5 and U6 (0.81) and the import overhaul IM1–IM4 (0.82) step 23, vehicles, transport and appointments (0.83), LC1, the read-only live check (0.83.1, part of QA2, whose prompt stays), the Automated tests set AT0–AT12 (0.84.0, given by the Dispatcher, no prompt here; most of QA4's catch-up) and step 17b, RG2 truss tables, bridles and hardware (0.85.0) are built, and their prompts (S01–S14, S23, K1–K9, DR1–DR6, U1–U3, U5, U6, IM1–IM4) removed. Sessions
+S15–S31 are the build order, with steps 19b and 20b (S15b, S16b) and the dashboards and analytics pack (K1–K11, [ANALYTICS.md](ANALYTICS.md)) slotted in where
 ROADMAP.md places them; U4 is the small upkeep session left, to run in any gap; QA1–QA4 build the QA bot ([QA.md](QA.md)) in any gap; P1–P5 close the build;
 K12–K13 come after the launch.
 
 ---
-
-## S13 · Step 17b: RG2 truss tables, bridles, hardware
-
-```
-Build ROADMAP step 17, second part: RG2. Read docs/TOOLS_PLAN.md §5 (RG2, Decided Q3),
-docs/TRUSS_DATA.md, src/lib/trussTables.js, src/data/truss/ and docs/PENDING.md D12–D13.
-
-Scope:
-- Truss types from the manufacturers' load tables:
-  - a pass/fail per span for UDL, CPL, TPL, QPL and deflection, using only tables whose status is
-    "checked";
-  - each report shows which table and edition it used.
-- A review screen where a second person checks a table row by row against its source document and
-  marks it checked (name, date); blocked tables stay unusable.
-- A bridle calculator (two legs to a pick point): leg lengths, angles, tension per leg, a warning
-  above 120°, horizontal force on the beams. Also as a pocket tool (My work → Tools).
-- A rigging hardware list: shackles, slings, steels and spansets with their WLL.
-
-Ask me before building: should checks be stored in the database (per organisation, or by AVX for
-everyone) or stay in the repo's JSON as now? Any answers from the manufacturers (D13)?
-
-Connect: RG1 lines (truss type per line), pocket tools, gig equipment (hardware).
-
-Done when: unit tests for bridle maths and table look-ups (interpolation never extrapolates past
-the table); help guide; PR open.
-Stop after this step; don't start the next one.
-Finish with the short summary CLAUDE.md asks for.
-```
 
 ## S15 · Step 19: RG4 rigging plot, report and sign-off
 
