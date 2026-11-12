@@ -301,6 +301,21 @@ each stage is useful and safe on its own, and so the hard engineering comes last
 
 Checks: `supabase/tests/rigging.sql`; `src/lib/rigging.test.js`.
 
+### How RG2 works (step 17b)
+
+| Piece | How it works |
+|---|---|
+| Truss type | Each RG1 line can have a `truss_table_id` (a table in `src/data/truss/`) and an optional `defl_limit_mm`, kept in `gig_show.rigging.lines`. Tables blocked in the repository aren't offered. "Use its weight" copies the weight per metre from the table's weight column |
+| Who may use a table | `public.truss_table_checks` (migration `20270126000000`): one mark per table and source document (`table_id`, `edition`, `source_sha256`), `checked` (with the number of rows compared) or `blocked` (with the reason), who (name from their profile) and when. Only AVX admins with two-step sign-in mark (`mark_truss_table`) or take a mark back with a reason (`withdraw_truss_mark`); a mark is never edited (trigger) and nothing is removed. Everyone signed in reads the marks. `tableStatus` in `src/lib/trussTables.js` counts a table as checked only when its active mark matches the repository's edition and SHA-256: a new edition needs a new check, and a `checked` written into the JSON alone doesn't count |
+| Look-up | `rowFor`: the row for a span is the exact row or the next longer one (allowable loads only fall with span, and a straight line between rows would read high); shorter than the table → its first row; longer than the table → no row (no pass/fail). Never interpolated, never extrapolated |
+| Pass/fail | `lineTrussCheck`: each span between neighbouring hang points as a simple span. Spread loads covering the whole span are UDL; shorter spreads, fixtures, extra loads, motors and line-array picks count as point loads. Loads × the dynamic factor. The truss's own weight is left out when the table says it is included (Prolyte, Global Truss), added otherwise (Fantek). `spanCheck`: UDL use + point use, with all point loads at the centre (CPL) for the verdict; TPL and QPL (loads shared over the third or quarter points) shown too. Pass up to 90%, near up to 100%, fail above. Deflection estimated in proportion to the published deflections; checked only against a limit the line sets. Overhangs and lines on 3+ points are flagged for a structural check |
+| Report | Each line names the table, its document, edition, who checked it and when, the table row used per span, and the manufacturer's conditions. While nothing is checked, the line says so and links to the review |
+| Review screen | `/admin/truss` (`TrussReviewPage`), also from Settings → AVX reviews: each table's source, edition, SHA-256, second copy, conditions, issues, questions and rows; an AVX admin ticks every row before "Mark checked", blocks with a reason, or takes a mark back; the history shows every mark |
+| Bridles | `src/lib/bridle.js`: beam point A at (0, 0), B at (span, rise); the pick point from the two leg lengths (circle intersection below AB) or from where it hangs. Statics of a weightless two-leg sling: tension per leg, angle from vertical, included angle (warning above 120°), sideways pull on the beams, and each leg against the WLL of its weakest piece. In a gig: `gig_show.rigging.bridles`; in My work → Tools: the same card with WLLs typed (not saved) |
+| Hardware | `gig_show.rigging.hardware` (`src/lib/riggingHardware.js`): shackles, slings, steels, spansets and other, with WLL (never a default), quantity and source. "Add from the equipment" brings the gig's equipment lines whose names look like hardware (English and Portuguese). Warns when bridles use more than the list holds |
+
+Checks: `supabase/tests/truss_checks.sql`; `src/lib/trussTables.test.js` (status from the database, look-ups never interpolate or extrapolate, pass/fail cases), `src/lib/bridle.test.js` (hand calculations), `src/lib/riggingHardware.test.js`; e2e in `e2e/auth/fieldtools-power.spec.js`.
+
 ### How RG3 works (step 18)
 
 | Piece | How it works |

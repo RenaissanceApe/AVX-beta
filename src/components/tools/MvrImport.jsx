@@ -3,6 +3,8 @@ import { FileUp, FileDown, AlertTriangle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
+import { saveShow, noteShowLoaded } from '../../lib/queuedSaves'
+import { notifyConflict } from '../../lib/staleSave'
 import { track } from '../../lib/usage'
 import { saveFixtureType, orgFixtureTypes, exportMvr } from '../../lib/fixtureTypes'
 import { t } from '../../i18n'
@@ -61,10 +63,12 @@ function MvrImportDialog({ gig, catalogue, onClose, onDone }) {
       const parsed = lib.parseMvr(new Uint8Array(await f.arrayBuffer()))
       const [fx, show, typeRows] = await Promise.all([
         supabase.from('gig_fixtures').select('id, mvr_uuid, item_id').eq('gig_id', gig.id),
-        supabase.from('gig_show').select('stage, lighting').eq('gig_id', gig.id).maybeSingle(),
+        supabase.from('gig_show').select('stage, lighting, updated_at').eq('gig_id', gig.id).maybeSingle(),
         gig.org_id ? orgFixtureTypes(gig.org_id) : [],
       ])
       if (fx.error) throw fx.error
+      // The new bars are added to the lighting read here: the save is refused if it changes meanwhile
+      noteShowLoaded(gig.id, show)
       const types = lib.fixtureTypes(parsed)
       setChoices(Object.fromEntries(types.map(ty => [ty.key, { item_id: lib.suggestItem(ty, catalogue, typeRows) || '', footprint: '' }])))
       setContext({ existing: fx.data || [], show: show.data || {}, typeRows })
@@ -92,7 +96,14 @@ function MvrImportDialog({ gig, catalogue, onClose, onDone }) {
     try {
       if (plan.newBars.length) {
         const lighting = context.show.lighting || {}
-        ;({ error } = await supabase.from('gig_show').upsert({ gig_id: gig.id, lighting: { ...lighting, bars: [...(lighting.bars || []), ...plan.newBars] } }))
+        let conflict
+        ;({ error, conflict } = await saveShow(gig.id, { lighting: { ...lighting, bars: [...(lighting.bars || []), ...plan.newBars] } }))
+        if (conflict) {
+          logger.warn('mvr', 'save refused', { step: 'bars', conflict })
+          notifyConflict(conflict, notify, t)
+          setSaving(false)
+          return
+        }
       }
       for (let i = 0; !error && i < plan.inserts.length; i += 200) {
         ;({ error } = await supabase.from('gig_fixtures').insert(plan.inserts.slice(i, i + 200).map(r => ({ ...r, gig_id: gig.id }))))

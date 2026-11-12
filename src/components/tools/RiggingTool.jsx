@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Plus, Trash2, AlertTriangle, ShieldAlert, CheckCircle2, CircleHelp } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { saveShow } from '../../lib/queuedSaves'
+import { saveShow, noteShowLoaded } from '../../lib/queuedSaves'
+import { notifyConflict } from '../../lib/staleSave'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
@@ -21,6 +22,9 @@ import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import { NumberField, TextField, Check } from './RigFields'
 import LineArrays from './LineArrays'
+import TrussCheck from './TrussCheck'
+import BridlesAndHardware from './BridlesAndHardware'
+import { loadTrussChecks } from '../../lib/trussChecks'
 
 const FIXTURE_FIELDS = 'id, name, position, universe, address, plot_x, plot_y, weight_kg'
 const MODEL_FIELDS = 'id, org_id, brand, model, class, wll_kg, falls, self_weight_kg, chain_kg_m, speed_m_min, source, source_date, notes, needs_check, removed_at'
@@ -43,7 +47,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
 
   const load = useCallback(async () => {
     const [s, f, m] = await Promise.all([
-      supabase.from('gig_show').select('lighting, rigging, system').eq('gig_id', gig.id).maybeSingle(),
+      supabase.from('gig_show').select('lighting, rigging, system, updated_at').eq('gig_id', gig.id).maybeSingle(),
       supabase.from('gig_fixtures').select(FIXTURE_FIELDS).eq('gig_id', gig.id),
       supabase.from('hoist_models').select(MODEL_FIELDS).is('removed_at', null).order('brand').order('model'),
     ])
@@ -56,6 +60,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
       return
     }
     if (s.error) logger.error('rigging', s.error, { step: 'load' })
+    noteShowLoaded(gig.id, s)
     if (f.error) logger.warn('rigging', f.error, { step: 'fixtures' })
     if (m.error) logger.warn('rigging', m.error, { step: 'models' })
     const next = { show: { lighting: s.data?.lighting || {}, rigging: s.data?.rigging || {}, system: s.data?.system || {} }, fixtures: f.data || [], models: m.data || [] }
@@ -66,6 +71,9 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
     saveSnapshot(`rigging.${gig.id}`, next)
   }, [gig.id])
   useEffect(() => { load() }, [load])
+  // RG2: the AVX admins' marks on truss tables (which tables may give a pass/fail)
+  const [checks, setChecks] = useState([])
+  useEffect(() => { loadTrussChecks().then(r => setChecks(r.checks)) }, [])
 
   const bars = useMemo(() => barsOf(show?.lighting), [show])
   const settings = useMemo(() => settingsOf(show?.rigging), [show])
@@ -109,7 +117,8 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
   async function save(patch) {
     const rigging = { ...(show?.rigging || {}), ...patch }
     setShow(s => ({ ...s, rigging }))
-    const { error } = await saveShow(gig.id, { rigging })
+    const { error, conflict } = await saveShow(gig.id, { rigging })
+    if (conflict) { logger.warn('rigging', 'save refused', { step: 'save', conflict }); notifyConflict(conflict, notify, t); return }
     if (error) { logger.error('rigging', error, { step: 'save' }); notify(userMessage(error), 'error'); load() }
   }
   const saveLines = list => save({ lines: list })
@@ -120,7 +129,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
     const length = bar ? bar.length : 6
     const line = {
       id: uid('l'), bar_id: bar?.id || null, name: bar ? bar.name : nextLineName(lines, t('rig.line')),
-      length_m: length, truss_kg_m: 0, cable_kg_m: null, accessories_kg: 0, loads: [], points: defaultPoints(length, i => uid(`p${i}`)), checked: null,
+      length_m: length, truss_kg_m: 0, truss_table_id: null, defl_limit_mm: null, cable_kg_m: null, accessories_kg: 0, loads: [], points: defaultPoints(length, i => uid(`p${i}`)), checked: null,
     }
     saveLines([...lines, line])
     track(bar ? 'rigging:addFromPlot' : 'rigging:addByHand')
@@ -211,7 +220,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
               const onBar = bar ? fixturesOnBar(bar, bars, fixtures) : []
               return (
                 <li key={line.id} ref={el => { lineRefs.current[line.id] = el }}>
-                  <LineCard line={line} bar={bar} arrayLoads={arrayLoadsOnLine(arrays, line.id, { models: byId, settings, lines })} lost={!!line.bar_id && !bar} onBar={onBar} settings={settings} models={byId} pickable={pickable}
+                  <LineCard line={line} bar={bar} checks={checks} arrayLoads={arrayLoadsOnLine(arrays, line.id, { models: byId, settings, lines })} lost={!!line.bar_id && !bar} onBar={onBar} settings={settings} models={byId} pickable={pickable}
                     canEdit={canEdit && !savedAt} onEdit={patch => editLine(line.id, patch)} onRemove={() => removeLine(line)} />
                 </li>
               )
@@ -219,6 +228,8 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
           </ul>
         )}
       </section>
+
+      <BridlesAndHardware gig={gig} rigging={show?.rigging} onSave={save} canEdit={canEdit && !savedAt} />
 
       <LineArrays rigging={show?.rigging} onSave={save} lines={lines} models={byId} pickable={pickable} settings={settings} speakers={speakers} speakersLoading={readsSpeakers && !speakersLoaded} sources={sources} booked={booked}
         canEdit={canEdit && !savedAt} canReadCatalogue={canPlanEquipment && !!gig.org_id} />
@@ -266,7 +277,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
 const STATUS_ICON = { ok: CheckCircle2, near: AlertTriangle, over: AlertTriangle, uplift: AlertTriangle, noHoist: CircleHelp, noWll: CircleHelp, unknown: CircleHelp }
 const statusColour = s => (s === 'over' || s === 'uplift' ? colors.danger : s === 'near' ? colors.warn : s === 'ok' ? colors.accentText : colors.muted)
 
-function LineCard({ line, bar, lost, onBar, arrayLoads = [], settings, models, pickable, canEdit, onEdit, onRemove }) {
+function LineCard({ line, bar, checks, lost, onBar, arrayLoads = [], settings, models, pickable, canEdit, onEdit, onRemove }) {
   // Line arrays hung from this line (RG3) add their pick loads; they're edited in the array
   const a = analyseLine({ ...line, loads: [...line.loads, ...arrayLoads] }, { bar, onBar, models, settings })
   const print = fingerprint(bar, onBar)
@@ -340,6 +351,8 @@ function LineCard({ line, bar, lost, onBar, arrayLoads = [], settings, models, p
           {arrayLoads.map(x => <li key={x.id}>{t('la.onThisLine', { name: x.name, kg: x.kg, m: x.at_m })}</li>)}
         </ul>
       )}
+
+      <TrussCheck line={line} analysis={a} checks={checks} settings={settings} canEdit={canEdit} onEdit={onEdit} />
 
       <h5 style={{ ...label, marginTop: '12px', marginBottom: '4px' }}>{t('rig.points')}</h5>
       {a.problem && <p role="alert" style={{ fontSize: '13px', color: colors.danger, marginBottom: '4px' }}>{t(`rig.problem.${a.problem}`)}</p>}

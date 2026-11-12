@@ -46,6 +46,7 @@ const ReportsPage = lazy(() => import('./pages/ReportsPage'))
 const GigWrapupPage = lazy(() => import('./pages/GigWrapupPage'))
 const PersonPage = lazy(() => import('./pages/PersonPage'))
 const TrustAdminPage = lazy(() => import('./pages/TrustAdminPage'))
+const TrussReviewPage = lazy(() => import('./pages/TrussReviewPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const ScanPage = lazy(() => import('./pages/ScanPage'))
 const DispatchPage = lazy(() => import('./pages/DispatchPage'))
@@ -139,6 +140,7 @@ function AppRoutes() {
       <Route path="/me/profile" element={<ProtectedRoute><Suspense fallback={<Spinner />}><CrewProfilePage /></Suspense></ProtectedRoute>} />
       <Route path="/jobs" element={<ProtectedRoute><Suspense fallback={<Spinner />}><JobsPage /></Suspense></ProtectedRoute>} />
       <Route path="/admin/trust" element={<ProtectedRoute><Suspense fallback={<Spinner />}><TrustAdminPage /></Suspense></ProtectedRoute>} />
+      <Route path="/admin/truss" element={<ProtectedRoute><Suspense fallback={<Spinner />}><TrussReviewPage /></Suspense></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Suspense fallback={<Spinner />}><SettingsPage /></Suspense></ProtectedRoute>} />
       <Route path="/settings/:section" element={<ProtectedRoute><Suspense fallback={<Spinner />}><SettingsPage /></Suspense></ProtectedRoute>} />
       <Route path="/messages" element={<ProtectedRoute><Suspense fallback={<Spinner />}><MessagesPage /></Suspense></ProtectedRoute>} />

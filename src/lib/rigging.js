@@ -12,7 +12,7 @@ import { barEnds, layoutFixtures } from './lightPlot'
 export const DEFAULTS = { cable_kg_m: 5, dynamic_factor: 1.2 }
 export const LIMITS = {
   cable_kg_m: [0, 100], dynamic_factor: [1, 3], length_m: [0.5, 40], truss_kg_m: [0, 200],
-  accessories_kg: [0, 5000], load_kg: [0, 20000], points: 12, loads: 40, lines: 40,
+  accessories_kg: [0, 5000], defl_limit_mm: [1, 1000], load_kg: [0, 20000], points: 12, loads: 40, lines: 40,
 }
 export const HOIST_CLASSES = ['D8', 'D8+', 'C1']
 // Which classes may hang over people (D8 only with a secondary safety, which RG1 doesn't model)
@@ -127,6 +127,9 @@ export function linesOf(rigging) {
     truss_kg_m: clamp(num(l.truss_kg_m, 0), LIMITS.truss_kg_m),
     cable_kg_m: l.cable_kg_m === null || l.cable_kg_m === undefined || l.cable_kg_m === '' ? null : clamp(num(l.cable_kg_m, 0), LIMITS.cable_kg_m),
     accessories_kg: clamp(num(l.accessories_kg, 0), LIMITS.accessories_kg),
+    // RG2: the truss type (a table id from src/data/truss) and an optional deflection limit (mm)
+    truss_table_id: typeof l.truss_table_id === 'string' && /^[a-z0-9-]{2,60}$/.test(l.truss_table_id) ? l.truss_table_id : null,
+    defl_limit_mm: l.defl_limit_mm === null || l.defl_limit_mm === undefined || l.defl_limit_mm === '' ? null : clamp(num(l.defl_limit_mm, 0), LIMITS.defl_limit_mm),
     loads: (Array.isArray(l.loads) ? l.loads : []).filter(x => x && x.id).slice(0, LIMITS.loads).map(x => ({
       id: String(x.id),
       name: String(x.name || '').slice(0, 40),
@@ -207,16 +210,16 @@ export function analyseLine(line, { bar = null, onBar = [], models = {}, setting
 
   const fixturesKg = onBar.reduce((t, f) => t + f.kg, 0)
   for (const f of onBar) if (f.kg) add(points, { at: f.at_m, kg: f.kg })
-  if (line.truss_kg_m) add(spans, { from: 0, to: length, kg_m: line.truss_kg_m })
-  if (cable) add(spans, { from: 0, to: length, kg_m: cable })
-  if (line.accessories_kg) add(spans, { from: 0, to: length, kg_m: line.accessories_kg / length })
+  if (line.truss_kg_m) add(spans, { from: 0, to: length, kg_m: line.truss_kg_m, kind: 'truss' })
+  if (cable) add(spans, { from: 0, to: length, kg_m: cable, kind: 'cable' })
+  if (line.accessories_kg) add(spans, { from: 0, to: length, kg_m: line.accessories_kg / length, kind: 'accessories' })
   let extraKg = 0
   for (const x of line.loads) {
     if (!x.kg) continue
     const from = Math.min(x.at_m, length)
     const to = x.to_m === null ? null : Math.min(x.to_m, length)
     extraKg += x.kg
-    if (to !== null && to > from) add(spans, { from, to, kg_m: x.kg / (to - from) })
+    if (to !== null && to > from) add(spans, { from, to, kg_m: x.kg / (to - from), kind: 'extra' })
     else add(points, { at: from, kg: x.kg })
   }
   let motorsKg = 0
@@ -246,7 +249,7 @@ export function analyseLine(line, { bar = null, onBar = [], models = {}, setting
   })
   const over = results.some(r => r.status === 'over' || r.status === 'uplift' || !r.peopleOk)
   const maxUse = results.reduce((m, r) => (r.use !== null && r.use > m ? r.use : m), 0)
-  return { length, cable_kg_m: cable, loads, total, dynamic_total: r1(total * settings.dynamic_factor), unknownWeights, results, problem, over, maxUse }
+  return { length, cable_kg_m: cable, loads, total, pointLoads: points, spreadLoads: spans, supports: sorted.map(p => p.at_m), dynamic_total: r1(total * settings.dynamic_factor), unknownWeights, results, problem, over, maxUse }
 }
 
 // One hang point's check: its static load (kg, null when unknown) × the dynamic factor against the
