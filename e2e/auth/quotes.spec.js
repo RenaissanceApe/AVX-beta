@@ -330,13 +330,8 @@ test('a credit note for part of an issued invoice is fine; crediting more than i
   await expect(dialog.getByRole('region', { name: 'Payments' })).toContainText('To pay after credit notes€73.80')
 })
 
-// covers: T75
-// Known app bug #208: "Credit note" on an issued invoice doesn't open a new credit note. The page
-// opens the credit note with the same React key as the invoice it credits (InvoicesPage.jsx and
-// QuoteInvoices.jsx: key={open.invoice?.id || … || open.creditOf?.id}), so the invoice's window stays
-// as it is. Expected to fail until it is fixed; then the test.fail line comes out.
+// covers: T75 (and bug #208: the credit note used to open with the invoice's own React key)
 test('"Credit note" on an issued invoice opens a new credit note, which refuses more than is left', { tag: AREA }, async ({ adminWithOrg }) => {
-  test.fail(true, 'App bug #208: the Credit note button doesn\'t open a new credit note')
   const { page, account, org } = adminWithOrg
   const quote = await acceptedQuote(account, org, { title: `E2E Credit button ${stamp()}`, client_name: 'E2E Client', lines: [{ description: 'PA system', qty: 1, unit_price: 100 }] })
   const invoice = await issuedInvoice(account, quote)

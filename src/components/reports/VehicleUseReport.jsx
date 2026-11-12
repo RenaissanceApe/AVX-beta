@@ -34,7 +34,9 @@ export default function VehicleUseReport({ orgId, timeZone, params, setParam }) 
     if (!range) return
     let cancelled = false
     setData(null)
-    Promise.all([load(orgId, range), load(orgId, compared)]).then(([cur, prev]) => {
+    // A period that hasn't started has an empty comparison period: nothing to compare with (issue 222)
+    const empty = !compared || compared.until <= compared.from
+    Promise.all([load(orgId, range), empty ? { data: [] } : load(orgId, compared)]).then(([cur, prev]) => {
       if (cancelled) return
       if (cur.error || prev.error) logger.error('reports', cur.error || prev.error, { step: 'vehicles' })
       setData({ cur: cur.data || [], prev: prev.data || [], failed: !!(cur.error || prev.error) })

@@ -1526,7 +1526,7 @@ export default {
       ],
       mistakes: [
         'A field\'s kind can\'t change once added. Add a new field instead.',
-        'Removing a field hides it everywhere and can\'t be undone; values already filled in stay in the export.',
+        'Removing a field hides it everywhere and can\'t be undone; values already filled in are kept, but a removed field is left out of the export.',
         'Crew on a gig can see its gig fields. Don\'t use them for anything crew shouldn\'t read.',
       ],
     },
