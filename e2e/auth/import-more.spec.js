@@ -756,7 +756,7 @@ test('Rentman exports: recognised, every column matched, equipment asks for a lo
   await sales.getByRole('combobox', { name: 'Treat "sales" in every row as' }).selectOption({ label: 'Sale' })
   await sales.getByRole('button', { name: 'Apply' }).click()
   // The gaffa tape (not kept in stock, with a quantity) is caught in the check (#227): counted in bulk instead
-  const gaffa = group(page, 'E2E Gaffa tape')
+  const gaffa = page.getByRole('region', { name: '1 row · Quantity in stock', exact: true })
   await expect(gaffa).toContainText('an item not kept in stock can\'t have a quantity')
   await gaffa.getByRole('radio', { name: 'Count it in bulk instead' }).check()
   await gaffa.getByRole('button', { name: 'Apply' }).click()
@@ -811,7 +811,7 @@ test('an item not kept in stock but with a quantity is caught in the check', { t
   await pasteAndMatch(page, [['Name', 'Code', 'Kind', 'Stock management', 'Quantity', 'Location'], [`E2E Tape ${u}`, `TAPE-${u}`, 'sale', 'no', '50', shelf]])
   await expect(column(page, 'Stock management')).toHaveValue('tracking')
   await toCheck(page)
-  const tape = group(page, `E2E Tape ${u}`)
+  const tape = page.getByRole('region', { name: '1 row · Quantity in stock', exact: true })
   await expect(tape).toContainText('an item not kept in stock can\'t have a quantity')
   await expect(page.getByText('1 row waiting for a decision will be left out.')).toBeVisible()
   // Fixed here: the quantity is left out and the item goes in, not kept in stock

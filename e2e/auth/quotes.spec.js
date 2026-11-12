@@ -341,7 +341,8 @@ test('"Credit note" on an issued invoice opens a new credit note, which refuses 
   const credit = page.getByRole('dialog', { name: 'New credit note' })
   await expect(credit).toBeVisible()
   await expect(credit.getByText(`credits ${invoice.legal_number}`)).toBeVisible()
-  await credit.locator('input[inputmode="decimal"]').nth(1).fill('100')
+  // It starts as the whole invoice (€123, all that is left): twice that is more than is left
+  await credit.getByRole('textbox', { name: 'Qty' }).fill('2')
   await credit.getByRole('button', { name: 'Save draft' }).click()
   await expect(page.getByText('That credits more than is left on the invoice.')).toBeVisible({ timeout: 15_000 })
 })
