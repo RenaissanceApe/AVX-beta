@@ -25,6 +25,17 @@ export function apiClient() {
 // Where the app keeps its sign-in in the browser (supabase-js: sb-<project ref>-auth-token)
 export const authStorageKey = () => `sb-${new URL(url()).hostname.split('.')[0]}-auth-token`
 
+// A set-up write that the busy test database cancelled at its 8 s limit (57014) or answered with a
+// 5xx is tried once more after 2 s, like the app's own reports (selectReport). It was rolled back,
+// so trying again can't make it twice. Only the set-up does this: what a test checks is never retried.
+async function again(run) {
+  const first = await run()
+  const e = first.error
+  if (!e || !(e.code === '57014' || first.status >= 500)) return first
+  await sleep(2000)
+  return run()
+}
+
 const check = (what, { data, error }) => {
   if (error) throw new Error(`${what} failed: ${error.message}`)
   return data
@@ -177,8 +188,8 @@ export async function pageAs(browser, account, { baseURL, lang = 'en', ...contex
 
 // An organisation; the database makes its creator the admin (handle_new_org)
 export async function addOrg(account, { name } = {}) {
-  const org = check('Creating the organisation', await account.client.from('organisations')
-    .insert({ name: name || `E2E ${title(account.area)} ${RUN}`, created_by: account.id }).select().single())
+  const org = check('Creating the organisation', await again(() => account.client.from('organisations')
+    .insert({ name: name || `E2E ${title(account.area)} ${RUN}`, created_by: account.id }).select().single()))
   return { ...org, path: `/org/${org.id}` }
 }
 
@@ -186,38 +197,38 @@ export async function addOrg(account, { name } = {}) {
 // which calls this same function as the inviting admin). role: admin, member or viewer.
 export async function addToOrg(admin, orgId, account, role) {
   const result = check(`Adding the ${account.role} account to the organisation`,
-    await admin.client.rpc('invite_to_org', { p_org: orgId, p_email: account.email, p_role: role }))
+    await again(() => admin.client.rpc('invite_to_org', { p_org: orgId, p_email: account.email, p_role: role })))
   if (result !== 'added' && result !== 'already_member') throw new Error(`Adding the ${account.role} account: expected "added", got "${result}"`)
 }
 
 // A gig in the organisation; its creator becomes its PM (handle_new_gig)
 export async function addGig(account, orgId, fields = {}) {
-  const gig = check('Creating the gig', await account.client.from('gigs').insert({
+  const gig = check('Creating the gig', await again(() => account.client.from('gigs').insert({
     name: `E2E Gig ${title(account.area)} ${RUN}`, venue: 'E2E Arena', start_date: localDate(7), end_date: localDate(8),
     ...fields, org_id: orgId, created_by: account.id,
-  }).select().single())
+  }).select().single()))
   return { ...gig, path: `/gig/${gig.id}` }
 }
 
 // Puts an existing account on a gig (Crew → Invite crew). role: crew or pm.
 export async function addToGig(pm, gigId, account, { role = 'crew', functionTitle = 'Sound', callTime = null } = {}) {
-  const result = check(`Adding the ${account.role} account to the gig`, await pm.client.rpc('invite_to_gig', {
+  const result = check(`Adding the ${account.role} account to the gig`, await again(() => pm.client.rpc('invite_to_gig', {
     p_gig: gigId, p_email: account.email, p_role: role, p_function_title: functionTitle, p_call_time: callTime,
-  }))
+  })))
   if (result !== 'added' && result !== 'already_member') throw new Error(`Adding the ${account.role} account to the gig: expected "added", got "${result}"`)
 }
 
 // An equipment / price-list item (Inventory → Add item)
 export async function addItem(account, orgId, fields = {}) {
-  return check('Creating the item', await account.client.from('price_items').insert({
+  return check('Creating the item', await again(() => account.client.from('price_items').insert({
     name: `E2E Item ${RUN}`, kind: 'rental', tracking: 'bulk', unit_price: 100, ...fields, org_id: orgId, created_by: account.id,
-  }).select().single())
+  }).select().single()))
 }
 
 // A client in Contacts
 export async function addClient(account, orgId, fields = {}) {
-  return check('Creating the client', await account.client.from('clients')
-    .insert({ name: `E2E Client ${RUN}`, ...fields, org_id: orgId }).select().single())
+  return check('Creating the client', await again(() => account.client.from('clients')
+    .insert({ name: `E2E Client ${RUN}`, ...fields, org_id: orgId }).select().single()))
 }
 
 // A quote with rental lines: lines = [{ description, qty, unit_price }]. Priced with the app's own
@@ -226,10 +237,10 @@ export async function addQuote(account, org, { title: quoteTitle, lines = [], va
   const phase = emptyPhase('Phase 1')
   phase.sections[0].lines = lines.map(l => ({ ...emptyLine(l.kind || 'rental', vatRate), ...l }))
   const body = { phases: [phase] }
-  const quote = check('Creating the quote', await account.client.from('quotes').insert({
+  const quote = check('Creating the quote', await again(() => account.client.from('quotes').insert({
     org_id: org.id, title: quoteTitle || `E2E Quote ${RUN}`, language: 'en', issue_date: localDate(0), valid_until: localDate(30),
     vat_rate: vatRate, body, total_net: quoteTotals({ body, vat_rate: vatRate, discount_pct: 0 }).net, ...fields,
-  }).select().single())
+  }).select().single()))
   return { ...quote, path: `/quote/${quote.id}` }
 }
 
@@ -258,7 +269,7 @@ class World {
     return this.once('org', async () => {
       const admin = await this.admin()
       const name = `E2E ${title(this.area)} ${RUN}`
-      const { data } = await admin.client.from('organisations').select().eq('name', name).eq('created_by', admin.id).limit(1)
+      const { data } = await again(() => admin.client.from('organisations').select().eq('name', name).eq('created_by', admin.id).limit(1))
       return data?.[0] ? { ...data[0], path: `/org/${data[0].id}` } : addOrg(admin, { name })
     })
   }
@@ -276,7 +287,7 @@ class World {
     return this.once('gig', async () => {
       const [admin, org] = await Promise.all([this.admin(), this.org()])
       const name = `E2E Gig ${title(this.area)} ${RUN}`
-      const { data } = await admin.client.from('gigs').select().eq('org_id', org.id).eq('name', name).limit(1)
+      const { data } = await again(() => admin.client.from('gigs').select().eq('org_id', org.id).eq('name', name).limit(1))
       return data?.[0] ? { ...data[0], path: `/gig/${data[0].id}` } : addGig(admin, org.id, { name })
     })
   }
