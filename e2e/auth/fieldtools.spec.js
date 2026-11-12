@@ -8,6 +8,7 @@ import { test, expect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
 import { addGig, addItem, addToGig, pageAs } from './setup.js'
 import { RUN } from './accounts.js'
+import { readZip, zipText, bytesOf } from './files.js'
 import { barsOf, layoutFixtures, viewArea } from '../../src/lib/lightPlot.js'
 
 test.use({ area: 'fieldtools' })
@@ -600,4 +601,157 @@ test('sound system calculator: a catalogue speaker locks its max SPL and angle; 
   await expect.poll(async () => (await system()).sources[0].item_id ?? null, LOAD).toBeNull()
   await typeNumber(spl, 139)
   await expect.poll(async () => (await system()).sources[0].spl, LOAD).toBe(139)
+})
+
+// A timecode hh:mm:ss:ff at 25 fps, in milliseconds
+const tcMs = tc => {
+  const [h, m, sec, f] = tc.split(':').map(Number)
+  return ((h * 60 + m) * 60 + sec) * 1000 + f * 40
+}
+// Mark → the note form: department, the note, Save
+async function markNote(page, { department, body }) {
+  await page.getByRole('button', { name: 'Mark', exact: true }).click()
+  const form = page.getByRole('dialog', { name: /^Note at \d\d:\d\d:\d\d:\d\d$/ })
+  await form.getByRole('group', { name: 'Department' }).getByRole('button', { name: department, exact: true }).click()
+  await form.getByRole('textbox', { name: 'Note', exact: true }).fill(body)
+  await form.getByRole('button', { name: 'Save note' }).click()
+  await expect(form).toBeHidden(LOAD)
+}
+const noteRow = (page, body) => page.getByRole('listitem').filter({ hasText: body })
+
+// covers: T46
+test('rehearsal notes: a stopwatch session shared live with crew, the clock set for everyone, notes both ways and offline, done, report and CSV; viewers read only', { tag: TAG }, async ({ adminWithOrg, browser, baseURL }) => {
+  test.setTimeout(240_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Rehearsal')
+  const [crew, viewer] = await Promise.all([world.account('crew'), world.viewer()])
+  await addToGig(account, gig.id, crew)
+  await readBell(account, crew, viewer)
+
+  // PM: Tools → Rehearsal notes → New session (25 fps, stopwatch) → Run
+  await page.goto(`${gig.path}?tab=tools`)
+  await page.getByRole('button', { name: /^Rehearsal notes/ }).click()
+  await page.getByRole('button', { name: 'New session' }).first().click()
+  const create = page.getByRole('dialog', { name: 'New session' })
+  await expect(create.getByRole('combobox', { name: 'Frame rate' })).toHaveValue('25')
+  await create.getByRole('combobox', { name: 'Clock' }).selectOption('Stopwatch')
+  await create.getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByRole('heading', { name: 'Run-through 1' })).toBeVisible(LOAD)
+  await expect(page.getByText(`25 fps · Stopwatch · clock set by ${account.name}`)).toBeVisible()
+  const pmClock = page.getByRole('timer', { name: 'Timecode' })
+  await expect(pmClock).toHaveText('00:00:00:00')
+  await page.getByRole('button', { name: 'Run', exact: true }).click()
+  await expect(pmClock).not.toHaveText('00:00:00:00', LOAD)
+  await expectAccessible(page)
+
+  const crewPage = await pageAs(browser, crew, { baseURL })
+  const viewerPage = await pageAs(browser, viewer, { baseURL })
+  try {
+    // Crew open the same session: their clock runs with the PM's
+    await crewPage.goto(`${gig.path}?tab=tools&tool=rehearsal`)
+    await crewPage.getByRole('button', { name: /^Run-through 1/ }).click()
+    const crewClock = crewPage.getByRole('timer', { name: 'Timecode' })
+    await expect(crewClock).not.toHaveText('00:00:00:00', LOAD)
+    // Read both clocks one after the other: the second is ahead by about the time between the readings
+    const sameClock = async () => {
+      const t0 = Date.now()
+      const a = tcMs(await pmClock.textContent())
+      const t1 = Date.now()
+      const b = tcMs(await crewClock.textContent())
+      const t2 = Date.now()
+      // The crew's reading can be ahead by up to the time between the readings, plus 3 frames
+      return { gap: b - a, from: t1 - t0 - 120 - (t2 - t1), to: t2 - t0 + 120 }
+    }
+    const one = await sameClock()
+    expect(one.gap, `The crew's clock is ${one.gap} ms from the PM's`).toBeGreaterThanOrEqual(Math.min(-120, one.from))
+    expect(one.gap).toBeLessThanOrEqual(one.to)
+
+    // PM sets the clock to 01:00:00:00: the crew's clock follows
+    await page.getByRole('button', { name: 'Set the clock' }).click()
+    const set = page.getByRole('dialog', { name: 'Set the clock' })
+    await set.getByLabel('Timecode').fill('01:00:00:00')
+    await set.getByRole('button', { name: 'Set', exact: true }).click()
+    await expect(set).toBeHidden(LOAD)
+    await expect(crewClock).toHaveText(/^01:00:\d\d:\d\d$/, LOAD)
+    const two = await sameClock()
+    expect(two.gap, `After setting, the crew's clock is ${two.gap} ms from the PM's`).toBeGreaterThanOrEqual(Math.min(-120, two.from))
+    expect(two.gap).toBeLessThanOrEqual(two.to)
+
+    // A note each: each appears on the other's screen without reloading
+    await markNote(page, { department: 'Lighting', body: 'Q12 focus is late on the drum riser' })
+    await markNote(crewPage, { department: 'Sound', body: 'Vocal mic 2 feeds back in the chorus' })
+    await expect(noteRow(crewPage, 'Q12 focus is late on the drum riser')).toContainText(/01:00:\d\d:\d\dLighting/, LOAD)
+    await expect(noteRow(page, 'Vocal mic 2 feeds back in the chorus')).toContainText(crew.name, LOAD)
+
+    // Crew offline: the note waits on the phone, then goes when the connection is back
+    await crewPage.context().setOffline(true)
+    await markNote(crewPage, { department: 'Sound', body: 'Written in airplane mode' })
+    await expect(noteRow(crewPage, 'Written in airplane mode')).toContainText('waiting to send', LOAD)
+    await crewPage.context().setOffline(false)
+    await expect(noteRow(crewPage, 'Written in airplane mode')).not.toContainText('waiting to send', LOAD)
+    await expect(noteRow(page, 'Written in airplane mode')).toBeVisible(LOAD)
+    await expect.poll(async () => ok('Reading notes', await account.client.from('rehearsal_notes').select('body').eq('gig_id', gig.id)).length, LOAD).toBe(3)
+
+    // The PM ticks the feedback note done; the crew see it done by the PM
+    await noteRow(page, 'Vocal mic 2 feeds back in the chorus').getByRole('checkbox').check()
+    await expect(noteRow(crewPage, 'Vocal mic 2 feeds back in the chorus')).toContainText(`done by ${account.name}`, LOAD)
+    await expectAccessible(crewPage)
+
+    // A viewer of the organisation reads the notes but can't mark
+    await viewerPage.goto(`${gig.path}?tab=tools&tool=rehearsal`)
+    await viewerPage.getByRole('button', { name: /^Run-through 1/ }).click()
+    await expect(noteRow(viewerPage, 'Q12 focus is late on the drum riser')).toBeVisible(LOAD)
+    await expect(viewerPage.getByRole('button', { name: 'Mark', exact: true })).toHaveCount(0)
+    await expect(viewerPage.getByRole('checkbox')).toHaveCount(0)
+  } finally {
+    await crewPage.context().close()
+    await viewerPage.context().close()
+  }
+
+  // CSV: one line per note, in time order
+  const [csv] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'CSV', exact: true }).click()])
+  expect(csv.suggestedFilename()).toBe(`${gig.name} - Run-through 1.csv`)
+  const lines = new TextDecoder().decode(await bytesOf(csv)).replace(/^\uFEFF/, '').split('\n')
+  expect(lines[0]).toBe('timecode,department,priority,cue,note,author,assignee,status')
+  expect(lines).toHaveLength(4)
+  expect(lines.find(l => l.includes('Vocal mic 2'))).toMatch(/^01:00:\d\d:\d\d,Sound,Note,,Vocal mic 2 feeds back in the chorus,.*,Done$/)
+  expect(lines.find(l => l.includes('airplane'))).toMatch(/,Open$/)
+
+  // Report: the notes and how many are still open, ready to print
+  await page.getByRole('link', { name: 'Report' }).click()
+  await expect(page).toHaveURL(new RegExp(`/gig/${gig.id}/rehearsal/[0-9a-f-]{36}$`))
+  await expect(page.locator('body')).toContainText('3 notes, 2 still open', LOAD)
+  await expect(page.locator('body')).toContainText('Q12 focus is late on the drum riser')
+  await expectAccessible(page)
+})
+
+// covers: T46 (the Portuguese wording)
+test('rehearsal notes in Portuguese: crew mark a note and tick it done', { tag: TAG }, async ({ adminWithOrg, browser, baseURL }) => {
+  test.setTimeout(150_000)
+  const { world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Ensaio')
+  const crew = await world.account('crew')
+  await addToGig(account, gig.id, crew)
+  ok('Starting a session', await account.client.from('rehearsal_sessions').insert({ gig_id: gig.id, name: 'Ensaio geral', fps: 25, clock: 'stopwatch' }))
+  await readBell(crew)
+  const crewPage = await pageAs(browser, crew, { baseURL, lang: 'pt' })
+  try {
+    await crewPage.goto(`${gig.path}?tab=tools&tool=rehearsal`)
+    await crewPage.getByRole('button', { name: /^Ensaio geral/ }).click()
+    await expect(crewPage.getByText('Ainda não há notas.')).toBeVisible(LOAD)
+    await crewPage.getByRole('button', { name: 'Marcar', exact: true }).click()
+    const form = crewPage.getByRole('dialog', { name: /^Nota em \d\d:\d\d:\d\d:\d\d$/ })
+    await form.getByRole('group', { name: 'Departamento' }).getByRole('button', { name: 'Luz', exact: true }).click()
+    await form.getByRole('textbox', { name: 'Nota', exact: true }).fill('Foco atrasado')
+    await form.getByRole('button', { name: 'Guardar nota' }).click()
+    await expect(form).toBeHidden(LOAD)
+    const row = noteRow(crewPage, 'Foco atrasado')
+    await expect(row).toContainText('Luz', LOAD)
+    await row.getByRole('checkbox', { name: /^Feita: nota em \d\d:\d\d:\d\d:\d\d$/ }).check()
+    await expect(row).toContainText(`feita por ${crew.name}`, LOAD)
+    await expect(crewPage.getByRole('link', { name: 'Relatório' })).toBeVisible()
+    await expectAccessible(crewPage)
+  } finally {
+    await crewPage.context().close()
+  }
 })
