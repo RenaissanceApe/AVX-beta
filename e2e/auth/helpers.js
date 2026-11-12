@@ -39,9 +39,11 @@ export async function signIn(page, who) {
 // for the test to check, so a real failure still fails.
 async function submitAuth(page, endpoint, button) {
   for (let attempt = 0; ; attempt++) {
-    const answered = page.waitForResponse(r => endpoint.test(r.url()) && r.request().method() === 'POST', { timeout: 20_000 })
-    await page.locator('form').getByRole('button', { name: button }).click()
-    const response = await answered
+    const [response] = await Promise.all([
+      page.waitForResponse(r => endpoint.test(r.url()) && r.request().method() === 'POST', { timeout: 30_000 })
+        .catch(() => { throw new Error('The test project gave no answer to the sign-in form within 30 s (its auth service or database is overloaded)') }),
+      page.locator('form').getByRole('button', { name: button }).click(),
+    ])
     if (response.status() !== 429) return
     expect(attempt, "The test project's sign-in limit was still reached after 4 tries (HTTP 429)").toBeLessThan(3)
     await page.waitForTimeout(2000 * 2 ** attempt)
@@ -87,8 +89,10 @@ export async function changePeriod(page, rpc, period, ready) {
 }
 
 // Delete the signed-in account through Settings → Your data, as a person does
+// (from My work: an admin's /dashboard is the organisation's Home, whose report calls on a busy test
+// database could push the deletion past its 8 s limit)
 export async function deleteAccount(page) {
-  await page.goto('/dashboard')
+  await page.goto('/me')
   // Desktop: the avatar in the top bar. Phones have no avatar (two icons at most, DESIGN.md
   // "PhoneTabBar"): Account is in the More sheet
   await expect(page.locator('.shell-bar')).toBeVisible({ timeout: 15_000 })

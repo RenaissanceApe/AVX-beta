@@ -93,7 +93,7 @@ export function journeyAccount(who, { create = false } = {}) {
         recordAccount(who.role)
         id = await signUpOrIn(client, who, who.role)
       } else {
-        const { data } = check(`Signing in the ${who.role} account`, await authCall(`Signing in the ${who.role} account`,
+        const data = check(`Signing in the ${who.role} account`, await authCall(`Signing in the ${who.role} account`,
           () => client.auth.signInWithPassword({ email: who.email, password: PASSWORD })))
         id = data.user.id
       }
@@ -103,6 +103,31 @@ export function journeyAccount(who, { create = false } = {}) {
     known.set(who.email, p)
   }
   return known.get(who.email)
+}
+
+// Deletes an older journey's account at the end of its file, the way the app does (Settings → Your
+// data calls the same two functions) but without opening pages that load reports first: on a busy
+// test database those ran delete_my_account into its 8 s limit. Tried twice; if it still fails it
+// is left for the sweep (CI runs it after every run) and the test result isn't changed by it.
+export async function removeAccount(account) {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const { data: plan, error: planError } = await account.client.rpc('account_deletion_plan')
+    const { error } = planError ? { error: planError } : await removeFilesAndAccount(account.client, plan)
+    if (!error) return true
+    if (attempt === 2) {
+      process.stderr.write(`Deleting the ${account.role} account failed (${error.message}); the sweep will remove it.\n`)
+      return false
+    }
+    await sleep(3000)
+  }
+}
+async function removeFilesAndAccount(client, plan) {
+  for (const gigId of plan?.gig_ids || []) {
+    const { data: files } = await client.storage.from('gig-assets').list(gigId, { limit: 1000 })
+    const paths = (files || []).filter(f => f.id).map(f => `${gigId}/${f.name}`)
+    if (paths.length) await client.storage.from('gig-assets').remove(paths)
+  }
+  return client.rpc('delete_my_account')
 }
 
 // Opens the app in an existing page already signed in as the account (for tests that use the

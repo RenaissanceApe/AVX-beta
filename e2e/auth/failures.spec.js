@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { RUN, PASSWORD } from './accounts.js'
-import { journeyAccount, signInPage, pageAs } from './setup.js'
-import { deleteAccount } from './helpers.js'
+import { journeyAccount, signInPage, removeAccount } from './setup.js'
 
 // Signing in when things go wrong, against the Supabase TEST project (never production).
 // Run with E2E_AUTH=1 and the test project's URL/key — see docs/TESTING.md.
@@ -109,12 +108,9 @@ test('an expired or broken session goes back to sign-in', { tag: '@smoke' }, asy
   await expect(page.getByPlaceholder('you@company.com')).toBeVisible()
 })
 
-// Runs even when a test above fails (the sweep is the backstop), and only if the user was made
-test.afterAll(async ({ browser, baseURL }) => {
-  if (!made) return
-  const page = await pageAs(browser, await account(), { baseURL })
-  await deleteAccount(page)
-  await page.context().close()
+// Runs even when a test above fails, and only if the user was made (the sweep is the backstop)
+test.afterAll(async () => {
+  if (made) await removeAccount(await account())
 })
 
 })

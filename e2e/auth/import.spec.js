@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises'
 import { test, expect } from '@playwright/test'
 import { RUN, testEmail } from './accounts.js'
-import { english, expectAccessible, deleteAccount } from './helpers.js'
-import { journeyAccount, signInPage, pageAs, addOrg } from './setup.js'
+import { english, expectAccessible } from './helpers.js'
+import { journeyAccount, signInPage, addOrg, removeAccount } from './setup.js'
 
 // The import's Check step fixes problems on the spot (docs/SWITCHING.md, "Import overhaul: fix it
 // here"), against the Supabase TEST project (never production). Run with E2E_AUTH=1 and the test
@@ -176,12 +176,9 @@ test('past jobs come in as done gigs when chosen, and a second import doesn\'t d
   }
 })
 
-// Runs even when a test above fails (the sweep is the backstop), and only if the user was made
-test.afterAll(async ({ browser, baseURL }) => {
-  if (!made) return
-  const page = await pageAs(browser, await user(), { baseURL })
-  await deleteAccount(page)
-  await page.context().close()
+// Runs even when a test above fails, and only if the user was made (the sweep is the backstop)
+test.afterAll(async () => {
+  if (made) await removeAccount(await user())
 })
 
 })
