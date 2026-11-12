@@ -99,8 +99,10 @@ person or a real device is left to try by hand. Which T-line belongs to which ar
   run made them slow each other down until reports hit the database's 8 s limit (#194).
   Only two tests go through the sign-in form; every other test signs in once through the API and
   reuses that session (`pageAs`, `signInPage`). When the test project still answers 429 (its
-  sign-in limit), the sign-up and sign-in helpers wait 2, 4, 8 (and 16) s and try again; only a 429
-  is retried, never a failed test. The job has no Playwright retries, so a real failure stays red.
+  sign-in limit), or a sign-up through the API gets no answer or a 5xx, the helpers wait 2, 4, 8
+  (and 16) s and try again; only those are retried, never a failed test. Checks in signed-in runs
+  wait 10 s (not Playwright's 5): a save on the shared database may take up to its 8 s limit and
+  still succeed. The job has no Playwright retries, so a real failure stays red.
 - **Every night** (`.github/workflows/e2e-nightly.yml`): every signed-in test, at 03:07 UTC (03:07 in
   Lisbon in winter, 04:07 in summer), split in 4 shards that run side by side, one test at a time
   inside each. Each shard tags its accounts `gh<run>-<attempt>-s<shard>` and sweeps them afterwards,

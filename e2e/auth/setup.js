@@ -35,15 +35,19 @@ const localDate = (days = 0) => {
 }
 const title = area => area.charAt(0).toUpperCase() + area.slice(1)
 
-// The test project limits sign-ups and sign-ins (HTTP 429) when several runs use it at once. Only
-// that answer is tried again, after 2, 4, 8 and 16 s; any other error is returned at once.
+// The test project limits sign-ups and sign-ins (HTTP 429) when several runs use it at once, and a
+// busy moment can end a call with no answer or a 5xx (supabase-js: AuthRetryableFetchError). Only
+// those are tried again, after 2, 4, 8 and 16 s; any other error (a wrong password, a refused
+// sign-up) is returned at once. A sign-up that did go through answers "already registered" the
+// second time, and is then signed in.
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
-export const rateLimited = error => error?.status === 429 || /rate limit|too many requests/i.test(error?.message || '')
+export const retryableAuthError = error => !!error && (error.status === 429 || error.status === 0 || error.status >= 500
+  || error.name === 'AuthRetryableFetchError' || /rate limit|too many requests/i.test(error.message || ''))
 export async function authCall(what, call) {
   for (let attempt = 0; ; attempt++) {
     const result = await call()
-    if (!rateLimited(result.error) || attempt >= 4) {
-      if (rateLimited(result.error)) result.error.message = `${what}: the test project's sign-in limit was still reached after 5 tries (${result.error.message})`
+    if (!retryableAuthError(result.error) || attempt >= 4) {
+      if (retryableAuthError(result.error)) result.error.message = `${what}: the test project still refused or didn't answer after 5 tries (HTTP ${result.error.status}, ${result.error.message})`
       return result
     }
     await sleep(2000 * 2 ** attempt)
