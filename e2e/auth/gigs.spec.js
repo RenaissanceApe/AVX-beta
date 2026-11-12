@@ -690,7 +690,7 @@ function csvRows(text) {
 // The gig cards on the organisation's gigs list
 const gigCard = (page, gig) => page.locator('.gig-card').filter({ hasText: gig.name })
 
-// covers: T52 (all but "Invoiced moves it to the past gigs": see the next test)
+// covers: T52 (all but "Upcoming and Past go by the dates only": see the next test)
 test('gig statuses and types: set up, used on a gig, filtered, re-meant, removed and exported', { tag: '@gigs' }, async ({ adminWithOrg }) => {
   const { page, account: admin } = adminWithOrg
   const s = stamp()
@@ -786,19 +786,17 @@ test('gig statuses and types: set up, used on a gig, filtered, re-meant, removed
   expect(gigs.find(g => g.name === one.name)).toMatchObject({ 'status label': 'Pencilled', 'gig type': '' })
 })
 
-// covers: T52 ("Choose Invoiced: does the gig move to the past gigs?")
-test('a gig marked "Invoiced" (it means done) moves to the past gigs', { tag: '@gigs' }, async ({ adminWithOrg }) => {
-  // BUG? (#217, needs the owner's decision): the gigs list sorts gigs into Upcoming and Past by
-  // their dates only (src/lib/gigs.js gigBucket); a done status doesn't move a gig whose dates are
-  // still ahead, so it stays under Upcoming. Remove test.fail() if the list changes, or this test if
-  // the dates are meant to decide.
-  test.fail()
+// covers: T52 ("Upcoming and Past go by the dates only, whatever the status")
+test('a gig marked "Invoiced" stays under Upcoming until its last day has passed', { tag: '@gigs' }, async ({ adminWithOrg }) => {
+  // The owner's decision on #217: a gig moves to Past only when its last day has passed, whatever
+  // its status; "Invoiced" is about money only (src/lib/gigs.js gigBucket).
   const { page, account: admin } = adminWithOrg
   const s = stamp()
   const org = await addOrg(admin, { name: `E2E Invoiced ${s}` })
   const { error } = await admin.client.from('gig_statuses').insert({ org_id: org.id, name: 'Invoiced', colour: 'sky', base_status: 'completed', position: 1 })
   expect(error).toBeNull()
   const gig = await addGig(admin, org.id, { name: `E2E Invoiced Gig ${s}`, start_date: localDate(3), end_date: localDate(3) })
+  const over = await addGig(admin, org.id, { name: `E2E Finished Gig ${s}`, start_date: localDate(-3), end_date: localDate(-2) })
   await page.goto(gig.path)
   await page.getByRole('button', { name: 'Edit gig' }).click()
   const form = page.getByRole('dialog', { name: 'Edit gig' })
@@ -806,8 +804,14 @@ test('a gig marked "Invoiced" (it means done) moves to the past gigs', { tag: '@
   await form.getByRole('button', { name: 'Save changes' }).click()
   await expect(form).toHaveCount(0, { timeout: LOAD })
   await page.goto(org.path)
-  await page.getByRole('tab', { name: /^Past/ }).click()
+  // Invoiced, but its day is still ahead: Upcoming
+  await page.getByRole('tab', { name: /^Upcoming/ }).click()
   await expect(gigCard(page, gig)).toBeVisible({ timeout: LOAD })
+  await expect(gigCard(page, over)).toHaveCount(0)
+  // Not invoiced, but its last day has passed: Past
+  await page.getByRole('tab', { name: /^Past/ }).click()
+  await expect(gigCard(page, over)).toBeVisible({ timeout: LOAD })
+  await expect(gigCard(page, gig)).toHaveCount(0)
 })
 
 // Organisation settings → Custom fields: adds a field of a kind ('text', 'number', 'date', 'yes_no',
