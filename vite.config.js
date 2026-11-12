@@ -26,5 +26,5 @@ export default defineConfig({
     }),
   ],
   // Unit tests only; browser tests in e2e/ run with Playwright (npm run test:e2e)
-  test: { include: ['src/**/*.test.{js,jsx}'] },
+  test: { include: ['src/**/*.test.{js,jsx}', 'scripts/**/*.test.js'] },
 })

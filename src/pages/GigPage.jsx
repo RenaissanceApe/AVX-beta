@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, HardHat } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -70,6 +70,10 @@ export default function GigPage() {
   // Back goes where you came from (My work, an organisation, a notification); fresh tabs go home
   const goBack = () => (location.key !== 'default' ? navigate(-1) : navigate('/dashboard'))
 
+  // Each reload takes a number; only the newest one may set what's shown (issue 193): an older reload
+  // that finishes late (a change's own reload, then a realtime one) must not put back stale data
+  const loadSeq = useRef(0)
+
   // Switching gigs (e.g. from a notification) must not show the previous gig while loading
   useEffect(() => { setData(null); setVersionsAsset(null); loadAll() }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
   // Back online: replace the saved copy with fresh data
@@ -117,6 +121,8 @@ export default function GigPage() {
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadAll({ silent = false } = {}) {
+    const seq = ++loadSeq.current
+    const stale = () => seq !== loadSeq.current
     if (!silent) setLoading(true)
     const [gigRes, membersRes, assetsRes, postsRes, invitesRes, scheduleRes, activityRes, toolsRes, tasksRes] = await Promise.all([
       supabase.from('gigs').select(`*, ${GIG_LABELS_EMBED}`).eq('id', id).maybeSingle(),
@@ -130,6 +136,7 @@ export default function GigPage() {
       supabase.from('gig_tools').select('tool').eq('gig_id', id),
       supabase.from('tasks').select('id, status, assignee_id, due_on, title, created_at').eq('gig_id', id).is('removed_at', null),
     ])
+    if (stale()) return
     const results = { gig: gigRes, members: membersRes, assets: assetsRes, posts: postsRes, schedule: scheduleRes, activity: activityRes }
 
     // No connection: show the copy saved the last time this gig loaded
@@ -166,6 +173,7 @@ export default function GigPage() {
     if (next.gig?.org_id) {
       const { data: om } = await supabase.from('org_members').select('role')
         .eq('org_id', next.gig.org_id).eq('user_id', user.id).maybeSingle()
+      if (stale()) return
       role = om?.role ?? null
       setOrgRole(role)
     }
@@ -183,6 +191,7 @@ export default function GigPage() {
         supabase.from('profiles').select('id, full_name').in('id', uids),
         supabase.rpc('gig_crew_phones', { p_gig: id }),
       ])
+      if (stale()) return
       if (error) logger.error('gig', error, { step: 'profiles', gigId: id })
       if (phoneError) logger.error('gig', phoneError, { step: 'phones', gigId: id })
       const phones = Object.fromEntries((phoneData || []).map(p => [p.user_id, p.phone]))

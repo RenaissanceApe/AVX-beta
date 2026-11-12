@@ -1,5 +1,77 @@
 # Changelog
 
+## 0.84.0 — Automated tests
+
+A robot now tries most of the test list in docs/PENDING.md section 2 every night, the way you
+would by hand, on the test project. What still needs you is in the new "Your hand-check list" at
+the top of that section.
+
+#### Added
+- **About 210 new signed-in browser tests**, one file per area: gigs, crew, double booking and tasks
+  (AT1), messages (AT2), quotes, invoices and payments (AT3), inventory, labels and subrentals
+  (AT4), the import (AT5), the crew marketplace (AT6), hours, leave, expenses and crew fees (AT7),
+  reports and gig finance (AT8), the field tools, power and rigging (AT10), vehicles, transport and
+  appointments (AT11), and settings, your account, privacy, the organisation export and phone
+  layouts (AT12). They click through the app as two or more people at once (a manager and crew, a
+  company and a client, two companies), check the exact numbers the calculators and reports should
+  give for known inputs, and run the accessibility check on the screens they open. Some run in
+  Portuguese and at phone widths (320 and 390 px).
+- **Every test, every night** (AT0): about 03:00 Lisbon time all the signed-in tests run in four
+  parts side by side; when something fails, one issue lists what failed.
+- **The foundation** (AT0): ready-made people already signed in (an organisation's admin, member
+  and viewer, crew on a gig, another company), stand-ins for the town search and the VAT-number
+  check so no outside service is called, readers for zip exports, PDFs and calendar files, and
+  made-up sample files. Each test file makes its own organisation and accounts, and the clean-up
+  removes exactly what a run made.
+- **Test-only database helpers** (`supabase/tests/support/test_support.sql`) for the **test**
+  project only, never production: you run them once by hand (T188); until then the six tests that
+  need them are skipped.
+
+#### Changed
+- **Shorter, steadier checks on pull requests** (AT0b): a pull request now runs a short smoke set
+  (one path per area, about 1½–3 minutes instead of 5 or more); everything else runs at night.
+  Only two tests use the sign-in form; the others sign in once in the background, so several pull
+  requests at once stay inside the test project's sign-in limit.
+- **Live check:** stops with a clear message when the crew test account is a Member or Admin of
+  AVX TEST CO. instead of a Viewer (T190).
+- **Your test list** (docs/PENDING.md section 2): each line the robot covers says
+  **Automated** and which file, or **Automated, partly** and what is still by hand. Nothing was
+  deleted. T52 now says Upcoming and Past go by time only (your decision on #217), T17 says a
+  manager must also hear about reports on their own message (#221, not built yet).
+
+#### Fixed
+- A gig page could briefly show older data (for example a file's previous version) when two
+  reloads finished out of order (#193).
+- The offline test no longer holds up the signed-in tests while waiting for the app's offline copy
+  (#206).
+
+#### Bugs the tests found (each has an issue; none is fixed in this release)
+- #208 "Credit note" on an issued invoice does nothing.
+- #209 The bell's "9+" doesn't match its accessible name (accessibility).
+- #211 A message's ⋯ menu near the top of a short conversation opens under the header.
+- #212 A chat photo's link has no address while it loads (accessibility).
+- #214 Ticking two checklist items quickly can lose one.
+- #215 On-site mode's "Crew and phones" does nothing for crew-only people.
+- #216 The custom fields setting says removed fields' values are exported; they aren't (you
+  decided to reword the setting).
+- #217 A gig marked "Invoiced" stays under Upcoming: not a bug, you decided time decides; the
+  test and T52 now say so.
+- #221 A manager isn't told about reports on their own message (you decided they should be).
+- #222 Reports → Vehicle use can't load a period that hasn't started yet.
+- #223 On a phone, switching labels from a roll to A4 sheets cuts the sheet off.
+- #227 An imported item not kept in stock but with a quantity passes the check, then fails.
+- #229 Two quick changes in the patch, light plot, sound system or line arrays can be saved out of
+  order, losing the second.
+
+Tests for an open bug are marked "expected to fail"; when the bug is fixed the test turns red and
+its `test.fail()` line comes out (T191).
+
+#### For developers
+- `e2e/auth/*.spec.js` (one per area, `// covers: T…` above each test), `e2e/auth/setup.js`,
+  `fixtures.js`, `stubs.js`, `files.js`, `testSupport.js`; `.github/workflows/e2e-nightly.yml`;
+  how it works is in docs/TESTING.md, "Automated test suite" and "When it runs". No migrations,
+  no Edge Functions.
+
 ## 0.83.1 — Live check
 
 #### Added

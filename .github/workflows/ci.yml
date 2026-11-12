@@ -54,7 +54,7 @@ jobs:
           path: test-results/
           retention-days: 7
 
-  # Signed-in journeys against the Supabase TEST project. Off until the repository
+  # Signed-in smoke tests against the Supabase TEST project. Off until the repository
   # variable E2E_AUTH_ENABLED is 'true' and TEST_SUPABASE_URL / TEST_SUPABASE_ANON_KEY
   # are set (Settings → Secrets and variables → Actions → Variables). See docs/TESTING.md.
   e2e-auth:
@@ -90,7 +90,9 @@ jobs:
             ""|*otmulrlslecgyezpcqxy*) echo "TEST_SUPABASE_URL must point at the test project"; exit 1 ;;
           esac
       - run: npm run build
-      - run: npm run test:e2e
+      # Pull requests run the smoke set only (tests tagged @smoke: the journey, the import and
+      # sign-in checks, and one path per area). Everything runs every night (e2e-nightly.yml).
+      - run: npm run test:e2e -- --grep @smoke
       # Runs even when a test failed: deletes the test accounts this run created, and only those
       - name: Sweep this run's test accounts
         if: always()
