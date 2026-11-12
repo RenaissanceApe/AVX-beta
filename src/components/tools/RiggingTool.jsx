@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Plus, Trash2, AlertTriangle, ShieldAlert, CheckCircle2, CircleHelp } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { saveShow } from '../../lib/queuedSaves'
+import { saveShow, noteShowLoaded } from '../../lib/queuedSaves'
+import { notifyConflict } from '../../lib/staleSave'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
@@ -46,7 +47,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
 
   const load = useCallback(async () => {
     const [s, f, m] = await Promise.all([
-      supabase.from('gig_show').select('lighting, rigging, system').eq('gig_id', gig.id).maybeSingle(),
+      supabase.from('gig_show').select('lighting, rigging, system, updated_at').eq('gig_id', gig.id).maybeSingle(),
       supabase.from('gig_fixtures').select(FIXTURE_FIELDS).eq('gig_id', gig.id),
       supabase.from('hoist_models').select(MODEL_FIELDS).is('removed_at', null).order('brand').order('model'),
     ])
@@ -59,6 +60,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
       return
     }
     if (s.error) logger.error('rigging', s.error, { step: 'load' })
+    noteShowLoaded(gig.id, s)
     if (f.error) logger.warn('rigging', f.error, { step: 'fixtures' })
     if (m.error) logger.warn('rigging', m.error, { step: 'models' })
     const next = { show: { lighting: s.data?.lighting || {}, rigging: s.data?.rigging || {}, system: s.data?.system || {} }, fixtures: f.data || [], models: m.data || [] }
@@ -115,7 +117,8 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
   async function save(patch) {
     const rigging = { ...(show?.rigging || {}), ...patch }
     setShow(s => ({ ...s, rigging }))
-    const { error } = await saveShow(gig.id, { rigging })
+    const { error, conflict } = await saveShow(gig.id, { rigging })
+    if (conflict) { logger.warn('rigging', 'save refused', { step: 'save', conflict }); notifyConflict(conflict, notify, t); return }
     if (error) { logger.error('rigging', error, { step: 'save' }); notify(userMessage(error), 'error'); load() }
   }
   const saveLines = list => save({ lines: list })

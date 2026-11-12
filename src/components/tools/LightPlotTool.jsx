@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Printer, RotateCw, Trash2, Plus, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, AlertTriangle, Undo2, LogOut } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { saveShow } from '../../lib/queuedSaves'
+import { saveShow, noteShowLoaded } from '../../lib/queuedSaves'
+import { notifyConflict } from '../../lib/staleSave'
 import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -42,7 +43,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
 
   const load = useCallback(async () => {
     const [s, f] = await Promise.all([
-      supabase.from('gig_show').select('stage, lighting, power').eq('gig_id', gig.id).maybeSingle(),
+      supabase.from('gig_show').select('stage, lighting, power, updated_at').eq('gig_id', gig.id).maybeSingle(),
       supabase.from('gig_fixtures').select(FIELDS).eq('gig_id', gig.id),
     ])
     if (f.error && isNetworkError(f.error)) {
@@ -53,6 +54,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
       return
     }
     if (f.error) logger.error('lights', f.error, { step: 'load' })
+    noteShowLoaded(gig.id, s)
     const next = { show: { stage: s.data?.stage || {}, lighting: s.data?.lighting || {}, power: s.data?.power || {} }, fixtures: f.data || [] }
     setShow(next.show)
     setFixtures(next.fixtures)
@@ -83,7 +85,8 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
     clearTimeout(lightingTimer.current?.timer)
     const save = async () => {
       lightingTimer.current = null
-      const { error } = await saveShow(gig.id, { lighting })
+      const { error, conflict } = await saveShow(gig.id, { lighting })
+      if (conflict) { logger.warn('lights', 'save refused', { step: 'lighting', conflict }); notifyConflict(conflict, notify, t); return }
       if (error) { logger.error('lights', error, { step: 'lighting' }); notify(userMessage(error), 'error'); load() }
     }
     if (now) save()

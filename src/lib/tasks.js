@@ -36,15 +36,25 @@ export function checklistProgress(list) {
 }
 
 // Checklist lines from typed text: one per line, empty lines dropped, kept to 50 of 200 characters
+// An item keeps its id (ticks are saved by id, issue 236); each id is used once, so two lines with
+// the same text stay two items, and an old item without an id gets one.
 export function checklistFromText(text, previous = []) {
-  const before = new Map((previous || []).map(i => [i.text, i]))
+  const before = new Map() // text → the old items with it, in order
+  for (const i of previous || []) before.set(i.text, [...(before.get(i.text) || []), i])
+  const used = new Set()
+  const newId = () => crypto.randomUUID().slice(0, 8)
   return String(text || '').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 50).map(line => {
     const t = line.slice(0, 200)
-    return before.get(t) || { id: crypto.randomUUID().slice(0, 8), text: t, done: false }
+    const kept = before.get(t)?.shift()
+    if (!kept) return { id: newId(), text: t, done: false }
+    const id = kept.id && !used.has(kept.id) ? kept.id : newId()
+    used.add(id)
+    return { ...kept, id }
   })
 }
 
 export const toggleItem = (list, id) => (list || []).map(i => (i.id === id ? { ...i, done: !i.done } : i))
+export const setItemDone = (list, id, done) => (list || []).map(i => (i.id === id ? { ...i, done } : i))
 
 // A task from a rehearsal note: its text (cut to fit) and the same assignee
 export function taskFromNote(note, cueLabel) {

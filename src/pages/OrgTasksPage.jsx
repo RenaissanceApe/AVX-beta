@@ -17,7 +17,7 @@ import { btn, btnPrimary, colors, AvxLoader } from '../components/ui'
 import AppShell from '../components/shell/AppShell'
 import EmptyState from '../components/EmptyState'
 import { PageHelp } from '../components/help/HelpParts'
-import { TaskRow, TaskForm, GigLink } from '../components/tasks/TaskParts'
+import { TaskRow, TaskForm, GigLink, tickTaskItem } from '../components/tasks/TaskParts'
 import TaskTemplates from '../components/tasks/TaskTemplates'
 
 // The organisation's tasks (docs/TOOLS_PLAN.md step 5, T2): its own (office, warehouse, repairs)
@@ -169,7 +169,7 @@ export default function OrgTasksPage() {
                     <TaskRow key={task.id} task={task} today={today} nameOf={nameOf}
                       canTick={canManage || task.assignee_id === user.id} canManage={canManage && own}
                       onToggle={() => patch(task, { status: task.status === 'open' ? 'done' : 'open' })}
-                      onChecklist={list => patch(task, { checklist: list })}
+                      onTick={item => tickTaskItem(task, item, { setTasks, notify, reload: load })}
                       onEdit={() => setEditing(task)} onRemove={() => remove(task)}
                       gigLink={task.gigs ? <GigLink gig={task.gigs} />
                         : task.repair_id ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Wrench size={12} aria-hidden="true" /> {t('tasks.fromRepair')}</span> : null} />

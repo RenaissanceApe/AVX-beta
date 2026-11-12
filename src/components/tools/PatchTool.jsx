@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Printer, Trash2, Wand2, AlertTriangle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { saveShow } from '../../lib/queuedSaves'
+import { saveShow, noteShowLoaded } from '../../lib/queuedSaves'
+import { notifyConflict } from '../../lib/staleSave'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
@@ -25,7 +26,7 @@ export default function PatchTool({ gig, canEdit }) {
 
   const load = useCallback(async () => {
     const [show, lines] = await Promise.all([
-      supabase.from('gig_show').select('audio').eq('gig_id', gig.id).maybeSingle(),
+      supabase.from('gig_show').select('audio, updated_at').eq('gig_id', gig.id).maybeSingle(),
       supabase.from('gig_inputs').select('id, channel, source, stage_box, phantom').eq('gig_id', gig.id).order('channel'),
     ])
     if (lines.error && isNetworkError(lines.error)) {
@@ -36,6 +37,7 @@ export default function PatchTool({ gig, canEdit }) {
       return
     }
     if (lines.error) logger.error('patch', lines.error, { step: 'load' })
+    noteShowLoaded(gig.id, show)
     const next = { audio: show.data?.audio || {}, inputs: lines.data || [] }
     setAudio(next.audio)
     setInputs(next.inputs)
@@ -50,7 +52,8 @@ export default function PatchTool({ gig, canEdit }) {
   async function saveBoxes(next) {
     const value = { ...(audio || {}), boxes: next }
     setAudio(value)
-    const { error } = await saveShow(gig.id, { audio: value })
+    const { error, conflict } = await saveShow(gig.id, { audio: value })
+    if (conflict) { logger.warn('patch', 'save refused', { step: 'boxes', conflict }); notifyConflict(conflict, notify, t); return }
     if (error) { logger.error('patch', error, { step: 'boxes' }); notify(userMessage(error), 'error'); load() }
   }
   const editBox = (i, patch) => saveBoxes(boxes.map((b, n) => (n === i ? { ...b, ...patch } : b)))

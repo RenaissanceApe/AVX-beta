@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Printer, RotateCw, Trash2, ListOrdered, PackagePlus, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { saveShow } from '../../lib/queuedSaves'
+import { saveShow, noteShowLoaded } from '../../lib/queuedSaves'
+import { notifyConflict } from '../../lib/staleSave'
 import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -38,7 +39,7 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
   const load = useCallback(async () => {
     const [plot, show] = await Promise.all([
       supabase.from('gig_plot_items').select(FIELDS).eq('gig_id', gig.id).order('created_at'),
-      supabase.from('gig_show').select('stage').eq('gig_id', gig.id).maybeSingle(),
+      supabase.from('gig_show').select('stage, updated_at').eq('gig_id', gig.id).maybeSingle(),
     ])
     if (plot.error && isNetworkError(plot.error)) {
       const snap = loadSnapshot(`plot.${gig.id}`)
@@ -48,6 +49,7 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
       return
     }
     if (plot.error) logger.error('plot', plot.error, { step: 'load' })
+    noteShowLoaded(gig.id, show)
     const next = { items: plot.data || [], stage: show.data?.stage || {} }
     setItems(next.items)
     setStage(next.stage)
@@ -110,7 +112,8 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
   async function saveStage(patch) {
     const next = { ...stage, ...patch }
     setStage(next)
-    const { error } = await saveShow(gig.id, { stage: next })
+    const { error, conflict } = await saveShow(gig.id, { stage: next })
+    if (conflict) { logger.warn('plot', 'save refused', { step: 'stage', conflict }); notifyConflict(conflict, notify, t); return }
     if (error) { logger.error('plot', error, { step: 'stage' }); notify(userMessage(error), 'error') }
   }
 
