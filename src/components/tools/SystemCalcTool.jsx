@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Printer, Plus, Trash2, AlertTriangle, Info } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { saveShow } from '../../lib/queuedSaves'
+import { saveShow, noteShowLoaded } from '../../lib/queuedSaves'
+import { notifyConflict } from '../../lib/staleSave'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
@@ -30,7 +31,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
   const [savedAt, setSavedAt] = useState(null)
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from('gig_show').select('stage, system, rigging').eq('gig_id', gig.id).maybeSingle()
+    const { data, error } = await supabase.from('gig_show').select('stage, system, rigging, updated_at').eq('gig_id', gig.id).maybeSingle()
     if (error && isNetworkError(error)) {
       const snap = loadSnapshot(`system.${gig.id}`)
       setShow(snap?.data || { stage: {}, system: {}, rigging: {} })
@@ -38,6 +39,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
       return
     }
     if (error) logger.error('system', error, { step: 'load' })
+    noteShowLoaded(gig.id, { data, error })
     const next = { stage: data?.stage || {}, system: data?.system || {}, rigging: data?.rigging || {} }
     setShow(next)
     setSavedAt(null)
@@ -73,7 +75,8 @@ export default function SystemCalcTool({ gig, canEdit }) {
   async function save(patch) {
     const system = { ...(show?.system || {}), ...patch }
     setShow(s => ({ ...s, system }))
-    const { error } = await saveShow(gig.id, { system })
+    const { error, conflict } = await saveShow(gig.id, { system })
+    if (conflict) { logger.warn('system', 'save refused', { step: 'save', conflict }); notifyConflict(conflict, notify, t); return }
     if (error) { logger.error('system', error, { step: 'save' }); notify(userMessage(error), 'error'); load() }
   }
   const editSource = (id, patch) => save({ sources: sources.map(s => (s.id === id ? { ...s, ...patch } : s)) })
