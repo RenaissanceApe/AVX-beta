@@ -11,8 +11,13 @@ import { RUN } from './accounts.js'
 test.use({ area: 'inventory', actionTimeout: 30_000 })
 
 const TAG = '@inventory'
+const ALL_STEPS = ['prepped', 'loaded', 'on_site', 'loaded_back', 'returned', 'checked_in']
 const LOAD = { timeout: 45_000 }
 const uniq = () => `${RUN}-${Date.now().toString(36)}`
+const day = (offset = 0) => {
+  const d = new Date(Date.now() + offset * 86400e3)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 const ok = (what, { data, error }) => {
   if (error) throw new Error(`${what} failed: ${error.message}`)
   return data
@@ -256,4 +261,407 @@ test('item volume: typed in, or worked out from the size', { tag: TAG }, async (
   await expect(left.getByRole('listitem').filter({ hasText: sized.name })).toContainText('0.12 m³', LOAD)
   await expect(left.getByRole('listitem').filter({ hasText: typed.name })).toContainText('0.08 m³')
   await expectAccessible(page)
+})
+
+// covers: T25
+test('scan steps: Prepped and Out (loaded), Undo, the bars and the Step column; "On site" can be turned off', { tag: TAG }, async ({ adminWithOrg }) => {
+  const { page, account, org } = adminWithOrg
+  await readBell(account)
+  const id = uniq()
+  const gig = await addGig(account, org.id, { name: `E2E Scan ${id}` })
+  const mic = await itemWithUnits(account, org.id, { name: `E2E Mic ${id}`, units: 3 })
+  await planLine(account, gig, mic, 3)
+  const codes = mic.units.map(u => u.code)
+  // Every step on (the organisation's default), whatever an earlier run left
+  ok('Using every step', await account.client.from('organisations').update({ equipment_steps: ALL_STEPS }).eq('id', org.id))
+  try {
+    await page.goto(`${gig.path}/scan`)
+    const steps = page.getByRole('radiogroup', { name: 'What this scan records' })
+    await expect(steps.getByRole('radio', { name: 'On site' })).toBeVisible(LOAD)
+    const code = page.getByLabel('Code', { exact: true })
+    const record = async value => {
+      await code.fill(value)
+      await page.getByRole('button', { name: 'Record' }).click()
+      await expect(code).toHaveValue('', LOAD)
+    }
+
+    // Prepped: three labels typed as a scanner would
+    await steps.getByRole('radio', { name: 'Prepped' }).click()
+    for (const c of codes) await record(c)
+    await expect(page.getByRole('heading', { name: 'Prepped 3 of 3' })).toBeVisible(LOAD)
+    await expectAccessible(page)
+
+    // Out (loaded): two, then undo the last one
+    await steps.getByRole('radio', { name: 'Out (loaded)' }).click()
+    await record(codes[0])
+    await record(codes[1])
+    await expect(page.getByRole('heading', { name: 'Out 2 of 3' })).toBeVisible(LOAD)
+    // The newest scan is at the top; that code's Prepped scan keeps its own Undo
+    const undoSecond = page.getByRole('button', { name: new RegExp(`^Undo\\b.*${codes[1]}`) })
+    await expect(undoSecond).toHaveCount(2)
+    await undoSecond.first().click()
+    await expect(page.getByRole('heading', { name: 'Out 1 of 3' })).toBeVisible(LOAD)
+    await expect(undoSecond).toHaveCount(1)
+
+    // The gig's Equipment tab: a bar per step
+    await page.goto(`${gig.path}?tab=equipment`)
+    const bars = page.getByRole('region', { name: 'Equipment steps' })
+    await expect(bars.getByRole('listitem').filter({ hasText: 'Prepped' })).toContainText('3 of 3', LOAD)
+    await expect(bars.getByRole('listitem').filter({ hasText: 'Out (loaded)' })).toContainText('1 of 3')
+    await expectAccessible(page)
+
+    // The packing list's Step column: the whole line is prepped, not yet all out
+    await page.goto(`${gig.path}/packing`)
+    const row = page.getByRole('row').filter({ hasText: mic.name })
+    await expect(row.getByRole('cell').last()).toHaveText('Prepped', LOAD)
+    await expectAccessible(page)
+
+    // Organisation settings → Equipment steps: untick "On site"; the scan screen no longer offers it
+    await page.goto(`${org.path}?panel=settings`)
+    const settings = page.getByRole('dialog', { name: `${org.name} — settings` })
+    const onSite = settings.getByRole('region', { name: 'Equipment steps' }).getByRole('checkbox', { name: 'On site' })
+    await expect(onSite).toBeChecked(LOAD)
+    // The box changes once the database has saved it
+    await onSite.click()
+    await expect(onSite).not.toBeChecked(LOAD)
+    await expectAccessible(page)
+    await expect.poll(async () => ok('Reading the steps', await account.client.from('organisations').select('equipment_steps').eq('id', org.id).single()).equipment_steps, LOAD)
+      .not.toContain('on_site')
+    await page.goto(`${gig.path}/scan`)
+    await expect(steps.getByRole('radio', { name: 'Prepped' })).toBeVisible(LOAD)
+    await expect(steps.getByRole('radio', { name: 'On site' })).toHaveCount(0)
+  } finally {
+    ok('Putting every step back', await account.client.from('organisations').update({ equipment_steps: ALL_STEPS }).eq('id', org.id))
+  }
+})
+
+// covers: T9
+test('cross-hire: link the other company by its code, send a hire request, they confirm it', { tag: TAG }, async ({ adminWithOrg, secondCompany }) => {
+  const { page, account, org } = adminWithOrg
+  const other = secondCompany
+  await readBell(account, other.account)
+  const id = uniq()
+  const supplier = ok('Adding the supplier', await account.client.from('suppliers').insert({ org_id: org.id, name: `E2E Partner ${id}` }).select().single())
+
+  // The other company: Inventory → Subrentals → Show code
+  await other.page.goto(`${other.org.path}/inventory?tab=subrentals`)
+  await other.page.getByRole('button', { name: 'Show code' }).click({ timeout: 45_000 })
+  const codeBox = other.page.locator('code').filter({ hasText: /\S/ })
+  await expect(codeBox).toBeVisible(LOAD)
+  const code = (await codeBox.textContent()).trim()
+  await expectAccessible(other.page)
+
+  // This company: the supplier → Cross-hire code → Link
+  await page.goto(`${org.path}/inventory?tab=subrentals`)
+  const row = page.locator('div').filter({ hasText: supplier.name }).filter({ has: page.getByRole('button', { name: 'Edit' }) }).last()
+  await row.getByRole('button', { name: 'Edit' }).click({ timeout: 45_000 })
+  const card = page.getByRole('dialog', { name: supplier.name })
+  await card.getByLabel('Cross-hire code', { exact: true }).fill(code)
+  await card.getByRole('button', { name: 'Link' }).click()
+  await expect(card).toContainText(`Linked to ${other.org.name}`, LOAD)
+  await expectAccessible(page)
+  await card.getByRole('button', { name: 'Close' }).click()
+  await expect(page.getByText(supplier.name).first()).toContainText('on AVX', LOAD)
+
+  // A hire request: a new subrental from them, status Requested
+  await page.getByRole('button', { name: 'New subrental' }).click()
+  const sub = page.getByRole('dialog', { name: 'New subrental' })
+  await sub.getByLabel('Supplier *', { exact: true }).selectOption(supplier.id)
+  await expect(sub.getByText('This supplier is on AVX: setting the status to Requested sends them the request')).toBeVisible(LOAD)
+  await sub.getByLabel('From', { exact: true }).fill(`${day(10)}T09:00`)
+  await sub.getByLabel('Until', { exact: true }).fill(`${day(12)}T18:00`)
+  await sub.getByLabel('Status', { exact: true }).selectOption('requested')
+  await sub.getByLabel('Description', { exact: true }).fill(`E2E Hire desk ${id}`)
+  await sub.getByLabel('Quantity', { exact: true }).fill('2')
+  await sub.getByRole('button', { name: 'Save' }).click()
+  await expect(sub).toBeHidden(LOAD)
+  const mine = page.getByRole('button').filter({ hasText: supplier.name }).filter({ hasText: `2 × E2E Hire desk ${id}` })
+  await expect(mine).toContainText('Requested', LOAD)
+
+  // The other company: Hire requests to you → Confirm with a price
+  await other.page.reload()
+  const incoming = other.page.getByRole('heading', { name: 'Hire requests to you' }).locator('..')
+  const request = incoming.locator('div').filter({ hasText: `2 × E2E Hire desk ${id}` }).filter({ has: other.page.getByRole('button', { name: 'Confirm' }) }).last()
+  await expect(request).toContainText(org.name, LOAD)
+  await request.getByLabel('Price (€)', { exact: true }).fill('150')
+  await expectAccessible(other.page)
+  await request.getByRole('button', { name: 'Confirm' }).click()
+  await expect(other.page.getByText("Confirmed. They've been told.")).toBeVisible(LOAD)
+
+  // This company sees it confirmed, with the price
+  await page.reload()
+  await expect(mine).toContainText('Confirmed', LOAD)
+  await expect(mine).toContainText('€150.00')
+})
+
+// The label sheet's controls (LabelSheet): size, what it prints on, and the Fields panel
+const sizeSelect = page => page.locator('label').filter({ hasText: /^Size/ }).locator('select')
+const modeSelect = page => page.locator('label').filter({ hasText: /^Print on/ }).locator('select')
+const sheetHeader = page => page.locator('strong').filter({ hasText: /\d+ labels?\b/ })
+const labelPages = page => page.locator('.ls-page')
+async function openFields(page) {
+  await page.getByRole('button', { name: 'Fields' }).click()
+  return page.getByRole('group', { name: /^On .* labels/ })
+}
+
+// covers: T128
+test('label templates: fields saved for the organisation come back on another device; a viewer can change them for one print only', { tag: TAG }, async ({ adminWithOrg, viewer, browser, baseURL }) => {
+  const { page, account, org } = adminWithOrg
+  await readBell(account, viewer.account)
+  const id = uniq()
+  const item = await itemWithUnits(account, org.id, { name: `E2E Label ${id}`, units: 1 })
+  const url = `${org.path}/inventory/labels?units=${item.units[0].id}`
+  const defaults = ['name', 'code', 'qr', 'org', 'department']
+  ok('Starting from the default fields', await account.client.from('label_templates').upsert({ org_id: org.id, size: 'medium', fields: defaults }, { onConflict: 'org_id,size' }))
+  try {
+    await page.goto(url)
+    await sizeSelect(page).selectOption('medium')
+    const sheet = page.locator('.ls-pages')
+    await expect(sheet).toContainText(item.units[0].code, LOAD)
+    await expect(sheet).toContainText(org.name)
+    const fields = await openFields(page)
+    await expect(fields).toHaveAccessibleName(/^On Medium, 100 × 50 mm labels/)
+    // Untick and tick again (nothing to save), then untick Organisation and save it
+    await fields.getByRole('checkbox', { name: 'Code', exact: true }).uncheck()
+    await expect(sheet).not.toContainText(item.units[0].code)
+    await fields.getByRole('checkbox', { name: 'Code', exact: true }).check()
+    await expect(sheet).toContainText(item.units[0].code)
+    await expect(page.getByRole('button', { name: 'Save for the organisation' })).toBeDisabled()
+    await fields.getByRole('checkbox', { name: 'Organisation' }).uncheck()
+    await expect(sheet).not.toContainText(org.name)
+    await expectAccessible(page)
+    await page.getByRole('button', { name: 'Save for the organisation' }).click()
+    await expect(page.getByText('Label fields saved for the organisation')).toBeVisible(LOAD)
+
+    // Another device (a new browser window): the same fields come back
+    const other = await pageAs(browser, account, { baseURL })
+    try {
+      await other.goto(url)
+      await sizeSelect(other).selectOption('medium')
+      await expect(other.locator('.ls-pages')).toContainText(item.units[0].code, LOAD)
+      await expect(other.locator('.ls-pages')).not.toContainText(org.name)
+      const again = await openFields(other)
+      await expect(again.getByRole('checkbox', { name: 'Organisation' })).not.toBeChecked()
+      await expect(again.getByRole('checkbox', { name: 'Code', exact: true })).toBeChecked()
+    } finally {
+      await other.context().close()
+    }
+
+    // A viewer: no Inventory for them (docs/INVENTORY.md), but a gig's power labels use the same
+    // templates. They can change the fields for this print, but not save them
+    const gig = await addGig(account, org.id, { name: `E2E Label gig ${id}` })
+    ok('Saving a power plan', await account.client.from('gig_show').upsert({
+      gig_id: gig.id, power: { distros: [{ id: 'dlabel', name: `Label distro ${id}`, feed: 'supply', outputs: [] }], cables: [] },
+    }))
+    const v = viewer.page
+    await v.goto(`${gig.path}/power/labels`)
+    await v.locator('label').filter({ hasText: /^Labels for/ }).locator('select').selectOption('distros')
+    await sizeSelect(v).selectOption('medium')
+    const theirSheet = v.locator('.ls-pages')
+    await expect(theirSheet).toContainText(`Label distro ${id}`, LOAD)
+    await expect(theirSheet).not.toContainText(org.name)
+    const theirs = await openFields(v)
+    await expect(theirs.getByRole('checkbox', { name: 'Organisation' })).not.toBeChecked()
+    await theirs.getByRole('checkbox', { name: 'Gig' }).check()
+    await expect(theirSheet).toContainText(gig.name)
+    await expect(theirs).toContainText('Changes here are for this print only. Admins and members can save them for the organisation.')
+    await expect(v.getByRole('button', { name: 'Save for the organisation' })).toHaveCount(0)
+    await expectAccessible(v)
+    // …and the database refuses a viewer's save too
+    const { error } = await viewer.account.client.from('label_templates').upsert({ org_id: org.id, size: 'medium', fields: ['name'] }, { onConflict: 'org_id,size' })
+    expect(error, 'a viewer saved the label template').toBeTruthy()
+    const saved = ok('Reading the template', await account.client.from('label_templates').select('fields').eq('org_id', org.id).eq('size', 'medium').single())
+    expect(saved.fields).toEqual(['name', 'code', 'qr', 'department'])
+  } finally {
+    ok('Putting the default fields back', await account.client.from('label_templates').upsert({ org_id: org.id, size: 'medium', fields: defaults }, { onConflict: 'org_id,size' }))
+  }
+})
+
+// covers: T129
+test('case labels: a large label of a case lists the units packed in it', { tag: TAG }, async ({ adminWithOrg }) => {
+  const { page, account, org } = adminWithOrg
+  await readBell(account)
+  const id = uniq()
+  const rack = await itemWithUnits(account, org.id, { name: `E2E Rack case ${id}`, kit_type: 'case', units: 1 })
+  const wireless = await itemWithUnits(account, org.id, { name: `E2E Wireless ${id}`, units: 2 })
+  const di = await itemWithUnits(account, org.id, { name: `E2E DI box ${id}`, units: 1 })
+  ok('Packing the case', await account.client.from('stock_units').update({ case_unit_id: rack.units[0].id })
+    .in('id', [...wireless.units, ...di.units].map(u => u.id)))
+
+  // From the item page: tick the case unit → Labels for 1
+  await page.goto(`${org.path}/inventory/${rack.id}`)
+  await page.getByLabel(`Select unit ${rack.units[0].code}`, { exact: true }).check({ timeout: 45_000 })
+  await page.getByRole('button', { name: 'Labels for 1' }).click()
+  await expect(page).toHaveURL(new RegExp(`units=${rack.units[0].id}`))
+  await sizeSelect(page).selectOption('large')
+  const label = page.locator('.ls-cell')
+  await expect(label).toHaveCount(1, LOAD)
+  await expect(label).toContainText(rack.units[0].code)
+  await expect(label).toContainText('Case contents')
+  await expect(label).toContainText(`2 × ${wireless.name}`)
+  await expect(label).toContainText(`1 × ${di.name}`)
+  await expectAccessible(page)
+})
+
+// covers: T130
+test('power labels: cables on small labels and distros on medium, with the Power band, on a roll and on sheets', { tag: TAG }, async ({ adminWithOrg }) => {
+  const { page, account, org } = adminWithOrg
+  await readBell(account)
+  const id = uniq()
+  const gig = await addGig(account, org.id, { name: `E2E Power ${id}` })
+  ok('Saving the power plan', await account.client.from('gig_show').upsert({
+    gig_id: gig.id,
+    power: {
+      distros: [{ id: 'dstage', name: `Stage distro ${id}`, feed: 'supply', outputs: [{ id: 'o1', label: 'Amps', connector: 'cee16_3p' }, { id: 'o2', label: 'Desk', connector: 'schuko' }] }],
+      cables: [{ id: 'cfeed', kind: 'power', label: 'Stage feed', length: 25, qty: 3 }],
+    },
+  }))
+
+  // The gig's power report → Labels
+  await page.goto(`${gig.path}/power`)
+  await page.getByRole('button', { name: 'Labels' }).click({ timeout: 45_000 })
+  await expect(page).toHaveURL(new RegExp(`/gig/${gig.id}/power/labels$`))
+
+  // Cables, small, on a roll: one label a page
+  await sizeSelect(page).selectOption('small')
+  await modeSelect(page).selectOption('roll')
+  await expect(sheetHeader(page)).toHaveText('3 labels · 3 pages', LOAD)
+  const cells = page.locator('.ls-cell')
+  await expect(cells).toHaveCount(3)
+  await expect(cells.first()).toContainText('Stage feed')
+  await expect(cells.first()).toContainText('25 m')
+  // Small labels leave the band out by default (docs/INVENTORY.md); tick it for this print
+  await expect(cells.first()).not.toContainText('Power')
+  const fields = await openFields(page)
+  await fields.getByRole('checkbox', { name: 'Department band (colour and name)' }).check()
+  await expect(cells.first().locator('.lf-band')).toHaveText('Power')
+  await expectAccessible(page)
+  // …and on pre-cut A4 sheets: one page
+  await modeSelect(page).selectOption('sheet')
+  await expect(sheetHeader(page)).toHaveText('3 labels · 1 page')
+  await expect(labelPages(page)).toHaveCount(1)
+
+  // Distros, medium
+  await page.locator('label').filter({ hasText: /^Labels for/ }).locator('select').selectOption('distros')
+  await sizeSelect(page).selectOption('medium')
+  await expect(sheetHeader(page)).toHaveText(/^1 label · 1 page$/, LOAD)
+  await expect(cells).toHaveCount(1)
+  await expect(cells.first()).toContainText(`Stage distro ${id}`)
+  await expect(cells.first()).toContainText('The supply')
+  await expect(cells.first()).toContainText('Amps')
+  await expect(cells.first().locator('.lf-band')).toHaveText('Power')
+  await modeSelect(page).selectOption('roll')
+  await expect(sheetHeader(page)).toHaveText('1 label · 1 page')
+  await expectAccessible(page)
+})
+
+// The label sheets' pages, edge to edge, once the sheet has been fitted to the window
+async function expectSheetOnScreen(page, width, what) {
+  const edges = () => labelPages(page).evaluateAll(els => {
+    const rects = els.map(el => el.getBoundingClientRect())
+    return rects.length ? { left: Math.min(...rects.map(r => r.left)), right: Math.max(...rects.map(r => r.right)) } : null
+  })
+  await expect.poll(async () => (await edges())?.left, { ...LOAD, message: `${what}: the sheet starts off screen on the left` }).toBeGreaterThanOrEqual(0)
+  await expect.poll(async () => (await edges())?.right, { ...LOAD, message: `${what}: the sheet runs past the right edge` }).toBeLessThanOrEqual(width + 0.5)
+  const scrolls = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+  expect(scrolls, `${what}: the page scrolls sideways`).toBeLessThanOrEqual(0)
+}
+async function phoneLabels(world, browser, baseURL, width) {
+  const [account, org] = await Promise.all([world.admin(), world.org()])
+  await readBell(account)
+  const item = await itemWithUnits(account, org.id, { name: `E2E Phone label ${uniq()}`, units: 2 })
+  const page = await pageAs(browser, account, { baseURL, viewport: { width, height: 740 }, isMobile: true, hasTouch: true })
+  await page.goto(`${org.path}/inventory/labels?units=${item.units.map(u => u.id).join(',')}`)
+  await expect(page.locator('.ls-cell').first()).toBeVisible(LOAD)
+  return page
+}
+
+// covers: T131
+for (const width of [320, 390]) {
+  test(`labels on a phone (${width} px): the whole sheet shows, nothing cut off on the left`, { tag: TAG }, async ({ world, browser, baseURL }) => {
+    const page = await phoneLabels(world, browser, baseURL, width)
+    try {
+      // Each size and paper as the page opens with it (the choice is remembered on the device)
+      for (const size of ['small', 'medium', 'large']) {
+        for (const mode of ['sheet', 'roll']) {
+          await sizeSelect(page).selectOption(size)
+          await modeSelect(page).selectOption(mode)
+          await page.reload()
+          await expect(sizeSelect(page)).toHaveValue(size, LOAD)
+          await expect(modeSelect(page)).toHaveValue(mode)
+          await expect(page.locator('.ls-cell').first()).toBeVisible(LOAD)
+          await expectSheetOnScreen(page, width, `${size} on ${mode}`)
+        }
+      }
+      await expectAccessible(page)
+    } finally {
+      await page.context().close()
+    }
+  })
+}
+
+// covers: T131. Bug #223: on a phone, switching from a label roll to A4 sheets keeps the roll's
+// zoom (LabelSheet fits the page only when its width changes), so the sheet is cut off on the left
+// (about 70 px at 320 px) until the page is reloaded. Expected to fail until that is fixed; then
+// remove the test.fail() line.
+test('labels on a phone: switching from a roll to sheets still fits the sheet on screen', { tag: TAG }, async ({ world, browser, baseURL }) => {
+  test.fail(true, 'Bug #223: the sheet keeps the roll\'s zoom and is cut off on the left')
+  const page = await phoneLabels(world, browser, baseURL, 320)
+  try {
+    await sizeSelect(page).selectOption('small')
+    await modeSelect(page).selectOption('roll')
+    await expectSheetOnScreen(page, 320, 'small on roll')
+    await sizeSelect(page).selectOption('medium')
+    await modeSelect(page).selectOption('sheet')
+    await expect(page.locator('.ls-cell').first()).toBeVisible(LOAD)
+    await expectSheetOnScreen(page, 320, 'medium on sheet, after the roll')
+  } finally {
+    await page.context().close()
+  }
+})
+
+// covers: T64
+test('pickers show everything: subrentals, kits and alternatives, QR labels for all and for chosen items', { tag: TAG }, async ({ adminWithOrg }) => {
+  const { page, account, org } = adminWithOrg
+  await readBell(account)
+  const id = uniq()
+  const a = await itemWithUnits(account, org.id, { name: `E2E Picker A ${id}`, units: 1 })
+  const b = await itemWithUnits(account, org.id, { name: `E2E Picker B ${id}`, units: 1 })
+  const supplier = ok('Adding the supplier', await account.client.from('suppliers').insert({ org_id: org.id, name: `E2E Picker supplier ${id}` }).select().single())
+
+  // Inventory → Subrentals: the supplier list and the new subrental's supplier and item pickers
+  await page.goto(`${org.path}/inventory?tab=subrentals`)
+  await expect(page.getByText(supplier.name)).toBeVisible(LOAD)
+  await page.getByRole('button', { name: 'New subrental' }).click()
+  const sub = page.getByRole('dialog', { name: 'New subrental' })
+  await expect(sub.getByLabel('Supplier *', { exact: true }).locator('option', { hasText: supplier.name })).toHaveCount(1, LOAD)
+  const covers = sub.getByLabel('Covers catalogue item', { exact: true })
+  await expect(covers.locator('option', { hasText: a.name })).toHaveCount(1)
+  await expect(covers.locator('option', { hasText: b.name })).toHaveCount(1)
+  await expectAccessible(page)
+  await sub.getByRole('button', { name: 'Close' }).click()
+
+  // An item's Accessories and Alternatives pickers list the other items; adding one shows it
+  await page.goto(`${org.path}/inventory/${a.id}`)
+  const accessories = page.getByLabel('Add an accessory…', { exact: true })
+  await expect(accessories.locator('option', { hasText: b.name })).toHaveCount(1, LOAD)
+  const alternatives = page.getByRole('heading', { name: 'Alternatives' }).locator('..')
+  const altPicker = alternatives.getByLabel('Add an alternative…', { exact: true })
+  await expect(altPicker.locator('option', { hasText: b.name })).toHaveCount(1)
+  await altPicker.selectOption({ label: `${b.name} · Audio` })
+  await alternatives.getByRole('button', { name: 'Add' }).click()
+  await expect(alternatives.getByRole('link', { name: b.name })).toBeVisible(LOAD)
+  await expectAccessible(page)
+
+  // QR labels: all of them (Inventory → QR labels), and just the chosen ones
+  await page.goto(`${org.path}/inventory`)
+  await page.getByRole('button', { name: 'QR labels' }).click({ timeout: 45_000 })
+  await expect(page).toHaveURL(new RegExp(`${org.path}/inventory/labels$`))
+  const sheet = page.locator('.ls-pages')
+  await expect(sheet).toContainText(a.name, LOAD)
+  await expect(sheet).toContainText(b.name)
+  await page.goto(`${org.path}/inventory/labels?items=${a.id}`)
+  await expect(sheetHeader(page)).toHaveText(/^1 label\b/, LOAD)
+  await expect(sheet).toContainText(a.name)
+  await expect(sheet).not.toContainText(b.name)
 })
