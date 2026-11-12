@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Send, Reply, X, Paperclip, Link2, MoreHorizontal, Pencil, Trash2, History, Copy, FileText, Pin, PinOff, Bookmark, BookmarkCheck, Megaphone, CheckCircle2, Clock, Flag, ShieldX, Ban, Volume2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
@@ -95,6 +95,9 @@ export default function Conversation({ conversationId, canPost = true, height = 
   const [picker, setPicker] = useState(false)
   const [history, setHistory] = useState(null)
   const [menuFor, setMenuFor] = useState(null)
+  // The ⋯ menu opens upwards; downwards when there isn't room above it in the conversation (issue 211)
+  const [menuDown, setMenuDown] = useState(false)
+  const menuBox = useRef(null)
   const [highlight, setHighlight] = useState(null)
   const [mention, setMention] = useState(null)
   const [mentionIndex, setMentionIndex] = useState(0)
@@ -328,6 +331,14 @@ export default function Conversation({ conversationId, canPost = true, height = 
     document.addEventListener('mousedown', close); document.addEventListener('keydown', close)
     return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', close) }
   }, [menuFor])
+
+  // Open the menu downwards when its top would be hidden above the conversation's scroll area
+  useLayoutEffect(() => {
+    const menu = menuBox.current, area = scroller.current
+    if (!menuFor || !menu || !area) return
+    if (!menuDown && menu.getBoundingClientRect().top < area.getBoundingClientRect().top) setMenuDown(true)
+    else if (menuDown) menu.scrollIntoView?.({ block: 'nearest' })
+  }, [menuFor, menuDown])
 
   // People and groups that can be mentioned in a gig's channel
   const candidates = useMemo(() => {
@@ -664,12 +675,12 @@ export default function Conversation({ conversationId, canPost = true, height = 
                   <button className="chat-tool" onClick={() => { setEditing(null); setReplyTo(m); textarea.current?.focus() }} aria-label={t('chat.replyTo', { name: who(m) })} title={t('chat.reply')} style={smallBtn}><Reply size={14} /></button>
                 )}
                 {!removed && (
-                  <button className="chat-tool chat-menu" onClick={() => setMenuFor(menuFor === m.id ? null : m.id)} aria-haspopup="menu" aria-expanded={menuFor === m.id}
+                  <button className="chat-tool chat-menu" onClick={() => { setMenuDown(false); setMenuFor(menuFor === m.id ? null : m.id) }} aria-haspopup="menu" aria-expanded={menuFor === m.id}
                     aria-label={t('chat.moreFor', { name: who(m) })} title={t('chat.more')} style={smallBtn}><MoreHorizontal size={14} /></button>
                 )}
                 {menuFor === m.id && (
-                  <div role="menu" className="chat-menu" style={{
-                    position: 'absolute', zIndex: 20, bottom: '100%', [mine ? 'right' : 'left']: 0, marginBottom: '4px', minWidth: '210px',
+                  <div role="menu" ref={menuBox} className="chat-menu" style={{
+                    position: 'absolute', zIndex: 20, ...(menuDown ? { top: '100%', marginTop: '4px' } : { bottom: '100%', marginBottom: '4px' }), [mine ? 'right' : 'left']: 0, minWidth: '210px',
                     background: colors.panel, border: '1px solid var(--line-strong)', padding: '6px',
                   }}>
                     {canPost && (

@@ -376,6 +376,7 @@ export default {
   'notif.bell': 'Notificações',
   'notif.bellUnread.one': '{count} notificação por ler',
   'notif.bellUnread.other': '{count} notificações por ler',
+  'notif.bellUnreadMany': '9+ notificações por ler',
   'notif.markAllRead': 'Marcar tudo como lido',
   'notif.empty': 'Está tudo em dia.',
   'notif.addedToGig': '{actor} adicionou-o a {gig} como {role}',
