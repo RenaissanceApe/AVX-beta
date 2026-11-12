@@ -2,7 +2,7 @@
 
 ## Changelog
 ### Added
-- **Automated tests for the import (AT5).** 29 signed-in browser tests in
+- **Automated tests for the import (AT5).** 28 signed-in browser tests in
   `e2e/auth/import-more.spec.js` (tag `@import`) now check T31–T35, T37, T98, T108, T134–T139,
   T141–T143, T145, T147–T153 and T155–T160 on the test project every night, including the import
   on a 320 px phone in English and Portuguese. The import's one smoke test stays in

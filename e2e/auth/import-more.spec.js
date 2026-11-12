@@ -275,6 +275,8 @@ test('electrical columns are read, and impossible values are refused', { tag: TA
 // covers: T138
 test('an Excel file with two sheets: the second sheet\'s own rows are imported', { tag: TAG }, async ({ adminWithOrg }) => {
   const { page, org, account } = adminWithOrg
+  const room = `E2E Rack room ${uniq()}`
+  await addLocation(account, org.id, room)
   await openImport(page, org, 'items')
   await page.locator('input[type="file"]').setInputFiles(fixture('equipment-two-sheets.xlsx'))
   const sheet = page.getByLabel('Sheet', { exact: true })
@@ -286,8 +288,7 @@ test('an Excel file with two sheets: the second sheet\'s own rows are imported',
   await toMatch(page)
   await expect(page.getByText('E2E Fresnel · E2E Dimmer · E2E Hazer')).toBeVisible()
   // Its quantities need a location: one for every row
-  await addLocation(account, org.id, `E2E Rack room ${RUN}`).catch(() => null)
-  await page.getByRole('region', { name: /Same for every row/ }).getByLabel('Location', { exact: true }).selectOption(`E2E Rack room ${RUN}`)
+  await page.getByRole('region', { name: /Same for every row/ }).getByLabel('Location', { exact: true }).selectOption(room)
   await toCheck(page)
   await importAndWait(page, 'Import 3 rows', summary(3))
   expect(await itemByCode(account, org.id, 'E2E-FRS')).toMatchObject({ name: 'E2E Fresnel' })
@@ -297,7 +298,7 @@ test('an Excel file with two sheets: the second sheet\'s own rows are imported',
 // covers: T139
 test('a CSV saved by Excel on Windows: read as Western text with the accents right, and the switch', { tag: TAG }, async ({ adminWithOrg }) => {
   const { page, org, account } = adminWithOrg
-  await addLocation(account, org.id, 'Armazém').catch(() => null)
+  await addLocation(account, org.id, 'Armazém')
   await openImport(page, org, 'items')
   await page.locator('input[type="file"]').setInputFiles(fixture('equipment-windows-1252.csv'))
   const windows = 'This file was saved by Excel on Windows, so it was read as Western (Windows-1252) text. Check the accents in the rows below.'
