@@ -2,12 +2,17 @@
 // lines T2, T12–T15, T17 and T18 (docs/PENDING.md section 2); what still needs a person is listed
 // in docs/notes/AT2.md. docs/TESTING.md, "Automated test suite".
 import { readFile } from 'node:fs/promises'
-import { test, expect } from './fixtures.js'
+import { test, expect as baseExpect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
 import { RUN } from './accounts.js'
 import { addGig, addItem, addQuote, addToGig, pageAs } from './setup.js'
 
 test.use({ area: 'messages' })
+
+// Two or three people and the server's round trips per step: on the shared test project, busy with
+// other runs' reports, an answer can take more than the default 5 s, so each wait allows 15 s
+const expect = baseExpect.configure({ timeout: 15_000 })
+test.describe.configure({ timeout: 150_000 })
 
 // Each test starts with everyone's notifications read: the bell's name doesn't match what it shows
 // from 10 unread on, which the accessibility check flags (#209), and a test only opens its own
