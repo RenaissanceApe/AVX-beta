@@ -4,7 +4,7 @@
 import { test, expect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
 import { RUN } from './accounts.js'
-import { addGig, addItem, addToGig } from './setup.js'
+import { addGig, addItem, addQuote, addToGig } from './setup.js'
 
 test.use({ area: 'messages' })
 
@@ -494,4 +494,112 @@ test('a team conversation on an equipment item, a repair and a subrental', { tag
   await expect(other.getByRole('link', { name: 'Open the item' })).toBeVisible()
   await expect(list.getByRole('link', { name: new RegExp(aboutRepair) })).toBeVisible()
   await expect(list.getByRole('link', { name: new RegExp(aboutSub) })).toBeVisible()
+})
+
+// Someone without an account writes on a page opened from a link (a private window)
+async function guestWrites(browser, baseURL, link, { name, text }) {
+  const context = await browser.newContext({ baseURL })
+  const guest = await context.newPage()
+  await guest.goto(link)
+  const thread = guest.getByRole('region', { name: /^Questions\? Write to / })
+  await expect(thread).toBeVisible({ timeout: 15_000 })
+  await thread.getByLabel('Your name').fill(name)
+  await thread.getByLabel('Message').fill(text)
+  await thread.getByRole('button', { name: 'Send' }).click()
+  await expect(thread.getByRole('log').getByText(text)).toBeVisible({ timeout: 15_000 })
+  await expect(thread.getByText(/^No messages yet/)).toHaveCount(0)
+  return { guest, thread, context }
+}
+
+// Send to client → Create link, on the quote's page: the link the client gets
+async function quoteLink(page, quote) {
+  await page.goto(quote.path)
+  await page.getByRole('button', { name: 'Send to client' }).click()
+  const sending = page.getByRole('dialog', { name: 'Send to client' })
+  await sending.getByRole('button', { name: 'Create link' }).click()
+  const link = await sending.getByRole('textbox', { name: 'Link to the quote' }).inputValue()
+  expect(link).toMatch(/\/q\/[\w-]+$/)
+  await sending.getByRole('button', { name: 'Close' }).click()
+  return link
+}
+
+// covers: T15
+test('a quote\'s client writes from the quote\'s page and is answered from its Summary tab', { tag: '@messages' }, async ({ adminWithOrg, browser, baseURL }) => {
+  const { page, account, org } = adminWithOrg
+  const quote = await addQuote(account, org, { title: words('E2E Guest Quote'), lines: [{ description: 'PA system', qty: 1, unit_price: 100 }] })
+  const link = await quoteLink(page, quote)
+
+  const question = words('Can we pick up on Thursday instead?')
+  const { guest, thread, context } = await guestWrites(browser, baseURL, link, { name: 'E2E Client Person', text: question })
+  // (the guest pages' accessibility: the test.fail below)
+
+  await page.getByRole('tab', { name: 'Summary' }).click()
+  await page.getByRole('button', { name: /^Conversation with the client/ }).click()
+  await expect(chatRow(page, question)).toBeVisible({ timeout: 15_000 })
+  await expect(chatRow(page, question)).toContainText('E2E Client Person')
+  await expect(chatRow(page, question)).toContainText('client')
+  const answer = words('Thursday works, see you then')
+  await send(page, answer)
+  await expectAccessible(page)
+
+  // The client sees the answer when they open the page again
+  await guest.reload()
+  await expect(thread.getByText(answer)).toBeVisible({ timeout: 15_000 })
+  await context.close()
+})
+
+// covers: T15
+test('a subrental\'s supplier writes through their link; a new link turns the old one off', { tag: '@messages' }, async ({ adminWithOrg, browser, baseURL }) => {
+  const { page, account, org } = adminWithOrg
+  const supplier = await account.client.from('suppliers').insert({ org_id: org.id, name: words('E2E Hire Co') }).select().single()
+  expect(supplier.error).toBeNull()
+  const reference = words('SUB')
+  const start = new Date(Date.now() + 12 * 86400e3)
+  const sub = await account.client.from('subrentals').insert({ org_id: org.id, supplier_id: supplier.data.id, reference, starts_at: start.toISOString(), ends_at: new Date(start.getTime() + 86400e3).toISOString() }).select().single()
+  expect(sub.error).toBeNull()
+
+  await page.goto(`${org.path}/inventory?tab=subrentals`)
+  await page.getByRole('button', { name: new RegExp(reference) }).click()
+  const win = page.getByRole('dialog', { name: 'Subrental' })
+  await win.getByRole('button', { name: /^Conversation with the supplier/ }).click()
+  await win.getByRole('button', { name: 'Make a link for the supplier' }).click()
+  const linkBox = win.getByRole('textbox', { name: 'Supplier link' })
+  await expect(linkBox).toBeVisible({ timeout: 15_000 })
+  const link = await linkBox.inputValue()
+  expect(link).toMatch(/\/s\/[\w-]+$/)
+
+  const note = words('Ready from 8am at the warehouse')
+  const { guest, thread, context } = await guestWrites(browser, baseURL, link, { name: 'E2E Supplier Person', text: note })
+  await expect(guest.getByText(`Ref. ${reference}`)).toBeVisible()
+
+  // Answered from the subrental (the window loads the conversation again when reopened)
+  await page.reload()
+  await page.getByRole('button', { name: new RegExp(reference) }).click()
+  await win.getByRole('button', { name: /^Conversation with the supplier/ }).click()
+  await expect(chatRow(page, note)).toBeVisible({ timeout: 15_000 })
+  await expect(chatRow(page, note)).toContainText('supplier')
+  const answer = words('Great, our van comes at 8')
+  await send(page, answer)
+  await guest.reload()
+  await expect(thread.getByText(answer)).toBeVisible({ timeout: 15_000 })
+
+  // A new link: the old one stops working
+  page.once('dialog', dialog => dialog.accept())
+  await win.getByRole('button', { name: 'New link' }).click()
+  await expect(linkBox).not.toHaveValue(link, { timeout: 15_000 })
+  await guest.reload()
+  await expect(guest.getByRole('heading', { name: 'Link not available' })).toBeVisible({ timeout: 15_000 })
+  await context.close()
+})
+
+// covers: T15 (documents a bug: the client's and supplier's pages, with their conversation, fail the
+// accessibility check on colour contrast: grey text on white; issue ISSUE_CONTRAST)
+test('the pages a client or supplier opens from a link pass the accessibility check', { tag: '@messages' }, async ({ adminWithOrg, browser, baseURL }) => {
+  test.fail(true, 'Grey text on the guest pages is below the contrast minimum (issue ISSUE_CONTRAST)')
+  const { account, org } = adminWithOrg
+  const quote = await addQuote(account, org, { title: words('E2E Contrast Quote'), lines: [{ description: 'PA system', qty: 1, unit_price: 100 }] })
+  const link = await quoteLink(adminWithOrg.page, quote)
+  const { guest, context } = await guestWrites(browser, baseURL, link, { name: 'E2E Client Person', text: words('Is the PA included?') })
+  await expectAccessible(guest)
+  await context.close()
 })
