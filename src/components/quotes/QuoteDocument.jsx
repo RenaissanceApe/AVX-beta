@@ -8,6 +8,7 @@ import '@fontsource/inter/latin-ext-800.css'
 import '@fontsource/space-mono/latin-700.css'
 import '@fontsource/space-mono/latin-ext-700.css'
 import { translate, fmtIn } from '../../i18n'
+import { DERIVED, contrast } from '../../theme/tokens'
 import {
   normalizeBody, quoteTotals, lineTotal, sectionTotal, formatMoney, formatNumber, quoteNumber, groupTotals, termsBlocks, vatRows, vatLabel,
 } from '../../lib/quotes'
@@ -44,7 +45,7 @@ export default function QuoteDocument({ quote, org = {}, branding = {}, toolbar,
   const banner = branding.header_image
     ? <img src={branding.header_image} alt="" className="banner-img"
         onLoad={e => { const { naturalWidth: w, naturalHeight: h } = e.currentTarget; if (w && h) setBannerRatio(h / w) }} />
-    : <div className="banner-fallback" style={{ background: accent }}>{org.legal_name || org.name}</div>
+    : <div className="banner-fallback" style={{ background: accent, color: textOn(accent) }}>{org.legal_name || org.name}</div>
   const Heading = ({ children: text, extra }) => (
     <h2 className="qh"><span className="bar" style={{ background: accent }} />{text}{extra}</h2>
   )
@@ -203,6 +204,13 @@ export default function QuoteDocument({ quote, org = {}, branding = {}, toolbar,
 }
 
 
+// White or ink text on the brand colour, whichever reads better (white on a light green failed
+// the contrast check, #146). A colour that isn't #rrggbb gets ink.
+export function textOn(bg) {
+  if (!/^#[0-9a-f]{6}$/i.test(bg || '')) return DERIVED.ink
+  return contrast(DERIVED.paper, bg) >= contrast(DERIVED.ink, bg) ? DERIVED.paper : DERIVED.ink
+}
+
 export const toolbarBtn = {
   display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 14px', 
   border: '1px solid #ccc', background: '#fff', color: '#111', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
@@ -216,7 +224,7 @@ const QUOTE_PRINT_CSS = `
     -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .doc .pre { white-space: pre-line; }
   .banner-img { display: block; width: 100%; height: auto; }
-  .banner-fallback { color: #fff; font-weight: 800; font-size: 14pt; padding: 8mm 18mm; }
+  .banner-fallback { font-weight: 800; font-size: 14pt; padding: 8mm 18mm; }
   .print-banner, .print-foot { display: none; }
   .frame { width: 100%; border-collapse: collapse; }
   .frame > thead td, .frame > tfoot td { padding: 0; }

@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { logger } from '../../lib/logger'
 import { translate, fmtIn } from '../../i18n'
 import { AvxLoader } from '../ui'
+import { DERIVED } from '../../theme/tokens'
 
 const NAME_KEY = 'avx.guestName'
 const readName = () => { try { return localStorage.getItem(NAME_KEY) || '' } catch { return '' } }
@@ -65,10 +66,10 @@ export default function GuestThread({ token, lang, defaultName = '', onData }) {
       </h2>
       <p style={{ fontSize: '13px', color: '#666', margin: '0 0 10px' }}>{tr('guest.intro', { org })}</p>
       <div ref={list} role="log" aria-live="polite" style={{ maxHeight: '340px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', padding: '4px 0' }}>
-        {count === 0 && <p style={{ fontSize: '13px', color: '#777', textAlign: 'center', padding: '14px 0' }}>{tr('guest.empty', { org })}</p>}
+        {count === 0 && <p style={{ fontSize: '13px', color: SOFT, textAlign: 'center', padding: '14px 0' }}>{tr('guest.empty', { org })}</p>}
         {data.messages.map(m => (
           <div key={m.id} style={{ alignSelf: m.guest ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
-            <div style={{ fontSize: '11px', color: '#777', margin: '0 4px 2px', textAlign: m.guest ? 'right' : 'left' }}>
+            <div style={{ fontSize: '11px', color: SOFT, margin: '0 4px 2px', textAlign: m.guest ? 'right' : 'left' }}>
               {m.name}{!m.guest && org && m.name !== org ? ` · ${org}` : ''} · {fmtIn(lang, m.at, lang === 'pt' ? 'dd-MM HH:mm' : 'd MMM HH:mm')}
             </div>
             <div style={{ background: m.guest ? '#E7F8EF' : '#F1F3F5', padding: '8px 11px', fontSize: '14px', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</div>
@@ -86,7 +87,7 @@ export default function GuestThread({ token, lang, defaultName = '', onData }) {
         </label>
         {error && <p role="alert" style={{ fontSize: '13px', color: '#B91C1C', margin: 0 }}>{error}</p>}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <span style={{ flex: '1 1 200px', fontSize: '11px', color: '#777', lineHeight: 1.5 }}>
+          <span style={{ flex: '1 1 200px', fontSize: '11px', color: SOFT, lineHeight: 1.5 }}>
             {tr('guest.privacy', { org })} <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#555' }}>{tr('guest.privacyLink')}</a>
           </span>
           <button type="submit" disabled={sending || !name.trim() || !text.trim()} style={sendBtn}>
@@ -102,6 +103,8 @@ const box = {
   maxWidth: '210mm', margin: '12px auto 0', background: '#fff', color: '#111', border: '1px solid #d5dbe1',
   padding: '16px', fontFamily: "'Inter', sans-serif",
 }
+// Small grey text: the paper ink at 70% (#777 was below the contrast minimum, #146)
+const SOFT = `${DERIVED.ink}B3`
 const labelStyle = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#333' }
 const field = { padding: '9px 11px', border: '1px solid #ccc', fontSize: '14px', color: '#111', background: '#fff', fontFamily: 'inherit' }
 const sendBtn = {

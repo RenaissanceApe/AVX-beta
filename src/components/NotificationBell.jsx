@@ -94,7 +94,7 @@ export default function NotificationBell() {
   return (
     <div ref={panelRef} style={{ position: 'relative' }}>
       <button ref={buttonRef} onClick={toggle} aria-expanded={open} aria-haspopup="true"
-        aria-label={unread ? t('notif.bellUnread', { count: unread }) : t('notif.bell')} title={t('notif.bell')}
+        aria-label={unread > 9 ? t('notif.bellUnreadMany') : unread ? t('notif.bellUnread', { count: unread }) : t('notif.bell')} title={t('notif.bell')}
         style={{ ...iconBtn, position: 'relative', color: unread ? 'var(--text)' : colors.muted }}>
         <Bell size={17} />
         {unread > 0 && (

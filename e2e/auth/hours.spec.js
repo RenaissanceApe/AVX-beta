@@ -550,12 +550,11 @@ test('the organisation export has the rates, fees, hours, holidays, leave and ex
 })
 
 // Not about hours: found while writing these tests. From ten unread notifications the bell shows
-// "9+", but its accessible name says "10 unread notifications", so the visible text isn't part of
-// its name (axe: label-content-name-mismatch, serious). Issue #209. The browser is given ten
-// unread notifications (a stand-in answer; the database doesn't change). Remove test.fail() once fixed.
+// "9+", so its accessible name must say "9+ unread notifications" to include the visible text
+// (axe: label-content-name-mismatch, serious; issue #209, fixed). The browser is given ten
+// unread notifications (a stand-in answer; the database doesn't change).
 // covers: none (an app bug found by T69–T71's accessibility checks)
 test('the bell with ten unread notifications is accessible', { tag: TAG }, async ({ member }) => {
-  test.fail(true, 'Issue #209: the bell shows "9+" but its name is "10 unread notifications"')
   const { page, org, account } = member
   await page.route(/\/rest\/v1\/notifications\?/, async route => {
     if (route.request().method() !== 'GET') return route.continue()
@@ -566,6 +565,6 @@ test('the bell with ten unread notifications is accessible', { tag: TAG }, async
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(rows) })
   })
   await page.goto(org.path)
-  await expect(page.getByRole('button', { name: '10 unread notifications' })).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByRole('button', { name: '9+ unread notifications' })).toBeVisible({ timeout: 20_000 })
   await expectAccessible(page)
 })
