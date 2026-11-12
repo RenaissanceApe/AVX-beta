@@ -196,7 +196,7 @@ export default function InvoicesPage() {
 
       {picking && <QuotePicker orgId={orgId} prefix={org?.quote_number_prefix ?? 'Q'} onClose={() => setPicking(false)} onPick={q => { setPicking(false); setOpen({ quote: q }) }} />}
       {open && (
-        <InvoiceModal key={open.invoice?.id || open.quote?.id || open.creditOf?.id} orgId={orgId} invoice={open.invoice || null} quote={open.quote || null}
+        <InvoiceModal key={open.creditOf ? `credit-${open.creditOf.id}` : (open.invoice?.id || open.quote?.id)} orgId={orgId} invoice={open.invoice || null} quote={open.quote || null}
           client={open.client || open.quote?.client || null} creditOf={open.creditOf || null} dueDays={org?.invoice_due_days ?? 30}
           siblings={open.quote ? (list || []).filter(i => i.quote_id === open.quote.id) : open.creditOf ? siblingsOf(open.creditOf) : []}
           onClose={() => setOpen(null)} onSaved={changed}

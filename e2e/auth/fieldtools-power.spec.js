@@ -8,7 +8,7 @@ import { test, expect } from './fixtures.js'
 import { expectAccessible, waitForServiceWorker } from './helpers.js'
 import { readPdfText } from './files.js'
 import { addItem, addToGig, pageAs } from './setup.js'
-import { TAG, LOAD, uniq, ok, readBell, toolGig, openTool } from './fieldtoolsSupport.js'
+import { TAG, LOAD, uniq, ok, readBell, toolGig, openTool, holdNextShowSave } from './fieldtoolsSupport.js'
 
 test.use({ area: 'fieldtools' })
 
@@ -603,10 +603,10 @@ test('line array from the sound system: name, 12 × K2 and K2-BUMP come with it;
 
   // Splay angles: 0° under the bumper, then 1° and 2°: the side view aims the bottom element 3° down
   await openArrayForm(arr)
-  // (each saved before the next, issue #229)
-  for (const [i, name, deg] of [[0, 'Bumper → 1', 0], [1, '1 → 2', 1], [2, '2 → 3', 2]]) {
+  // (typed one after the other, the first save held back on a slow network: all three kept, issue #229)
+  await holdNextShowSave(page)
+  for (const [name, deg] of [['Bumper → 1', 0], ['1 → 2', 1], ['2 → 3', 2]]) {
     await setNumber(arr.getByRole('spinbutton', { name, exact: true }), deg)
-    await expect.poll(async () => (await arrays())[0].splays[i] ?? 0, LOAD).toBe(deg)
   }
   await expect.poll(async () => (await arrays())[0].splays.slice(0, 3), LOAD).toEqual([0, 1, 2])
   await expect(arr.getByRole('img', { name: 'Side view of an array of 12 elements, bumper tilted 0°, bottom element aimed 3° down' })).toBeVisible(LOAD)

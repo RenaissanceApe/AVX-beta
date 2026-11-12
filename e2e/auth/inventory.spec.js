@@ -600,12 +600,10 @@ for (const width of [320, 390]) {
   })
 }
 
-// covers: T131. Bug #223: on a phone, switching from a label roll to A4 sheets keeps the roll's
-// zoom (LabelSheet fits the page only when its width changes), so the sheet is cut off on the left
-// (about 70 px at 320 px) until the page is reloaded. Expected to fail until that is fixed; then
-// remove the test.fail() line.
+// covers: T131. Bug #223 (fixed): on a phone, switching from a label roll to A4 sheets used to keep
+// a zoom worked out while the roll overflowed, so the sheet was cut off on the left (about 70 px at
+// 320 px) until the page was reloaded.
 test('labels on a phone: switching from a roll to sheets still fits the sheet on screen', { tag: TAG }, async ({ world, browser, baseURL }) => {
-  test.fail(true, 'Bug #223: the sheet keeps the roll\'s zoom and is cut off on the left')
   const page = await phoneLabels(world, browser, baseURL, 320)
   try {
     await sizeSelect(page).selectOption('small')

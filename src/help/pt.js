@@ -1523,7 +1523,7 @@ export default {
       ],
       mistakes: [
         'O tipo de um campo não muda depois de criado. Crie um campo novo.',
-        'Remover um campo esconde-o em todo o lado e não se pode desfazer; os valores já preenchidos ficam na exportação.',
+        'Remover um campo esconde-o em todo o lado e não se pode desfazer; os valores já preenchidos ficam guardados, mas um campo removido não sai na exportação.',
         'A equipa de um evento vê os campos do evento. Não os use para nada que a equipa não deva ler.',
       ],
     },

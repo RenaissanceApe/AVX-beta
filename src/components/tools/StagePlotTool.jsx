@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Printer, RotateCw, Trash2, ListOrdered, PackagePlus, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { saveShow } from '../../lib/queuedSaves'
 import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -109,7 +110,7 @@ export default function StagePlotTool({ gig, canEdit, canPlanEquipment, hasInput
   async function saveStage(patch) {
     const next = { ...stage, ...patch }
     setStage(next)
-    const { error } = await supabase.from('gig_show').upsert({ gig_id: gig.id, stage: next })
+    const { error } = await saveShow(gig.id, { stage: next })
     if (error) { logger.error('plot', error, { step: 'stage' }); notify(userMessage(error), 'error') }
   }
 

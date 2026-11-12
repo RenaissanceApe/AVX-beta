@@ -38,8 +38,8 @@ async function send(page, text) {
   await expect(chatRow(page, text)).toBeVisible({ timeout: 30_000 })
 }
 
-// Photos in a chat have their links once their signed address has loaded (until then the link has
-// no address, which the accessibility check flags: see the test.fail for issue #212)
+// Photos in a chat have their links once their signed address has loaded (until then a labelled
+// placeholder shows; issue #212). Waiting keeps the axe check on the finished screen.
 async function chatAccessible(page) {
   await expect(page.locator('.chat-row a[target="_blank"]:not([href])')).toHaveCount(0, { timeout: 15_000 })
   await expectAccessible(page)
@@ -285,7 +285,7 @@ test('an organisation channel: admins only write, an announcement is confirmed, 
   await expect(chatRow(page, notice).getByRole('button', { name: /^1 of \d+ confirmed$/ })).toBeVisible({ timeout: 15_000 })
 
   // Pin a message: the bar above the conversation shows it. In a conversation this short the
-  // menu opens under the header (see the test.fail below), so the item is chosen with the keyboard.
+  // menu used to open under the header (#211, fixed); the item is still chosen with the keyboard.
   // (Pin shows for whoever runs the channel; the app looks that up once when the conversation
   // opens, and on a busy test project that lookup can time out: then the page is loaded again)
   let pin = (await menuOf(page, hello)).getByRole('menuitem', { name: 'Pin' })
@@ -355,10 +355,9 @@ test('search finds a message, and a saved message is under Saved', { tag: '@mess
   await expect(crew.getByRole('link', { name: new RegExp(marker) })).toBeVisible({ timeout: 15_000 })
 })
 
-// covers: T13 (documents a bug: the ⋯ menu of a message near the top of a short conversation opens
-// upwards, under the conversation's header, so its first items can't be clicked; issue #211)
+// covers: T13 (the ⋯ menu of a message near the top of a short conversation opens downwards, so its
+// first items aren't hidden under the conversation's header; issue #211, fixed)
 test('the menu of the first message in a short conversation can be clicked', { tag: '@messages' }, async ({ adminWithOrg }) => {
-  test.fail(true, 'The ⋯ menu opens upwards under the header (issue #211)')
   const { page, account, org } = adminWithOrg
   const title = words('Short channel')
   const { data: channelId, error } = await account.client.rpc('save_org_channel', { p_id: null, p_org: org.id, p_title: title, p_audience: 'everyone', p_admins_post: false, p_archived: null })
@@ -575,7 +574,7 @@ test('a quote\'s client writes from the quote\'s page and is answered from its S
 
   const question = words('Can we pick up on Thursday instead?')
   const { guest, thread, context } = await guestWrites(browser, baseURL, link, { name: 'E2E Client Person', text: question })
-  // (the guest pages' accessibility: the test.fail below)
+  // (the guest pages' accessibility: the test below)
 
   await page.getByRole('tab', { name: 'Summary' }).click()
   await page.getByRole('button', { name: /^Conversation with the client/ }).click()
@@ -636,10 +635,9 @@ test('a subrental\'s supplier writes through their link; a new link turns the ol
   await context.close()
 })
 
-// covers: T15 (documents a bug: the client's quote page and its conversation fail the accessibility
-// check on colour contrast: grey text on white, and the header over the brand colour; issue #146)
+// covers: T15 (the client's quote page and its conversation pass the colour-contrast check: grey text
+// on white, and the header over the brand colour; issue #146, fixed)
 test('the pages a client or supplier opens from a link pass the accessibility check', { tag: '@messages' }, async ({ adminWithOrg, browser, baseURL }) => {
-  test.fail(true, 'Grey text on the guest pages is below the contrast minimum (issue #146)')
   const { account, org } = adminWithOrg
   const quote = await addQuote(account, org, { title: words('E2E Contrast Quote'), lines: [{ description: 'PA system', qty: 1, unit_price: 100 }] })
   const link = await quoteLink(adminWithOrg.page, quote)
@@ -648,8 +646,8 @@ test('the pages a client or supplier opens from a link pass the accessibility ch
   await context.close()
 })
 
-// covers: T17. The reported messages are written by other people on the gig: the database doesn't
-// tell a manager about reports on their own messages (report_message), see docs/notes/AT2.md.
+// covers: T17. A report on the manager's own message is told to the manager too (#221, the owner's
+// decision: every manager of the conversation hears about every report in it).
 test('a reported message: the gig\'s manager keeps one and removes another', { tag: '@messages' }, async ({ adminWithOrg, crewOnGig, browser, baseURL }) => {
   const { page, account, world } = adminWithOrg
   const gig = crewOnGig.gig
@@ -706,6 +704,23 @@ test('a reported message: the gig\'s manager keeps one and removes another', { t
   await openNotification(crew, new RegExp(`A moderator removed your message in .*${second}`))
   await expect(crew.locator(`#${secondId}`)).toContainText('Removed by a moderator', { timeout: 15_000 })
   await expect(crew.getByRole('log').getByText(second)).toHaveCount(0)
+
+  // The crew member reports the manager's own message: the manager is told all the same (#221)
+  const own = words('Load-in moves to seven')
+  await page.goto(`${gig.path}?tab=chat`)
+  await send(page, own)
+  await crew.goto(`${gig.path}?tab=chat`)
+  await expect(chatRow(crew, own)).toBeVisible({ timeout: 20_000 })
+  await (await menuOf(crew, own)).getByRole('menuitem', { name: 'Report' }).click()
+  await crew.getByRole('dialog', { name: 'Report this message' }).getByRole('radio', { name: 'Something else' }).check()
+  await crew.getByRole('button', { name: 'Send report' }).click()
+  await expect(crew.getByText('Thanks. The report was sent.')).toBeVisible()
+  await page.goto('/me')
+  await openNotification(page, /was reported \(Something else\)\. Remove it or keep it/)
+  const ownNote = chatRow(page, own).getByRole('note')
+  await expect(ownNote).toContainText('Reported (1): Something else', { timeout: 15_000 })
+  await ownNote.getByRole('button', { name: 'Keep it' }).click()
+  await expect(page.getByText('Report closed; the message stays.')).toBeVisible()
 })
 
 // covers: T17
@@ -752,10 +767,9 @@ test('blocking someone in a direct conversation: neither can write; unblock from
   await other.context().close()
 })
 
-// covers: T12 (documents a bug: while a photo in a chat is loading, its link has a label but no
-// address, which the accessibility check flags as serious; issue #212)
+// covers: T12 (while a photo in a chat is loading it shows a labelled placeholder, not a link without
+// an address, which the accessibility check flagged as serious; issue #212, fixed)
 test('a photo in a chat is accessible while it loads', { tag: '@messages' }, async ({ adminWithOrg, crewOnGig }) => {
-  test.fail(true, 'The photo link has aria-label but no href until the signed address loads (issue #212)')
   const { page } = adminWithOrg
   const gig = crewOnGig.gig
   await page.goto(`${gig.path}?tab=chat`)
@@ -765,7 +779,7 @@ test('a photo in a chat is accessible while it loads', { tag: '@messages' }, asy
   // The signed address takes a while (held here, as on a slow connection)
   await page.route('**/storage/v1/object/sign/**', () => { /* never answers */ })
   await page.reload()
-  await expect(chatRow(page, text).getByRole('link', { name: 'truck.png' }).or(chatRow(page, text).locator('a[aria-label="truck.png"]'))).toHaveCount(1, { timeout: 15_000 })
+  await expect(chatRow(page, text).getByRole('img', { name: 'truck.png' })).toHaveCount(1, { timeout: 15_000 })
   await expectAccessible(page)
 })
 

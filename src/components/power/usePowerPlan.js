@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { saveShow } from '../../lib/queuedSaves'
 import { logger } from '../../lib/logger'
 import { selectAll } from '../../lib/selectAll'
 import { saveSnapshot, loadSnapshot, isNetworkError } from '../../lib/offline'
@@ -46,7 +47,7 @@ export default function usePowerPlan(gig, { canEdit = false } = {}) {
   async function save(patch) {
     const power = { ...(data?.power || {}), ...patch }
     setData(d => ({ ...d, power }))
-    const { error } = await supabase.from('gig_show').upsert({ gig_id: gig.id, power })
+    const { error } = await saveShow(gig.id, { power })
     if (error) { logger.error('power', error, { step: 'save' }); load() }
     return error
   }

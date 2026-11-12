@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Plus, Trash2, AlertTriangle, ShieldAlert, CheckCircle2, CircleHelp } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { saveShow } from '../../lib/queuedSaves'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
@@ -102,7 +103,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
   async function save(patch) {
     const rigging = { ...(show?.rigging || {}), ...patch }
     setShow(s => ({ ...s, rigging }))
-    const { error } = await supabase.from('gig_show').upsert({ gig_id: gig.id, rigging })
+    const { error } = await saveShow(gig.id, { rigging })
     if (error) { logger.error('rigging', error, { step: 'save' }); notify(userMessage(error), 'error'); load() }
   }
   const saveLines = list => save({ lines: list })

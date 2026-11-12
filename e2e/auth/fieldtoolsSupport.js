@@ -45,3 +45,14 @@ export async function drag(page, from, to) {
   for (let i = 1; i <= 8; i++) await page.mouse.move(from.x + ((to.x - from.x) * i) / 8, from.y + ((to.y - from.y) * i) / 8)
   await page.mouse.up()
 }
+
+// Holds the page's next save of the show model (gig_show) back by 1.5 s, as a slow site network
+// would, so the next change is made while it is still on its way. Saves of one thing go out one
+// after another (issue #229, src/lib/saveQueue.js), so the later change must still be the one kept.
+export async function holdNextShowSave(page) {
+  let held = false
+  await page.route('**/rest/v1/gig_show*', async route => {
+    if (!held && route.request().method() === 'POST') { held = true; await new Promise(r => setTimeout(r, 1500)) }
+    await route.continue()
+  })
+}

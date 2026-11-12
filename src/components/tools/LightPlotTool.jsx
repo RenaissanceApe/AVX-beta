@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Printer, RotateCw, Trash2, Plus, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, AlertTriangle, Undo2, LogOut } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { saveShow } from '../../lib/queuedSaves'
 import { selectAll } from '../../lib/selectAll'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
@@ -82,7 +83,7 @@ export default function LightPlotTool({ gig, canEdit, hasDmxPatch, onToolsChange
     clearTimeout(lightingTimer.current?.timer)
     const save = async () => {
       lightingTimer.current = null
-      const { error } = await supabase.from('gig_show').upsert({ gig_id: gig.id, lighting })
+      const { error } = await saveShow(gig.id, { lighting })
       if (error) { logger.error('lights', error, { step: 'lighting' }); notify(userMessage(error), 'error'); load() }
     }
     if (now) save()

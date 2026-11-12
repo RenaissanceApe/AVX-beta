@@ -39,7 +39,7 @@ const phone = (browser, baseURL, account, width, lang = 'en') =>
   pageAs(browser, account, { baseURL, lang, viewport: { width, height: 740 }, isMobile: true, hasTouch: true })
 
 // The screen fits the phone: no sideways scroll, each key control inside the screen, axe passes
-// axe: false only where a known app bug is documented by its own test (#146, the client's quote page)
+// axe: false only where a known app bug is documented by its own test
 async function fitsPhone(page, what, keys = [], { axe = true } = {}) {
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
     { message: `${what}: the page scrolls sideways`, timeout: 10_000 }).toBeLessThanOrEqual(0)
@@ -921,8 +921,7 @@ test('design sweep at 320 px: Organisations, Cash, Maintenance, Subrentals, a sh
     // The shared quote link, as the client sees it
     await page.goto(shared)
     await expect(page.getByRole('button', { name: 'Accept' })).toBeVisible(LOAD)
-    // (its colour contrast is known bug #146, documented in quotes.spec.js)
-    await fitsPhone(page, 'shared quote', [page.getByRole('button', { name: 'Accept' }), page.getByRole('button', { name: 'Decline' })], { axe: false })
+    await fitsPhone(page, 'shared quote', [page.getByRole('button', { name: 'Accept' }), page.getByRole('button', { name: 'Decline' })])
 
     // A ⋯ button is easy to hit (44 px on a phone)
     await page.goto(`${org.path}/quotes`)

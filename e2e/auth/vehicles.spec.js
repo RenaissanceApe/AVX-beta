@@ -831,7 +831,6 @@ for (const lang of ['en', 'pt']) {
 // covers: T184 (bug #222: the comparison period of a period that hasn't started is empty, and
 // vehicle_use refuses it with "Bad period", so the whole view says it couldn't be loaded)
 test('vehicle use for a period that hasn\'t started yet loads', { tag: TAG }, async ({ adminWithOrg }) => {
-  test.fail(true, 'Bug #222: Reports → Vehicle use can\'t load a period that hasn\'t started yet')
   const { page, org } = adminWithOrg
   await page.goto(`${org.path}/reports?tab=vehicles&period=custom&from=${day(7)}&until=${day(8)}`)
   await reportLoaded(page, page.getByText(/^(Vehicle cost|No trips or vehicle expenses in this period|No vehicles yet)$/).first())

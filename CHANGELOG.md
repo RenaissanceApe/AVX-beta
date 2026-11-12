@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.84.1 — Bug fixes
+
+The bugs the new automated tests found in 0.84.0 are fixed, and their tests now check the right
+behaviour instead of expecting the bug.
+
+#### Fixed
+- **Two quick changes are both kept** (BF1). Ticking two checklist items in a row, or making two
+  quick changes in the patch, light plot, rigging and line arrays, sound system calculator, stage
+  plot or power plan, could lose one on a slow network: an older save reached the database last and
+  wrote the older state back, though the screen showed the newer one. Saves of the same thing now
+  go out one after another, and only the latest state is sent (#214, #229).
+- **Credit notes** (BF3): "Credit note" on an issued invoice opens a new credit note again, on the
+  Invoices page and on a quote's invoices (#208).
+- **On site** (BF3): "Crew and phones" now opens the gig's crew list for crew-only people too
+  (simple mode used to switch straight back to the overview) (#215).
+- **Reports → Vehicle use** (BF3): a period that hasn't started yet loads; there is simply nothing
+  to compare it with yet (#222).
+- **Import → Equipment** (BF3): an item that isn't kept in stock but has a quantity is caught in
+  the Check step, with two fixes there: count it in bulk instead, or leave the quantity out. It
+  used to pass the check and then be refused with a misleading "kept per unit" message (#227).
+- **Messages, reports** (BF3): when a message is reported, every manager of the conversation is
+  told, including a manager whose own message was reported (#221).
+- **The notification bell** (BF2): from ten unread it shows "9+", and a screen reader now hears
+  "9+ unread notifications" (it said "10 unread notifications") (#209).
+- **Messages, the ⋯ menu** (BF2): on a message near the top of a short conversation it opens
+  downwards when there's no room above, so Pin, React, Reply and Copy link can be tapped (#211).
+- **Messages, photos** (BF2): while a photo is loading (or if it can't load) it shows a labelled
+  placeholder instead of a link with no address, which screen readers couldn't use (#212).
+- **Labels on a phone** (BF2): switching a sheet from a roll to A4 sheets fits the whole sheet on
+  screen straight away (it was cut off on the left until a reload) (#223).
+- **The client's quote page and the supplier page** (BF2) are easier to read: the organisation's
+  name on the brand-coloured header is now dark or white, whichever reads better on that colour,
+  and the small grey text in the conversation with the company is darker. The quote header text
+  follows the brand colour the same way on the printed/PDF quote when there's no header image
+  (#146).
+
+#### Changed
+- **Custom fields** (BF3): the setting and its help now say that a removed field is left out of
+  the organisation export (its values are kept) (#216).
+
+#### For developers
+- Whole-object saves are queued per thing (`src/lib/saveQueue.js`, `src/lib/queuedSaves.js`).
+- One migration, `20270124000000_report_message_notify_all.sql` (create or replace of
+  `private.report_message_unchecked`), on the test project; production waits for your yes (F24).
+  No Edge Functions changed.
+- Follow-ups filed: #236 (two people editing the same checklist or plot at once), #237 (the flaky
+  "suggest where to plug in" test).
+
 ## 0.84.0 — Automated tests
 
 A robot now tries most of the test list in docs/PENDING.md section 2 every night, the way you

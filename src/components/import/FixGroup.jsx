@@ -153,6 +153,7 @@ export default function FixGroup({ group, kind, ctx, onApply }) {
       }
       case 'countBulk': return [cells('countBulk', () => ({ tracking: 'bulk' }))]
       case 'dropQuantity': return [cells('dropQuantity', () => ({ quantity: '' }))]
+      case 'dropStock': return [cells('dropStock', () => ({ quantity: '' }))]
       case 'keepTracking': return [cells('keepTracking', () => ({ tracking: '' }))]
       default: return null
     }

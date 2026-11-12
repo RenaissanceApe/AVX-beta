@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Printer, Plus, Trash2, AlertTriangle, Info } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { saveShow } from '../../lib/queuedSaves'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
@@ -72,7 +73,7 @@ export default function SystemCalcTool({ gig, canEdit }) {
   async function save(patch) {
     const system = { ...(show?.system || {}), ...patch }
     setShow(s => ({ ...s, system }))
-    const { error } = await supabase.from('gig_show').upsert({ gig_id: gig.id, system })
+    const { error } = await saveShow(gig.id, { system })
     if (error) { logger.error('system', error, { step: 'save' }); notify(userMessage(error), 'error'); load() }
   }
   const editSource = (id, patch) => save({ sources: sources.map(s => (s.id === id ? { ...s, ...patch } : s)) })

@@ -330,13 +330,8 @@ test('a credit note for part of an issued invoice is fine; crediting more than i
   await expect(dialog.getByRole('region', { name: 'Payments' })).toContainText('To pay after credit notes€73.80')
 })
 
-// covers: T75
-// Known app bug #208: "Credit note" on an issued invoice doesn't open a new credit note. The page
-// opens the credit note with the same React key as the invoice it credits (InvoicesPage.jsx and
-// QuoteInvoices.jsx: key={open.invoice?.id || … || open.creditOf?.id}), so the invoice's window stays
-// as it is. Expected to fail until it is fixed; then the test.fail line comes out.
+// covers: T75 (and bug #208: the credit note used to open with the invoice's own React key)
 test('"Credit note" on an issued invoice opens a new credit note, which refuses more than is left', { tag: AREA }, async ({ adminWithOrg }) => {
-  test.fail(true, 'App bug #208: the Credit note button doesn\'t open a new credit note')
   const { page, account, org } = adminWithOrg
   const quote = await acceptedQuote(account, org, { title: `E2E Credit button ${stamp()}`, client_name: 'E2E Client', lines: [{ description: 'PA system', qty: 1, unit_price: 100 }] })
   const invoice = await issuedInvoice(account, quote)
@@ -346,7 +341,8 @@ test('"Credit note" on an issued invoice opens a new credit note, which refuses 
   const credit = page.getByRole('dialog', { name: 'New credit note' })
   await expect(credit).toBeVisible()
   await expect(credit.getByText(`credits ${invoice.legal_number}`)).toBeVisible()
-  await credit.locator('input[inputmode="decimal"]').nth(1).fill('100')
+  // It starts as the whole invoice (€123, all that is left): twice that is more than is left
+  await credit.getByRole('textbox', { name: 'Qty' }).fill('2')
   await credit.getByRole('button', { name: 'Save draft' }).click()
   await expect(page.getByText('That credits more than is left on the invoice.')).toBeVisible({ timeout: 15_000 })
 })
@@ -597,12 +593,9 @@ test('a quote accepted without drawing works as before, with no "Signed" line', 
 
 
 // covers: T7, T67, T102 (the client's quote page they all open)
-// Known app bug #146: the client's quote page has three serious colour-contrast findings (the
-// header text over the brand colour, and the grey text of the conversation and its form). This test
-// documents it: it is expected to fail until #146 is fixed; then Playwright reports it as passing
-// unexpectedly, and the test.fail line comes out.
+// Bug #146 (fixed): the client's quote page had three serious colour-contrast findings (the header
+// text over the brand colour, and the grey text of the conversation and its form).
 test('the client\'s quote page passes the accessibility check', { tag: AREA }, async ({ adminWithOrg, browser, baseURL }) => {
-  test.fail(true, 'App bug #146: serious colour-contrast findings on the client quote page (/q/…)')
   const { account, org } = adminWithOrg
   const quote = await addQuote(account, org, { title: `E2E Client page ${stamp()}`, lines: [{ description: 'PA', qty: 1, unit_price: 100 }] })
   const client = await clientPage(browser, baseURL, await quoteLink(account, quote))

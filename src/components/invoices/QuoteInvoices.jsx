@@ -58,7 +58,7 @@ export default function QuoteInvoices({ quote, body, prefix, clients = [], dueDa
         <Link to={`/org/${quote.org_id}/invoices`} style={{ ...btn, textDecoration: 'none' }}>{t('invoice.allInvoices')}</Link>
       </div>
       {open && (
-        <InvoiceModal key={open.invoice?.id || open.creditOf?.id || 'new'} orgId={quote.org_id} invoice={open.invoice || null} quote={open.quote || null}
+        <InvoiceModal key={open.creditOf ? `credit-${open.creditOf.id}` : (open.invoice?.id || 'new')} orgId={quote.org_id} invoice={open.invoice || null} quote={open.quote || null}
           client={client} creditOf={open.creditOf || null} dueDays={dueDays}
           siblings={open.creditOf ? list.filter(i => i.credited_invoice_id === open.creditOf.id) : list}
           onClose={() => setOpen(null)} onSaved={load} onCredit={inv => setOpen({ creditOf: inv })} />

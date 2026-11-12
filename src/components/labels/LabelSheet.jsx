@@ -72,9 +72,11 @@ export default function LabelSheet({ labels, orgId, orgName, sizeKey, onBack, ba
     return () => { gone = true }
   }, [qrKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // On screen, pages shrink to the window (a phone shows the whole sheet); print is always 1:1
+  // On screen, pages shrink to the window (a phone shows the whole sheet); print is always 1:1.
+  // The page's own width, not window.innerWidth: on a phone innerWidth grows while the previous
+  // (too wide) page overflows, which left a sheet cut off after switching from a roll (#223)
   useEffect(() => {
-    const fit = () => setZoom(Math.min(1, (window.innerWidth - 32) / (layout.page.w * MM)))
+    const fit = () => setZoom(Math.min(1, ((document.documentElement.clientWidth || window.innerWidth) - 32) / (layout.page.w * MM)))
     fit()
     window.addEventListener('resize', fit)
     return () => window.removeEventListener('resize', fit)

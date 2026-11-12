@@ -100,7 +100,12 @@ export default function GigPage() {
   // Tools (FIELD_TOOLS.md, F1): who edits the Plan tools. The tab is always there (On site tools)
   const editsTools = !!data?.gig && (data.gig.created_by === user.id || orgRole === 'admin' || orgRole === 'member'
     || (data.members || []).some(m => m.user_id === user.id && m.role === 'pm'))
-  const tabs = (simple ? [...SIMPLE_GIG_TABS, ...(GIG_TABS.includes(requestedTab) && !SIMPLE_GIG_TABS.includes(requestedTab) ? [requestedTab] : [])] : GIG_TABS)
+  // A button on the page (e.g. On site's "Crew and phones") may open a tab simple mode leaves out:
+  // it's added to the tabs, like a requested one, until another gig is opened
+  const [extraTab, setExtraTab] = useState(null)
+  useEffect(() => { setExtraTab(null) }, [id])
+  const openTab = name => { if (GIG_TABS.includes(name) && !SIMPLE_GIG_TABS.includes(name)) setExtraTab(name); setTab(name) }
+  const tabs = (simple ? [...SIMPLE_GIG_TABS, ...[requestedTab, extraTab].filter((x, i, all) => GIG_TABS.includes(x) && !SIMPLE_GIG_TABS.includes(x) && all.indexOf(x) === i)] : GIG_TABS)
   useEffect(() => { if (!tabs.includes(tab)) setTab('overview') }, [tabs.join(), tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Links such as /gig/:id?tab=schedule (from notifications) select a tab
@@ -259,7 +264,7 @@ export default function GigPage() {
         {tab === 'overview' && onSiteWhy && (
           <OnSiteView gig={gig} schedule={schedule} tools={tools} tasks={data.tasks || []} userId={user.id} myMembership={myMembership} canScan={canUpload} why={onSiteWhy}
             noteSeen={onSite.noteSeen} onDismissNote={() => saveOnSite({ ...readOnSite(), noteSeen: true })}
-            onLeave={() => saveOnSite({ ...switchOnSite(readOnSite(), gig.id, false), noteSeen: true })} setTab={setTab} />
+            onLeave={() => saveOnSite({ ...switchOnSite(readOnSite(), gig.id, false), noteSeen: true })} setTab={openTab} />
         )}
         {tab === 'overview' && !onSiteWhy && (
           <>
@@ -270,7 +275,7 @@ export default function GigPage() {
               {(isPM || orgRole === 'admin' || orgRole === 'member') && <GigWrapupLink gig={gig} />}
             </Stack>
             <OverviewTab gig={gig} assets={assets} members={members} posts={posts} schedule={schedule}
-              canUpload={canUpload} isPM={isPM} nameOf={nameOf} setTab={setTab} onOpenAsset={setVersionsAsset}
+              canUpload={canUpload} isPM={isPM} nameOf={nameOf} setTab={openTab} onOpenAsset={setVersionsAsset}
               openUpload={() => { setTab('assets'); setShowUpload(true) }}
               openInvite={() => { setTab('crew'); setShowInvite(true) }} />
             {gig.org_id && (

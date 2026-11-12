@@ -232,6 +232,7 @@ Every group also offers "Leave these rows out". **(IM3)** marks a fix that needs
 | A bad or missing cell (`number`, `whole`, `date`, `code`, `email`, `long`, `missing`, `noStart`) | all | **Edit the cell here** (checked again as you type). The same value in many rows ("n/a" as a price): **Treat as empty**. A code with spaces: **Remove the spaces**. Too long: **Cut to N characters** |
 | A job that ends before it starts (`dates`) | jobs | **Swap the dates** · edit |
 | A new item kept per unit, with a quantity (new prediction, `serialQuantity`) | equipment | **Count it in bulk instead** · **Leave the quantity out** (import its units later) |
+| A new item not kept in stock, with a quantity (`untrackedQuantity`, #227) | equipment | **Count it in bulk instead** · **Leave the quantity out** (not kept in stock) |
 | A unit code already on another item's unit (new prediction, `otherItem`) | units | **Edit the code** |
 | Changing how an item with stock is kept (new prediction where the stock totals tell, `trackingLocked`) | equipment | **Keep it as it is** |
 | A quantity for an item already in AVX (`quantityKept`, a note after the import today) | equipment | A heads-up before importing: not added, use a stock count |

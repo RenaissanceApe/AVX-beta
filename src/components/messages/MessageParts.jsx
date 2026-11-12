@@ -30,10 +30,12 @@ const isImage = f => /^image\/(png|jpe?g|gif|webp)$/i.test(f.type || '')
 function ImageFile({ file }) {
   const [url, setUrl] = useState(null)
   useEffect(() => { let on = true; signedUrl(file.path).then(u => on && setUrl(u)); return () => { on = false } }, [file.path])
+  const box = { display: 'block', width: '180px', maxWidth: '100%', aspectRatio: '4 / 3', overflow: 'hidden', background: 'var(--shade)' }
+  // Until the signed address is there (or if it fails), a labelled placeholder, not a link without an address (issue 212)
+  if (!url) return <div role="img" aria-label={file.name} title={file.name} style={box} />
   return (
-    <a href={url || undefined} target="_blank" rel="noopener noreferrer" aria-label={file.name} title={file.name}
-      style={{ display: 'block', width: '180px', maxWidth: '100%', aspectRatio: '4 / 3', overflow: 'hidden', background: 'var(--shade)' }}>
-      {url && <img src={url} alt={file.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+    <a href={url} target="_blank" rel="noopener noreferrer" aria-label={file.name} title={file.name} style={box}>
+      <img src={url} alt={file.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
     </a>
   )
 }
