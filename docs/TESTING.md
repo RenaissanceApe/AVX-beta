@@ -104,8 +104,8 @@ person or a real device is left to try by hand. Which T-line belongs to which ar
   wait 10 s (not Playwright's 5): a save on the shared database may take up to its 8 s limit and
   still succeed. The job has no Playwright retries, so a real failure stays red.
 - **Every night** (`.github/workflows/e2e-nightly.yml`): every signed-in test, at 03:07 UTC (03:07 in
-  Lisbon in winter, 04:07 in summer), split in 4 shards that run side by side, one test at a time
-  inside each. Each shard tags its accounts `gh<run>-<attempt>-s<shard>` and sweeps them afterwards,
+  Lisbon in winter, 04:07 in summer), split in 4 shards, two running at a time (four at once
+  overloaded the test project until its database restarted, #239), one test at a time inside each. Each shard tags its accounts `gh<run>-<attempt>-s<shard>` and sweeps them afterwards,
   even when a test failed. A failed night opens one issue, **"Nightly e2e tests failing"** (label
   `needs-triage`), listing the failing tests with a link to the run and its traces (kept 7 days), or
   adds a comment to that issue if it's still open. Close it when the nights pass again. Started by

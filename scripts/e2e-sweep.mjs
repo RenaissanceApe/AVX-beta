@@ -74,6 +74,9 @@ async function sweep(target) {
   const signInError = await signIn(supabase, target)
   if (signInError) {
     if (/invalid login credentials/i.test(signInError.message)) return 'gone'
+    // The database restarting (5xx, Cloudflare 52x with an empty body "{}") or no answer at all
+    // (status 0): the next pass tries again, as for a busy call below
+    if (busy(signInError, signInError.status) || signInError.status === 0 || /^\s*(\{\})?\s*$/.test(signInError.message || '')) return 'busy'
     throw new Error(`${role}: signing in failed: ${signInError.message}`)
   }
   const { data: plan, error: planError, status: planStatus } = await supabase.rpc('account_deletion_plan')

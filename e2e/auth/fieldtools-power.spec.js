@@ -261,7 +261,15 @@ test('suggest where to plug in: balance or fill to a reserve; nothing changes un
   await expect(dialog.getByRole('radio', { name: /^Balance the phases/ })).toBeChecked()
   await expect(result).toContainText('Now: L1 16 A · L2 0 A · L3 0 A · phases 100% apart')
   await expect(result).toContainText('After: L1 16 A · L2 2.6 A · L3 1.3 A · phases 92% apart')
-  await expect(result.getByRole('list', { name: '3 changes' })).toContainText('Wash 1: Not plugged in → Dimmer city · B (L2)')
+  // The three washes are equal, so which one goes where follows their ids (random, #237): each
+  // wash is plugged in once, two on B (L2) and one on C (L3)
+  const changes = result.getByRole('list', { name: '3 changes' }).getByRole('listitem')
+  await expect(changes).toHaveCount(3)
+  for (const wash of ['Wash 1', 'Wash 2', 'Wash 3']) {
+    await expect(changes.filter({ hasText: new RegExp(`^${wash}: Not plugged in → Dimmer city · (B \\(L2\\)|C \\(L3\\))$`) })).toHaveCount(1)
+  }
+  await expect(changes.filter({ hasText: 'Dimmer city · B (L2)' })).toHaveCount(2)
+  await expect(changes.filter({ hasText: 'Dimmer city · C (L3)' })).toHaveCount(1)
   await expect(dialog).toContainText(ESTIMATE)
   await expectAccessible(page)
 

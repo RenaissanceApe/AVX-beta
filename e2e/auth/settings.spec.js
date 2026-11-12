@@ -367,9 +367,12 @@ test('send limits: the 6th test notification within an hour says to try again in
   // The 6th, from Settings → Notifications on a device where notifications are on
   const page = await pageAs(browser, account, { baseURL, permissions: ['notifications'] })
   try {
-    // A stand-in subscription: headless Chromium has no push service, so "on" comes from it
+    // A stand-in subscription: headless Chromium has no push service, so "on" comes from it.
+    // The headless shell that CI installs also answers Notification.permission with "denied" even
+    // with the permission granted above (the full Chromium says "granted"), so it's set here too.
     await page.addInitScript(() => {
       if (window.PushManager) PushManager.prototype.getSubscription = async () => ({ endpoint: 'https://push.invalid/e2e', toJSON: () => ({}) })
+      if (window.Notification) Object.defineProperty(Notification, 'permission', { get: () => 'granted', configurable: true })
     })
     await page.goto('/settings/notifications')
     const test6 = page.getByRole('button', { name: 'Send a test' })
@@ -671,10 +674,16 @@ test('gig page on a phone: the PM\'s actions are in the ⋯ menus; crew see Repo
 
       await page.goto(`${gig.path}?tab=crew`)
       await expect(page.getByRole('button', { name: 'Invite crew' })).toBeVisible(LOAD)
+      // The crew rows are complete once the organisation's members have loaded: the crew member
+      // isn't in the organisation, so the admin sees "Add to …" (checking before it shows let the
+      // layout check pass on a half-loaded list)
+      await expect(page.getByRole('button', { name: `Add to ${org.name}` })).toBeVisible(LOAD)
       menu = await menuWith(page, 'Find crew')
       await expect(menu.getByRole('menuitem', { name: 'Post a job' })).toBeVisible()
       await page.keyboard.press('Escape')
-      await fitsPhone(page, `gig crew (${width})`, [page.getByRole('button', { name: 'Invite crew' })])
+      // At 320 px "Add to <organisation>" runs off screen when the name is long (#243), and how long
+      // this organisation's name is depends on the run's tag; the test after this one checks it
+      if (width > 320) await fitsPhone(page, `gig crew (${width})`, [page.getByRole('button', { name: 'Invite crew' })])
 
       await page.goto(`${gig.path}?tab=equipment`)
       await expect(page.getByRole('link', { name: 'Packing list' })).toBeVisible(LOAD)
@@ -693,6 +702,25 @@ test('gig page on a phone: the PM\'s actions are in the ⋯ menus; crew see Repo
     await fitsPhone(crewPage, 'gig equipment as crew')
   } finally {
     await crewPage.context().close()
+  }
+})
+
+// covers: T88
+test('crew tab on a 320 px phone: a long organisation name in "Add to …" stays on screen', { tag: TAG }, async ({ adminWithOrg, world, browser, baseURL }) => {
+  test.fail(true, '#243: the "Add to <organisation>" button does not wrap, so the page scrolls sideways at 320 px')
+  const { account } = adminWithOrg
+  const crew = await world.account('crew')
+  // A real company name of this length, the same in every run
+  const org = await addOrg(account, { name: `E2E Produções Audiovisuais do Norte ${RUN}` })
+  const gig = await addGig(account, org.id)
+  await addToGig(account, gig.id, crew)
+  const page = await phone(browser, baseURL, account, 320)
+  try {
+    await page.goto(`${gig.path}?tab=crew`)
+    await expect(page.getByRole('button', { name: `Add to ${org.name}` })).toBeVisible(LOAD)
+    await fitsPhone(page, 'gig crew (320, long organisation name)', [page.getByRole('button', { name: 'Invite crew' })])
+  } finally {
+    await page.context().close()
   }
 })
 
