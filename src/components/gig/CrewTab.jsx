@@ -207,8 +207,9 @@ export default function CrewTab({ gig, members, invites, isPM, orgRole, userId, 
                           </button>
                         )}
                         {canAddToOrg && (
-                          <button onClick={() => addToOrg(m)} style={rowBtn} title={t('crew.addToOrgHint', { org: orgName })}>
-                            <UserCheck size={13} /> {t('crew.addToOrg', { org: orgName })}
+                          // A long organisation name wraps instead of pushing the page sideways on a phone (issue 243)
+                          <button onClick={() => addToOrg(m)} style={{ ...rowBtn, flexShrink: 1, minWidth: 0, maxWidth: '100%', textAlign: 'start' }} title={t('crew.addToOrgHint', { org: orgName })}>
+                            <UserCheck size={13} style={{ flexShrink: 0 }} /> <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{t('crew.addToOrg', { org: orgName })}</span>
                           </button>
                         )}
                       </div>

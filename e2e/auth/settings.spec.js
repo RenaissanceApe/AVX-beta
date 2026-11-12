@@ -713,7 +713,6 @@ test('gig page on a phone: the PM\'s actions are in the ⋯ menus; crew see Repo
 
 // covers: T88
 test('crew tab on a phone: a long organisation name in "Add to …" stays on screen', { tag: TAG }, async ({ adminWithOrg, world, browser, baseURL }) => {
-  test.fail(true, '#243: the "Add to <organisation>" button does not wrap, so the page scrolls sideways')
   const { account } = adminWithOrg
   const crew = await world.account('crew')
   // A real company name of this length, the same in every run

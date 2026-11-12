@@ -77,7 +77,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
   // data and its check (RG3). Only editors who can read the catalogue get them.
   const [speakers, setSpeakers] = useState([])
   // Until they arrive, an array can't be added from the sound system: it would be saved without
-  // the element's weight, preset and bumper (#246)
+  // the element's weight, preset and bumper (issue 246)
   const readsSpeakers = canEdit && canPlanEquipment && !!gig.org_id
   const [speakersLoaded, setSpeakersLoaded] = useState(false)
   useEffect(() => {
