@@ -2,9 +2,10 @@
 // (docs/PENDING.md section 2), as signed-in journeys on the TEST project. docs/TESTING.md,
 // "Automated test suite". Data a test only needs to exist is made through setup.js; the UI is
 // clicked only for what the T-line checks.
+import { createHash } from 'node:crypto'
 import { test, expect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
-import { addGig, addOrg, addToGig, pageAs } from './setup.js'
+import { addGig, addItem, addOrg, addToGig, pageAs } from './setup.js'
 
 test.use({ area: 'gigs' })
 
@@ -269,4 +270,115 @@ test('clashes across time zones only where the days overlap in real time', { tag
   const onBefore = await rowOn(before)
   await expect(onBefore).not.toContainText(lisbon.name)
   await expect(onBefore).not.toContainText(after.name)
+})
+
+// Edit gig → Danger zone → Delete this gig: the two-step warning, as far as the last button
+// `onImpact` checks the first step's list of what goes with the gig.
+async function startDeleting(page, gig, onImpact = async () => {}) {
+  await page.goto(gig.path)
+  await page.getByRole('button', { name: 'Edit gig' }).click()
+  const edit = page.getByRole('dialog', { name: 'Edit gig' })
+  await edit.getByRole('button', { name: 'Danger zone' }).click()
+  await edit.getByRole('button', { name: 'Delete this gig' }).click()
+  const confirm = page.getByRole('dialog', { name: `Delete gig "${gig.name}"?` })
+  await expect(confirm.getByRole('button', { name: 'Continue' })).toBeDisabled()
+  await onImpact(confirm)
+  await confirm.getByRole('checkbox', { name: /I understand/ }).check()
+  await confirm.getByRole('button', { name: 'Continue' }).click()
+  await confirm.getByLabel('To confirm, type the exact name below').pressSequentially(gig.name)
+  return confirm
+}
+
+// covers: T11
+test('a gig with equipment and messages is deleted for good after the two-step warning', { tag: '@gigs' }, async ({ adminWithOrg, world }) => {
+  const { page, account: admin, org } = adminWithOrg
+  const crew = await world.crew()
+  const s = stamp()
+  const gig = await addGig(admin, org.id, { name: `E2E Delete Me ${s}` })
+  await addToGig(admin, gig.id, crew)
+  const item = await addItem(admin, org.id, { name: `E2E Speaker ${s}` })
+  const set = async (what, result) => expect(result.error, what).toBeNull()
+  await set('equipment', await admin.client.from('gig_equipment').insert({ gig_id: gig.id, item_id: item.id, quantity: 2 }))
+  await set('feed post', await admin.client.from('feed_posts').insert({ gig_id: gig.id, user_id: admin.id, content: 'Doors at 19:00' }))
+  const { data: conversation } = await admin.client.rpc('gig_conversation', { p_gig: gig.id })
+  await set('chat message', await admin.client.from('messages').insert({ conversation_id: conversation, body: 'See you at load-in' }))
+
+  const confirm = await startDeleting(page, gig, async step1 => {
+    await expect(step1).toContainText('1 update in the feed', { timeout: 15_000 })
+    await expect(step1).toContainText('Access for 2 people on the crew')
+    await expectAccessible(page)
+  })
+  await confirm.getByRole('button', { name: 'Delete permanently' }).click({ timeout: 15_000 })
+  await expect(page.getByText(`Deleted the gig "${gig.name}".`)).toBeVisible({ timeout: 15_000 })
+  await expect(page).not.toHaveURL(new RegExp(gig.id))
+  const { data: left } = await admin.client.from('gigs').select('id').eq('id', gig.id)
+  expect(left).toEqual([])
+  const { data: gear } = await admin.client.from('gig_equipment').select('gig_id').eq('gig_id', gig.id)
+  expect(gear).toEqual([])
+})
+
+// covers: T104
+test('a gig with a signed delivery note can\'t be deleted for good', { tag: '@gigs' }, async ({ adminWithOrg }) => {
+  const { page, account: admin, org } = adminWithOrg
+  const gig = await addGig(admin, org.id, { name: `E2E Signed ${stamp()}` })
+  const document = JSON.stringify({ gig: gig.id, lines: [{ item: 'Speaker', qty: 2 }] })
+  const sha = text => createHash('sha256').update(text).digest('hex')
+  const { data: signature, error } = await admin.client.from('signatures').insert({
+    org_id: org.id, kind: 'delivery_note', gig_id: gig.id, title: 'Delivery note', signer_name: 'E2E Client',
+    document, document_sha256: sha(document), image_path: 'x', image_sha256: sha('png'),
+  }).select('id').single()
+  expect(error).toBeNull()
+
+  const confirm = await startDeleting(page, gig)
+  await confirm.getByRole('button', { name: 'Delete permanently' }).click({ timeout: 15_000 })
+  await expect(confirm.getByRole('alert').filter({ hasText: 'signed documents' }))
+    .toContainText("This gig has signed documents (delivery notes), which are kept as proof, so it can't be deleted for good. Set its status to Cancelled instead.")
+  await expectAccessible(page)
+
+  // Nothing was removed: the gig and its signature are still there, and the database refuses too
+  const { data: still } = await admin.client.from('gigs').select('id').eq('id', gig.id)
+  expect(still).toHaveLength(1)
+  const { data: kept } = await admin.client.from('signatures').select('id').eq('id', signature.id)
+  expect(kept).toHaveLength(1)
+  const direct = await admin.client.from('gigs').delete().eq('id', gig.id).select('id')
+  expect(direct.error?.message || '').toContain("can't be erased")
+})
+
+// covers: T65 (Edit gig in two windows; the schedule item, task, contact and item forms use the same guard)
+test('two people saving the same gig: the second is told to reload, saving twice alone is fine', { tag: '@gigs' }, async ({ adminWithOrg, browser, baseURL }) => {
+  const { page: first, account: admin, org } = adminWithOrg
+  const gig = await addGig(admin, org.id, { name: `E2E Two Editors ${stamp()}` })
+  const second = await pageAs(browser, admin, { baseURL })
+  try {
+    const open = async page => {
+      await page.goto(gig.path)
+      await page.getByRole('button', { name: 'Edit gig' }).click()
+      return page.getByRole('dialog', { name: 'Edit gig' })
+    }
+    const [one, two] = [await open(first), await open(second)]
+    await one.getByLabel('Venue').fill('Coliseu')
+    await one.getByRole('button', { name: 'Save changes' }).click()
+    await expect(one).toHaveCount(0, { timeout: 15_000 })
+
+    await two.getByLabel('Venue').fill('Campo Pequeno')
+    await two.getByRole('button', { name: 'Save changes' }).click()
+    await expect(second.getByText('Someone else changed this — reload to see their changes.')).toBeVisible({ timeout: 15_000 })
+    await expect(two).toBeVisible() // the form stays open, so nothing typed is lost
+    await expectAccessible(second)
+    await second.getByRole('button', { name: 'Reload' }).click()
+    await expect(second.getByText('Coliseu').first()).toBeVisible({ timeout: 15_000 })
+
+    // Saving twice in a row alone never shows the message
+    for (const venue of ['Altice Arena', 'MEO Arena']) {
+      const form = await open(first)
+      await form.getByLabel('Venue').fill(venue)
+      await form.getByRole('button', { name: 'Save changes' }).click()
+      await expect(form).toHaveCount(0, { timeout: 15_000 })
+    }
+    await expect(first.getByText('Someone else changed this')).toHaveCount(0)
+    const { data } = await admin.client.from('gigs').select('venue').eq('id', gig.id).single()
+    expect(data.venue).toBe('MEO Arena')
+  } finally {
+    await second.context().close()
+  }
 })
