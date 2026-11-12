@@ -142,3 +142,124 @@ test('input list: channels with 48V and a catalogue mic, reorder, checks, print,
     }
   }
 })
+
+// Where a point of a drawing (in its own units, from getScreenCTM) is on the screen
+async function screenPoint(svg, x, y) {
+  return svg.evaluate((el, [px, py]) => {
+    const p = el.createSVGPoint()
+    p.x = px; p.y = py
+    const s = p.matrixTransform(el.getScreenCTM())
+    return { x: s.x, y: s.y }
+  }, [x, y])
+}
+// Drags with the mouse from one screen point to another, in small steps like a hand
+async function drag(page, from, to) {
+  expect(Math.min(from.y, to.y), 'The drag starts or ends above the window').toBeGreaterThan(0)
+  expect(Math.max(from.y, to.y), 'The drag starts or ends below the window').toBeLessThan(page.viewportSize().height)
+  await page.mouse.move(from.x, from.y)
+  await page.mouse.down()
+  for (let i = 1; i <= 8; i++) await page.mouse.move(from.x + ((to.x - from.x) * i) / 8, from.y + ((to.y - from.y) * i) / 8)
+  await page.mouse.up()
+}
+
+// covers: T27
+test('stage plot: stage size, a band dragged into place, named mics, rotated wedges, sent to the input list; crew see it read-only', { tag: TAG }, async ({ adminWithOrg, browser, baseURL }) => {
+  test.setTimeout(180_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Plot', ['stage_plot'])
+  const crew = await world.account('crew')
+  await addToGig(account, gig.id, crew)
+  await readBell(account, crew)
+  const items = async () => ok('Reading the plot', await account.client.from('gig_plot_items').select('id, kind, x, y, rotation, label').eq('gig_id', gig.id).order('created_at'))
+
+  // A tall window, so the whole drawing is on screen for the mouse
+  await page.setViewportSize({ width: 1280, height: 1600 })
+  await openTool(page, gig, 'stage_plot')
+  // Stage 12 m × 8 m
+  const stage = async () => ok('Reading the stage', await account.client.from('gig_show').select('stage').eq('gig_id', gig.id).maybeSingle())?.stage
+  await page.getByLabel('Width (m)').fill('12')
+  await page.getByLabel('Width (m)').blur()
+  await expect.poll(stage, LOAD).toMatchObject({ width_m: 12 })
+  await page.getByLabel('Depth (m)').fill('8')
+  await page.getByLabel('Depth (m)').blur()
+  await expect.poll(stage, LOAD).toMatchObject({ width_m: 12, depth_m: 8 })
+  const drawing = page.getByRole('group', { name: `Stage plot for ${gig.name}, seen from above, audience at the bottom` })
+  await expect(drawing).toContainText('Stage 12 m × 8 m · grid 1 m')
+
+  // The drum kit, dragged with the mouse to the middle at the back (6 m from the left, 6.5 m from the front)
+  const addKind = async kind => {
+    const before = (await items()).length
+    await page.getByRole('button', { name: new RegExp(`^${kind}( · \\d+ ch)?$`) }).click()
+    await expect.poll(async () => (await items()).length, LOAD).toBe(before + 1)
+  }
+  await addKind('Drum kit')
+  const kit = drawing.getByRole('button', { name: /^Drum kit, / })
+  await expect(kit).toBeVisible(LOAD)
+  // Grabbed by the kick drum (36 cm in front of the kit's middle; the middle itself is open); the
+  // kit's middle goes where the pointer is let go
+  await drag(page, await screenPoint(drawing, 450, (8 - 4) * 100 + 36), await screenPoint(drawing, 600, (8 - 6.5) * 100))
+  await expect(drawing.getByRole('button', { name: 'Drum kit, 6 m from the left, 6.5 m from the front' })).toBeVisible(LOAD)
+  await expect.poll(async () => (await items()).map(i => [i.kind, Number(i.x), Number(i.y)]), LOAD).toEqual([['drum_kit', 6, 6.5]])
+
+  // Two vocal mics, a bass amp and two wedges
+  for (const kind of ['Vocal mic', 'Vocal mic', 'Bass amp', 'Monitor wedge', 'Monitor wedge']) await addKind(kind)
+  const onStage = page.getByRole('region', { name: 'On stage' })
+  await expect(onStage.getByRole('button')).toHaveCount(6, LOAD)
+
+  // Drag the first vocal mic downstage left (3 m, 2 m) and name both mics
+  const list = await items()
+  const [mic1, mic2] = list.filter(i => i.kind === 'vocal_mic')
+  const micAt = i => drawing.getByRole('button', { name: `Vocal mic, ${Number(i.x)} m from the left, ${Number(i.y)} m from the front` })
+  await drag(page, await screenPoint(drawing, Number(mic1.x) * 100, (8 - Number(mic1.y)) * 100), await screenPoint(drawing, 300, (8 - 2) * 100))
+  await expect.poll(async () => (await items()).filter(i => i.id === mic1.id).map(i => [Number(i.x), Number(i.y)])[0], LOAD).toEqual([3, 2])
+  const selected = page.getByRole('group', { name: /^Selected: / })
+  async function name(id, label) {
+    const row = (await items()).find(i => i.id === id)
+    await micAt(row).focus()
+    await page.keyboard.press('Enter')
+    await selected.getByLabel('Name on the plot').fill(label)
+    await selected.getByLabel('Name on the plot').blur()
+    await expect.poll(async () => (await items()).find(i => i.id === id).label, LOAD).toBe(label)
+  }
+  await name(mic1.id, 'Ana')
+  await name(mic2.id, 'Rui')
+  await expect(drawing.getByRole('button', { name: 'Vocal mic, Ana, 3 m from the left, 2 m from the front' })).toBeVisible()
+
+  // Rotate both wedges a quarter turn
+  for (const wedge of list.filter(i => i.kind === 'wedge')) {
+    await onStage.getByRole('button', { name: new RegExp(`^Monitor wedge ${Number(wedge.x)} m from the left`) }).click()
+    await selected.getByRole('button', { name: 'Rotate' }).click()
+    await expect.poll(async () => (await items()).find(i => i.id === wedge.id).rotation, LOAD).toBe(90)
+  }
+  await expect(page.getByText('6 things on stage · 10 channels')).toBeVisible()
+  await expectAccessible(page)
+
+  // Send to the input list: the kit's 7, two named vocals and the bass DI
+  await page.getByRole('button', { name: 'Send to the input list' }).click()
+  await expect(page.getByText('10 channels added to the input list.')).toBeVisible(LOAD)
+  const inputs = ok('Reading inputs', await account.client.from('gig_inputs').select('channel, source, mic, phantom').eq('gig_id', gig.id).order('channel'))
+  expect(inputs.map(i => i.source)).toEqual(['Kick', 'Snare', 'Hi-hat', 'Tom', 'Floor tom', 'Overhead L', 'Overhead R', 'Vocal (Ana)', 'Vocal (Rui)', 'Bass DI'])
+  expect(inputs.find(i => i.source === 'Bass DI')).toMatchObject({ channel: 10, mic: 'DI', phantom: true })
+  // Sent again: nothing doubles
+  await page.getByRole('button', { name: 'Send to the input list' }).click()
+  await expect(page.getByText('The input list already has every channel on the plot.')).toBeVisible(LOAD)
+
+  // The print view draws the plot
+  await page.getByRole('link', { name: 'Print' }).click()
+  await expect(page).toHaveURL(new RegExp(`/gig/${gig.id}/plot$`))
+  await expect(page.getByRole('img', { name: /^Stage plot for / })).toBeVisible(LOAD)
+
+  // Crew: the drawing and the list, nothing to change
+  const crewPage = await pageAs(browser, crew, { baseURL })
+  try {
+    await openTool(crewPage, gig, 'stage_plot')
+    await expect(crewPage.getByRole('img', { name: `Stage plot for ${gig.name}, seen from above, audience at the bottom` })).toBeVisible(LOAD)
+    await expect(crewPage.getByRole('region', { name: 'On stage' })).toContainText('Ana')
+    await expect(crewPage.getByRole('button', { name: 'Send to the input list' })).toHaveCount(0)
+    await expect(crewPage.getByLabel('Width (m)')).toHaveCount(0)
+    await expect(crewPage.getByRole('button', { name: /^Drum kit · 7 ch/ })).toHaveCount(0)
+    await expectAccessible(crewPage)
+  } finally {
+    await crewPage.context().close()
+  }
+})
