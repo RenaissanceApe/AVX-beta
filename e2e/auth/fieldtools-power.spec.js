@@ -644,7 +644,6 @@ test('line array from the sound system: name, 12 × K2 and K2-BUMP come with it;
 
 // covers: T117
 test('a line array added from the sound system while the catalogue is still loading gets its weight and bumper', { tag: TAG }, async ({ adminWithOrg }) => {
-  test.fail(true, '#246: the array is saved from the speakers list before it has loaded, without the element weight and bumper')
   const { page, world, account, org } = adminWithOrg
   const { gig } = await toolGig(world, 'Arrays early', ['system_calc', 'rigging'])
   const k2 = await addK2(account, org)

@@ -76,15 +76,21 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
   // Speakers in the organisation's catalogue (A1) that can be array elements, with their rigging
   // data and its check (RG3). Only editors who can read the catalogue get them.
   const [speakers, setSpeakers] = useState([])
+  // Until they arrive, an array can't be added from the sound system: it would be saved without
+  // the element's weight, preset and bumper (#246)
+  const readsSpeakers = canEdit && canPlanEquipment && !!gig.org_id
+  const [speakersLoaded, setSpeakersLoaded] = useState(false)
   useEffect(() => {
-    if (!canEdit || !canPlanEquipment || !gig.org_id) return
+    if (!readsSpeakers) return
+    setSpeakersLoaded(false)
     selectAll(() => supabase.from('price_items').select('id, name, speaker_type, speaker_preset, weight_kg, rigging')
       .eq('org_id', gig.org_id).in('speaker_type', ['line_array', 'subwoofer']).is('archived_at', null).order('name').order('id'))
       .then(({ data, error }) => {
         if (error) logger.warn('rigging', error, { step: 'speakers' })
         setSpeakers(data || [])
+        setSpeakersLoaded(true)
       })
-  }, [canEdit, canPlanEquipment, gig.org_id])
+  }, [readsSpeakers, gig.org_id])
   // How many of each item the gig's equipment holds, to compare with an array's element count
   const [booked, setBooked] = useState({})
   useEffect(() => {
@@ -214,7 +220,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
         )}
       </section>
 
-      <LineArrays rigging={show?.rigging} onSave={save} lines={lines} models={byId} pickable={pickable} settings={settings} speakers={speakers} sources={sources} booked={booked}
+      <LineArrays rigging={show?.rigging} onSave={save} lines={lines} models={byId} pickable={pickable} settings={settings} speakers={speakers} speakersLoading={readsSpeakers && !speakersLoaded} sources={sources} booked={booked}
         canEdit={canEdit && !savedAt} canReadCatalogue={canPlanEquipment && !!gig.org_id} />
 
       <section aria-labelledby="rig-models">

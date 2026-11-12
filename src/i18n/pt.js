@@ -3270,6 +3270,7 @@ export default {
   "la.intro": "Elementos com ângulos de splay no bumper ou frame do fabricante. O AVX verifica o peso e os limites do bumper; o centro de gravidade, a posição de suspensão, a inclinação e um eventual pullback vêm do software do fabricante, que decide.",
   "la.fromSystem": "Adicionar um array a partir da calculadora do sistema de som",
   "la.pickSource": "Escolha uma fonte…",
+  "la.loadingSpeakers": "A carregar as colunas…",
   "la.elements.one": "{count} elemento",
   "la.elements.other": "{count} elementos",
   "la.addByHand": "Adicionar um array à mão",
