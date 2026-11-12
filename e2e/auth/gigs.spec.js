@@ -154,10 +154,9 @@ test('a rehearsal note makes one task, and the Tasks tab reads in Portuguese', {
 
 // covers: T50 (found while automating it: two ticks saved at once must both be kept)
 test('two quick checklist ticks are both kept', { tag: '@gigs' }, async ({ adminWithOrg, crewOnGig }) => {
-  // BUG (#214): each tick sends the whole checklist, so when the first save reaches the database
-  // after the second (a slow phone network), it writes the older list back and the second tick is
-  // lost, though the screen showed it. The first save is held back here to make that order certain.
-  test.fail()
+  // Each tick sends the whole checklist; the first save is held back (a slow phone network) while
+  // the second tick is made. Saves of one task go out one after another (#214, src/lib/saveQueue.js),
+  // so the older list can't land last and both ticks are kept.
   const { account: pm } = adminWithOrg
   const crew = crewOnGig.page
   const gig = crewOnGig.gig

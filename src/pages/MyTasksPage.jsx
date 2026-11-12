@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ListTodo } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { saveTask } from '../lib/queuedSaves'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
@@ -42,7 +43,7 @@ export default function MyTasksPage() {
 
   async function patch(task, values) {
     setTasks(list => list.map(x => (x.id === task.id ? { ...x, ...values } : x)))
-    const { error } = await supabase.from('tasks').update(values).eq('id', task.id)
+    const { error } = await saveTask(task.id, values)
     if (error) { notify(userMessage(error), 'error'); load() }
   }
 
