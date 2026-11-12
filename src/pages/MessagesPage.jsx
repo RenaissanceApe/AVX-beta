@@ -289,16 +289,13 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
       .select('id, kind, gig_id, org_id, title, department, audience, admins_post, archived_at, context_type, context_id, gigs(name), organisations(name)').eq('id', id).maybeSingle()
     if (!conv) return setMissing(true)
     let title = conversationTitle({ ...conv, gig_name: conv.gigs?.name, org_name: conv.organisations?.name }, t)
+    // Organisation channels and context threads take the right to post from this person's role,
+    // worked out when shown (below): the organisations may still be loading here (issue 245)
     let canPost = !conv.archived_at
     if (conv.kind === 'gig') {
       const { data: me } = await supabase.from('gig_members').select('role').eq('gig_id', conv.gig_id).eq('user_id', user.id).maybeSingle()
       canPost = me ? me.role !== 'viewer' : true // the database decides for company people
     }
-    if (conv.kind === 'org') {
-      const role = roleIn(conv.org_id)
-      canPost = !conv.archived_at && (role === 'admin' || (!conv.admins_post && role && role !== 'viewer'))
-    }
-    if (conv.kind === 'context') canPost = ['admin', 'member'].includes(roleIn(conv.org_id))
     if (conv.kind === 'direct') {
       const { data: members } = await supabase.from('conversation_members').select('user_id').eq('conversation_id', id)
       const other = members?.find(m => m.user_id !== user.id)?.user_id
@@ -306,7 +303,7 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
       title = p?.full_name || t('common.someone')
     }
     const { data: state } = await supabase.from('conversation_state').select('muted').eq('conversation_id', id).eq('user_id', user.id).maybeSingle()
-    setInfo({ ...conv, canPost, title, orgName: conv.organisations?.name, isAdmin: conv.kind === 'org' && roleIn(conv.org_id) === 'admin' })
+    setInfo({ ...conv, canPost, title, orgName: conv.organisations?.name })
     setMuted(!!state?.muted)
   }
   useEffect(() => { load() }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -322,6 +319,11 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
 
   if (missing) return <div style={{ ...card, padding: '32px 20px', textAlign: 'center', color: colors.muted, fontSize: '14px' }}>{t('chat.notFound')}</div>
   if (!info) return spinner
+  const role = info.kind === 'org' || info.kind === 'context' ? roleIn(info.org_id) : null
+  const isAdmin = info.kind === 'org' && role === 'admin'
+  const canPost = info.kind === 'org' ? !info.archived_at && (role === 'admin' || (!info.admins_post && !!role && role !== 'viewer'))
+    : info.kind === 'context' ? ['admin', 'member'].includes(role)
+      : info.canPost
   const Icon = KIND_ICONS[info.kind] || MessageCircle
   return (
     <section aria-label={info.title} style={{ ...card, padding: '10px 12px' }}>
@@ -341,7 +343,7 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
         </span>
         {info.kind === 'context' && contextLink(info) && <Link to={contextLink(info)} style={{ fontSize: '13px', color: colors.accentText, whiteSpace: 'nowrap' }}>{t(`chat.context.open.${info.context_type}`)}</Link>}
         {(info.kind === 'gig' || info.kind === 'department') && <Link to={`/gig/${info.gig_id}?tab=chat`} style={{ fontSize: '13px', color: colors.accentText, whiteSpace: 'nowrap' }}>{t('chat.openGig')}</Link>}
-        {info.isAdmin && <button onClick={() => setEditing(true)} aria-label={t('chat.channelSettings')} title={t('chat.channelSettings')} style={{ ...tap, color: colors.soft }}><Settings size={16} /></button>}
+        {isAdmin && <button onClick={() => setEditing(true)} aria-label={t('chat.channelSettings')} title={t('chat.channelSettings')} style={{ ...tap, color: colors.soft }}><Settings size={16} /></button>}
         <button onClick={toggleMute} aria-pressed={muted} aria-label={muted ? t('chat.unmute') : t('chat.mute')} title={muted ? t('chat.unmute') : t('chat.mute')}
           style={{ ...tap, color: muted ? colors.muted : colors.soft }}>{muted ? <BellOff size={16} /> : <Bell size={16} />}</button>
       </div>
@@ -351,7 +353,7 @@ function OpenConversation({ id, focusId, summary, onChanged, back }) {
       {info.archived_at && (
         <p style={{ fontSize: '13px', color: colors.muted, padding: '6px 2px', display: 'flex', gap: '8px', alignItems: 'center' }}><Archive size={13} /> {t('chat.archivedNote')}</p>
       )}
-      <Conversation conversationId={id} focusId={focusId} canPost={info.canPost} height={back ? 'calc(100dvh - 210px)' : '65vh'}
+      <Conversation conversationId={id} focusId={focusId} canPost={canPost} height={back ? 'calc(100dvh - 210px)' : '65vh'}
         emptyText={info.kind === 'direct' ? t('chat.emptyDirect', { name: info.title }) : info.kind === 'org' ? t('chat.emptyChannel') : undefined} />
       {editing && <ChannelModal channel={info} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); load(); onChanged() }} />}
     </section>

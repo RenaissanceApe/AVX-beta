@@ -27,6 +27,11 @@ jobs:
     timeout-minutes: 90
     strategy:
       fail-fast: false
+      # Two shards at a time, not four (#239): with four browsers at once the test project peaked at
+      # ~4,400 requests a minute, its 8 s statement limit started cancelling calls, and Postgres
+      # restarted ("not properly shut down", 06:51 on 12 Nov), which failed 4 tests and a sweep.
+      # Four shards keep each job short; two at a time roughly halves the load for ~13 more minutes.
+      max-parallel: 2
       matrix:
         shard: [1, 2, 3, 4]
     env:

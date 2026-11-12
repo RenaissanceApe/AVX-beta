@@ -484,7 +484,13 @@ test('crew numbers: the admin marks a finished gig\'s fee paid, crew mark it rec
   const told = ok('Reading crew notifications', await crew.client.from('notifications').select('kind, details').order('created_at', { ascending: false }).limit(10))
   const paidNote = told.find(n => n.details?.gig_id === gig.id)
   expect(paidNote, 'crew are told the fee was paid').toBeTruthy()
-  expect(JSON.stringify(paidNote.details)).not.toContain('300')
+  // No amount in the details: no money key, and no value that is the fee (300, "300", "300.00", "300,00").
+  // Checked value by value: the run tag inside gig_name may hold the digits 300 (BF4)
+  const entries = Object.entries(paidNote.details)
+  expect(entries.map(([k]) => k).filter(k => /amount|rate|total|fee|net|gross|price|pay_?out/i.test(k)), 'no money keys in the details').toEqual([])
+  const isFee = v => (typeof v === 'number' && v === 300) || (typeof v === 'string' && /^\s*\D{0,3}\s*300([.,]0+)?\s*\D{0,3}\s*$/.test(v))
+  const flat = v => (v && typeof v === 'object' ? Object.values(v).flatMap(flat) : [v])
+  expect(entries.flatMap(([, v]) => flat(v)).filter(isFee), 'the fee is not in the details').toEqual([])
   const crewPage = await pageAs(browser, crew, { baseURL })
   try {
     await crewTab(crewPage, gig)
