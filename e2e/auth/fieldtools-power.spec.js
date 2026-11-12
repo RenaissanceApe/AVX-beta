@@ -674,7 +674,9 @@ test('line array picks: centre of gravity splits the load 72/28; a negative one 
   await readBell(account)
   const arrays = () => arraysOfGig(account, gig)
 
+  const speakersLoaded = page.waitForResponse(isSpeakerList, LOAD) // before picking an array (#246)
   await openTool(page, gig, 'rigging')
+  await speakersLoaded
   const section = page.getByRole('region', { name: 'Line arrays' })
   await section.getByRole('combobox', { name: 'Add an array from the sound system calculator' }).selectOption({ label: 'Main L · 12 elements' })
   await expect.poll(async () => (await arrays()).length, LOAD).toBe(1)
@@ -838,7 +840,9 @@ test('speaker rigging sign-off: the person who typed it can\'t check it, another
 
   // The admin adds the array: it copies the check, so it shows no warning about the data
   const NOT_CHECKED = "This speaker's rigging data needs a second person's check before use (catalogue item page)."
+  const speakersLoaded = page.waitForResponse(isSpeakerList, LOAD) // before picking an array (#246)
   await openTool(page, gig, 'rigging')
+  await speakersLoaded
   const section = page.getByRole('region', { name: 'Line arrays' })
   await section.getByRole('combobox', { name: 'Add an array from the sound system calculator' }).selectOption({ label: 'Main L · 12 elements' })
   await expect.poll(async () => (await arraysOfGig(account, gig)).length, LOAD).toBe(1)
