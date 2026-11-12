@@ -1103,7 +1103,7 @@ export default {
       title: "Work out a bridle and list the rigging hardware",
       intro: "A bridle hangs a hoist between two beam points. AVX works out the legs, the angle, the tension in each leg and the sideways pull on the beams, and checks each leg against its weakest piece of hardware.",
       steps: [
-        "In Tools → Rigging, under Rigging hardware, add the shackles, slings, steels and spansets (or \"Add from the equipment\"), each with its WLL from the tag.",
+        "In Tools → Rigging, under Hardware, add the shackles, slings, steels and spansets (or \"Add from the equipment\"), each with its WLL from the tag.",
         "Under Bridles, add a bridle: the distance between the beams, how much higher one beam is, and either the two leg lengths or where the pick point should hang. Type the load.",
         "Read the angle between the legs, each leg's length, angle and tension, and the sideways pull on each beam. Choose each leg's weakest piece to check it against its WLL.",
         "Away from a gig, the same calculator is in My work → Tools, with the WLLs typed.",

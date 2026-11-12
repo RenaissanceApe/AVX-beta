@@ -1100,7 +1100,7 @@ export default {
       title: "Calcular um bridle e listar o material de rigging",
       intro: "Um bridle suspende um motor entre dois pontos de viga. O AVX calcula as pernas, o ângulo, a tensão em cada perna e a força lateral nas vigas, e verifica cada perna com a sua peça mais fraca.",
       steps: [
-        "Em Ferramentas → Rigging, em Material de rigging, adicione as manilhas, lingas, estropos e cintas (ou \"Adicionar do equipamento\"), cada um com a WLL da etiqueta.",
+        "Em Ferramentas → Rigging, em Material de suspensão, adicione as manilhas, lingas, estropos e cintas (ou \"Adicionar do equipamento\"), cada um com a WLL da etiqueta.",
         "Em Bridles, adicione um bridle: a distância entre as vigas, quanto uma viga está mais alta e o comprimento das duas pernas ou onde deve ficar o ponto de suspensão. Indique a carga.",
         "Leia o ângulo entre as pernas, o comprimento, ângulo e tensão de cada perna e a força lateral em cada viga. Escolha a peça mais fraca de cada perna para a comparar com a WLL.",
         "Fora de um evento, a mesma calculadora está em O meu trabalho → Ferramentas, com as WLL escritas à mão.",

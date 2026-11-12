@@ -883,3 +883,79 @@ test('speaker rigging sign-off: the person who typed it can\'t check it, another
     await crewPage.context().close()
   }
 })
+
+// RG2: truss types on a line (no table checked yet: said plainly, with the way to the review screen),
+// a bridle with its hardware, the review screen read-only for someone who isn't an AVX admin, and the
+// bridle calculator in Pocket tools. Truss data only as published (src/data/truss).
+test('truss type, bridles and hardware on a line; the truss table review; the pocket bridle calculator', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(240_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Truss', ['rigging'])
+  await readBell(account)
+  const rig = () => rigOf(account, gig)
+
+  await openTool(page, gig, 'rigging')
+  const tool = page.getByRole('region', { name: 'Rigging' })
+  await expect(tool).toContainText(RIG_AID, LOAD)
+  await tool.getByRole('button', { name: 'Add a line by hand' }).click()
+  await expect.poll(async () => (await rig()).lines?.length, LOAD).toBe(1)
+  const line = tool.getByRole('article', { name: 'Line 1' })
+  await expect(line).toContainText('Choose the truss type to check each span')
+  // Blocked tables are never offered
+  const type = line.getByRole('combobox', { name: 'Truss type' })
+  await expect(type.locator('option', { hasText: 'Fantek EC40' })).toHaveCount(0)
+  await type.selectOption({ label: 'Prolyte H30V · not checked yet' })
+  await expect.poll(async () => (await rig()).lines[0].truss_table_id, LOAD).toBe('prolyte-h30v')
+  // No pass/fail from a table nobody has checked: said plainly, with the way to the review
+  await expect(line.getByRole('status')).toContainText(/hasn't been checked yet|No truss table has been checked yet/)
+  await expect(line).not.toContainText('Within the table')
+  // Its weight per metre from the table (37.8 kg over 6 m, the published weight column)
+  await line.getByRole('button', { name: 'Use its weight: 6.3 kg/m' }).click()
+  await expect.poll(async () => (await rig()).lines[0].truss_kg_m, LOAD).toBe(6.3)
+
+  // Hardware: a shackle with the WLL from its tag
+  await tool.getByRole('button', { name: 'Add hardware' }).click()
+  await expect.poll(async () => (await rig()).hardware?.length, LOAD).toBe(1)
+  const hw = tool.getByRole('region', { name: 'Hardware' })
+  await setNumber(hw.getByRole('textbox', { name: 'Name' }), 'Shackle 0.5 t')
+  await expect.poll(async () => (await rig()).hardware[0].name, LOAD).toBe('Shackle 0.5 t')
+  await setNumber(hw.getByRole('spinbutton', { name: 'WLL (kg)' }), 500)
+  await expect.poll(async () => (await rig()).hardware[0].wll_kg, LOAD).toBe(500)
+
+  // A bridle: beams 2 m apart, 1.5 m legs, 1000 kg: 83.6°, each leg 670.8 kg; the shackle on leg 1 is overloaded
+  await tool.getByRole('button', { name: 'Add a bridle' }).click()
+  await expect.poll(async () => (await rig()).bridles?.length, LOAD).toBe(1)
+  const bridle = tool.getByRole('article', { name: 'Bridle 1' })
+  await setNumber(bridle.getByRole('spinbutton', { name: 'Load (kg)' }), 1000)
+  await expect.poll(async () => (await rig()).bridles[0].load, LOAD).toBe(1000)
+  await expect(bridle).toContainText('Angle between the legs: 83.6°')
+  await expect(bridle).toContainText('1.5 m · 41.8° from vertical · 670.8 kg')
+  await expect(bridle).toContainText('Each beam point is pulled sideways by 447.2 kg.')
+  await bridle.getByRole('combobox', { name: 'Leg 1: weakest piece' }).selectOption({ label: 'Shackle 0.5 t · WLL 500 kg' })
+  await expect.poll(async () => (await rig()).bridles[0].hw1, LOAD).toBeTruthy()
+  await expect(bridle).toContainText('Overloaded: 134% of the WLL (500 kg).')
+  await expectAccessible(page)
+
+  // The review screen: every table with its source; only AVX admins can mark
+  await line.getByRole('link', { name: 'Open the truss table review' }).click()
+  await expect(page).toHaveURL(/\/admin\/truss$/, LOAD)
+  await expect(page.getByRole('heading', { name: 'Truss table review', level: 1 })).toBeVisible(LOAD)
+  await expect(page.getByText('Only AVX admins can mark tables')).toBeVisible()
+  await page.getByRole('button', { name: /^Prolyte H30V edition 2015-03-18/ }).click()
+  await expect(page).toHaveURL(/table=prolyte-h30v/)
+  await expect(page.getByRole('link', { name: "Open the manufacturer's document" })).toHaveAttribute('href', /^https:\/\/prolyte\.com\//)
+  await expect(page.getByRole('region', { name: '18 rows' })).toBeVisible()
+  await expect(page.getByRole('checkbox')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /^Mark checked/ })).toHaveCount(0)
+  await expectAccessible(page)
+
+  // Pocket tools: the bridle calculator, a wide bridle warned
+  await page.goto('/tools')
+  const pocket = page.getByRole('region', { name: 'Bridle calculator' })
+  await expect(pocket).toBeVisible(LOAD)
+  await setNumber(pocket.getByRole('spinbutton', { name: 'Between the beams (m)' }), 3.6)
+  await setNumber(pocket.getByRole('spinbutton', { name: 'Leg A (m)' }), 2)
+  await setNumber(pocket.getByRole('spinbutton', { name: 'Leg B (m)' }), 2)
+  await expect(pocket.getByRole('alert')).toContainText('Wider than 120°')
+  await expectAccessible(page)
+})

@@ -3360,7 +3360,7 @@ export default {
   "bridle.drawing": "Vista lateral do bridle: os dois pontos de viga, as pernas e o ponto de suspensão, à escala.",
   "bridle.pocketTitle": "Calculadora de bridles",
   "bridle.pocketIntro": "Duas pernas de dois pontos de viga até um ponto de suspensão: comprimento das pernas, ângulos, a tensão em cada perna e a força lateral nas vigas.",
-  "hw.title": "Material de rigging",
+  "hw.title": "Material de suspensão",
   "hw.intro": "Manilhas, lingas, estropos de aço e cintas para este evento, cada um com a WLL da etiqueta ou dos dados do fabricante. Nada é preenchido por si.",
   "hw.add": "Adicionar material",
   "hw.inEquipment.one": "{count} peça de material de rigging no equipamento do evento não está nesta lista.",

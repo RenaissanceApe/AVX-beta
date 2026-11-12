@@ -113,8 +113,8 @@ export default function TrussReviewPage() {
 
 function colName(t, c) {
   let m
-  if ((m = /^p(\d)_kg$/.exec(c))) return t('truss.col.p', { n: Number(m[1]) - 1 })
-  if ((m = /^p(\d)_defl_mm$/.exec(c))) return t('truss.col.pDefl', { n: Number(m[1]) - 1 })
+  if ((m = /^p(\d)_kg$/.exec(c))) return t('truss.col.p', { count: Number(m[1]) - 1 })
+  if ((m = /^p(\d)_defl_mm$/.exec(c))) return t('truss.col.pDefl', { count: Number(m[1]) - 1 })
   return t(`truss.col.${c}`)
 }
 

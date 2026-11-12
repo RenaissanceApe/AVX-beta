@@ -165,7 +165,7 @@ export function lineTrussCheck(t, a, { factor = 1, defl_limit_mm = null } = {}) 
     }
     for (const p of a.pointLoads || []) if (p.at > from + eps && p.at < to - eps) pts += p.kg
     const check = spanCheck(t, { span: L, udl_kg_m: udl * factor, points_kg: pts * factor, defl_limit_mm })
-    spans.push({ from, to, ...check })
+    spans.push({ ...check, from: Math.round(from * 100) / 100, to: Math.round(to * 100) / 100 })
   }
   const cantilever = supports[0] > eps || supports[supports.length - 1] < a.length - eps
   const continuous = supports.length > 2

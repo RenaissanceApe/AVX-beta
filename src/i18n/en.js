@@ -3361,7 +3361,7 @@ export default {
   "bridle.drawing": "Side view of the bridle: the two beam points, the legs and the pick point, to scale.",
   "bridle.pocketTitle": "Bridle calculator",
   "bridle.pocketIntro": "Two legs from two beam points to one pick point: leg lengths, angles, the tension in each leg and the sideways pull on the beams.",
-  "hw.title": "Rigging hardware",
+  "hw.title": "Hardware",
   "hw.intro": "Shackles, slings, steels and spansets for this gig, each with the WLL from its tag or the manufacturer's data. Nothing is filled in for you.",
   "hw.add": "Add hardware",
   "hw.inEquipment.one": "{count} piece of rigging hardware in the gig's equipment isn't in this list.",
