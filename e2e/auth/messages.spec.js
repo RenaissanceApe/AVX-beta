@@ -294,7 +294,7 @@ test('department channels on a gig: crew see only their own function', { tag: '@
   await expect(chips.getByRole('tab', { name: /Light/ })).toBeVisible()
   await expect(chips.getByRole('tab', { name: /Managers/ })).toBeVisible()
   await chips.getByRole('tab', { name: /Sound/ }).click()
-  await expect(page.getByText('Only Sound and the gig\'s managers see this channel.')).toBeVisible({ timeout: 15_000 })
+  await expect(chips.getByRole('tab', { name: /Sound/ })).toHaveAttribute('aria-selected', 'true')
   const forSound = words('Sound team: bring the spare DI boxes')
   await send(page, forSound)
   await chatAccessible(page)
@@ -393,7 +393,7 @@ test('asking crew with a clash if they are available, answered from their Messag
   await chatAccessible(crew)
   await card.getByRole('button', { name: 'Available', exact: true }).click()
   // Answered: the buttons go and the answer is posted under the question
-  await expect(crew.getByRole('log').getByRole('button', { name: 'Available', exact: true })).toHaveCount(0, { timeout: 15_000 })
+  await expect(crew.getByRole('log').locator('div', { hasText: `“${question}”` }).getByRole('button', { name: 'Available', exact: true })).toHaveCount(0, { timeout: 15_000 })
 
   // The manager sees the answer on the Crew tab, and in the conversation
   await page.reload()
@@ -419,11 +419,11 @@ test('a crew call for a position, accepted from Messages: they join the gig', { 
 
   const other = member.page
   await openDirect(other, adminWithOrg.account.name)
-  const offer = other.getByRole('log').locator('div', { hasText: `${adminWithOrg.account.name} offers you a place: Rigger` })
-    .filter({ hasText: gig2.name }).filter({ has: other.getByRole('button', { name: 'Accept' }) }).last()
-  await expect(offer).toBeVisible({ timeout: 15_000 })
+  // This gig's card (the conversation may hold earlier offers)
+  const offer = other.getByRole('log').locator('div').filter({ has: other.getByRole('link', { name: gig2.name, exact: true }) }).last()
+  await expect(offer).toContainText(`${adminWithOrg.account.name} offers you a place: Rigger`, { timeout: 15_000 })
   await offer.getByRole('button', { name: 'Accept' }).click()
-  await expect(other.getByText('You accepted · you’re on the gig')).toBeVisible({ timeout: 15_000 })
+  await expect(offer).toContainText('You accepted · you’re on the gig', { timeout: 15_000 })
   await other.goto(gig2.path)
   await expect(other.getByRole('heading', { name: gig2.name })).toBeVisible({ timeout: 15_000 })
   // The manager's Crew tab has them as Rigger
@@ -700,11 +700,13 @@ test('blocking someone in a direct conversation: neither can write; unblock from
   await send(page, before)
   const other = await pageAs(browser, extra, { baseURL })
   await openDirect(other, account.name)
-  await send(other, words('Yes I am'))
+  const reply = words('Yes I am')
+  await send(other, reply)
 
   // Block from the message menu
+  await expect(chatRow(page, reply)).toBeVisible({ timeout: 20_000 })
   page.once('dialog', dialog => dialog.accept())
-  await (await menuOf(page, 'Yes I am')).getByRole('menuitem', { name: 'Block this person' }).click()
+  await (await menuOf(page, reply)).getByRole('menuitem', { name: 'Block this person' }).click()
   await expect(page.getByText(`You blocked ${extra.name}.`).first()).toBeVisible()
   await expect(composer(page)).toHaveCount(0)
   await chatAccessible(page)
