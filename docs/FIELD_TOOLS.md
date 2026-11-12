@@ -176,6 +176,29 @@ same access as the page. Later prints (rigging report RG4, work areas 20b) get i
 `<PrintFooter />`. The quote print, the wrap-up and the reports pages have none (D-question in
 docs/PENDING.md).
 
+## Saving when two people edit (BF5)
+
+- **Checklist ticks** go through `public.set_task_checklist_item(task, item id, done)`
+  (migration `20270125000000_task_checklist_item.sql`): one statement sets that item's `done`
+  inside `tasks.checklist` and returns the new list and `updated_at`. Who may tick is the same as
+  the tasks policy (`private.task_can_tick`), plus the two-step sign-in check. In the app,
+  `tickChecklistItem` (`src/lib/queuedSaves.js`) queues ticks per item, and `tickTaskItem`
+  (`src/components/tasks/TaskParts.jsx`) shows the tick at once and takes the server's list when
+  the task's last tick is back. Adding, removing and renaming items still saves the whole list
+  from the edit form, with the `updated_at` guard (`updateIfUnchanged`).
+- Items are identified by the `id` the app gives them when the checklist is written
+  (`checklistFromText`); it now also gives an id to an old item without one, and never reuses an
+  id for two items.
+- **Field tools** save through `saveShow(gigId, values)`. Each tool reads `updated_at` with
+  `gig_show` and reports it with `noteShowLoaded`. A save is an update that only matches if
+  `updated_at` is unchanged (`updateIfUnchanged`, keyed by `gig_id`), or the first insert when the
+  gig has no row yet (refused if someone else made it first). After each save of its own, the
+  device moves its copy of `updated_at` on. Saves for one gig go out one at a time (one queue per
+  gig, BF1's queue), so a device's own quick changes never conflict with each other. On a
+  conflict the tool shows the stale-save toast with Reload and leaves the screen as it is.
+- The guard is per gig, not per tool: `gig_show` has one `updated_at` for all its parts, so a
+  change to the patch makes an open light plot's next save ask for a reload (D168).
+
 ## Open questions
 
 1. **When:** after H5 (field kit) and before switching (S1); started 2026-10-20. **Decided 2026-10-21: all field tools (F1–F4) first, then switching.** Done: F1–F4 built by 0.40.0.
