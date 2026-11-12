@@ -6,33 +6,12 @@
 // opening an MVR in Vectorworks) is in docs/notes/AT10.md.
 import { test, expect } from './fixtures.js'
 import { expectAccessible, waitForServiceWorker } from './helpers.js'
-import { addGig, addItem, addToGig, pageAs } from './setup.js'
-import { RUN } from './accounts.js'
+import { addItem, addToGig, pageAs } from './setup.js'
 import { readZip, zipText, bytesOf } from './files.js'
 import { barsOf, layoutFixtures, viewArea } from '../../src/lib/lightPlot.js'
+import { TAG, LOAD, uniq, ok, readBell, toolGig, fixtureFile, openTool, screenPoint, drag } from './fieldtoolsSupport.js'
 
 test.use({ area: 'fieldtools' })
-
-const TAG = '@fieldtools'
-const LOAD = { timeout: 45_000 }
-const uniq = () => `${RUN}-${Date.now().toString(36)}`
-const ok = (what, { data, error }) => {
-  if (error) throw new Error(`${what} failed: ${error.message}`)
-  return data
-}
-// Notifications read, so the bell's "9+" never trips the accessibility check (issue #209)
-async function readBell(...accounts) {
-  const now = new Date().toISOString()
-  for (const a of accounts) ok('Reading notifications', await a.client.from('notifications').update({ read_at: now }).eq('user_id', a.id).is('read_at', null))
-}
-// Its own gig per test, with the tools given already added (Tools → Add a tool is clicked in T26)
-async function toolGig(world, label, tools = [], fields = {}) {
-  const [admin, org] = await Promise.all([world.admin(), world.org()])
-  const gig = await addGig(admin, org.id, { name: `E2E ${label} ${uniq()}`, ...fields })
-  for (const tool of tools) ok(`Adding ${tool}`, await admin.client.from('gig_tools').insert({ gig_id: gig.id, tool }))
-  return { admin, org, gig }
-}
-const openTool = (page, gig, tool) => page.goto(`${gig.path}?tab=tools&tool=${tool}`)
 
 // covers: T26
 test('input list: channels with 48V and a catalogue mic, reorder, checks, print, to equipment; crew read it; the organisation can untick it', { tag: ['@smoke', TAG] }, async ({ adminWithOrg, browser, baseURL }) => {
@@ -144,25 +123,6 @@ test('input list: channels with 48V and a catalogue mic, reorder, checks, print,
     }
   }
 })
-
-// Where a point of a drawing (in its own units, from getScreenCTM) is on the screen
-async function screenPoint(svg, x, y) {
-  return svg.evaluate((el, [px, py]) => {
-    const p = el.createSVGPoint()
-    p.x = px; p.y = py
-    const s = p.matrixTransform(el.getScreenCTM())
-    return { x: s.x, y: s.y }
-  }, [x, y])
-}
-// Drags with the mouse from one screen point to another, in small steps like a hand
-async function drag(page, from, to) {
-  expect(Math.min(from.y, to.y), 'The drag starts or ends above the window').toBeGreaterThan(0)
-  expect(Math.max(from.y, to.y), 'The drag starts or ends below the window').toBeLessThan(page.viewportSize().height)
-  await page.mouse.move(from.x, from.y)
-  await page.mouse.down()
-  for (let i = 1; i <= 8; i++) await page.mouse.move(from.x + ((to.x - from.x) * i) / 8, from.y + ((to.y - from.y) * i) / 8)
-  await page.mouse.up()
-}
 
 // covers: T27
 test('stage plot: stage size, a band dragged into place, named mics, rotated wedges, sent to the input list; crew see it read-only', { tag: TAG }, async ({ adminWithOrg, browser, baseURL }) => {
@@ -865,4 +825,98 @@ test('DMX patch: Dipswitches per fixture and Walk the rig, position by position'
   await expect(page.getByRole('button', { name: /^Next fixture/ })).toBeDisabled()
   await page.getByRole('button', { name: /^Previous/ }).click()
   await expect(where).toHaveText('Fixture 2 of 3 · FOH truss')
+})
+
+// covers: T101
+test('GDTF on a catalogue item: its modes with their channels, and the weight and power filled in when ticked', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(120_000)
+  const { page, account, org } = adminWithOrg
+  const item = await addItem(account, org.id, { name: `E2E Spot 300 ${uniq()}`, category: 'Lighting' })
+  await readBell(account)
+  await page.goto(`${org.path}/inventory/${item.id}`)
+  await page.getByRole('button', { name: 'More actions' }).click()
+  await page.getByRole('menuitem', { name: 'GDTF fixture-type file' }).or(page.getByRole('button', { name: 'GDTF fixture-type file' })).first().click()
+  const dialog = page.getByRole('dialog', { name: 'Fixture type (GDTF)' })
+  await dialog.locator('#gdtf-file').setInputFiles(fixtureFile('sample-spot-300.gdtf'))
+  // The file's two modes, with the channels the file gives
+  await expect(dialog.getByRole('listitem').filter({ hasText: 'Standard' })).toHaveText('Standard · 18 ch', LOAD)
+  await expect(dialog.getByRole('listitem').filter({ hasText: 'Basic' })).toHaveText('Basic · 12 ch')
+  const use = dialog.getByRole('checkbox', { name: "Use the file's weight and power for this item (21.5 kg · 450 W)" })
+  await expect(use).toBeChecked()
+  await expectAccessible(page)
+  await dialog.getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByText('Fixture type saved')).toBeVisible(LOAD)
+  await expect(dialog).toBeHidden()
+  // The item page shows the fixture type; the item has the file's weight and power
+  const card = page.getByRole('region', { name: 'Fixture type (GDTF)' })
+  await expect(card).toContainText('Sample Spot 300', LOAD)
+  await expect(card).toContainText('Standard · 18 ch')
+  await expect(card).toContainText('The file says 21.5 kg · 450 W')
+  await expect.poll(async () => ok('Reading the item', await account.client.from('price_items').select('weight_kg, power_w').eq('id', item.id).single()), LOAD)
+    .toEqual({ weight_kg: 21.5, power_w: 450 })
+})
+
+// covers: T99
+test('MVR import into a gig: fixtures, modes, channels and addresses in the DMX patch, positions on the light plot; the export unzips to the same rig', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(180_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'MVR', ['dmx_patch', 'light_plot'])
+  // The stage size first (12 m × 8 m), as the T-line asks
+  ok('Setting the stage', await account.client.from('gig_show').upsert({ gig_id: gig.id, stage: { width_m: 12, depth_m: 8 } }))
+  await readBell(account)
+  const fixtures = async () => ok('Reading fixtures', await account.client.from('gig_fixtures')
+    .select('name, fixture_type, mode, footprint, universe, address, position, plot_x, plot_y').eq('gig_id', gig.id).order('name'))
+
+  await openTool(page, gig, 'dmx_patch')
+  await page.getByRole('button', { name: 'Import MVR' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Import an MVR file' })
+  await dialog.locator('input[type="file"]').setInputFiles(fixtureFile('rig-vectorworks-style.mvr'))
+  await expect(dialog.getByRole('status')).toContainText('rig-vectorworks-style.mvr: 6 fixtures · 2 fixture types · from Vectorworks', LOAD)
+  const types = dialog.getByRole('region', { name: 'Which catalogue item is each fixture type?' })
+  await expect(types.getByRole('listitem').filter({ hasText: 'Sample Spot 300' })).toContainText('4 fixtures · Modes: Standard · GDTF file included')
+  await expect(types.getByRole('listitem').filter({ hasText: 'Sample Pixel Wash' })).toContainText('2 fixtures · Modes: Pixel · GDTF file included')
+  const plan = dialog.getByRole('region', { name: 'What will happen' })
+  await expect(plan).toContainText('6 fixtures added')
+  await expect(plan).toContainText('2 new positions on the light plot')
+  await expectAccessible(page)
+  await dialog.getByRole('button', { name: 'Import 6 fixtures' }).click()
+  await expect(page.getByText('6 fixtures imported')).toBeVisible(LOAD)
+
+  // The DMX patch: modes and channels from the GDTF files, addresses from the drawing (absolute
+  // 513 and 529 are universe 2, 1 and 17); the Pixel mode is 4 channels + 4 cells × 3 = 16
+  await expect.poll(async () => (await fixtures()).map(f => `${f.name}|${f.fixture_type}|${f.mode}|${f.footprint}|${f.universe}/${f.address}|${f.position}`), LOAD).toEqual([
+    'Spot 1|Sample Spot 300|Standard|18|1/1|LX1', 'Spot 2|Sample Spot 300|Standard|18|1/19|LX1',
+    'Spot 3|Sample Spot 300|Standard|18|1/37|LX1', 'Spot 4|Sample Spot 300|Standard|18|1/55|LX1',
+    'Wash 1|Sample Pixel Wash|Pixel|16|2/1|FOH', 'Wash 2|Sample Pixel Wash|Pixel|16|2/17|FOH',
+  ])
+  const dmx = page.getByRole('region', { name: 'DMX patch' })
+  await expect(dmx).toContainText('6 fixtures · 2 universes', LOAD)
+  await expect(dmx.getByRole('region', { name: 'Universe 1' }).getByRole('listitem').filter({ hasText: 'Spot 4' })).toContainText('55–72')
+  await expect(dmx.getByRole('region', { name: 'Universe 2' }).getByRole('listitem').filter({ hasText: 'Wash 2' })).toContainText('17–32')
+
+  // The light plot: measured from the middle of the stage's front edge, so the spots at −3, −1,
+  // 1 and 3 m across are 3, 5, 7 and 9 m from the left of a 12 m stage, 4 m from the front; the
+  // washes 5 m in front of it. LX1 runs 1 m past the outer spots: 7 m long
+  const placed = (await fixtures()).map(f => [f.name, Number(f.plot_x), Number(f.plot_y)])
+  expect(placed).toEqual([['Spot 1', 3, 4], ['Spot 2', 5, 4], ['Spot 3', 7, 4], ['Spot 4', 9, 4], ['Wash 1', 4, -5], ['Wash 2', 8, -5]])
+  const lighting = ok('Reading the plot', await account.client.from('gig_show').select('lighting').eq('gig_id', gig.id).single()).lighting
+  expect(barsOf(lighting).map(b => [b.name, b.kind, b.x, b.y, b.height])).toEqual([['LX1', 'truss', 6, 4, 7], ['FOH', 'truss', 6, -5, 6]])
+  await openTool(page, gig, 'light_plot')
+  const positions = page.getByRole('region', { name: 'Positions' })
+  await expect(positions.getByRole('button', { name: /^LX1 / })).toContainText('Truss · 7 m · trim 7 m', LOAD)
+  await expect(positions.getByRole('button', { name: /^LX1 / })).toContainText('Spot 1 (1/1) · Spot 2 (1/19) · Spot 3 (1/37) · Spot 4 (1/55)')
+  await expect(positions.getByRole('button', { name: /^FOH / })).toContainText('Wash 1 (2/1) · Wash 2 (2/17)')
+  await expect(page.getByRole('group', { name: `Light plot for ${gig.name}` }).getByRole('button', { name: /^Spot 3, / })).toBeAttached()
+
+  // Export: an MVR (a zip) with the six fixtures at the same addresses
+  await openTool(page, gig, 'dmx_patch')
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export MVR' }).click()])
+  expect(download.suggestedFilename()).toMatch(/\.mvr$/)
+  await expect(page.getByText('MVR file with 6 fixtures downloaded')).toBeVisible(LOAD)
+  const files = await readZip(download)
+  const xml = zipText(files, 'GeneralSceneDescription.xml')
+  const exported = [...xml.matchAll(/<Fixture name="([^"]+)"[\s\S]*?<Address[^>]*>(\d+)<\/Address>/g)].map(m => `${m[1]} ${m[2]}`).sort()
+  expect(exported).toEqual(['Spot 1 1', 'Spot 2 19', 'Spot 3 37', 'Spot 4 55', 'Wash 1 513', 'Wash 2 529'])
+  expect(xml).toContain('<GDTFMode>Standard</GDTFMode>')
+  expect(xml).toContain('LX1')
 })
