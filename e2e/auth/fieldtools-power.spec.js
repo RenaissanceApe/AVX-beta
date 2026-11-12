@@ -8,7 +8,7 @@ import { test, expect } from './fixtures.js'
 import { expectAccessible, waitForServiceWorker } from './helpers.js'
 import { readPdfText } from './files.js'
 import { addItem, addToGig, pageAs } from './setup.js'
-import { TAG, LOAD, uniq, ok, readBell, toolGig, openTool } from './fieldtoolsSupport.js'
+import { TAG, LOAD, uniq, ok, readBell, toolGig, openTool, screenPoint, drag } from './fieldtoolsSupport.js'
 
 test.use({ area: 'fieldtools' })
 
@@ -401,4 +401,158 @@ test('power report: from the on-site tile, also offline; saved to the gig files 
   for (const words of ['Heater', 'Dimmer city', 'Inrush', 'Cable list', 'Schuko (3G2.5)']) expect(text, `The PDF has "${words}"`).toContain(words)
   await page.goto(`${gig.path}?tab=assets`)
   await expect(page.getByRole('main')).toContainText(`Power plan · ${gig.name}`, LOAD)
+})
+
+// ── Rigging ──────────────────────────────────────────────────────────────────
+const RIG_AID = 'An aid, not a sign-off. These figures help plan the rig. A competent rigger must check every load, point and hoist before anything is flown.'
+// The Chainmaster D8+ 500 kg preset (from the manufacturer's data sheet, already in the database)
+const D8PLUS_500 = 'Chainmaster D8+ 500 kg, 4 m/min (SK030/76U, CM-960505) · D8+ · 500 kg'
+// A light plot with one 10 m truss across the default 10 m stage and six 20 kg fixtures on it
+async function trussWithFixtures(account, gig) {
+  ok('Saving the light plot', await account.client.from('gig_show').upsert({ gig_id: gig.id, lighting: {
+    bars: [{ id: 'b1', name: 'Truss 1', kind: 'truss', x: 5, y: 5, rotation: 0, length: 10, height: 7, phase: null }],
+  } }))
+  ok('Adding fixtures', await account.client.from('gig_fixtures').insert([1, 2, 3, 4, 5, 6].map(n => ({
+    gig_id: gig.id, name: `Spot ${n}`, fixture_type: 'Spot', footprint: 14, universe: 1, address: 1 + (n - 1) * 14, position: 'Truss 1', weight_kg: 20,
+  }))))
+}
+const rigOf = async (account, gig) => ok('Reading the rigging', await account.client.from('gig_show').select('rigging').eq('gig_id', gig.id).maybeSingle())?.rigging || {}
+const pointRow = (line, n) => line.getByRole('listitem').filter({ has: line.page().locator('strong', { hasText: new RegExp(`^Point ${n} · `) }) })
+// The same, by where the point is along the line
+const pointAt = (line, m) => line.getByRole('listitem').filter({ has: line.page().locator('strong', { hasText: new RegExp(`^Point \\d+ · ${String(m).replace('.', '\\.')} m$`) }) })
+// A number field in the rigging tool: typed and left (it saves on leaving)
+async function setNumber(field, value) {
+  await field.fill(String(value))
+  await field.blur()
+}
+
+// covers: T114
+test('rigging from the light plot: not checked, the line with its fixtures and two points, hoists with load, ×f and % of WLL; overloaded in words', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(180_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Rigging', ['dmx_patch', 'light_plot'])
+  await trussWithFixtures(account, gig)
+  await readBell(account)
+  const rig = () => rigOf(account, gig)
+
+  // The light plot: the bar says "Rigging: not checked"; tapping it opens the rigging tool on that line
+  await openTool(page, gig, 'light_plot')
+  await page.getByRole('button', { name: 'Rigging: not checked — open the rigging tool for Truss 1' }).click()
+  await expect(page).toHaveURL(/tool=rigging/, LOAD)
+  const tool = page.getByRole('region', { name: 'Rigging' })
+  await expect(tool).toContainText(RIG_AID, LOAD)
+  const line = tool.getByRole('article', { name: 'Truss 1' })
+  await expect(line).toContainText('From the light plot · 10 m')
+  await expect.poll(async () => (await rig()).lines?.[0]?.points?.map(p => p.at_m), LOAD).toEqual([0.25, 9.75])
+  // Fixtures 6 × 20 kg + cable 5 kg/m × 10 m = 170 kg, × 1.2 = 204 kg
+  await expect(line).toContainText('Fixtures 120 kg · Cable 50 kg · × 1.2 = 204 kg')
+  await expect(line).toContainText('170 kg')
+  await expect(line).toContainText('Not checked against the light plot yet.')
+
+  // A 500 kg hoist on each point: symmetric, so each carries 85 kg, × 1.2 = 102 kg, 20% of 500 kg
+  for (const n of [1, 2]) {
+    await pointRow(line, n).getByRole('combobox', { name: 'Hoist' }).selectOption({ label: D8PLUS_500 })
+    await expect.poll(async () => (await rig()).lines[0].points[n - 1].hoist_model_id, LOAD).toBeTruthy()
+  }
+  for (const n of [1, 2]) {
+    await expect(pointRow(line, n)).toContainText('85 kg · ×f 102 kg')
+    await expect(pointRow(line, n)).toContainText('20% of the WLL (500 kg).')
+  }
+  await expectAccessible(page)
+
+  // A 900 kg extra load in the middle: each point 85 + 450 = 535 kg, × 1.2 = 642 kg, 128%: overloaded
+  await line.getByRole('button', { name: 'Add a load' }).click()
+  await expect.poll(async () => (await rig()).lines[0].loads.length, LOAD).toBe(1)
+  await setNumber(line.getByRole('textbox', { name: 'What' }), 'Video wall')
+  await expect.poll(async () => (await rig()).lines[0].loads[0].name, LOAD).toBe('Video wall')
+  await setNumber(line.getByRole('spinbutton', { name: 'kg', exact: true }), 900)
+  await expect.poll(async () => (await rig()).lines[0].loads[0].kg, LOAD).toBe(900)
+  await setNumber(line.getByRole('spinbutton', { name: 'At (m)' }).first(), 5)
+  await expect.poll(async () => (await rig()).lines[0].loads[0].at_m, LOAD).toBe(5)
+  for (const n of [1, 2]) {
+    await expect(pointRow(line, n)).toContainText('535 kg · ×f 642 kg', LOAD)
+    await expect(pointRow(line, n)).toContainText('Overloaded: 128% of the WLL (500 kg). Use a bigger hoist or add a point.')
+  }
+  // The light plot says so too
+  await openTool(page, gig, 'light_plot')
+  await expect(page.getByRole('button', { name: 'Rigging: overloaded — open the rigging tool for Truss 1' })).toBeVisible(LOAD)
+})
+
+// covers: T115
+test('rigging edge cases: an overhang pulls a point up; a D8 hoist from a data plate over people is flagged; checked until a fixture moves', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.setTimeout(240_000)
+  const { page, world, account } = adminWithOrg
+  const { gig } = await toolGig(world, 'Rig edges', ['dmx_patch', 'light_plot', 'rigging'])
+  await trussWithFixtures(account, gig)
+  await readBell(account)
+  const rig = () => rigOf(account, gig)
+  const at = async () => (await rig()).lines[0].points.map(p => p.at_m).sort((a, b) => a - b)
+
+  await openTool(page, gig, 'rigging')
+  const tool = page.getByRole('region', { name: 'Rigging' })
+  await expect(tool).toContainText(RIG_AID, LOAD)
+  // A 6 m line by hand (points at 0.25 and 5.75 m) and a third point (in the middle, 3 m) moved to 1.5 m
+  await tool.getByRole('button', { name: 'Add a line by hand' }).click()
+  await expect.poll(async () => (await rig()).lines?.length, LOAD).toBe(1)
+  const line = tool.getByRole('article', { name: 'Line 1' })
+  await line.getByRole('button', { name: 'Add a hang point' }).click()
+  await expect.poll(at, LOAD).toEqual([0.25, 3, 5.75])
+  await setNumber(pointAt(line, 3).getByRole('spinbutton', { name: 'At (m)' }), 1.5)
+  await expect.poll(at, LOAD).toEqual([0.25, 1.5, 5.75])
+  // The far point moved in to 3 m, so the line overhangs 3 m; 400 kg on its end
+  await setNumber(pointAt(line, 5.75).getByRole('spinbutton', { name: 'At (m)' }), 3)
+  await expect.poll(at, LOAD).toEqual([0.25, 1.5, 3])
+  await line.getByRole('button', { name: 'Add a load' }).click()
+  await expect.poll(async () => (await rig()).lines[0].loads.length, LOAD).toBe(1)
+  const extra = line.getByRole('listitem').filter({ has: page.getByRole('textbox', { name: 'What' }) })
+  await setNumber(extra.getByRole('spinbutton', { name: 'kg', exact: true }), 400)
+  await expect.poll(async () => (await rig()).lines[0].loads[0].kg, LOAD).toBe(400)
+  await setNumber(extra.getByRole('spinbutton', { name: 'At (m)' }), 6)
+  await expect.poll(async () => (await rig()).lines[0].loads[0].at_m, LOAD).toBe(6)
+  // The line levers over the point at 3 m: as a continuous beam over three points, the one in the
+  // middle (1.5 m) is pulled up (−1295.5 kg) while the end points carry 270.3 and 1455.2 kg; with
+  // 30 kg of cable the three add up to the 430 kg on the line
+  await expect(pointAt(line, 1.5)).toContainText('This point would be pulled up: the line tips over its other points. Move the points or the load.', LOAD)
+  await expect(pointAt(line, 0.25)).toContainText('270.3 kg · ×f 324.3 kg')
+  await expect(pointAt(line, 3)).toContainText('1455.2 kg')
+  await expect(line).toContainText('430 kg')
+  await expectAccessible(page)
+
+  // A D8 hoist from its data plate (250 kg); on a point over people (ticked by default) it's flagged
+  await tool.getByRole('button', { name: 'Add a hoist model' }).click()
+  const form = page.getByRole('dialog', { name: 'Add a hoist model' })
+  const model = `D8 250 ${uniq()}`
+  await form.getByLabel('Brand').fill('E2E Hoists')
+  await form.getByLabel('Model').fill(model)
+  await form.getByRole('combobox', { name: 'Class' }).selectOption('D8')
+  await form.getByRole('spinbutton', { name: 'WLL (kg), as the manufacturer states it' }).fill('250')
+  await form.getByRole('button', { name: 'Save the model' }).click()
+  await expect(page.getByText('Hoist model added')).toBeVisible(LOAD)
+  const middle = pointAt(line, 1.5)
+  await expect(middle.getByRole('checkbox', { name: 'Over people' })).toBeChecked()
+  await middle.getByRole('combobox', { name: 'Hoist' }).selectOption({ label: `E2E Hoists ${model} · D8 · 250 kg` })
+  await expect.poll(async () => (await rig()).lines[0].points.find(p => p.at_m === 1.5)?.hoist_model_id, LOAD).toBeTruthy()
+  await expect(middle).toContainText('A D8 hoist may not hold a load over people without a secondary safety.', LOAD)
+  await expect(middle).toContainText("This hoist model still needs a second person's check.")
+  // Not over people: no flag
+  await middle.getByRole('checkbox', { name: 'Over people' }).uncheck()
+  await expect.poll(async () => (await rig()).lines[0].points.find(p => p.at_m === 1.5)?.over_people, LOAD).toBe(false)
+  await expect(middle).not.toContainText('may not hold a load over people')
+
+  // The truss from the light plot: mark its loads as checked; the light plot says checked
+  await tool.getByRole('combobox', { name: 'Add a line from the light plot' }).selectOption({ label: 'Truss 1 · 10 m' })
+  await expect.poll(async () => (await rig()).lines.length, LOAD).toBe(2)
+  const truss = tool.getByRole('article', { name: 'Truss 1' })
+  await truss.getByRole('button', { name: 'Mark the loads as checked' }).click()
+  await expect.poll(async () => (await rig()).lines[1].checked?.fingerprint, LOAD).toBeTruthy()
+  await expect(truss).toContainText('Loads checked against the light plot on', LOAD)
+  await openTool(page, gig, 'light_plot')
+  await expect(page.getByRole('button', { name: /^Rigging: checked · busiest hoist \d+% — open the rigging tool for Truss 1$/ })).toBeVisible(LOAD)
+  // Move a fixture along the truss (select it, arrow key): the bar is "not checked" again
+  await page.getByRole('group', { name: `Light plot for ${gig.name}` }).getByRole('button', { name: /^Spot 1, / }).focus()
+  await page.keyboard.press('Shift+ArrowLeft')
+  await expect.poll(async () => ok('Reading Spot 1', await account.client.from('gig_fixtures').select('plot_x').eq('gig_id', gig.id).eq('name', 'Spot 1').single()).plot_x, LOAD).not.toBeNull()
+  await expect(page.getByRole('button', { name: 'Rigging: not checked — open the rigging tool for Truss 1' })).toBeVisible(LOAD)
+  await openTool(page, gig, 'rigging')
+  await expect(page.getByRole('article', { name: 'Truss 1' })).toContainText('Not checked: the fixtures on this bar changed since the last check.', LOAD)
 })
