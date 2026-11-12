@@ -9,6 +9,17 @@ import { addGig, addItem, addQuote, addToGig, pageAs } from './setup.js'
 
 test.use({ area: 'messages' })
 
+// Each test starts with everyone's notifications read: the bell's name doesn't match what it shows
+// from 10 unread on, which the accessibility check flags (#209), and a test only opens its own
+test.beforeEach(async ({ world }) => {
+  const now = new Date().toISOString()
+  for (const role of ['admin', 'member', 'crew', 'extra']) {
+    const a = await world.account(role)
+    const { error } = await a.client.from('notifications').update({ read_at: now }).eq('user_id', a.id).is('read_at', null)
+    if (error) throw new Error(`Reading the ${role}'s notifications failed: ${error.message}`)
+  }
+})
+
 // Each test writes its own words, so a test run twice (or after another) finds only its own messages
 const words = what => `${what} ${RUN} ${Date.now().toString(36)}`
 
