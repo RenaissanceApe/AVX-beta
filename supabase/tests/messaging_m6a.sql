@@ -1,10 +1,11 @@
--- Checks for migration 20261107000000 (messaging M6a: reports, moderators, blocks, rate limits).
+-- Checks for migration 20261107000000 (messaging M6a: reports, moderators, blocks, rate limits)
+-- and 20270124000000 (a manager is told about reports on their own messages too).
 -- Run in the TEST project's SQL editor. Rolls itself back; ends with
 --   "ALL MESSAGING M6A CHECKS PASSED"  → good
 do $$
 declare
   a uuid := gen_random_uuid(); c1 uuid := gen_random_uuid(); c2 uuid := gen_random_uuid();
-  org_a uuid; g1 uuid; gch uuid; dm uuid; m1 uuid; m2 uuid; m3 uuid; n int; t text; i int;
+  org_a uuid; g1 uuid; gch uuid; dm uuid; m1 uuid; m2 uuid; m3 uuid; m4 uuid; n int; t text; i int;
 begin
   insert into auth.users (id, email, aud, role) values
     (a, 'm6-a@avx.invalid', 'authenticated', 'authenticated'), (c1, 'm6-c1@avx.invalid', 'authenticated', 'authenticated'),
@@ -86,6 +87,24 @@ begin
   if n <> 0 then raise exception 'CHECK FAILED: kept report still open'; end if;
   reset role;
   if (select deleted_at is not null from messages where id = m2) then raise exception 'CHECK FAILED: kept message removed'; end if;
+
+  -- A report on the manager's own message is told to that manager too (20270124000000)
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  insert into messages (conversation_id, body) values (gch, 'Load-in moves to 07:00') returning id into m4;
+  reset role;
+  perform set_config('request.jwt.claims', json_build_object('sub', c2, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  perform report_message(m4, 'other');
+  reset role;
+  select count(*) into n from notifications where kind = 'message_report' and user_id = a and details->>'message_id' = m4::text and read_at is null;
+  if n <> 1 then raise exception 'CHECK FAILED: % notifications for the manager about a report on their own message', n; end if;
+  select count(*) into n from notifications where kind = 'message_report' and user_id in (c1, c2) and details->>'message_id' = m4::text;
+  if n <> 0 then raise exception 'CHECK FAILED: crew told about the report on the manager''s message'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role', 'authenticated')::text, true);
+  set local role authenticated;
+  perform moderate_message(m4, false);
+  reset role;
 
   -- Removing your own message still works, without the moderator mark
   perform set_config('request.jwt.claims', json_build_object('sub', c1, 'role', 'authenticated')::text, true);
