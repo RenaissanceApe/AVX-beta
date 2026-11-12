@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto'
 import { test, expect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
 import { emailSummaryCandidates } from './testSupport.js'
+import { readZip, zipText } from './files.js'
 import { addGig, addItem, addOrg, addToGig, pageAs } from './setup.js'
 
 test.use({ area: 'gigs' })
@@ -628,4 +629,146 @@ test('checklist templates, organisation tasks for a member, the filters and a ta
   await expect(page.getByText('Task made. Give it to someone on the Tasks page.')).toBeVisible({ timeout: 15_000 })
   await page.getByRole('button', { name: 'Make a task' }).click()
   await expect(page.getByText('This repair already has a task.')).toBeVisible({ timeout: 15_000 })
+})
+
+// The organisation export from its settings, as { 'file.csv': text }
+async function downloadExport(page, org) {
+  await page.goto(`${org.path}?panel=settings`)
+  const settings = page.getByRole('dialog', { name: `${org.name} — settings` })
+  const download = page.waitForEvent('download', { timeout: 60_000 })
+  await settings.getByRole('button', { name: 'Download everything (zip)' }).click()
+  const files = await readZip(await download)
+  return Object.fromEntries(Object.keys(files).map(f => [f.split('/').pop(), zipText(files, f)]))
+}
+
+// An export file's rows as { heading: value } (semicolon-separated, headings in plain words; the
+// test data has no semicolons or quotes in it)
+function csvRows(text) {
+  const [head, ...rows] = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(l => l.trim())
+  const names = head.split(';').map(h => h.trim())
+  const unquote = v => v.trim().replace(/^"(.*)"$/, '$1').replace(/""/g, '"')
+  return rows.map(r => Object.fromEntries(r.split(';').map((v, i) => [names[i], unquote(v)])))
+}
+
+// The gig cards on the organisation's gigs list
+const gigCard = (page, gig) => page.locator('.gig-card').filter({ hasText: gig.name })
+
+// covers: T52 (all but "Invoiced moves it to the past gigs": see the next test)
+test('gig statuses and types: set up, used on a gig, filtered, re-meant, removed and exported', { tag: '@gigs' }, async ({ adminWithOrg }) => {
+  const { page, account: admin } = adminWithOrg
+  const s = stamp()
+  // Its own organisation: statuses and types are organisation-wide
+  const org = await addOrg(admin, { name: `E2E Labels ${s}` })
+  const one = await addGig(admin, org.id, { name: `E2E Label One ${s}`, start_date: localDate(0), end_date: localDate(0) })
+  const two = await addGig(admin, org.id, { name: `E2E Label Two ${s}`, start_date: localDate(0), end_date: localDate(0) })
+
+  await page.goto(`${org.path}?panel=settings`)
+  const section = page.locator('section[aria-labelledby="org-labels"]')
+  await section.getByRole('button', { name: 'Start with a common set' }).click()
+  const statuses = section.getByRole('textbox', { name: 'Name', exact: true })
+  await expect(statuses).toHaveCount(6, { timeout: 15_000 })
+  await expect(statuses.nth(0)).toHaveValue('Option')
+  // Rename one, change a colour, move one up
+  await statuses.nth(0).fill('Pencilled')
+  await statuses.nth(0).blur()
+  await expect(section.getByRole('button', { name: 'Move Pencilled down' })).toBeVisible({ timeout: 15_000 })
+  const firstColour = section.getByRole('combobox', { name: 'Colour', exact: true }).first()
+  await firstColour.selectOption('pink')
+  await expect(firstColour).toHaveValue('pink')
+  await section.getByRole('button', { name: 'Move Confirmed up' }).click()
+  await expect(statuses.nth(0)).toHaveValue('Confirmed', { timeout: 15_000 })
+  await expect(statuses.nth(1)).toHaveValue('Pencilled')
+  // Two gig types
+  for (const type of ['Festival', 'Corporate']) {
+    await section.getByRole('textbox', { name: 'New gig type' }).fill(type)
+    await section.getByRole('textbox', { name: 'New gig type' }).press('Enter')
+    await expect(section.getByRole('button', { name: `Remove ${type}` })).toBeVisible({ timeout: 15_000 })
+  }
+  await expectAccessible(page)
+
+  // Edit gig: the organisation's statuses and types are there
+  const editGig = async (gig, status, type) => {
+    await page.goto(gig.path)
+    await page.getByRole('button', { name: 'Edit gig' }).click()
+    const form = page.getByRole('dialog', { name: 'Edit gig' })
+    // In the organisation's order (a gig with no status of its own also lists its built-in one, "Draft")
+    const options = form.getByLabel('Status', { exact: true }).locator('option')
+    await expect.poll(async () => (await options.allTextContents()).filter(o => o !== 'Draft'))
+      .toEqual(['Confirmed', 'Pencilled', 'On the road', 'Done', 'Invoiced', 'Cancelled'])
+    await form.getByLabel('Status', { exact: true }).selectOption({ label: status })
+    await form.getByLabel('Gig type').selectOption({ label: type })
+    await form.getByRole('button', { name: 'Save changes' }).click()
+    await expect(form).toHaveCount(0, { timeout: 15_000 })
+  }
+  await editGig(one, 'Pencilled', 'Festival')
+  await editGig(two, 'Confirmed', 'Corporate')
+
+  // The gigs list: filter by status and by type, in the list and in the calendar
+  await page.goto(org.path)
+  await expect(gigCard(page, one)).toBeVisible({ timeout: 15_000 })
+  await page.getByRole('combobox', { name: 'Filter by status' }).selectOption({ label: 'Pencilled' })
+  await expect(gigCard(page, one)).toBeVisible()
+  await expect(gigCard(page, two)).toHaveCount(0)
+  await page.getByRole('combobox', { name: 'Filter by status' }).selectOption({ label: 'All statuses' })
+  await page.getByRole('combobox', { name: 'Filter by gig type' }).selectOption({ label: 'Corporate' })
+  await expect(gigCard(page, two)).toBeVisible()
+  await expect(gigCard(page, one)).toHaveCount(0)
+  await page.getByRole('button', { name: 'Calendar view' }).click()
+  await expect(page.getByText(two.name).first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(one.name)).toHaveCount(0)
+  await page.getByRole('combobox', { name: 'Filter by gig type' }).selectOption({ label: 'Festival' })
+  await expect(page.getByText(one.name).first()).toBeVisible()
+  await expect(page.getByText(two.name)).toHaveCount(0)
+  await page.getByRole('button', { name: 'List view' }).click()
+  await page.getByRole('combobox', { name: 'Filter by gig type' }).selectOption({ label: 'All gig types' })
+
+  // Change what a status means: Confirmed now means archived, and its gig moves to Archived
+  await page.goto(`${org.path}?panel=settings`)
+  const confirmedMeans = section.getByRole('listitem').filter({ has: page.locator('input[value="Confirmed"]') }).getByRole('combobox', { name: 'Means' })
+  await confirmedMeans.selectOption('archived')
+  await expect(confirmedMeans).toHaveValue('archived', { timeout: 15_000 })
+  // Remove a type: its gigs show none
+  page.once('dialog', d => d.accept())
+  await section.getByRole('button', { name: 'Remove Festival' }).click()
+  await expect(section.getByRole('button', { name: 'Remove Festival' })).toHaveCount(0, { timeout: 15_000 })
+
+  await page.goto(org.path)
+  await page.getByRole('tab', { name: /^Archived/ }).click()
+  await expect(gigCard(page, two)).toBeVisible({ timeout: 15_000 })
+  await page.getByRole('tab', { name: /^Upcoming/ }).click()
+  await expect(gigCard(page, one)).toBeVisible()
+  await expect(gigCard(page, two)).toHaveCount(0)
+  await page.goto(one.path)
+  await page.getByRole('button', { name: 'Edit gig' }).click()
+  await expect(page.getByRole('dialog', { name: 'Edit gig' }).getByLabel('Gig type').locator('option:checked')).toHaveText('No type')
+
+  // The organisation export: the gigs file has the status name and the type
+  const files = await downloadExport(page, org)
+  const gigs = csvRows(Object.entries(files).find(([name]) => name.endsWith('-gigs.csv'))[1])
+  expect(gigs.find(g => g.name === two.name)).toMatchObject({ 'status label': 'Confirmed', 'gig type': 'Corporate' })
+  expect(gigs.find(g => g.name === one.name)).toMatchObject({ 'status label': 'Pencilled', 'gig type': '' })
+})
+
+// covers: T52 ("Choose Invoiced: does the gig move to the past gigs?")
+test('a gig marked "Invoiced" (it means done) moves to the past gigs', { tag: '@gigs' }, async ({ adminWithOrg }) => {
+  // BUG? (#ISSUE_DONE, needs the owner's decision): the gigs list sorts gigs into Upcoming and Past by
+  // their dates only (src/lib/gigs.js gigBucket); a done status doesn't move a gig whose dates are
+  // still ahead, so it stays under Upcoming. Remove test.fail() if the list changes, or this test if
+  // the dates are meant to decide.
+  test.fail()
+  const { page, account: admin } = adminWithOrg
+  const s = stamp()
+  const org = await addOrg(admin, { name: `E2E Invoiced ${s}` })
+  const { error } = await admin.client.from('gig_statuses').insert({ org_id: org.id, name: 'Invoiced', colour: 'sky', base_status: 'completed', position: 1 })
+  expect(error).toBeNull()
+  const gig = await addGig(admin, org.id, { name: `E2E Invoiced Gig ${s}`, start_date: localDate(3), end_date: localDate(3) })
+  await page.goto(gig.path)
+  await page.getByRole('button', { name: 'Edit gig' }).click()
+  const form = page.getByRole('dialog', { name: 'Edit gig' })
+  await form.getByLabel('Status', { exact: true }).selectOption({ label: 'Invoiced' })
+  await form.getByRole('button', { name: 'Save changes' }).click()
+  await expect(form).toHaveCount(0, { timeout: 15_000 })
+  await page.goto(org.path)
+  await page.getByRole('tab', { name: /^Past/ }).click()
+  await expect(gigCard(page, gig)).toBeVisible({ timeout: 15_000 })
 })
