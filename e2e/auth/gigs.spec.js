@@ -7,7 +7,7 @@ import { test, expect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
 import { emailSummaryCandidates } from './testSupport.js'
 import { readZip, zipText } from './files.js'
-import { addGig, addItem, addOrg, addToGig, pageAs } from './setup.js'
+import { addClient, addGig, addItem, addOrg, addToGig, pageAs } from './setup.js'
 
 test.use({ area: 'gigs' })
 
@@ -771,4 +771,142 @@ test('a gig marked "Invoiced" (it means done) moves to the past gigs', { tag: '@
   await page.goto(org.path)
   await page.getByRole('tab', { name: /^Past/ }).click()
   await expect(gigCard(page, gig)).toBeVisible({ timeout: 15_000 })
+})
+
+// Organisation settings → Custom fields: adds a field of a kind ('text', 'number', 'date', 'yes_no',
+// 'choice', 'link') to the chosen kind of record
+async function addField(section, label, kind, choices) {
+  await section.getByRole('textbox', { name: 'New field name' }).fill(label)
+  await section.getByRole('combobox', { name: 'Kind of field' }).selectOption(kind)
+  if (choices) await section.getByRole('textbox', { name: 'Choices', exact: true }).fill(choices)
+  await section.getByRole('button', { name: 'Add', exact: true }).click()
+  await expect(section.getByRole('button', { name: `Remove ${label}` })).toBeVisible({ timeout: 15_000 })
+  // The form empties itself just after the field shows: wait, or the next name typed is wiped
+  await expect(section.getByRole('textbox', { name: 'New field name' })).toHaveValue('')
+}
+
+// A custom field's id by its label (for set-up through the API)
+async function fieldId(account, orgId, entity, label) {
+  const { data } = await account.client.from('custom_fields').select('id').eq('org_id', orgId).eq('entity', entity).eq('label', label).is('removed_at', null).single()
+  return data.id
+}
+
+// covers: T53 (client, supplier and item values are set through the API here; their forms are the
+// same CustomFieldInputs as the gig form, filled in by the UI below)
+test('custom fields: one of each kind on a gig, shown, searched, renamed, reordered, removed and exported', { tag: '@gigs' }, async ({ adminWithOrg, browser, baseURL, world }) => {
+  test.setTimeout(180_000) // a long journey; nightly only
+  const { page, account: admin } = adminWithOrg
+  const s = stamp()
+  const org = await addOrg(admin, { name: `E2E Fields ${s}` })
+  const gig = await addGig(admin, org.id, { name: `E2E Fields Gig ${s}` })
+
+  await page.goto(`${org.path}?panel=settings`)
+  const section = page.locator('section[aria-labelledby="org-fields"]')
+  await expect(section.getByRole('button', { name: 'Gigs', pressed: true })).toBeVisible({ timeout: 15_000 })
+  await addField(section, 'PO number', 'text')
+  await addField(section, 'Stage depth', 'number')
+  await addField(section, 'Load-in day', 'date')
+  await addField(section, 'Insurance checked', 'yes_no')
+  await addField(section, 'Stage', 'choice', 'Indoor\nOutdoor')
+  await addField(section, 'Venue map', 'link')
+  await expectAccessible(page)
+
+  // Edit gig: fill them in (a number with a comma)
+  await page.goto(gig.path)
+  await page.getByRole('button', { name: 'Edit gig' }).click()
+  const form = page.getByRole('dialog', { name: 'Edit gig' })
+  await form.getByLabel('PO number').fill(`PO-${s}`)
+  await form.getByLabel('Stage depth').fill('12,5')
+  await form.getByLabel('Load-in day').fill('2027-03-04')
+  await form.getByRole('group', { name: 'Insurance checked' }).getByLabel('Yes').check()
+  await form.getByLabel('Stage', { exact: true }).selectOption('Outdoor')
+  await form.getByLabel('Venue map').fill('https://example.com/map')
+  await form.getByRole('button', { name: 'Save changes' }).click()
+  await expect(form).toHaveCount(0, { timeout: 15_000 })
+
+  // The overview shows them under "More details", with the link opening
+  const details = page.locator('section').filter({ has: page.getByRole('heading', { name: 'More details' }) }).last()
+  await expect(details).toContainText(`PO numberPO-${s}`, { timeout: 15_000 })
+  await expect(details).toContainText('Stage depth12,5')
+  await expect(details).toContainText('Load-in day4 Mar 2027')
+  await expect(details).toContainText('Insurance checkedYes')
+  await expect(details).toContainText('StageOutdoor')
+  await expect(details.getByRole('link', { name: 'example.com/map' })).toHaveAttribute('href', 'https://example.com/map')
+  await expectAccessible(page)
+
+  // The gigs list finds it by the text
+  await page.goto(org.path)
+  await page.getByRole('textbox', { name: 'Search gigs, venues…' }).fill(`PO-${s}`)
+  await expect(gigCard(page, gig)).toBeVisible({ timeout: 15_000 })
+
+  // A client, a supplier and a catalogue item field, each filled in
+  await page.goto(`${org.path}?panel=settings`)
+  const on = section.getByRole('group', { name: 'Fields on' })
+  for (const [entity, label] of [['Clients', 'Account manager'], ['Suppliers', 'Supplier code'], ['Catalogue items', 'Barcode note']]) {
+    await on.getByRole('button', { name: entity }).click()
+    await addField(section, label, 'text')
+  }
+  const client = await addClient(admin, org.id, { name: `E2E Client ${s}`, custom_values: { [await fieldId(admin, org.id, 'client', 'Account manager')]: 'Rita' } })
+  const supplier = await admin.client.from('suppliers').insert({ org_id: org.id, name: `E2E Supplier ${s}`, custom_values: { [await fieldId(admin, org.id, 'supplier', 'Supplier code')]: 'SUP-7' } })
+  expect(supplier.error).toBeNull()
+  await addItem(admin, org.id, { name: `E2E Item ${s}`, custom_values: { [await fieldId(admin, org.id, 'item', 'Barcode note')]: 'Faded' } })
+
+  // Rename a field and reorder; remove one: gone from the screens
+  await on.getByRole('button', { name: 'Gigs' }).click()
+  const poName = section.getByRole('textbox', { name: 'Field name' }).first()
+  await expect(poName).toHaveValue('PO number')
+  await poName.fill('Purchase order')
+  await poName.blur()
+  await expect(section.getByRole('button', { name: 'Remove Purchase order' })).toBeVisible({ timeout: 15_000 })
+  await section.getByRole('button', { name: 'Move Venue map up' }).click()
+  await expect(section.getByRole('textbox', { name: 'Field name' }).nth(4)).toHaveValue('Venue map', { timeout: 15_000 })
+  page.once('dialog', d => d.accept())
+  await section.getByRole('button', { name: 'Remove Stage', exact: true }).click()
+  await expect(section.getByRole('button', { name: 'Remove Stage', exact: true })).toHaveCount(0, { timeout: 15_000 })
+  await page.goto(gig.path)
+  await expect(details).toContainText(`Purchase orderPO-${s}`, { timeout: 15_000 })
+  await expect(details).not.toContainText('Outdoor')
+
+  // The export: one column per field, headed with its label
+  const files = await downloadExport(page, org)
+  const file = part => csvRows(Object.entries(files).find(([name]) => name.endsWith(`-${part}.csv`))[1])
+  expect(file('gigs').find(g => g.name === gig.name)).toMatchObject({
+    'Purchase order': `PO-${s}`, 'Stage depth': '12,5', 'Load-in day': '2027-03-04', 'Insurance checked': 'yes', 'Venue map': 'https://example.com/map',
+  })
+  expect(file('clients').find(c => c.name === client.name)).toMatchObject({ 'Account manager': 'Rita' })
+  expect(file('suppliers').find(c => c.name === `E2E Supplier ${s}`)).toMatchObject({ 'Supplier code': 'SUP-7' })
+  expect(file('items').find(c => c.name === `E2E Item ${s}`)).toMatchObject({ 'Barcode note': 'Faded' })
+
+  // Crew on the gig see its fields, not the client ones
+  const crew = await world.crew()
+  await addToGig(admin, gig.id, crew)
+  const theirs = await pageAs(browser, crew, { baseURL })
+  try {
+    await theirs.goto(gig.path)
+    const crewDetails = theirs.locator('section').filter({ has: theirs.getByRole('heading', { name: 'More details' }) }).last()
+    await expect(crewDetails).toContainText(`Purchase orderPO-${s}`, { timeout: 15_000 })
+  } finally {
+    await theirs.context().close()
+  }
+  const { data: clientFields } = await crew.client.from('custom_fields').select('id').eq('org_id', org.id).eq('entity', 'client')
+  expect(clientFields).toEqual([])
+})
+
+// covers: T53 ("remove one and check its value is … still in the organisation export")
+test('a removed custom field\'s values still come out in the organisation export', { tag: '@gigs' }, async ({ adminWithOrg }) => {
+  // BUG (#ISSUE_EXPORT): the settings say "values already filled in are kept and still come out in
+  // the export", but the export's custom columns (private.custom_columns) only take fields that
+  // aren't removed, so a removed field's column and values are left out.
+  test.fail()
+  const { page, account: admin } = adminWithOrg
+  const s = stamp()
+  const org = await addOrg(admin, { name: `E2E Removed Field ${s}` })
+  const field = await admin.client.from('custom_fields').insert({ org_id: org.id, entity: 'gig', label: 'Rider version', kind: 'text', position: 1 }).select('id').single()
+  expect(field.error).toBeNull()
+  const gig = await addGig(admin, org.id, { name: `E2E Removed Field Gig ${s}`, custom_values: { [field.data.id]: 'v3' } })
+  const removed = await admin.client.from('custom_fields').update({ removed_at: new Date().toISOString() }).eq('id', field.data.id)
+  expect(removed.error).toBeNull()
+  const files = await downloadExport(page, org)
+  const gigs = csvRows(Object.entries(files).find(([name]) => name.endsWith('-gigs.csv'))[1])
+  expect(gigs.find(g => g.name === gig.name)).toMatchObject({ 'Rider version': 'v3' })
 })
