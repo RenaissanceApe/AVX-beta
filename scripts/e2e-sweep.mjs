@@ -62,8 +62,12 @@ async function signIn(supabase, target) {
   }
 }
 
-// 'gone' (no such account), 'deleted', or 'blocked' (still the only admin of an organisation
-// with other members: try again after those members are deleted)
+// A busy test database cancels a call at its 8 s limit (57014) or answers 5xx: worth another pass
+const busy = (error, status) => error?.code === '57014' || status >= 500 || /statement timeout/i.test(error?.message || '')
+
+// 'gone' (no such account), 'deleted', 'blocked' (still the only admin of an organisation
+// with other members: try again after those members are deleted) or 'busy' (the database
+// was too busy: try again on the next pass)
 async function sweep(target) {
   const role = target.area ? `${target.role} (${target.area})` : target.role
   const supabase = client()
@@ -72,14 +76,16 @@ async function sweep(target) {
     if (/invalid login credentials/i.test(signInError.message)) return 'gone'
     throw new Error(`${role}: signing in failed: ${signInError.message}`)
   }
-  const { data: plan, error: planError } = await supabase.rpc('account_deletion_plan')
+  const { data: plan, error: planError, status: planStatus } = await supabase.rpc('account_deletion_plan')
+  if (busy(planError, planStatus)) return 'busy'
   if (planError) throw new Error(`${role}: reading the deletion plan failed: ${planError.message}`)
   if (plan?.blocking_orgs?.length) {
     await supabase.auth.signOut({ scope: 'local' })
     return 'blocked'
   }
   await removeGigFiles(supabase, plan?.gig_ids)
-  const { error } = await supabase.rpc('delete_my_account')
+  const { error, status } = await supabase.rpc('delete_my_account')
+  if (busy(error, status)) return 'busy'
   if (error) throw new Error(`${role}: deleting the account failed: ${error.message}`)
   await supabase.auth.signOut({ scope: 'local' })
   return 'deleted'
@@ -92,20 +98,25 @@ const label = t => (t.area ? `${t.role} (${t.area})` : t.role)
 let left = sweepTargets(tag, manifest)
 console.log(`Sweep for run ${tag}: trying ${left.length} address(es)${manifest == null ? ' (no account list from the run)' : ''}.`)
 const deleted = []
-for (let pass = 0; pass < 3 && left.length; pass++) {
+let busyNow = false
+for (let pass = 0; pass < 4 && left.length; pass++) {
   const next = []
   for (const target of left) {
     const result = await sweep(target)
     if (result === 'deleted') deleted.push(label(target))
-    if (result === 'blocked') next.push(target)
+    if (result === 'blocked' || result === 'busy') next.push(target)
+    if (result === 'busy') busyNow = true
   }
-  if (next.length === left.length) break
+  if (next.length === left.length && !busyNow) break
   left = next
+  // The database was busy: give it a moment before the next pass
+  if (busyNow && left.length) { console.log('The test database was busy; trying again in 20 s.'); await sleep(20_000) }
+  busyNow = false
 }
 
 console.log(`Sweep for run ${tag}: ${deleted.length} test account(s) deleted${deleted.length ? ` (${deleted.join(', ')})` : ''}.`)
 if (left.length) {
-  console.error(`Still there, blocked by another member: ${left.map(label).join(', ')}. Delete it by hand (docs/TESTING.md).`)
+  console.error(`Still there (blocked by another member, or the database stayed busy): ${left.map(label).join(', ')}. Delete it by hand (docs/TESTING.md).`)
   process.exit(1)
 }
 if (manifest != null) rmSync(manifestPath(tag), { force: true })

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
-import { RUN, PASSWORD } from './accounts.js'
+import { RUN, PASSWORD, recordAccount } from './accounts.js'
+import { journeyAccount, signInPage, pageAs } from './setup.js'
 import { HOME, english, signUp, signIn, expectAccessible, reportLoaded, changePeriod, deleteAccount, waitForServiceWorker } from './helpers.js'
 
 // Signed-in journeys against the Supabase TEST project (never production).
@@ -7,28 +8,34 @@ import { HOME, english, signUp, signIn, expectAccessible, reportLoaded, changePe
 // Each run signs up brand-new users and deletes them at the end, so runs don't
 // depend on each other and the test project doesn't fill up. If a test fails before that,
 // CI's sweep step deletes what this run made (scripts/e2e-sweep.mjs).
+// The PM signs up through the form once (the first test) and signs in through it once (the last);
+// every other test reuses one API sign-in (signInPage, pageAs), so a run stays well inside the
+// test project's sign-in limit.
 
 // The run tag and password are shared with the sweep step (accounts.js, scripts/e2e-sweep.mjs)
 const run = RUN
-const pm = { name: `E2E PM ${run}`, email: `e2e-pm-${run}@example.com` }
-const tech = { name: `E2E Tech ${run}`, email: `e2e-tech-${run}@example.com` }
+const pm = { role: 'pm', name: `E2E PM ${run}`, email: `e2e-pm-${run}@example.com` }
+const tech = { role: 'tech', name: `E2E Tech ${run}`, email: `e2e-tech-${run}@example.com` }
 // Invited by email before having an account
-const newbie = { name: `E2E Newbie ${run}`, email: `e2e-newbie-${run}@example.com` }
+const newbie = { role: 'newbie', name: `E2E Newbie ${run}`, email: `e2e-newbie-${run}@example.com` }
 const ORG = `E2E Org ${run}`
 const GIG = `E2E Gig ${run}`
 
 test.describe.configure({ mode: 'serial' })
 
-// The journey is the pull requests' smoke run (@smoke; docs/TESTING.md). Not indented, to keep its history readable.
-test.describe('signed-in journey', { tag: '@smoke' }, () => {
+// Three of its steps are in the pull requests' smoke run (@smoke: the form sign-up with a gig, a crew
+// step and the form sign-in that deletes the account); all of it runs every night (docs/TESTING.md).
+// Not indented, to keep its history readable.
+test.describe('signed-in journey', () => {
 
 // Every Overview tile loaded: one that couldn't (its source failed) says so instead of a number
 const tileFailed = "Couldn't load this number. Try again in a moment."
 
 let gigUrl
 
-test('a new user sets up an organisation, a gig and a schedule', async ({ page }) => {
+test('a new user sets up an organisation, a gig and a schedule', { tag: '@smoke' }, async ({ page }) => {
   await english(page)
+  recordAccount('pm')
   await signUp(page, pm)
 
   await page.getByRole('button', { name: 'Create Organisation' }).first().click()
@@ -58,7 +65,7 @@ test('a new user sets up an organisation, a gig and a schedule', async ({ page }
 
 test('the organisation builds a quote, saves it as a template and prints it', async ({ page }) => {
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   // Signing in opens the organisation (where they're admin); Quotes is a section menu
   await expect(page.getByTitle(/Workspace: E2E Org/)).toBeVisible()
   await expectAccessible(page)
@@ -96,7 +103,7 @@ test('the organisation builds a quote, saves it as a template and prints it', as
 test('a deleted quote waits in Recently deleted and can be restored', async ({ page }) => {
   const title = `E2E Bin ${run}`
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   await page.getByRole('button', { name: 'Quotes' }).click()
   await page.getByRole('link', { name: /^Quotes/ }).first().click()
   await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}\/quotes$/)
@@ -147,7 +154,7 @@ test('a deleted quote waits in Recently deleted and can be restored', async ({ p
 
 test('a gig opened before stays readable offline', async ({ page, context }) => {
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   await page.goto(gigUrl)
   await expect(page.getByRole('heading', { name: GIG })).toBeVisible()
   // The service worker must control the page before the app shell can load offline (its own
@@ -161,18 +168,18 @@ test('a gig opened before stays readable offline', async ({ page, context }) => 
   await context.setOffline(false)
 })
 
-test('adding an existing user to a gig notifies them', async ({ browser }) => {
-  // The technician signs up in their own browser
-  const techContext = await browser.newContext()
-  const techPage = await techContext.newPage()
+test('adding an existing user to a gig notifies them', { tag: '@smoke' }, async ({ browser, baseURL }) => {
+  // The technician has an account (made through the API) and is signed in in their own browser
+  const techPage = await pageAs(browser, await journeyAccount(tech, { create: true }), { baseURL })
+  const techContext = techPage.context()
   await english(techPage)
-  await signUp(techPage, tech)
+  await techPage.goto('/dashboard')
+  await expect(techPage).toHaveURL(HOME, { timeout: 15_000 })
 
   // The PM adds them to the gig
-  const pmContext = await browser.newContext()
-  const pmPage = await pmContext.newPage()
+  const pmPage = await pageAs(browser, await journeyAccount(pm), { baseURL })
+  const pmContext = pmPage.context()
   await english(pmPage)
-  await signIn(pmPage, pm)
   await pmPage.goto(gigUrl)
   await pmPage.getByRole('tab', { name: /Crew/ }).click()
   await pmPage.getByRole('button', { name: 'Invite crew' }).first().click()
@@ -201,7 +208,7 @@ test('adding an existing user to a gig notifies them', async ({ browser }) => {
 
 test('a PM uploads a file and then a new version of it', async ({ page }) => {
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   await page.goto(gigUrl)
   await expect(page.getByRole('tab', { name: /Assets/ })).toBeVisible()
   await expectAccessible(page)
@@ -221,12 +228,11 @@ test('a PM uploads a file and then a new version of it', async ({ page }) => {
   await expect(page.getByRole('button', { name: /Open · history/ })).toBeVisible()
 })
 
-test('someone invited by email before having an account joins the gig on sign-up', async ({ browser }) => {
+test('someone invited by email before having an account joins the gig on sign-up', async ({ browser, baseURL }) => {
   // The PM invites an address with no account yet: it waits as a pending invite
-  const pmContext = await browser.newContext()
-  const pmPage = await pmContext.newPage()
+  const pmPage = await pageAs(browser, await journeyAccount(pm), { baseURL })
+  const pmContext = pmPage.context()
   await english(pmPage)
-  await signIn(pmPage, pm)
   await pmPage.goto(gigUrl)
   await pmPage.getByRole('tab', { name: /Crew/ }).click()
   await pmPage.getByRole('button', { name: 'Invite crew' }).first().click()
@@ -236,11 +242,13 @@ test('someone invited by email before having an account joins the gig on sign-up
   await expect(pmPage.getByText('Pending — waiting for sign-up')).toBeVisible({ timeout: 15_000 })
   await expect(pmPage.getByText(newbie.email, { exact: true })).toBeVisible()
 
-  // They sign up with that address and find the gig waiting for them
-  const newContext = await browser.newContext()
-  const newPage = await newContext.newPage()
+  // They sign up with that address (through the API: the gig is claimed by the database on sign-up)
+  // and find the gig waiting for them
+  const newPage = await pageAs(browser, await journeyAccount(newbie, { create: true }), { baseURL })
+  const newContext = newPage.context()
   await english(newPage)
-  await signUp(newPage, newbie)
+  await newPage.goto('/dashboard')
+  await expect(newPage).toHaveURL(HOME, { timeout: 15_000 })
   await expect(newPage.getByText(GIG).first()).toBeVisible({ timeout: 15_000 })
 
   // …and the PM sees them on the crew list instead of the pending invite
@@ -255,7 +263,7 @@ test('someone invited by email before having an account joins the gig on sign-up
 
 test('an admin asks for leave, approves it and sees it as approved', async ({ page }) => {
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   await page.getByTitle(/Workspace:/).click()
   await page.getByRole('menuitemradio', { name: new RegExp(ORG) }).click()
   await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}$/)
@@ -278,7 +286,7 @@ test('an admin asks for leave, approves it and sees it as approved', async ({ pa
 
 test('an admin plans a site visit, finds it in My work and the calendar, and cancels it', async ({ page }) => {
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   await page.getByTitle(/Workspace:/).click()
   await page.getByRole('menuitemradio', { name: new RegExp(ORG) }).click()
   await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}$/)
@@ -320,7 +328,7 @@ test('an admin plans a site visit, finds it in My work and the calendar, and can
 
 test('an admin adds a vehicle, records a licence and plans a trip with the licence warning', async ({ page }) => {
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   // Settings → Profile: licence B only
   await page.goto('/settings/profile')
   await page.getByRole('checkbox', { name: 'B', exact: true }).check()
@@ -378,7 +386,7 @@ test('an admin adds a vehicle, records a licence and plans a trip with the licen
 
 test('crew numbers: My numbers, the year statement and Crew to pay open and are accessible', async ({ page }) => {
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   // K8: My numbers and the year statement (the PM has no fees: empty states)
   await page.goto('/me/numbers')
   await expect(page.getByRole('heading', { name: 'My numbers' })).toBeVisible()
@@ -402,7 +410,7 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   // Many report views in one test, each of which may wait for one retry on a slow database
   test.slow()
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   await page.getByTitle(/Workspace:/).click()
   await page.getByRole('menuitemradio', { name: new RegExp(ORG) }).click()
   await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}$/)
@@ -437,15 +445,15 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   // Step 10: the gig margins report, with its table once details are on
   await page.getByRole('button', { name: 'Gig margins', exact: true }).click()
   await expect(page).toHaveURL(/tab=margins/)
-  await reportLoaded(page)
-  await expect(page.getByText('Gigs with a negative margin')).toBeVisible({ timeout: 15_000 })
+  await reportLoaded(page, page.getByText('Gigs with a negative margin'))
+  await expect(page.getByText('Gigs with a negative margin')).toBeVisible()
   await expectAccessible(page)
   // K2: Reports → Money, its three views (results, margins, labour)
   await page.getByRole('button', { name: 'Money', exact: true }).click()
   await expect(page).toHaveURL(/tab=money/)
   await reportLoaded(page)
-  await changePeriod(page, 'finance_results', 'this_year')
-  await expect(page.getByText(/^(Operating result|No money in this period yet)$/).first()).toBeVisible({ timeout: 15_000 })
+  await changePeriod(page, 'finance_results', 'this_year', page.getByText(/^(Operating result|No money in this period yet)$/).first())
+  await expect(page.getByText(/^(Operating result|No money in this period yet)$/).first()).toBeVisible()
   await expectAccessible(page)
   await page.getByRole('button', { name: 'Margins', exact: true }).click()
   await expect(page).toHaveURL(/view=margins/)
@@ -458,40 +466,40 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   // K3: cash, spending and forecast (with budgets and targets)
   await page.getByRole('button', { name: 'Cash', exact: true }).click()
   await expect(page).toHaveURL(/view=cash/)
-  await reportLoaded(page)
-  await expect(page.getByText(/^(Cash position, next 3 months|No invoices or expenses yet)$/).first()).toBeVisible({ timeout: 15_000 })
+  await reportLoaded(page, page.getByText(/^(Cash position, next 3 months|No invoices or expenses yet)$/).first())
+  await expect(page.getByText(/^(Cash position, next 3 months|No invoices or expenses yet)$/).first()).toBeVisible()
   await expectAccessible(page)
   await page.getByRole('button', { name: 'Spending', exact: true }).click()
   await expect(page).toHaveURL(/view=spending/)
-  await reportLoaded(page)
-  await expect(page.getByText(/^(Spent in this period|No expenses in this period)$/).first()).toBeVisible({ timeout: 15_000 })
+  await reportLoaded(page, page.getByText(/^(Spent in this period|No expenses in this period)$/).first())
+  await expect(page.getByText(/^(Spent in this period|No expenses in this period)$/).first()).toBeVisible()
   await expectAccessible(page)
   await page.getByRole('button', { name: 'Forecast', exact: true }).click()
   await expect(page).toHaveURL(/view=forecast/)
-  await reportLoaded(page)
-  await expect(page.getByRole('heading', { name: 'Budgets and targets' })).toBeVisible({ timeout: 15_000 })
+  await reportLoaded(page, page.getByRole('heading', { name: 'Budgets and targets' }))
+  await expect(page.getByRole('heading', { name: 'Budgets and targets' })).toBeVisible()
   await expectAccessible(page)
   // K4: Reports → Sales, its three views (waiting, win rate, clients)
   await page.getByRole('button', { name: 'Sales', exact: true }).click()
   await expect(page).toHaveURL(/tab=sales/)
-  await reportLoaded(page)
-  await expect(page.getByText(/^(Waiting for an answer|No quotes waiting for an answer)$/).first()).toBeVisible({ timeout: 15_000 })
+  await reportLoaded(page, page.getByText(/^(Waiting for an answer|No quotes waiting for an answer)$/).first())
+  await expect(page.getByText(/^(Waiting for an answer|No quotes waiting for an answer)$/).first()).toBeVisible()
   await expectAccessible(page)
   await page.getByRole('button', { name: 'Win rate', exact: true }).click()
   await expect(page).toHaveURL(/view=winrate/)
-  await reportLoaded(page)
-  await expect(page.getByText(/^(Win rate \(by count\)|No quotes decided in this period)$/).first()).toBeVisible({ timeout: 15_000 })
+  await reportLoaded(page, page.getByText(/^(Win rate \(by count\)|No quotes decided in this period)$/).first())
+  await expect(page.getByText(/^(Win rate \(by count\)|No quotes decided in this period)$/).first()).toBeVisible()
   await expectAccessible(page)
   await page.getByRole('button', { name: 'Clients', exact: true }).click()
   await expect(page).toHaveURL(/view=clients/)
-  await reportLoaded(page)
-  await expect(page.getByText(/^(What the top 5 clients bring|No client work in this period)$/).first()).toBeVisible({ timeout: 15_000 })
+  await reportLoaded(page, page.getByText(/^(What the top 5 clients bring|No client work in this period)$/).first())
+  await expect(page.getByText(/^(What the top 5 clients bring|No client work in this period)$/).first()).toBeVisible()
   await expectAccessible(page)
   // K5: Reports → Equipment (profit with its purchase-cost coverage, payback, buy or hire in)
   await page.getByRole('button', { name: 'Equipment', exact: true }).click()
   await expect(page).toHaveURL(/tab=equipment/)
-  await reportLoaded(page)
-  await expect(page.getByRole('heading', { name: 'Purchase costs' })).toBeVisible({ timeout: 15_000 })
+  await reportLoaded(page, page.getByRole('heading', { name: 'Purchase costs' }))
+  await expect(page.getByRole('heading', { name: 'Purchase costs' })).toBeVisible()
   await expectAccessible(page)
   await page.getByRole('button', { name: 'Payback', exact: true }).click()
   await expect(page).toHaveURL(/view=payback/)
@@ -504,25 +512,25 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
   // K6: Reports → Warehouse, its four views (demand, suppliers, damage and loss, dispatch)
   await page.getByRole('button', { name: 'Warehouse', exact: true }).click()
   await expect(page).toHaveURL(/tab=warehouse/)
-  await reportLoaded(page)
-  await expect(page.getByText(/^(Items over stock|No stock items yet)$/).first()).toBeVisible({ timeout: 15_000 })
+  await reportLoaded(page, page.getByText(/^(Items over stock|No stock items yet)$/).first())
+  await expect(page.getByText(/^(Items over stock|No stock items yet)$/).first()).toBeVisible()
   await expectAccessible(page)
   for (const [view, ready] of [['Suppliers', /^(Requests|No hire requests in this period)$/], ['Damage and loss', /^(Repairs|No damage, loss or inspections)$/], ['Dispatch', /^(Scanned out|No gear planned or scanned)$/]]) {
     await page.getByRole('button', { name: view, exact: true }).click()
-    await reportLoaded(page)
-    await expect(page.getByText(ready).first()).toBeVisible({ timeout: 15_000 })
+    await reportLoaded(page, page.getByText(ready).first())
+    await expect(page.getByText(ready).first()).toBeVisible()
     await expectAccessible(page)
   }
   // K7: Reports → Operations, its four views (the PM is the organisation's admin: per-person rows too)
   await page.getByRole('button', { name: 'Operations', exact: true }).click()
   await expect(page).toHaveURL(/tab=operations/)
-  await reportLoaded(page)
-  await expect(page.getByText(/^(Gig days|No gigs in this period)$/).first()).toBeVisible({ timeout: 15_000 })
+  await reportLoaded(page, page.getByText(/^(Gig days|No gigs in this period)$/).first())
+  await expect(page.getByText(/^(Gig days|No gigs in this period)$/).first()).toBeVisible()
   await expectAccessible(page)
   for (const [view, ready] of [['People', /^(Crew days|No crew days or hours in this period)$/], ['Staffing', /^(Positions open|No positions or crew calls in this period)$/], ['Tasks', /^(Open tasks|No tasks open or done in this period)$/]]) {
     await page.getByRole('button', { name: view, exact: true }).click()
-    await reportLoaded(page)
-    await expect(page.getByText(ready).first()).toBeVisible({ timeout: 15_000 })
+    await reportLoaded(page, page.getByText(ready).first())
+    await expect(page.getByText(ready).first()).toBeVisible()
     await expectAccessible(page)
   }
   await page.goto(home)
@@ -531,7 +539,7 @@ test('an admin reads the reports: overview tiles, revenue with details, and the 
 test('an admin saves a report view, sees the monthly pack and the accountant links, and finds the weekly email setting', async ({ page }) => {
   test.slow()
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   await page.getByTitle(/Workspace:/).click()
   await page.getByRole('menuitemradio', { name: new RegExp(ORG) }).click()
   await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}$/)
@@ -572,7 +580,7 @@ test('an admin saves a report view, sees the monthly pack and the accountant lin
 // accessible (the tool itself needs 20270106000001 run on the test project to be added to a gig)
 test('the power plan report opens, labelled as an estimate', async ({ page }) => {
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   await page.goto(`${gigUrl}/power`)
   await expect(page.getByRole('heading', { name: GIG })).toBeVisible({ timeout: 15_000 })
   await expect(page.getByText(/for a qualified electrician to check/)).toBeVisible()
@@ -588,7 +596,7 @@ test('the power plan report opens, labelled as an estimate', async ({ page }) =>
 // address, so it needs a sign-in), with the date it was printed beside it
 test('every print shows a QR back to the live page and the print date', async ({ page }) => {
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   for (const print of ['callsheet', 'inputs', 'plot', 'patch', 'dmx', 'lights', 'system', 'power', 'packing']) {
     await page.goto(`${gigUrl}/${print}`)
     const qr = page.getByRole('img', { name: 'QR code that opens this page in AVX' })
@@ -601,7 +609,7 @@ test('every print shows a QR back to the live page and the print date', async ({
 
 test('the logo goes home and the workspace switcher lists My work and the organisation', async ({ page }) => {
   await english(page)
-  await signIn(page, pm)
+  await signInPage(page, await journeyAccount(pm))
   await page.goto(gigUrl)
   await page.getByRole('link', { name: 'Home' }).click()
   await expect(page).toHaveURL(HOME)
@@ -614,7 +622,8 @@ test('the logo goes home and the workspace switcher lists My work and the organi
   await expect(page.getByText(ORG).first()).toBeVisible({ timeout: 15_000 })
 })
 
-test('the user can delete their account and everything they created', async ({ page }) => {
+// The form sign-in of the smoke run
+test('the user can delete their account and everything they created', { tag: '@smoke' }, async ({ page }) => {
   await english(page)
   await signIn(page, pm)
   await deleteAccount(page)
