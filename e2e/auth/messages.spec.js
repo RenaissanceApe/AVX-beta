@@ -4,6 +4,7 @@
 import { test, expect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
 import { RUN } from './accounts.js'
+import { addToGig } from './setup.js'
 
 test.use({ area: 'messages' })
 
@@ -21,6 +22,7 @@ async function send(page, text) {
 
 // The ⋯ menu of a message (its buttons are faint until hover, but always there)
 async function menuOf(page, text) {
+  // (returns the open menu)
   const row = chatRow(page, text)
   await row.hover()
   await row.getByRole('button', { name: /^More for / }).click()
@@ -195,4 +197,135 @@ test('the gig chat: files, a schedule card, mentions, a reaction, an edit, a rem
   await crew.goto(link)
   await expect(chatRow(crew, withCard)).toBeVisible({ timeout: 15_000 })
   await expect(crew.locator(`#msg-${link.split('m=')[1]}`)).toContainText(withCard)
+})
+
+// covers: T13
+test('an organisation channel: admins only write, an announcement is confirmed, a message pinned', { tag: '@messages' }, async ({ adminWithOrg, member }) => {
+  const { page, org } = adminWithOrg
+  const channel = words('Warehouse')
+  await page.goto('/messages')
+  await page.getByRole('button', { name: 'New channel' }).click()
+  const form = page.getByRole('dialog', { name: 'New channel' })
+  await form.getByPlaceholder('e.g. General, Warehouse, Safety').fill(channel)
+  await form.getByRole('radio', { name: /Everyone in the organisation/ }).check()
+  await expectAccessible(page)
+  await form.getByRole('button', { name: 'Create channel' }).click()
+  const region = page.getByRole('region', { name: channel })
+  await expect(region).toBeVisible({ timeout: 15_000 })
+  await expect(region).toContainText(`${org.name} · Everyone in the organisation`)
+  const hello = words('Welcome to the warehouse channel')
+  await send(page, hello)
+
+  // A member can write in it…
+  const other = member.page
+  await other.goto('/messages')
+  await other.getByRole('navigation', { name: 'Messages' }).getByRole('link', { name: new RegExp(channel) }).click()
+  await expect(chatRow(other, hello)).toBeVisible({ timeout: 15_000 })
+  await send(other, words('Thanks'))
+
+  // …until the admin makes it "Only admins can write"
+  await page.getByRole('button', { name: 'Channel settings' }).click()
+  const settings = page.getByRole('dialog', { name: 'Channel settings' })
+  await settings.getByRole('checkbox', { name: /Only admins can write/ }).check()
+  await settings.getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByText('Channel saved.')).toBeVisible()
+  await expect(region).toContainText('admins write')
+  await other.reload()
+  await expect(other.getByText("You can read this channel but not post in it (viewers can't).")).toBeVisible({ timeout: 15_000 })
+  await expect(composer(other)).toHaveCount(0)
+
+  // An announcement: the member is told and confirms it; the admin sees the count
+  await page.getByRole('button', { name: 'Send as an announcement (everyone is asked to confirm)' }).click()
+  const notice = words('Inventory count on Friday')
+  await send(page, notice)
+  await expect(chatRow(page, notice)).toContainText('Announcement')
+  await openNotification(other, new RegExp(`${notice}.*please confirm you've read it`))
+  await expect(chatRow(other, notice)).toBeVisible({ timeout: 15_000 })
+  await chatRow(other, notice).getByRole('button', { name: "I've read this" }).click()
+  await expect(chatRow(other, notice)).toContainText('Confirmed')
+  await page.reload()
+  await expect(chatRow(page, notice).getByRole('button', { name: /^1 of \d+ confirmed$/ })).toBeVisible({ timeout: 15_000 })
+
+  // Pin a message: the bar above the conversation shows it. In a conversation this short the
+  // menu opens under the header (see the test.fail below), so the item is chosen with the keyboard.
+  const pin = (await menuOf(page, hello)).getByRole('menuitem', { name: 'Pin' })
+  await pin.focus()
+  await pin.press('Enter')
+  await expect(page.getByRole('button', { name: /1 pinned/ })).toBeVisible({ timeout: 15_000 })
+  await expect(other.getByRole('button', { name: /1 pinned/ })).toBeVisible({ timeout: 20_000 })
+  await expectAccessible(page)
+})
+
+// covers: T13
+test('department channels on a gig: crew see only their own function', { tag: '@messages' }, async ({ adminWithOrg, crewOnGig }) => {
+  const { page, account, world } = adminWithOrg
+  const gig = crewOnGig.gig
+  // A second function on the gig (Light), besides the crew member's Sound
+  const light = await world.account('extra')
+  await addToGig(account, gig.id, light, { functionTitle: 'Light' })
+
+  await page.goto(`${gig.path}?tab=chat`)
+  const chips = page.getByRole('tablist', { name: 'Channels' })
+  await expect(chips.getByRole('tab', { name: /Sound/ })).toBeVisible({ timeout: 15_000 })
+  await expect(chips.getByRole('tab', { name: /Light/ })).toBeVisible()
+  await expect(chips.getByRole('tab', { name: /Managers/ })).toBeVisible()
+  await chips.getByRole('tab', { name: /Sound/ }).click()
+  await expect(page.getByText('Only Sound and the gig\'s managers see this channel.')).toBeVisible({ timeout: 15_000 })
+  const forSound = words('Sound team: bring the spare DI boxes')
+  await send(page, forSound)
+  await expectAccessible(page)
+
+  const crew = crewOnGig.page
+  await crew.goto(`${gig.path}?tab=chat`)
+  const crewChips = crew.getByRole('tablist', { name: 'Channels' })
+  await expect(crewChips.getByRole('tab', { name: /Sound/ })).toBeVisible({ timeout: 15_000 })
+  await expect(crewChips.getByRole('tab', { name: /Light/ })).toHaveCount(0)
+  await expect(crewChips.getByRole('tab', { name: /Managers/ })).toHaveCount(0)
+  await crewChips.getByRole('tab', { name: /Sound/ }).click()
+  await expect(chatRow(crew, forSound)).toBeVisible({ timeout: 15_000 })
+})
+
+// covers: T13
+test('search finds a message, and a saved message is under Saved', { tag: '@messages' }, async ({ adminWithOrg, crewOnGig }) => {
+  const { page } = adminWithOrg
+  const gig = crewOnGig.gig
+  const marker = `zebra${Date.now().toString(36)}`
+  const text = `Check the ${marker} crossing on the loading road`
+  await page.goto(`${gig.path}?tab=chat`)
+  await send(page, text)
+
+  const crew = crewOnGig.page
+  await crew.goto('/messages')
+  await crew.getByRole('button', { name: 'Search' }).click()
+  await crew.getByRole('textbox', { name: 'Search' }).fill(marker)
+  const result = crew.getByRole('link', { name: new RegExp(marker) })
+  await expect(result).toBeVisible({ timeout: 15_000 })
+  await expectAccessible(crew)
+  await result.click()
+  await expect(crew).toHaveURL(/\/messages\/[0-9a-f-]{36}\?m=/)
+  await expect(chatRow(crew, text)).toBeVisible({ timeout: 15_000 })
+
+  await (await menuOf(crew, text)).getByRole('menuitem', { name: 'Save for later' }).click()
+  await expect(crew.getByText('Saved for later.')).toBeVisible()
+  await crew.getByRole('button', { name: 'Saved' }).click()
+  await expect(crew.getByRole('link', { name: new RegExp(marker) })).toBeVisible({ timeout: 15_000 })
+})
+
+// covers: T13 (documents a bug: the ⋯ menu of a message near the top of a short conversation opens
+// upwards, under the conversation's header, so its first items can't be clicked; issue ISSUE_MENU)
+test('the menu of the first message in a short conversation can be clicked', { tag: '@messages' }, async ({ adminWithOrg }) => {
+  test.fail(true, 'The ⋯ menu opens upwards under the header (issue ISSUE_MENU)')
+  const { page, account, org } = adminWithOrg
+  const title = words('Short channel')
+  const { data: channelId, error } = await account.client.rpc('save_org_channel', { p_id: null, p_org: org.id, p_title: title, p_audience: 'everyone', p_admins_post: false, p_archived: null })
+  expect(error).toBeNull()
+  const only = words('The only message here')
+  const sent = await account.client.from('messages').insert({ conversation_id: channelId, body: only, attachments: [], mentions: [] })
+  expect(sent.error).toBeNull()
+  await page.goto(`/messages/${channelId}`)
+  await expect(chatRow(page, only)).toBeVisible({ timeout: 15_000 })
+  const menu = await menuOf(page, only)
+  // A click a person can make: nothing else is on top of the item
+  await menu.getByRole('menuitem', { name: 'React with 👍' }).click({ trial: true, timeout: 5_000 })
+  await menu.getByRole('menuitem', { name: 'Copy link' }).click({ trial: true, timeout: 5_000 })
 })
