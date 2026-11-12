@@ -597,12 +597,9 @@ test('a quote accepted without drawing works as before, with no "Signed" line', 
 
 
 // covers: T7, T67, T102 (the client's quote page they all open)
-// Known app bug #146: the client's quote page has three serious colour-contrast findings (the
-// header text over the brand colour, and the grey text of the conversation and its form). This test
-// documents it: it is expected to fail until #146 is fixed; then Playwright reports it as passing
-// unexpectedly, and the test.fail line comes out.
+// Bug #146 (fixed): the client's quote page had three serious colour-contrast findings (the header
+// text over the brand colour, and the grey text of the conversation and its form).
 test('the client\'s quote page passes the accessibility check', { tag: AREA }, async ({ adminWithOrg, browser, baseURL }) => {
-  test.fail(true, 'App bug #146: serious colour-contrast findings on the client quote page (/q/…)')
   const { account, org } = adminWithOrg
   const quote = await addQuote(account, org, { title: `E2E Client page ${stamp()}`, lines: [{ description: 'PA', qty: 1, unit_price: 100 }] })
   const client = await clientPage(browser, baseURL, await quoteLink(account, quote))
