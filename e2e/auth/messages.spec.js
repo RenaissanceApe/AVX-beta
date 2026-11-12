@@ -22,7 +22,7 @@ async function send(page, text) {
 }
 
 // Photos in a chat have their links once their signed address has loaded (until then the link has
-// no address, which the accessibility check flags: see the test.fail for issue ISSUE_IMGLINK)
+// no address, which the accessibility check flags: see the test.fail for issue #212)
 async function chatAccessible(page) {
   await expect(page.locator('.chat-row a[target="_blank"]:not([href])')).toHaveCount(0, { timeout: 15_000 })
   await expectAccessible(page)
@@ -320,9 +320,9 @@ test('search finds a message, and a saved message is under Saved', { tag: '@mess
 })
 
 // covers: T13 (documents a bug: the ⋯ menu of a message near the top of a short conversation opens
-// upwards, under the conversation's header, so its first items can't be clicked; issue ISSUE_MENU)
+// upwards, under the conversation's header, so its first items can't be clicked; issue #211)
 test('the menu of the first message in a short conversation can be clicked', { tag: '@messages' }, async ({ adminWithOrg }) => {
-  test.fail(true, 'The ⋯ menu opens upwards under the header (issue ISSUE_MENU)')
+  test.fail(true, 'The ⋯ menu opens upwards under the header (issue #211)')
   const { page, account, org } = adminWithOrg
   const title = words('Short channel')
   const { data: channelId, error } = await account.client.rpc('save_org_channel', { p_id: null, p_org: org.id, p_title: title, p_audience: 'everyone', p_admins_post: false, p_archived: null })
@@ -600,10 +600,10 @@ test('a subrental\'s supplier writes through their link; a new link turns the ol
   await context.close()
 })
 
-// covers: T15 (documents a bug: the client's and supplier's pages, with their conversation, fail the
-// accessibility check on colour contrast: grey text on white; issue ISSUE_CONTRAST)
+// covers: T15 (documents a bug: the client's quote page and its conversation fail the accessibility
+// check on colour contrast: grey text on white, and the header over the brand colour; issue #146)
 test('the pages a client or supplier opens from a link pass the accessibility check', { tag: '@messages' }, async ({ adminWithOrg, browser, baseURL }) => {
-  test.fail(true, 'Grey text on the guest pages is below the contrast minimum (issue ISSUE_CONTRAST)')
+  test.fail(true, 'Grey text on the guest pages is below the contrast minimum (issue #146)')
   const { account, org } = adminWithOrg
   const quote = await addQuote(account, org, { title: words('E2E Contrast Quote'), lines: [{ description: 'PA system', qty: 1, unit_price: 100 }] })
   const link = await quoteLink(adminWithOrg.page, quote)
@@ -715,9 +715,9 @@ test('blocking someone in a direct conversation: neither can write; unblock from
 })
 
 // covers: T12 (documents a bug: while a photo in a chat is loading, its link has a label but no
-// address, which the accessibility check flags as serious; issue ISSUE_IMGLINK)
+// address, which the accessibility check flags as serious; issue #212)
 test('a photo in a chat is accessible while it loads', { tag: '@messages' }, async ({ adminWithOrg, crewOnGig }) => {
-  test.fail(true, 'The photo link has aria-label but no href until the signed address loads (issue ISSUE_IMGLINK)')
+  test.fail(true, 'The photo link has aria-label but no href until the signed address loads (issue #212)')
   const { page } = adminWithOrg
   const gig = crewOnGig.gig
   await page.goto(`${gig.path}?tab=chat`)
