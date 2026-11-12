@@ -3,8 +3,8 @@ import { sweepTargets, ROLES, AREAS, areaEmail, testEmail } from '../e2e/auth/ac
 
 // Which addresses scripts/e2e-sweep.mjs tries for a tag (it signs in to each and deletes it)
 describe('sweepTargets', () => {
-  it('with the run\'s account list: the older roles plus exactly the listed area accounts', () => {
-    const list = 'admin gigs\nmember gigs\nviewer gigs\nadmin quotes\n\n'
+  it('with the run\'s account list: exactly the accounts listed, with or without an area', () => {
+    const list = 'admin gigs\nmember gigs\nviewer gigs\nadmin quotes\npm\n\n'
     const targets = sweepTargets('gh1-1-s2', list)
     const emails = targets.map(t => t.email)
     expect(emails).toContain(areaEmail('admin', 'gigs', 'gh1-1-s2'))
@@ -12,11 +12,12 @@ describe('sweepTargets', () => {
     expect(emails).toContain(areaEmail('admin', 'quotes', 'gh1-1-s2'))
     expect(emails).toContain(testEmail('pm', 'gh1-1-s2'))
     expect(emails).not.toContain(areaEmail('viewer', 'quotes', 'gh1-1-s2'))
-    expect(targets).toHaveLength(ROLES.length + 4)
+    expect(emails).not.toContain(testEmail('tech', 'gh1-1-s2'))
+    expect(targets).toHaveLength(5)
   })
 
   it('lists each address once, members before admins', () => {
-    const targets = sweepTargets('r1', 'member gigs\nmember gigs\nadmin gigs\nmember gigs\n')
+    const targets = sweepTargets('r1', 'member gigs\nmember gigs\nadmin gigs\nmember gigs\npm\ntech\n')
     expect(new Set(targets.map(t => t.email)).size).toBe(targets.length)
     const roles = targets.filter(t => t.area === 'gigs').map(t => t.role)
     expect(roles).toEqual(['member', 'admin'])

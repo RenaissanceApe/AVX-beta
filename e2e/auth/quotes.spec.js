@@ -140,7 +140,11 @@ test('quote to gig: catalogue items, availability, accepted from the client link
   await plan.getByRole('button', { name: /^Add to the gig/ }).click()
   await expect(page).toHaveURL(/\/gig\/[0-9a-f-]{36}/, { timeout: 15_000 })
 
-  const { data: gig } = await account.client.from('quotes').select('gig_id, status, gig:gigs(id, status)').eq('id', quote.id).single()
+  // The editor saves the quote's link to the gig in the background (autosave) and may still be at it
+  // after the gig page opens: on a busy test database, wait for the link (AT0b)
+  const linked = async () => (await account.client.from('quotes').select('gig_id, status, gig:gigs(id, status)').eq('id', quote.id).single()).data
+  await expect.poll(async () => (await linked())?.gig_id, { message: 'The quote was never linked to the new gig', timeout: 15_000 }).toBeTruthy()
+  const gig = await linked()
   expect(gig.status).toBe('accepted')
   expect(gig.gig?.status).toBe('confirmed')
   const { data: gear } = await account.client.from('gig_equipment').select('quantity, item:price_items(name)').eq('gig_id', gig.gig_id)

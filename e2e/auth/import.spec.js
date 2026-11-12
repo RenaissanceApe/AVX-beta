@@ -1,39 +1,46 @@
 import { readFile } from 'node:fs/promises'
 import { test, expect } from '@playwright/test'
 import { RUN, testEmail } from './accounts.js'
-import { english, signUp, signIn as signInAs, expectAccessible } from './helpers.js'
+import { english, expectAccessible } from './helpers.js'
+import { journeyAccount, signInPage, addOrg, removeAccount } from './setup.js'
 
 // The import's Check step fixes problems on the spot (docs/SWITCHING.md, "Import overhaul: fix it
 // here"), against the Supabase TEST project (never production). Run with E2E_AUTH=1 and the test
 // project's URL/key — see docs/TESTING.md. The account is e2e-imp-<run>@example.com: it deletes
 // itself at the end, and CI's sweep step deletes it if a test fails first.
-const who = { name: `E2E Import ${RUN}`, email: testEmail('imp', RUN) }
+const who = { role: 'imp', name: `E2E Import ${RUN}`, email: testEmail('imp', RUN) }
 const ORG = `E2E Import Org ${RUN}`
 
 test.describe.configure({ mode: 'serial' })
 
-// Part of the pull requests' smoke run (@smoke; docs/TESTING.md). Not indented, to keep its history readable.
-test.describe('import: fix it here', { tag: ['@smoke', '@import'] }, () => {
+// Its first check is in the pull requests' smoke run (@smoke); all of it runs every night
+// (docs/TESTING.md). Not indented, to keep its history readable.
+test.describe('import: fix it here', { tag: '@import' }, () => {
 
 test.beforeEach(async ({ page }) => {
   await english(page)
 })
 
-const signIn = page => signInAs(page, who)
-
+// The user and their organisation (no locations yet), made through the API on first use, so any
+// one test can run on its own (the smoke run picks one). One sign-in per test worker.
 let orgPath
+const user = () => journeyAccount(who, { create: true })
+let made
+function setUp() {
+  made ||= (async () => {
+    const account = await user()
+    const { data } = await account.client.from('organisations').select('id').eq('name', ORG).eq('created_by', account.id).limit(1)
+    orgPath = data?.[0] ? `/org/${data[0].id}` : (await addOrg(account, { name: ORG })).path
+  })()
+  made.catch(() => { made = null })
+  return made
+}
+const signIn = async page => {
+  await setUp()
+  await signInPage(page, await user())
+}
 
-test('set up: a user with an organisation and no locations yet', async ({ page }) => {
-  await signUp(page, who)
-  await page.getByRole('button', { name: 'Create Organisation' }).first().click()
-  const dialog = page.getByRole('dialog', { name: 'New Organisation' })
-  await dialog.getByPlaceholder('e.g. SoundWorks Lisboa').fill(ORG)
-  await dialog.getByRole('button', { name: 'Create Organisation' }).click()
-  await expect(page).toHaveURL(/\/org\/[0-9a-f-]{36}/, { timeout: 15_000 })
-  orgPath = new URL(page.url()).pathname.match(/\/org\/[0-9a-f-]{36}/)[0]
-})
-
-test('an equipment file with an unknown location: add it from the check, import, and the stock is there', async ({ page }) => {
+test('an equipment file with an unknown location: add it from the check, import, and the stock is there', { tag: '@smoke' }, async ({ page }) => {
   await signIn(page)
   await page.goto(`${orgPath}/inventory/import?kind=items`)
   await page.locator('#imp-paste').fill(`Name\tCode\tQuantity\tLocation\nE2E Cable ${RUN}\tE2E-${RUN}\t12\twarehouse`)
@@ -169,13 +176,9 @@ test('past jobs come in as done gigs when chosen, and a second import doesn\'t d
   }
 })
 
-test('clean up: the user deletes their account', async ({ page }) => {
-  await signIn(page)
-  await page.goto('/settings')
-  await page.getByRole('link', { name: 'Your data' }).click()
-  page.once('dialog', dialog => dialog.accept('DELETE'))
-  await page.getByRole('button', { name: 'Delete account' }).click()
-  await expect(page).toHaveURL(/\/auth$/, { timeout: 15_000 })
+// Runs even when a test above fails, and only if the user was made (the sweep is the backstop)
+test.afterAll(async () => {
+  if (made) await removeAccount(await user())
 })
 
 })
