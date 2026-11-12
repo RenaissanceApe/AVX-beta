@@ -377,6 +377,7 @@ export default {
   'notif.bell': 'Notifications',
   'notif.bellUnread.one': '{count} unread notification',
   'notif.bellUnread.other': '{count} unread notifications',
+  'notif.bellUnreadMany': '9+ unread notifications',
   'notif.markAllRead': 'Mark all read',
   'notif.empty': "You're all caught up.",
   'notif.addedToGig': '{actor} added you to {gig} as {role}',
