@@ -1,10 +1,11 @@
 // Messages and notifications (AT2): mostly two accounts talking to each other. The owner's manual
 // lines T2, T12–T15, T17 and T18 (docs/PENDING.md section 2); what still needs a person is listed
 // in docs/notes/AT2.md. docs/TESTING.md, "Automated test suite".
+import { readFile } from 'node:fs/promises'
 import { test, expect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
 import { RUN } from './accounts.js'
-import { addGig, addItem, addQuote, addToGig } from './setup.js'
+import { addGig, addItem, addQuote, addToGig, pageAs } from './setup.js'
 
 test.use({ area: 'messages' })
 
@@ -18,6 +19,13 @@ async function send(page, text) {
   await composer(page).fill(text)
   await page.getByRole('button', { name: 'Send', exact: true }).click()
   await expect(chatRow(page, text)).toBeVisible({ timeout: 15_000 })
+}
+
+// Photos in a chat have their links once their signed address has loaded (until then the link has
+// no address, which the accessibility check flags: see the test.fail for issue ISSUE_IMGLINK)
+async function chatAccessible(page) {
+  await expect(page.locator('.chat-row a[target="_blank"]:not([href])')).toHaveCount(0, { timeout: 15_000 })
+  await expectAccessible(page)
 }
 
 // The ⋯ menu of a message (its buttons are faint until hover, but always there)
@@ -38,7 +46,7 @@ test('two people message each other directly, reply and mute', { tag: ['@smoke',
   const conversation = page.getByRole('region', { name: member.account.name })
   await expect(conversation).toBeVisible({ timeout: 15_000 })
   await send(page, hello)
-  await expectAccessible(page)
+  await chatAccessible(page)
 
   // The member finds it in Messages and answers with a reply to it
   const other = member.page
@@ -71,7 +79,7 @@ test('the gig chat: crew and manager talk, and a venue change is posted in it', 
   const fromPm = words('Load-in at nine')
   await page.goto(`${gig.path}?tab=chat`)
   await send(page, fromPm)
-  await expectAccessible(page)
+  await chatAccessible(page)
 
   const crew = crewOnGig.page
   await crew.goto(`${gig.path}?tab=chat`)
@@ -138,7 +146,7 @@ test('the gig chat: files, a schedule card, mentions, a reaction, an edit, a rem
   const withCard = words('Here is the slot')
   await send(page, withCard)
   await expect(chatRow(page, withCard).getByRole('link', { name: new RegExp(itemTitle) })).toBeVisible({ timeout: 15_000 })
-  await expectAccessible(page)
+  await chatAccessible(page)
 
   // @mention the crew member by name, and (as the gig's manager) the @crew group
   const crewFirst = crewOnGig.account.name.split(' ').slice(0, 2).join(' ')
@@ -177,7 +185,7 @@ test('the gig chat: files, a schedule card, mentions, a reaction, an edit, a rem
   const history = page.getByRole('dialog', { name: 'Earlier versions' })
   await expect(history).toContainText(draft)
   await expect(history).toContainText(fixed)
-  await expectAccessible(page)
+  await chatAccessible(page)
   await history.getByRole('button', { name: 'Close' }).click()
 
   // Remove one: after the undo time it's gone for everyone
@@ -208,7 +216,7 @@ test('an organisation channel: admins only write, an announcement is confirmed, 
   const form = page.getByRole('dialog', { name: 'New channel' })
   await form.getByPlaceholder('e.g. General, Warehouse, Safety').fill(channel)
   await form.getByRole('radio', { name: /Everyone in the organisation/ }).check()
-  await expectAccessible(page)
+  await chatAccessible(page)
   await form.getByRole('button', { name: 'Create channel' }).click()
   const region = page.getByRole('region', { name: channel })
   await expect(region).toBeVisible({ timeout: 15_000 })
@@ -253,7 +261,7 @@ test('an organisation channel: admins only write, an announcement is confirmed, 
   await pin.press('Enter')
   await expect(page.getByRole('button', { name: /1 pinned/ })).toBeVisible({ timeout: 15_000 })
   await expect(other.getByRole('button', { name: /1 pinned/ })).toBeVisible({ timeout: 20_000 })
-  await expectAccessible(page)
+  await chatAccessible(page)
 })
 
 // covers: T13
@@ -273,7 +281,7 @@ test('department channels on a gig: crew see only their own function', { tag: '@
   await expect(page.getByText('Only Sound and the gig\'s managers see this channel.')).toBeVisible({ timeout: 15_000 })
   const forSound = words('Sound team: bring the spare DI boxes')
   await send(page, forSound)
-  await expectAccessible(page)
+  await chatAccessible(page)
 
   const crew = crewOnGig.page
   await crew.goto(`${gig.path}?tab=chat`)
@@ -300,7 +308,7 @@ test('search finds a message, and a saved message is under Saved', { tag: '@mess
   await crew.getByRole('textbox', { name: 'Search' }).fill(marker)
   const result = crew.getByRole('link', { name: new RegExp(marker) })
   await expect(result).toBeVisible({ timeout: 15_000 })
-  await expectAccessible(crew)
+  await chatAccessible(crew)
   await result.click()
   await expect(crew).toHaveURL(/\/messages\/[0-9a-f-]{36}\?m=/)
   await expect(chatRow(crew, text)).toBeVisible({ timeout: 15_000 })
@@ -356,7 +364,7 @@ test('asking crew with a clash if they are available, answered from their Messag
   const ask = page.getByRole('dialog', { name: `Ask ${crewOnGig.account.name}` })
   const question = words('Can you do both days?')
   await ask.getByLabel('Message (optional)').fill(question)
-  await expectAccessible(page)
+  await chatAccessible(page)
   await ask.getByRole('button', { name: 'Send question' }).click()
   await expect(page.getByText(`Asked ${crewOnGig.account.name}. You’ll get a notification when they answer.`)).toBeVisible()
 
@@ -366,7 +374,7 @@ test('asking crew with a clash if they are available, answered from their Messag
   const card = crew.getByRole('log').locator('div', { hasText: `“${question}”` }).filter({ has: crew.getByRole('button', { name: 'Available', exact: true }) }).last()
   await expect(card).toBeVisible({ timeout: 15_000 })
   await expect(card).toContainText(`${adminWithOrg.account.name} asks if you’re available`)
-  await expectAccessible(crew)
+  await chatAccessible(crew)
   await card.getByRole('button', { name: 'Available', exact: true }).click()
   // Answered: the buttons go and the answer is posted under the question
   await expect(crew.getByRole('log').getByRole('button', { name: 'Available', exact: true })).toHaveCount(0, { timeout: 15_000 })
@@ -389,7 +397,7 @@ test('a crew call for a position, accepted from Messages: they join the gig', { 
   await call.getByRole('textbox', { name: 'Search' }).fill(member.account.name)
   await call.getByRole('button', { name: new RegExp(member.account.name) }).first().click()
   await expect(call.getByText('1 person picked')).toBeVisible()
-  await expectAccessible(page)
+  await chatAccessible(page)
   await call.getByRole('button', { name: 'Send to 1 person' }).click()
   await expect(page.getByText('Crew call sent to 1 person.')).toBeVisible({ timeout: 15_000 })
 
@@ -470,7 +478,7 @@ test('a team conversation on an equipment item, a repair and a subrental', { tag
   await page.goto(`${org.path}/inventory/${item.id}`)
   const aboutItem = words('One clamp is loose')
   await talk(page, aboutItem)
-  await expectAccessible(page)
+  await chatAccessible(page)
 
   await page.goto(`${org.path}/inventory?tab=maintenance`)
   await page.getByRole('button', { name: new RegExp(problem) }).click()
@@ -483,7 +491,7 @@ test('a team conversation on an equipment item, a repair and a subrental', { tag
   const subWindow = page.getByRole('dialog', { name: 'Subrental' })
   const aboutSub = words('Pick-up at the back door')
   await talk(subWindow, aboutSub)
-  await expectAccessible(page)
+  await chatAccessible(page)
 
   // A member finds the three in Messages, each linking back to its thing
   const other = member.page
@@ -540,7 +548,7 @@ test('a quote\'s client writes from the quote\'s page and is answered from its S
   await expect(chatRow(page, question)).toContainText('client')
   const answer = words('Thursday works, see you then')
   await send(page, answer)
-  await expectAccessible(page)
+  await chatAccessible(page)
 
   // The client sees the answer when they open the page again
   await guest.reload()
@@ -602,4 +610,173 @@ test('the pages a client or supplier opens from a link pass the accessibility ch
   const { guest, context } = await guestWrites(browser, baseURL, link, { name: 'E2E Client Person', text: words('Is the PA included?') })
   await expectAccessible(guest)
   await context.close()
+})
+
+// covers: T17. The reported messages are written by other people on the gig: the database doesn't
+// tell a manager about reports on their own messages (report_message), see docs/notes/AT2.md.
+test('a reported message: the gig\'s manager keeps one and removes another', { tag: '@messages' }, async ({ adminWithOrg, crewOnGig, browser, baseURL }) => {
+  const { page, account, world } = adminWithOrg
+  const gig = crewOnGig.gig
+  const crew = crewOnGig.page
+  const extra = await world.account('extra')
+  await addToGig(account, gig.id, extra, { functionTitle: 'Light' })
+  const light = await pageAs(browser, extra, { baseURL })
+
+  // The crew member reports a message by the Light technician
+  const first = words('Parking is behind the venue')
+  await light.goto(`${gig.path}?tab=chat`)
+  await send(light, first)
+  await crew.goto(`${gig.path}?tab=chat`)
+  await (await menuOf(crew, first)).getByRole('menuitem', { name: 'Report' }).click()
+  const report = crew.getByRole('dialog', { name: 'Report this message' })
+  await report.getByRole('radio', { name: 'Spam' }).check()
+  await report.getByLabel('Anything to add (optional)').fill('Testing the report')
+  await chatAccessible(crew)
+  await report.getByRole('button', { name: 'Send report' }).click()
+  await expect(crew.getByText('Thanks. The report was sent.')).toBeVisible()
+
+  // The manager is told, opens it and keeps the message
+  await page.goto('/me')
+  await openNotification(page, /was reported \(Spam\)\. Remove it or keep it/)
+  const firstNote = chatRow(page, first).getByRole('note')
+  await expect(firstNote).toContainText('Reported (1): Spam', { timeout: 15_000 })
+  await chatAccessible(page)
+  await firstNote.getByRole('button', { name: 'Keep it' }).click()
+  await expect(page.getByText('Report closed; the message stays.')).toBeVisible()
+  await expect(firstNote).toHaveCount(0)
+  await expect(chatRow(page, first)).toContainText(first)
+
+  // The Light technician reports the crew member's message; the manager removes it
+  const second = words('Something rude')
+  await send(crew, second)
+  await expect(chatRow(light, second)).toBeVisible({ timeout: 20_000 })
+  await (await menuOf(light, second)).getByRole('menuitem', { name: 'Report' }).click()
+  await light.getByRole('dialog', { name: 'Report this message' }).getByRole('radio', { name: 'Abusive or harassing' }).check()
+  await light.getByRole('button', { name: 'Send report' }).click()
+  await expect(light.getByText('Thanks. The report was sent.')).toBeVisible()
+  await light.context().close()
+
+  await page.goto('/me')
+  await openNotification(page, /was reported \(Abusive or harassing\)\. Remove it or keep it/)
+  const secondNote = chatRow(page, second).getByRole('note')
+  await expect(secondNote).toContainText('Reported (1): Abusive or harassing', { timeout: 15_000 })
+  const secondId = await chatRow(page, second).getAttribute('id')
+  page.once('dialog', dialog => dialog.accept())
+  await secondNote.getByRole('button', { name: 'Remove' }).click()
+  await expect(page.getByText('Message removed.')).toBeVisible()
+
+  // The author sees "Removed by a moderator" and is told
+  await crew.goto('/me')
+  await openNotification(crew, new RegExp(`A moderator removed your message in .*${second}`))
+  await expect(crew.locator(`#${secondId}`)).toContainText('Removed by a moderator', { timeout: 15_000 })
+  await expect(crew.getByRole('log').getByText(second)).toHaveCount(0)
+})
+
+// covers: T17
+test('blocking someone in a direct conversation: neither can write; unblock from Account', { tag: '@messages' }, async ({ adminWithOrg, crewOnGig, browser, baseURL }) => {
+  const { page, account, world } = adminWithOrg
+  const extra = await world.account('extra')
+  await addToGig(account, crewOnGig.gig.id, extra, { functionTitle: 'Light' })
+  await account.client.rpc('block_user', { p_user: extra.id, p_block: false }) // a run stopped half way
+  const before = words('Are you on the Light crew?')
+  await page.goto(`/messages?to=${extra.id}`)
+  await expect(page.getByRole('region', { name: extra.name })).toBeVisible({ timeout: 15_000 })
+  await send(page, before)
+  const other = await pageAs(browser, extra, { baseURL })
+  await openDirect(other, account.name)
+  await send(other, words('Yes I am'))
+
+  // Block from the message menu
+  page.once('dialog', dialog => dialog.accept())
+  await (await menuOf(page, 'Yes I am')).getByRole('menuitem', { name: 'Block this person' }).click()
+  await expect(page.getByText(`You blocked ${extra.name}.`).first()).toBeVisible()
+  await expect(composer(page)).toHaveCount(0)
+  await chatAccessible(page)
+
+  // The blocked person's message isn't delivered
+  await other.reload()
+  await composer(other).fill(words('Hello?'))
+  await other.getByRole('button', { name: 'Send', exact: true }).click()
+  await expect(other.getByText('This person isn’t receiving your messages here.')).toBeVisible({ timeout: 15_000 })
+
+  // Unblock from Account → Privacy and blocking
+  await page.goto('/settings/privacy')
+  const blocked = page.getByRole('listitem').filter({ hasText: extra.name })
+  await expect(page.getByText('People you blocked')).toBeVisible({ timeout: 15_000 })
+  await chatAccessible(page)
+  await blocked.getByRole('button', { name: 'Unblock' }).click()
+  await expect(page.getByText(`You unblocked ${extra.name}.`)).toBeVisible()
+  const after = words('Unblocked now')
+  await openDirect(other, account.name)
+  await send(other, after)
+  await openDirect(page, extra.name)
+  await expect(chatRow(page, after)).toBeVisible({ timeout: 15_000 })
+  await other.context().close()
+})
+
+// covers: T12 (documents a bug: while a photo in a chat is loading, its link has a label but no
+// address, which the accessibility check flags as serious; issue ISSUE_IMGLINK)
+test('a photo in a chat is accessible while it loads', { tag: '@messages' }, async ({ adminWithOrg, crewOnGig }) => {
+  test.fail(true, 'The photo link has aria-label but no href until the signed address loads (issue ISSUE_IMGLINK)')
+  const { page } = adminWithOrg
+  const gig = crewOnGig.gig
+  await page.goto(`${gig.path}?tab=chat`)
+  const text = words('Photo of the truck')
+  await page.locator('input[type=file]').setInputFiles([{ name: 'truck.png', mimeType: 'image/png', buffer: PNG }])
+  await send(page, text)
+  // The signed address takes a while (held here, as on a slow connection)
+  await page.route('**/storage/v1/object/sign/**', () => { /* never answers */ })
+  await page.reload()
+  await expect(chatRow(page, text).getByRole('link', { name: 'truck.png' }).or(chatRow(page, text).locator('a[aria-label="truck.png"]'))).toHaveCount(1, { timeout: 15_000 })
+  await expectAccessible(page)
+})
+
+// covers: T18 (not the hand-run migration, which is the owner's step: docs/notes/AT2.md)
+test('organisation settings → Messages: usage, the retention warning and the download', { tag: '@messages' }, async ({ adminWithOrg }) => {
+  const { page, account, org } = adminWithOrg
+  // A message of this test's own, to find in the download
+  const { data: channelId, error } = await account.client.rpc('save_org_channel', { p_id: null, p_org: org.id, p_title: words('Export check'), p_audience: 'staff', p_admins_post: false, p_archived: null })
+  expect(error).toBeNull()
+  const text = words('This line is in the export')
+  expect((await account.client.from('messages').insert({ conversation_id: channelId, body: text, attachments: [], mentions: [] })).error).toBeNull()
+  await account.client.rpc('set_message_retention', { p_org: org.id, p_days: null }) // a run stopped half way
+
+  await page.goto(`${org.path}?panel=settings`)
+  const settings = page.getByRole('dialog', { name: new RegExp(org.name) })
+  await expect(settings.getByText(/^Messages: \d+ · conversations: \d+/)).toBeVisible({ timeout: 15_000 })
+  await expect(settings.getByText(/last 30 days: \d+ messages, \d+ writing/)).toBeVisible()
+  const keep = settings.getByLabel('Keep messages')
+  await expect(keep).toHaveValue('')
+
+  // A shorter period goes through the deletion warning; cancel keeps it as it was
+  await keep.selectOption({ label: 'For 2 years' })
+  const warning = page.getByRole('dialog', { name: 'Keep messages for 2 years?' })
+  await expect(warning).toContainText('0 messages are already older and go tonight', { timeout: 15_000 })
+  await expect(warning).toContainText('From then on, each message once it is more than 2 years old')
+  await expectAccessible(page)
+  await warning.getByRole('button', { name: 'Cancel' }).click()
+  await expect(warning).toHaveCount(0)
+  await expect(keep).toHaveValue('')
+
+  // …and confirming (tick, type the organisation's name) saves it
+  await keep.selectOption({ label: 'For 2 years' })
+  await warning.getByRole('checkbox').check()
+  await warning.getByRole('button', { name: 'Continue' }).click()
+  await warning.getByLabel('To confirm, type the exact name below').pressSequentially(org.name)
+  await warning.getByRole('button', { name: 'Delete older messages' }).click()
+  await expect(page.getByText('Messages are now kept for 2 years.')).toBeVisible({ timeout: 15_000 })
+  await expect(keep).toHaveValue('730')
+  // Back to for ever: a longer period just saves
+  await keep.selectOption({ label: 'For ever' })
+  await expect(page.getByText('Messages are now kept for ever.')).toBeVisible({ timeout: 15_000 })
+
+  // Download all messages: a JSON file with this organisation's conversations
+  const downloading = page.waitForEvent('download')
+  await settings.getByRole('button', { name: 'Download all messages' }).click()
+  const download = await downloading
+  expect(download.suggestedFilename()).toMatch(/^avx-.*-messages-\d{4}-\d{2}-\d{2}\.json$/)
+  const file = JSON.parse(await readFile(await download.path(), 'utf8'))
+  expect(file.organisation).toBe(org.name)
+  expect(Array.isArray(file.conversations)).toBe(true)
+  expect(JSON.stringify(file.conversations)).toContain(text)
 })
