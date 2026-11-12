@@ -23,7 +23,7 @@ second person before it can be used.
 | `checks` | Automatic checks it passed. |
 | `issues` | Values that break the plausibility checks below. Some may have a reason (another limit governing), but a person has to look first. |
 | `questions` | Open questions to the manufacturer. |
-| `status` | `unchecked` (copied and checked automatically, not yet by a person), `checked` (a second person compared it with the source; `checkedBy` says who and when) or `blocked` (has issues or open questions: not offered). |
+| `status` | `unchecked` (copied and checked automatically) or `blocked` (has issues or open questions: not offered). Whether a person has checked it is in the database (`truss_table_checks`, RG2), not here. |
 
 Units are as published, except Global Truss deflections: published in cm, stored in mm (×10).
 
@@ -46,9 +46,11 @@ Units are as published, except Global Truss deflections: published in cm, stored
      load (N−1 equal loads at L/N give a largest moment of P·L·k, with k = N/8 for even N and
      (N²−1)/8N for odd N), and UDL × span ≈ 2 × centre load, within 15–25 %.
 
-These checks catch copying errors (and, as it turned out, some oddities in the published tables). They don't replace the second person: until RG2 builds the
-review screen, a table is marked `checked` by a pull request that sets `status` and `checkedBy`
-(name and date) after comparing every row with the source document.
+These checks catch copying errors (and, as it turned out, some oddities in the published tables). They don't replace the second person: since RG2, an AVX admin
+compares every row with the source document on the review screen (`/admin/truss`) and marks the
+edition checked there. The mark is kept in the database (`public.truss_table_checks`, for every
+organisation), tied to the edition and the document's SHA-256; the JSON's own `status` stays
+`unchecked` (only `blocked` in the JSON still counts). See docs/TOOLS_PLAN.md, "How RG2 works".
 
 ## Included (39 tables)
 

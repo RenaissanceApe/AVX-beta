@@ -22,6 +22,9 @@ import EmptyState from '../EmptyState'
 import { HintLabel } from '../help/HelpParts'
 import { NumberField, TextField, Check } from './RigFields'
 import LineArrays from './LineArrays'
+import TrussCheck from './TrussCheck'
+import BridlesAndHardware from './BridlesAndHardware'
+import { loadTrussChecks } from '../../lib/trussChecks'
 
 const FIXTURE_FIELDS = 'id, name, position, universe, address, plot_x, plot_y, weight_kg'
 const MODEL_FIELDS = 'id, org_id, brand, model, class, wll_kg, falls, self_weight_kg, chain_kg_m, speed_m_min, source, source_date, notes, needs_check, removed_at'
@@ -68,6 +71,9 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
     saveSnapshot(`rigging.${gig.id}`, next)
   }, [gig.id])
   useEffect(() => { load() }, [load])
+  // RG2: the AVX admins' marks on truss tables (which tables may give a pass/fail)
+  const [checks, setChecks] = useState([])
+  useEffect(() => { loadTrussChecks().then(r => setChecks(r.checks)) }, [])
 
   const bars = useMemo(() => barsOf(show?.lighting), [show])
   const settings = useMemo(() => settingsOf(show?.rigging), [show])
@@ -123,7 +129,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
     const length = bar ? bar.length : 6
     const line = {
       id: uid('l'), bar_id: bar?.id || null, name: bar ? bar.name : nextLineName(lines, t('rig.line')),
-      length_m: length, truss_kg_m: 0, cable_kg_m: null, accessories_kg: 0, loads: [], points: defaultPoints(length, i => uid(`p${i}`)), checked: null,
+      length_m: length, truss_kg_m: 0, truss_table_id: null, defl_limit_mm: null, cable_kg_m: null, accessories_kg: 0, loads: [], points: defaultPoints(length, i => uid(`p${i}`)), checked: null,
     }
     saveLines([...lines, line])
     track(bar ? 'rigging:addFromPlot' : 'rigging:addByHand')
@@ -214,7 +220,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
               const onBar = bar ? fixturesOnBar(bar, bars, fixtures) : []
               return (
                 <li key={line.id} ref={el => { lineRefs.current[line.id] = el }}>
-                  <LineCard line={line} bar={bar} arrayLoads={arrayLoadsOnLine(arrays, line.id, { models: byId, settings, lines })} lost={!!line.bar_id && !bar} onBar={onBar} settings={settings} models={byId} pickable={pickable}
+                  <LineCard line={line} bar={bar} checks={checks} arrayLoads={arrayLoadsOnLine(arrays, line.id, { models: byId, settings, lines })} lost={!!line.bar_id && !bar} onBar={onBar} settings={settings} models={byId} pickable={pickable}
                     canEdit={canEdit && !savedAt} onEdit={patch => editLine(line.id, patch)} onRemove={() => removeLine(line)} />
                 </li>
               )
@@ -222,6 +228,8 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
           </ul>
         )}
       </section>
+
+      <BridlesAndHardware gig={gig} rigging={show?.rigging} onSave={save} canEdit={canEdit && !savedAt} />
 
       <LineArrays rigging={show?.rigging} onSave={save} lines={lines} models={byId} pickable={pickable} settings={settings} speakers={speakers} speakersLoading={readsSpeakers && !speakersLoaded} sources={sources} booked={booked}
         canEdit={canEdit && !savedAt} canReadCatalogue={canPlanEquipment && !!gig.org_id} />
@@ -269,7 +277,7 @@ export default function RiggingTool({ gig, canEdit, canPlanEquipment }) {
 const STATUS_ICON = { ok: CheckCircle2, near: AlertTriangle, over: AlertTriangle, uplift: AlertTriangle, noHoist: CircleHelp, noWll: CircleHelp, unknown: CircleHelp }
 const statusColour = s => (s === 'over' || s === 'uplift' ? colors.danger : s === 'near' ? colors.warn : s === 'ok' ? colors.accentText : colors.muted)
 
-function LineCard({ line, bar, lost, onBar, arrayLoads = [], settings, models, pickable, canEdit, onEdit, onRemove }) {
+function LineCard({ line, bar, checks, lost, onBar, arrayLoads = [], settings, models, pickable, canEdit, onEdit, onRemove }) {
   // Line arrays hung from this line (RG3) add their pick loads; they're edited in the array
   const a = analyseLine({ ...line, loads: [...line.loads, ...arrayLoads] }, { bar, onBar, models, settings })
   const print = fingerprint(bar, onBar)
@@ -343,6 +351,8 @@ function LineCard({ line, bar, lost, onBar, arrayLoads = [], settings, models, p
           {arrayLoads.map(x => <li key={x.id}>{t('la.onThisLine', { name: x.name, kg: x.kg, m: x.at_m })}</li>)}
         </ul>
       )}
+
+      <TrussCheck line={line} analysis={a} checks={checks} settings={settings} canEdit={canEdit} onEdit={onEdit} />
 
       <h5 style={{ ...label, marginTop: '12px', marginBottom: '4px' }}>{t('rig.points')}</h5>
       {a.problem && <p role="alert" style={{ fontSize: '13px', color: colors.danger, marginBottom: '4px' }}>{t(`rig.problem.${a.problem}`)}</p>}
