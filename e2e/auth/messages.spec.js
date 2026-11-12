@@ -125,6 +125,9 @@ async function openNotification(page, text) {
 async function mention(page, typed, option) {
   await composer(page).pressSequentially(typed)
   await page.getByRole('listbox', { name: 'Mention someone' }).getByRole('option', { name: option }).first().click()
+  // The app puts the cursor after the name on the next frame: type only after that
+  await expect(composer(page)).toHaveValue(/ $/)
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
 }
 
 // covers: T12
