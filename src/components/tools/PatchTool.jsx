@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Printer, Trash2, Wand2, AlertTriangle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { saveShow } from '../../lib/queuedSaves'
 import { useToast } from '../../lib/ToastContext'
 import { logger, userMessage } from '../../lib/logger'
 import { track } from '../../lib/usage'
@@ -49,7 +50,7 @@ export default function PatchTool({ gig, canEdit }) {
   async function saveBoxes(next) {
     const value = { ...(audio || {}), boxes: next }
     setAudio(value)
-    const { error } = await supabase.from('gig_show').upsert({ gig_id: gig.id, audio: value })
+    const { error } = await saveShow(gig.id, { audio: value })
     if (error) { logger.error('patch', error, { step: 'boxes' }); notify(userMessage(error), 'error'); load() }
   }
   const editBox = (i, patch) => saveBoxes(boxes.map((b, n) => (n === i ? { ...b, ...patch } : b)))

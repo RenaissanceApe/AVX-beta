@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Plus, ListTodo, Wrench } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { saveTask } from '../lib/queuedSaves'
 import { useAuth } from '../lib/AuthContext'
 import { useToast } from '../lib/ToastContext'
 import { logger, userMessage } from '../lib/logger'
@@ -96,7 +97,7 @@ export default function OrgTasksPage() {
   }
   async function patch(task, values) {
     setTasks(list => list.map(x => (x.id === task.id ? { ...x, ...values } : x)))
-    const { data, error } = await supabase.from('tasks').update(values).eq('id', task.id).select('updated_at')
+    const { data, error } = await saveTask(task.id, values)
     if (data?.[0]) setTasks(list => list.map(x => (x.id === task.id ? { ...x, updated_at: data[0].updated_at } : x)))
     if (error) { notify(userMessage(error), 'error'); load() }
   }

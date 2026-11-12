@@ -9,7 +9,7 @@ import { expectAccessible, waitForServiceWorker } from './helpers.js'
 import { addItem, addToGig, pageAs } from './setup.js'
 import { readZip, zipText, bytesOf } from './files.js'
 import { barsOf, layoutFixtures, viewArea } from '../../src/lib/lightPlot.js'
-import { TAG, LOAD, uniq, ok, readBell, toolGig, fixtureFile, openTool, screenPoint, drag } from './fieldtoolsSupport.js'
+import { TAG, LOAD, uniq, ok, readBell, toolGig, fixtureFile, openTool, screenPoint, drag, holdNextShowSave } from './fieldtoolsSupport.js'
 
 test.use({ area: 'fieldtools' })
 
@@ -248,14 +248,13 @@ test('patch: two stage boxes, sockets chosen and the rest filled, printed', { ta
   await patch.getByRole('button', { name: 'Add stage box' }).first().click()
   const sb1 = patch.getByRole('region', { name: /^SB1/ })
   await expect(sb1).toContainText('0 of 16 used', LOAD)
+  await expect.poll(boxes, LOAD).toEqual([{ name: 'SB1', inputs: 16, split: false }])
+  // Then quick changes, the first save held back on a slow network: split, SB2, 8 inputs (issue #229)
+  await holdNextShowSave(page)
   await sb1.getByRole('checkbox', { name: 'Split to monitors' }).check()
   await expect(sb1).toContainText('SPLIT')
-  // Each change saved before the next (two a moment apart can be saved out of order, issue #229)
-  await expect.poll(boxes, LOAD).toEqual([{ name: 'SB1', inputs: 16, split: true }])
-  // SB2 with 8 inputs
   await patch.getByRole('button', { name: 'Add stage box' }).first().click()
   const sb2 = patch.getByRole('region', { name: /^SB2/ })
-  await expect.poll(boxes, LOAD).toEqual([{ name: 'SB1', inputs: 16, split: true }, { name: 'SB2', inputs: 16, split: false }])
   await sb2.getByLabel('Inputs').fill('8')
   await sb2.getByLabel('Inputs').blur()
   await expect(sb2).toContainText('0 of 8 used', LOAD)
@@ -372,12 +371,13 @@ test('light plot: a truss and a pipe dragged into place with phases, fixtures ad
 
   // A phase each: the truss on L1, the pipe on L2
   const positions = page.getByRole('region', { name: 'Positions' })
-  // (each saved before the next: two changes a moment apart can be saved out of order, issue #229)
+  // (one quickly after the other, the first save held back on a slow network: both kept, issue #229)
+  await holdNextShowSave(page)
   for (const [name, phase] of [['Truss 1', 1], ['Pipe 1', 2]]) {
     await positions.getByRole('button', { name: new RegExp(`^${name} `) }).click()
     await page.getByRole('group', { name: `Selected: ${name}` }).getByRole('combobox', { name: 'Phase' }).selectOption(`L${phase}`)
-    await expect.poll(async () => (await bars()).find(b => b.name === name).phase, LOAD).toBe(phase)
   }
+  await expect.poll(async () => (await bars()).map(b => [b.name, b.phase]), LOAD).toEqual([['Truss 1', 1], ['Pipe 1', 2]])
   await expect(positions).toContainText('Truss · 10 m · L1')
 
   // The truss → Add fixtures here: 6 spots
