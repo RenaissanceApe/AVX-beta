@@ -1,8 +1,9 @@
 # NT1: nightly signed-in run green and trustworthy
 
 Worker notes for the release worker (docs/PARALLEL.md, "Worker rules"). Issues: #239 (first nightly,
-8 failures), #237 (equal washes), new: #243 ("Add to <organisation>" on a phone) and #245 (a
-channel opened by its link can wrongly be read-only).
+8 failures), #237 (equal washes), new: #243 ("Add to <organisation>" on a phone), #245 (a
+channel opened by its link can wrongly be read-only) and #246 (a line array added before the
+catalogue loads is saved without its weight and bumper).
 
 ## What each of the 8 failures was
 
@@ -24,6 +25,11 @@ opened the channel by its link before their organisations had loaded and got "Yo
 channel but not post in it" (app bug, #245). The #211 test now opens the channel from the list, as a
 person does; a new test holds the organisations back 3 s so the bad order happens every time, marked
 `test.fail()` for #245.
+
+Also found while re-running: `fieldtools-power.spec.js:586` (line array) failed 1 run in 6: the array
+was added ~30 ms before the catalogue's speakers arrived, so it was saved as "0 kg" without its
+K2-BUMP (app bug, #246). The test now waits for the speakers before picking; a new test holds them
+back 3 s, marked `test.fail()` for #246.
 
 Also in that run: shard 2's sweep failed ("viewer (inventory): signing in failed: {}") at 06:50–06:51.
 
@@ -50,9 +56,9 @@ The sweep now treats a sign-in that fails with a 5xx/52x, an empty answer (`{}`)
 - Nightly browser tests: fixed four tests that failed for reasons other than the app (equal lights
   placed in random order, the CI browser's notification setting, a phone check that ran before the
   list had loaded) and made the night run two groups of tests at a time instead of four, which
-  overloaded the test database until it restarted. Two app bugs found on the way are #243 (a
-  button on a gig's Crew tab runs off a phone's screen) and #245 (a channel opened by its link can
-  wrongly say you can't post).
+  overloaded the test database until it restarted. Three app bugs found on the way are #243 (a
+  button on a gig's Crew tab runs off a phone's screen), #245 (a channel opened by its link can
+  wrongly say you can't post) and #246 (a line array added very quickly is saved without its weight).
 
 ## For docs/PENDING.md
 
@@ -67,6 +73,8 @@ Section 3 (questions): see "Needs your decision" in the PR.
   long organisation name. `CrewTab.jsx` ~210, `btn` in `ui.jsx` has `flexShrink: 0`.
 - **#245 (should fix):** `MessagesPage.jsx` `OpenConversation.load()` (~297) decides `canPost` for an
   organisation channel from `roleIn()` before the organisations have loaded, and never looks again.
+- **#246 (should fix):** `LineArrays.jsx` `add()` (~32) looks the speaker up before the catalogue has
+  loaded and saves the array without weight, preset and bumper.
 - **The test project's database restarted under four browsers (should fix, owner's call):** if the
   test project is on the same compute size as production, a busy day in production could do the
   same. Worth comparing the two projects' compute sizes. No issue opened: it's a question for the

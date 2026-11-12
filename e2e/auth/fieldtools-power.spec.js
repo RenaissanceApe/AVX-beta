@@ -582,6 +582,9 @@ async function openArrayForm(arr) {
   if (!(await arr.getByRole('spinbutton', { name: 'Elements' }).isVisible())) await summary.click()
 }
 
+// The rigging tool's request for the catalogue's line-array speakers
+const isSpeakerList = r => { const u = new URL(r.url()); return u.pathname.endsWith('/rest/v1/price_items') && !!u.searchParams.get('speaker_type') }
+
 // covers: T117
 test('line array from the sound system: name, 12 × K2 and K2-BUMP come with it; splays drive the side view; 16, 17 and 25 elements against the limits', { tag: TAG }, async ({ adminWithOrg }) => {
   test.setTimeout(180_000)
@@ -592,7 +595,11 @@ test('line array from the sound system: name, 12 × K2 and K2-BUMP come with it;
   await readBell(account)
   const arrays = () => arraysOfGig(account, gig)
 
+  // The catalogue's speakers have arrived before the array is added: picked earlier, the array is
+  // saved without its weight and bumper (#246, its own test below)
+  const speakersLoaded = page.waitForResponse(isSpeakerList, LOAD)
   await openTool(page, gig, 'rigging')
+  await speakersLoaded
   const section = page.getByRole('region', { name: 'Line arrays' })
   await section.getByRole('combobox', { name: 'Add an array from the sound system calculator' }).selectOption({ label: 'Main L · 12 elements' })
   await expect.poll(async () => (await arrays()).length, LOAD).toBe(1)
@@ -634,6 +641,28 @@ test('line array from the sound system: name, 12 × K2 and K2-BUMP come with it;
   await expect(arr).toContainText("25 elements: over the manufacturer's maximum (24).")
 })
 
+
+// covers: T117
+test('a line array added from the sound system while the catalogue is still loading gets its weight and bumper', { tag: TAG }, async ({ adminWithOrg }) => {
+  test.fail(true, '#246: the array is saved from the speakers list before it has loaded, without the element weight and bumper')
+  const { page, world, account, org } = adminWithOrg
+  const { gig } = await toolGig(world, 'Arrays early', ['system_calc', 'rigging'])
+  const k2 = await addK2(account, org)
+  ok('Saving the sound system', await systemWith(account, gig, k2))
+  await readBell(account)
+  // The speakers arrive 3 s late: the order a slow connection gives, made the same every time
+  await page.route(url => url.pathname.endsWith('/rest/v1/price_items') && !!url.searchParams.get('speaker_type'), async route => {
+    await new Promise(resolve => setTimeout(resolve, 3_000))
+    await route.continue()
+  })
+  await openTool(page, gig, 'rigging')
+  const section = page.getByRole('region', { name: 'Line arrays' })
+  await section.getByRole('combobox', { name: 'Add an array from the sound system calculator' }).selectOption({ label: 'Main L · 12 elements' })
+  const arr = section.getByRole('article', { name: 'Main L' })
+  await expect(arr).toContainText(`12 × ${k2.name}`, LOAD)
+  await expect(arr).toContainText('K2-BUMP', LOAD)
+  await expect(arr).toContainText('12 elements 672 kg')
+})
 // covers: T118
 test('line array picks: centre of gravity splits the load 72/28; a negative one lifts a pick; a pullback asks for Soundvision\'s loads; a pick hung from a truss line', { tag: TAG }, async ({ adminWithOrg }) => {
   test.setTimeout(240_000)
