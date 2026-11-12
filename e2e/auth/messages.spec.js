@@ -286,7 +286,13 @@ test('an organisation channel: admins only write, an announcement is confirmed, 
 
   // Pin a message: the bar above the conversation shows it. In a conversation this short the
   // menu opens under the header (see the test.fail below), so the item is chosen with the keyboard.
-  const pin = (await menuOf(page, hello)).getByRole('menuitem', { name: 'Pin' })
+  // (Pin shows for whoever runs the channel; the app looks that up once when the conversation
+  // opens, and on a busy test project that lookup can time out: then the page is loaded again)
+  let pin = (await menuOf(page, hello)).getByRole('menuitem', { name: 'Pin' })
+  if (!(await pin.waitFor({ state: 'attached', timeout: 15_000 }).then(() => true, () => false))) {
+    await page.reload()
+    pin = (await menuOf(page, hello)).getByRole('menuitem', { name: 'Pin' })
+  }
   await pin.focus()
   await pin.press('Enter')
   await expect(page.getByRole('button', { name: /1 pinned/ })).toBeVisible({ timeout: 15_000 })

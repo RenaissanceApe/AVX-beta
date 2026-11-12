@@ -58,6 +58,9 @@ What stays by hand, and why:
   finding; made accessibility checks on chats with photos depend on timing).
 - #146 (already open): colour contrast on the client's quote page and its conversation; the
   supplier's page has the same grey text.
+- Nice to have: a conversation looks up once whether you run it (`canManage` in `Conversation.jsx`);
+  if that query fails (it did on the overloaded test project), Pin, announcements and moderation
+  disappear until a reload. The T13 test reloads once if Pin is missing.
 - Nice to have (seen once in 3 runs): an edited message didn't update live on the other person's
   open chat within 20 s (the realtime UPDATE didn't arrive); after a reload it showed. The test now
   reloads there. Worth watching in the nightly runs.
