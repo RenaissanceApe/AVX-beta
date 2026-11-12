@@ -5,6 +5,7 @@
 import { createHash } from 'node:crypto'
 import { test, expect } from './fixtures.js'
 import { expectAccessible } from './helpers.js'
+import { emailSummaryCandidates } from './testSupport.js'
 import { addGig, addItem, addOrg, addToGig, pageAs } from './setup.js'
 
 test.use({ area: 'gigs' })
@@ -519,4 +520,112 @@ test('the bell with more than 9 unread notifications passes the accessibility ch
   } finally {
     await page.context().close()
   }
+})
+
+// covers: T1 (the invite and the bell; the email itself is checked by hand)
+test('adding someone to a gig from the Crew tab puts it in their bell', { tag: '@gigs' }, async ({ adminWithOrg, member }) => {
+  const { page, account: admin, org } = adminWithOrg
+  const gig = await addGig(admin, org.id, { name: `E2E Invite ${stamp()}` })
+  await readNotifications(member.account)
+
+  await page.goto(`${gig.path}?tab=crew`)
+  await page.getByRole('button', { name: 'Invite crew' }).first().click()
+  const invite = page.getByRole('dialog', { name: 'Invite crew member' })
+  await invite.getByPlaceholder('technician@company.com').fill(member.account.email)
+  await invite.getByLabel('Function / role on gig').fill('Monitor engineer')
+  await expectAccessible(page)
+  await invite.getByRole('button', { name: 'Add to gig' }).click()
+  await expect(page.locator('li.crew-row').filter({ hasText: member.account.name })).toContainText('Monitor engineer', { timeout: 15_000 })
+
+  const theirs = member.page
+  await theirs.goto('/me')
+  const bell = theirs.getByRole('button', { name: '1 unread notification' })
+  await expect(bell).toBeVisible({ timeout: 20_000 })
+  await bell.click()
+  await theirs.getByRole('dialog', { name: 'Notifications' }).getByRole('button', { name: new RegExp(`added you to ${gig.name}`) }).click()
+  await expect(theirs).toHaveURL(new RegExp(gig.path))
+  await expect(theirs.getByRole('heading', { name: gig.name })).toBeVisible({ timeout: 15_000 })
+})
+
+// covers: T1 (the next morning's email summary would include it). Skips until test_support is installed.
+test('a gig invite is in the member\'s next morning email summary', { tag: '@gigs' }, async ({ adminWithOrg, world }) => {
+  const { account: admin, org } = adminWithOrg
+  const person = await world.member()
+  await readNotifications(person)
+  const gig = await addGig(admin, org.id, { name: `E2E Summary ${stamp()}` })
+  await addToGig(admin, gig.id, person)
+  const rows = await emailSummaryCandidates(admin, org.id)
+  const theirs = rows.filter(r => r.user_id === person.id)
+  expect(theirs.reduce((n, r) => n + r.notifications, 0)).toBeGreaterThanOrEqual(1)
+  expect(theirs.every(r => !r.opted_out && !r.muted)).toBe(true)
+})
+
+// covers: T51
+test('checklist templates, organisation tasks for a member, the filters and a task from a repair', { tag: '@gigs' }, async ({ adminWithOrg, member }) => {
+  const { page, account: admin, org, world } = adminWithOrg
+  const s = stamp()
+  const gig = await world.gig()
+  const tplName = `Van check ${s}`
+
+  // Organisation → Tasks → Checklist templates: a "Van check" with four lines
+  await page.goto(`${org.path}/tasks?tab=templates`)
+  await expect(page.getByRole('tab', { name: 'Checklist templates', selected: true })).toBeVisible({ timeout: 15_000 })
+  await page.getByRole('button', { name: 'New template' }).first().click()
+  const tplForm = page.getByRole('dialog', { name: 'New template' })
+  await tplForm.getByLabel('Name').fill(tplName)
+  await tplForm.getByLabel('Checklist').fill('Tyres\nLights\nFuel\nStraps')
+  await tplForm.getByRole('button', { name: 'Save template' }).click()
+  await expect(page.getByText(tplName)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('4 items · Tyres, Lights, Fuel…')).toBeVisible()
+  await expectAccessible(page)
+
+  // A gig's Tasks tab: New task → Start from a template fills the title and the checklist
+  await page.goto(`${gig.path}?tab=tasks`)
+  await page.getByRole('button', { name: 'New task' }).first().click()
+  const taskForm = page.getByRole('dialog', { name: 'New task' })
+  await taskForm.getByLabel('Start from a template').selectOption({ label: tplName })
+  await expect(taskForm.getByLabel('What')).toHaveValue(tplName)
+  await expect(taskForm.getByLabel('Checklist')).toHaveValue('Tyres\nLights\nFuel\nStraps')
+  await taskForm.getByRole('button', { name: 'Save task' }).click()
+  await expect(page.getByRole('listitem').filter({ has: page.getByRole('button', { name: tplName }) }).first()).toContainText('0/4')
+
+  // Organisation → Tasks: a task for a member of the organisation
+  await readNotifications(member.account)
+  const orgTask = `Count the cables ${s}`
+  await page.goto(`${org.path}/tasks`)
+  await page.getByRole('button', { name: 'New task' }).first().click()
+  const orgForm = page.getByRole('dialog', { name: 'New task' })
+  await orgForm.getByLabel('What').fill(orgTask)
+  await orgForm.getByLabel('For').selectOption(member.account.id)
+  await orgForm.getByRole('button', { name: 'Save task' }).click()
+  await expect(page.getByRole('button', { name: orgTask })).toBeVisible({ timeout: 15_000 })
+
+  // The filters: Organisation shows its own tasks, On gigs the gigs' ones
+  const filters = page.getByRole('group', { name: 'Show tasks' })
+  await filters.getByRole('button', { name: 'Organisation' }).click()
+  await expect(page.getByRole('button', { name: orgTask })).toBeVisible()
+  await expect(page.getByRole('button', { name: tplName })).toHaveCount(0)
+  await filters.getByRole('button', { name: 'On gigs' }).click()
+  await expect(page.getByRole('button', { name: tplName }).first()).toBeVisible()
+  await expect(page.getByRole('button', { name: orgTask })).toHaveCount(0)
+  await expectAccessible(page)
+
+  // The member gets a notification that opens My tasks, with the task in it
+  const theirs = member.page
+  await theirs.goto('/me')
+  await theirs.getByRole('button', { name: '1 unread notification' }).click({ timeout: 20_000 })
+  await theirs.getByRole('dialog', { name: 'Notifications' }).getByRole('button', { name: new RegExp(`gave you a task: ${orgTask}`) }).click()
+  await expect(theirs).toHaveURL(/\/tasks$/)
+  await expect(theirs.getByRole('button', { name: orgTask })).toBeVisible({ timeout: 15_000 })
+
+  // Inventory → Maintenance: a repair makes a task once; the second time it says it already has one
+  const item = await addItem(admin, org.id, { name: `E2E Moving Head ${s}` })
+  const repair = await admin.client.from('repairs').insert({ org_id: org.id, item_id: item.id, quantity: 1, problem: `Fan noise ${s}` }).select('id').single()
+  expect(repair.error).toBeNull()
+  await page.goto(`${org.path}/inventory?tab=maintenance`)
+  await page.getByRole('button', { name: new RegExp(`Fan noise ${s}`) }).click({ timeout: 15_000 })
+  await page.getByRole('button', { name: 'Make a task' }).click()
+  await expect(page.getByText('Task made. Give it to someone on the Tasks page.')).toBeVisible({ timeout: 15_000 })
+  await page.getByRole('button', { name: 'Make a task' }).click()
+  await expect(page.getByText('This repair already has a task.')).toBeVisible({ timeout: 15_000 })
 })
