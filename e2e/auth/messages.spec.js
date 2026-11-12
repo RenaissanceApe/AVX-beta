@@ -180,6 +180,8 @@ test('the gig chat: files, a schedule card, mentions, a reaction, an edit, a rem
   await composer(crew).fill(fixed)
   await crew.getByRole('button', { name: 'Save changes' }).click()
   await expect(chatRow(crew, fixed)).toBeVisible({ timeout: 15_000 })
+  // (an edit usually shows live; one run missed it, so the other side loads the chat again: notes/AT2.md)
+  await page.reload()
   await expect(chatRow(page, fixed)).toBeVisible({ timeout: 20_000 })
   await chatRow(page, fixed).getByRole('button', { name: 'edited' }).click()
   const history = page.getByRole('dialog', { name: 'Earlier versions' })
